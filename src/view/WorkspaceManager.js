@@ -25,7 +25,7 @@
 /*global define, window, $, brackets */
 
 /**
- * Manages layout of panels surrounding the editor area, and size of the editor area (but not its contents).
+* Manages layout of panels surrounding the editor area, and size of the editor area (but not its contents).
  * 
  * Updates panel sizes when the window is resized. Maintains the max resizing limits for panels, based on
  * currently available window size.

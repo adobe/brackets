@@ -50,6 +50,7 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
         CommandManager      = require("command/CommandManager"),
         EditorManager       = require("editor/EditorManager"),
         PerfUtils           = require("utils/PerfUtils"),
@@ -74,7 +75,7 @@ define(function (require, exports, module) {
     /** 
      * Change the doc selection to the working set when ever a new file is added to the working set
      */
-    $(DocumentManager).on("paneListAdd", function (event, addedFile) {
+    $(MainViewManager).on("paneListAdd", function (event, addedFile) {
         _fileSelectionFocus = PANE_LIST_VIEW;
         $(exports).triggerHandler("documentSelectionFocusChange");
     });

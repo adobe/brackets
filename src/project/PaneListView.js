@@ -37,6 +37,7 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var DocumentManager       = require("document/DocumentManager"),
+        MainViewManager       = require("view/MainViewManager"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
         Menus                 = require("command/Menus"),
@@ -58,7 +59,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Internal flag to suppress redrawing the Working Set after a workingSetSort event.
+     * Internal flag to suppress redrawing the Working Set after a paneListSort event.
      * @type {boolean}
      */
     var _suppressSortRedraw = false;
@@ -166,6 +167,10 @@ define(function (require, exports, module) {
         });
     }
 
+    function _getMyPaneID() {
+        return MainViewManager.FOCUSED_PANE;
+    }
+    
     /**
      * @private
      * Looks for files with the same name in the working set
@@ -173,7 +178,7 @@ define(function (require, exports, module) {
      */
     function _checkForDuplicatesInWorkingTree() {
         var map = {},
-            fileList = DocumentManager.getWorkingSet();
+            fileList = MainViewManager.getPaneList(_getMyPaneID());
 
         // We need to always clear current directories as files could be removed from working tree.
         $openFilesContainer.find("ul > li > a > span.directory").remove();
@@ -202,7 +207,9 @@ define(function (require, exports, module) {
      * Shows/Hides open files list based on working set content.
      */
     function _redraw() {
-        if (DocumentManager.getWorkingSet().length === 0) {
+        var fileList = MainViewManager.getPaneList(_getMyPaneID());
+        
+        if (fileList.length === 0) {
             $openFilesContainer.hide();
             $workingSetHeader.hide();
         } else {
@@ -508,9 +515,11 @@ define(function (require, exports, module) {
      * @private
      */
     function _rebuildWorkingSet(forceRedraw) {
-        $openFilesContainer.find("ul").empty();
+        var fileList = MainViewManager.getPaneList(_getMyPaneID());
 
-        DocumentManager.getWorkingSet().forEach(function (file) {
+        $openFilesContainer.find("ul").empty();
+        
+        fileList.forEach(function (file) {
             _createNewListItem(file);
         });
 
@@ -545,7 +554,9 @@ define(function (require, exports, module) {
      * @private
      */
     function _handleFileAdded(file, index) {
-        if (index === DocumentManager.getWorkingSet().length - 1) {
+        var fileList = MainViewManager.getPaneList(_getMyPaneID());
+        
+        if (index === fileList.length - 1) {
             // Simple case: append item to list
             _createNewListItem(file);
             _redraw();
@@ -603,7 +614,7 @@ define(function (require, exports, module) {
     /**
      * @private
      */
-    function _handleWorkingSetSort() {
+    function _handlePaneListSort() {
         if (!_suppressSortRedraw) {
             _rebuildWorkingSet(true);
         }
@@ -645,7 +656,7 @@ define(function (require, exports, module) {
         $openFilesList = $openFilesContainer.find("ul");
         
         // Register listeners
-        $(DocumentManager).on("paneListAdd", function (event, addedFile) {
+        $(MainViewManager).on("paneListAdd", function (event, addedFile) {
             _handleFileAdded(addedFile);
         });
 
@@ -661,8 +672,8 @@ define(function (require, exports, module) {
             _handleRemoveList(removedFiles);
         });
         
-        $(DocumentManager).on("workingSetSort", function (event) {
-            _handleWorkingSetSort();
+        $(DocumentManager).on("paneListSort", function (event) {
+            _handlePaneListSort();
         });
 
         $(DocumentManager).on("dirtyFlagChange", function (event, doc) {

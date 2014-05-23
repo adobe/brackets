@@ -333,7 +333,7 @@ define(function (require, exports, module) {
                                 //  doc may be null, i.e. if an image has been opened.
                                 // Then we do not add the opened file to the working set.
                                 if (doc) {
-                                    DocumentManager.addToWorkingSet(doc.file);
+                                    MainViewManager.addToPaneList(MainViewManager.FOCUSED_PANE, doc.file);
                                 }
                                 _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(EditorManager.getCurrentlyViewedPath());
                             })
@@ -425,7 +425,7 @@ define(function (require, exports, module) {
             // When opening a file with a custom viewer, we get a null doc.
             // So check it before we add it to the working set.
             if (doc) {
-                DocumentManager.addToWorkingSet(doc.file, commandData.index, commandData.forceRedraw);
+                MainViewManager.addToPaneList(MainViewManager.FOCUSED_PANE, doc.file, commandData.index, commandData.forceRedraw);
             }
         });
     }

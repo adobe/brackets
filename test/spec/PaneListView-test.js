@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         Commands,               // Load from brackets.test
         DocumentManager,        // Load from brackets.test
         FileViewController,     // Load from brackets.test
+        MainViewManager,        // Load from brackets.test
         SpecRunnerUtils         = require("spec/SpecRunnerUtils");
 
 
@@ -70,6 +71,7 @@ define(function (require, exports, module) {
                 Commands            = testWindow.brackets.test.Commands;
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
                 FileViewController  = testWindow.brackets.test.FileViewController;
+                MainViewManager     = testWindow.brackets.test.MainViewManager;
 
                 // Open a directory
                 if (loadProject) {
@@ -79,7 +81,7 @@ define(function (require, exports, module) {
             
             runs(function () {
                 // Initialize: register listeners
-                testWindow.$(DocumentManager).on("paneListAdd", function (event, addedFile) {
+                testWindow.$(MainViewManager).on("paneListAdd", function (event, addedFile) {
                     workingSetCount++;
                 });
             });

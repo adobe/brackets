@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
+        MainViewManager         = require("view/MainViewManager"),
         DocumentManager         = require("document/DocumentManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         FileUtils               = require("file/FileUtils"),
@@ -70,6 +71,12 @@ define(function (require, exports, module) {
      */
     var _openedDocument = false;
     
+    var _sortPrefConversionMap = {
+        "view.sortWorkingSetByAdded" : "cmd.sortPaneListByAdded",
+        "view.sortWorkingSetByName"  : "cmd.sortPaneListByName",
+        "view.sortWorkingSetByType"  : "cmd.sortPanelistByType"
+    };
+    
     /**
      * Retrieves a Sort object by id
      * @param {(string|Command)} command A command ID or a command object.
@@ -78,7 +85,6 @@ define(function (require, exports, module) {
     function get(command) {
         var commandID;
         if (!command) {
-            console.error("Attempting to get a Sort method with a missing required parameter: command");
             return;
         }
         
@@ -88,6 +94,19 @@ define(function (require, exports, module) {
             commandID = command.getID();
         }
         return _sorts[commandID];
+    }
+    
+    function _convertSortPref(sortMethod) {
+        if (!sortMethod) {
+            return;
+        }
+        
+        if (_sortPrefConversionMap.hasOwnProperty(sortMethod)) {
+            sortMethod = _sortPrefConversionMap[sortMethod];
+            PreferencesManager.setViewState("currentSort", sortMethod);
+        }
+        
+        return sortMethod;
     }
     
     /**
@@ -102,7 +121,9 @@ define(function (require, exports, module) {
      * Removes the sort DocumentManager listeners.
      */
     function _removeListeners() {
+        // TODO: Remove This
         $(DocumentManager).off(".sort");
+        $(MainViewManager).off(".sort");
     }
     
     /**
@@ -127,7 +148,15 @@ define(function (require, exports, module) {
      */
     function _addListeners() {
         if (_automaticSort && _currentSort && _currentSort.getEvents()) {
+            //TODO: REMOVE THIS
             $(DocumentManager)
+                .on(_currentSort.getEvents(), function () {
+                    _currentSort.sort();
+                })
+                .on("paneListDisableAutoSorting.sort", function () {
+                    setAutomatic(false);
+                });
+            $(MainViewManager)
                 .on(_currentSort.getEvents(), function () {
                     _currentSort.sort();
                 })
@@ -315,14 +344,17 @@ define(function (require, exports, module) {
     
     // Initialize items dependent on extensions/workingSet
     AppInit.appReady(function () {
-        var curSort  = get(PreferencesManager.getViewState("currentSort")),
-            autoSort = PreferencesManager.getViewState("automaticSort");
+        var sortMethod = _convertSortPref(PreferencesManager.getViewState("currentSort")),
+            curSort    = get(sortMethod),
+            autoSort   = PreferencesManager.getViewState("automaticSort");
+        
+
         
         if (curSort) {
             _setCurrentSort(curSort);
         }
         if (autoSort) {
-            setAutomatic(true);
+            _automaticSort = true;
         }
         if (curSort && autoSort) {
             curSort.sort();

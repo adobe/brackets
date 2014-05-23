@@ -71,10 +71,10 @@
  *      2nd arg to the listener is the removed File.
  *    - workingSetRemoveList -- When multiple files are removed from the working set (e.g. project close).
  *      The 2nd arg to the listener is the array of removed File objects.
- *    - workingSetSort -- When the workingSet array is reordered without additions or removals.
+ *    - paneListSort -- When the workingSet array is reordered without additions or removals.
  *      Listener receives no arguments.
  *
- *    - paneListDisableAutoSorting -- Dispatched in addition to workingSetSort when the reorder was caused
+ *    - paneListDisableAutoSorting -- Dispatched in addition to paneListSort when the reorder was caused
  *      by manual dragging and dropping. Listener receives no arguments.
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
@@ -92,6 +92,8 @@ define(function (require, exports, module) {
     var _ = require("thirdparty/lodash");
     
     var DocumentModule      = require("document/Document"),
+        DeprecationWarning  = require("utils/DeprecationWarning"),
+        MainViewManager     = require("view/MainViewManager"),
         ProjectManager      = require("project/ProjectManager"),
         EditorManager       = require("editor/EditorManager"),
         FileSyncManager     = require("project/FileSyncManager"),
@@ -106,11 +108,15 @@ define(function (require, exports, module) {
         LanguageManager     = require("language/LanguageManager"),
         Strings             = require("strings");
 
+
+    
+    // _currentDocument is temporarily moved to avoid a circular dependency
     /**
      * @private
      * @see DocumentManager.getCurrentDocument()
      */
     var _currentDocument = null;
+    
     
     /**
      * Returns the Document that is currently open in the editor UI. May be null.
@@ -128,27 +134,7 @@ define(function (require, exports, module) {
      */
     var _untitledDocumentPath = "/_brackets_" + _.random(10000000, 99999999);
 
-    /**
-     * @private
-     * @type {Array.<File>}
-     * @see DocumentManager.getWorkingSet()
-     */
-    var _paneList = [];
-    
-    /**
-     * @private
-     * Contains the same set of items as _paneList, but ordered by how recently they were _currentDocument (0 = most recent).
-     * @type {Array.<File>}
-     */
-    var _paneListMRUOrder = [];
-    
-    /**
-     * @private
-     * Contains the same set of items as _paneList, but ordered in the way they where added to _paneList (0 = last added).
-     * @type {Array.<File>}
-     */
-    var _paneListAddedOrder = [];
-    
+  
     /**
      * While true, the MRU order is frozen
      * @type {boolean}
@@ -175,7 +161,8 @@ define(function (require, exports, module) {
      * @return {Array.<File>}
      */
     function getWorkingSet() {
-        return _.clone(_paneList);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneList() instead of DocumentManager.getWorkingSet()", true);
+        return MainViewManager.getPaneList(MainViewManager.FOCUSED_PANE);
     }
 
     /**
@@ -187,23 +174,30 @@ define(function (require, exports, module) {
      * @returns {number} index
      */
     function findInWorkingSet(fullPath, list) {
-        list = list || _paneList;
-        
-        return _.findIndex(list, function (file, i) {
-            return file.fullPath === fullPath;
-        });
+        DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneList() instead of DocumentManager.findInWorkingSet()", true);
+        if (list) {
+            DeprecationWarning.deprecationWarning("DocumentManager.findInWorkingSet() no longer supports an arbitrary array", true);
+        }
+        return MainViewManager.findInPaneList(MainViewManager.ALL_PANES, fullPath);
     }
     
     /**
-     * Returns the index of the file matching fullPath in _paneListAddedOrder.
+     * Returns the index of the file matching fullPath in MainViewManager._getPaneListAdded().
      * Returns -1 if not found.
      * @param {!string} fullPath
      * @returns {number} index
      */
     function findInWorkingSetAddedOrder(fullPath) {
-        return findInWorkingSet(fullPath, _paneListAddedOrder);
+        //DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneList() instead of DocumentManager.findInWorkingSetAddedOrder()", true);
+        return MainViewManager.findInPaneViewListAddedOrder(MainViewManager.ALL_PANES, fullPath);
     }
 
+    
+    // STUB
+    function _findInWorkingSetMRUOrder(fullPath) {
+        return MainViewManager.findInPaneViewListMRUOrder(MainViewManager.ALL_PANES, fullPath);
+    }
+    
     /**
      * Returns all Documents that are 'open' in the UI somewhere (for now, this means open in an
      * inline editor and/or a full-size editor). Only these Documents can be modified, and only
@@ -232,48 +226,8 @@ define(function (require, exports, module) {
      *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
      */
     function addToWorkingSet(file, index, forceRedraw) {
-        var indexRequested = (index !== undefined && index !== null && index !== -1);
-        
-        // If the file has a custom viewer, then don't add it to the working set.
-        if (EditorManager.getCustomViewerForPath(file.fullPath)) {
-            return;
-        }
-            
-        // If doc is already in working set, don't add it again
-        var curIndex = findInWorkingSet(file.fullPath);
-        if (curIndex !== -1) {
-            // File is in working set, but not at the specifically requested index - only need to reorder
-            if (forceRedraw || (indexRequested && curIndex !== index)) {
-                var entry = _paneList.splice(curIndex, 1)[0];
-                _paneList.splice(index, 0, entry);
-                $(exports).triggerHandler("workingSetSort");
-            }
-            return;
-        }
-
-        if (!indexRequested) {
-            // If no index is specified, just add the file to the end of the working set.
-            _paneList.push(file);
-        } else {
-            // If specified, insert into the working set list at this 0-based index
-            _paneList.splice(index, 0, file);
-        }
-        
-        // Add to MRU order: either first or last, depending on whether it's already the current doc or not
-        if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
-            _paneListMRUOrder.unshift(file);
-        } else {
-            _paneListMRUOrder.push(file);
-        }
-        
-        // Add first to Added order
-        _paneListAddedOrder.unshift(file);
-        
-        // Dispatch event
-        if (!indexRequested) {
-            index = _paneList.length - 1;
-        }
-        $(exports).triggerHandler("paneListAdd", [file, index]);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.addToPaneList() instead of DocumentManager.addToWorkingSet()", true);
+        return MainViewManager.addToPaneList(MainViewManager.FOCUSED_PANE, file, index, forceRedraw);
     }
     
     /**
@@ -297,17 +251,18 @@ define(function (require, exports, module) {
                 uniqueFileList.push(file);
 
                 // Add
-                _paneList.push(file);
+                MainViewManager._getPaneList().push(file);
 
                 // Add to MRU order: either first or last, depending on whether it's already the current doc or not
                 if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
-                    _paneListMRUOrder.unshift(file);
+                    MainViewManager._getPaneListMRU().unshift(file);
                 } else {
-                    _paneListMRUOrder.push(file);
+                    MainViewManager._getPaneListMRU().push(file);
                 }
                 
+                
                 // Add first to Added order
-                _paneListAddedOrder.splice(index, 1, file);
+                MainViewManager._getPaneListAdded().splice(index, 1, file);
             }
         });
         
@@ -331,9 +286,9 @@ define(function (require, exports, module) {
         }
         
         // Remove
-        _paneList.splice(index, 1);
-        _paneListMRUOrder.splice(findInWorkingSet(file.fullPath, _paneListMRUOrder), 1);
-        _paneListAddedOrder.splice(findInWorkingSet(file.fullPath, _paneListAddedOrder), 1);
+        MainViewManager._getPaneList().splice(index, 1);
+        MainViewManager._getPaneListMRU().splice(_findInWorkingSetMRUOrder(file.fullPath), 1);
+        MainViewManager._getPaneListAdded().splice(findInWorkingSetAddedOrder(file.fullPath), 1);
         
         // Dispatch event
         $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw]);
@@ -343,12 +298,15 @@ define(function (require, exports, module) {
      * Removes all files from the working set list.
      */
     function _removeAllFromWorkingSet() {
-        var fileList = _paneList;
+        var fileList = MainViewManager.getPaneList(),
+            mruList = MainViewManager._getPaneListMRU(),
+            addedList = MainViewManager._getPaneListAdded(),
+            masterList = MainViewManager._getPaneList();
 
         // Remove all
-        _paneList = [];
-        _paneListMRUOrder = [];
-        _paneListAddedOrder = [];
+        masterList = [];
+        mruList = [];
+        addedList = [];
 
         // Dispatch event
         $(exports).triggerHandler("workingSetRemoveList", [fileList]);
@@ -359,10 +317,10 @@ define(function (require, exports, module) {
      * @param {!Document}
      */
     function _markMostRecent(doc) {
-        var mruI = findInWorkingSet(doc.file.fullPath, _paneListMRUOrder);
+        var mruI = _findInWorkingSetMRUOrder(doc.file.fullPath);
         if (mruI !== -1) {
-            _paneListMRUOrder.splice(mruI, 1);
-            _paneListMRUOrder.unshift(doc.file);
+            MainViewManager._getPaneListMRU().splice(mruI, 1);
+            MainViewManager._getPaneListMRU().unshift(doc.file);
         }
     }
     
@@ -373,21 +331,21 @@ define(function (require, exports, module) {
      * @param {number} index  New file index
      */
     function swapWorkingSetIndexes(index1, index2) {
-        var length = _paneList.length - 1;
+        var length = MainViewManager._getPaneList().length - 1;
         var temp;
         
         if (index1 >= 0 && index2 <= length && index1 >= 0 && index2 <= length) {
-            temp = _paneList[index1];
-            _paneList[index1] = _paneList[index2];
-            _paneList[index2] = temp;
+            temp = MainViewManager._paneList()[index1];
+            MainViewManager._paneList()[index1] = MainViewManager._paneList()[index2];
+            MainViewManager._paneList()[index2] = temp;
             
-            $(exports).triggerHandler("workingSetSort");
+            $(exports).triggerHandler("paneListSort");
             $(exports).triggerHandler("paneListDisableAutoSorting");
         }
     }
     
     /**
-     * Sorts _paneList using the compare function
+     * Sorts MainViewManager._paneList using the compare function
      * @param {function(File, File): number} compareFn  The function that will be used inside JavaScript's
      *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
      *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
@@ -395,8 +353,8 @@ define(function (require, exports, module) {
      *      Documentation: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
      */
     function sortWorkingSet(compareFn) {
-        _paneList.sort(compareFn);
-        $(exports).triggerHandler("workingSetSort");
+        MainViewManager._getPaneList().sort(compareFn);
+        $(exports).triggerHandler("paneListSort");
     }
     
     
@@ -436,22 +394,22 @@ define(function (require, exports, module) {
         }
         
         if (EditorManager.getCurrentlyViewedPath()) {
-            var mruI = findInWorkingSet(EditorManager.getCurrentlyViewedPath(), _paneListMRUOrder);
+            var mruI = _findInWorkingSetMRUOrder(EditorManager.getCurrentlyViewedPath());
             if (mruI === -1) {
                 // If doc not in working set, return most recent working set item
-                if (_paneListMRUOrder.length > 0) {
-                    return _paneListMRUOrder[0];
+                if (MainViewManager._getPaneListMRU().length > 0) {
+                    return MainViewManager._getPaneListMRU()[0];
                 }
             } else {
                 // If doc is in working set, return next/prev item with wrap-around
                 var newI = mruI + inc;
-                if (newI >= _paneListMRUOrder.length) {
+                if (newI >= MainViewManager._getPaneListMRU().length) {
                     newI = 0;
                 } else if (newI < 0) {
-                    newI = _paneListMRUOrder.length - 1;
+                    newI = MainViewManager._getPaneListMRU().length - 1;
                 }
                 
-                return _paneListMRUOrder[newI];
+                return MainViewManager._getPaneListMRU()[newI];
             }
         }
         
@@ -480,7 +438,7 @@ define(function (require, exports, module) {
         // If file is untitled or otherwise not within project tree, add it to
         // working set right now (don't wait for it to become dirty)
         if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
-            addToWorkingSet(doc.file);
+            MainViewManager.addToPaneList(MainViewManager.FOCUSED_PANE, doc.file);
         }
         
         // Adjust MRU working set ordering (except while in the middle of a Ctrl+Tab sequence)
@@ -491,6 +449,10 @@ define(function (require, exports, module) {
         // Make it the current document
         var previousDocument = _currentDocument;
         _currentDocument = doc;
+        
+        // TODO: Remove this
+        MainViewManager._setCurrentDocument(_currentDocument);
+
         $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
         // (this event triggers EditorManager to actually switch editors in the UI)
         
@@ -507,6 +469,10 @@ define(function (require, exports, module) {
             // Change model & dispatch event
             var previousDocument = _currentDocument;
             _currentDocument = null;
+
+            // TODO: Remove this
+            MainViewManager._setCurrentDocument(_currentDocument);
+            
             // (this event triggers EditorManager to actually clear the editor UI)
             $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
         }
@@ -588,11 +554,11 @@ define(function (require, exports, module) {
             index = findInWorkingSet(file.fullPath);
             
             if (index !== -1) {
-                fileList.push(_paneList[index]);
+                fileList.push(MainViewManager.getPaneList()[index]);
                 
-                _paneList.splice(index, 1);
-                _paneListMRUOrder.splice(findInWorkingSet(file.fullPath, _paneListMRUOrder), 1);
-                _paneListAddedOrder.splice(findInWorkingSet(file.fullPath, _paneListAddedOrder), 1);
+                MainViewManager._getPaneList().splice(index, 1);
+                MainViewManager._getPaneListMRU().splice(_findInWorkingSetMRUOrder(file.fullPath), 1);
+                MainViewManager._getPaneListAdded().splice(findInWorkingSetAddedOrder(file.fullPath), 1);
             }
         });
         
@@ -887,8 +853,8 @@ define(function (require, exports, module) {
         EditorManager._resetViewStates(viewStates);
 
         // Initialize the active editor
-        if (!activeFile && _paneList.length > 0) {
-            activeFile = _paneList[0].fullPath;
+        if (!activeFile && MainViewManager._getPaneList().length > 0) {
+            activeFile = MainViewManager._paneList()[0].fullPath;
         }
 
         if (activeFile) {
@@ -989,7 +955,7 @@ define(function (require, exports, module) {
         .on("_dirtyFlagChange", function (event, doc) {
             $(exports).triggerHandler("dirtyFlagChange", doc);
             if (doc.isDirty) {
-                addToWorkingSet(doc.file);
+                MainViewManager.addToPaneList(MainViewManager.FOCUSED_PANE, doc.file);
             }
         })
         .on("_documentSaved", function (event, doc) {
@@ -1027,6 +993,7 @@ define(function (require, exports, module) {
     // For unit tests and internal use only
     exports._clearCurrentDocument       = _clearCurrentDocument;
     
+
     // Define public API
     exports.Document                    = DocumentModule.Document;
     exports.getCurrentDocument          = getCurrentDocument;
@@ -1040,7 +1007,6 @@ define(function (require, exports, module) {
     exports.findInWorkingSetAddedOrder  = findInWorkingSetAddedOrder;
     exports.getAllOpenDocuments         = getAllOpenDocuments;
     exports.setCurrentDocument          = setCurrentDocument;
-    exports.addToWorkingSet             = addToWorkingSet;
     exports.addListToWorkingSet         = addListToWorkingSet;
     exports.removeFromWorkingSet        = removeFromWorkingSet;
     exports.removeListFromWorkingSet    = removeListFromWorkingSet;
