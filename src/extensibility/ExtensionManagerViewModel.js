@@ -439,7 +439,7 @@ define(function (require, exports, module) {
         var self = this;
         this.notifyCount = 0;
         this.sortedFullSet.forEach(function (key) {
-            if (self.extensions[key].installInfo.updateCompatible) {
+            if (self.extensions[key].installInfo.updateCompatible && !ExtensionManager.isMarkedForUpdate(key)) {
                 self.notifyCount++;
             }
         });
