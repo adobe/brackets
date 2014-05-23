@@ -93,7 +93,7 @@ define(function (require, exports, module) {
          * @return {Promise} promise that is already resolved
          */
         load: function () {
-            var result = $.Deferred();
+            var result = (new $.Deferred());
             result.resolve(this.data);
             return result.promise();
         },
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
          * @return {Promise} promise that is already resolved
          */
         save: function (newData) {
-            var result = $.Deferred();
+            var result = (new $.Deferred());
             this.data = newData;
             result.resolve();
             return result.promise();
@@ -156,7 +156,7 @@ define(function (require, exports, module) {
          * @return {Promise} Resolved with the data once it has been parsed.
          */
         load: function () {
-            var result = $.Deferred();
+            var result = (new $.Deferred());
             var path = this.path;
             var createIfNew = this.createIfNew;
             var self = this;
@@ -200,7 +200,7 @@ define(function (require, exports, module) {
          * @return {Promise} Promise resolved (with no arguments) once the data has been saved
          */
         save: function (newData) {
-            var result = $.Deferred();
+            var result = (new $.Deferred());
             var path = this.path;
             var prefFile = FileSystem.getFileForPath(path);
             
@@ -275,7 +275,7 @@ define(function (require, exports, module) {
          * @return {Promise} Promise that is resolved once loading is complete
          */
         load: function () {
-            var result = $.Deferred();
+            var result = (new $.Deferred());
             this.storage.load()
                 .then(function (data) {
                     var oldKeys = this.getKeys();
@@ -302,7 +302,7 @@ define(function (require, exports, module) {
                 self._dirty = false;
                 return this.storage.save(this.data);
             } else {
-                return $.Deferred().resolve().promise();
+                return (new $.Deferred()).resolve().promise();
             }
         },
         
@@ -1064,8 +1064,9 @@ define(function (require, exports, module) {
         
         this._pendingScopes = {};
         
-        this._saveInProgress = false;
+        this._saveInProgress = null;
         this._nextSaveDeferred = null;
+        this.finalized = false;
         
         // The objects that define the different kinds of path-based Scope handlers.
         // Examples could include the handler for .brackets.json files or an .editorconfig
@@ -1552,31 +1553,37 @@ define(function (require, exports, module) {
         
         /**
          * Saves the preferences. If a save is already in progress, a Promise is returned for
-         * that save operation.
+         * that save operation. If preferences have already been finalized then return a
+         * rejected promise.
          * 
          * @return {Promise} Resolved when the preferences are done saving.
          */
         save: function () {
+            if (this.finalized) {
+                console.log("PreferencesSystem.save() called after finalized!");
+                return (new $.Deferred()).reject().promise();
+            }
+            
             if (this._saveInProgress) {
                 if (!this._nextSaveDeferred) {
-                    this._nextSaveDeferred = $.Deferred();
+                    this._nextSaveDeferred = (new $.Deferred());
                 }
                 return this._nextSaveDeferred.promise();
             }
             
-            this._saveInProgress = true;
-            var deferred = this._nextSaveDeferred || $.Deferred();
+            var deferred = this._nextSaveDeferred || (new $.Deferred());
+            this._saveInProgress = deferred;
             this._nextSaveDeferred = null;
             
             Async.doInParallel(_.values(this._scopes), function (scope) {
                 if (scope) {
                     return scope.save();
                 } else {
-                    return $.Deferred().resolve().promise();
+                    return (new $.Deferred()).resolve().promise();
                 }
             }.bind(this))
                 .then(function () {
-                    this._saveInProgress = false;
+                    this._saveInProgress = null;
                     if (this._nextSaveDeferred) {
                         this.save();
                     }
@@ -1742,6 +1749,25 @@ define(function (require, exports, module) {
          */
         getPrefixedSystem: function (prefix) {
             return new PrefixedPreferencesSystem(this, prefix + ".");
+        },
+        
+        /**
+         * Return a promise that is resolved when all preferences have been saved.
+         * Disallow any other preferences from getting saved after promise is resolved.
+         * 
+         * @return {Promise} Resolved when the preferences are done saving.
+         */
+        _finalize: function () {
+            // Return the promise for the `_nextSaveDeferred` if there is one.
+            // If there isn't, return the promise for the current save operation (if there is one).
+            // If there isn't one of those, return a resolved promise.
+            var deferred = this._nextSaveDeferred || this._saveInProgress || (new $.Deferred().resolve());
+            
+            deferred.done(function () {
+                this.finalized = true;
+            });
+            
+            return deferred.promise();
         }
     });
     
