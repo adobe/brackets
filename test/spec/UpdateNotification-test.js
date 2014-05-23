@@ -64,7 +64,7 @@ define(function (require, exports, module) {
             it("should show a notification if an update is available", function () {
                 var updateInfo = {
                     _buildNumber: 72,
-                    _lastNotifiedBuildNumber: 0,
+                    lastNotifiedBuildNumber: 0,
                     _versionInfoURL: updateInfoURL
                 };
 
@@ -81,7 +81,7 @@ define(function (require, exports, module) {
             it("should show update information for all available updates", function () {
                 var updateInfo = {
                     _buildNumber: 10,
-                    _lastNotifiedBuildNumber: 0,
+                    lastNotifiedBuildNumber: 0,
                     _versionInfoURL: updateInfoURL
                 };
 
@@ -100,7 +100,7 @@ define(function (require, exports, module) {
             it("should not show dialog if user has already been notified", function () {
                 var updateInfo = {
                     _buildNumber: 10,
-                    _lastNotifiedBuildNumber: 93,
+                    lastNotifiedBuildNumber: 93,
                     _versionInfoURL: updateInfoURL
                 };
 
@@ -118,7 +118,7 @@ define(function (require, exports, module) {
             it("should not show dialog if app is up to date", function () {
                 var updateInfo = {
                     _buildNumber: 93,
-                    _lastNotifiedBuildNumber: 0,
+                    lastNotifiedBuildNumber: 0,
                     _versionInfoURL: updateInfoURL
                 };
 
@@ -136,7 +136,7 @@ define(function (require, exports, module) {
             it("should show an 'up to date' alert if no updates are available and the user manually checks for updates", function () {
                 var updateInfo = {
                     _buildNumber: 93,
-                    _lastNotifiedBuildNumber: 93,
+                    lastNotifiedBuildNumber: 93,
                     _versionInfoURL: updateInfoURL
                 };
 
@@ -155,7 +155,7 @@ define(function (require, exports, module) {
             it("should sanitize text returned from server", function () {
                 var updateInfo = {
                     _buildNumber: 72,
-                    _lastNotifiedBuildNumber: 0,
+                    lastNotifiedBuildNumber: 0,
                     _versionInfoURL: maliciousInfoURL
                 };
 
@@ -177,7 +177,7 @@ define(function (require, exports, module) {
             it("should error dialog if json is broken and can not be parsed", function () {
                 var updateInfo = {
                     _buildNumber: 72,
-                    _lastNotifiedBuildNumber: 0,
+                    lastNotifiedBuildNumber: 0,
                     _versionInfoURL: brokenInfoURL
                 };
 
@@ -196,7 +196,7 @@ define(function (require, exports, module) {
         describe("Locale Fallback", function () {
             var updateInfo = {
                 _buildNumber: 72,
-                _lastNotifiedBuildNumber: 0,
+                lastNotifiedBuildNumber: 0,
                 _versionInfoURL: doesNotExistURL
             };
 
