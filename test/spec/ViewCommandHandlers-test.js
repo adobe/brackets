@@ -58,7 +58,7 @@ define(function (require, exports, module) {
             });
             
             runs(function () {
-                promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_LIST, {fullPath: HTML_FILE});
+                promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, {fullPath: HTML_FILE});
                 waitsForDone(promise, "Open into working set");
             });
             

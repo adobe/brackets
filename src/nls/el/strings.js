@@ -207,7 +207,7 @@ define({
     "CMD_FILE_NEW"                        : "Νέο Αρχείο",
     "CMD_FILE_NEW_FOLDER"                 : "Νέος Φάκελος",
     "CMD_FILE_OPEN"                       : "Άνοιγμα\u2026",
-    "CMD_ADD_TO_PANE_LIST"              : "Πρόσθεση στα Αρχεία Εργασίας",
+    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Πρόσθεση στα Αρχεία Εργασίας",
     "CMD_OPEN_DROPPED_FILES"              : "Άνοιγμα Αρχείων που ρίχτηκαν",
     "CMD_OPEN_FOLDER"                     : "Άνοιγμα Φακέλου\u2026",
     "CMD_FILE_CLOSE"                      : "Κλείσιμο",
@@ -272,9 +272,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Αναδίπλωση Λέξης",
     "CMD_LIVE_HIGHLIGHT"                  : "Επισήμανση Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Αρχείων κατά την Αποθήκευση",
-    "CMD_SORT_PANELIST_BY_ADDED"        : "Ταξινόμηση κατά Σειρά Προσθήκης",
-    "CMD_SORT_PANELIST_BY_NAME"         : "Ταξινόμηση κατά Όνομα",
-    "CMD_SORT_PANELIST_BY_TYPE"         : "Ταξινόμηση κατά Τύπο",
+    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Ταξινόμηση κατά Σειρά Προσθήκης",
+    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Ταξινόμηση κατά Όνομα",
+    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Ταξινόμηση κατά Τύπο",
     "CMD_TOGGLE_AUTO_SORT"            : "Αυτόματη Ταξινόμηση",
 
     // Navigate menu Commands

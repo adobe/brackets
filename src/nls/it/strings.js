@@ -231,7 +231,7 @@ define({
     "CMD_FILE_NEW"                        : "Nuovo File",
     "CMD_FILE_NEW_FOLDER"                 : "Nuova cartella",
     "CMD_FILE_OPEN"                       : "Apri\u2026",
-    "CMD_ADD_TO_PANE_LIST"              : "Aggiungi uno spazio di lavoro",
+    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Aggiungi uno spazio di lavoro",
     "CMD_OPEN_DROPPED_FILES"              : "Apri un file abbandonato",
     "CMD_OPEN_FOLDER"                     : "Apri cartella\u2026",
     "CMD_FILE_CLOSE"                      : "Chiudi",
@@ -300,9 +300,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"              : "A capo automaticamente",
     "CMD_LIVE_HIGHLIGHT"                : "Ispezione Anteprima Live",
     "CMD_VIEW_TOGGLE_INSPECTION"        : "Lint Files al salvataggio",
-    "CMD_SORT_PANELIST_BY_ADDED"      : "Ordina per data di aggiunta",
-    "CMD_SORT_PANELIST_BY_NAME"       : "Ordina per nome",
-    "CMD_SORT_PANELIST_BY_TYPE"       : "Ordina per tipo",
+    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"      : "Ordina per data di aggiunta",
+    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"       : "Ordina per nome",
+    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"       : "Ordina per tipo",
     "CMD_TOGGLE_AUTO_SORT"          : "Ordinamento automatico",
 
     // Navigate menu Commands

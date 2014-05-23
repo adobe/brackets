@@ -26,8 +26,8 @@
 
 /**
  * Responsible for coordinating file selection between views by permitting only one view
- * to show the current file selection at a time. Currently, only PaneListView and 
- * ProjectManager can show file selection. In general the PaneListView takes higher
+ * to show the current file selection at a time. Currently, only PaneViewListView and 
+ * ProjectManager can show file selection. In general the PaneViewListView takes higher
  * priority until the user selects a file in the ProjectManager.
  *
  * Events dispatched:
@@ -38,10 +38,10 @@
  *   set and the project tree, but the document selection has NOT changed
  *
  * Current file selection rules in views:
- * - select a file in PaneListView > select in PaneListView
- * - add a file to the PaneListView > select in PaneListView
+ * - select a file in PaneViewListView > select in PaneViewListView
+ * - add a file to the PaneViewListView > select in PaneViewListView
  * - select a file in ProjectManager > select in ProjectManager
- * - open a file from places other than the PaneListView or ProjectManager > 
+ * - open a file from places other than the PaneViewListView or ProjectManager > 
  *       select file in WorkignSetView if its in the working set, otherwise select in ProjectManager
  */
 
@@ -63,7 +63,7 @@ define(function (require, exports, module) {
      * @private 
      */
     var _curDocChangedDueToMe = false;
-    var PANE_LIST_VIEW = "PaneListView";
+    var PANE_VIEW_LIST_VIEW = "PaneViewListView";
     var PROJECT_MANAGER = "ProjectManager";
 
     /**
@@ -75,8 +75,8 @@ define(function (require, exports, module) {
     /** 
      * Change the doc selection to the working set when ever a new file is added to the working set
      */
-    $(MainViewManager).on("paneListAdd", function (event, addedFile) {
-        _fileSelectionFocus = PANE_LIST_VIEW;
+    $(MainViewManager).on("paneViewListAdd", function (event, addedFile) {
+        _fileSelectionFocus = PANE_VIEW_LIST_VIEW;
         $(exports).triggerHandler("documentSelectionFocusChange");
     });
 
@@ -90,7 +90,7 @@ define(function (require, exports, module) {
             var curDoc = DocumentManager.getCurrentDocument();
             perfTimerName = PerfUtils.markStart("FileViewController._onCurrentDocumentChange():\t" + (!curDoc || curDoc.file.fullPath));
             if (curDoc && DocumentManager.findInWorkingSet(curDoc.file.fullPath) !== -1) {
-                _fileSelectionFocus = PANE_LIST_VIEW;
+                _fileSelectionFocus = PANE_VIEW_LIST_VIEW;
             } else {
                 _fileSelectionFocus = PROJECT_MANAGER;
             }
@@ -120,10 +120,10 @@ define(function (require, exports, module) {
     /**
      * Modifies the selection focus in the project side bar. A file can either be selected
      * in the working set (the open files) or in the file tree, but not both.
-     * @param {String} fileSelectionFocus - either PROJECT_MANAGER or PANE_LIST_VIEW
+     * @param {String} fileSelectionFocus - either PROJECT_MANAGER or PANE_VIEW_LIST_VIEW
      */
     function setFileViewFocus(fileSelectionFocus) {
-        if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== PANE_LIST_VIEW) {
+        if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== PANE_VIEW_LIST_VIEW) {
             console.error("Bad parameter passed to FileViewController.setFileViewFocus");
             return;
         }
@@ -136,13 +136,13 @@ define(function (require, exports, module) {
      * Opens a document if it's not open and selects the file in the UI corresponding to
      * fileSelectionFocus
      * @param {!fullPath}
-     * @param {string} - must be either PANE_LIST_VIEW or PROJECT_MANAGER
+     * @param {string} - must be either PANE_VIEW_LIST_VIEW or PROJECT_MANAGER
      * @returns {$.Promise}
      */
     function openAndSelectDocument(fullPath, fileSelectionFocus) {
         var result;
 
-        if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== PANE_LIST_VIEW) {
+        if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== PANE_VIEW_LIST_VIEW) {
             console.error("Bad parameter passed to FileViewController.openAndSelectDocument");
             return;
         }
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
 
     /** 
      * Opens the specified document if it's not already open, adds it to the working set,
-     * and selects it in the PaneListView
+     * and selects it in the PaneViewListView
      * @param {!fullPath}
      * @param {?String} selectIn - specify either WORING_SET_VIEW or PROJECT_MANAGER.
      *      Default is WORING_SET_VIEW.
@@ -185,19 +185,19 @@ define(function (require, exports, module) {
      */
     function addToWorkingSetAndSelect(fullPath, selectIn, index) {
         var result = new $.Deferred(),
-            promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_LIST, {fullPath: fullPath, index: index});
+            promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, {fullPath: fullPath, index: index});
 
         // This properly handles sending the right nofications in cases where the document
         // is already the current one. In that case we will want to notify with
         // documentSelectionFocusChange so the views change their selection
         promise.done(function (doc) {
-            // CMD_ADD_TO_PANE_LIST command sets the current document. Update the 
+            // CMD_ADD_TO_PANE_VIEW_LIST command sets the current document. Update the 
             // selection focus only if doc is not null. When double-clicking on an
             // image file, we get a null doc here but we still want to keep _fileSelectionFocus
             // as PROJECT_MANAGER. Regardless of doc is null or not, call _selectCurrentDocument
             // to trigger documentSelectionFocusChange event.
             if (doc) {
-                _fileSelectionFocus = selectIn || PANE_LIST_VIEW;
+                _fileSelectionFocus = selectIn || PANE_VIEW_LIST_VIEW;
             }
             _selectCurrentDocument();
             
@@ -210,7 +210,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * returns either PANE_LIST_VIEW or PROJECT_MANAGER
+     * returns either PANE_VIEW_LIST_VIEW or PROJECT_MANAGER
      * @return {!String}
      */
     function getFileSelectionFocus() {
@@ -224,6 +224,6 @@ define(function (require, exports, module) {
     exports.openAndSelectDocument = openAndSelectDocument;
     exports.addToWorkingSetAndSelect = addToWorkingSetAndSelect;
     exports.setFileViewFocus = setFileViewFocus;
-    exports.PANE_LIST_VIEW = PANE_LIST_VIEW;
+    exports.PANE_VIEW_LIST_VIEW = PANE_VIEW_LIST_VIEW;
     exports.PROJECT_MANAGER = PROJECT_MANAGER;
 });

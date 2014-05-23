@@ -49,28 +49,28 @@ define(function (require, exports, module) {
      * @type {Array.<File>}
      * @see DocumentManager.getWorkingSet()
      */
-    var _paneList = [];
+    var _paneViewList = [];
     
     /**
      * @private
-     * Contains the same set of items as _paneList, but ordered by how recently they were _currentDocument (0 = most recent).
+     * Contains the same set of items as _paneViewList, but ordered by how recently they were _currentDocument (0 = most recent).
      * @type {Array.<File>}
      */
-    var _paneListMRUOrder = [];
+    var _paneViewListMRUOrder = [];
     
     /**
      * @private
-     * Contains the same set of items as _paneList, but ordered in the way they where added to _paneList (0 = last added).
+     * Contains the same set of items as _paneViewList, but ordered in the way they where added to _paneViewList (0 = last added).
      * @type {Array.<File>}
      */
-    var _paneListAddedOrder = [];
+    var _paneViewListAddedOrder = [];
     
     
     /**
      * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
      *
-     * When a file is added this list, DocumentManager dispatches a "paneListAdd" event.
-     * When a file is removed from list, DocumentManager dispatches a "paneListRemove" event.
+     * When a file is added this list, DocumentManager dispatches a "paneViewListAdd" event.
+     * When a file is removed from list, DocumentManager dispatches a "paneViewListRemove" event.
      * To listen for ALL changes to this list, you must listen for both events.
      *
      * Which items belong in the working set is managed entirely by DocumentManager. Callers cannot
@@ -79,20 +79,20 @@ define(function (require, exports, module) {
      * @param {!string} paneId
      * @return {Array.<File>}
      */
-    function getPaneList(paneId) {
-        return _.clone(_paneList);
+    function getPaneViewList(paneId) {
+        return _.clone(_paneViewList);
     }
     
-    function _getPaneList() {
-        return _paneList;
+    function _getPaneViewList() {
+        return _paneViewList;
     }
 
-    function _getPaneListMRU() {
-        return _paneListMRUOrder;
+    function _getPaneViewListMRU() {
+        return _paneViewListMRUOrder;
     }
     
-    function _getPaneListAdded() {
-        return _paneListAddedOrder;
+    function _getPaneViewListAdded() {
+        return _paneViewListAddedOrder;
     }
     
     function _setCurrentDocument(doc) {
@@ -104,9 +104,9 @@ define(function (require, exports, module) {
         //              DocumentManager.closeAll wich also class clearCurrentDocument so this is fine for now 
         //              for posterity but this will move back to DocumentManager once the transition is complete
         _currentDocument = null;
-        _paneList = [];
-        _paneListMRUOrder = [];
-        _paneListAddedOrder = [];
+        _paneViewList = [];
+        _paneViewListMRUOrder = [];
+        _paneViewListAddedOrder = [];
     }
     
     /**
@@ -118,20 +118,20 @@ define(function (require, exports, module) {
      *          use only.
      * @returns {number} index
      */
-    function findInPaneList(paneId, fullPath) {
-        return _.findIndex(_paneList, function (file, i) {
+    function findInPaneViewList(paneId, fullPath) {
+        return _.findIndex(_paneViewList, function (file, i) {
             return file.fullPath === fullPath;
         });
     }
     
     function findInPaneViewListAddedOrder(paneId, fullPath) {
-        return _.findIndex(_paneListAddedOrder, function (file, i) {
+        return _.findIndex(_paneViewListAddedOrder, function (file, i) {
             return file.fullPath === fullPath;
         });
     }
     
     function findInPaneViewListMRUOrder(paneId, fullPath) {
-        return _.findIndex(_paneListMRUOrder, function (file, i) {
+        return _.findIndex(_paneViewListMRUOrder, function (file, i) {
             return file.fullPath === fullPath;
         });
     }
@@ -161,7 +161,7 @@ define(function (require, exports, module) {
      * @param {boolean=} forceRedraw  If true, a working set change notification is always sent
      *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
      */
-    function addToPaneList(paneId, file, index, forceRedraw) {
+    function addToPaneViewList(paneId, file, index, forceRedraw) {
         var indexRequested = (index !== undefined && index !== null && index !== -1);
         
         // If the file has a custom viewer, then don't add it to the working set.
@@ -170,41 +170,41 @@ define(function (require, exports, module) {
         }
             
         // If doc is already in working set, don't add it again
-        var curIndex = findInPaneList(paneId, file.fullPath);
+        var curIndex = findInPaneViewList(paneId, file.fullPath);
         if (curIndex !== -1) {
             // File is in working set, but not at the specifically requested index - only need to reorder
             if (forceRedraw || (indexRequested && curIndex !== index)) {
-                var entry = _paneList.splice(curIndex, 1)[0];
-                _paneList.splice(index, 0, entry);
-                $(exports).triggerHandler("paneListSort");
+                var entry = _paneViewList.splice(curIndex, 1)[0];
+                _paneViewList.splice(index, 0, entry);
+                $(exports).triggerHandler("paneViewListSort");
             }
             return;
         }
 
         if (!indexRequested) {
             // If no index is specified, just add the file to the end of the working set.
-            _paneList.push(file);
+            _paneViewList.push(file);
         } else {
             // If specified, insert into the working set list at this 0-based index
-            _paneList.splice(index, 0, file);
+            _paneViewList.splice(index, 0, file);
         }
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
         var currentDocument = _currentDocument;//DocumentManager.getCurrentDocument();
         if (currentDocument && currentDocument.file.fullPath === file.fullPath) {
-            _paneListMRUOrder.unshift(file);
+            _paneViewListMRUOrder.unshift(file);
         } else {
-            _paneListMRUOrder.push(file);
+            _paneViewListMRUOrder.push(file);
         }
         
         // Add first to Added order
-        _paneListAddedOrder.unshift(file);
+        _paneViewListAddedOrder.unshift(file);
         
         // Dispatch event
         if (!indexRequested) {
-            index = _paneList.length - 1;
+            index = _paneViewList.length - 1;
         }
-        $(exports).triggerHandler("paneListAdd", [file, index]);
+        $(exports).triggerHandler("paneViewListAdd", [file, index]);
     }
             
     
@@ -217,51 +217,51 @@ define(function (require, exports, module) {
      * a list of files because there's only 1 redraw at the end
      * @param {!Array.<File>} fileList
      */
-    function addListToPaneList(paneId, fileList) {
+    function addListToPaneViewList(paneId, fileList) {
         var uniqueFileList = [];
 
         // Process only files not already in working set
         fileList.forEach(function (file, index) {
             // If doc has a custom viewer, then don't add it to the working set.
             // Or if doc is already in working set, don't add it again.
-            if (_canOpenFile(file) && findInPaneList(paneId, file.fullPath) === -1) {
+            if (_canOpenFile(file) && findInPaneViewList(paneId, file.fullPath) === -1) {
                 uniqueFileList.push(file);
 
                 // Add
-                _paneList.push(file);
+                _paneViewList.push(file);
 
                 // Add to MRU order: either first or last, depending on whether it's already the current doc or not
                 if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
-                    _paneListMRUOrder.unshift(file);
+                    _paneViewListMRUOrder.unshift(file);
                 } else {
-                    _paneListMRUOrder.push(file);
+                    _paneViewListMRUOrder.push(file);
                 }
                 
                 
                 // Add first to Added order
-                _paneListAddedOrder.splice(index, 1, file);
+                _paneViewListAddedOrder.splice(index, 1, file);
             }
         });
         
 
         // Dispatch event
-        $(exports).triggerHandler("paneListAddList", [uniqueFileList]);
+        $(exports).triggerHandler("paneViewListAddList", [uniqueFileList]);
     }
     
     // Refactoring exports...
-    exports._getPaneList        = _getPaneList;
-    exports._getPaneListMRU     = _getPaneListMRU;
-    exports._getPaneListAdded   = _getPaneListAdded;
+    exports._getPaneViewList        = _getPaneViewList;
+    exports._getPaneViewListMRU     = _getPaneViewListMRU;
+    exports._getPaneViewListAdded   = _getPaneViewListAdded;
     exports._reset              = _reset;
 
     // Scaffolding
     exports._setCurrentDocument = _setCurrentDocument;
     
     // API Exports
-    exports.addToPaneList                = addToPaneList;
-    exports.addListToPaneList            = addListToPaneList;
-    exports.getPaneList                  = getPaneList;
-    exports.findInPaneList               = findInPaneList;
+    exports.addToPaneViewList                = addToPaneViewList;
+    exports.addListToPaneViewList            = addListToPaneViewList;
+    exports.getPaneViewList                  = getPaneViewList;
+    exports.findInPaneViewList               = findInPaneViewList;
     exports.findInPaneViewListAddedOrder = findInPaneViewListAddedOrder;
     exports.findInPaneViewListMRUOrder   = findInPaneViewListMRUOrder;
     

@@ -63,18 +63,18 @@
  *      is the current document and 3rd argument is the previous document.
  *
  *    To listen for working set changes, you must listen to *all* of these events:
- *    - paneListAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
+ *    - paneViewListAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
  *      to the listener is the added File, and the 3rd arg is the index it was inserted at.
- *    - paneListAddList -- When multiple files are added to the working set (e.g. project open, multiple file open).
+ *    - paneViewListAddList -- When multiple files are added to the working set (e.g. project open, multiple file open).
  *      The 2nd arg to the listener is the array of added File objects.
  *    - workingSetRemove -- When a file is removed from the working set (see getWorkingSet()). The
  *      2nd arg to the listener is the removed File.
  *    - workingSetRemoveList -- When multiple files are removed from the working set (e.g. project close).
  *      The 2nd arg to the listener is the array of removed File objects.
- *    - paneListSort -- When the workingSet array is reordered without additions or removals.
+ *    - paneViewListSort -- When the workingSet array is reordered without additions or removals.
  *      Listener receives no arguments.
  *
- *    - paneListDisableAutoSorting -- Dispatched in addition to paneListSort when the reorder was caused
+ *    - paneViewListDisableAutoSorting -- Dispatched in addition to paneViewListSort when the reorder was caused
  *      by manual dragging and dropping. Listener receives no arguments.
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
@@ -166,7 +166,7 @@ define(function (require, exports, module) {
     /**
      * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
      *
-     * When a file is added this list, DocumentManager dispatches a "paneListAdd" event.
+     * When a file is added this list, DocumentManager dispatches a "paneViewListAdd" event.
      * When a file is removed from list, DocumentManager dispatches a "workingSetRemove" event.
      * To listen for ALL changes to this list, you must listen for both events.
      *
@@ -176,8 +176,8 @@ define(function (require, exports, module) {
      * @return {Array.<File>}
      */
     function getWorkingSet() {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneList() instead of DocumentManager.getWorkingSet()", true);
-        return MainViewManager.getPaneList(MainViewManager.FOCUSED_PANE);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneViewList() instead of DocumentManager.getWorkingSet()", true);
+        return MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE);
     }
 
     /**
@@ -189,21 +189,21 @@ define(function (require, exports, module) {
      * @returns {number} index
      */
     function findInWorkingSet(fullPath, list) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneList() instead of DocumentManager.findInWorkingSet()", true);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneViewList() instead of DocumentManager.findInWorkingSet()", true);
         if (list) {
             DeprecationWarning.deprecationWarning("DocumentManager.findInWorkingSet() no longer supports an arbitrary array", true);
         }
-        return MainViewManager.findInPaneList(MainViewManager.ALL_PANES, fullPath);
+        return MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, fullPath);
     }
     
     /**
-     * Returns the index of the file matching fullPath in MainViewManager._getPaneListAdded().
+     * Returns the index of the file matching fullPath in MainViewManager._getPaneViewListAdded().
      * Returns -1 if not found.
      * @param {!string} fullPath
      * @returns {number} index
      */
     function findInWorkingSetAddedOrder(fullPath) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneList() instead of DocumentManager.findInWorkingSetAddedOrder()", true);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneViewList() instead of DocumentManager.findInWorkingSetAddedOrder()", true);
         return MainViewManager.findInPaneViewListAddedOrder(MainViewManager.ALL_PANES, fullPath);
     }
 
@@ -241,8 +241,8 @@ define(function (require, exports, module) {
      *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
      */
     function addToWorkingSet(file, index, forceRedraw) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.addToPaneList() instead of DocumentManager.addToWorkingSet()", true);
-        MainViewManager.addToPaneList(MainViewManager.FOCUSED_PANE, file, index, forceRedraw);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.addToPaneViewList() instead of DocumentManager.addToWorkingSet()", true);
+        MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, file, index, forceRedraw);
     }
     
     /**
@@ -255,8 +255,8 @@ define(function (require, exports, module) {
      * @param {!Array.<File>} fileList
      */
     function addListToWorkingSet(fileList) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.addListToPaneList() instead of DocumentManager.addListToWorkingSet()", true);
-        MainViewManager.addListToPaneList(MainViewManager.FOCUSED_PANE, fileList);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.addListToPaneViewList() instead of DocumentManager.addListToWorkingSet()", true);
+        MainViewManager.addListToPaneViewList(MainViewManager.FOCUSED_PANE, fileList);
     }
 
     /**
@@ -274,9 +274,9 @@ define(function (require, exports, module) {
         }
         
         // Remove
-        MainViewManager._getPaneList().splice(index, 1);
-        MainViewManager._getPaneListMRU().splice(_findInWorkingSetMRUOrder(file.fullPath), 1);
-        MainViewManager._getPaneListAdded().splice(findInWorkingSetAddedOrder(file.fullPath), 1);
+        MainViewManager._getPaneViewList().splice(index, 1);
+        MainViewManager._getPaneViewListMRU().splice(_findInWorkingSetMRUOrder(file.fullPath), 1);
+        MainViewManager._getPaneViewListAdded().splice(findInWorkingSetAddedOrder(file.fullPath), 1);
         
         // Dispatch event
         $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw]);
@@ -286,7 +286,7 @@ define(function (require, exports, module) {
      * Removes all files from the working set list.
      */
     function _removeAllFromWorkingSet() {
-        var fileList = MainViewManager.getPaneList();
+        var fileList = MainViewManager.getPaneViewList();
 
         MainViewManager._reset();
         
@@ -301,8 +301,8 @@ define(function (require, exports, module) {
     function _markMostRecent(doc) {
         var mruI = _findInWorkingSetMRUOrder(doc.file.fullPath);
         if (mruI !== -1) {
-            MainViewManager._getPaneListMRU().splice(mruI, 1);
-            MainViewManager._getPaneListMRU().unshift(doc.file);
+            MainViewManager._getPaneViewListMRU().splice(mruI, 1);
+            MainViewManager._getPaneViewListMRU().unshift(doc.file);
         }
     }
     
@@ -313,21 +313,21 @@ define(function (require, exports, module) {
      * @param {number} index  New file index
      */
     function swapWorkingSetIndexes(index1, index2) {
-        var length = MainViewManager._getPaneList().length - 1;
+        var length = MainViewManager._getPaneViewList().length - 1;
         var temp;
         
         if (index1 >= 0 && index2 <= length && index1 >= 0 && index2 <= length) {
-            temp = MainViewManager._paneList()[index1];
-            MainViewManager._paneList()[index1] = MainViewManager._paneList()[index2];
-            MainViewManager._paneList()[index2] = temp;
+            temp = MainViewManager._paneViewList()[index1];
+            MainViewManager._paneViewList()[index1] = MainViewManager._paneViewList()[index2];
+            MainViewManager._paneViewList()[index2] = temp;
             
-            $(exports).triggerHandler("paneListSort");
-            $(exports).triggerHandler("paneListDisableAutoSorting");
+            $(exports).triggerHandler("paneViewListSort");
+            $(exports).triggerHandler("paneViewListDisableAutoSorting");
         }
     }
     
     /**
-     * Sorts MainViewManager._paneList using the compare function
+     * Sorts MainViewManager._paneViewList using the compare function
      * @param {function(File, File): number} compareFn  The function that will be used inside JavaScript's
      *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
      *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
@@ -335,8 +335,8 @@ define(function (require, exports, module) {
      *      Documentation: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
      */
     function sortWorkingSet(compareFn) {
-        MainViewManager._getPaneList().sort(compareFn);
-        $(exports).triggerHandler("paneListSort");
+        MainViewManager._getPaneViewList().sort(compareFn);
+        $(exports).triggerHandler("paneViewListSort");
     }
     
     
@@ -379,19 +379,19 @@ define(function (require, exports, module) {
             var mruI = _findInWorkingSetMRUOrder(EditorManager.getCurrentlyViewedPath());
             if (mruI === -1) {
                 // If doc not in working set, return most recent working set item
-                if (MainViewManager._getPaneListMRU().length > 0) {
-                    return MainViewManager._getPaneListMRU()[0];
+                if (MainViewManager._getPaneViewListMRU().length > 0) {
+                    return MainViewManager._getPaneViewListMRU()[0];
                 }
             } else {
                 // If doc is in working set, return next/prev item with wrap-around
                 var newI = mruI + inc;
-                if (newI >= MainViewManager._getPaneListMRU().length) {
+                if (newI >= MainViewManager._getPaneViewListMRU().length) {
                     newI = 0;
                 } else if (newI < 0) {
-                    newI = MainViewManager._getPaneListMRU().length - 1;
+                    newI = MainViewManager._getPaneViewListMRU().length - 1;
                 }
                 
-                return MainViewManager._getPaneListMRU()[newI];
+                return MainViewManager._getPaneViewListMRU()[newI];
             }
         }
         
@@ -420,7 +420,7 @@ define(function (require, exports, module) {
         // If file is untitled or otherwise not within project tree, add it to
         // working set right now (don't wait for it to become dirty)
         if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
-            MainViewManager.addToPaneList(MainViewManager.FOCUSED_PANE, doc.file);
+            MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file);
         }
         
         // Adjust MRU working set ordering (except while in the middle of a Ctrl+Tab sequence)
@@ -536,11 +536,11 @@ define(function (require, exports, module) {
             index = findInWorkingSet(file.fullPath);
             
             if (index !== -1) {
-                fileList.push(MainViewManager.getPaneList()[index]);
+                fileList.push(MainViewManager.getPaneViewList()[index]);
                 
-                MainViewManager._getPaneList().splice(index, 1);
-                MainViewManager._getPaneListMRU().splice(_findInWorkingSetMRUOrder(file.fullPath), 1);
-                MainViewManager._getPaneListAdded().splice(findInWorkingSetAddedOrder(file.fullPath), 1);
+                MainViewManager._getPaneViewList().splice(index, 1);
+                MainViewManager._getPaneViewListMRU().splice(_findInWorkingSetMRUOrder(file.fullPath), 1);
+                MainViewManager._getPaneViewListAdded().splice(findInWorkingSetAddedOrder(file.fullPath), 1);
             }
         });
         
@@ -835,8 +835,8 @@ define(function (require, exports, module) {
         EditorManager._resetViewStates(viewStates);
 
         // Initialize the active editor
-        if (!activeFile && MainViewManager._getPaneList().length > 0) {
-            activeFile = MainViewManager._paneList()[0].fullPath;
+        if (!activeFile && MainViewManager._getPaneViewList().length > 0) {
+            activeFile = MainViewManager._paneViewList()[0].fullPath;
         }
 
         if (activeFile) {
@@ -937,7 +937,7 @@ define(function (require, exports, module) {
         .on("_dirtyFlagChange", function (event, doc) {
             $(exports).triggerHandler("dirtyFlagChange", doc);
             if (doc.isDirty) {
-                MainViewManager.addToPaneList(MainViewManager.FOCUSED_PANE, doc.file);
+                MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file);
             }
         })
         .on("_documentSaved", function (event, doc) {
@@ -1016,8 +1016,8 @@ define(function (require, exports, module) {
     $(LanguageManager).on("languageModified", _handleLanguageModified);
     
     
-    _deprecateEvent("workingSetAdd", "paneListAdd");
-    _deprecateEvent("workingSetAddList", "paneListAddList");
+    _deprecateEvent("workingSetAdd", "paneViewListAdd");
+    _deprecateEvent("workingSetAddList", "paneViewListAddList");
                                       
     
 });

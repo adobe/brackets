@@ -1250,7 +1250,7 @@ define(function LiveDevelopment(require, exports, module) {
 
             if (doc && !doc._masterEditor) {
                 otherDocumentsInWorkingFiles = DocumentManager.getWorkingSet().length;
-                MainViewManager.addToPaneList(MainViewManager.FOCUSED_PANE, doc.file);
+                MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file);
 
                 if (!otherDocumentsInWorkingFiles) {
                     DocumentManager.setCurrentDocument(doc);

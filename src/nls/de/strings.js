@@ -254,7 +254,7 @@ define({
     "CMD_FILE_NEW"                        : "Neue Datei",
     "CMD_FILE_NEW_FOLDER"                 : "Neuer Ordner",
     "CMD_FILE_OPEN"                       : "Öffnen\u2026",
-    "CMD_ADD_TO_PANE_LIST"              : "Zum Projekt hinzufügen",
+    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Zum Projekt hinzufügen",
     "CMD_OPEN_DROPPED_FILES"              : "Abgelegte Dateien öffnen",
     "CMD_OPEN_FOLDER"                     : "Ordner öffnen\u2026",
     "CMD_FILE_CLOSE"                      : "Schließen",
@@ -330,9 +330,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Zeilenumbruch aktivieren",
     "CMD_LIVE_HIGHLIGHT"                  : "Live-Vorschau Highlight",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Beim Speichern linten",
-    "CMD_SORT_PANELIST_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
-    "CMD_SORT_PANELIST_BY_NAME"         : "Nach Name sortieren",
-    "CMD_SORT_PANELIST_BY_TYPE"         : "Nach Typ sortieren",
+    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
+    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Nach Name sortieren",
+    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Nach Typ sortieren",
     "CMD_TOGGLE_AUTO_SORT"            : "Automatisch sortieren",
 
     // Navigate menu Commands

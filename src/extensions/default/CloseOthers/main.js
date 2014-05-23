@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         Commands                = brackets.getModule("command/Commands"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
         Strings                 = brackets.getModule("strings"),
-        workingSetCmenu         = Menus.getContextMenu(Menus.ContextMenuIds.PANE_LIST_CONTEXT_MENU),
+        workingSetCmenu         = Menus.getContextMenu(Menus.ContextMenuIds.PANE_VIEW_LIST_CONTEXT_MENU),
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager");
 
     // Constants

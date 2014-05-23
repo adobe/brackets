@@ -254,7 +254,7 @@ define({
     "CMD_FILE_NEW"                        : "Ny fil",
     "CMD_FILE_NEW_FOLDER"                 : "Ny mapp",
     "CMD_FILE_OPEN"                       : "Öppna\u2026",
-    "CMD_ADD_TO_PANE_LIST"              : "Lägg till i arbetsyta",
+    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Lägg till i arbetsyta",
     "CMD_OPEN_DROPPED_FILES"              : "Öppna släppta filer",
     "CMD_OPEN_FOLDER"                     : "Öppna mapp\u2026",
     "CMD_FILE_CLOSE"                      : "Stäng",
@@ -326,9 +326,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Automatisk radbrytning",
     "CMD_LIVE_HIGHLIGHT"                  : "Markera förhandsvisning",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Linta filer vid spara",
-    "CMD_SORT_PANELIST_BY_ADDED"        : "Sortera efter senast tillagd",
-    "CMD_SORT_PANELIST_BY_NAME"         : "Sortera efter namn",
-    "CMD_SORT_PANELIST_BY_TYPE"         : "Sortera efter typ",
+    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Sortera efter senast tillagd",
+    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Sortera efter namn",
+    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Sortera efter typ",
     "CMD_TOGGLE_AUTO_SORT"            : "Automatisk sortering",
 
     // Navigate menu Commands

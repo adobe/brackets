@@ -247,7 +247,7 @@ define({
     "CMD_FILE_NEW"                        : "Nova datoteka",
     "CMD_FILE_NEW_FOLDER"                 : "Nova mapa",
     "CMD_FILE_OPEN"                       : "Otvori\u2026",
-    "CMD_ADD_TO_PANE_LIST"              : "Dodaj u radni set",
+    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Dodaj u radni set",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Otvori Mapu\u2026",
     "CMD_FILE_CLOSE"                      : "Zatvori",
@@ -319,9 +319,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Prijelom teksta",
     "CMD_LIVE_HIGHLIGHT"                  : "Obilježi prikaz uživo",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Prekontroliraj datoteke prilikom spremanja",
-    "CMD_SORT_PANELIST_BY_ADDED"        : "Sortiraj po datumu",
-    "CMD_SORT_PANELIST_BY_NAME"         : "Sortiraj po imenu",
-    "CMD_SORT_PANELIST_BY_TYPE"         : "Sortiraj po tipu",
+    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Sortiraj po datumu",
+    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Sortiraj po imenu",
+    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Sortiraj po tipu",
     "CMD_TOGGLE_AUTO_SORT"            : "Automatsko sortiranje",
 
     // Navigate menu Commands

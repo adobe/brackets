@@ -36,11 +36,11 @@ define(function (require, exports, module) {
         SpecRunnerUtils         = require("spec/SpecRunnerUtils");
 
 
-    describe("PaneListView", function () {
+    describe("PaneViewListView", function () {
         
         this.category = "integration";
     
-        var testPath = SpecRunnerUtils.getTestPath("/spec/PaneListView-test-files"),
+        var testPath = SpecRunnerUtils.getTestPath("/spec/PaneViewListView-test-files"),
             testWindow,
             workingSetCount;
         
@@ -81,7 +81,7 @@ define(function (require, exports, module) {
             
             runs(function () {
                 // Initialize: register listeners
-                testWindow.$(MainViewManager).on("paneListAdd", function (event, addedFile) {
+                testWindow.$(MainViewManager).on("paneViewListAdd", function (event, addedFile) {
                     workingSetCount++;
                 });
             });

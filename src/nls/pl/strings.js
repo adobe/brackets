@@ -160,7 +160,7 @@ define({
     "CMD_FILE_NEW"                        : "Nowy plik",
     "CMD_FILE_NEW_FOLDER"                 : "Nowy folder",
     "CMD_FILE_OPEN"                       : "Otwórz\u2026",
-    "CMD_ADD_TO_PANE_LIST"              : "Dodaj do folderu robocze",
+    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Dodaj do folderu robocze",
     "CMD_OPEN_FOLDER"                     : "Otwórz folder\u2026",
     "CMD_FILE_CLOSE"                      : "Zamknij",
     "CMD_FILE_CLOSE_ALL"                  : "Zamknij wszystko",
@@ -212,9 +212,9 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Numery linii",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Podświetl bieżącą linię",
     "CMD_TOGGLE_WORD_WRAP"                : "Zawijaj wiersze",
-    "CMD_SORT_PANELIST_BY_ADDED"        : "Sortuj według dodanych",
-    "CMD_SORT_PANELIST_BY_NAME"         : "Sortuj według nazwy",
-    "CMD_SORT_PANELIST_BY_TYPE"         : "Sortuj według typu",
+    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Sortuj według dodanych",
+    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Sortuj według nazwy",
+    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Sortuj według typu",
     "CMD_TOGGLE_AUTO_SORT"            : "Automatyczne sortowanie",
 
     // Navigate menu Commands

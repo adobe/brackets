@@ -158,7 +158,7 @@ define({
     "CMD_FILE_NEW"                        : "Yeni Dosya",
     "CMD_FILE_NEW_FOLDER"                 : "Yeni Klasör",
     "CMD_FILE_OPEN"                       : "Aç\u2026",
-    "CMD_ADD_TO_PANE_LIST"              : "Çalışma Ekranına Ekle",
+    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Çalışma Ekranına Ekle",
     "CMD_OPEN_FOLDER"                     : "Klasörü Aç\u2026",
     "CMD_FILE_CLOSE"                      : "Kapat",
     "CMD_FILE_CLOSE_ALL"                  : "Hepsini Kapat",
@@ -211,9 +211,9 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Font Boyutunu Büyült",
     "CMD_DECREASE_FONT_SIZE"              : "Font Boyutunu Küçült",
     "CMD_RESTORE_FONT_SIZE"               : "Font Boyutunu Sıfırla",
-    "CMD_SORT_PANELIST_BY_ADDED"        : "Eklenmeye Göre Sırala",
-    "CMD_SORT_PANELIST_BY_NAME"         : "İsme Göre Sırala",
-    "CMD_SORT_PANELIST_BY_TYPE"         : "Türüne Göre Sırala",
+    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Eklenmeye Göre Sırala",
+    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "İsme Göre Sırala",
+    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Türüne Göre Sırala",
     "CMD_TOGGLE_AUTO_SORT"            : "Otomatik Sırala",
 
     // Navigate menu Commands

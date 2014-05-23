@@ -128,12 +128,12 @@ define(function (require, exports, module) {
     exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";      // EditorOptionHandlers.js      _getToggler()
     exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";        // EditorOptionHandlers.js      _getToggler()
 
-    exports.CMD_ADD_TO_PANE_LIST        = "cmd.addToPaneList";          // DocumentCommandHandlers.js   handleFileAddToWorkingSet()
+    exports.CMD_ADD_TO_PANE_VIEW_LIST        = "cmd.addToPaneViewList";          // DocumentCommandHandlers.js   handleFileAddToWorkingSet()
     
-    exports.CMD_SORT_PANELIST_BY_ADDED  = "cmd.sortPaneListByAdded";    // PaneListSort.js              _handleSort()
-    exports.CMD_SORT_PANELIST_BY_NAME   = "cmd.sortPaneListByName";     // PaneListSort.js              _handleSort()
-    exports.CMD_SORT_PANELIST_BY_TYPE   = "cmd.sortPanelistByType";     // PaneListSort.js              _handleSort()
-    exports.CMD_TOGGLE_AUTO_SORT        = "cmd.toggleAutoSort";         // PaneListSort.js              _handleToggleAutoSort()
+    exports.CMD_SORT_PANE_VIEW_LIST_BY_ADDED  = "cmd.sortPaneViewListByAdded";    // PaneViewListSort.js              _handleSort()
+    exports.CMD_SORT_PANE_VIEW_LIST_BY_NAME   = "cmd.sortPaneViewListByName";     // PaneViewListSort.js              _handleSort()
+    exports.CMD_SORT_PANE_VIEW_LIST_BY_TYPE   = "cmd.sortPaneViewListByType";     // PaneViewListSort.js              _handleSort()
+    exports.CMD_TOGGLE_AUTO_SORT              = "cmd.toggleAutoSort";             // PaneViewListSort.js              _handleToggleAutoSort()
     
     // NAVIGATE
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";           // DocumentCommandHandlers.js   handleGoNextDoc()
@@ -173,10 +173,10 @@ define(function (require, exports, module) {
     exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";       // DocumentCommandHandlers.js   handleBeforeMenuPopup()
     
     // DEPRECATED: Working Set Commands
-    _deprecateCommand("FILE_ADD_TO_WORKING_SET",    "CMD_ADD_TO_PANE_LIST");
-    _deprecateCommand("SORT_WORKINGSET_BY_ADDED",   "CMD_SORT_PANELIST_BY_ADDED");
-    _deprecateCommand("SORT_WORKINGSET_BY_NAME",    "CMD_SORT_PANELIST_BY_NAME");
-    _deprecateCommand("SORT_WORKINGSET_BY_TYPE",    "CMD_SORT_PANELIST_BY_TYPE");
+    _deprecateCommand("FILE_ADD_TO_WORKING_SET",    "CMD_ADD_TO_PANE_VIEW_LIST");
+    _deprecateCommand("SORT_WORKINGSET_BY_ADDED",   "CMD_SORT_PANE_VIEW_LIST_BY_ADDED");
+    _deprecateCommand("SORT_WORKINGSET_BY_NAME",    "CMD_SORT_PANE_VIEW_LIST_BY_NAME");
+    _deprecateCommand("SORT_WORKINGSET_BY_TYPE",    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE");
     _deprecateCommand("SORT_WORKINGSET_AUTO",       "CMD_TOGGLE_AUTO_SORT");
               
     // DEPRECATED: Edit commands that were moved from the Edit Menu to the Find Menu

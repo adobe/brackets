@@ -235,7 +235,7 @@ define({
     "CMD_FILE_NEW"                        : "新建文件",
     "CMD_FILE_NEW_FOLDER"                 : "新建目录",
     "CMD_FILE_OPEN"                       : "打开\u2026",
-    "CMD_ADD_TO_PANE_LIST"              : "添加至工作集合",
+    "CMD_ADD_TO_PANE_VIEW_LIST"              : "添加至工作集合",
     "CMD_OPEN_DROPPED_FILES"              : "打开拖放的文件",
     "CMD_OPEN_FOLDER"                     : "打开目录\u2026",
     "CMD_FILE_CLOSE"                      : "关闭",
@@ -307,9 +307,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "自动换行",
     "CMD_LIVE_HIGHLIGHT"                  : "实时预览高亮",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "保存时检查文件",
-    "CMD_SORT_PANELIST_BY_ADDED"        : "根据添加时间排序",
-    "CMD_SORT_PANELIST_BY_NAME"         : "根据名称排序",
-    "CMD_SORT_PANELIST_BY_TYPE"         : "根据类型排序",
+    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "根据添加时间排序",
+    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "根据名称排序",
+    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "根据类型排序",
     "CMD_TOGGLE_AUTO_SORT"            : "自动排序",
 
     // Navigate menu Commands

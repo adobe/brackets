@@ -333,7 +333,7 @@ define(function (require, exports, module) {
                                 //  doc may be null, i.e. if an image has been opened.
                                 // Then we do not add the opened file to the working set.
                                 if (doc) {
-                                    MainViewManager.addToPaneList(MainViewManager.FOCUSED_PANE, doc.file);
+                                    MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file);
                                 }
                                 _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(EditorManager.getCurrentlyViewedPath());
                             })
@@ -425,7 +425,7 @@ define(function (require, exports, module) {
             // When opening a file with a custom viewer, we get a null doc.
             // So check it before we add it to the working set.
             if (doc) {
-                MainViewManager.addToPaneList(MainViewManager.FOCUSED_PANE, doc.file, commandData.index, commandData.forceRedraw);
+                MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file, commandData.index, commandData.forceRedraw);
             }
         });
     }
@@ -1576,7 +1576,7 @@ define(function (require, exports, module) {
 
     // Register global commands
     CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
-    CommandManager.register(Strings.CMD_ADD_TO_PANE_LIST,   Commands.CMD_ADD_TO_PANE_LIST, handleOpenDocumentInNewPane);
+    CommandManager.register(Strings.CMD_ADD_TO_PANE_VIEW_LIST,   Commands.CMD_ADD_TO_PANE_VIEW_LIST, handleOpenDocumentInNewPane);
     CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,  Commands.FILE_NEW_UNTITLED, handleFileNew);
     CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
     CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);

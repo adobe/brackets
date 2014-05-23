@@ -135,7 +135,7 @@ define({
     "FILE_MENU" : "Fil",
     "CMD_FILE_NEW" : "Ny",
     "CMD_FILE_OPEN" : "Åpne\u2026",
-    "CMD_ADD_TO_PANE_LIST" : "Add To Pane List",
+    "CMD_ADD_TO_PANE_VIEW_LIST" : "Add To Pane View List",
     "CMD_OPEN_FOLDER" : "Åpne mappe\u2026",
     "CMD_FILE_CLOSE" : "Lukk",
     "CMD_FILE_CLOSE_ALL" : "Lukk alle",

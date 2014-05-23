@@ -26,7 +26,7 @@
 /*global define, $, window, brackets  */
 
 /**
- * PaneListView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
+ * PaneViewListView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
  * The UI allows the user to see what files are open/dirty and allows them to close files and specify the current editor.
  *
  */
@@ -59,7 +59,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Internal flag to suppress redrawing the Working Set after a paneListSort event.
+     * Internal flag to suppress redrawing the Working Set after a paneViewListSort event.
      * @type {boolean}
      */
     var _suppressSortRedraw = false;
@@ -93,7 +93,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _scrollSelectedDocIntoView() {
-        if (FileViewController.getFileSelectionFocus() !== FileViewController.PANE_LIST_VIEW) {
+        if (FileViewController.getFileSelectionFocus() !== FileViewController.PANE_VIEW_LIST_VIEW) {
             return;
         }
 
@@ -178,7 +178,7 @@ define(function (require, exports, module) {
      */
     function _checkForDuplicatesInWorkingTree() {
         var map = {},
-            fileList = MainViewManager.getPaneList(_getMyPaneID());
+            fileList = MainViewManager.getPaneViewList(_getMyPaneID());
 
         // We need to always clear current directories as files could be removed from working tree.
         $openFilesContainer.find("ul > li > a > span.directory").remove();
@@ -207,7 +207,7 @@ define(function (require, exports, module) {
      * Shows/Hides open files list based on working set content.
      */
     function _redraw() {
-        var fileList = MainViewManager.getPaneList(_getMyPaneID());
+        var fileList = MainViewManager.getPaneViewList(_getMyPaneID());
         
         if (fileList.length === 0) {
             $openFilesContainer.hide();
@@ -367,7 +367,7 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
                 } else {
                     // Normal right and left click - select the item
-                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.PANE_LIST_VIEW);
+                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.PANE_VIEW_LIST_VIEW);
                 }
             
             } else {
@@ -515,7 +515,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _rebuildWorkingSet(forceRedraw) {
-        var fileList = MainViewManager.getPaneList(_getMyPaneID());
+        var fileList = MainViewManager.getPaneViewList(_getMyPaneID());
 
         $openFilesContainer.find("ul").empty();
         
@@ -533,7 +533,7 @@ define(function (require, exports, module) {
      */
     function _updateListSelection() {
         var doc;
-        if (FileViewController.getFileSelectionFocus() === FileViewController.PANE_LIST_VIEW) {
+        if (FileViewController.getFileSelectionFocus() === FileViewController.PANE_VIEW_LIST_VIEW) {
             doc = DocumentManager.getCurrentDocument();
         } else {
             doc = null;
@@ -554,7 +554,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _handleFileAdded(file, index) {
-        var fileList = MainViewManager.getPaneList(_getMyPaneID());
+        var fileList = MainViewManager.getPaneViewList(_getMyPaneID());
         
         if (index === fileList.length - 1) {
             // Simple case: append item to list
@@ -614,7 +614,7 @@ define(function (require, exports, module) {
     /**
      * @private
      */
-    function _handlePaneListSort() {
+    function _handlePaneViewListSort() {
         if (!_suppressSortRedraw) {
             _rebuildWorkingSet(true);
         }
@@ -656,11 +656,11 @@ define(function (require, exports, module) {
         $openFilesList = $openFilesContainer.find("ul");
         
         // Register listeners
-        $(MainViewManager).on("paneListAdd", function (event, addedFile) {
+        $(MainViewManager).on("paneViewListAdd", function (event, addedFile) {
             _handleFileAdded(addedFile);
         });
 
-        $(DocumentManager).on("paneListAddList", function (event, addedFiles) {
+        $(MainViewManager).on("paneViewListAddList", function (event, addedFiles) {
             _handleFileListAdded(addedFiles);
         });
 
@@ -672,8 +672,8 @@ define(function (require, exports, module) {
             _handleRemoveList(removedFiles);
         });
         
-        $(DocumentManager).on("paneListSort", function (event) {
-            _handlePaneListSort();
+        $(DocumentManager).on("paneViewListSort", function (event) {
+            _handlePaneViewListSort();
         });
 
         $(DocumentManager).on("dirtyFlagChange", function (event, doc) {

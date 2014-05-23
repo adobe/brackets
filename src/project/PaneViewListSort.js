@@ -42,7 +42,7 @@ define(function (require, exports, module) {
         _                       = require("thirdparty/lodash");
     
     var defaultPrefs = {
-        currentSort:   Commands.CMD_SORT_PANELIST_BY_ADDED,
+        currentSort:   Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED,
         automaticSort: false
     };
     
@@ -72,9 +72,9 @@ define(function (require, exports, module) {
     var _openedDocument = false;
     
     var _sortPrefConversionMap = {
-        "view.sortWorkingSetByAdded" : "cmd.sortPaneListByAdded",
-        "view.sortWorkingSetByName"  : "cmd.sortPaneListByName",
-        "view.sortWorkingSetByType"  : "cmd.sortPanelistByType"
+        "view.sortWorkingSetByAdded" : "cmd.sortPaneViewListByAdded",
+        "view.sortWorkingSetByName"  : "cmd.sortPaneViewListByName",
+        "view.sortWorkingSetByType"  : "cmd.sortPaneViewListByType"
     };
     
     /**
@@ -153,14 +153,14 @@ define(function (require, exports, module) {
                 .on(_currentSort.getEvents(), function () {
                     _currentSort.sort();
                 })
-                .on("paneListDisableAutoSorting.sort", function () {
+                .on("paneViewListDisableAutoSorting.sort", function () {
                     setAutomatic(false);
                 });
             $(MainViewManager)
                 .on(_currentSort.getEvents(), function () {
                     _currentSort.sort();
                 })
-                .on("paneListDisableAutoSorting.sort", function () {
+                .on("paneViewListDisableAutoSorting.sort", function () {
                     setAutomatic(false);
                 });
         }
@@ -304,40 +304,40 @@ define(function (require, exports, module) {
     
     // Register Sort Methods
     register(
-        Commands.CMD_SORT_PANELIST_BY_ADDED,
+        Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED,
         function (file1, file2) {
             var index1 = DocumentManager.findInWorkingSetAddedOrder(file1.fullPath),
                 index2 = DocumentManager.findInWorkingSetAddedOrder(file2.fullPath);
             
             return index1 - index2;
         },
-        "paneListAdd paneListAddList"
+        "paneViewListAdd paneViewListAddList"
     );
     register(
-        Commands.CMD_SORT_PANELIST_BY_NAME,
+        Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME,
         function (file1, file2) {
             return FileUtils.compareFilenames(file1.name, file2.name, false);
         },
-        "paneListAdd paneListAddList"
+        "paneViewListAdd paneViewListAddList"
     );
     register(
-        Commands.CMD_SORT_PANELIST_BY_TYPE,
+        Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,
         function (file1, file2) {
             return FileUtils.compareFilenames(file1.name, file2.name, true);
         },
-        "paneListAdd paneListAddList"
+        "paneViewListAdd paneViewListAddList"
     );
     
     
     // Register Command Handlers
-    CommandManager.register(Strings.CMD_SORT_PANELIST_BY_ADDED, Commands.CMD_SORT_PANELIST_BY_ADDED, _.partial(_handleSort, Commands.CMD_SORT_PANELIST_BY_ADDED));
-    CommandManager.register(Strings.CMD_SORT_PANELIST_BY_NAME,  Commands.CMD_SORT_PANELIST_BY_NAME,  _.partial(_handleSort, Commands.CMD_SORT_PANELIST_BY_NAME));
-    CommandManager.register(Strings.CMD_SORT_PANELIST_BY_TYPE,  Commands.CMD_SORT_PANELIST_BY_TYPE,  _.partial(_handleSort, Commands.CMD_SORT_PANELIST_BY_NAME));
+    CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_ADDED, Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED, _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED));
+    CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_NAME,  Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME,  _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME));
+    CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,  Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,  _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME));
     CommandManager.register(Strings.CMD_TOGGLE_AUTO_SORT,       Commands.CMD_TOGGLE_AUTO_SORT,       _handleToggleAutoSort);
     
     
     // Initialize default values for sorting preferences
-    PreferencesManager.stateManager.definePreference("currentSort", "string", Commands.CMD_SORT_PANELIST_BY_ADDED);
+    PreferencesManager.stateManager.definePreference("currentSort", "string", Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED);
     PreferencesManager.stateManager.definePreference("automaticSort", "boolean", false);
     
     PreferencesManager.convertPreferences(module, {"currentSort": "user", "automaticSort": "user"}, true);

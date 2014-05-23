@@ -68,8 +68,8 @@ define(function (require, exports, module) {
         EditorManager           = require("editor/EditorManager"),
         CSSInlineEditor         = require("editor/CSSInlineEditor"),
         JSUtils                 = require("language/JSUtils"),
-        PaneListView            = require("project/PaneListView"),
-        PaneListSort            = require("project/PaneListSort"),
+        PaneViewListView            = require("project/PaneViewListView"),
+        PaneViewListSort            = require("project/PaneViewListSort"),
         DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
         FileViewController      = require("project/FileViewController"),
         FileSyncManager         = require("project/FileSyncManager"),
@@ -190,7 +190,7 @@ define(function (require, exports, module) {
             RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
             ScrollTrackMarkers      : require("search/ScrollTrackMarkers"),
             UpdateNotification      : require("utils/UpdateNotification"),
-            PaneListView            : PaneListView,
+            PaneViewListView            : PaneViewListView,
 
             doneLoading             : false
         };
@@ -255,7 +255,7 @@ define(function (require, exports, module) {
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
                             FileSystem.resolve(initialProjectPath + "index.html", function (err, file) {
                                 if (!err) {
-                                    var promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_LIST, { fullPath: file.fullPath });
+                                    var promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, { fullPath: file.fullPath });
                                     promise.then(deferred.resolve, deferred.reject);
                                 } else {
                                     deferred.reject();

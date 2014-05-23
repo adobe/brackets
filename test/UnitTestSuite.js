@@ -76,5 +76,5 @@ define(function (require, exports, module) {
     require("spec/ValidationUtils-test");
     require("spec/ViewCommandHandlers-test");
     require("spec/ViewUtils-test");
-    require("spec/PaneListView-test");
+    require("spec/PaneViewListView-test");
 });

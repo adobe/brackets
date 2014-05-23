@@ -206,7 +206,7 @@ define({
     "CMD_FILE_NEW"                        : "Novo arquivo",
     "CMD_FILE_NEW_FOLDER"                 : "Nova pasta",
     "CMD_FILE_OPEN"                       : "Abrir\u2026",
-    "CMD_ADD_TO_PANE_LIST"              : "Adicionar ao Conjunto de Trabalho",
+    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Adicionar ao Conjunto de Trabalho",
     "CMD_OPEN_FOLDER"                     : "Abrir pasta\u2026",
     "CMD_FILE_CLOSE"                      : "Fechar",
     "CMD_FILE_CLOSE_ALL"                  : "Fechar todos",
@@ -266,9 +266,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Quebra automática de linha",
     "CMD_LIVE_HIGHLIGHT"                  : "Destacar Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Analisar arquivos ao salvar",
-    "CMD_SORT_PANELIST_BY_ADDED"        : "Ordenar por Data de Adição",
-    "CMD_SORT_PANELIST_BY_NAME"         : "Ordenar por Nome",
-    "CMD_SORT_PANELIST_BY_TYPE"         : "Ordenar por Tipo",
+    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Ordenar por Data de Adição",
+    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Ordenar por Nome",
+    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Ordenar por Tipo",
     "CMD_TOGGLE_AUTO_SORT"            : "Ordenação automática",
 
     // Navigate menu Commands

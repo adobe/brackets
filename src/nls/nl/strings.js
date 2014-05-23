@@ -205,7 +205,7 @@ define({
     "CMD_FILE_NEW"                        : "Nieuw Bestand",
     "CMD_FILE_NEW_FOLDER"                 : "Nieuwe Map",
     "CMD_FILE_OPEN"                       : "Open\u2026",
-    "CMD_ADD_TO_PANE_LIST"              : "Voeg Toe Aan Werkset",
+    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Voeg Toe Aan Werkset",
     "CMD_OPEN_FOLDER"                     : "Open Map\u2026",
     "CMD_FILE_CLOSE"                      : "Sluit",
     "CMD_FILE_CLOSE_ALL"                  : "Sluit alles",
@@ -265,9 +265,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
     "CMD_LIVE_HIGHLIGHT"                  : "Live Voorbeeld Markeren",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Bestanden bij Opslaan",
-    "CMD_SORT_PANELIST_BY_ADDED"        : "Sorteer op Toegevoegd",
-    "CMD_SORT_PANELIST_BY_NAME"         : "Sorteer op Naam",
-    "CMD_SORT_PANELIST_BY_TYPE"         : "Sorteer op Type",
+    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Sorteer op Toegevoegd",
+    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Sorteer op Naam",
+    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Sorteer op Type",
     "CMD_TOGGLE_AUTO_SORT"            : "Automatisch Sorteren",
 
     // Navigate menu Commands

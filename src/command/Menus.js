@@ -58,11 +58,11 @@ define(function (require, exports, module) {
      * @enum {string}
      */
     var ContextMenuIds = {
-        EDITOR_MENU:               "editor-context-menu",
-        INLINE_EDITOR_MENU:        "inline-editor-context-menu",
-        PROJECT_MENU:              "project-context-menu",
-        PANE_LIST_CONTEXT_MENU:    "pane-list-context-menu",
-        PANE_LIST_CONFIG_MENU: "pane-list-configuration-menu"
+        EDITOR_MENU:                    "editor-context-menu",
+        INLINE_EDITOR_MENU:             "inline-editor-context-menu",
+        PROJECT_MENU:                   "project-context-menu",
+        PANE_VIEW_LIST_CONTEXT_MENU:    "pane-view-list-context-menu",
+        PANE_VIEW_LIST_CONFIG_MENU:     "pane-view-list-configuration-menu"
     };
 
 
