@@ -180,6 +180,7 @@ define(function (require, exports, module) {
             LanguageManager         : LanguageManager,
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
+            MainViewManager         : MainViewManager,
             Menus                   : Menus,
             MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
             NativeApp               : NativeApp,

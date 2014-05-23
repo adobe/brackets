@@ -298,16 +298,10 @@ define(function (require, exports, module) {
      * Removes all files from the working set list.
      */
     function _removeAllFromWorkingSet() {
-        var fileList = MainViewManager.getPaneList(),
-            mruList = MainViewManager._getPaneListMRU(),
-            addedList = MainViewManager._getPaneListAdded(),
-            masterList = MainViewManager._getPaneList();
+        var fileList = MainViewManager.getPaneList();
 
-        // Remove all
-        masterList = [];
-        mruList = [];
-        addedList = [];
-
+        MainViewManager._reset();
+        
         // Dispatch event
         $(exports).triggerHandler("workingSetRemoveList", [fileList]);
     }

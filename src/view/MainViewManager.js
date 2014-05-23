@@ -99,6 +99,16 @@ define(function (require, exports, module) {
         _currentDocument = doc;
     }
     
+    function _reset() {
+        // this is only called from DocumentManager._removeAllFromWorkingSet which is only called from 
+        //              DocumentManager.closeAll wich also class clearCurrentDocument so this is fine for now 
+        //              for posterity but this will move back to DocumentManager once the transition is complete
+        _currentDocument = null;
+        _paneList = [];
+        _paneListMRUOrder = [];
+        _paneListAddedOrder = [];
+    }
+    
     /**
      * Returns the index of the file matching fullPath in the working set.
      * Returns -1 if not found.
@@ -198,7 +208,7 @@ define(function (require, exports, module) {
     exports._getPaneList        = _getPaneList;
     exports._getPaneListMRU     = _getPaneListMRU;
     exports._getPaneListAdded   = _getPaneListAdded;
-  
+    exports._reset              = _reset;
 
     // Scaffolding
     exports._setCurrentDocument = _setCurrentDocument;

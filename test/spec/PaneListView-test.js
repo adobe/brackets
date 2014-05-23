@@ -109,7 +109,7 @@ define(function (require, exports, module) {
             openAndMakeDirty(testPath + "/file_two.js");
             
             // Wait for both files to be added to the working set
-            waitsFor(function () { return workingSetCount === 2; }, 1000);
+            waitsFor(function () { return workingSetCount === 2; }, "workingSetCount to equeal 2", 1000);
         });
         
         afterEach(function () {
@@ -307,7 +307,7 @@ define(function (require, exports, module) {
                 openAndMakeDirty(testPath + "/directory/directory/file_one.js");
 
                 // Wait for them to load
-                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 2; }, 1000);
+                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 2; }, "Open file count to be increased by 2", 1000);
 
                 runs(function () {
                     // Collect all directory names displayed
