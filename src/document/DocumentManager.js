@@ -149,6 +149,21 @@ define(function (require, exports, module) {
     var _openDocuments = {};
     
     /**
+     * Creates a deprecation warning event handler
+     * @param {!string} the event being deprecated
+     * @param {!string} the new event to use
+     */
+    function _deprecateEvent(oldEventName, newEventName) {
+        DeprecationWarning.deprecateEvent(exports,
+                                          MainViewManager,
+                                          oldEventName,
+                                          newEventName,
+                                          "DocumentManager." + oldEventName,
+                                          "MainViewManger." + newEventName);
+    }
+        
+    
+    /**
      * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
      *
      * When a file is added this list, DocumentManager dispatches a "paneListAdd" event.
@@ -188,7 +203,7 @@ define(function (require, exports, module) {
      * @returns {number} index
      */
     function findInWorkingSetAddedOrder(fullPath) {
-        //DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneList() instead of DocumentManager.findInWorkingSetAddedOrder()", true);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneList() instead of DocumentManager.findInWorkingSetAddedOrder()", true);
         return MainViewManager.findInPaneViewListAddedOrder(MainViewManager.ALL_PANES, fullPath);
     }
 
@@ -227,7 +242,7 @@ define(function (require, exports, module) {
      */
     function addToWorkingSet(file, index, forceRedraw) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.addToPaneList() instead of DocumentManager.addToWorkingSet()", true);
-        return MainViewManager.addToPaneList(MainViewManager.FOCUSED_PANE, file, index, forceRedraw);
+        MainViewManager.addToPaneList(MainViewManager.FOCUSED_PANE, file, index, forceRedraw);
     }
     
     /**
@@ -240,35 +255,8 @@ define(function (require, exports, module) {
      * @param {!Array.<File>} fileList
      */
     function addListToWorkingSet(fileList) {
-        var uniqueFileList = [];
-
-        // Process only files not already in working set
-        fileList.forEach(function (file, index) {
-            // If doc has a custom viewer, then don't add it to the working set.
-            // Or if doc is already in working set, don't add it again.
-            if (!EditorManager.getCustomViewerForPath(file.fullPath) &&
-                    findInWorkingSet(file.fullPath) === -1) {
-                uniqueFileList.push(file);
-
-                // Add
-                MainViewManager._getPaneList().push(file);
-
-                // Add to MRU order: either first or last, depending on whether it's already the current doc or not
-                if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
-                    MainViewManager._getPaneListMRU().unshift(file);
-                } else {
-                    MainViewManager._getPaneListMRU().push(file);
-                }
-                
-                
-                // Add first to Added order
-                MainViewManager._getPaneListAdded().splice(index, 1, file);
-            }
-        });
-        
-
-        // Dispatch event
-        $(exports).triggerHandler("paneListAddList", [uniqueFileList]);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.addListToPaneList() instead of DocumentManager.addListToWorkingSet()", true);
+        MainViewManager.addListToPaneList(MainViewManager.FOCUSED_PANE, fileList);
     }
 
     /**
@@ -1026,4 +1014,10 @@ define(function (require, exports, module) {
     // Handle Language change events
     $(LanguageManager).on("languageAdded", _handleLanguageAdded);
     $(LanguageManager).on("languageModified", _handleLanguageModified);
+    
+    
+    _deprecateEvent("workingSetAdd", "paneListAdd");
+    _deprecateEvent("workingSetAddList", "paneListAddList");
+                                      
+    
 });

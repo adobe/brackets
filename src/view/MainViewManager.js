@@ -141,6 +141,10 @@ define(function (require, exports, module) {
     }
     
     
+    function _canOpenFile(file) {
+        return !EditorManager.getCustomViewerForPath(file.fullPath);
+    }
+    
     $(WorkspaceManager).on("workspaceAreaResize",  _onWorkspaceAreaResize);
     
     /* 
@@ -161,7 +165,7 @@ define(function (require, exports, module) {
         var indexRequested = (index !== undefined && index !== null && index !== -1);
         
         // If the file has a custom viewer, then don't add it to the working set.
-        if (EditorManager.getCustomViewerForPath(file.fullPath)) {
+        if (!_canOpenFile(file)) {
             return;
         }
             
@@ -204,6 +208,46 @@ define(function (require, exports, module) {
     }
             
     
+    /**
+     * Adds the given file list to the end of the working set list.
+     * If a file in the list has its own custom viewer, then it 
+     * is not added into the working set.
+     * Does not change which document is currently open in the editor.
+     * More efficient than calling addToWorkingSet() (in a loop) for
+     * a list of files because there's only 1 redraw at the end
+     * @param {!Array.<File>} fileList
+     */
+    function addListToPaneList(paneId, fileList) {
+        var uniqueFileList = [];
+
+        // Process only files not already in working set
+        fileList.forEach(function (file, index) {
+            // If doc has a custom viewer, then don't add it to the working set.
+            // Or if doc is already in working set, don't add it again.
+            if (_canOpenFile(file) && findInPaneList(paneId, file.fullPath) === -1) {
+                uniqueFileList.push(file);
+
+                // Add
+                _paneList.push(file);
+
+                // Add to MRU order: either first or last, depending on whether it's already the current doc or not
+                if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
+                    _paneListMRUOrder.unshift(file);
+                } else {
+                    _paneListMRUOrder.push(file);
+                }
+                
+                
+                // Add first to Added order
+                _paneListAddedOrder.splice(index, 1, file);
+            }
+        });
+        
+
+        // Dispatch event
+        $(exports).triggerHandler("paneListAddList", [uniqueFileList]);
+    }
+    
     // Refactoring exports...
     exports._getPaneList        = _getPaneList;
     exports._getPaneListMRU     = _getPaneListMRU;
@@ -215,8 +259,13 @@ define(function (require, exports, module) {
     
     // API Exports
     exports.addToPaneList                = addToPaneList;
+    exports.addListToPaneList            = addListToPaneList;
     exports.getPaneList                  = getPaneList;
     exports.findInPaneList               = findInPaneList;
     exports.findInPaneViewListAddedOrder = findInPaneViewListAddedOrder;
     exports.findInPaneViewListMRUOrder   = findInPaneViewListMRUOrder;
+    
+    // Constants
+    exports.ALL_PANES                    = ALL_PANES;
+    exports.FOCUSED_PANE                 = FOCUSED_PANE;
 });

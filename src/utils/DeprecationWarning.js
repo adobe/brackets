@@ -21,7 +21,7 @@
  * 
  */
 
-/*global define, console */
+/*global define, console, $ */
 
 /**
  *  Utilities functions to display deprecation warning in the console.
@@ -89,6 +89,29 @@ define(function (require, exports, module) {
         displayedWarnings[message][callerLocation] = true;
     }
 
+    /**
+     * Show deprecation message if there are listeners for the event
+     * @param {Object} the object with the old event to dispatch              $(exports)
+     * @param {Object} the object with the new event to map to the old event  $(MainViewManager)
+     * @param {String} the name of the old event                              "workingSetAdd"
+     * @param {String} the name of the new event                              "paneListAdd"
+     * @param {String=} the cannonical name of the old event                  "DocumentManager.workingSetAdd"
+     * @param {String=} the cannonical name of the new event                  "MainViewManager.paneListAdd"
+     */
+    function deprecateEvent(outbound, inbound, oldEventName, newEventName, cannonicalOutboundName, cannonicalInboundName) {
+        $(inbound).on(newEventName, function () {
+            var listeners = $._data(outbound, "events");
+            if (listeners && listeners.hasOwnProperty(oldEventName) && listeners[oldEventName].length > 0) {
+                console.warn("The Event " + cannonicalOutboundName || oldEventName + " has been deprecated. Use " + cannonicalInboundName || newEventName + " instead.");
+            }
+
+            // dispatch the event anyway just in case the jQuery data is wrong for some reason
+            $(outbound).trigger(oldEventName, Array.prototype.slice(arguments, 0));
+        });
+    }
+    
+    
     // Define public API
     exports.deprecationWarning = deprecationWarning;
+    exports.deprecateEvent = deprecateEvent;
 });
