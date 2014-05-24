@@ -652,99 +652,6 @@ define(function (require, exports, module) {
         }
     }
     
-    
-    /**
-     * @private
-     * Preferences callback. Saves the state of the working set.
-     */
-    function _savePreferences() {
-        // save the working set file paths
-        var files        = [],
-            isActive     = false,
-            workingSet   = getWorkingSet(),
-            currentDoc   = getCurrentDocument(),
-            projectRoot  = ProjectManager.getProjectRoot(),
-            context      = { location : { scope: "user",
-                                          layer: "project",
-                                          layerID: projectRoot.fullPath } };
-
-        if (!projectRoot) {
-            return;
-        }
-
-        workingSet.forEach(function (file, index) {
-            // Do not persist untitled document paths
-            if (!(file instanceof InMemoryFile)) {
-                // flag the currently active editor
-                isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
-                
-                // save editor UI state for just the working set
-                var viewState = EditorManager._getViewState(file.fullPath);
-                
-                files.push({
-                    file: file.fullPath,
-                    active: isActive,
-                    viewState: viewState
-                });
-            }
-        });
-
-        // Writing out working set files using the project layer specified in 'context'.
-        PreferencesManager.setViewState("project.files", files, context);
-    }
-
-    /**
-     * @private
-     * Initializes the working set.
-     */
-    function _projectOpen(e) {
-        // file root is appended for each project
-        var projectRoot = ProjectManager.getProjectRoot(),
-            files = [],
-            context = { location : { scope: "user",
-                                     layer: "project" } };
-        
-        files = PreferencesManager.getViewState("project.files", context);
-        
-        console.assert(Object.keys(_openDocuments).length === 0);  // no files leftover from prev proj
-
-        if (!files) {
-            return;
-        }
-
-        var filesToOpen = [],
-            viewStates = {},
-            activeFile;
-
-        // Add all files to the working set without verifying that
-        // they still exist on disk (for faster project switching)
-        files.forEach(function (value, index) {
-            filesToOpen.push(FileSystem.getFileForPath(value.file));
-            if (value.active) {
-                activeFile = value.file;
-            }
-            if (value.viewState) {
-                viewStates[value.file] = value.viewState;
-            }
-        });
-        addListToWorkingSet(filesToOpen);
-        
-        // Allow for restoring saved editor UI state
-        EditorManager._resetViewStates(viewStates);
-
-        // TODO: refactor this for multi pane
-        if (!activeFile) {
-            var firstView = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).shift();
-            activeFile = firstView ? firstView.fullPath : undefined;
-        }
-
-        if (activeFile) {
-            var promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeFile });
-            // Add this promise to the event's promises to signal that this handler isn't done yet
-            e.promises.push(promise);
-        }
-    }
-
     /**
      * Called after a file or folder name has changed. This function is responsible
      * for updating underlying model data and notifying all views of the change.
@@ -906,11 +813,6 @@ define(function (require, exports, module) {
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 
-    // Handle project change events
-    var $ProjectManager = $(ProjectManager);
-    $ProjectManager.on("projectOpen", _projectOpen);
-    $ProjectManager.on("beforeProjectClose beforeAppClose", _savePreferences);
-    
     // Handle Language change events
     $(LanguageManager).on("languageAdded", _handleLanguageAdded);
     $(LanguageManager).on("languageModified", _handleLanguageModified);

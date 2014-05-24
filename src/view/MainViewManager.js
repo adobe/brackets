@@ -27,11 +27,15 @@ define(function (require, exports, module) {
     "use strict";
     
     var _                   = require("thirdparty/lodash"),
-        WorkspaceManager    = require("view/WorkspaceManager"),
-        EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
-//        DocumentManager     = require("document/DocumentManager"),
         Commands            = require("command/Commands"),
+        EditorManager       = require("editor/EditorManager"),
+        FileSystem          = require("filesystem/FileSystem"),
+//        DocumentManager     = require("document/DocumentManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        ProjectManager      = require("project/ProjectManager"),
+        WorkspaceManager    = require("view/WorkspaceManager"),
+        InMemoryFile        = require("document/InMemoryFile"),
         Strings             = require("strings");
     
     var ALL_PANES           = "ALL_PANES",
@@ -382,8 +386,6 @@ define(function (require, exports, module) {
         }
     }
     
-
-    
     /**
      * Get the next or previous file in the pane view list, in MRU order (relative to currentDocument). May
      * return currentDocument itself if pane view list is length 1.
@@ -442,6 +444,95 @@ define(function (require, exports, module) {
         EditorManager.notifyPathDeleted(fullpath);
     }
     
+    /**
+     * @private
+     * Initializes the working set.
+     */
+    function _loadViewState(e) {
+        // file root is appended for each project
+        var projectRoot = ProjectManager.getProjectRoot(),
+            files = [],
+            context = { location : { scope: "user",
+                                     layer: "project" } };
+        
+        files = PreferencesManager.getViewState("project.files", context);
+        
+        console.assert(_paneViewList.length === 0);
+
+        if (!files) {
+            return;
+        }
+
+        var filesToOpen = [],
+            viewStates = {},
+            activeFile;
+
+        // Add all files to the working set without verifying that
+        // they still exist on disk (for faster project switching)
+        files.forEach(function (value, index) {
+            filesToOpen.push(FileSystem.getFileForPath(value.file));
+            if (value.active) {
+                activeFile = value.file;
+            }
+            if (value.viewState) {
+                viewStates[value.file] = value.viewState;
+            }
+        });
+        
+        addListToPaneViewList(FOCUSED_PANE, filesToOpen);
+        
+        // Allow for restoring saved editor UI state
+        EditorManager._resetViewStates(viewStates);
+
+        if (!activeFile) {
+            activeFile = (_paneViewList.length > 0) ? _paneViewList[0].fullPath : undefined;
+        }
+
+        if (activeFile) {
+            var promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeFile });
+            // Add this promise to the event's promises to signal that this handler isn't done yet
+            e.promises.push(promise);
+        }
+    }
+    
+    function _saveViewState() {
+    
+        var files           = [],
+            isActive        = false,
+            paneViewList    = getPaneViewList(ALL_PANES),
+            currentDoc      = _currentDocument,
+            projectRoot     = ProjectManager.getProjectRoot(),
+            context         = { location : { scope: "user",
+                                             layer: "project",
+                                             layerID: projectRoot.fullPath } };
+
+        if (!projectRoot) {
+            return;
+        }
+
+        paneViewList.forEach(function (file, index) {
+            // Do not persist untitled document paths
+            if (!(file instanceof InMemoryFile)) {
+                // flag the currently active editor
+                isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
+                
+                // save editor UI state for just the working set
+                var viewState = EditorManager._getViewState(file.fullPath);
+                
+                files.push({
+                    file: file.fullPath,
+                    active: isActive,
+                    viewState: viewState
+                });
+            }
+        });
+
+        // Writing out working set files using the project layer specified in 'context'.
+        PreferencesManager.setViewState("project.files", files, context);
+    }
+    
+    $(ProjectManager).on("projectOpen", _loadViewState);
+    $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
     
     
     // Refactoring exports...
