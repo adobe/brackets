@@ -260,19 +260,8 @@ define(function (require, exports, module) {
      * @param {boolean=} true to suppress redraw after removal
      */
     function removeFromWorkingSet(file, suppressRedraw) {
-        // If doc isn't in working set, do nothing
-        var index = findInWorkingSet(file.fullPath);
-        if (index === -1) {
-            return;
-        }
-        
-        // Remove
-        MainViewManager._getPaneViewList().splice(index, 1);
-        MainViewManager._getPaneViewListMRU().splice(_findInWorkingSetMRUOrder(file.fullPath), 1);
-        MainViewManager._getPaneViewListAdded().splice(findInWorkingSetAddedOrder(file.fullPath), 1);
-        
-        // Dispatch event
-        $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw]);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.removeFromPaneViewList() instead of DocumentManager.removeFromWorkingSet()", true);
+        MainViewManager.removeFromPaneViewList(MainViewManager.FOCUSED_PANE, file, suppressRedraw);
     }
 
     /**
@@ -1008,9 +997,7 @@ define(function (require, exports, module) {
     $(LanguageManager).on("languageAdded", _handleLanguageAdded);
     $(LanguageManager).on("languageModified", _handleLanguageModified);
     
-    
-    _deprecateEvent("workingSetAdd", "paneViewListAdd");
+    _deprecateEvent("workingSetAdd",     "paneViewListAdd");
     _deprecateEvent("workingSetAddList", "paneViewListAddList");
-                                      
-    
+    _deprecateEvent("workingSetRemove",  "paneViewListRemove");
 });

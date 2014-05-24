@@ -664,7 +664,7 @@ define(function (require, exports, module) {
             _handleFileListAdded(addedFiles);
         });
 
-        $(DocumentManager).on("workingSetRemove", function (event, removedFile, suppressRedraw) {
+        $(MainViewManager).on("paneViewListRemove", function (event, removedFile, suppressRedraw) {
             _handleFileRemoved(removedFile, suppressRedraw);
         });
 

@@ -102,11 +102,11 @@ define(function (require, exports, module) {
         $(inbound).on(newEventName, function () {
             var listeners = $._data(outbound, "events");
             if (listeners && listeners.hasOwnProperty(oldEventName) && listeners[oldEventName].length > 0) {
-                console.warn("The Event " + cannonicalOutboundName || oldEventName + " has been deprecated. Use " + cannonicalInboundName || newEventName + " instead.");
+                console.warn("The Event " + (cannonicalOutboundName || oldEventName) + " has been deprecated. Use " + (cannonicalInboundName || newEventName) + " instead.");
             }
 
             // dispatch the event anyway just in case the jQuery data is wrong for some reason
-            $(outbound).trigger(oldEventName, Array.prototype.slice(arguments, 0));
+            $(outbound).trigger(oldEventName, Array.prototype.slice.call(arguments, 1));
         });
     }
     

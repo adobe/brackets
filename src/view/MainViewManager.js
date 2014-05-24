@@ -242,11 +242,34 @@ define(function (require, exports, module) {
                 _paneViewListAddedOrder.splice(index, 1, file);
             }
         });
-        
 
         // Dispatch event
         $(exports).triggerHandler("paneViewListAddList", [uniqueFileList]);
     }
+
+    /**
+     * Warning: low level API - use FILE_CLOSE command in most cases.
+     * Removes the given file from the working set list, if it was in the list. Does not change
+     * the current editor even if it's for this file. Does not prompt for unsaved changes.
+     * @param {!File} file
+     * @param {boolean=} true to suppress redraw after removal
+     */
+    function removeFromPaneViewList(paneId, file, suppressRedraw) {
+        // If doc isn't in working set, do nothing
+        var index = findInPaneViewList(paneId, file.fullPath);
+        if (index === -1) {
+            return;
+        }
+        
+        // Remove
+        _paneViewList.splice(index, 1);
+        _paneViewListMRUOrder.splice(findInPaneViewListMRUOrder(paneId, file.fullPath), 1);
+        _paneViewListAddedOrder.splice(findInPaneViewListAddedOrder(paneId, file.fullPath), 1);
+        
+        // Dispatch event
+        $(exports).triggerHandler("paneViewListRemove", [file, suppressRedraw]);
+    }
+    
     
     // Refactoring exports...
     exports._getPaneViewList        = _getPaneViewList;
@@ -260,10 +283,11 @@ define(function (require, exports, module) {
     // API Exports
     exports.addToPaneViewList                = addToPaneViewList;
     exports.addListToPaneViewList            = addListToPaneViewList;
-    exports.getPaneViewList                  = getPaneViewList;
     exports.findInPaneViewList               = findInPaneViewList;
-    exports.findInPaneViewListAddedOrder = findInPaneViewListAddedOrder;
-    exports.findInPaneViewListMRUOrder   = findInPaneViewListMRUOrder;
+    exports.findInPaneViewListAddedOrder     = findInPaneViewListAddedOrder;
+    exports.findInPaneViewListMRUOrder       = findInPaneViewListMRUOrder;
+    exports.getPaneViewList                  = getPaneViewList;
+    exports.removeFromPaneViewList           = removeFromPaneViewList;
     
     // Constants
     exports.ALL_PANES                    = ALL_PANES;
