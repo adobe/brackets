@@ -160,6 +160,7 @@ define({
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} en {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "en <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "en el proyecto",
+    "FIND_IN_FILES_ZERO_FILES"          : "El filtro excluye todos los archivos {0}",
     "FIND_IN_FILES_FILE"                : "archivo",
     "FIND_IN_FILES_FILES"               : "archivos",
     "FIND_IN_FILES_MATCH"               : "coincidencia",
@@ -175,10 +176,25 @@ define({
     "NO_FILE_FILTER"                    : "Excluir archivos\u2026",
     "EDIT_FILE_FILTER"                  : "Editar\u2026",
     "FILE_FILTER_DIALOG"                : "Editar filtro",
-    "FILE_FILTER_INSTRUCTIONS"          : "Excluir archivos y carpetas que coincidan con alguna de las siguientes cadenas / subcadenas o <a href='{0}' title='{0}'>globs</a>. Ingrese una cadena por línea.",
+    "FILE_FILTER_INSTRUCTIONS"          : "Excluir archivos y carpetas que coincidan con alguna de las siguientes cadenas / subcadenas o <a href='{0}' title='{0}'>comodines</a>. Ingrese una cadena por línea.",
     "FILE_FILTER_LIST_PREFIX"           : "excepto",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "y {0} más",
     
+    "FILTER_COUNTING_FILES"             : "Contando archivos\u2026",
+    "FILTER_FILE_COUNT"                 : "Permite {0} de {1} archivos {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Permite todos los {0} archivos {1}",
+    
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "La Edición Rápida no esta disponible para la posición actual del cursor",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "Edición Rápida para CSS: ubique el cursor sobre el nombre de una clase",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "Edición Rápida para CSS: atributo de clase incompleto",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "Edición Rápida para CSS: atributo de identificación incompleto",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "Edición Rápida para CSS: ubique el cursor sobre una etiqueta, clase o id",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Edición Rápida para Funciones de Temporización de CSS: sintaxis inválida",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "Edición Rápida para JS: ubique el cursor sobre el nombre de una función",
+    
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "La Documentación Rápida no esta disponible para la posición actual del cursor",
     
     /**
      * ProjectManager
@@ -202,6 +218,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 {0} columnas seleccionadas",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 {0} línea seleccionada",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 {0} líneas seleccionadas",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} selecciones",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Haz click para usar espacios en la sangría",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Haz click para usar tabulaciones en la sangría",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Haz click para cambiar el número de espacios usados en la sangría",
@@ -223,6 +240,8 @@ define({
     "LINT_DISABLED"                         : "La inspección de código esta deshabilitado",
     "NO_LINT_AVAILABLE"                     : "No hay inspección de código disponible para {0}",
     "NOTHING_TO_LINT"                       : "No hay nada para inspeccionar",
+    "LINTER_TIMED_OUT"                      : "{0} ha agotado el tiempo después de esperar {1} ms",
+    "LINTER_FAILED"                         : "{0} terminó con error: {1}",
     
     
     /**
@@ -267,13 +286,9 @@ define({
     "CMD_PASTE"                           : "Pegar",
     "CMD_SELECT_ALL"                      : "Seleccionar todo",
     "CMD_SELECT_LINE"                     : "Seleccionar línea",
-    "CMD_FIND"                            : "Buscar",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Buscar\u2026",
-    "CMD_FIND_IN_FILES"                   : "Buscar en archivos",
-    "CMD_FIND_IN_SUBTREE"                 : "Buscar en\u2026",
-    "CMD_FIND_NEXT"                       : "Buscar siguiente",
-    "CMD_FIND_PREVIOUS"                   : "Buscar anterior",
-    "CMD_REPLACE"                         : "Reemplazar",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Dividir selección en líneas",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Agregar cursor a la siguiente línea",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Agregar cursor a la línea anterior",
     "CMD_INDENT"                          : "Aumentar sangría",
     "CMD_UNINDENT"                        : "Disminuir sangría",
     "CMD_DUPLICATE"                       : "Duplicar",
@@ -286,6 +301,20 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Crear línea abajo",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Completar paréntesis automáticamente",
     "CMD_SHOW_CODE_HINTS"                 : "Mostrar sugerencias de código",
+    
+    // Search menu commands
+    "FIND_MENU"                           : "Buscar",
+    "CMD_FIND"                            : "Buscar",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Buscar\u2026",
+    "CMD_FIND_NEXT"                       : "Buscar siguiente",
+    "CMD_FIND_PREVIOUS"                   : "Buscar anterior",
+    "CMD_FIND_ALL_AND_SELECT"             : "Buscar todo y seleccionar",
+    "CMD_ADD_NEXT_MATCH"                  : "Agregar la siguiente coincidencia a la selección",
+    "CMD_SKIP_CURRENT_MATCH"              : "Omitir y agregar la siguiente coincidencia",
+    "CMD_FIND_IN_FILES"                   : "Buscar en archivos",
+    "CMD_FIND_IN_SELECTED"                : "Buscar en el archivo/directorio seleccionado",
+    "CMD_FIND_IN_SUBTREE"                 : "Buscar en\u2026",
+    "CMD_REPLACE"                         : "Reemplazar",
     
     // View menu commands
     "VIEW_MENU"                           : "Ver",
@@ -328,9 +357,10 @@ define({
     "HELP_MENU"                           : "Ayuda",
     "CMD_CHECK_FOR_UPDATE"                : "Buscar actualizaciones",
     "CMD_HOW_TO_USE_BRACKETS"             : "Cómo utilizar {APP_NAME}",
-    "CMD_FORUM"                           : "Foro de {APP_NAME}",
+    "CMD_SUPPORT"                         : "Soporte de {APP_NAME}",
+    "CMD_SUGGEST"                         : "Sugerir una mejora",
     "CMD_RELEASE_NOTES"                   : "Notas de la versión",
-    "CMD_REPORT_AN_ISSUE"                 : "Informar de un error",
+    "CMD_GET_INVOLVED"                    : "Involúcrese",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Abrir carpeta de extensiones",
     "CMD_TWITTER"                         : "{TWITTER_NAME} en Twitter",
     "CMD_ABOUT"                           : "Acerca de {APP_TITLE}",
@@ -452,6 +482,9 @@ define({
     "CSS_QUICK_EDIT_NO_MATCHES"            : "No hay reglas CSS existentes que coincidan con tu selección.<br> Haz click en \"Nueva regla\" para crear una.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "No hay hojas de estilos en tu proyecto.<br>Crea una para añadir reglas CSS.",
     
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "más grande",
+    
     /**
      * Unit names
      */
@@ -460,6 +493,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Desarrollo",
+    "ERRORS"                                    : "Errores",
     "CMD_SHOW_DEV_TOOLS"                        : "Mostrar herramientas para desarrolladores",
     "CMD_REFRESH_WINDOW"                        : "Recargar con extensiones",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Recargar sin extensiones",
@@ -470,6 +504,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Habilitar depuración de Node",
     "CMD_LOG_NODE_STATE"                        : "Mostrar estado de Node en Consola",
     "CMD_RESTART_NODE"                          : "Reiniciar Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Mostrar errores en la barra de estado",
     
     "LANGUAGE_TITLE"                            : "Cambiar idioma",
     "LANGUAGE_MESSAGE"                          : "Idioma:",
@@ -510,3 +545,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Más"
 });
+
+/* Last translated for e47dc5b16ec4bfabacfdb5c62f67a94feca85d50 */

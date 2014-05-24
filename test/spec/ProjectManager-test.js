@@ -152,16 +152,11 @@ define(function (require, exports, module) {
             });
 
             it("should fail when file name contains special characters", function () {
-                var chars = "/?*:<>\\|\"";  // invalid characters on Windows
+                var chars = "\\?*";  // validated chars on all platforms
                 var i = 0;
                 var len = 0;
                 var charAt, didCreate, gotError;
 
-                if (brackets.platform === "mac") {
-                    chars = "?*|:";
-                } else if (brackets.platform === "linux") {
-                    chars = "?*|/";
-                }
                 len = chars.length;
                 
                 function createFile() {

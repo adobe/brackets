@@ -24,17 +24,19 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, describe, jasmine, beforeEach, afterEach, it, runs, waitsFor, expect, waitsForDone, waitsForFail, spyOn */
+/*unittests: LanguageManager */
 
 define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var CodeMirror      = require("thirdparty/CodeMirror2/lib/codemirror"),
-        LanguageManager = require("language/LanguageManager"),
-        DocumentManager = require("document/DocumentManager"),
-        PathUtils       = require("thirdparty/path-utils/path-utils.min"),
-        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        FileSystem      = require("filesystem/FileSystem");
+    var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+        LanguageManager     = require("language/LanguageManager"),
+        DocumentManager     = require("document/DocumentManager"),
+        PathUtils           = require("thirdparty/path-utils/path-utils.min"),
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        FileSystem          = require("filesystem/FileSystem");
     
     describe("LanguageManager", function () {
         
@@ -120,7 +122,9 @@ define(function (require, exports, module) {
                     "name": "CoffeeScript",
                     "mode": "coffeescript",
                     "fileExtensions": ["coffee", "cf", "cson"],
-                    "fileNames": ["cakefile"]
+                    "fileNames": ["cakefile"],
+                    "lineComment": ["#"],
+                    "blockComment": {prefix: "###", suffix: "###"}
                 };
 
                 validateLanguage(def, coffee);
@@ -667,6 +671,99 @@ define(function (require, exports, module) {
                 
                 // cleanup
                 doc.releaseRef();
+            });
+        });
+        
+        describe("Preferences", function () {
+            it("should be able to add extension mappings via a preference", function () {
+                var language = LanguageManager.getLanguageForExtension("foobar");
+                expect(language).toBeUndefined();
+                PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, {
+                    foobar: "javascript"
+                });
+                language = LanguageManager.getLanguageForExtension("foobar");
+                expect(language.getId()).toBe("javascript");
+                PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, { });
+                language = LanguageManager.getLanguageForExtension("foobar");
+                expect(language).toBeUndefined();
+            });
+            
+            it("should manage overridden default extensions", function () {
+                PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, {
+                    js: "html"
+                });
+                var language = LanguageManager.getLanguageForExtension("js");
+                expect(language.getId()).toBe("html");
+                PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, {
+                    js: "php"
+                });
+                language = LanguageManager.getLanguageForExtension("js");
+                expect(language.getId()).toBe("php");
+                PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, { });
+                language = LanguageManager.getLanguageForExtension("js");
+                expect(language.getId()).toBe("javascript");
+            });
+            
+            it("should be able to manage file name mappings via a preference", function () {
+                var language = LanguageManager.getLanguageForPath("/bar/Foofile");
+                expect(language.getId()).toBe("unknown");
+                PreferencesManager.set(LanguageManager._NAME_MAP_PREF, {
+                    "Foofile": "javascript"
+                });
+                language = LanguageManager.getLanguageForPath("/bar/Foofile");
+                expect(language.getId()).toBe("javascript");
+                PreferencesManager.set(LanguageManager._NAME_MAP_PREF, { });
+                language = LanguageManager.getLanguageForPath("/bar/Foofile");
+                expect(language.getId()).toBe("unknown");
+            });
+            
+            it("should manage overridden default file names", function () {
+                PreferencesManager.set(LanguageManager._NAME_MAP_PREF, {
+                    Gemfile: "python"
+                });
+                var language = LanguageManager.getLanguageForPath("Gemfile");
+                expect(language.getId()).toBe("python");
+                PreferencesManager.set(LanguageManager._NAME_MAP_PREF, {
+                    Gemfile: "php"
+                });
+                language = LanguageManager.getLanguageForPath("Gemfile");
+                expect(language.getId()).toBe("php");
+                PreferencesManager.set(LanguageManager._NAME_MAP_PREF, { });
+                language = LanguageManager.getLanguageForPath("Gemfile");
+                expect(language.getId()).toBe("ruby");
+            });
+        });
+
+        describe("isBinary", function () {
+
+            it("should recognize known binary file extensions", function () {
+                // image
+                expect(LanguageManager.getLanguageForPath("test.gif").isBinary()).toBeTruthy();
+                expect(LanguageManager.getLanguageForPath("test.png").isBinary()).toBeTruthy();
+
+                // audio
+                expect(LanguageManager.getLanguageForPath("test.mp3").isBinary()).toBeTruthy();
+                expect(LanguageManager.getLanguageForPath("test.wav").isBinary()).toBeTruthy();
+
+                // other
+                expect(LanguageManager.getLanguageForPath("test.exe").isBinary()).toBeTruthy();
+                expect(LanguageManager.getLanguageForPath("test.dll").isBinary()).toBeTruthy();
+                expect(LanguageManager.getLanguageForPath("test.zip").isBinary()).toBeTruthy();
+            });
+
+            it("should recognize known non-binary file extensions", function () {
+                expect(LanguageManager.getLanguageForPath("test.css").isBinary()).toBeFalsy();
+                expect(LanguageManager.getLanguageForPath("test.html").isBinary()).toBeFalsy();
+                expect(LanguageManager.getLanguageForPath("test.txt").isBinary()).toBeFalsy();
+                expect(LanguageManager.getLanguageForPath("test.js").isBinary()).toBeFalsy();
+                expect(LanguageManager.getLanguageForPath("test.json").isBinary()).toBeFalsy();
+                expect(LanguageManager.getLanguageForPath("test.xml").isBinary()).toBeFalsy();
+                expect(LanguageManager.getLanguageForPath("test.css.erb").isBinary()).toBeFalsy();
+                expect(LanguageManager.getLanguageForPath("test.php.css").isBinary()).toBeFalsy();
+            });
+
+            it("should recognize unknown file extensions as non-binary", function () {
+                expect(LanguageManager.getLanguageForPath("test.abcxyz").isBinary()).toBeFalsy();
             });
         });
     });

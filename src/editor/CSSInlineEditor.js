@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint regexp: true, vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, window, Mustache */
 
 define(function (require, exports, module) {
@@ -75,21 +75,21 @@ define(function (require, exports, module) {
                 //   class="error-dialog modal hide"
                 // and the insertion point is inside "modal", we want ".modal"
                 var attributeValue = tagInfo.attr.value;
-                var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
-                var endIndex = attributeValue.indexOf(" ", tagInfo.position.offset);
-                selectorName = "." +
-                    attributeValue.substring(
-                        startIndex === -1 ? 0 : startIndex + 1,
-                        endIndex === -1 ? attributeValue.length : endIndex
-                    );
-                
-                // If the insertion point is surrounded by space, selectorName is "."
-                // Check for that here
-                if (selectorName === ".") {
-                    selectorName = "";
-                }
-                
-                if (selectorName === "") {
+                if (/\S/.test(attributeValue)) {
+                    var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
+                    var endIndex = attributeValue.indexOf(" ", tagInfo.position.offset);
+                    selectorName = "." +
+                        attributeValue.substring(
+                            startIndex === -1 ? 0 : startIndex + 1,
+                            endIndex === -1 ? attributeValue.length : endIndex
+                        );
+
+                    // If the insertion point is surrounded by space between two classnames, selectorName is "."
+                    if (selectorName === ".") {
+                        selectorName = "";
+                        reason = Strings.ERROR_CSSQUICKEDIT_BETWEENCLASSES;
+                    }
+                } else {
                     reason = Strings.ERROR_CSSQUICKEDIT_CLASSNOTFOUND;
                 }
             } else if (tagInfo.attr.name === "id") {
@@ -160,9 +160,9 @@ define(function (require, exports, module) {
      *
      * @param {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
-     * @return {?$.Promise} synchronously resolved with an InlineWidget, or
-     *         {string} if pos is in tag but not in tag name, class attr, or id attr, or
-     *         null if we're not going to provide anything.
+     * @return {?$.Promise} synchronously resolved with an InlineWidget; or error
+     *         {string} if pos is in tag but not in tag name, class attr, or id attr; or null if the
+     *         selection isn't even close to a context where we could provide anything.
      */
     function htmlToCSSProvider(hostEditor, pos) {
 

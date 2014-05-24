@@ -160,6 +160,8 @@ define(function (require, exports, module) {
             result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
         } else if (name === FileSystemError.CONTENTS_MODIFIED) {
             result = Strings.CONTENTS_MODIFIED_ERR;
+        } else if (name === FileSystemError.UNSUPPORTED_ENCODING) {
+            result = Strings.UNSUPPORTED_ENCODING_ERR;
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
         }
@@ -443,7 +445,7 @@ define(function (require, exports, module) {
      * RegEx to validate if a filename is not allowed even if the system allows it.
      * This is done to prevent cross-platform issues.
      */
-    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux)$/i;
+    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux|)$|\.+$/i;
     
     /**
      * @private
@@ -485,7 +487,7 @@ define(function (require, exports, module) {
         return Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,
             StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
-            StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, invalidCharsString)
+            StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE, invalidCharsString)
         );
     }
 

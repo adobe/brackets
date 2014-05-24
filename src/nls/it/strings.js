@@ -36,6 +36,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "La cartella selezionata non può essere modificata.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Non hai i permessi necessari per effettuare la modifica.",
     "CONTENTS_MODIFIED_ERR"             : "Il file è stato modificato fuori {APP_NAME}.",
+    "UNSUPPORTED_ENCODING_ERR"          : "Il file non è testo codificato in UTF-8",
     "FILE_EXISTS_ERR"                   : "Il file è già presente.",
     "FILE"                              : "file",
     "DIRECTORY"                         : "cartella",
@@ -45,7 +46,7 @@ define({
     "OPEN_DIALOG_ERROR"                 : "Errore durante il caricamento della finestra di dialogo per l’apertura del file. (errore {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Errore durante il tentativo di caricare la cartella <span class='dialog-filename'>{0}</span>. (errore {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "Errore durante la lettura del contenuto della cartella <span class='dialog-filename'>{0}</span>. (errore {1})",
-    
+
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Errore durante l’apertura del file",
     "ERROR_OPENING_FILE"                : "Errore durante il tentativo di apertura del file <span class='dialog-filename'>{0}</span>. {1}",
@@ -80,13 +81,13 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Errore durante l’Anteprima Live",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connessione al Browser in corso",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Per effettuare una connessione con Anteprima Live, Chrome deve essere rilanciato con il debugging remoto abilitato.<br /><br />Vuoi rilanciare Chrome e abilitare il debugging remoto?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Impossibile caricare Sviluppo Live",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Impossibile caricare l'Anteprima Live",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Apri un file HTML per lanciare l’Anteprima Live.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Per avviare l'Anteprima Live con un file server-side, è necessario specificare un URL di base per questo progetto.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Errore durante l’avvio del server HTTP server per i file di sviluppo in tempo reale. Riprova ancora.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Benvenuto nell’Anteprima Live!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Anteprima Live connette {APP_NAME} al tuo browser. Lancia una anteprima del tuo file HTML nel browser e dopo ogni tua modifica l’anteprima verrà aggiornata istantaneamente per riflettere le modifiche del tuo codice.<br /><br />In questa versione preliminare di {APP_NAME}, Anteprima Live funziona solo per le modifiche su <strong>file CSS</strong> e solo con <strong>Google Chrome</strong>. Verrà implementata presto anche per HTML e JavaScript!<br /><br />(Vedrai questo messaggio una sola volta.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Per magiorni informazioni leggi <a href='{0}' title='{0}'>Risoluzione dei problemi di connessione a Anteprima Live</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Per maggiori informazioni leggi <a href='{0}' title='{0}'>Risoluzione dei problemi di connessione a Anteprima Live</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Anteprima Live",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Anteprima Live: Connessione\u2026",
@@ -104,7 +105,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Vuoi cambiare le modifiche apportate al file <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Vuoi cambiare le modifiche apportate ai seguenti file?",
     "EXT_MODIFIED_TITLE"                : "Modifiche esterne",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirm Delete",
+    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confermi l'eliminazione?",
     "CONFIRM_FOLDER_DELETE"             : "Sei sicuro di eliminare la cartella <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "File Eliminato",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> è stato modificato sul disco.<br /><br />Vuoi salvare il file e sovrascrivere le modifiche?",
@@ -113,7 +114,7 @@ define({
 
     // Generic dialog/button labels
     "OK"                                : "OK",
-    "CANCEL"                            : "Cancella",
+    "CANCEL"                            : "Annulla",
     "DONT_SAVE"                         : "Non salvare",
     "SAVE"                              : "Salva",
     "SAVE_AS"                           : "Salva come\u2026",
@@ -155,6 +156,7 @@ define({
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "nel progetto",
+    "FIND_IN_FILES_ZERO_FILES"          : "Filtra esclude tutti i file {0}",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "file",
     "FIND_IN_FILES_MATCH"               : "corrispondenza",
@@ -164,7 +166,18 @@ define({
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Si è verificato un errore nel recuperare le informazioni aggiornate",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Si è verificato un errore nel recuperare le informazioni aggiornate dal server. Assicurati di essere connesso a internet e riprova.",
-
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES" : "CSS Quick Edit: posiziona il cursore sul nome di una classe singola.",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"  : "CSS Quick Edit: attributo classe incompleto",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"     : "CSS Quick Edit: attributo id incompleto",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: posiziona il cursore su etichetta, classe, oppure id",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: posiziona il cursore su nome della funziona",
+    "EDIT_FILE_FILTER"  : "Modifica\u2026",
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Quick Docs non disponibile per posizione attuale del cursore",
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Quick Edit non disponibile per posizione attuale del cursore",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Funzione CSS Timing Quick Edit:  sintassi invalida",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "e {0} in più ",
+    "FILE_FILTER_INSTRUCTIONS"          : "Esclude i file e cartelle che sono uguali a qualsiasi delle seguente stringhe / sottostringhe o <a href='{0}' title='{0}'>caratteri jolly</a>.  Digita ciascun stringa su una nuova riga.",
+ 
     /**
      * ProjectManager
      */
@@ -176,17 +189,17 @@ define({
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
-    "KEYBOARD_SHIFT"  : "Maiuscolo",
+    "KEYBOARD_SHIFT"  : "Maiusc",
     "KEYBOARD_SPACE"  : "Spazio",
     
     /**
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Linea {0}, Colonna {1}",
-    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Selected {0} column",
-    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selected {0} columns",
-    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Selected {0} line",
-    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selected {0} lines",
+    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Selezionata {0} colonna",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selezionata {0} colonne",
+    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Selezionata {0} linea",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selezionata {0} linee",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Clicca per passare alla indentazione a spazi",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Clicca per passare alla indentazione a tabulazione",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Clicca per cambiare il numero di spazi usati per l’indentazione",
@@ -205,7 +218,7 @@ define({
     "NO_ERRORS_MULTIPLE_PROVIDER"           : "Nessun problema trovato - ottimo lavoro!",
     "LINT_DISABLED"                         : "Linting disabilitato",
     "NO_LINT_AVAILABLE"                     : "Linter disponibile {0}",
-    "NOTHING_TO_LINT"                       : "Nothing to lint",
+    "NOTHING_TO_LINT"                       : "Niente dal lint",
     
     
     /**
@@ -253,6 +266,7 @@ define({
     "CMD_FIND"                          : "Cerca",
     "CMD_FIND_FIELD_PLACEHOLDER"        : "Trova\u2026",
     "CMD_FIND_IN_FILES"                 : "Cerca nei file",
+    "CMD_FIND_IN_SELECTED"              : "Cerca nel file/cartella selezionata",
     "CMD_FIND_IN_SUBTREE"               : "Cerca in\u2026",
     "CMD_FIND_NEXT"                     : "Cerca il successivo",
     "CMD_FIND_PREVIOUS"                 : "Cerca il precedente",
@@ -263,11 +277,13 @@ define({
     "CMD_DELETE_LINES"                  : "Elimina linea",
     "CMD_COMMENT"                       : "Commenta/De-commenta linee",
     "CMD_BLOCK_COMMENT"                 : "Commenta/De-commenta blocco",
+    "CMD_ADD_NEXT_MATCH"                : "Aggiungi la prossima correspondenza alla selezione",
+    "CMD_SKIP_CURRENT_MATCH"            : "Salta e aggiungi prossima correspondenza",
     "CMD_LINE_UP"                       : "Sposta la riga in alto",
     "CMD_LINE_DOWN"                     : "Sposta la riga in basso",
     "CMD_OPEN_LINE_ABOVE"               : "Apri linea sopra",
     "CMD_OPEN_LINE_BELOW"               : "Apri linea sotto",
-    "CMD_TOGGLE_CLOSE_BRACKETS"         : "Chiudi Brackets automaticamente",
+    "CMD_TOGGLE_CLOSE_BRACKETS"         : "Chiudi le parentesi automaticamente",
     "CMD_SHOW_CODE_HINTS"               : "Mostra suggerimenti",
     
     // View menu commands
@@ -281,15 +297,16 @@ define({
     "CMD_SCROLL_LINE_DOWN"              : "Scorri verso il basso",
     "CMD_TOGGLE_LINE_NUMBERS"           : "Numeri linea",
     "CMD_TOGGLE_ACTIVE_LINE"            : "Evidenzia linea attiva",
-    "CMD_TOGGLE_WORD_WRAP"              : "Word Wrap",
+    "CMD_TOGGLE_WORD_WRAP"              : "A capo automaticamente",
     "CMD_LIVE_HIGHLIGHT"                : "Ispezione Anteprima Live",
-    "CMD_VIEW_TOGGLE_INSPECTION"        : "Lint Files on Save",
+    "CMD_VIEW_TOGGLE_INSPECTION"        : "Lint Files al salvataggio",
     "CMD_SORT_WORKINGSET_BY_ADDED"      : "Ordina per data di aggiunta",
     "CMD_SORT_WORKINGSET_BY_NAME"       : "Ordina per nome",
     "CMD_SORT_WORKINGSET_BY_TYPE"       : "Ordina per tipo",
     "CMD_SORT_WORKINGSET_AUTO"          : "Ordinamento automatico",
 
     // Navigate menu Commands
+    "FIND_MENU"                         : "Trova",
     "NAVIGATE_MENU"                     : "Naviga",
     "CMD_QUICK_OPEN"                    : "Apri velocemente",
     "CMD_GOTO_LINE"                     : "Vai alla linea",
@@ -303,7 +320,7 @@ define({
     "CMD_NEXT_DOC"                      : "Documento successivo",
     "CMD_PREV_DOC"                      : "Documento precedente",
     "CMD_SHOW_IN_TREE"                  : "Mostra nell’albero dei file",
-    "CMD_SHOW_IN_OS"                    : "Mostra in OS",
+    "CMD_SHOW_IN_OS"                    : "Mostra in SO",
     
     // Help menu commands
     "HELP_MENU"                         : "Aiuto",
@@ -315,16 +332,22 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"        : "Mostra cartella estensioni",
     "CMD_TWITTER"                       : "{TWITTER_NAME} su Twitter",
     "CMD_ABOUT"                         : "Informazioni su {APP_TITLE}",
+    "CMD_SHOW_IN_EXPLORER"              : "Mostra in Explorer",
+    "CMD_SHOW_IN_FINDER"                : "Mostra nel finder",
+
     "CMD_OPEN_PREFERENCES"              : "Apri il file delle preferenze",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                : "Build sperimentale",
     "DEVELOPMENT_BUILD"                 : "Build di sviluppo",
+    "CMD_SUGGEST"                       : "Suggerisci una feature",
+    "CMD_SUPPORT"                       : "Supporto per {APP_NAME}",
     "RELOAD_FROM_DISK"                  : "Ricarica dal disco",
+    "CMD_GET_INVOLVED"                  : "Far parte",
     "KEEP_CHANGES_IN_EDITOR"            : "Conserva le modifiche nell’editor",
     "CLOSE_DONT_SAVE"                   : "Chiudi (non salvare)",
-    "RELAUNCH_CHROME"                   : "Riavvia Chrome",
-    "ABOUT"                             : "About",
+    "RELAUNCH_CHROME"                   : "Riavvia Google Chrome",
+    "ABOUT"                             : "Informazioni",
     "CLOSE"                             : "Chiudi",
     "ABOUT_TEXT_LINE1"                  : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                  : "Avvisi, termini e condizioni circa i software di terze parti raggiungibili all’indirizzo <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> incorporati come riferimento.",
@@ -445,14 +468,17 @@ define({
     "CMD_REFRESH_WINDOW"                        : "Riavvia con le Estensioni",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Riavvia senza Estensioni",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Nuova finestra di {APP_NAME}",
-    "CMD_SWITCH_LANGUAGE"                       : "Passa alla lingua",
+    "CMD_SWITCH_LANGUAGE"                       : "Cambia la lingua",
     "CMD_RUN_UNIT_TESTS"                        : "Esegui i test",
     "CMD_SHOW_PERF_DATA"                        : "Mostra dati sulla performance",
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Abilita Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Registra i Log Node State nella Console",
     "CMD_RESTART_NODE"                          : "Riavvia Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Mostra errori nella barra di stato",
+    "ERRORS"                                    : "Errori",
+
     
-    "LANGUAGE_TITLE"                            : "Passa alla lingua",
+    "LANGUAGE_TITLE"                            : "Cambia la lingua",
     "LANGUAGE_MESSAGE"                          : "Lingua:",
     "LANGUAGE_SUBMIT"                           : "Riavvia {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Annulla",
@@ -490,3 +516,6 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
+
+/* Last translation of: e47dc5b16ec4bfabacfdb5c62f67a94feca85d50 */
+

@@ -115,9 +115,9 @@ define(function (require, exports, module) {
         /**
          * MemoryStorage is not stored in a file, so fileChanged is ignored.
          * 
-         * @param {string} filename File that has changed
+         * @param {string} filePath File that has changed
          */
-        fileChanged: function (filename) {
+        fileChanged: function (filePath) {
         }
     };
     
@@ -241,10 +241,10 @@ define(function (require, exports, module) {
         /**
          * If the filename matches this Storage's path, a changed message is triggered.
          * 
-         * @param {string} filename File that has changed
+         * @param {string} filePath File that has changed
          */
-        fileChanged: function (filename) {
-            if (filename === this.path) {
+        fileChanged: function (filePath) {
+            if (filePath === this.path) {
                 $(this).trigger("changed");
             }
         }
@@ -485,10 +485,10 @@ define(function (require, exports, module) {
          * Tells the Scope that the given file has been changed so that the
          * Storage can be reloaded if needed.
          * 
-         * @param {string} filename Name of the file that has changed
+         * @param {string} filePath File that has changed
          */
-        fileChanged: function (filename) {
-            this.storage.fileChanged(filename);
+        fileChanged: function (filePath) {
+            this.storage.fileChanged(filePath);
         },
         
         /**
@@ -927,10 +927,12 @@ define(function (require, exports, module) {
          * @param {string} id Identifier of the preference to set
          * @param {Object} value New value for the preference
          * @param {{location: ?Object, context: ?Object}=} options Specific location in which to set the value or the context to use when setting the value
-         * @return {boolean} true if a value was set
+         * @param {boolean=} doNotSave True if the preference change should not be saved automatically.
+         * @return {valid:  {boolean}, true if no validator specified or if value is valid
+         *          stored: {boolean}} true if a value was stored
          */
-        set: function (id, value, options) {
-            return this.base.set(this.prefix + id, value, options);
+        set: function (id, value, options, doNotSave) {
+            return this.base.set(this.prefix + id, value, options, doNotSave);
         },
         
         /**
@@ -1035,8 +1037,15 @@ define(function (require, exports, module) {
      * 
      * It also provides the ability to register preferences, which gives a fine-grained
      * means for listening for changes and will ultimately allow for automatic UI generation.
+     * 
+     * The contextNormalizer is used to customize get/set contexts based on the needs of individual
+     * context systems. It can be passed in at construction time or set later.
+     * 
+     * @param {function=} contextNormalizer function that is passed the context used for get or set to adjust for specific PreferencesSystem behavior
      */
-    function PreferencesSystem() {
+    function PreferencesSystem(contextNormalizer) {
+        this.contextNormalizer = contextNormalizer;
+        
         this._knownPrefs = {};
         this._scopes = {
             "default": new Scope(new MemoryStorage())
@@ -1339,8 +1348,13 @@ define(function (require, exports, module) {
          * @return {{scopeOrder: string, filename: ?string}} context object
          */
         _getContext: function (context) {
-            context = context || this._defaultContext;
-            return context;
+            if (context) {
+                if (this.contextNormalizer) {
+                    context = this.contextNormalizer(context);
+                }
+                return context;
+            }
+            return this._defaultContext;
         },
         
         /**
@@ -1485,10 +1499,11 @@ define(function (require, exports, module) {
          * @param {string} id Identifier of the preference to set
          * @param {Object} value New value for the preference
          * @param {{location: ?Object, context: ?Object}=} options Specific location in which to set the value or the context to use when setting the value
+         * @param {boolean=} doNotSave True if the preference change should not be saved automatically.
          * @return {valid:  {boolean}, true if no validator specified or if value is valid
          *          stored: {boolean}} true if a value was stored
          */
-        set: function (id, value, options) {
+        set: function (id, value, options, doNotSave) {
             options = options || {};
             var context = this._getContext(options.context),
                 
@@ -1525,6 +1540,9 @@ define(function (require, exports, module) {
             
             var wasSet = scope.set(id, value, context, location);
             if (wasSet) {
+                if (!doNotSave) {
+                    this.save();
+                }
                 this._triggerChange({
                     ids: [id]
                 });
@@ -1706,11 +1724,11 @@ define(function (require, exports, module) {
          * Tells the PreferencesSystem that the given file has been changed so that any
          * related Scopes can be reloaded.
          * 
-         * @param {string} filename Name of the file that has changed
+         * @param {string} filePath File that has changed
          */
-        fileChanged: function (filename) {
+        fileChanged: function (filePath) {
             _.forEach(this._scopes, function (scope) {
-                scope.fileChanged(filename);
+                scope.fileChanged(filePath);
             });
         },
         

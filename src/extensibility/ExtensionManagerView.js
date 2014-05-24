@@ -219,7 +219,7 @@ define(function (require, exports, module) {
 
         var isInstalledInUserFolder = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
         context.allowRemove = isInstalledInUserFolder;
-        context.allowUpdate = context.showUpdateButton && context.isCompatible && context.isCompatibleLatest && isInstalledInUserFolder;
+        context.allowUpdate = context.showUpdateButton && context.isCompatible && context.updateCompatible && isInstalledInUserFolder;
         if (!context.allowUpdate) {
             context.updateNotAllowedReason = isInstalledInUserFolder ? Strings.CANT_UPDATE : Strings.CANT_UPDATE_DEV;
         }

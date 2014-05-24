@@ -37,6 +37,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "Das Ziel-Verzeichnis kann nicht verändert werden.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Die Berechtigungen erlauben Ihnen nicht, Veränderungen vorzunehmen.",
     "CONTENTS_MODIFIED_ERR"             : "Die Datei wurde außerhalb von {APP_NAME} verändert.",
+    "UNSUPPORTED_ENCODING_ERR"          : "Die Datei ist nicht UTF-8-kodiert.",
     "FILE_EXISTS_ERR"                   : "Die Datei existiert bereits.",
     "FILE"                              : "Datei",
     "DIRECTORY"                         : "Verzeichnis",
@@ -159,7 +160,8 @@ define({
     "FIND_IN_FILES_TITLE_PART2"         : "\" gefunden",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_NO_SCOPE"            : "in Projekt",
+    "FIND_IN_FILES_NO_SCOPE"            : "im Projekt",
+    "FIND_IN_FILES_ZERO_FILES"          : "Der Filter schließt alle Dateien {0} aus",
     "FIND_IN_FILES_FILE"                : "Datei",
     "FIND_IN_FILES_FILES"               : "Dateien",
     "FIND_IN_FILES_MATCH"               : "Treffer",
@@ -175,9 +177,25 @@ define({
     "NO_FILE_FILTER"                    : "Dateien ausschließen\u2026",
     "EDIT_FILE_FILTER"                  : "Bearbeiten\u2026",
     "FILE_FILTER_DIALOG"                : "Filter bearbeiten",
-    "FILE_FILTER_INSTRUCTIONS"          : "Schließe Dateien und Ordner aus, auf die einer der folgenden Pfade / Teilpfade oder <a href='{0}' title='{0}'>Globs</a> zutrifft. Nutze für jeden Pfad eine neue Zeile.",
+    "FILE_FILTER_INSTRUCTIONS"          : "Schließe Dateien und Ordner aus, auf die einer der folgenden Pfade / Teilpfade oder <a href='{0}' title='{0}'>Platzhalter</a> zutrifft. Nutze für jeden Pfad eine neue Zeile.",
     "FILE_FILTER_LIST_PREFIX"           : "ausgenommen",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "und {0} weitere",
+
+    "FILTER_COUNTING_FILES"             : "Dateien werden gezählt\u2026",
+    "FILTER_FILE_COUNT"                 : "Lässt {0} von {1} Dateien {2} zu",
+    "FILTER_FILE_COUNT_ALL"             : "Lässt alle {0} Dateien {1} zu",
+
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Es wurde kein Editor für Schnelles Bearbeiten für die aktuelle Cursorposition gefunden",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Quick Edit: Setzen Sie den Cursor auf einen einzigen Klassennamen",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Quick Edit: Unvollständiges Klassenattribut",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Quick Edit: Unvollständiges ID-Attribut",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: Setzen Sie den Cursor auf einen Tag, eine Klasse oder eine ID",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS Timing Function Quick Edit: Syntax nicht korrekt",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: Setzen Sie den Cursor auf einen Funktionsnamen",
+
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Die Schnell-Dokumentation ist für die aktuelle Cursorposition nicht verfügbar",
 
     /**
      * ProjectManager
@@ -201,6 +219,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 {0} Spalten ausgewählt",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 {0} Zeile ausgewählt",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 {0} Zeilen ausgewählt",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} Auswahlen",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Klicken, um Einrückung auf Leerzeichen umzuschalten",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Klicken, um Einrückung auf Tabs umzuschalten",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Klicken, um die Anzahl Leerzeichen beim Einrücken zu ändern",
@@ -222,6 +241,8 @@ define({
     "LINT_DISABLED"                         : "Das Linten ist nicht aktiviert",
     "NO_LINT_AVAILABLE"                     : "Es ist kein Linter für {0} verfügbar",
     "NOTHING_TO_LINT"                       : "Es gibt nichts zum Linten",
+    "LINTER_TIMED_OUT"                      : "{0} hat die Zeitbegrenzung von {1} ms überschritten",
+    "LINTER_FAILED"                         : "{0} hat mit einer Fehlermeldung abgebrochen: {1}",
 
 
     /**
@@ -266,13 +287,9 @@ define({
     "CMD_PASTE"                           : "Einfügen",
     "CMD_SELECT_ALL"                      : "Alles auswählen",
     "CMD_SELECT_LINE"                     : "Zeile auswählen",
-    "CMD_FIND"                            : "Suchen",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Suchen\u2026",
-    "CMD_FIND_IN_FILES"                   : "Im Projekt suchen",
-    "CMD_FIND_IN_SUBTREE"                 : "Suchen in\u2026",
-    "CMD_FIND_NEXT"                       : "Weitersuchen (vorwärts)",
-    "CMD_FIND_PREVIOUS"                   : "Weitersuchen (rückwärts)",
-    "CMD_REPLACE"                         : "Ersetzen",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Auswahl in Zeilen aufteilen",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Cursor zur nächsten Zeile hinzufügen",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Cursor zur vorherigen Zeile hinzufügen",
     "CMD_INDENT"                          : "Einrücken",
     "CMD_UNINDENT"                        : "Ausrücken",
     "CMD_DUPLICATE"                       : "Duplizieren",
@@ -285,6 +302,20 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Zeile darunter öffnen",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Klammern automatisch schließen",
     "CMD_SHOW_CODE_HINTS"                 : "Code-Vervollständigung anzeigen",
+
+    // Search menu commands
+    "FIND_MENU"                           : "Suchen",
+    "CMD_FIND"                            : "Suchen",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Suchen\u2026",
+    "CMD_FIND_NEXT"                       : "Weitersuchen (vorwärts)",
+    "CMD_FIND_PREVIOUS"                   : "Weitersuchen (rückwärts)",
+    "CMD_FIND_ALL_AND_SELECT"             : "Alle suchen und auswählen",
+    "CMD_ADD_NEXT_MATCH"                  : "Nächsten Treffer zur Auswahl hinzufügen",
+    "CMD_SKIP_CURRENT_MATCH"              : "Überspringen und nächsten Treffer hinzufügen",
+    "CMD_FIND_IN_FILES"                   : "Im Projekt suchen",
+    "CMD_FIND_IN_SELECTED"                : "Suchen in ausgewählter Datei/Ordner",
+    "CMD_FIND_IN_SUBTREE"                 : "Suchen in\u2026",
+    "CMD_REPLACE"                         : "Ersetzen",
 
     // View menu commands
     "VIEW_MENU"                           : "Ansicht",
@@ -327,9 +358,10 @@ define({
     "HELP_MENU"                           : "Hilfe",
     "CMD_CHECK_FOR_UPDATE"                : "Nach Updates suchen",
     "CMD_HOW_TO_USE_BRACKETS"             : "So verwendet man {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME}-Forum",
+    "CMD_SUPPORT"                         : "{APP_NAME}-Support",
+    "CMD_SUGGEST"                         : "Ein Feature vorschlagen",
     "CMD_RELEASE_NOTES"                   : "Versionshinweise",
-    "CMD_REPORT_AN_ISSUE"                 : "Ein Problem melden",
+    "CMD_GET_INVOLVED"                    : "Mach mit",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
     "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
     "CMD_ABOUT"                           : "Über {APP_TITLE}",
@@ -451,6 +483,9 @@ define({
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Es gibt keine CSS-Regeln, die zu Ihrer Auswahl passen.<br> Klicken Sie auf \"Neue Regel\", um eine neue Regel zu erstellen.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Es gibt keine Stylesheets in Ihrem Projekt.<br>Erstellen Sie eines, um CSS-Regeln hinzuzufügen.",
 
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "größtes",
+
     /**
      * Unit names
      */
@@ -459,6 +494,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
+    "ERRORS"                                    : "Fehler",
     "CMD_SHOW_DEV_TOOLS"                        : "Entwicklungswerkzeuge zeigen",
     "CMD_REFRESH_WINDOW"                        : "Mit Erweiterungen neu laden",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Ohne Erweiterungen neu laden",
@@ -469,6 +505,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Node-Debugger aktivieren",
     "CMD_LOG_NODE_STATE"                        : "Node-Status in Konsole anzeigen",
     "CMD_RESTART_NODE"                          : "Node neu starten",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Zeige Fehler in der Statusleiste",
 
     "LANGUAGE_TITLE"                            : "Sprache wechseln",
     "LANGUAGE_MESSAGE"                          : "Sprache:",
@@ -509,3 +546,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
+
+/* Last translated for 45ad989284156a2b6c9e1b3669c2ce5c61055089 */

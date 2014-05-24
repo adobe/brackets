@@ -64,7 +64,7 @@ define(function (require, exports, module) {
             menu.addMenuDivider();
             menu.addMenuItem(Commands.FILE_QUIT);
         }
-
+        
         /*
          * Edit  menu
          */
@@ -82,17 +82,6 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_ADD_CUR_TO_PREV_LINE);
         menu.addMenuItem(Commands.EDIT_ADD_CUR_TO_NEXT_LINE);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_FIND);
-        menu.addMenuItem(Commands.EDIT_FIND_IN_FILES);
-        menu.addMenuItem(Commands.EDIT_FIND_NEXT);
-        menu.addMenuItem(Commands.EDIT_FIND_PREVIOUS);
-        menu.addMenuItem(Commands.EDIT_FIND_ALL_AND_SELECT);
-        menu.addMenuItem(Commands.EDIT_ADD_NEXT_MATCH);
-        menu.addMenuItem(Commands.EDIT_SKIP_CURRENT_MATCH);
-
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_REPLACE);
-        menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_INDENT);
         menu.addMenuItem(Commands.EDIT_UNINDENT);
         menu.addMenuItem(Commands.EDIT_DUPLICATE);
@@ -106,7 +95,23 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.SHOW_CODE_HINTS);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_CLOSE_BRACKETS);
-
+        
+        /*
+         * Find menu
+         */
+        menu = Menus.addMenu(Strings.FIND_MENU, Menus.AppMenuBar.FIND_MENU);
+        menu.addMenuItem(Commands.CMD_FIND);
+        menu.addMenuItem(Commands.CMD_FIND_NEXT);
+        menu.addMenuItem(Commands.CMD_FIND_PREVIOUS);
+        menu.addMenuItem(Commands.CMD_FIND_ALL_AND_SELECT);
+        menu.addMenuItem(Commands.CMD_ADD_NEXT_MATCH);
+        menu.addMenuItem(Commands.CMD_SKIP_CURRENT_MATCH);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.CMD_FIND_IN_FILES);
+        menu.addMenuItem(Commands.CMD_FIND_IN_SELECTED);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.CMD_REPLACE);
+        
         /*
          * View menu
          */
@@ -146,7 +151,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.CSS_QUICK_EDIT_NEW_RULE);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_QUICK_DOCS);
-
+        
         /*
          * Help menu
          */
@@ -159,6 +164,9 @@ define(function (require, exports, module) {
         }
         if (brackets.config.support_url) {
             menu.addMenuItem(Commands.HELP_SUPPORT);
+        }
+        if (brackets.config.suggest_feature_url) {
+            menu.addMenuItem(Commands.HELP_SUGGEST);
         }
         if (brackets.config.release_notes_url) {
             menu.addMenuItem(Commands.HELP_RELEASE_NOTES);
@@ -173,9 +181,13 @@ define(function (require, exports, module) {
 
         var hasAboutItem = (brackets.platform !== "mac" || !brackets.nativeMenus);
         
-        // Add final divider only if we have a twitter URL or about item
-        if (hasAboutItem || brackets.config.twitter_url) {
+        // Add final divider only if we have a homepage URL or twitter URL or about item
+        if (hasAboutItem || brackets.config.homepage_url || brackets.config.twitter_url) {
             menu.addMenuDivider();
+        }
+        
+        if (brackets.config.homepage_url) {
+            menu.addMenuItem(Commands.HELP_HOMEPAGE);
         }
         
         if (brackets.config.twitter_url) {
@@ -196,7 +208,7 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_DELETE);
         project_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         project_cmenu.addMenuDivider();
-        project_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
+        project_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
         project_cmenu.addMenuDivider();
         project_cmenu.addMenuItem(Commands.FILE_REFRESH);
 
@@ -207,7 +219,7 @@ define(function (require, exports, module) {
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
+        working_set_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
         working_set_cmenu.addMenuDivider();
         working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         
