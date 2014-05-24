@@ -93,7 +93,7 @@ define(function (require, exports, module) {
          * @return {Promise} promise that is already resolved
          */
         load: function () {
-            var result = (new $.Deferred());
+            var result = new $.Deferred();
             result.resolve(this.data);
             return result.promise();
         },
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
          * @return {Promise} promise that is already resolved
          */
         save: function (newData) {
-            var result = (new $.Deferred());
+            var result = new $.Deferred();
             this.data = newData;
             result.resolve();
             return result.promise();
@@ -156,7 +156,7 @@ define(function (require, exports, module) {
          * @return {Promise} Resolved with the data once it has been parsed.
          */
         load: function () {
-            var result = (new $.Deferred());
+            var result = new $.Deferred();
             var path = this.path;
             var createIfNew = this.createIfNew;
             var self = this;
@@ -200,7 +200,7 @@ define(function (require, exports, module) {
          * @return {Promise} Promise resolved (with no arguments) once the data has been saved
          */
         save: function (newData) {
-            var result = (new $.Deferred());
+            var result = new $.Deferred();
             var path = this.path;
             var prefFile = FileSystem.getFileForPath(path);
             
@@ -275,7 +275,7 @@ define(function (require, exports, module) {
          * @return {Promise} Promise that is resolved once loading is complete
          */
         load: function () {
-            var result = (new $.Deferred());
+            var result = new $.Deferred();
             this.storage.load()
                 .then(function (data) {
                     var oldKeys = this.getKeys();
@@ -1566,7 +1566,7 @@ define(function (require, exports, module) {
             
             if (this._saveInProgress) {
                 if (!this._nextSaveDeferred) {
-                    this._nextSaveDeferred = (new $.Deferred());
+                    this._nextSaveDeferred = new $.Deferred();
                 }
                 return this._nextSaveDeferred.promise();
             }
