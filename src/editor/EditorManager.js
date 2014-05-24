@@ -828,25 +828,37 @@ define(function (require, exports, module) {
         PerfUtils.addMeasurement(perfTimerName);
     }
     
-    /** Handles removals from DocumentManager's working set list */
-    function _onWorkingSetRemove(event, removedFile) {
+    function _onFileRemoved(file) {
         // There's one case where an editor should be disposed even though the current document
         // didn't change: removing a document from the working set (via the "X" button). (This may
         // also cover the case where the document WAS current, if the editor-swap happens before the
         // removal from the working set.
-        var doc = DocumentManager.getOpenDocumentForPath(removedFile.fullPath);
+        var doc;
+        if (typeof file === "string") {
+            doc = DocumentManager.getOpenDocumentForPath(file);
+        }
+        
+        doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
         if (doc) {
             _destroyEditorIfUnneeded(doc);
         }
         // else, file was listed in working set but never shown in the editor - ignore
     }
 
-    function _onWorkingSetRemoveList(event, removedFiles) {
-        removedFiles.forEach(function (removedFile) {
-            _onWorkingSetRemove(event, removedFile);
-        });
+    /** 
+     * notifies the editor that a reference from the pane list view was removed
+     * @param {?*} removedFiles. Can be, string, File, Array[string] or Array[File]
+     */
+    function notifyPathRemovedFromPaneList(paneId, removedFiles) {
+        if ($.isArray(removedFiles)) {
+            removedFiles.forEach(function (removedFile) {
+                _onFileRemoved(removedFile);
+            });
+        } else {
+            _onFileRemoved(removedFiles);
+        }
     }
-
+    
     // Note: there are several paths that can lead to an editor getting destroyed
     //  - file was in working set, but not in current editor; then closed (via working set "X" button)
     //      --> handled by _onWorkingSetRemove()
@@ -1052,8 +1064,6 @@ define(function (require, exports, module) {
 
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
-    $(DocumentManager).on("workingSetRemove",      _onWorkingSetRemove);
-    $(DocumentManager).on("workingSetRemoveList",  _onWorkingSetRemoveList);
     $(DocumentManager).on("fileNameChange",        _onFileNameChange);
     $(WorkspaceManager).on("editorAreaResize",         _onEditorAreaResize);
 
@@ -1092,5 +1102,6 @@ define(function (require, exports, module) {
     exports.registerCustomViewer          = registerCustomViewer;
     exports.getCustomViewerForPath        = getCustomViewerForPath;
     exports.notifyPathDeleted             = notifyPathDeleted;
+    exports.notifyPathRemovedFromPaneList = notifyPathRemovedFromPaneList;
     exports.showingCustomViewerForPath    = showingCustomViewerForPath;
 });

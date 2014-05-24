@@ -287,6 +287,7 @@ define(function (require, exports, module) {
         _paneViewListAddedOrder.splice(findInPaneViewListAddedOrder(paneId, file.fullPath), 1);
         
         // Dispatch event
+        EditorManager.notifyPathRemovedFromPaneList(paneId, file);
         $(exports).triggerHandler("paneViewListRemove", [file, suppressRedraw]);
     }
     
@@ -321,6 +322,7 @@ define(function (require, exports, module) {
 
         });
         
+        EditorManager.notifyPathRemovedFromPaneList(paneId, fileList);
         $(exports).triggerHandler("paneViewListRemoveList", [fileList]);
     }
     
@@ -335,6 +337,7 @@ define(function (require, exports, module) {
         _reset(paneId);
         
         // Dispatch event
+        EditorManager.notifyPathRemovedFromPaneList(paneId, fileList);
         $(exports).triggerHandler("paneViewListRemoveList", [fileList]);
     }
     
