@@ -232,7 +232,7 @@ define(function (require, exports, module) {
                 // So we need to explicitly close the currently viewing image file whose filename is
                 // no longer valid. Calling notifyPathDeleted will close the image vieer and then select
                 // the previously opened text file or show no-editor if none exists.
-                EditorManager.notifyPathDeleted(fullFilePath);
+                MainViewManager.notifyPathDeleted(fullFilePath);
             } else {
                 // For performance, we do lazy checking of file existence, so it may be in working set
                 DocumentManager.removeFromWorkingSet(FileSystem.getFileForPath(fullFilePath));

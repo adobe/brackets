@@ -67,13 +67,13 @@ define(function (require, exports, module) {
     
     
     /**
-     * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
+     * Returns a list of items in the pane view list in UI list order. May be 0-length, but never null.
      *
      * When a file is added this list, DocumentManager dispatches a "paneViewListAdd" event.
      * When a file is removed from list, DocumentManager dispatches a "paneViewListRemove" event.
      * To listen for ALL changes to this list, you must listen for both events.
      *
-     * Which items belong in the working set is managed entirely by DocumentManager. Callers cannot
+     * Which items belong in the pane view list is managed entirely by DocumentManager. Callers cannot
      * (yet) change this collection on their own.
      *
      * @param {!string} paneId
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the index of the file matching fullPath in the working set.
+     * Returns the index of the file matching fullPath in the pane view list.
      * Returns -1 if not found.
      * @param {!string} paneId
      * @param {!string} fullPath
@@ -120,12 +120,30 @@ define(function (require, exports, module) {
         });
     }
     
+    /**
+     * Returns the index of the file matching fullPath in the pane view added order list
+     * Returns -1 if not found.
+     * @param {!string} paneId
+     * @param {!string} fullPath
+     * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
+     *          use only.
+     * @returns {number} index
+     */
     function findInPaneViewListAddedOrder(paneId, fullPath) {
         return _.findIndex(_paneViewListAddedOrder, function (file, i) {
             return file.fullPath === fullPath;
         });
     }
     
+    /**
+     * Returns the index of the file matching fullPath in the pane view MRU list
+     * Returns -1 if not found.
+     * @param {!string} paneId
+     * @param {!string} fullPath
+     * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
+     *          use only.
+     * @returns {number} index
+     */
     function findInPaneViewListMRUOrder(paneId, fullPath) {
         return _.findIndex(_paneViewListMRUOrder, function (file, i) {
             return file.fullPath === fullPath;
@@ -148,27 +166,27 @@ define(function (require, exports, module) {
      */
     
     /**
-     * Adds the given file to the end of the working set list, if it is not already in the list
+     * Adds the given file to the end of the pane view list, if it is not already in the list
      * and it does not have a custom viewer.
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!string} paneId
      * @param {!File} file
      * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
-     * @param {boolean=} forceRedraw  If true, a working set change notification is always sent
+     * @param {boolean=} forceRedraw  If true, a pane view list change notification is always sent
      *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
      */
     function addToPaneViewList(paneId, file, index, forceRedraw) {
         var indexRequested = (index !== undefined && index !== null && index !== -1);
         
-        // If the file has a custom viewer, then don't add it to the working set.
+        // If the file has a custom viewer, then don't add it to the pane view list.
         if (!_canOpenFile(file)) {
             return;
         }
             
-        // If doc is already in working set, don't add it again
+        // If doc is already in pane view list, don't add it again
         var curIndex = findInPaneViewList(paneId, file.fullPath);
         if (curIndex !== -1) {
-            // File is in working set, but not at the specifically requested index - only need to reorder
+            // File is in pane view list, but not at the specifically requested index - only need to reorder
             if (forceRedraw || (indexRequested && curIndex !== index)) {
                 var entry = _paneViewList.splice(curIndex, 1)[0];
                 _paneViewList.splice(index, 0, entry);
@@ -178,10 +196,10 @@ define(function (require, exports, module) {
         }
 
         if (!indexRequested) {
-            // If no index is specified, just add the file to the end of the working set.
+            // If no index is specified, just add the file to the end of the pane view list.
             _paneViewList.push(file);
         } else {
-            // If specified, insert into the working set list at this 0-based index
+            // If specified, insert into the pane view list at this 0-based index
             _paneViewList.splice(index, 0, file);
         }
         
@@ -205,21 +223,22 @@ define(function (require, exports, module) {
             
     
     /**
-     * Adds the given file list to the end of the working set list.
+     * Adds the given file list to the end of the pane view list.
      * If a file in the list has its own custom viewer, then it 
-     * is not added into the working set.
+     * is not added into the pane view list.
      * Does not change which document is currently open in the editor.
      * More efficient than calling addToWorkingSet() (in a loop) for
      * a list of files because there's only 1 redraw at the end
+     * @param {!string} paneId
      * @param {!Array.<File>} fileList
      */
     function addListToPaneViewList(paneId, fileList) {
         var uniqueFileList = [];
 
-        // Process only files not already in working set
+        // Process only files not already in pane view list
         fileList.forEach(function (file, index) {
-            // If doc has a custom viewer, then don't add it to the working set.
-            // Or if doc is already in working set, don't add it again.
+            // If doc has a custom viewer, then don't add it to the pane view list.
+            // Or if doc is already in pane view list, don't add it again.
             if (_canOpenFile(file) && findInPaneViewList(paneId, file.fullPath) === -1) {
                 uniqueFileList.push(file);
 
@@ -245,13 +264,14 @@ define(function (require, exports, module) {
 
     /**
      * Warning: low level API - use FILE_CLOSE command in most cases.
-     * Removes the given file from the working set list, if it was in the list. Does not change
+     * Removes the given file from the pane view list, if it was in the list. Does not change
      * the current editor even if it's for this file. Does not prompt for unsaved changes.
+     * @param {!string} paneId
      * @param {!File} file
      * @param {boolean=} true to suppress redraw after removal
      */
     function removeFromPaneViewList(paneId, file, suppressRedraw) {
-        // If doc isn't in working set, do nothing
+        // If doc isn't in pane view list, do nothing
         var index = findInPaneViewList(paneId, file.fullPath);
         if (index === -1) {
             return;
@@ -267,6 +287,14 @@ define(function (require, exports, module) {
     }
     
     
+    /**
+     * Warning: low level API - use FILE_CLOSE command in most cases.
+     * Removes the given file list from the pane view list, if it was in the list. Does not change
+     * the current editor even if it's for this file. Does not prompt for unsaved changes.
+     * @param {!string} paneId
+     * @param {!File} file
+     * @param {boolean=} true to suppress redraw after removal
+     */
     function removeListFromPaneViewList(paneId, list) {
         var fileList = [], index;
         
@@ -292,17 +320,10 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("paneViewListRemoveList", [fileList]);
     }
     
-    function makePaneViewMostRecent(paneId, file) {
-        var index = findInPaneViewListMRUOrder(file.fullpath);
-        if (index !== -1) {
-            _paneViewListMRUOrder.splice(index, 1);
-            _paneViewListMRUOrder.unshift(file);
-        }
-    }
-    
-    
     /**
-     * Removes all files from the working set list.
+     * Warning: low level API - use FILE_CLOSE_ALL command in most cases.
+     * Removes all files for the given pane
+     * @param {!string} paneId
      */
     function removeAllFromPaneViewList(paneId) {
         var fileList = getPaneViewList(paneId);
@@ -312,6 +333,21 @@ define(function (require, exports, module) {
         // Dispatch event
         $(exports).triggerHandler("paneViewListRemoveList", [fileList]);
     }
+    
+    /**
+     * Makes the file the most recent for the selected pane's view list
+     * @param {!string} paneId
+     * @param {!File} file to make most recent
+     */
+    function makePaneViewMostRecent(paneId, file) {
+        var index = findInPaneViewListMRUOrder(file.fullpath);
+        if (index !== -1) {
+            _paneViewListMRUOrder.splice(index, 1);
+            _paneViewListMRUOrder.unshift(file);
+        }
+    }
+    
+
     
     
     /**
@@ -349,10 +385,10 @@ define(function (require, exports, module) {
 
     
     /**
-     * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
-     * return currentDocument itself if working set is length 1.
+     * Get the next or previous file in the pane view list, in MRU order (relative to currentDocument). May
+     * return currentDocument itself if pane view list is length 1.
      * @param {number} inc  -1 for previous, +1 for next; no other values allowed
-     * @return {?File}  null if working set empty
+     * @return {?File}  null if pane view list empty
      */
     function traversePaneViewListByMRU(paneId, direction) {
         if (Math.abs(direction) !== 1) {
@@ -363,12 +399,12 @@ define(function (require, exports, module) {
         if (EditorManager.getCurrentlyViewedPath()) {
             var index = findInPaneViewListMRUOrder(paneId, EditorManager.getCurrentlyViewedPath());
             if (index === -1) {
-                // If doc not in working set, return most recent working set item
+                // If doc not in pane view list, return most recent pane view list item
                 if (_paneViewListMRUOrder.length > 0) {
                     return _paneViewListMRUOrder[0];
                 }
             } else {
-                // If doc is in working set, return next/prev item with wrap-around
+                // If doc is in pane view list, return next/prev item with wrap-around
                 index += direction;
                 if (index >= _paneViewListMRUOrder.length) {
                     index = 0;
@@ -380,9 +416,33 @@ define(function (require, exports, module) {
             }
         }
         
-        // If no doc open or working set empty, there is no "next" file
+        // If no doc open or pane view list empty, there is no "next" file
         return null;
     }
+
+    /* 
+     * TODO: This is scaffolding for now.  Need to figure out how 
+     *          notifyPathDeleted is being used because there are two of them (3 now)
+     *       I've refactored projectManager to always call DocumentManager's implementation
+     *          instead of deciding if it should call DocumentManager's or EditorManager's
+     *          Impl based on whether or not the DocumentManager has an open document
+     *      The DocumentCammandCommandHandler's doOpen function has _cleanUp code that
+     *          uses this calls this to remove the custom viewer and open the next 
+     *          document in the MRU list if the document that couldn't be opened is an image
+     *          is another impl in DocumentManager does something I'm not familiar with and is
+     *          only called from ProjectManager.  I've redirected it to this function when
+     *          the conditions that ProjectManager was using exist.  
+     *      That will all need to be refactored when we allow images in Pane View Lists 
+     *      This is here to avoid a circular dependency on EditorManager and calls to EditorManager's
+     *          Impl have been redirected to this function so that the EditorManager can
+     *          traverse to the next open document when closing the deleted document.
+     */
+    function notifyPathDeleted(fullpath) {
+        var fileToOpen = traversePaneViewListByMRU(FOCUSED_PANE, 1);
+        EditorManager.notifyPathDeleted(fullpath);
+    }
+    
+    
     
     // Refactoring exports...
     exports._getPaneViewList        = _getPaneViewList;
@@ -400,6 +460,7 @@ define(function (require, exports, module) {
     exports.findInPaneViewListMRUOrder       = findInPaneViewListMRUOrder;
     exports.getPaneViewList                  = getPaneViewList;
     exports.makePaneViewMostRecent           = makePaneViewMostRecent;
+    exports.notifyPathDeleted                = notifyPathDeleted;
     exports.removeAllFromPaneViewList        = removeAllFromPaneViewList;
     exports.removeFromPaneViewList           = removeFromPaneViewList;
     exports.removeListFromPaneViewList       = removeListFromPaneViewList;

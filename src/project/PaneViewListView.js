@@ -268,7 +268,7 @@ define(function (require, exports, module) {
                         $nextListItem.insertBefore($listItem);
                         startPageY += height;
                         top = top - height;
-                         MainViewManager.swapPaneViewListIndexes(MainViewManager.FOCUSED_PANE,index, ++index);
+                        MainViewManager.swapPaneViewListIndexes(MainViewManager.FOCUSED_PANE, index, ++index);
                     }
                     
                     // Update the selection when the previows or next element were selected

@@ -773,12 +773,16 @@ define(function (require, exports, module) {
      * @param {string} path The path of the file/folder that has been deleted
      */
     function notifyPathDeleted(path) {
-        /* FileSyncManager.syncOpenDocuments() does all the work of closing files
-           in the working set and notifying the user of any unsaved changes. */
-        FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
-        
-        // Send a "pathDeleted" event. This will trigger the views to update.
-        $(exports).triggerHandler("pathDeleted", path);
+        if (getCurrentDocument()) {
+            /* FileSyncManager.syncOpenDocuments() does all the work of closing files
+               in the working set and notifying the user of any unsaved changes. */
+            FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
+
+            // Send a "pathDeleted" event. This will trigger the views to update.
+            $(exports).triggerHandler("pathDeleted", path);
+        } else {
+            MainViewManager.notifyPathDeleted(path);
+        }
     }
     
     /**

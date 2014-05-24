@@ -1949,11 +1949,7 @@ define(function (require, exports, module) {
         
         // Trigger notifications after tree updates are complete
         arr.forEach(function (entry) {
-            if (DocumentManager.getCurrentDocument()) {
-                DocumentManager.notifyPathDeleted(entry.fullPath);
-            } else {
-                EditorManager.notifyPathDeleted(entry.fullPath);
-            }
+            DocumentManager.notifyPathDeleted(entry.fullPath);
         });
     }
 

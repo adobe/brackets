@@ -785,12 +785,16 @@ define(function (require, exports, module) {
      * If param fullpath is provided then only if fullpath matches 
      * the currently viewed file an alternate file will be opened.
      * @param {?string} fullPath - file path of deleted file.
+     * @param {?*} alternateFile - file to open in its place
      */
-    function notifyPathDeleted(fullPath) {
+    function notifyPathDeleted(fullPath, alternateFile) {
         function openAlternateFile() {
-            var fileToOpen = DocumentManager.getNextPrevFile(1);
-            if (fileToOpen) {
-                CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileToOpen.fullPath});
+            if (alternateFile) {
+                if (typeof alternateFile === "string") {
+                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: alternateFile});
+                } else {
+                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: alternateFile.fullPath});
+                }
             } else {
                 _removeCustomViewer();
                 _showNoEditor();
