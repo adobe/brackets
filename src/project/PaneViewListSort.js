@@ -148,14 +148,6 @@ define(function (require, exports, module) {
      */
     function _addListeners() {
         if (_automaticSort && _currentSort && _currentSort.getEvents()) {
-            //TODO: REMOVE THIS
-            $(DocumentManager)
-                .on(_currentSort.getEvents(), function () {
-                    _currentSort.sort();
-                })
-                .on("paneViewListDisableAutoSorting.sort", function () {
-                    setAutomatic(false);
-                });
             $(MainViewManager)
                 .on(_currentSort.getEvents(), function () {
                     _currentSort.sort();

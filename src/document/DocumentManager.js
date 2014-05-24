@@ -312,24 +312,6 @@ define(function (require, exports, module) {
     }
     
     
-    /**
-     * Mutually exchanges the files at the indexes passed by parameters.
-     * @param {number} index  Old file index
-     * @param {number} index  New file index
-     */
-    function swapWorkingSetIndexes(index1, index2) {
-        var length = MainViewManager._getPaneViewList().length - 1;
-        var temp;
-        
-        if (index1 >= 0 && index2 <= length && index1 >= 0 && index2 <= length) {
-            temp = MainViewManager._paneViewList()[index1];
-            MainViewManager._paneViewList()[index1] = MainViewManager._paneViewList()[index2];
-            MainViewManager._paneViewList()[index2] = temp;
-            
-            $(exports).triggerHandler("paneViewListSort");
-            $(exports).triggerHandler("paneViewListDisableAutoSorting");
-        }
-    }
 
     
     /**
@@ -781,9 +763,10 @@ define(function (require, exports, module) {
         // Allow for restoring saved editor UI state
         EditorManager._resetViewStates(viewStates);
 
-        // Initialize the active editor
-        if (!activeFile && MainViewManager._getPaneViewList().length > 0) {
-            activeFile = MainViewManager._paneViewList()[0].fullPath;
+        // TODO: refactor this for multi pane
+        if (!activeFile) {
+            var firstView = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).shift();
+            activeFile = firstView ? firstView.fullPath : undefined;
         }
 
         if (activeFile) {
@@ -939,7 +922,6 @@ define(function (require, exports, module) {
     exports.removeFromWorkingSet        = removeFromWorkingSet;
     exports.removeListFromWorkingSet    = removeListFromWorkingSet;
     exports.getNextPrevFile             = getNextPrevFile;
-    exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
     exports.beginDocumentNavigation     = beginDocumentNavigation;
     exports.finalizeDocumentNavigation  = finalizeDocumentNavigation;
     exports.closeFullEditor             = closeFullEditor;

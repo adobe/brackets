@@ -317,7 +317,26 @@ define(function (require, exports, module) {
         _paneViewList.sort(compareFn);
         $(exports).triggerHandler("paneViewListSort");
     }
+
+    /**
+     * Mutually exchanges the files at the indexes passed by parameters.
+     * @param {number} index  Old file index
+     * @param {number} index  New file index
+     */
+    function swapPaneViewListIndexes(paneId, index1, index2) {
+        var length = _paneViewList.length - 1;
+        var temp;
         
+        if (index1 >= 0 && index2 <= length && index1 >= 0 && index2 <= length) {
+            temp = _paneViewList[index1];
+            _paneViewList[index1] = _paneViewList[index2];
+            _paneViewList[index2] = temp;
+            
+            $(exports).triggerHandler("paneViewListSort");
+            $(exports).triggerHandler("paneViewListDisableAutoSorting");
+        }
+    }
+    
     
     // Refactoring exports...
     exports._getPaneViewList        = _getPaneViewList;
@@ -338,6 +357,7 @@ define(function (require, exports, module) {
     exports.removeFromPaneViewList           = removeFromPaneViewList;
     exports.removeListFromPaneViewList       = removeListFromPaneViewList;
     exports.sortPaneViewList                 = sortPaneViewList;
+    exports.swapPaneViewListIndexes          = swapPaneViewListIndexes;
     
     // Constants
     exports.ALL_PANES                    = ALL_PANES;
