@@ -165,14 +165,6 @@ define(function (require, exports, module) {
     
     /**
      * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
-     *
-     * When a file is added this list, DocumentManager dispatches a "paneViewListAdd" event.
-     * When a file is removed from list, DocumentManager dispatches a "workingSetRemove" event.
-     * To listen for ALL changes to this list, you must listen for both events.
-     *
-     * Which items belong in the working set is managed entirely by DocumentManager. Callers cannot
-     * (yet) change this collection on their own.
-     *
      * @return {Array.<File>}
      */
     function getWorkingSet() {
@@ -192,6 +184,7 @@ define(function (require, exports, module) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneViewList() instead of DocumentManager.findInWorkingSet()", true);
         if (list) {
             DeprecationWarning.deprecationWarning("DocumentManager.findInWorkingSet() no longer supports an arbitrary array", true);
+            return [];
         }
         return MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, fullPath);
     }

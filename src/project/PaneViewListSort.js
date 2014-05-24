@@ -337,6 +337,8 @@ define(function (require, exports, module) {
     
     
     // Initialize default values for sorting preferences
+    
+    // TODO: Migrate currentSort to a new pref
     PreferencesManager.stateManager.definePreference("currentSort", "string", Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED);
     PreferencesManager.stateManager.definePreference("automaticSort", "boolean", false);
     
