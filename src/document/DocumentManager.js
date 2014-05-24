@@ -162,6 +162,23 @@ define(function (require, exports, module) {
                                           "MainViewManger." + newEventName);
     }
         
+    /** Changes currentDocument to null, causing no full Editor to be shown in the UI */
+    function _clearCurrentDocument() {
+        // If editor already blank, do nothing
+        if (!_currentDocument) {
+            return;
+        }
+
+        // Change model & dispatch event
+        var previousDocument = _currentDocument;
+        _currentDocument = null;
+
+        // TODO: Remove this
+        MainViewManager._setCurrentDocument(_currentDocument);
+
+        // (this event triggers EditorManager to actually clear the editor UI)
+        $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
+    }
     
     /**
      * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
@@ -263,18 +280,24 @@ define(function (require, exports, module) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.removeFromPaneViewList() instead of DocumentManager.removeFromWorkingSet()", true);
         MainViewManager.removeFromPaneViewList(MainViewManager.FOCUSED_PANE, file, suppressRedraw);
     }
+    
+    function removeListFromWorkingSet(list, clearCurrentDocument) {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.removeListFromPaneViewList() instead of DocumentManager.removeListFromWorkingSet()", true);
 
-    /**
-     * Removes all files from the working set list.
-     */
-    function _removeAllFromWorkingSet() {
-        var fileList = MainViewManager.getPaneViewList();
-
-        MainViewManager._reset();
+        if (!list) {
+            return;
+        }
         
-        // Dispatch event
-        $(exports).triggerHandler("workingSetRemoveList", [fileList]);
+        if (clearCurrentDocument) {
+            DeprecationWarning.deprecationWarning("clearCurrentDocument is not a supported option for MainViewManager.removeListFromPaneViewList() Use DocumentManager.resetCurrentDocument() instead", true);
+            _clearCurrentDocument();
+        }
+        
+        MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, list);
     }
+        
+
+
 
     /**
      * Moves document to the front of the MRU list, IF it's in the working set; no-op otherwise.
@@ -424,26 +447,6 @@ define(function (require, exports, module) {
     }
 
     
-    /** Changes currentDocument to null, causing no full Editor to be shown in the UI */
-    function _clearCurrentDocument() {
-        // If editor already blank, do nothing
-        if (!_currentDocument) {
-            return;
-        } else {
-            // Change model & dispatch event
-            var previousDocument = _currentDocument;
-            _currentDocument = null;
-
-            // TODO: Remove this
-            MainViewManager._setCurrentDocument(_currentDocument);
-            
-            // (this event triggers EditorManager to actually clear the editor UI)
-            $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
-        }
-    }
-    
-
-    
     /**
      * Warning: low level API - use FILE_CLOSE command in most cases.
      * Closes the full editor for the given file (if there is one), and removes it from the working
@@ -500,34 +503,9 @@ define(function (require, exports, module) {
      */
     function closeAll() {
         _clearCurrentDocument();
-        _removeAllFromWorkingSet();
+        MainViewManager.removeAllFromPaneViewList(MainViewManager.FOCUSED_PANE);
     }
         
-    function removeListFromWorkingSet(list, clearCurrentDocument) {
-        var fileList = [], index;
-        
-        if (!list) {
-            return;
-        }
-        
-        if (clearCurrentDocument) {
-            _clearCurrentDocument();
-        }
-        
-        list.forEach(function (file) {
-            index = findInWorkingSet(file.fullPath);
-            
-            if (index !== -1) {
-                fileList.push(MainViewManager.getPaneViewList()[index]);
-                
-                MainViewManager._getPaneViewList().splice(index, 1);
-                MainViewManager._getPaneViewListMRU().splice(_findInWorkingSetMRUOrder(file.fullPath), 1);
-                MainViewManager._getPaneViewListAdded().splice(findInWorkingSetAddedOrder(file.fullPath), 1);
-            }
-        });
-        
-        $(exports).triggerHandler("workingSetRemoveList", [fileList]);
-    }
     
     
     /**
@@ -961,7 +939,6 @@ define(function (require, exports, module) {
     // Define public API
     exports.Document                    = DocumentModule.Document;
     exports.getCurrentDocument          = getCurrentDocument;
-    exports._clearCurrentDocument        = _clearCurrentDocument;
     exports.getDocumentForPath          = getDocumentForPath;
     exports.getOpenDocumentForPath      = getOpenDocumentForPath;
     exports.getDocumentText             = getDocumentText;
@@ -997,7 +974,8 @@ define(function (require, exports, module) {
     $(LanguageManager).on("languageAdded", _handleLanguageAdded);
     $(LanguageManager).on("languageModified", _handleLanguageModified);
     
-    _deprecateEvent("workingSetAdd",     "paneViewListAdd");
-    _deprecateEvent("workingSetAddList", "paneViewListAddList");
-    _deprecateEvent("workingSetRemove",  "paneViewListRemove");
+    _deprecateEvent("workingSetAdd",         "paneViewListAdd");
+    _deprecateEvent("workingSetAddList",     "paneViewListAddList");
+    _deprecateEvent("workingSetRemove",      "paneViewListRemove");
+    _deprecateEvent("workingSetRemoveList",  "paneViewListRemoveList");
 });

@@ -99,11 +99,7 @@ define(function (require, exports, module) {
         _currentDocument = doc;
     }
     
-    function _reset() {
-        // this is only called from DocumentManager._removeAllFromWorkingSet which is only called from 
-        //              DocumentManager.closeAll wich also class clearCurrentDocument so this is fine for now 
-        //              for posterity but this will move back to DocumentManager once the transition is complete
-        _currentDocument = null;
+    function _reset(paneId) {
         _paneViewList = [];
         _paneViewListMRUOrder = [];
         _paneViewListAddedOrder = [];
@@ -271,11 +267,47 @@ define(function (require, exports, module) {
     }
     
     
+    function removeListFromPaneViewList(paneId, list) {
+        var fileList = [], index;
+        
+        if (!list) {
+            return;
+        }
+        
+        list.forEach(function (file) {
+            var index = findInPaneViewList(paneId, file.fullPath);
+            if (index === -1) {
+                return;
+            }
+            
+            fileList.push(file);
+            
+            // Remove
+            _paneViewList.splice(index, 1);
+            _paneViewListMRUOrder.splice(findInPaneViewListMRUOrder(paneId, file.fullPath), 1);
+            _paneViewListAddedOrder.splice(findInPaneViewListAddedOrder(paneId, file.fullPath), 1);
+
+        });
+        
+        $(exports).triggerHandler("paneViewListRemoveList", [fileList]);
+    }
+    
+    /**
+     * Removes all files from the working set list.
+     */
+    function removeAllFromPaneViewList(paneId) {
+        var fileList = getPaneViewList(paneId);
+
+        _reset(paneId);
+        
+        // Dispatch event
+        $(exports).triggerHandler("paneViewListRemoveList", [fileList]);
+    }
+    
     // Refactoring exports...
     exports._getPaneViewList        = _getPaneViewList;
     exports._getPaneViewListMRU     = _getPaneViewListMRU;
     exports._getPaneViewListAdded   = _getPaneViewListAdded;
-    exports._reset              = _reset;
 
     // Scaffolding
     exports._setCurrentDocument = _setCurrentDocument;
@@ -287,7 +319,9 @@ define(function (require, exports, module) {
     exports.findInPaneViewListAddedOrder     = findInPaneViewListAddedOrder;
     exports.findInPaneViewListMRUOrder       = findInPaneViewListMRUOrder;
     exports.getPaneViewList                  = getPaneViewList;
+    exports.removeAllFromPaneViewList        = removeAllFromPaneViewList;
     exports.removeFromPaneViewList           = removeFromPaneViewList;
+    exports.removeListFromPaneViewList       = removeListFromPaneViewList;
     
     // Constants
     exports.ALL_PANES                    = ALL_PANES;

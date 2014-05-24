@@ -109,7 +109,7 @@ define(function (require, exports, module) {
             openAndMakeDirty(testPath + "/file_two.js");
             
             // Wait for both files to be added to the working set
-            waitsFor(function () { return workingSetCount === 2; }, "workingSetCount to equeal 2", 1000);
+            waitsFor(function () { return workingSetCount === 2; }, "workingSetCount to equal 2", 1000);
         });
         
         afterEach(function () {

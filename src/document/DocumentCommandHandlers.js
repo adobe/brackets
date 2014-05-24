@@ -1563,7 +1563,7 @@ define(function (require, exports, module) {
 
     // Exported for unit testing only
     exports._parseDecoratedPath = _parseDecoratedPath;
-
+    
     // Set some command strings
     var quitString  = Strings.CMD_QUIT,
         showInOS    = Strings.CMD_SHOW_IN_OS;
