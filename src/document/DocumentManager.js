@@ -304,14 +304,8 @@ define(function (require, exports, module) {
      * @param {!Document}
      */
     function _markMostRecent(doc) {
-        var mruI = _findInWorkingSetMRUOrder(doc.file.fullPath);
-        if (mruI !== -1) {
-            MainViewManager._getPaneViewListMRU().splice(mruI, 1);
-            MainViewManager._getPaneViewListMRU().unshift(doc.file);
-        }
+        MainViewManager.makePaneViewMostRecent(MainViewManager.FOCUSED_PANE, doc.file);
     }
-    
-    
 
     
     /**
@@ -344,33 +338,8 @@ define(function (require, exports, module) {
      * @return {?File}  null if working set empty
      */
     function getNextPrevFile(inc) {
-        if (inc !== -1 && inc !== +1) {
-            console.error("Illegal argument: inc = " + inc);
-            return null;
-        }
-        
-        if (EditorManager.getCurrentlyViewedPath()) {
-            var mruI = _findInWorkingSetMRUOrder(EditorManager.getCurrentlyViewedPath());
-            if (mruI === -1) {
-                // If doc not in working set, return most recent working set item
-                if (MainViewManager._getPaneViewListMRU().length > 0) {
-                    return MainViewManager._getPaneViewListMRU()[0];
-                }
-            } else {
-                // If doc is in working set, return next/prev item with wrap-around
-                var newI = mruI + inc;
-                if (newI >= MainViewManager._getPaneViewListMRU().length) {
-                    newI = 0;
-                } else if (newI < 0) {
-                    newI = MainViewManager._getPaneViewListMRU().length - 1;
-                }
-                
-                return MainViewManager._getPaneViewListMRU()[newI];
-            }
-        }
-        
-        // If no doc open or working set empty, there is no "next" file
-        return null;
+        DeprecationWarning.deprecationWarning("Use MainViewManager.traversePaneViewListByMRU() instead of DocumentManager.getNextPrevFile()", true);
+        return MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, inc);
     }
     
     
@@ -433,7 +402,7 @@ define(function (require, exports, module) {
         // different document (or none if working set has no other options)
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
             // Get next most recent doc in the MRU order
-            var nextFile = getNextPrevFile(1);
+            var nextFile = MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, 1);
             if (nextFile && nextFile.fullPath === _currentDocument.file.fullPath) {
                 // getNextPrevFile() might return the file we're about to close if it's the only one open (due to wraparound)
                 nextFile = null;

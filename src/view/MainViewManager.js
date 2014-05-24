@@ -292,6 +292,15 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("paneViewListRemoveList", [fileList]);
     }
     
+    function makePaneViewMostRecent(paneId, file) {
+        var index = findInPaneViewListMRUOrder(file.fullpath);
+        if (index !== -1) {
+            _paneViewListMRUOrder.splice(index, 1);
+            _paneViewListMRUOrder.unshift(file);
+        }
+    }
+    
+    
     /**
      * Removes all files from the working set list.
      */
@@ -337,6 +346,43 @@ define(function (require, exports, module) {
         }
     }
     
+
+    
+    /**
+     * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
+     * return currentDocument itself if working set is length 1.
+     * @param {number} inc  -1 for previous, +1 for next; no other values allowed
+     * @return {?File}  null if working set empty
+     */
+    function traversePaneViewListByMRU(paneId, direction) {
+        if (Math.abs(direction) !== 1) {
+            console.error("traversePaneViewList called with unsupported direction: " + direction.toString());
+            return null;
+        }
+        
+        if (EditorManager.getCurrentlyViewedPath()) {
+            var index = findInPaneViewListMRUOrder(paneId, EditorManager.getCurrentlyViewedPath());
+            if (index === -1) {
+                // If doc not in working set, return most recent working set item
+                if (_paneViewListMRUOrder.length > 0) {
+                    return _paneViewListMRUOrder[0];
+                }
+            } else {
+                // If doc is in working set, return next/prev item with wrap-around
+                index += direction;
+                if (index >= _paneViewListMRUOrder.length) {
+                    index = 0;
+                } else if (index < 0) {
+                    index = _paneViewListMRUOrder.length - 1;
+                }
+                
+                return _paneViewListMRUOrder[index];
+            }
+        }
+        
+        // If no doc open or working set empty, there is no "next" file
+        return null;
+    }
     
     // Refactoring exports...
     exports._getPaneViewList        = _getPaneViewList;
@@ -353,11 +399,13 @@ define(function (require, exports, module) {
     exports.findInPaneViewListAddedOrder     = findInPaneViewListAddedOrder;
     exports.findInPaneViewListMRUOrder       = findInPaneViewListMRUOrder;
     exports.getPaneViewList                  = getPaneViewList;
+    exports.makePaneViewMostRecent           = makePaneViewMostRecent;
     exports.removeAllFromPaneViewList        = removeAllFromPaneViewList;
     exports.removeFromPaneViewList           = removeFromPaneViewList;
     exports.removeListFromPaneViewList       = removeListFromPaneViewList;
     exports.sortPaneViewList                 = sortPaneViewList;
     exports.swapPaneViewListIndexes          = swapPaneViewListIndexes;
+    exports.traversePaneViewListByMRU        = traversePaneViewListByMRU;
     
     // Constants
     exports.ALL_PANES                    = ALL_PANES;

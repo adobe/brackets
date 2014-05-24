@@ -985,7 +985,7 @@ define(function (require, exports, module) {
         
         function doCloseCustomViewer() {
             if (!promptOnly) {
-                var nextFile = DocumentManager.getNextPrevFile(1);
+                var nextFile = MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, 1);
                 if (nextFile) {
                     // opening a text file will automatically close the custom viewer.
                     // This is done in the currentDocumentChange handler in EditorManager
@@ -1344,7 +1344,7 @@ define(function (require, exports, module) {
 
     /** Navigate to the next/previous (MRU) document. Don't update MRU order yet */
     function goNextPrevDoc(inc) {
-        var file = DocumentManager.getNextPrevFile(inc);
+        var file = MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, inc);
         if (file) {
             DocumentManager.beginDocumentNavigation();
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
