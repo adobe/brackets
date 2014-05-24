@@ -304,6 +304,21 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("paneViewListRemoveList", [fileList]);
     }
     
+    
+    /**
+     * Sorts MainViewManager._paneViewList using the compare function
+     * @param {function(File, File): number} compareFn  The function that will be used inside JavaScript's
+     *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
+     *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
+     *      the same value when given a specific pair of elements a and b as its two arguments.
+     *      Documentation: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
+     */
+    function sortPaneViewList(paneId, compareFn) {
+        _paneViewList.sort(compareFn);
+        $(exports).triggerHandler("paneViewListSort");
+    }
+        
+    
     // Refactoring exports...
     exports._getPaneViewList        = _getPaneViewList;
     exports._getPaneViewListMRU     = _getPaneViewListMRU;
@@ -322,6 +337,7 @@ define(function (require, exports, module) {
     exports.removeAllFromPaneViewList        = removeAllFromPaneViewList;
     exports.removeFromPaneViewList           = removeFromPaneViewList;
     exports.removeListFromPaneViewList       = removeListFromPaneViewList;
+    exports.sortPaneViewList                 = sortPaneViewList;
     
     // Constants
     exports.ALL_PANES                    = ALL_PANES;

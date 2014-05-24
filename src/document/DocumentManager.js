@@ -330,20 +330,7 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("paneViewListDisableAutoSorting");
         }
     }
-    
-    /**
-     * Sorts MainViewManager._paneViewList using the compare function
-     * @param {function(File, File): number} compareFn  The function that will be used inside JavaScript's
-     *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
-     *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
-     *      the same value when given a specific pair of elements a and b as its two arguments.
-     *      Documentation: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
-     */
-    function sortWorkingSet(compareFn) {
-        MainViewManager._getPaneViewList().sort(compareFn);
-        $(exports).triggerHandler("paneViewListSort");
-    }
-    
+
     
     /**
      * Indicate that changes to currentDocument are temporary for now, and should not update the MRU
@@ -503,7 +490,7 @@ define(function (require, exports, module) {
      */
     function closeAll() {
         _clearCurrentDocument();
-        MainViewManager.removeAllFromPaneViewList(MainViewManager.FOCUSED_PANE);
+        MainViewManager.removeAllFromPaneViewList(MainViewManager.ALL_PANES);
     }
         
     
@@ -953,7 +940,6 @@ define(function (require, exports, module) {
     exports.removeListFromWorkingSet    = removeListFromWorkingSet;
     exports.getNextPrevFile             = getNextPrevFile;
     exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
-    exports.sortWorkingSet              = sortWorkingSet;
     exports.beginDocumentNavigation     = beginDocumentNavigation;
     exports.finalizeDocumentNavigation  = finalizeDocumentNavigation;
     exports.closeFullEditor             = closeFullEditor;

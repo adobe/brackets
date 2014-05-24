@@ -238,7 +238,7 @@ define(function (require, exports, module) {
     Sort.prototype.sort = function () {
         if (_currentSort === this) {
             _removeListeners();
-            DocumentManager.sortWorkingSet(this._compareFn);
+            MainViewManager.sortPaneViewList(MainViewManager.FOCUSED_PANE, this._compareFn);
             _addListeners();
         }
     };
@@ -333,7 +333,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_ADDED, Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED, _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED));
     CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_NAME,  Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME,  _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME));
     CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,  Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,  _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME));
-    CommandManager.register(Strings.CMD_TOGGLE_AUTO_SORT,       Commands.CMD_TOGGLE_AUTO_SORT,       _handleToggleAutoSort);
+    CommandManager.register(Strings.CMD_TOGGLE_AUTO_SORT,             Commands.CMD_TOGGLE_AUTO_SORT,       _handleToggleAutoSort);
     
     
     // Initialize default values for sorting preferences

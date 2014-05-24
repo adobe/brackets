@@ -668,11 +668,11 @@ define(function (require, exports, module) {
             _handleFileRemoved(removedFile, suppressRedraw);
         });
 
-        $(DocumentManager).on("workingSetRemoveList", function (event, removedFiles) {
+        $(MainViewManager).on("paneViewListRemoveList", function (event, removedFiles) {
             _handleRemoveList(removedFiles);
         });
         
-        $(DocumentManager).on("paneViewListSort", function (event) {
+        $(MainViewManager).on("paneViewListSort", function (event) {
             _handlePaneViewListSort();
         });
 
