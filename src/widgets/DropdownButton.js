@@ -119,8 +119,16 @@ define(function (require, exports, module) {
         return _.escape(String(item));
     };
     
-    /** Converts the list of item objects into HTML list items in format required by DropdownEventHandler */
-    DropdownButton.prototype._renderList = function () {
+    /**
+     * Converts the list of item objects into HTML list items in format required by DropdownEventHandler
+     * @param {!jQueryObject} parent The dropdown element
+     * @return {!jQueryObject} The dropdown element with the rendered list items appended.
+     */
+    DropdownButton.prototype._renderList = function (parent) {
+        if (!parent) {
+            return null;
+        }
+        
         var html = "";
         this.items.forEach(function (item, i) {
             if (item === "---") {
@@ -131,7 +139,14 @@ define(function (require, exports, module) {
                 html += "</a></li>";
             }
         }.bind(this));
-        return html;
+        
+        parent.append(html);
+        
+        // Also trigger listRendered handler so that custom event handlers can be
+        // set up for any custom UI in the list.
+        $(this).triggerHandler("listRendered", [parent]);
+
+        return parent;
     };
     
     /**
@@ -145,11 +160,7 @@ define(function (require, exports, module) {
         
         // Remove all list items and then re-create them from this.items.
         $("li", this.$dropdown).remove();
-        this.$dropdown.append(this._renderList());
-        
-        // Also trigger openDropdown handler so that custom event handlers can be
-        // set up for any custom UI in the list.
-        $(this).triggerHandler("openDropdown", [this.$dropdown]);
+        this._renderList(this.$dropdown);
     };
     
     /**
@@ -185,20 +196,22 @@ define(function (require, exports, module) {
         Menus.closeAll();
         
         var $dropdown = $("<ul class='dropdown-menu dropdownbutton-popup' tabindex='-1'>")
-            .addClass(this.dropdownExtraClasses)  // (no-op if unspecified)
-            .append(this._renderList())
+            .addClass(this.dropdownExtraClasses);  // (no-op if unspecified)
+        
+        this.$dropdown = $dropdown;
+        this._renderList(this.$dropdown)
             .appendTo($("body"))
             .data("attached-to", this.$button[0]);  // keep ModalBar open while dropdown focused
 
         // Calculate position of dropdown
-        var toggleOffset   = this.$button.offset(),
-            posLeft        = toggleOffset.left,
-            posTop         = toggleOffset.top + this.$button.outerHeight(),
-            elementRect = {
-                top:    posTop,
-                left:   posLeft,
-                height: $dropdown.height(),
-                width:  $dropdown.width()
+        var toggleOffset = this.$button.offset(),
+            posLeft      = toggleOffset.left,
+            posTop       = toggleOffset.top + this.$button.outerHeight(),
+            elementRect  = {
+                top:     posTop,
+                left:    posLeft,
+                height:  $dropdown.height(),
+                width:   $dropdown.width()
             },
             clip = ViewUtils.getElementClipSize($(window), elementRect);
 
@@ -228,10 +241,6 @@ define(function (require, exports, module) {
         // Manage focus
         this._lastFocus = window.document.activeElement;
         $dropdown.focus();
-        
-        this.$dropdown = $dropdown;
-
-        $(this).triggerHandler("openDropdown", [$dropdown]);
     };
     
     /**

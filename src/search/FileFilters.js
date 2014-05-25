@@ -407,10 +407,10 @@ define(function (require, exports, module) {
     /**
      * Set up mouse click event listeners for 'Delete' and 'Edit' buttons
      * when the dropdown is open. Also set check mark on the active filter.
-     * @param {!Event>} event openDropdown event triggered when the dropdown is open
+     * @param {!Event>} event listRendered event triggered when the dropdown is open
      * @param {!jQueryObject} $dropdown the jQuery DOM node of the dropdown list
      */
-    function _handleOpenDropdown(event, $dropdown) {
+    function _handleListRendered(event, $dropdown) {
         var activeFilterIndex = PreferencesManager.getViewState("activeFileFilter"),
             checkedItemIndex = (activeFilterIndex > -1) ? (activeFilterIndex + FIRST_FILTER_INDEX) : -1;
         _picker.setChecked(checkedItemIndex, true);
@@ -461,7 +461,7 @@ define(function (require, exports, module) {
         _picker.$button.addClass("file-filter-picker no-focus");
         
         // Set up mouse click event listeners for 'Delete' and 'Edit' buttons
-        $(_picker).on("openDropdown", _handleOpenDropdown);
+        $(_picker).on("listRendered", _handleListRendered);
         
         $(_picker).on("select", function (event, item, itemIndex) {
             if (itemIndex === 0) {
@@ -474,7 +474,6 @@ define(function (require, exports, module) {
                 editFilter({ name: "", patterns: [] }, -1);
             } else if (itemIndex === 1) {
                 // Uncheck the prior active filter in the dropdown list.
-                var checkedItemIndex = getActiveFilter() + FIRST_FILTER_INDEX;
                 _picker.setChecked(itemIndex, false);
                 
                 // Clear the active filter
