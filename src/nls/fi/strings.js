@@ -41,6 +41,11 @@ define({
     "FILE_EXISTS_ERR"                   : "Tiedosto tai hakemisto on jo olemassa.",
     "FILE"                              : "tiedosto",
     "DIRECTORY"                         : "hakemisto",
+    "DIRECTORY_NAMES_LEDE"              : "Hakemistojen nimet",
+    "FILENAMES_LEDE"                    : "Tiedostonimet",
+    "FILENAME"                          : "tiedostonimi",
+    "DIRECTORY_NAME"                    : "hakemiston nimi",
+
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Virhe ladattaessa projektia",
@@ -60,9 +65,9 @@ define({
     "ERROR_RENAMING_FILE"               : "Tapahtui virhe yrittäessä nimetä uudelleen tiedostoa <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Virhe poistettaessa tiedostoa",
     "ERROR_DELETING_FILE"               : "Tapahtui virhe yrittäessä poistaa tiedosto <span class='dialog-filename'>{0}</span>. {1}",
-    "INVALID_FILENAME_TITLE"            : "Kelpaamaton {0}nimi",
-    "INVALID_FILENAME_MESSAGE"          : "Tiedostonimet eivät voi sisältää seuraavia merkkejä: {0} tai mitään järjestelmän varaamia sanoja.",
-    "FILE_ALREADY_EXISTS"               : "{0} <span class='dialog-filename'>{1}</span> on jo olemassa.",
+    "INVALID_FILENAME_TITLE"            : "Virheellinen {0}",
+    "INVALID_FILENAME_MESSAGE"          : "{0} ei voi käyttää mitään järjestelmän varaamia sanoja, päättyä pisteeseen (.) tai käyttää mitään seuraavista merkeistä: <code class='emphasized'>{1}</code>",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "Tiedosto tai hakemisto nimellä <span class='dialog-filename'>{0}</span> on jo olemassa.",
     "ERROR_CREATING_FILE_TITLE"         : "Virhe luodessa {0}a",
     "ERROR_CREATING_FILE"               : "Virhe yrittäessä luoda {0}a <span class='dialog-filename'>{1}</span>. {2}",
 
@@ -362,6 +367,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Julkaisutiedot",
     "CMD_GET_INVOLVED"                    : "Lähde mukaan",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Näytä laajennusten kansio",
+    "CMD_HOMEPAGE"                        : "{APP_TITLE}in kotisivut",
     "CMD_TWITTER"                         : "{TWITTER_NAME} Twitterissä",
     "CMD_ABOUT"                           : "Tietoja {APP_TITLE}-sovelluksesta",
     "CMD_OPEN_PREFERENCES"                : "Avaa asetustiedosto",
