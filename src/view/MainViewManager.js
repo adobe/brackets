@@ -491,7 +491,7 @@ define(function (require, exports, module) {
         var files           = [],
             isActive        = false,
             paneViewList    = getPaneViewList(ALL_PANES),
-            currentDoc      = DocumentManager.getCurrentDocument,
+            currentDoc      = DocumentManager.getCurrentDocument(),
             projectRoot     = ProjectManager.getProjectRoot(),
             context         = { location : { scope: "user",
                                              layer: "project",

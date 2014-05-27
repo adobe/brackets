@@ -202,7 +202,6 @@ define(function (require, exports, module) {
         
         // (this event triggers EditorManager to actually clear the editor UI)
         $(exports).triggerHandler("currentDocumentChange", [null, previousDocument]);
-        MainViewManager._setCurrentDocument(null);
     }
     
     /**
@@ -395,9 +394,6 @@ define(function (require, exports, module) {
         
         // (this event triggers EditorManager to actually switch editors in the UI)
         $(exports).triggerHandler("currentDocumentChange", [doc, currentDocument]);
-
-        // TODO: Remove this
-        MainViewManager._setCurrentDocument(doc);
 
         // Adjust MRU working set ordering (except while in the middle of a Ctrl+Tab sequence)
         if (!_documentNavPending) {
