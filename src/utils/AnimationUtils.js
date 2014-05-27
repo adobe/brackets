@@ -31,6 +31,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var Async   = require("utils/Async");
+    
     /**
      * Start an animation by adding the given class to the given target. When the
      * animation is complete, removes the class, clears the event handler we attach
@@ -38,28 +40,42 @@ define(function (require, exports, module) {
      *
      * @param {Element} target The DOM node to animate.
      * @param {string} animClass The class that applies the animation/transition to the target.
+     * @param {number=} timeoutDuration Time to wait in ms before rejecting promise. Default is 400.
      * @return {$.Promise} A promise that is resolved when the animation completes. Never rejected.
      */
-    function animateUsingClass(target, animClass) {
-        var result = new $.Deferred();
+    function animateUsingClass(target, animClass, timeoutDuration) {
+        var result  = new $.Deferred(),
+            $target = $(target);
+        
+        timeoutDuration = timeoutDuration || 400;
         
         function finish(e) {
             if (e.target === target) {
-                $(target)
-                    .removeClass(animClass)
-                    .off("webkitTransitionEnd", finish);
                 result.resolve();
             }
         }
         
-        // Note that we can't just use $.one() here because we only want to remove
-        // the handler when we get the transition end event for the correct target (not
-        // a child).
-        $(target)
-            .addClass(animClass)
-            .on("webkitTransitionEnd", finish);
+        function cleanup() {
+            $target
+                .removeClass(animClass)
+                .off("webkitTransitionEnd", finish);
+        }
         
-        return result.promise();
+        if ($target.is(":hidden")) {
+            // Don't do anything if the element is hidden because webkitTransitionEnd wouldn't fire
+            result.resolve();
+        } else {
+            // Note that we can't just use $.one() here because we only want to remove
+            // the handler when we get the transition end event for the correct target (not
+            // a child).
+            $target
+                .addClass(animClass)
+                .on("webkitTransitionEnd", finish);
+        }
+        
+        // Use timeout in case transition end event is not sent
+        return Async.withTimeout(result.promise(), timeoutDuration, true)
+            .done(cleanup);
     }
     
     exports.animateUsingClass = animateUsingClass;

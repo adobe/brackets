@@ -60,6 +60,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
+        DeprecationWarning  = require("utils/DeprecationWarning"),
         LanguageManager     = require("language/LanguageManager"),
         Menus               = require("command/Menus"),
         StringUtils         = require("utils/StringUtils"),
@@ -106,13 +107,6 @@ define(function (require, exports, module) {
      */
     var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.hgtags$|^\.idea$|^\.c9revisions$|^\.SyncArchive$|^\.SyncID$|^\.SyncIgnore$|\~$/;
 
-    /**
-     * @private
-     * File names which are not showed in quick open dialog
-     * @type {RegExp}
-     */
-    var _binaryExclusionListRegEx = /\.svgz$|\.jsz$|\.zip$|\.gz$|\.htmz$|\.htmlz$|\.rar$|\.tar$|\.exe$|\.bin$/;
-    
     /**
      * @private
      * Filename to use for project settings files.
@@ -191,7 +185,8 @@ define(function (require, exports, module) {
      * RegEx to validate if a filename is not allowed even if the system allows it.
      * This is done to prevent cross-platform issues.
      */
-    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux)$/i;
+            
+    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux|)$|\.+$/i;
     
     var suppressToggleOpen = false;
     
@@ -752,12 +747,14 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
      * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
      * @param {string} fileName
      * @return {boolean}
      */
     function isBinaryFile(fileName) {
-        return fileName.match(_binaryExclusionListRegEx);
+        DeprecationWarning.deprecationWarning("ProjectManager.isBinaryFile() called for " + fileName + ". Use LanguageManager.getLanguageForPath(fileName).isBinary() instead.");
+        return LanguageManager.getLanguageForPath(fileName).isBinary();
     }
     
     /**
@@ -1533,8 +1530,8 @@ define(function (require, exports, module) {
                 filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
-                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
-                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, _invalidChars)
+                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME),
+                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE,  _invalidChars)
             );
             return false;
         }
@@ -1661,15 +1658,13 @@ define(function (require, exports, module) {
                 };
                 
                 var errorCallback = function (error, entry) {
-                    var entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
-                        oppositeEntryType = isFolder ? Strings.FILE : Strings.DIRECTORY;
+                    var titleType = isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME,
+                        entryType = isFolder ? Strings.DIRECTORY : Strings.FILE;
                     if (error === FileSystemError.ALREADY_EXISTS) {
-                        var useOppositeType = (isFolder === entry.isFile);
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
-                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
-                            StringUtils.format(Strings.FILE_ALREADY_EXISTS,
-                                useOppositeType ? oppositeEntryType : entryType,
+                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, titleType),
+                            StringUtils.format(Strings.ENTRY_WITH_SAME_NAME_EXISTS,
                                 StringUtils.breakableUrl(data.rslt.name))
                         );
                     } else {
@@ -2008,7 +2003,7 @@ define(function (require, exports, module) {
                 allFiles = [],
                 allFilesVisitor = function (entry) {
                     if (shouldShow(entry)) {
-                        if (entry.isFile && !isBinaryFile(entry.name)) {
+                        if (entry.isFile) {
                             allFiles.push(entry);
                         }
                         return true;
@@ -2034,7 +2029,7 @@ define(function (require, exports, module) {
     /**
      * Returns an Array of all files for this project, optionally including
      * files in the working set that are *not* under the project root. Files filtered
-     * out by shouldShow() OR isBinaryFile() are excluded.
+     * out by shouldShow().
      *
      * @param {function (File, number):boolean=} filter Optional function to filter
      *          the file list (does not filter directory traversal). API matches Array.filter().

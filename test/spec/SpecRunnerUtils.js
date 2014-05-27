@@ -1015,7 +1015,45 @@ define(function (require, exports, module) {
     function setLoadExtensionsInTestWindow(doLoadExtensions) {
         _doLoadExtensions = doLoadExtensions;
     }
-    
+
+    /**
+     * Change the size of an editor. The window size is not affected by this function.
+     * CodeMirror will change it's size withing Brackets.
+     *
+     * @param {!Editor} editor - instance of Editor
+     * @param {?number} width - the new width of the editor in pixel
+     * @param {?number} height - the new height of the editor in pixel
+     */
+    function resizeEditor(editor, width, height) {
+        var oldSize = {};
+
+        if (editor) {
+            var jquery = editor.getRootElement().ownerDocument.defaultView.$,
+                $editorHolder = jquery('#editor-holder'),
+                $content = jquery('.content');
+
+            // preserve old size
+            oldSize.width = $editorHolder.width();
+            oldSize.height = $editorHolder.height();
+
+            if (width) {
+                $content.width(width);
+                $editorHolder.width(width);
+                editor.setSize(width, null); // Update CM size
+            }
+
+            if (height) {
+                $content.height(height);
+                $editorHolder.height(height);
+                editor.setSize(null, height); // Update CM size
+            }
+
+            editor.refreshAll(true); // update CM
+        }
+
+        return oldSize;
+    }
+
     /**
      * Extracts the jasmine.log() and/or jasmine.expect() messages from the given result,
      * including stack traces if available.
@@ -1302,4 +1340,5 @@ define(function (require, exports, module) {
     exports.runAfterLast                    = runAfterLast;
     exports.removeTempDirectory             = removeTempDirectory;
     exports.setUnitTestReporter             = setUnitTestReporter;
+    exports.resizeEditor                    = resizeEditor;
 });

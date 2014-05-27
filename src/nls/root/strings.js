@@ -37,9 +37,15 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
     "CONTENTS_MODIFIED_ERR"             : "The file has been modified outside of {APP_NAME}.",
+    "UNSUPPORTED_ENCODING_ERR"          : "The file is not UTF-8 encoded text.",
     "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
     "FILE"                              : "file",
     "DIRECTORY"                         : "directory",
+    "DIRECTORY_NAMES_LEDE"              : "Directory names",
+    "FILENAMES_LEDE"                    : "Filenames",
+    "FILENAME"                          : "filename",
+    "DIRECTORY_NAME"                    : "directory name",
+    
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error loading project",
@@ -59,9 +65,9 @@ define({
     "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Error deleting file",
     "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}",
-    "INVALID_FILENAME_TITLE"            : "Invalid {0} name",
-    "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: {0} or use any system reserved words.",
-    "FILE_ALREADY_EXISTS"               : "The {0} <span class='dialog-filename'>{1}</span> already exists.",
+    "INVALID_FILENAME_TITLE"            : "Invalid {0}",
+    "INVALID_FILENAME_MESSAGE"          : "{0} cannot use any system reserved words, end with dots (.) or use any of the following characters: <code class='emphasized'>{1}</code>",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "A file or directory with the name <span class='dialog-filename'>{0}</span> already exists.",
     "ERROR_CREATING_FILE_TITLE"         : "Error creating {0}",
     "ERROR_CREATING_FILE"               : "An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}",
 
@@ -160,6 +166,7 @@ define({
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
+    "FIND_IN_FILES_ZERO_FILES"          : "Filter excludes all files {0}",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
@@ -175,9 +182,12 @@ define({
     "NO_FILE_FILTER"                    : "Exclude files\u2026",
     "EDIT_FILE_FILTER"                  : "Edit\u2026",
     "FILE_FILTER_DIALOG"                : "Edit Filter",
-    "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>globs</a>. Enter each string on a new line.",
+    "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>wildcards</a>. Enter each string on a new line.",
     "FILE_FILTER_LIST_PREFIX"           : "except",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "and {0} more",
+    "FILTER_COUNTING_FILES"             : "Counting files\u2026",
+    "FILTER_FILE_COUNT"                 : "Allows {0} of {1} files {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Allows all {0} files {1}",
 
     // Quick Edit
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "No Quick Edit available for current cursor position",
@@ -235,6 +245,8 @@ define({
     "LINT_DISABLED"                         : "Linting is disabled",
     "NO_LINT_AVAILABLE"                     : "No linter available for {0}",
     "NOTHING_TO_LINT"                       : "Nothing to lint",
+    "LINTER_TIMED_OUT"                      : "{0} has timed out after waiting for {1} ms",
+    "LINTER_FAILED"                         : "{0} terminated with error: {1}",
     
     
     /**
@@ -282,16 +294,6 @@ define({
     "CMD_SPLIT_SEL_INTO_LINES"            : "Split Selection into Lines",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "Add Cursor to Next Line",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "Add Cursor to Previous Line",
-    "CMD_FIND"                            : "Find",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Find\u2026",
-    "CMD_FIND_IN_FILES"                   : "Find in Files",
-    "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
-    "CMD_FIND_NEXT"                       : "Find Next",
-    "CMD_FIND_PREVIOUS"                   : "Find Previous",
-    "CMD_FIND_ALL_AND_SELECT"             : "Find All and Select",
-    "CMD_ADD_NEXT_MATCH"                  : "Add Next Match to Selection",
-    "CMD_SKIP_CURRENT_MATCH"              : "Skip and Add Next Match",
-    "CMD_REPLACE"                         : "Replace",
     "CMD_INDENT"                          : "Indent",
     "CMD_UNINDENT"                        : "Unindent",
     "CMD_DUPLICATE"                       : "Duplicate",
@@ -304,6 +306,20 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Open Line Below",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
     "CMD_SHOW_CODE_HINTS"                 : "Show Code Hints",
+    
+    // Search menu commands
+    "FIND_MENU"                           : "Find",
+    "CMD_FIND"                            : "Find",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Find\u2026",
+    "CMD_FIND_NEXT"                       : "Find Next",
+    "CMD_FIND_PREVIOUS"                   : "Find Previous",
+    "CMD_FIND_ALL_AND_SELECT"             : "Find All and Select",
+    "CMD_ADD_NEXT_MATCH"                  : "Add Next Match to Selection",
+    "CMD_SKIP_CURRENT_MATCH"              : "Skip and Add Next Match",
+    "CMD_FIND_IN_FILES"                   : "Find in Files",
+    "CMD_FIND_IN_SELECTED"                : "Find in Selected File/Folder",
+    "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
+    "CMD_REPLACE"                         : "Replace",
     
     // View menu commands
     "VIEW_MENU"                           : "View",
@@ -351,6 +367,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_GET_INVOLVED"                    : "Get Involved",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
+    "CMD_HOMEPAGE"                        : "{APP_TITLE} Homepage",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Open Preferences File",
@@ -482,6 +499,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
+    "ERRORS"                                    : "Errors",
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
     "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
@@ -492,6 +510,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Enable Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
     "CMD_RESTART_NODE"                          : "Restart Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",

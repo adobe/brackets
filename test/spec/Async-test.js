@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, waits, waitsFor, waitsForDone, expect, $, jasmine  */
+/*global define, describe, beforeEach, afterEach, it, runs, waits, waitsFor, waitsForDone, waitsForFail, expect, $, jasmine  */
 
 define(function (require, exports, module) {
     "use strict";
@@ -35,7 +35,7 @@ define(function (require, exports, module) {
         describe("Chain", function () {
 
             function zeroArgThatSucceeds() {
-                var d = $.Deferred();
+                var d = new $.Deferred();
                 setTimeout(function () {
                     d.resolve();
                 }, 1);
@@ -43,7 +43,7 @@ define(function (require, exports, module) {
             }
             
             function zeroArgThatFails() {
-                var d = $.Deferred();
+                var d = new $.Deferred();
                 setTimeout(function () {
                     d.reject();
                 }, 1);
@@ -51,7 +51,7 @@ define(function (require, exports, module) {
             }
 
             function oneArgThatSucceeds(x) {
-                var d = $.Deferred();
+                var d = new $.Deferred();
                 setTimeout(function () {
                     d.resolveWith(null, [x]);
                 }, 1);
@@ -59,7 +59,7 @@ define(function (require, exports, module) {
             }
 
             function twoArgThatSucceeds(x, y) {
-                var d = $.Deferred();
+                var d = new $.Deferred();
                 setTimeout(function () {
                     d.resolveWith(null, [x, y]);
                 }, 1);
@@ -67,7 +67,7 @@ define(function (require, exports, module) {
             }
             
             function twoArgThatFails(x, y) {
-                var d = $.Deferred();
+                var d = new $.Deferred();
                 setTimeout(function () {
                     d.rejectWith(null, [x, y]);
                 }, 1);
@@ -222,6 +222,95 @@ define(function (require, exports, module) {
                         true,
                         createArrayComparator([1, 2])
                     );
+                });
+            });
+            
+            
+            describe("With Timeout", function () {
+                function promiseThatSucceeds(duration) {
+                    var d = new $.Deferred();
+                    setTimeout(function () {
+                        d.resolve();
+                    }, duration);
+                    return d.promise();
+                }
+                
+                function promiseThatFails(duration) {
+                    var d = new $.Deferred();
+                    setTimeout(function () {
+                        d.reject();
+                    }, duration);
+                    return d.promise();
+                }
+                
+                it("should resolve promise before rejected with timeout", function () {
+                    var promiseBase, promiseWrapper;
+                    
+                    runs(function () {
+                        promiseBase    = promiseThatSucceeds(5);
+                        promiseWrapper = Async.withTimeout(promiseBase, 10);
+                        waitsForDone(promiseWrapper, "promise resolves before timeout");
+                    });
+                    
+                    runs(function () {
+                        // base promise resolves wrapper promise
+                        expect(promiseBase.state()).toBe("resolved");
+                        expect(promiseWrapper.state()).toBe("resolved");
+                    });
+                });
+                
+                it("should reject promise before resolved with timeout", function () {
+                    var promiseBase, promiseWrapper;
+                    
+                    runs(function () {
+                        promiseBase    = promiseThatFails(5);
+                        promiseWrapper = Async.withTimeout(promiseBase, 10, true);
+                        waitsForFail(promiseWrapper, "promise rejected before timeout");
+                    });
+                    
+                    runs(function () {
+                        // base promise rejects wrapper promise
+                        expect(promiseBase.state()).toBe("rejected");
+                        expect(promiseWrapper.state()).toBe("rejected");
+                    });
+                });
+                
+                it("should timeout with reject before promise resolves", function () {
+                    var promiseBase, promiseWrapper;
+                    
+                    runs(function () {
+                        promiseBase    = promiseThatSucceeds(10);
+                        promiseWrapper = Async.withTimeout(promiseBase, 5);
+                        waitsForFail(promiseWrapper, "times out before promise resolves");
+                    });
+                    
+                    runs(function () {
+                        expect(promiseWrapper.state()).toBe("rejected");
+                        waitsForDone(promiseBase, "promise resolves after timeout");
+                    });
+                    
+                    runs(function () {
+                        expect(promiseBase.state()).toBe("resolved");
+                    });
+                });
+                
+                it("should timeout with resolve before promise rejected", function () {
+                    var promiseBase, promiseWrapper;
+                    
+                    runs(function () {
+                        promiseBase    = promiseThatFails(10);
+                        promiseWrapper = Async.withTimeout(promiseBase, 5, true);
+                        waitsForDone(promiseWrapper, "times out before promise is rejected");
+                    });
+                    
+                    runs(function () {
+                        expect(promiseWrapper.state()).toBe("resolved");
+                        waitsForFail(promiseBase, "promise is rejected after timeout");
+                    });
+                    
+                    runs(function () {
+                        expect(promiseBase.state()).toBe("rejected");
+                    });
                 });
             });
             
@@ -498,6 +587,49 @@ define(function (require, exports, module) {
                 fnInfo2.deferred.resolve();
                 expect(queue._queue.length).toBe(0);
                 expect(queue._curPromise).toBe(null);
+            });
+            
+            it("should be able to run two queues simultaneously without clashing", function () {
+                var queue2 = new PromiseQueue(),
+                    q1FnInfo1 = makeFn("one"),
+                    q1FnInfo2 = makeFn("two"),
+                    q2FnInfo3 = makeFn("three"),
+                    q2FnInfo4 = makeFn("four");
+                
+                //queue one
+                queue.add(q1FnInfo1.fn);
+                queue.add(q1FnInfo2.fn);
+                expect(calledFns.one).toBe(true);
+                expect(calledFns.two).toBeUndefined();
+                //queue one should have one in _queue,
+                //queue two should have zero in _queue
+                expect(queue._queue.length).toBe(1);
+                expect(queue2._queue.length).toBe(0);
+                
+                //queue two
+                queue2.add(q2FnInfo3.fn);
+                queue2.add(q2FnInfo4.fn);
+                expect(calledFns.three).toBe(true);
+                expect(calledFns.four).toBeUndefined();
+                //queue one and two should have one in _queue
+                expect(queue._queue.length).toBe(1);
+                expect(queue2._queue.length).toBe(1);
+                
+                q1FnInfo1.deferred.resolve();
+                expect(calledFns.two).toBe(true);
+                expect(queue._queue.length).toBe(0);
+                
+                q1FnInfo2.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
+                
+                q2FnInfo3.deferred.resolve();
+                expect(calledFns.three).toBe(true);
+                expect(queue2._queue.length).toBe(0);
+                
+                q2FnInfo4.deferred.resolve();
+                expect(queue2._queue.length).toBe(0);
+                expect(queue2._curPromise).toBe(null);
             });
         });
     });

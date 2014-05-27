@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint regexp: true, vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, window, Mustache */
 
 define(function (require, exports, module) {
@@ -75,7 +75,7 @@ define(function (require, exports, module) {
                 //   class="error-dialog modal hide"
                 // and the insertion point is inside "modal", we want ".modal"
                 var attributeValue = tagInfo.attr.value;
-                if (attributeValue.trim()) {
+                if (/\S/.test(attributeValue)) {
                     var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
                     var endIndex = attributeValue.indexOf(" ", tagInfo.position.offset);
                     selectorName = "." +

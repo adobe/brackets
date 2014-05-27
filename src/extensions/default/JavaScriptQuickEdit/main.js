@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         EditorManager           = brackets.getModule("editor/EditorManager"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
         JSUtils                 = brackets.getModule("language/JSUtils"),
+        LanguageManager         = brackets.getModule("language/LanguageManager"),
         PerfUtils               = brackets.getModule("utils/PerfUtils"),
         ProjectManager          = brackets.getModule("project/ProjectManager"),
         Strings                 = brackets.getModule("strings");
@@ -49,7 +50,7 @@ define(function (require, exports, module) {
         
         // If the pos is at the beginning of a name, token will be the 
         // preceding whitespace or dot. In that case, try the next pos.
-        if (token.string.trim().length === 0 || token.string === ".") {
+        if (!/\S/.test(token.string) || token.string === ".") {
             token = hostEditor._codeMirror.getTokenAt({line: pos.line, ch: pos.ch + 1}, true);
         }
         
@@ -82,7 +83,11 @@ define(function (require, exports, module) {
         
         PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
         
-        ProjectManager.getAllFiles()
+        function _nonBinaryFileFilter(file) {
+            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary();
+        }
+        
+        ProjectManager.getAllFiles(_nonBinaryFileFilter)
             .done(function (files) {
                 JSUtils.findMatchingFunctions(functionName, files)
                     .done(function (functions) {

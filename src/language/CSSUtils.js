@@ -40,7 +40,8 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         HTMLUtils           = require("language/HTMLUtils"),
         ProjectManager      = require("project/ProjectManager"),
-        TokenUtils          = require("utils/TokenUtils");
+        TokenUtils          = require("utils/TokenUtils"),
+        _                   = require("thirdparty/lodash");
 
     // Constants
     var SELECTOR   = "selector",
@@ -83,6 +84,19 @@ define(function (require, exports, module) {
      * @return {boolean} true if the context is in property value
      */
     function _isInPropValue(ctx) {
+        
+        function isInsideParens(context) {
+            if (context.type !== "parens" || !context.prev) {
+                return false;
+            }
+                                                             
+            if (context.prev.type === "prop") {
+                return true;
+            }
+            
+            return isInsideParens(context.prev);
+        }
+        
         var state;
         if (!ctx || !ctx.token || !ctx.token.state || ctx.token.type === "comment") {
             return false;
@@ -95,7 +109,7 @@ define(function (require, exports, module) {
         }
         return ((state.context.type === "prop" &&
                     (state.context.prev.type === "rule" || state.context.prev.type === "block")) ||
-                    (state.context.type === "parens" && state.context.prev.type === "prop"));
+                    isInsideParens(state.context));
     }
     
     /**
@@ -128,20 +142,25 @@ define(function (require, exports, module) {
      * @param {Array.<string>=} values An array of property values 
      * @param {boolean=} isNewItem If this is true, then the value in index refers to the index at which a new item  
      *     is going to be inserted and should not be used for accessing an existing value in values array. 
+     * @param {{start: {line: number, ch: number},
+     *          end: {line: number, ch: number}}=} range A range object with a start position and an end position
      * @return {{context: string,
      *           offset: number,
      *           name: string,
      *           index: number,
      *           values: Array.<string>,
-     *           isNewItem: boolean}} A CSS context info object.
+     *           isNewItem: boolean,
+     *           range: {start: {line: number, ch: number},
+     *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
-    function createInfo(context, offset, name, index, values, isNewItem) {
+    function createInfo(context, offset, name, index, values, isNewItem, range) {
         var ruleInfo = { context: context || "",
                          offset: offset || 0,
                          name: name || "",
                          index: -1,
                          values: [],
-                         isNewItem: (isNewItem) ? true : false };
+                         isNewItem: (isNewItem === true),
+                         range: range };
         
         if (context === PROP_VALUE || context === SELECTOR || context === IMPORT_URL) {
             ruleInfo.index = index;
@@ -165,7 +184,9 @@ define(function (require, exports, module) {
      *           name: string,
      *           index: number,
      *           values: Array.<string>,
-     *           isNewItem: boolean}} A CSS context info object.
+     *           isNewItem: boolean,
+     *           range: {start: {line: number, ch: number},
+     *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
     function _getPropNameInfo(ctx) {
         var propName = "",
@@ -176,7 +197,7 @@ define(function (require, exports, module) {
         if (ctx.token.type === "property" || ctx.token.type === "property error" ||
                 ctx.token.type === "tag") {
             propName = tokenString;
-            if (TokenUtils.movePrevToken(ctx) && ctx.token.string.trim() !== "" &&
+            if (TokenUtils.movePrevToken(ctx) && /\S/.test(ctx.token.string) &&
                     excludedCharacters.indexOf(ctx.token.string) === -1) {
                 propName = ctx.token.string + tokenString;
                 offset += ctx.token.string.length;
@@ -188,7 +209,7 @@ define(function (require, exports, module) {
                     ctx.token.type === "tag")) {
                 propName += ctx.token.string;
             }
-        } else if (tokenString.trim() !== "" && excludedCharacters.indexOf(tokenString) === -1) {
+        } else if (/\S/.test(tokenString) && excludedCharacters.indexOf(tokenString) === -1) {
             // We're not inside the property name context.
             return createInfo();
         } else {
@@ -337,6 +358,43 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Return a range object with a start position and an end position after
+     * skipping any whitespaces and all separators used before and after a
+     * valid property value.
+     *
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} startCtx context
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} endCtx context
+     * @return {{start: {line: number, ch: number},
+     *           end: {line: number, ch: number}}} A range object.
+     */
+    function _getRangeForPropValue(startCtx, endCtx) {
+        var range = { "start": {},
+                      "end": {} };
+        
+        // Skip the ":" and any leading whitespace
+        while (TokenUtils.moveNextToken(startCtx)) {
+            if (/\S/.test(startCtx.token.string)) {
+                break;
+            }
+        }
+        
+        // Skip the trailing whitespace and property separators.
+        while (endCtx.token.string === ";" || endCtx.token.string === "}" ||
+                !/\S/.test(endCtx.token.string)) {
+            TokenUtils.movePrevToken(endCtx);
+        }
+        
+        range.start = _.clone(startCtx.pos);
+        range.start.ch = startCtx.token.start;
+        
+        range.end = _.clone(endCtx.pos);
+        range.end.ch = endCtx.token.end;
+        
+        return range;
+    }
+    
+    /**
+     * @private
      * Returns a context info object for the current CSS style rule
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @param {!Editor} editor
@@ -345,7 +403,9 @@ define(function (require, exports, module) {
      *           name: string,
      *           index: number,
      *           values: Array.<string>,
-     *           isNewItem: boolean}} A CSS context info object.
+     *           isNewItem: boolean,
+     *           range: {start: {line: number, ch: number},
+     *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
     function _getRuleInfoStartingFromPropValue(ctx, editor) {
         var propNamePos = $.extend({}, ctx.pos),
@@ -361,7 +421,8 @@ define(function (require, exports, module) {
             canAddNewOne = false,
             testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
             testToken = editor._codeMirror.getTokenAt(testPos, true),
-            propName;
+            propName,
+            range;
         
         // Get property name first. If we don't have a valid property name, then 
         // return a default rule info.
@@ -413,13 +474,21 @@ define(function (require, exports, module) {
         forwardCtx = TokenUtils.getInitialContext(editor._codeMirror, forwardPos);
         propValues = propValues.concat(_getSucceedingPropValues(forwardCtx, lastValue));
         
+        if (propValues.length) {
+            range = _getRangeForPropValue(backwardCtx, forwardCtx);
+        } else {
+            // No property value, so just return the cursor pos as range
+            range = { "start": _.clone(ctx.pos),
+                      "end": _.clone(ctx.pos) };
+        }
+        
         // If current index is more than the propValues size, then the cursor is 
         // at the end of the existing property values and is ready for adding another one.
         if (index === propValues.length) {
             canAddNewOne = true;
         }
         
-        return createInfo(PROP_VALUE, offset, propName, index, propValues, canAddNewOne);
+        return createInfo(PROP_VALUE, offset, propName, index, propValues, canAddNewOne, range);
     }
     
     /**
@@ -432,7 +501,9 @@ define(function (require, exports, module) {
      *           name: string,
      *           index: number,
      *           values: Array.<string>,
-     *           isNewItem: boolean}} A CSS context info object.
+     *           isNewItem: boolean,
+     *           range: {start: {line: number, ch: number},
+     *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
     function _getImportUrlInfo(ctx, editor) {
         var propNamePos = $.extend({}, ctx.pos),
@@ -501,7 +572,9 @@ define(function (require, exports, module) {
      *           name: string,
      *           index: number,
      *           values: Array.<string>,
-     *           isNewItem: boolean}} A CSS context info object.
+     *           isNewItem: boolean,
+     *           range: {start: {line: number, ch: number},
+     *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
     function getInfoAtPos(editor, constPos) {
         // We're going to be changing pos a lot, but we don't want to mess up
@@ -973,7 +1046,7 @@ define(function (require, exports, module) {
                 result.push(entry);
             } else if (!classOrIdSelector) {
                 // Special case for tag selectors - match "*" as the rightmost character
-                if (entry.selector.trim().search(/\*$/) !== -1) {
+                if (/\*\s*$/.test(entry.selector)) {
                     result.push(entry);
                 }
             }
@@ -1142,7 +1215,7 @@ define(function (require, exports, module) {
                     }
                     
                     // Stop once we've reached a <style ...> tag
-                    if (ctx.token.string === "<style") {
+                    if (ctx.token.string === "style" && ctx.token.type === "tag") {
                         // Remove everything up to end-of-tag from selector
                         var eotIndex = selector.indexOf(">");
                         if (eotIndex !== -1) {
@@ -1170,7 +1243,7 @@ define(function (require, exports, module) {
                     selector = _parseSelector(ctx);
                     break;
                 } else {
-                    if (ctx.token.string.trim() !== "") {
+                    if (/\S/.test(ctx.token.string)) {
                         foundChars = true;
                     }
                 }
@@ -1189,7 +1262,7 @@ define(function (require, exports, module) {
         // special case - we aren't in a selector and haven't found any chars,
         // look at the next immediate token to see if it is non-whitespace
         if (!selector && !foundChars) {
-            if (TokenUtils.moveNextToken(ctx) && ctx.token.type !== "comment" && ctx.token.string.trim() !== "") {
+            if (TokenUtils.moveNextToken(ctx) && ctx.token.type !== "comment" && /\S/.test(ctx.token.string)) {
                 foundChars = true;
                 ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
             }
