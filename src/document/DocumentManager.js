@@ -231,7 +231,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the index of the file matching fullPath in MainViewManager._getPaneViewListAdded().
+     * Returns the index of the file matching fullPath 
      * Returns -1 if not found.
      * @param {!string} fullPath
      * @returns {number} index

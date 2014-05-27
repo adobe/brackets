@@ -1064,7 +1064,7 @@ define(function (require, exports, module) {
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("fileNameChange",        _onFileNameChange);
-    $(WorkspaceManager).on("editorAreaResize",         _onEditorAreaResize);
+    $(WorkspaceManager).on("editorAreaResize",     _onEditorAreaResize);
 
 
     // For unit tests and internal use only

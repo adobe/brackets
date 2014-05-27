@@ -525,12 +525,6 @@ define(function (require, exports, module) {
     $(ProjectManager).on("projectOpen", _loadViewState);
     $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
     
-    
-    // Refactoring exports...
-    exports._getPaneViewList        = _getPaneViewList;
-    exports._getPaneViewListMRU     = _getPaneViewListMRU;
-    exports._getPaneViewListAdded   = _getPaneViewListAdded;
-
     // API Exports
     exports.addToPaneViewList                = addToPaneViewList;
     exports.addListToPaneViewList            = addListToPaneViewList;
