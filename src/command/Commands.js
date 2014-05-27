@@ -152,14 +152,15 @@ define(function (require, exports, module) {
     exports.CSS_QUICK_EDIT_NEW_RULE     = "navigate.newRule";                     // CSSInlineEditor.js           _handleNewRule()
     
     // HELP
-    exports.HELP_CHECK_FOR_UPDATE       = "help.checkForUpdate";                 // HelpCommandHandlers.js       _handleCheckForUpdates()
-    exports.HELP_HOW_TO_USE_BRACKETS    = "help.howToUseBrackets";               // HelpCommandHandlers.js       _handleLinkMenuItem()
-    exports.HELP_SUPPORT                = "help.support";                        // HelpCommandHandlers.js       _handleLinkMenuItem()
-    exports.HELP_SUGGEST                = "help.suggest";                        // HelpCommandHandlers.js       _handleLinkMenuItem()
-    exports.HELP_RELEASE_NOTES          = "help.releaseNotes";                   // HelpCommandHandlers.js       _handleLinkMenuItem()
-    exports.HELP_GET_INVOLVED           = "help.getInvolved";                    // HelpCommandHandlers.js       _handleLinkMenuItem()
-    exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";           // HelpCommandHandlers.js       _handleShowExtensionsFolder()
-    exports.HELP_TWITTER                = "help.twitter";                        // HelpCommandHandlers.js       _handleLinkMenuItem()
+    exports.HELP_CHECK_FOR_UPDATE       = "help.checkForUpdate";        // HelpCommandHandlers.js       _handleCheckForUpdates()
+    exports.HELP_HOW_TO_USE_BRACKETS    = "help.howToUseBrackets";      // HelpCommandHandlers.js       _handleLinkMenuItem()
+    exports.HELP_SUPPORT                = "help.support";               // HelpCommandHandlers.js       _handleLinkMenuItem()
+    exports.HELP_SUGGEST                = "help.suggest";               // HelpCommandHandlers.js       _handleLinkMenuItem()
+    exports.HELP_RELEASE_NOTES          = "help.releaseNotes";          // HelpCommandHandlers.js       _handleLinkMenuItem()
+    exports.HELP_GET_INVOLVED           = "help.getInvolved";           // HelpCommandHandlers.js       _handleLinkMenuItem()
+    exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";  // HelpCommandHandlers.js       _handleShowExtensionsFolder()
+    exports.HELP_HOMEPAGE               = "help.homepage";              // HelpCommandHandlers.js       _handleLinkMenuItem()
+    exports.HELP_TWITTER                = "help.twitter";               // HelpCommandHandlers.js       _handleLinkMenuItem()
     
     // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
     exports.HELP_ABOUT                  = "help.about";                          // HelpCommandHandlers.js       _handleAboutDialog()

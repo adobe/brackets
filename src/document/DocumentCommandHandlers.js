@@ -1283,10 +1283,7 @@ define(function (require, exports, module) {
             },
             function () {
                 // if fail, tell the app to abort any pending quit operation.
-                // TODO: remove this if statement when we move to the new CEF3 shell
-                if (brackets.app.abortQuit) {
-                    brackets.app.abortQuit();
-                }
+                brackets.app.abortQuit();
             }
         );
     }
@@ -1314,10 +1311,7 @@ define(function (require, exports, module) {
             },
             function () {
                 // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
-                // TODO: remove this if statement when we move to the new CEF3 shell
-                if (brackets.app.abortQuit) {
-                    brackets.app.abortQuit();
-                }
+                brackets.app.abortQuit();
             }
         );
     }
