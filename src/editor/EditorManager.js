@@ -807,9 +807,8 @@ define(function (require, exports, module) {
     }
     
     /** Handles changes to DocumentManager.getCurrentDocument() */
-    function _onCurrentDocumentChange() {
-        var doc = DocumentManager.getCurrentDocument(),
-            container = _editorHolder.get(0);
+    function _onCurrentDocumentChange(event, doc, prev) {
+        var container = _editorHolder.get(0);
         
         var perfTimerName = PerfUtils.markStart("EditorManager._onCurrentDocumentChange():\t" + (!doc || doc.file.fullPath));
         

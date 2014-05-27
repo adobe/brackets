@@ -118,16 +118,29 @@ define(function (require, exports, module) {
     var _currentDocument = null;
     
     
+    function _getCurrentDocument() {
+//        // using getCurrentFullEditor() will return the editor whether it has focus or not
+//        //      this doesn't work in scenarios where you want the active editor's document
+//        //      even though it does not have focus (such as when clicking on another element (toolbar, menu, etc...)
+//        //      So we'll have to do amend this to MainViewManager.getTargetPane().getCurrentFullEditor().getDocument()
+//        //      at some point which changes the deprecation warning below
+//        var doc = EditorManager.getCurrentFullEditor() ? EditorManager.getCurrentFullEditor().getDocument() : null;
+//        if (doc) {
+//           console.assert(doc._masterEditor === EditorManager.getCurrentFullEditor());
+//        }
+//        return doc;
+        return _currentDocument;
+    }
+
     /**
-     * Returns the Document that is currently open in the editor UI. May be null.
-     * When this changes, DocumentManager dispatches a "currentDocumentChange" event. The current
-     * document always has a backing Editor (Document._masterEditor != null) and is thus modifiable.
+     * [deprecated] Returns the Document that is currently open in the editor UI. May be null.
      * @return {?Document}
      */
     function getCurrentDocument() {
-        return _currentDocument;
+        DeprecationWarning.deprecationWarning("Use EditorManager.getCurrentFullEditor().getDocument() instead of DocumentManager.getCurrentDocument()", true);
+         return _getCurrentDocument();
     }
-    
+
     /**
      * @private
      * Random path prefix for untitled documents
