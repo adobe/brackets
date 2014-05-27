@@ -202,7 +202,6 @@ define(function (require, exports, module) {
             console.debug("current document mismatch: " + _getDocName(doc) + " vs. " + _getDocName(_currentDocument));
         }
         return doc;
- //       return _currentDocument;
     }
 
     /**
@@ -218,20 +217,16 @@ define(function (require, exports, module) {
     
     /** Changes currentDocument to null, causing no full Editor to be shown in the UI */
     function _clearCurrentDocument() {
-        // If editor already blank, do nothing
-        if (!_currentDocument) {
+        // Change model & dispatch event
+        var previousDocument = _getCurrentDocument();
+
+        if (!previousDocument) {
             return;
         }
-
-        // Change model & dispatch event
-        var previousDocument = _currentDocument;
-        _currentDocument = null;
-
-        // TODO: Remove this
-        MainViewManager._setCurrentDocument(_currentDocument);
-
+        
         // (this event triggers EditorManager to actually clear the editor UI)
-        $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
+        $(exports).triggerHandler("currentDocumentChange", [null, previousDocument]);
+        MainViewManager._setCurrentDocument(_currentDocument);
         
         var newDoc = _getCurrentDocument();
         if (newDoc !== null) {
