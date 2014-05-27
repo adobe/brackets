@@ -46,6 +46,7 @@ define(function (require, exports, module) {
      */
     function File(fullPath, fileSystem) {
         this._isFile = true;
+        this._readWriteQueue = [];
         FileSystemEntry.call(this, fullPath, fileSystem);
     }
     
@@ -71,6 +72,63 @@ define(function (require, exports, module) {
     File.prototype._hash = null;
     
     /**
+     * The queue of read-write operations to be processed serially.
+     * @private
+     * @type {Array.<method: string, args: Array, cb: function()>}
+     */
+    File.prototype._readWriteQueue = null;
+    
+    /**
+     * Dequeue a read-write operation from the queue, execute it, and continue
+     * processing the queue afterwards if necessary. Assumes the read-write queue
+     * is non-empty. 
+     * @private
+     */
+    File.prototype._dequeueReadWriteOperation = function () {
+        var queue = this._readWriteQueue,
+            op = queue[0],
+            method = this[op.method],
+            args = op.args,
+            cb = op.cb;
+
+        // Create a new callback for the read or write operation that will
+        // dequeue the next operation upon completion
+        var callback = function () {
+            var callbackArgs = arguments;
+            try {
+                cb.apply(null, callbackArgs);
+            } finally {
+                queue.shift();
+                if (queue.length > 0) {
+                    this._dequeueReadWriteOperation();
+                }
+            }
+        }.bind(this);
+
+        // Add the new callback in the argument list
+        args.push(callback);
+        
+        // Apply the read or write method
+        method.apply(this, args);
+    };
+    
+    /**
+     * Enqueue a read-write operation for serial, possibly later execution.
+     * @private
+     * @param {boolean} isWrite Indicates whether this is a read or a write
+     * @param {Array} args The arguments to the read or write operation
+     */
+    File.prototype._enqueueReadWriteOperation = function (isWrite, args, cb) {
+        var queue = this._readWriteQueue,
+            method = isWrite ? "_write" : "_read";
+        
+        queue.push({method: method, args: args, cb: cb});
+        if (queue.length === 1) {
+            this._dequeueReadWriteOperation();
+        }
+    };
+    
+    /**
      * Clear any cached data for this file. Note that this explicitly does NOT
      * clear the file's hash.
      * @private
@@ -81,27 +139,14 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Read a file.
+     * Internal read file operation. Only called by _dequeueReadWriteOperation.
      *
-     * @param {Object=} options Currently unused.
+     * @private
+     * @param {Object} options Currently unused.
      * @param {function (?string, string=, FileSystemStats=)} callback Callback that is passed the
      *              FileSystemError string or the file's contents and its stats.
      */
-    File.prototype.read = function (options, callback) {
-        if (typeof (options) === "function") {
-            callback = options;
-            options = {};
-        }
-        
-        // We don't need to check isWatched() here because contents are only saved
-        // for watched files. Note that we need to explicitly test this._contents
-        // for a default value; otherwise it could be the empty string, which is
-        // falsey.
-        if (this._contents !== null && this._stat) {
-            callback(null, this._contents, this._stat);
-            return;
-        }
-        
+    File.prototype._read = function (options, callback) {
         var watched = this._isWatched();
         if (watched) {
             options.stat = this._stat;
@@ -128,25 +173,40 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Write a file.
+     * Read a file.
      *
-     * @param {string} data Data to write.
-     * @param {object=} options Currently unused.
-     * @param {function (?string, FileSystemStats=)=} callback Callback that is passed the
-     *              FileSystemError string or the file's new stats.
+     * @param {Object=} options Currently unused.
+     * @param {function (?string, string=, FileSystemStats=)} callback Callback that is passed the
+     *              FileSystemError string or the file's contents and its stats.
      */
-    File.prototype.write = function (data, options, callback) {
-        if (typeof options === "function") {
+    File.prototype.read = function (options, callback) {
+        if (typeof (options) === "function") {
             callback = options;
             options = {};
-        } else {
-            if (options === undefined) {
-                options = {};
-            }
-            
-            callback = callback || function () {};
         }
         
+        // We don't need to check isWatched() here because contents are only saved
+        // for watched files. Note that we need to explicitly test this._contents
+        // for a default value; otherwise it could be the empty string, which is
+        // falsey.
+        if (this._contents !== null && this._stat) {
+            callback(null, this._contents, this._stat);
+            return;
+        }
+        
+        this._enqueueReadWriteOperation(false, [options], callback);
+    };
+    
+    /**
+     * Internal write file operation. Only called by _dequeueReadWriteOperation.
+     *
+     * @private
+     * @param {string} data Data to write.
+     * @param {object} options Currently unused.
+     * @param {function (?string, FileSystemStats=)} callback Callback that is passed the
+     *              FileSystemError string or the file's new stats.
+     */
+    File.prototype._write = function (data, options, callback) {
         // Request a consistency check if the write is not blind
         if (!options.blind) {
             options.expectedHash = this._hash;
@@ -204,6 +264,29 @@ define(function (require, exports, module) {
                 }
             }
         }.bind(this));
+    };
+    
+    /**
+     * Write a file.
+     *
+     * @param {string} data Data to write.
+     * @param {object=} options Currently unused.
+     * @param {function (?string, FileSystemStats=)=} callback Callback that is passed the
+     *              FileSystemError string or the file's new stats.
+     */
+    File.prototype.write = function (data, options, callback) {
+        if (typeof options === "function") {
+            callback = options;
+            options = {};
+        } else {
+            if (options === undefined) {
+                options = {};
+            }
+            
+            callback = callback || function () {};
+        }
+        
+        this._enqueueReadWriteOperation(true, [data, options], callback);
     };
     
     // Export this class
