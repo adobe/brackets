@@ -36,6 +36,8 @@ define({
     "NOT_READABLE_ERR"                  : "Die Datei konnte nicht gelesen werden.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Das Ziel-Verzeichnis kann nicht verändert werden.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Die Berechtigungen erlauben Ihnen nicht, Veränderungen vorzunehmen.",
+    "CONTENTS_MODIFIED_ERR"             : "Die Datei wurde außerhalb von {APP_NAME} verändert.",
+    "UNSUPPORTED_ENCODING_ERR"          : "Die Datei ist nicht UTF-8-kodiert.",
     "FILE_EXISTS_ERR"                   : "Die Datei existiert bereits.",
     "FILE"                              : "Datei",
     "DIRECTORY"                         : "Verzeichnis",
@@ -59,10 +61,14 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Fehler beim Löschen der Datei",
     "ERROR_DELETING_FILE"               : "Beim Löschen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}",
     "INVALID_FILENAME_TITLE"            : "Ungültiger {0}name",
-    "INVALID_FILENAME_MESSAGE"          : "Dateinamen dürfen folgende Zeichen nicht enthalten: /?*:;{}<>\\| Auch dürfen keine vom System reservierten Wörter vorkommen.",
+    "INVALID_FILENAME_MESSAGE"          : "Dateinamen dürfen folgende Zeichen nicht enthalten: {0} Auch dürfen keine vom System reservierten Wörter vorkommen.",
     "FILE_ALREADY_EXISTS"               : "{0} <span class='dialog-filename'>{1}</span> existiert bereits.", // TODO: depends on {0} gender
     "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen von {0}", // TODO: depends on {0} gender
     "ERROR_CREATING_FILE"               : "Beim Erstellen von {0} <span class='dialog-filename'>{1}</span> ist ein Fehler aufgetreten: {2}", // TODO: depends on {0} gender
+
+    // Application preferences corrupt error strings
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Fehler beim Lesen der Einstellungen",
+    "ERROR_PREFS_CORRUPT"               : "Ihre Einstellungsdatei ist kein gültiges JSON. Die Datei wird geöffnet, damit Sie das Format korrigieren können. Sie müssen {APP_NAME} neu starten, damit die Änderungen wirksam werden.",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} kann derzeit leider noch nicht im Browser ausgeführt werden.",
@@ -107,7 +113,8 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Löschen bestätigen",
     "CONFIRM_FOLDER_DELETE"             : "Sind Sie sich sicher, dass Sie den Ordner <span class='dialog-filename'>{0}</span> löschen wollen?",
     "FILE_DELETED_TITLE"                : "Datei gelöscht",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Welche Version wollen Sie weiter verwenden?",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert.<br /><br />Wollen Sie die Datei speichern und die externen Änderungen ersetzen?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Welche Version wollen Sie weiterverwenden?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Wollen Sie die Änderungen beibehalten?",
 
     // Generic dialog/button labels
@@ -115,6 +122,8 @@ define({
     "CANCEL"                            : "Abbrechen",
     "DONT_SAVE"                         : "Nicht speichern",
     "SAVE"                              : "Speichern",
+    "SAVE_AS"                           : "Speichern unter\u2026",
+    "SAVE_AND_OVERWRITE"                : "Ersetzen",
     "DELETE"                            : "Löschen",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nein",
@@ -151,16 +160,42 @@ define({
     "FIND_IN_FILES_TITLE_PART2"         : "\" gefunden",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_NO_SCOPE"            : "in Projekt",
+    "FIND_IN_FILES_NO_SCOPE"            : "im Projekt",
+    "FIND_IN_FILES_ZERO_FILES"          : "Der Filter schließt alle Dateien {0} aus",
     "FIND_IN_FILES_FILE"                : "Datei",
     "FIND_IN_FILES_FILES"               : "Dateien",
     "FIND_IN_FILES_MATCH"               : "Treffer",
     "FIND_IN_FILES_MATCHES"             : "Treffer",
     "FIND_IN_FILES_MORE_THAN"           : "Über ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Strg/Cmd + Klick, um alle aus-/einzuklappen",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
+
+    // File exclusion filters
+    "NO_FILE_FILTER"                    : "Dateien ausschließen\u2026",
+    "EDIT_FILE_FILTER"                  : "Bearbeiten\u2026",
+    "FILE_FILTER_DIALOG"                : "Filter bearbeiten",
+    "FILE_FILTER_INSTRUCTIONS"          : "Schließe Dateien und Ordner aus, auf die einer der folgenden Pfade / Teilpfade oder <a href='{0}' title='{0}'>Platzhalter</a> zutrifft. Nutze für jeden Pfad eine neue Zeile.",
+    "FILE_FILTER_LIST_PREFIX"           : "ausgenommen",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "und {0} weitere",
+
+    "FILTER_COUNTING_FILES"             : "Dateien werden gezählt\u2026",
+    "FILTER_FILE_COUNT"                 : "Lässt {0} von {1} Dateien {2} zu",
+    "FILTER_FILE_COUNT_ALL"             : "Lässt alle {0} Dateien {1} zu",
+
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Es wurde kein Editor für Schnelles Bearbeiten für die aktuelle Cursorposition gefunden",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Quick Edit: Setzen Sie den Cursor auf einen einzigen Klassennamen",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Quick Edit: Unvollständiges Klassenattribut",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Quick Edit: Unvollständiges ID-Attribut",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: Setzen Sie den Cursor auf einen Tag, eine Klasse oder eine ID",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS Timing Function Quick Edit: Syntax nicht korrekt",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: Setzen Sie den Cursor auf einen Funktionsnamen",
+
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Die Schnell-Dokumentation ist für die aktuelle Cursorposition nicht verfügbar",
 
     /**
      * ProjectManager
@@ -184,6 +219,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 {0} Spalten ausgewählt",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 {0} Zeile ausgewählt",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 {0} Zeilen ausgewählt",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} Auswahlen",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Klicken, um Einrückung auf Leerzeichen umzuschalten",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Klicken, um Einrückung auf Tabs umzuschalten",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Klicken, um die Anzahl Leerzeichen beim Einrücken zu ändern",
@@ -193,17 +229,20 @@ define({
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Zeile",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Zeilen",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Erweiterungen deaktiviert",
+    "STATUSBAR_INSERT"                      : "INS",
+    "STATUSBAR_OVERWRITE"                   : "OVR",
 
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE"                    : "{0} Fehler",
-    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} Probleme",
-    "ERRORS_PANEL_TITLE_MULTI"              : "Linting-Probleme",
+    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Probleme",
     "SINGLE_ERROR"                          : "1 {0} Fehler",
     "MULTIPLE_ERRORS"                       : "{1} {0} Fehler",
     "NO_ERRORS"                             : "Keine {0} Fehler - gute Arbeit!",
+    "NO_ERRORS_MULTIPLE_PROVIDER"           : "Keine Fehler - gute Arbeit!",
     "LINT_DISABLED"                         : "Das Linten ist nicht aktiviert",
     "NO_LINT_AVAILABLE"                     : "Es ist kein Linter für {0} verfügbar",
     "NOTHING_TO_LINT"                       : "Es gibt nichts zum Linten",
+    "LINTER_TIMED_OUT"                      : "{0} hat die Zeitbegrenzung von {1} ms überschritten",
+    "LINTER_FAILED"                         : "{0} hat mit einer Fehlermeldung abgebrochen: {1}",
 
 
     /**
@@ -248,12 +287,9 @@ define({
     "CMD_PASTE"                           : "Einfügen",
     "CMD_SELECT_ALL"                      : "Alles auswählen",
     "CMD_SELECT_LINE"                     : "Zeile auswählen",
-    "CMD_FIND"                            : "Suchen",
-    "CMD_FIND_IN_FILES"                   : "Im Projekt suchen",
-    "CMD_FIND_IN_SUBTREE"                 : "Suchen in\u2026",
-    "CMD_FIND_NEXT"                       : "Weitersuchen (vorwärts)",
-    "CMD_FIND_PREVIOUS"                   : "Weitersuchen (rückwärts)",
-    "CMD_REPLACE"                         : "Ersetzen",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Auswahl in Zeilen aufteilen",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Cursor zur nächsten Zeile hinzufügen",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Cursor zur vorherigen Zeile hinzufügen",
     "CMD_INDENT"                          : "Einrücken",
     "CMD_UNINDENT"                        : "Ausrücken",
     "CMD_DUPLICATE"                       : "Duplizieren",
@@ -266,6 +302,20 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Zeile darunter öffnen",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Klammern automatisch schließen",
     "CMD_SHOW_CODE_HINTS"                 : "Code-Vervollständigung anzeigen",
+
+    // Search menu commands
+    "FIND_MENU"                           : "Suchen",
+    "CMD_FIND"                            : "Suchen",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Suchen\u2026",
+    "CMD_FIND_NEXT"                       : "Weitersuchen (vorwärts)",
+    "CMD_FIND_PREVIOUS"                   : "Weitersuchen (rückwärts)",
+    "CMD_FIND_ALL_AND_SELECT"             : "Alle suchen und auswählen",
+    "CMD_ADD_NEXT_MATCH"                  : "Nächsten Treffer zur Auswahl hinzufügen",
+    "CMD_SKIP_CURRENT_MATCH"              : "Überspringen und nächsten Treffer hinzufügen",
+    "CMD_FIND_IN_FILES"                   : "Im Projekt suchen",
+    "CMD_FIND_IN_SELECTED"                : "Suchen in ausgewählter Datei/Ordner",
+    "CMD_FIND_IN_SUBTREE"                 : "Suchen in\u2026",
+    "CMD_REPLACE"                         : "Ersetzen",
 
     // View menu commands
     "VIEW_MENU"                           : "Ansicht",
@@ -300,18 +350,22 @@ define({
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
     "CMD_PREV_DOC"                        : "Voriges Dokument",
     "CMD_SHOW_IN_TREE"                    : "Im Dateibaum anzeigen",
+    "CMD_SHOW_IN_EXPLORER"                : "Im Explorer anzeigen",
+    "CMD_SHOW_IN_FINDER"                  : "Im Finder anzeigen",
     "CMD_SHOW_IN_OS"                      : "Im Dateisystem anzeigen",
 
     // Help menu commands
     "HELP_MENU"                           : "Hilfe",
     "CMD_CHECK_FOR_UPDATE"                : "Nach Updates suchen",
     "CMD_HOW_TO_USE_BRACKETS"             : "So verwendet man {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME}-Forum",
+    "CMD_SUPPORT"                         : "{APP_NAME}-Support",
+    "CMD_SUGGEST"                         : "Ein Feature vorschlagen",
     "CMD_RELEASE_NOTES"                   : "Versionshinweise",
-    "CMD_REPORT_AN_ISSUE"                 : "Ein Problem melden",
+    "CMD_GET_INVOLVED"                    : "Mach mit",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
     "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
     "CMD_ABOUT"                           : "Über {APP_TITLE}",
+    "CMD_OPEN_PREFERENCES"                : "Einstellungsdatei öffnen",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
@@ -351,6 +405,7 @@ define({
     "OVERWRITE"                            : "Überschreiben",
     "CANT_REMOVE_DEV"                      : "Erweiterungen im \"dev\"-Ordner müssen manuell gelöscht werden.",
     "CANT_UPDATE"                          : "Das Update ist nicht kompatibel mit dieser Version von {APP_NAME}.",
+    "CANT_UPDATE_DEV"                      : "Erweiterungen im \"dev\"-Ordner können nicht automatisch aktualisiert werden.",
     "INSTALL_EXTENSION_TITLE"              : "Erweiterung installieren",
     "UPDATE_EXTENSION_TITLE"               : "Erweiterung updaten",
     "INSTALL_EXTENSION_LABEL"              : "Erweiterungs-URL",
@@ -398,23 +453,24 @@ define({
     "EXTENSION_ERROR"                      : "Erweiterungs-Fehler",
     "EXTENSION_KEYWORDS"                   : "Schlüsselwörter",
     "EXTENSION_INSTALLED"                  : "Installiert",
-    "EXTENSION_UPDATE_INSTALLED"           : "Dieses Erweiterungs-Update wurde heruntergeladen und wird installiert, wenn Sie {APP_NAME} beenden.",
+    "EXTENSION_UPDATE_INSTALLED"           : "Dieses Erweiterungs-Update wurde heruntergeladen und wird installiert, wenn {APP_NAME} neu geladen wird.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Suchen",
     "EXTENSION_MORE_INFO_LINK"             : "Mehr",
     "BROWSE_EXTENSIONS"                    : "Erweiterungen durchsuchen",
     "EXTENSION_MANAGER_REMOVE"             : "Erweiterung entfernen",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Fehler beim Entfernen der Erweiterung: {0}. {APP_NAME} wird trotzdem beendet.",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Fehler beim Entfernen der Erweiterung: {0}. {APP_NAME} wird trotzdem neu geladen.",
     "EXTENSION_MANAGER_UPDATE"             : "Erweiterung updaten",
-    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Fehler beim Update einer oder mehrerer Erweiterung(en): {0}. {APP_NAME} wird trotzdem beendet.",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Fehler beim Update einer oder mehrerer Erweiterung(en): {0}. {APP_NAME} wird trotzdem neu geladen.",
     "MARKED_FOR_REMOVAL"                   : "Zur Entfernung markiert",
     "UNDO_REMOVE"                          : "Rückgängig",
     "MARKED_FOR_UPDATE"                    : "Zum Update markiert",
     "UNDO_UPDATE"                          : "Rückgängig",
-    "CHANGE_AND_QUIT_TITLE"                : "Erweiterungen ändern",
-    "CHANGE_AND_QUIT_MESSAGE"              : "Um die markierten Erweiterungen zu updaten oder zu entfernen, müssen Sie {APP_NAME} beenden und neu starten. Sie werden gefragt, ob ungespeicherte Änderungen gespeichert werden sollen.",
-    "REMOVE_AND_QUIT"                      : "Erweiterungen entfernen und beenden",
-    "CHANGE_AND_QUIT"                      : "Erweiterungen ändern und beenden",
-    "UPDATE_AND_QUIT"                      : "Erweiterungen updaten und beenden",
+    "CHANGE_AND_RELOAD_TITLE"              : "Erweiterungen ändern",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "Um die markierten Erweiterungen zu updaten oder zu entfernen, muss {APP_NAME} neu geladen werden. Sie werden gefragt, ob ungespeicherte Änderungen gespeichert werden sollen.",
+    "REMOVE_AND_RELOAD"                    : "Erweiterungen entfernen und neu laden",
+    "CHANGE_AND_RELOAD"                    : "Erweiterungen ändern und neu laden",
+    "UPDATE_AND_RELOAD"                    : "Erweiterungen updaten und neu laden",
+    "PROCESSING_EXTENSIONS"                : "Erweiterungs-Änderungen werden verarbeitet\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Die Erweiterung {0} konnte nicht entfernt werden, weil sie nicht installiert ist.",
     "NO_EXTENSIONS"                        : "Momentan sind keine Erweiterungen installiert.<br>Klicken Sie oben auf den Tab \"Verfügbar\", um zu beginnen.",
     "NO_EXTENSION_MATCHES"                 : "Keine Erweiterungen passen auf Ihre Suchanfrage.",
@@ -427,6 +483,9 @@ define({
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Es gibt keine CSS-Regeln, die zu Ihrer Auswahl passen.<br> Klicken Sie auf \"Neue Regel\", um eine neue Regel zu erstellen.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Es gibt keine Stylesheets in Ihrem Projekt.<br>Erstellen Sie eines, um CSS-Regeln hinzuzufügen.",
 
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "größtes",
+
     /**
      * Unit names
      */
@@ -435,8 +494,9 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
+    "ERRORS"                                    : "Fehler",
     "CMD_SHOW_DEV_TOOLS"                        : "Entwicklungswerkzeuge zeigen",
-    "CMD_REFRESH_WINDOW"                        : "{APP_NAME} neu laden",
+    "CMD_REFRESH_WINDOW"                        : "Mit Erweiterungen neu laden",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Ohne Erweiterungen neu laden",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Neues {APP_NAME}-Fenster",
     "CMD_SWITCH_LANGUAGE"                       : "Sprache wechseln",
@@ -445,6 +505,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Node-Debugger aktivieren",
     "CMD_LOG_NODE_STATE"                        : "Node-Status in Konsole anzeigen",
     "CMD_RESTART_NODE"                          : "Node neu starten",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Zeige Fehler in der Statusleiste",
 
     "LANGUAGE_TITLE"                            : "Sprache wechseln",
     "LANGUAGE_MESSAGE"                          : "Sprache:",
@@ -452,37 +513,12 @@ define({
     "LANGUAGE_CANCEL"                           : "Abbrechen",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
 
-    // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "Tschechisch",
-    "LOCALE_DE"                                 : "Deutsch",
-    "LOCALE_EL"                                 : "Griechisch",
-    "LOCALE_EN"                                 : "Englisch",
-    "LOCALE_ES"                                 : "Spanisch",
-    "LOCALE_FA_IR"                              : "Persisch (Farsi)",
-    "LOCALE_FI"                                 : "Finnisch",
-    "LOCALE_FR"                                 : "Französisch",
-    "LOCALE_IT"                                 : "Italienisch",
-    "LOCALE_JA"                                 : "Japanisch",
-    "LOCALE_NB"                                 : "Norwegisch",
-    "LOCALE_NL"                                 : "Niederländisch",
-    "LOCALE_PL"                                 : "Polnisch",
-    "LOCALE_PT_BR"                              : "Portugiesisch, Brasilien",
-    "LOCALE_PT_PT"                              : "Portugiesisch",
-    "LOCALE_RO"                                 : "Rumänisch",
-    "LOCALE_RU"                                 : "Russisch",
-    "LOCALE_SK"                                 : "Slowakisch",
-    "LOCALE_SR"                                 : "Serbisch",
-    "LOCALE_SV"                                 : "Schwedisch",
-    "LOCALE_TR"                                 : "Türkisch",
-    "LOCALE_ZH_CN"                              : "Chinesisch, vereinfacht",
-    "LOCALE_HU"                                 : "Ungarisch",
-    "LOCALE_KO"                                 : "Koreanisch",
-
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Zeit",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Verlauf",
-    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Ausgewählten Punkt bewegen<br><kbd class='text'>Umschalt</kbd> Um 10 Einheiten bewegen",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Ausgewählten Punkt bewegen<br><kbd class='text'>Umschalt</kbd> Um 10 Einheiten bewegen<br><kbd class='text'>Tab</kbd> Zwischen Punkten wechseln",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Stufenzahl vergrößern oder verkleinern<br><kbd>←</kbd><kbd>→</kbd> 'Start' oder 'Ende'",
+    "INLINE_TIMING_EDITOR_INVALID"              : "Der Code im Dokument <code>{0}</code> ist nicht korrekt, daher wird die Funktion <code>{1}</code> angezeigt. Die Änderungen werden bei der ersten Bearbeitung ins Dokument übernommen.",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",
@@ -510,3 +546,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
+
+/* Last translated for 45ad989284156a2b6c9e1b3669c2ce5c61055089 */

@@ -28,6 +28,7 @@
 
 var fspath = require("path"),
     fs = require("fs"),
+    os = require("os"),
     fsevents;
 
 /*
@@ -57,16 +58,23 @@ var fspath = require("path"),
  */
 if (process.platform === "darwin") {
     fsevents = require("fsevents");
+} else if (process.platform === "win32") {
+    var version = os.release();
+    // XP will use node's built in file watcher module.
+    if (version && version.length > 0 && version[0] !== "5") {
+        fsevents = require("fsevents_win/fsevents_win");
+    }
 }
 
 var _domainManager,
     _watcherMap = {};
 
 /**
+ * @private
  * Un-watch a file or directory.
  * @param {string} path File or directory to unwatch.
  */
-function unwatchPath(path) {
+function _unwatchPath(path) {
     var watcher = _watcherMap[path];
         
     if (watcher) {
@@ -82,6 +90,18 @@ function unwatchPath(path) {
             delete _watcherMap[path];
         }
     }
+}
+
+/**
+ * Un-watch a file or directory. For directories, unwatch all descendants.
+ * @param {string} path File or directory to unwatch.
+ */
+function unwatchPath(path) {
+    Object.keys(_watcherMap).forEach(function (keyPath) {
+        if (keyPath.indexOf(path) === 0) {
+            _unwatchPath(keyPath);
+        }
+    });
 }
 
 /**
@@ -101,7 +121,16 @@ function watchPath(path) {
             watcher.on("change", function (filename, info) {
                 var parent = filename && (fspath.dirname(filename) + "/"),
                     name = filename && fspath.basename(filename),
-                    type = info.event === "modified" ? "change" : "rename";
+                    type;
+                
+                switch (info.event) {
+                case "modified":    // triggered by file content changes
+                case "unknown":     // triggered by metatdata-only changes
+                    type = "change";
+                    break;
+                default:
+                    type = "rename";
+                }
                 
                 _domainManager.emitEvent("fileWatcher", "change", [parent, type, name]);
             });
@@ -162,7 +191,7 @@ function init(domainManager) {
         "unwatchPath",
         unwatchPath,
         false,
-        "Stop watching a file or directory",
+        "Stop watching a single file or a directory and it's descendants",
         [{
             name: "path",
             type: "string",

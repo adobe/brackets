@@ -28,12 +28,13 @@
 require.config({
     baseUrl: "../src",
     paths: {
-        "test"              : "../test",
-        "perf"              : "../test/perf",
-        "spec"              : "../test/spec",
-        "text"              : "thirdparty/text/text",
-        "i18n"              : "thirdparty/i18n/i18n",
-        "fileSystemImpl"    : "filesystem/impls/appshell/AppshellFileSystem"
+        "test"                          : "../test",
+        "perf"                          : "../test/perf",
+        "spec"                          : "../test/spec",
+        "text"                          : "thirdparty/text/text",
+        "i18n"                          : "thirdparty/i18n/i18n",
+        "fileSystemImpl"                : "filesystem/impls/appshell/AppshellFileSystem",
+        "preferences/PreferencesImpl"   : "../test/TestPreferencesImpl"
     }
 });
 
@@ -58,6 +59,7 @@ define(function (require, exports, module) {
         NodeDomain              = require("utils/NodeDomain"),
         BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView,
         ColorUtils              = require("utils/ColorUtils"),
+        PreferencesBase         = require("preferences/PreferencesBase"),
         NativeApp               = require("utils/NativeApp");
 
     // Load modules that self-register and just need to get included in the test-runner window
@@ -79,6 +81,18 @@ define(function (require, exports, module) {
     // Load JUnitXMLReporter
     require("test/thirdparty/jasmine-reporters/jasmine.junit_reporter");
     
+    // Load CodeMirror add-ons--these attach themselves to the CodeMirror module    
+    require("thirdparty/CodeMirror2/addon/fold/xml-fold");
+    require("thirdparty/CodeMirror2/addon/edit/matchtags");
+    require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
+    require("thirdparty/CodeMirror2/addon/edit/closebrackets");
+    require("thirdparty/CodeMirror2/addon/edit/closetag");
+    require("thirdparty/CodeMirror2/addon/selection/active-line");
+    require("thirdparty/CodeMirror2/addon/mode/multiplex");
+    require("thirdparty/CodeMirror2/addon/mode/overlay");
+    require("thirdparty/CodeMirror2/addon/search/searchcursor");
+    require("thirdparty/CodeMirror2/keymap/sublime");
+
     var selectedSuites,
         params                  = new UrlParams(),
         reporter,

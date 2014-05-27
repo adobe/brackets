@@ -55,7 +55,7 @@
 .bezier-curve-editor .coordinate-plane:before,
 .bezier-curve-editor .coordinate-plane:after {
     position: absolute;
-    bottom: 0%;
+    bottom: 0;
     left: 0;
     width: 100%;
     padding: .3em .5em;
@@ -64,7 +64,7 @@
     box-sizing: border-box;
     
     color: #454545;
-    font-size: 75%;
+    font-size: 11px;
     line-height: 1;
 }
 
@@ -207,16 +207,16 @@
 .step-editor .coordinate-plane:before,
 .step-editor .coordinate-plane:after {
     position: absolute;
-    bottom: 0%;
+    bottom: 0;
     left: 0;
     width: 100%;
-    padding: .3em .5em;
+    padding: .3em .5em 0 .3em;
     
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     
     color: #454545;
-    font-size: 75%;
+    font-size: 11px;
     line-height: 1;
 }
 
@@ -286,3 +286,16 @@
     padding: 4px 4px;
 }
 
+.bezier-curve-editor .info .hint,
+.step-editor .info .hint {
+    margin-top: 25px;
+    font-size: 13px;
+    display: none;
+    opacity: 1;
+}
+
+.bezier-curve-editor .info .hint.fadeout,
+.step-editor .info .hint.fadeout {
+    transition: opacity 0.6s ease-in 0.1s;
+    opacity: 0;
+}

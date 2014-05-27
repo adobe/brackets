@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine, xit */
 
 define(function (require, exports, module) {
     'use strict';
@@ -206,8 +206,37 @@ define(function (require, exports, module) {
                     expectAndDelete(newFilePath);
                 });
             });
+			
+            // from Issue #6121
+            it("should recognize that a previously untitled, but now saved, document can be saved without prompting for a filename", function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
+                    
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
+                });
+                     
+                runs(function () {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback(undefined, newFilePath);
+                    });
 
-            it("should swap out untitled document from working set even when not current", function () {
+                    promise = CommandManager.execute(Commands.FILE_SAVE);
+                    
+                    waitsForDone(promise, "FILE_SAVE");
+                    
+                    expect(FileSystem.showSaveDialog).toHaveBeenCalled();   // first save should prompt user for filename
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_SAVE);
+                    
+                    waitsForDone(promise, "FILE_SAVE");
+                    
+                    expect(FileSystem.showSaveDialog.callCount).toEqual(1); // second save should not prompt
+                });
+            });
+
+            xit("should swap out untitled document from working set even when not current", function () {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
@@ -435,7 +464,7 @@ define(function (require, exports, module) {
                     });
 
                     var promise = CommandManager.execute(Commands.FILE_SAVE_ALL);
-                    waitsForDone(promise, "FILE_SAVE_ALL");
+                    waitsForDone(promise, "FILE_SAVE_ALL", 5000);
                 });
 
                 runs(function () {
@@ -475,7 +504,7 @@ define(function (require, exports, module) {
                     });
 
                     var promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
-                    waitsForDone(promise, "FILE_CLOSE_ALL");
+                    waitsForDone(promise, "FILE_CLOSE_ALL", 5000);
                 });
 
                 runs(function () {
@@ -752,7 +781,10 @@ define(function (require, exports, module) {
         describe("Save As", function () {
             var filePath,
                 newFilename,
-                newFilePath;
+                newFilePath,
+                selections = [{start: {line: 0, ch: 1}, end: {line: 0, ch: 3}, primary: false, reversed: false},
+                              {start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: true, reversed: false},
+                              {start: {line: 0, ch: 9}, end: {line: 0, ch: 12}, primary: false, reversed: true}];
             
             beforeEach(function () {
                 filePath    = testPath + "/test.js";
@@ -768,8 +800,10 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    var currentDocument = DocumentManager.getCurrentDocument();
+                    var currentDocument = DocumentManager.getCurrentDocument(),
+                        currentEditor = EditorManager.getActiveEditor();
                     expect(currentDocument.file.fullPath).toEqual(filePath);
+                    currentEditor.setSelections(selections);
                 });
 
                 runs(function () {
@@ -782,8 +816,10 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    var currentDocument = DocumentManager.getCurrentDocument();
+                    var currentDocument = DocumentManager.getCurrentDocument(),
+                        currentEditor = EditorManager.getActiveEditor();
                     expect(currentDocument.file.fullPath).toEqual(newFilePath);
+                    expect(currentEditor.getSelections()).toEqual(selections);
                 });
 
                 runs(function () {

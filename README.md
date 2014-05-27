@@ -1,4 +1,4 @@
-Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.png?branch=master)](https://travis-ci.org/adobe/brackets)
+Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.svg?branch=master)](https://travis-ci.org/adobe/brackets)
 -------------------
 
 This is an early version of Brackets, a code editor for HTML, CSS
@@ -26,11 +26,11 @@ How to install and run Brackets
 
 #### Brackets is getting close to 1.0
 
-Together with your contributions, we're getting close to our first release condidate.  What's there is reasonably stable, and the Brackets team even uses Brackets to develop Brackets full time. So feel free to give it a spin and let us know what's missing! Being built on JavaScript, it's easy to make your own changes, and we give priority to integrating your pull requests back into Brackets!
+Together with your contributions, we're getting close to our first release candidate.  What's there is reasonably stable, and the Brackets team even uses Brackets to develop Brackets full time. So feel free to give it a spin and let us know what's missing! Being built on JavaScript, it's easy to make your own changes, and we give priority to integrating your pull requests back into Brackets!
 
 #### Download
 
-Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded here](http://download.brackets.io/).
+Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded here](http://brackets.io/).
 
 The Linux version has most of the features of the Mac and Windows versions, but
 is still missing a few things. See the [Linux wiki page](https://github.com/adobe/brackets/wiki/Linux-Version)
@@ -55,7 +55,7 @@ see the [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-E
 
 #### Need help?
 
-Having problems starting Brackets the first time, or not sure how to use brackets?  Please 
+Having problems starting Brackets the first time, or not sure how to use Brackets?  Please 
 review [Troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting), which helps 
 you to fix common problems and find extra help if needed.
 
@@ -105,9 +105,9 @@ Not sure you needed the exclamation point there, but we like your enthusiasm.
 
 #### What's Brackets working on next?
 
-* In our [feature backlog](http://bit.ly/BracketsBacklog), the columns labeled "Sprint N"
-  are features already in progress and should ship within 2 weeks. Features at the top of
-  the "Product Backlog" list will come next.
+* In our [feature backlog](http://bit.ly/BracketsBacklog), the columns to the right
+  (starting from "Development") list the features that we're currently working on.
+  "Ready" shows what we'll be working on next.
 * Watch our [GitHub activity stream](https://github.com/adobe/brackets/pulse).
 
 #### Contact info

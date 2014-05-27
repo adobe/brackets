@@ -56,7 +56,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Hiba történt a fájl törlése közben",
     "ERROR_DELETING_FILE"               : "Hiba történt a fájl törlése közben: <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Helytelen fájlnév",
-    "INVALID_FILENAME_MESSAGE"          : "A fájl neve nem tartalmazhatja a következő karaktereket: /?*:;{}<>\\| és foglalt rendszer neveket.",
+    "INVALID_FILENAME_MESSAGE"          : "A fájl neve nem tartalmazhatja a következő karaktereket: {0} és foglalt rendszer neveket.",
     "FILE_ALREADY_EXISTS"               : "A fájl <span class='dialog-filename'>{0}</span> már létezik.",
     "ERROR_CREATING_FILE_TITLE"         : "Hiba történt a fájl létrehozása közben.",
     "ERROR_CREATING_FILE"               : "Hiba történt a fájl létrehozása közben: <span class='dialog-filename'>{0}</span>. {1}",
@@ -392,27 +392,6 @@ define({
     "LANGUAGE_SUBMIT"                           : "{APP_NAME} újratöltése",
     "LANGUAGE_CANCEL"                           : "Mégsem",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Rendszer Alapértelmezett",
-    
-    /**
-     * Locales
-     */
-    "LOCALE_CS"                                 : "Cseh",
-    "LOCALE_DE"                                 : "Német",
-    "LOCALE_EN"                                 : "Angol",
-    "LOCALE_ES"                                 : "Spanyol",
-    "LOCALE_FR"                                 : "Francia",
-    "LOCALE_IT"                                 : "Olasz",
-    "LOCALE_JA"                                 : "Japán",
-    "LOCALE_NB"                                 : "Norvég",
-    "LOCALE_PL"                                 : "Lengyel",
-    "LOCALE_PT_BR"                              : "Portugál, Brazil",
-    "LOCALE_PT_PT"                              : "Portugál",
-    "LOCALE_RU"                                 : "Orosz",
-	"LOCALE_SR"                                 : "Szerb",
-    "LOCALE_SV"                                 : "Svéd",
-    "LOCALE_TR"                                 : "Török",
-    "LOCALE_ZH_CN"                              : "Kínai, egyszerűsített",
-    "LOCALE_HU"                                 : "Magyar",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Jelenlegi szín",

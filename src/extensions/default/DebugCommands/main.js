@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, WebSocket, Mustache */
+/*global define, $, brackets, window, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,27 +32,21 @@ define(function (require, exports, module) {
     
     var Commands               = brackets.getModule("command/Commands"),
         CommandManager         = brackets.getModule("command/CommandManager"),
-        KeyBindingManager      = brackets.getModule("command/KeyBindingManager"),
         Menus                  = brackets.getModule("command/Menus"),
-        Editor                 = brackets.getModule("editor/Editor").Editor,
         FileSystem             = brackets.getModule("filesystem/FileSystem"),
         FileUtils              = brackets.getModule("file/FileUtils"),
-        ProjectManager         = brackets.getModule("project/ProjectManager"),
         PerfUtils              = brackets.getModule("utils/PerfUtils"),
-        NativeApp              = brackets.getModule("utils/NativeApp"),
         StringUtils            = brackets.getModule("utils/StringUtils"),
         Dialogs                = brackets.getModule("widgets/Dialogs"),
         Strings                = brackets.getModule("strings"),
-        AppInit                = brackets.getModule("utils/AppInit"),
-        UrlParams              = brackets.getModule("utils/UrlParams").UrlParams,
-        StatusBar              = brackets.getModule("widgets/StatusBar"),
+        PreferencesManager     = brackets.getModule("preferences/PreferencesManager"),
+        ErrorNotification      = require("ErrorNotification"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
         LanguageDialogTemplate = require("text!htmlContent/language-dialog.html");
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
-	
-	
+    
     /** @const {string} Brackets Application Menu Constant */
     var DEBUG_MENU = "debug-menu";
     
@@ -66,9 +60,10 @@ define(function (require, exports, module) {
         DEBUG_SWITCH_LANGUAGE           = "debug.switchLanguage",
         DEBUG_ENABLE_NODE_DEBUGGER      = "debug.enableNodeDebugger",
         DEBUG_LOG_NODE_STATE            = "debug.logNodeState",
-        DEBUG_RESTART_NODE              = "debug.restartNode";
-    
-    
+        DEBUG_RESTART_NODE              = "debug.restartNode",
+        DEBUG_SHOW_ERRORS_IN_STATUS_BAR = "debug.showErrorsInStatusBar";
+
+    PreferencesManager.definePreference(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, "boolean", false);
     
     function handleShowDeveloperTools() {
         brackets.app.showDeveloperTools();
@@ -89,115 +84,19 @@ define(function (require, exports, module) {
                 _testWindow = null;  // the window was probably closed
             }
         }
-
+        
         if (!_testWindow) {
             _testWindow = window.open("../test/SpecRunner.html" + queryString, "brackets-test", "width=" + $(window).width() + ",height=" + $(window).height());
             _testWindow.location.reload(true); // if it was opened before, we need to reload because it will be cached
         }
     }
     
-    /**
-     * Disables Brackets' cache via the remote debugging protocol.
-     * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
-     */
-    function disableCache() {
-        var result = new $.Deferred();
-        
-        if (brackets.inBrowser) {
-            result.resolve();
-        } else {
-            var Inspector = brackets.getModule("LiveDevelopment/Inspector/Inspector");
-            var port = brackets.app.getRemoteDebuggingPort ? brackets.app.getRemoteDebuggingPort() : 9234;
-            Inspector.getDebuggableWindows("127.0.0.1", port)
-                .fail(result.reject)
-                .done(function (response) {
-                    var page = response[0];
-                    if (!page || !page.webSocketDebuggerUrl) {
-                        result.reject();
-                        return;
-                    }
-                    var _socket = new WebSocket(page.webSocketDebuggerUrl);
-                    // Disable the cache
-                    _socket.onopen = function _onConnect() {
-                        _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
-                    };
-                    // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
-                    _socket.onmessage = function _onMessage(e) {
-                        _socket.close();
-                        result.resolve();
-                    };
-                    // In case of an error
-                    _socket.onerror = result.reject;
-                });
-        }
-         
-        return result.promise();
-    }
-        
-    /**
-    * Does a full reload of the browser window
-    * @param {string} href The url to reload into the window
-    */
-    function browserReload(href) {
-        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).done(function () {
-            // Give everyone a chance to save their state - but don't let any problems block
-            // us from quitting
-            try {
-                $(ProjectManager).triggerHandler("beforeAppClose");
-            } catch (ex) {
-                console.error(ex);
-            }
-           
-            // Disable the cache to make reloads work
-            disableCache().always(function () {
-                window.location.href = href;
-            });
-        });
-    }
-    
     function handleReload() {
-        var href    = window.location.href,
-            params  = new UrlParams();
-        
-        // Make sure the Reload Without User Extensions parameter is removed
-        params.parse();
-        
-        if (params.get("reloadWithoutUserExts")) {
-            params.remove("reloadWithoutUserExts");
-        }
-        
-        if (href.indexOf("?") !== -1) {
-            href = href.substring(0, href.indexOf("?"));
-        }
-        
-        if (!params.isEmpty()) {
-            href += "?" + params.toString();
-        }
-        
-        browserReload(href);
+        CommandManager.execute(Commands.APP_RELOAD);
     }
     
     function handleReloadWithoutUserExts() {
-        var href    = window.location.href,
-            params  = new UrlParams();
-        
-        // Remove all menus to assure extension menus and menu items are removed
-        _.forEach(Menus.getAllMenus(), function (value, key) {
-            Menus.removeMenu(key);
-        });
-        
-        params.parse();
-        
-        if (!params.get("reloadWithoutUserExts")) {
-            params.put("reloadWithoutUserExts", true);
-        }
-        
-        if (href.indexOf("?") !== -1) {
-            href = href.substring(0, href.indexOf("?"));
-        }
-        
-        href += "?" + params.toString();
-        browserReload(href);
+        CommandManager.execute(Commands.APP_RELOAD_WITHOUT_EXTS);
     }
         
     function handleNewBracketsWindow() {
@@ -272,12 +171,6 @@ define(function (require, exports, module) {
                     
                     return i18n === undefined ? locale : i18n;
                 };
-
-                // add system default
-                languages.push({label: Strings.LANGUAGE_SYSTEM_DEFAULT, language: null});
-                
-                // add english
-                languages.push({label: getLocalizedLabel("en"),  language: "en"});
                 
                 // inspect all children of dirEntry
                 entries.forEach(function (entry) {
@@ -296,12 +189,22 @@ define(function (require, exports, module) {
                         }
                     }
                 });
+                // add English (US), which is the root folder and should be sorted as well
+                languages.push({label: getLocalizedLabel("en"),  language: "en"});
+
+                // sort the languages via their display name
+                languages.sort(function (lang1, lang2) {
+                    return lang1.label.localeCompare(lang2.label);
+                });
+
+                // add system default (which is placed on the very top)
+                languages.unshift({label: Strings.LANGUAGE_SYSTEM_DEFAULT, language: null});
                 
                 var template = Mustache.render(LanguageDialogTemplate, {languages: languages, Strings: Strings});
                 Dialogs.showModalDialogUsingTemplate(template).done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_OK && locale !== curLocale) {
                         brackets.setLocale(locale);
-                        CommandManager.execute(DEBUG_REFRESH_WINDOW);
+                        CommandManager.execute(Commands.APP_RELOAD);
                     }
                 });
                 
@@ -334,6 +237,22 @@ define(function (require, exports, module) {
         });
     }
     
+    function toggleErrorNotification(bool) {
+        var val;
+
+        if (typeof bool === "undefined") {
+            val = !PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
+        } else {
+            val = !!bool;
+        }
+
+        ErrorNotification.toggle(val);
+
+        // update menu
+        CommandManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR).setChecked(val);
+        PreferencesManager.set(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, val);
+    }
+
     /* Register all the command handlers */
     
     // Show Developer Tools (optionally enabled)
@@ -347,8 +266,9 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,       DEBUG_RUN_UNIT_TESTS,         _runUnitTests)
         .setEnabled(false);
     
-    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,       DEBUG_SHOW_PERF_DATA,         handleShowPerfData);
-    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,      DEBUG_SWITCH_LANGUAGE,        handleSwitchLanguage);
+    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,            DEBUG_SHOW_PERF_DATA,            handleShowPerfData);
+    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,           DEBUG_SWITCH_LANGUAGE,           handleSwitchLanguage);
+    CommandManager.register(Strings.CMD_SHOW_ERRORS_IN_STATUS_BAR, DEBUG_SHOW_ERRORS_IN_STATUS_BAR, toggleErrorNotification);
     
     // Node-related Commands
     CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, DEBUG_ENABLE_NODE_DEBUGGER,   NodeDebugUtils.enableDebugger);
@@ -356,7 +276,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_RESTART_NODE,         DEBUG_RESTART_NODE,           NodeDebugUtils.restartNode);
     
     enableRunTestsMenuItem();
-    
+    toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR));
     
     /*
      * Debug menu
@@ -364,7 +284,7 @@ define(function (require, exports, module) {
     var menu = Menus.addMenu(Strings.DEBUG_MENU, DEBUG_MENU, Menus.BEFORE, Menus.AppMenuBar.HELP_MENU);
     menu.addMenuItem(DEBUG_SHOW_DEVELOPER_TOOLS, KeyboardPrefs.showDeveloperTools);
     menu.addMenuItem(DEBUG_REFRESH_WINDOW, KeyboardPrefs.refreshWindow);
-    menu.addMenuItem(DEBUG_RELOAD_WITHOUT_USER_EXTS);
+    menu.addMenuItem(DEBUG_RELOAD_WITHOUT_USER_EXTS, KeyboardPrefs.reloadWithoutUserExts);
     menu.addMenuItem(DEBUG_NEW_BRACKETS_WINDOW);
     menu.addMenuDivider();
     menu.addMenuItem(DEBUG_SWITCH_LANGUAGE);
@@ -375,29 +295,9 @@ define(function (require, exports, module) {
     menu.addMenuItem(DEBUG_ENABLE_NODE_DEBUGGER);
     menu.addMenuItem(DEBUG_LOG_NODE_STATE);
     menu.addMenuItem(DEBUG_RESTART_NODE);
-    
+    menu.addMenuItem(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
+    menu.addMenuItem(Commands.FILE_OPEN_PREFERENCES); // this command is defined in core, but exposed only in Debug menu for now
     
     // exposed for convenience, but not official API
     exports._runUnitTests = _runUnitTests;
-    
-    AppInit.htmlReady(function () {
-        // If in Reload Without User Extensions mode, update UI and log console message
-        var USER_EXT_STATUS_ID = "status-user-exts";
-        
-        var params      = new UrlParams(),
-            $icon       = $("#toolbar-extension-manager"),
-            $indicator  = $("<div>" + Strings.STATUSBAR_USER_EXTENSIONS_DISABLED + "</div>");
-        
-        params.parse();
-        
-        if (params.get("reloadWithoutUserExts") === "true") {
-            CommandManager.get(Commands.FILE_EXTENSION_MANAGER).setEnabled(false);
-            $icon.css({display: "none"});
-            StatusBar.addIndicator(USER_EXT_STATUS_ID, $indicator, true);
-            console.log("Brackets reloaded with user extensions disabled");
-        } else {
-            CommandManager.get(Commands.FILE_EXTENSION_MANAGER).setEnabled(true);
-            // Toolbar and status bar reload back to default states, no need to set
-        }
-    });
 });

@@ -76,40 +76,62 @@ define(function (require, exports, module) {
         describe("TimingFunctionUtils for bezier curve functions", function () {
             var match;
             
+            /**
+             * Expects an invalid steps() function to be corrected the right way, with the right match
+             * and originalString given a string to match and an expectation of the output match.
+             * @param {string} str The string to match
+             * @param {Array} expectedArray The array that should equal the output match.
+             */
+            function testInvalidBezier(str, expectedArray) {
+                var match = TimingFunctionUtils.timingFunctionMatch(str, false);
+                runs(function () {
+                    expectArraysToBeEqual(match, expectedArray);
+                    expect(match.originalString).toEqual(str);
+                });
+            }
+            
             // Valid cubic-bezier function cases
             it("should match bezier curve function in strict mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(.1, .2, .3, .4)", false);
                 expect(match).toBeTruthy();
                 expectArraysToBeEqual(match, ["cubic-bezier(.1, .2, .3, .4)", ".1", ".2", ".3", ".4"]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match bezier curve function in lax mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(.1, .2, .3, .4)", true);
                 expect(match).toBeTruthy();
                 expectArraysToBeEqual(match, ["cubic-bezier(.1, .2, .3, .4)", ".1", ".2", ".3", ".4"]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match bezier curve function with negative value", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(0, -.2, 1, 1.2)", false);
                 expectArraysToBeEqual(match, ["cubic-bezier(0, -.2, 1, 1.2)", "0", "-.2", "1", "1.2"]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match bezier curve function in full line of longhand css", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("    transition-timing-function: cubic-bezier(.37, .28, .83, .94);", false);
                 expectArraysToBeEqual(match, ["cubic-bezier(.37, .28, .83, .94)", ".37", ".28", ".83", ".94"]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match bezier curve function in full line of shorthand css", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("    transition: top 100ms cubic-bezier(.37, .28, .83, .94) 0;", false);
                 expectArraysToBeEqual(match, ["cubic-bezier(.37, .28, .83, .94)", ".37", ".28", ".83", ".94"]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match bezier curve function with leading zeros", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(0.1, 0.2, 0.3, 0.4)", false);
                 expectArraysToBeEqual(match, ["cubic-bezier(0.1, 0.2, 0.3, 0.4)", "0.1", "0.2", "0.3", "0.4"]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match bezier curve function with no optional whitespace", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(.1,.2,.3,.4)", false);
                 expectArraysToBeEqual(match, ["cubic-bezier(.1,.2,.3,.4)", ".1", ".2", ".3", ".4"]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match bezier curve function with extra optional whitespace", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier( .1 , .2 , .3 , .4 )", false);
                 expectArraysToBeEqual(match, ["cubic-bezier( .1 , .2 , .3 , .4 )", ".1", ".2", ".3", ".4"]);
+                expect(match.originalString).toBeFalsy();
             });
             
             // Valid other functions
@@ -117,78 +139,84 @@ define(function (require, exports, module) {
                 match = TimingFunctionUtils.timingFunctionMatch("transition-timing-function: linear;", false);
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("linear");
+                expect(match.originalString).toBeFalsy();
             });
             it("should match linear function value in lax mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("linear", true);
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("linear");
+                expect(match.originalString).toBeFalsy();
             });
             it("should match ease function in declaration in strict mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("transition-timing-function: ease;", false);
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease");
+                expect(match.originalString).toBeFalsy();
             });
             it("should match ease function value in lax mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("ease", true);
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease");
+                expect(match.originalString).toBeFalsy();
             });
             it("should match ease-in function in declaration in strict mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("transition-timing-function: ease-in;", false);
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-in");
+                expect(match.originalString).toBeFalsy();
             });
             it("should match ease-in function value in lax mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("ease-in", true);
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-in");
+                expect(match.originalString).toBeFalsy();
             });
             it("should match ease-out function in declaration in strict mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("transition-timing-function: ease-out;", false);
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-out");
+                expect(match.originalString).toBeFalsy();
             });
             it("should match ease-out function value in lax mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("ease-out", true);
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-out");
+                expect(match.originalString).toBeFalsy();
             });
             it("should match ease-in-out function in declaration in strict mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("transition-timing-function: ease-in-out;", false);
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-in-out");
+                expect(match.originalString).toBeFalsy();
             });
             it("should match ease-in-out function value in lax mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("ease-in-out", true);
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-in-out");
+                expect(match.originalString).toBeFalsy();
             });
             
-            // Invalid cases
-            it("should not match cubic-bezier function with out-of-range X parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(-.2, 0, 1.2, 1)", false);
-                expect(match).toBeFalsy();
+            // Invalid cubic-beziers - they should be corrected automatically
+            it("should correct cubic-bezier function with out-of-range X parameters", function () {
+                testInvalidBezier("cubic-bezier(-.2, 0, 1.2, 1)", ["cubic-bezier(0, 0, 1, 1)", "0", "0", "1", "1"]);
             });
-            it("should not match cubic-bezier function with Infinity parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(0, Infinity, 1, -Infinity)", false);
-                expect(match).toBeFalsy();
+            it("should correct cubic-bezier function with Infinity parameters", function () {
+                testInvalidBezier("cubic-bezier(0, Infinity, 1, -Infinity)", ["cubic-bezier(0, 0, 1, 1)", "0", "0", "1", "1"]);
             });
-            it("should not match cubic-bezier function with non-numeric parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(x1, y1, x2, y2)", false);
-                expect(match).toBeFalsy();
+            it("should correct cubic-bezier function with non-numeric parameters", function () {
+                testInvalidBezier("cubic-bezier(x1, y1, x2, y2)", ["cubic-bezier(.42, 0, .58, 1)", ".42", "0", ".58", "1"]);
             });
-            it("should not match cubic-bezier function with no parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier()", false);
-                expect(match).toBeFalsy();
+            it("should correct cubic-bezier function with no parameters", function () {
+                testInvalidBezier("cubic-bezier()", ["cubic-bezier(.42, 0, .58, 1)", ".42", "0", ".58", "1"]);
             });
-            it("should not match cubic-bezier function with 3 parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(0, 0, 1)", false);
-                expect(match).toBeFalsy();
+            it("should correct cubic-bezier function with 3 parameters", function () {
+                testInvalidBezier("cubic-bezier(0, 0, 1)", ["cubic-bezier(0, 0, 1, 1)", "0", "0", "1", "1"]);
             });
-            it("should not match cubic-bezier function with 5 parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(0, 0, 1, 1, 1)", false);
-                expect(match).toBeFalsy();
+            it("should correct cubic-bezier function with 5 parameters", function () {
+                testInvalidBezier("cubic-bezier(0, 0, 1, 1, 1)", ["cubic-bezier(0, 0, 1, 1)", "0", "0", "1", "1"]);
             });
+            
+            // Real invalid cubic-beziers - they should NOT be corrected automatically
             it("should not match cubic-bezier function with invalid whitespace", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier (0, 0, 1, 1)", false);
                 expect(match).toBeFalsy();
@@ -210,52 +238,77 @@ define(function (require, exports, module) {
         describe("TimingFunctionUtils for step functions", function () {
             var match;
             
+            /**
+             * Expects an invalid steps() function to be corrected the right way, with the right match
+             * and originalString given a string to match and an expectation of the output match.
+             * @param {string} str The string to match
+             * @param {Array} expectedArray The array that should equal the output match.
+             */
+            function testInvalidStep(str, expectedArray) {
+                var match = TimingFunctionUtils.timingFunctionMatch(str, false);
+                runs(function () {
+                    expectArraysToBeEqual(match, expectedArray);
+                    expect(match.originalString).toEqual(str);
+                });
+            }
+            
             // Valid steps function cases
             it("should match steps function in strict mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("steps(3, start)", false);
                 expect(match).toBeTruthy();
                 expectArraysToBeEqual(match, ["steps(3, start)", "3", "start"]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match steps function in lax mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("steps(3, start)", true);
                 expect(match).toBeTruthy();
                 expectArraysToBeEqual(match, ["steps(3, start)", "3", "start"]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match steps function with second parameter of end", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("steps(12, end)", false);
                 expectArraysToBeEqual(match, ["steps(12, end)", "12", "end"]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match steps function with only 1 parameter", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("steps(8)", false);
                 expectArraysToBeEqual(match, ["steps(8)", "8", undefined]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match steps function in full line of longhand css", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("    transition-timing-function: steps(5, start);", false);
                 expectArraysToBeEqual(match, ["steps(5, start)", "5", "start"]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match steps function in full line of shorthand css", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("    transition: top 100ms steps(10) 0;", false);
                 expectArraysToBeEqual(match, ["steps(10)", "10", undefined]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match steps function with leading zeros", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("steps(04, end)", false);
                 expectArraysToBeEqual(match, ["steps(04, end)", "04", "end"]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match steps function with no optional whitespace with 1 param", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("steps(3)", false);
                 expectArraysToBeEqual(match, ["steps(3)", "3", undefined]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match steps function with no optional whitespace with 2 params", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("steps(3,end)", false);
                 expectArraysToBeEqual(match, ["steps(3,end)", "3", "end"]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match steps function with extra optional whitespace with 1 param", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("steps( 7 )", false);
                 expectArraysToBeEqual(match, ["steps( 7 )", "7", undefined]);
+                expect(match.originalString).toBeFalsy();
             });
             it("should match steps function with extra optional whitespace with 2 params", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("steps( 8 , start )", false);
                 expectArraysToBeEqual(match, ["steps( 8 , start )", "8", "start"]);
+                expect(match.originalString).toBeFalsy();
             });
             
             // Valid other functions
@@ -263,70 +316,71 @@ define(function (require, exports, module) {
                 match = TimingFunctionUtils.timingFunctionMatch("transition-timing-function: step-start;", false);
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("step-start");
+                expect(match.originalString).toBeFalsy();
             });
             it("should match step-start function value in lax mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("step-start", true);
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("step-start");
+                expect(match.originalString).toBeFalsy();
             });
             it("should match step-end function in declaration in strict mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("transition-timing-function: step-end;", false);
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("step-end");
+                expect(match.originalString).toBeFalsy();
             });
             it("should match step-end function value in lax mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("step-end", true);
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("step-end");
+                expect(match.originalString).toBeFalsy();
             });
             
-            // Invalid cases
-            it("should not match steps function with zero steps", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(0)", false);
-                expect(match).toBeFalsy();
+            // Invalid steps - they should be corrected automatically
+            it("should correct steps function with zero steps", function () {
+                testInvalidStep("steps(0)", ["steps(5, end)", "5", "end"]);
             });
-            it("should not match steps function with a non-integer number of steps", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(3.0)", false);
-                expect(match).toBeFalsy();
+            it("should correct steps function with a non-integer number of steps", function () {
+                testInvalidStep("steps(3.0)", ["steps(3, end)", "3", "end"]);
             });
-            it("should not match steps function with a negative number of steps", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(-2)", false);
-                expect(match).toBeFalsy();
+            it("should correct steps function with a negative number of steps", function () {
+                testInvalidStep("steps(-2)", ["steps(5, end)", "5", "end"]);
             });
-            it("should not match steps function with an infinite number of steps", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(Infinity,)", false);
-                expect(match).toBeFalsy();
+            it("should correct steps function with an infinite number of steps", function () {
+                testInvalidStep("steps(Infinity,)", ["steps(5, end)", "5", "end"]);
             });
-            it("should not match steps function with NaN number of steps", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(NaN,)", false);
-                expect(match).toBeFalsy();
+            it("should correct steps function with NaN number of steps", function () {
+                testInvalidStep("steps(NaN,)", ["steps(5, end)", "5", "end"]);
             });
-            it("should not match steps function with non-numeric number of steps", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(x)", false);
-                expect(match).toBeFalsy();
+            it("should correct steps function with non-numeric number of steps", function () {
+                testInvalidStep("steps(x)", ["steps(5, end)", "5", "end"]);
             });
-            it("should not match steps function with a string-value number of steps", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps('3')", false);
-                expect(match).toBeFalsy();
+            it("should correct steps function with a string-value number of steps", function () {
+                testInvalidStep("steps('3')", ["steps(3, end)", "3", "end"]);
             });
+            it("should correct steps function with no parameters", function () {
+                testInvalidStep("steps()", ["steps(5, end)", "5", "end"]);
+            });
+            it("should correct steps function with empty second parameter", function () {
+                testInvalidStep("steps(1,)", ["steps(1, end)", "1", "end"]);
+            });
+            it("should correct steps function with undefined second parameter", function () {
+                testInvalidStep("steps(1, middle)", ["steps(1, end)", "1", "end"]);
+            });
+            it("should correct steps function with typo in second parameter", function () {
+                testInvalidStep("steps(1, satrt)", ["steps(1, start)", "1", "start"]);
+            });
+            it("should correct steps function with a string as second parameter", function () {
+                testInvalidStep("steps(1, 'start')", ["steps(1, start)", "1", "start"]);
+            });
+            it("should correct steps function with 3 parameters", function () {
+                testInvalidStep("steps(1, start, end)", ["steps(1, start)", "1", "start"]);
+            });
+            
+            // Real invalid cubic-beziers - they should NOT be corrected automatically
             it("should not match steps function with no parens", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("steps", false);
-                expect(match).toBeFalsy();
-            });
-            it("should not match steps function with no parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps()", false);
-                expect(match).toBeFalsy();
-            });
-            it("should not match steps function with empty second parameter", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(1,)", false);
-                expect(match).toBeFalsy();
-            });
-            it("should not match steps function with undefined second parameter", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(1, middle)", false);
-                expect(match).toBeFalsy();
-            });
-            it("should not match steps function with 3 parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(1, start, end)", false);
                 expect(match).toBeFalsy();
             });
             it("should not match steps function with invalid whitespace", function () {
@@ -388,6 +442,18 @@ define(function (require, exports, module) {
             });
             it("should bookmark step-start function when opened in inline editor", function () {
                 testOpenTimingFunction({line: 20, ch: 40}, 32, 42);
+            });
+            it("should bookmark long, invalid cubic-bezier() function when opened in inline editor", function () {
+                testOpenTimingFunction({line: 25, ch: 52}, 32, 74);
+            });
+            it("should bookmark empty, invalid cubic-bezier() function when opened in inline editor", function () {
+                testOpenTimingFunction({line: 26, ch: 47}, 32, 46);
+            });
+            it("should bookmark long, invalid steps() function when opened in inline editor", function () {
+                testOpenTimingFunction({line: 30, ch: 44}, 32, 50);
+            });
+            it("should bookmark empty, invalid steps() function when opened in inline editor", function () {
+                testOpenTimingFunction({line: 31, ch: 45}, 32, 39);
             });
         });
         

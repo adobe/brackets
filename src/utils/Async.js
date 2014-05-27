@@ -285,23 +285,28 @@ define(function (require, exports, module) {
     var ERROR_TIMEOUT = {};
     
     /**
-     * Adds timeout-driven failure to a Promise: returns a new Promise that is resolved/rejected when
-     * the given original Promise is resolved/rejected, OR is rejected after the given delay - whichever
-     * happens first.
+     * Adds timeout-driven termination to a Promise: returns a new Promise that is resolved/rejected when
+     * the given original Promise is resolved/rejected, OR is resolved/rejected after the given delay -
+     * whichever happens first.
      * 
      * If the original Promise is resolved/rejected first, done()/fail() handlers receive arguments
-     * piped from the original Promise. If the timeout occurs first instead, fail() is called with the
-     * token Async.ERROR_TIMEOUT.
+     * piped from the original Promise. If the timeout occurs first instead, then resolve() or
+     * fail() (with Async.ERROR_TIMEOUT) is called based on value of resolveTimeout.
      * 
      * @param {$.Promise} promise
      * @param {number} timeout
+     * @param {boolean=} resolveTimeout If true, then resolve deferred on timeout, otherwise reject. Default is false.
      * @return {$.Promise}
      */
-    function withTimeout(promise, timeout) {
+    function withTimeout(promise, timeout, resolveTimeout) {
         var wrapper = new $.Deferred();
         
         var timer = window.setTimeout(function () {
-            wrapper.reject(ERROR_TIMEOUT);
+            if (resolveTimeout) {
+                wrapper.resolve();
+            } else {
+                wrapper.reject(ERROR_TIMEOUT);
+            }
         }, timeout);
         promise.always(function () {
             window.clearTimeout(timer);
@@ -312,6 +317,64 @@ define(function (require, exports, module) {
         promise.then(wrapper.resolve, wrapper.reject);
         
         return wrapper.promise();
+    }
+    
+    /**
+     * Allows waiting for all the promises to be either resolved or rejected.
+     * Unlike $.when(), it does not call .fail() or .always() handlers on first
+     * reject. The caller should take all the precaution to make sure all the
+     * promises passed to this function are completed to avoid blocking.
+     * 
+     * If failOnReject is set to true, promise returned by the function will be
+     * rejected if at least one of the promises was rejected. The default value
+     * is false, which will cause the call to this function to be always
+     * successfully resolved.
+     * 
+     * If timeout is specified, the promise will be rejected on timeout as per
+     * Async.withTimeout.
+     * 
+     * @param {!Array.<$.Promise>} promises Array of promises to wait for
+     * @param {boolean=} failOnReject       Whether to reject or not if one of the promises has been rejected.
+     * @param {number=} timeout             Number of milliseconds to wait until rejecting the promise
+     * 
+     * @return {$.Promise} Promise which will be completed once al the 
+     * 
+     */
+    function waitForAll(promises, failOnReject, timeout) {
+        var masterDeferred = new $.Deferred(),
+            count = 0,
+            sawRejects = false;
+        
+        if (!promises || promises.length === 0) {
+            masterDeferred.resolve();
+            return masterDeferred.promise();
+        }
+        
+        // set defaults if needed
+        failOnReject = (failOnReject === undefined) ? false : true;
+        
+        if (timeout !== undefined) {
+            withTimeout(masterDeferred, timeout);
+        }
+        
+        promises.forEach(function (promise) {
+            promise
+                .fail(function (err) {
+                    sawRejects = true;
+                })
+                .always(function () {
+                    count++;
+                    if (count === promises.length) {
+                        if (failOnReject && sawRejects) {
+                            masterDeferred.reject();
+                        } else {
+                            masterDeferred.resolve();
+                        }
+                    }
+                });
+        });
+        
+        return masterDeferred.promise();
     }
     
     /**
@@ -366,6 +429,7 @@ define(function (require, exports, module) {
      * has finished.
      */
     function PromiseQueue() {
+        this._queue = [];
     }
     
     /**
@@ -374,7 +438,7 @@ define(function (require, exports, module) {
      * The queue of operations to execute sequentially. Note that even if this array is empty, there might
      * still be an operation we need to wait on; that operation's promise is stored in _curPromise.
      */
-    PromiseQueue.prototype._queue = [];
+    PromiseQueue.prototype._queue = null;
     
     /**
      * @private
@@ -429,7 +493,7 @@ define(function (require, exports, module) {
         if (this._queue.length) {
             var op = this._queue.shift();
             this._curPromise = op();
-            this._curPromise.done(function () {
+            this._curPromise.always(function () {
                 self._curPromise = null;
                 self._doNext();
             });
@@ -442,6 +506,7 @@ define(function (require, exports, module) {
     exports.doSequentiallyInBackground   = doSequentiallyInBackground;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
     exports.withTimeout    = withTimeout;
+    exports.waitForAll     = waitForAll;
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
     exports.chain          = chain;
     exports.PromiseQueue   = PromiseQueue;

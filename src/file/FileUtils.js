@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     require("utils/Global");
     
     var FileSystemError     = require("filesystem/FileSystemError"),
+        LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
@@ -45,8 +46,8 @@ define(function (require, exports, module) {
      * Asynchronously reads a file as UTF-8 encoded text.
      * @param {!File} file File to read
      * @return {$.Promise} a jQuery promise that will be resolved with the 
-     *  file's text content plus its timestamp, or rejected with a FileSystemError if
-     *  the file can not be read.
+     *  file's text content plus its timestamp, or rejected with a FileSystemError string
+     *  constant if the file can not be read.
      */
     function readAsText(file) {
         var result = new $.Deferred();
@@ -77,7 +78,7 @@ define(function (require, exports, module) {
      *      errors---which can be triggered if the actual file contents differ from 
      *      the FileSystem's last-known contents---should be ignored.
      * @return {$.Promise} a jQuery promise that will be resolved when
-     * file writing completes, or rejected with a FileSystemError.
+     * file writing completes, or rejected with a FileSystemError string constant.
      */
     function writeText(file, text, allowBlindWrite) {
         var result = new $.Deferred(),
@@ -159,6 +160,8 @@ define(function (require, exports, module) {
             result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
         } else if (name === FileSystemError.CONTENTS_MODIFIED) {
             result = Strings.CONTENTS_MODIFIED_ERR;
+        } else if (name === FileSystemError.UNSUPPORTED_ENCODING) {
+            result = Strings.UNSUPPORTED_ENCODING_ERR;
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
         }
@@ -308,6 +311,60 @@ define(function (require, exports, module) {
 
         return baseName.substr(idx + 1);
     }
+    
+    /**
+     * Get the file extension (excluding ".") given a path OR a bare filename.
+     * Returns "" for names with no extension.
+     * If the only `.` in the file is the first character,
+     * returns "" as this is not considered an extension.
+     * This method considers known extensions which include `.` in them.
+     *
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the extension of a filename or empty string if
+     * the argument is a directory or a filename with no extension
+     */
+    function getSmartFileExtension(fullPath) {
+        var baseName = getBaseName(fullPath),
+            parts = baseName.split(".");
+
+        // get rid of file name
+        parts.shift();
+        if (baseName[0] === ".") {
+            // if starts with a `.`, then still consider it as file name
+            parts.shift();
+        }
+
+        var extension = [parts.pop()], // last part is always an extension
+            i = parts.length;
+        while (i--) {
+            if (LanguageManager.getLanguageForExtension(parts[i])) {
+                extension.unshift(parts[i]);
+            } else {
+                break;
+            }
+        }
+        return extension.join(".");
+    }
+
+    /**
+     * Computes filename as relative to the basePath. For example:
+     * basePath: /foo/bar/, filename: /foo/bar/baz.txt
+     * returns: baz.txt
+     * 
+     * The net effect is that the common prefix is stripped away. If basePath is not
+     * a prefix of filename, then undefined is returned.
+     * 
+     * @param {string} basePath Path against which we're computing the relative path
+     * @param {string} filename Full path to the file for which we are computing a relative path
+     * @return {string} relative path
+     */
+    function getRelativeFilename(basePath, filename) {
+        if (!filename || filename.substr(0, basePath.length) !== basePath) {
+            return;
+        }
+        
+        return filename.substr(basePath.length);
+    }
 
     /** @const - hard-coded for now, but may want to make these preferences */
     var _staticHtmlFileExts = ["htm", "html"],
@@ -404,6 +461,8 @@ define(function (require, exports, module) {
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getBaseName                    = getBaseName;
+    exports.getRelativeFilename            = getRelativeFilename;
     exports.getFileExtension               = getFileExtension;
+    exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;
 });

@@ -39,3 +39,10 @@ pre {
 .testframework-link {
     opacity: 0.45;
 }
+
+@media (min-width: 728px) and (max-width: 1199px) {
+    .navbar-fixed-top .container,
+    .navbar-fixed-bottom .container {
+        width: 800px;
+    }
+}
