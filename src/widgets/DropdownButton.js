@@ -31,8 +31,12 @@
  *  - The button's label is not automatically changed when an item in the list is clicked
  *  - Its width is not the max of all the dropdown items' labels
  *  - The button & dropdown's appearance can be customized far more
+ * Events
+ *  - listRendered -- This event is dispatched after the entire list is rendered so that custom event handlers can be
+ *                    set up for any custom UI in the list.
  * 
  * TODO: merge DropdownEventHandler into this? Are there any other widgets that might want to use it separately?
+ *
  */
 define(function (require, exports, module) {
     "use strict";
