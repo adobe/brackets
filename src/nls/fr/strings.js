@@ -41,10 +41,10 @@ define({
 	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
 	"FILE": "fichier",
 	"DIRECTORY": "répertoire",
-	"DIRECTORY_NAMES_LEDE": "Noms de répertoire",
-	"FILENAMES_LEDE": "Noms de fichier",
-	"FILENAME": "nom de fichier",
-	"DIRECTORY_NAME": "nom de répertoire",
+	"DIRECTORY_NAMES_LEDE": "noms de répertoires",
+	"FILENAMES_LEDE": "noms de fichiers",
+	"FILENAME": "Nom de fichier",
+	"DIRECTORY_NAME": "Nom de répertoire",
     
 
     // Project error strings
@@ -66,7 +66,7 @@ define({
 	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du fichier",
 	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "{0} non valide",
-	"INVALID_FILENAME_MESSAGE": "Le {0} ne peut pas utiliser de termes réservés au système, finir par un point (.) ou contenir l’un des caractères suivants : <code class='emphasized'>{1}</code>",
+	"INVALID_FILENAME_MESSAGE": "Les {0} ne peuvent pas utiliser de termes réservés au système, finir par un point (.) ou contenir l’un des caractères suivants : <code class='emphasized'>{1}</code>",
 	"ENTRY_WITH_SAME_NAME_EXISTS": "Il existe déjà un fichier ou un répertoire portant le nom <span class='dialog-filename'>{0}</span>.",
 	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création du {0}",
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du {0} <span class='dialog-filename'>{1}</span>. {2}",
