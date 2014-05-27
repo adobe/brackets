@@ -303,10 +303,11 @@ a, img {
     }
 
     .img-guide,
-    #img-preview {
-        cursor: none;
+    #img-tip, 
+    #img-scale {
+        pointer-events: none;
     }
-
+    
     #img-scale {
         display: block;
         position: absolute;
@@ -1550,4 +1551,9 @@ label input {
         -webkit-transform: scale(1);
         transform: scale(1);
     }
+}
+
+.emphasized {
+    font-weight: 900;
+    font-size: 1.01em;
 }

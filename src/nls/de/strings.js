@@ -37,6 +37,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "Das Ziel-Verzeichnis kann nicht verändert werden.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Die Berechtigungen erlauben Ihnen nicht, Veränderungen vorzunehmen.",
     "CONTENTS_MODIFIED_ERR"             : "Die Datei wurde außerhalb von {APP_NAME} verändert.",
+    "UNSUPPORTED_ENCODING_ERR"          : "Die Datei ist nicht UTF-8-kodiert.",
     "FILE_EXISTS_ERR"                   : "Die Datei existiert bereits.",
     "FILE"                              : "Datei",
     "DIRECTORY"                         : "Verzeichnis",
@@ -546,4 +547,4 @@ define({
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
 
-/* Last translated for e47dc5b16ec4bfabacfdb5c62f67a94feca85d50 */
+/* Last translated for 45ad989284156a2b6c9e1b3669c2ce5c61055089 */

@@ -53,6 +53,10 @@ define(function (require, exports, module) {
     
     // Init default last build number
     PreferencesManager.stateManager.definePreference("lastNotifiedBuildNumber", "number", 0);
+    
+    // Init default last info URL fetch time
+    PreferencesManager.stateManager.definePreference("lastInfoURLFetchTime", "number", 0);
+    
     // Time of last registry check for update
     PreferencesManager.stateManager.definePreference("lastExtensionRegistryCheckTime", "number", 0);
     // Data about available updates in the registry
@@ -64,19 +68,8 @@ define(function (require, exports, module) {
         "updateInfo": "user"
     }, true);
     
-    // This is the last version we notified the user about. If checkForUpdate()
-    // is called with "false", only show the update notification dialog if there
-    // is an update newer than this one. This value is saved in preferences.
-    var _lastNotifiedBuildNumber = PreferencesManager.getViewState("lastNotifiedBuildNumber");
-    
-    // Last time the versionInfoURL was fetched
-    var _lastInfoURLFetchTime = PreferencesManager.getViewState("lastInfoURLFetchTime");
-
     // URL to load version info from. By default this is loaded no more than once a day. If
     // you force an update check it is always loaded.
-    
-    // URL to fetch the version information.
-    var _versionInfoURL;
     
     // Information on all posted builds of Brackets. This is an Array, where each element is
     // an Object with the following fields:
@@ -97,19 +90,20 @@ define(function (require, exports, module) {
      * Flag that indicates if we've added a click handler to the update notification icon.
      */
     var _addedClickHandler = false;
-    
+
     /**
      * Construct a new version update url with the given locale.
      *
      * @param {string=} locale - optional locale, defaults to 'brackets.getLocale()' when omitted.
+     * @param {boolean=} removeCountryPartOfLocale - optional, remove existing country information from locale 'en-gb' => 'en'
      * return {string} the new version update url
      */
-    function _versionInfoUrl(locale) {
+    function _getVersionInfoUrl(locale, removeCountryPartOfLocale) {
         locale = locale || brackets.getLocale();
 
-        // cut off any country in the locale
-        // e.g.: en-US will be reduced to en
-        locale = locale.substring(0, 2);
+        if (removeCountryPartOfLocale) {
+            locale = locale.substring(0, 2);
+        }
 
         return brackets.config.update_info_url + locale + ".json";
     }
@@ -124,8 +118,12 @@ define(function (require, exports, module) {
      *
      * If new data is fetched and dontCache is false, the data is saved in preferences
      * for quick fetching later.
+     * _versionInfoUrl is used for unit testing.
      */
-    function _getUpdateInformation(force, dontCache) {
+    function _getUpdateInformation(force, dontCache, _versionInfoUrl) {
+        // Last time the versionInfoURL was fetched
+        var lastInfoURLFetchTime = PreferencesManager.getViewState("lastInfoURLFetchTime");
+
         var result = new $.Deferred();
         var fetchData = false;
         var data;
@@ -142,36 +140,62 @@ define(function (require, exports, module) {
         }
         
         // If more than 24 hours have passed since our last fetch, fetch again
-        if ((new Date()).getTime() > _lastInfoURLFetchTime + ONE_DAY) {
+        if ((new Date()).getTime() > lastInfoURLFetchTime + ONE_DAY) {
             fetchData = true;
         }
         
         if (fetchData) {
-            var lookupPromise = new $.Deferred();
+            var lookupPromise = new $.Deferred(),
+                localVersionInfoUrl;
 
-            // don't make HEAD request if we already have the default en locale
-            if (brackets.getLocale() !== "en") {
+            // If the current locale isn't "en" or "en-US", check whether we actually have a
+            //   locale-specific update notification, and fall back to "en" if not.
+            // Note: we check for both "en" and "en-US" to watch for the general case or
+            //    country-specific English locale.  The former appears default on Mac, while
+            //    the latter appears default on Windows.
+            var locale = brackets.getLocale().toLowerCase();
+            if (locale !== "en" && locale !== "en-us") {
+                localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl();
                 $.ajax({
-                    url: _versionInfoURL,
+                    url: localVersionInfoUrl,
                     cache: false,
                     type: "HEAD"
                 }).fail(function (jqXHR, status, error) {
-                    _versionInfoURL = _versionInfoUrl("en");
-                }).always(function (jsXHR, status, error) {
+                    // get rid of any country information from locale and try again
+                    var tmpUrl = _getVersionInfoUrl(brackets.getLocale(), true);
+                    if (tmpUrl !== localVersionInfoUrl) {
+                        $.ajax({
+                            url: tmpUrl,
+                            cache: false,
+                            type: "HEAD"
+                        }).fail(function (jqXHR, status, error) {
+                            localVersionInfoUrl = _getVersionInfoUrl("en");
+                        }).done(function (jqXHR, status, error) {
+                            localVersionInfoUrl = tmpUrl;
+                        }).always(function (jqXHR, status, error) {
+                            lookupPromise.resolve();
+                        });
+                    } else {
+                        localVersionInfoUrl = _getVersionInfoUrl("en");
+                        lookupPromise.resolve();
+                    }
+                }).done(function (jqXHR, status, error) {
                     lookupPromise.resolve();
                 });
             } else {
+                localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl("en");
                 lookupPromise.resolve();
             }
 
             lookupPromise.done(function () {
-                $.ajax(_versionInfoURL, {
+                $.ajax({
+                    url: localVersionInfoUrl,
                     dataType: "json",
                     cache: false
                 }).done(function (updateInfo, textStatus, jqXHR) {
                     if (!dontCache) {
-                        _lastInfoURLFetchTime = (new Date()).getTime();
-                        PreferencesManager.setViewState("lastInfoURLFetchTime", _lastInfoURLFetchTime);
+                        lastInfoURLFetchTime = (new Date()).getTime();
+                        PreferencesManager.setViewState("lastInfoURLFetchTime", lastInfoURLFetchTime);
                         PreferencesManager.setViewState("updateInfo", updateInfo);
                     }
                     result.resolve(updateInfo);
@@ -299,6 +323,11 @@ define(function (require, exports, module) {
      * @return {$.Promise} jQuery Promise object that is resolved or rejected after the update check is complete.
      */
     function checkForUpdate(force, _testValues) {
+        // This is the last version we notified the user about. If checkForUpdate()
+        // is called with "false", only show the update notification dialog if there
+        // is an update newer than this one. This value is saved in preferences.
+        var lastNotifiedBuildNumber = PreferencesManager.getViewState("lastNotifiedBuildNumber");
+
         // The second param, if non-null, is an Object containing value overrides. Values
         // in the object temporarily override the local values. This should *only* be used for testing.
         // If any overrides are set, permanent changes are not made (including showing
@@ -306,6 +335,7 @@ define(function (require, exports, module) {
         var oldValues;
         var usingOverrides = false; // true if any of the values are overridden.
         var result = new $.Deferred();
+        var versionInfoUrl;
         
         if (_testValues) {
             oldValues = {};
@@ -316,20 +346,19 @@ define(function (require, exports, module) {
                 usingOverrides = true;
             }
 
-            if (_testValues.hasOwnProperty("_lastNotifiedBuildNumber")) {
-                oldValues._lastNotifiedBuildNumber = _lastNotifiedBuildNumber;
-                _lastNotifiedBuildNumber = _testValues._lastNotifiedBuildNumber;
+            if (_testValues.hasOwnProperty("lastNotifiedBuildNumber")) {
+                oldValues.lastNotifiedBuildNumber = lastNotifiedBuildNumber;
+                lastNotifiedBuildNumber = _testValues.lastNotifiedBuildNumber;
                 usingOverrides = true;
             }
 
             if (_testValues.hasOwnProperty("_versionInfoURL")) {
-                oldValues._versionInfoURL = _versionInfoURL;
-                _versionInfoURL = _testValues._versionInfoURL;
+                versionInfoUrl = _testValues._versionInfoURL;
                 usingOverrides = true;
             }
         }
         
-        _getUpdateInformation(force || usingOverrides, usingOverrides)
+        _getUpdateInformation(force || usingOverrides, usingOverrides, versionInfoUrl)
             .done(function (versionInfo) {
                 // Get all available updates
                 var allUpdates = _stripOldVersionInfo(versionInfo, _buildNumber);
@@ -357,14 +386,14 @@ define(function (require, exports, module) {
                 
                     // Only show the update dialog if force = true, or if the user hasn't been
                     // alerted of this update
-                    if (force || allUpdates[0].buildNumber >  _lastNotifiedBuildNumber) {
+                    if (force || allUpdates[0].buildNumber >  lastNotifiedBuildNumber) {
                         _showUpdateNotificationDialog(allUpdates);
                         
                         // Update prefs with the last notified build number
-                        _lastNotifiedBuildNumber = allUpdates[0].buildNumber;
+                        lastNotifiedBuildNumber = allUpdates[0].buildNumber;
                         // Don't save prefs is we have overridden values
                         if (!usingOverrides) {
-                            PreferencesManager.setViewState("lastNotifiedBuildNumber", _lastNotifiedBuildNumber);
+                            PreferencesManager.setViewState("lastNotifiedBuildNumber", lastNotifiedBuildNumber);
                         }
                     }
                 } else if (force) {
@@ -380,11 +409,8 @@ define(function (require, exports, module) {
                     if (oldValues.hasOwnProperty("_buildNumber")) {
                         _buildNumber = oldValues._buildNumber;
                     }
-                    if (oldValues.hasOwnProperty("_lastNotifiedBuildNumber")) {
-                        _lastNotifiedBuildNumber = oldValues._lastNotifiedBuildNumber;
-                    }
-                    if (oldValues.hasOwnProperty("_versionInfoURL")) {
-                        _versionInfoURL = oldValues._versionInfoURL;
+                    if (oldValues.hasOwnProperty("lastNotifiedBuildNumber")) {
+                        lastNotifiedBuildNumber = oldValues.lastNotifiedBuildNumber;
                     }
                 }
                 result.resolve();
@@ -413,9 +439,6 @@ define(function (require, exports, module) {
         checkForExtensionsUpdate();
         window.setInterval(checkForUpdate, ONE_DAY + TWO_MINUTES);
     }
-
-    // Append locale to version info URL
-    _versionInfoURL = _versionInfoUrl();
 
     // Events listeners
     $(ExtensionManager).on("registryDownload", _onRegistryDownloaded);
