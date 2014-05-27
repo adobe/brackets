@@ -672,29 +672,40 @@ define(function (require, exports, module) {
 
     var notifyPathDeleted;
 
+    function _updateCurrentlyViewedPathLastFileModificationSyncTime(mtime) {
+        var result = new $.Deferred(), 
+            file;
+        
+        if (mtime) {
+            _currentlyViewedFileMTime = mtime;
+            result.resolve();
+        } else if (_currentlyViewedPath) {
+            file = FileSystem.getFileForPath(_currentlyViewedPath);
+            file.stat(function (fileError, stat) {
+                if (!fileError) {
+                    _currentlyViewedFileMTime = stat.mtime.getTime();
+                    result.resolve();
+                } else {
+                    result.reject();
+                }
+            });
+        } else {
+            result.reject();
+        }
+        
+        return result;
+    }
+    
     function _setCurrentlyViewedPath(fullPath, mtime) {
-
         if (fullPath) {
-            if (mtime) {
-                _currentlyViewedPath = fullPath;
-                // if this was invoked form an document open command we do have the modification timestamp
-                // and can synchronously save the value
-                _currentlyViewedFileMTime = mtime;
-                $(exports).triggerHandler("currentlyViewedFileChange");
-            } else {
-                _currentlyViewedPath = fullPath;
-                // if this was invoked without the modification time
-                // we will fetch the timestamp asynchrmously
-                var file = FileSystem.getFileForPath(fullPath);
-                file.stat(function (fileError, stat) {
-                    if (!fileError) {
-                        _currentlyViewedFileMTime = stat.mtime.getTime();
-                        $(exports).triggerHandler("currentlyViewedFileChange");
-                    } else {
-                        notifyPathDeleted(fullPath);
-                    }
+            _currentlyViewedPath = fullPath;
+            _updateCurrentlyViewedPathLastFileModificationSyncTime(mtime)
+                .done(function() {
+                    $(exports).triggerHandler("currentlyViewedFileChange");
+                })
+                .fail(function() {
+                    notifyPathDeleted(fullPath);
                 });
-            }
         } else {
             // if fullpath is not defined reset path and timestamp
             _currentlyViewedPath = null;
@@ -721,7 +732,7 @@ define(function (require, exports, module) {
      * Closes the customViewer currently displayed, shows the NoEditor view
      * and notifies the ProjectManager to update the file selection
      */
-    function _closeCustomViewer() {
+    function closeCustomViewer() {
         _removeCustomViewer();
         _setCurrentlyViewedPath();
         _showNoEditor();
@@ -835,10 +846,13 @@ define(function (require, exports, module) {
      *
      * @param {!string} fullPath - path to file to be refreshed by custom viewer     
      */
-    function refreshCustomViewer(fullPath) {
-        var customViewer = getCustomViewerForPath(fullPath);
-        if (customViewer.refresh) {
-            customViewer.refresh();
+    function refreshCustomViewer(fullPath, mtime) {
+        if (_currentlyViewedPath === fullPath) {
+            var customViewer = getCustomViewerForPath(fullPath);
+            if (customViewer && customViewer.refresh) {
+                customViewer.refresh();
+                _updateCurrentlyViewedPathLastFileModificationSyncTime(mtime);
+            }
         }
     }
 
@@ -1127,8 +1141,6 @@ define(function (require, exports, module) {
     exports._resetViewStates              = _resetViewStates;
     exports._doShow                       = _doShow;
     exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;
-    exports._showCustomViewer             = _showCustomViewer;
-    exports._closeCustomViewer            = _closeCustomViewer;
     
     
     
@@ -1156,4 +1168,7 @@ define(function (require, exports, module) {
     exports.getCustomViewerForPath        = getCustomViewerForPath;
     exports.notifyPathDeleted             = notifyPathDeleted;
     exports.showingCustomViewerForPath    = showingCustomViewerForPath;
+    exports.showCustomViewer              = showCustomViewer;
+    exports.closeCustomViewer             = closeCustomViewer;
+
 });

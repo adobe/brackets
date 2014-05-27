@@ -261,7 +261,7 @@ define(function (require, exports, module) {
                 var file = FileSystem.getFileForPath(fullPath);
                 file.exists(function (fileError, fileExists) {
                     if (fileExists) {
-                        EditorManager._showCustomViewer(viewProvider, fullPath);
+                        EditorManager.showCustomViewer(viewProvider, fullPath);
                         result.resolve();
                     } else {
                         fileError = fileError || FileSystemError.NOT_FOUND;
@@ -991,7 +991,7 @@ define(function (require, exports, module) {
                         result.resolve();
                     });
                 } else {
-                    EditorManager._closeCustomViewer();
+                    EditorManager.closeCustomViewer();
                     result.resolve();
                 }
             }
@@ -1202,7 +1202,7 @@ define(function (require, exports, module) {
         return _closeList(DocumentManager.getWorkingSet(),
                                     (commandData && commandData.promptOnly), true).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
-                EditorManager._closeCustomViewer();
+                EditorManager.closeCustomViewer();
             }
         });
     }
@@ -1210,7 +1210,7 @@ define(function (require, exports, module) {
     function handleFileCloseList(commandData) {
         return _closeList(commandData.fileList, false, false).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
-                EditorManager._closeCustomViewer();
+                EditorManager.closeCustomViewer();
             }
         });
     }
