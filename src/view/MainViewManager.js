@@ -31,7 +31,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         EditorManager       = require("editor/EditorManager"),
         FileSystem          = require("filesystem/FileSystem"),
-//        DocumentManager     = require("document/DocumentManager"),
+        DocumentManager     = require("document/DocumentManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         ProjectManager      = require("project/ProjectManager"),
         WorkspaceManager    = require("view/WorkspaceManager"),
@@ -41,23 +41,16 @@ define(function (require, exports, module) {
     var ALL_PANES           = "ALL_PANES",
         FOCUSED_PANE        = "FOCUSED_PANE";
     
-    /**
-     * @private
-     * @see DocumentManager.getCurrentDocument()
-     */
-    var _currentDocument = null;
-        
     
     /**
      * @private
      * @type {Array.<File>}
-     * @see DocumentManager.getWorkingSet()
      */
     var _paneViewList = [];
     
     /**
      * @private
-     * Contains the same set of items as _paneViewList, but ordered by how recently they were _currentDocument (0 = most recent).
+     * Contains the same set of items as _paneViewList, but ordered by how recently they were viewed
      * @type {Array.<File>}
      */
     var _paneViewListMRUOrder = [];
@@ -73,13 +66,11 @@ define(function (require, exports, module) {
     /**
      * Returns a list of items in the pane view list in UI list order. May be 0-length, but never null.
      *
-     * When a file is added this list, DocumentManager dispatches a "paneViewListAdd" event.
-     * When a file is removed from list, DocumentManager dispatches a "paneViewListRemove" event.
-     * To listen for ALL changes to this list, you must listen for both events.
-     *
-     * Which items belong in the pane view list is managed entirely by DocumentManager. Callers cannot
-     * (yet) change this collection on their own.
-     *
+     * When a file is added a paneViewList, a "paneViewListAdd" event is dispatched
+     * When a file is removed a paneViewList, a "paneViewListRemove" is dispatched.
+     */
+    
+    /*
      * @param {!string} paneId
      * @return {Array.<File>}
      */
@@ -97,10 +88,6 @@ define(function (require, exports, module) {
     
     function _getPaneViewListAdded() {
         return _paneViewListAddedOrder;
-    }
-    
-    function _setCurrentDocument(doc) {
-        _currentDocument = doc;
     }
     
     function _reset(paneId) {
@@ -208,7 +195,7 @@ define(function (require, exports, module) {
         }
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
-        var currentDocument = _currentDocument;//DocumentManager.getCurrentDocument();
+        var currentDocument = DocumentManager.getCurrentDocument();
         if (currentDocument && currentDocument.file.fullPath === file.fullPath) {
             _paneViewListMRUOrder.unshift(file);
         } else {
@@ -237,7 +224,8 @@ define(function (require, exports, module) {
      * @param {!Array.<File>} fileList
      */
     function addListToPaneViewList(paneId, fileList) {
-        var uniqueFileList = [];
+        var currentDocument = DocumentManager.getCurrentDocument(),
+            uniqueFileList = [];
 
         // Process only files not already in pane view list
         fileList.forEach(function (file, index) {
@@ -250,7 +238,7 @@ define(function (require, exports, module) {
                 _paneViewList.push(file);
 
                 // Add to MRU order: either first or last, depending on whether it's already the current doc or not
-                if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
+                if (currentDocument && currentDocument.file.fullPath === file.fullPath) {
                     _paneViewListMRUOrder.unshift(file);
                 } else {
                     _paneViewListMRUOrder.push(file);
@@ -503,7 +491,7 @@ define(function (require, exports, module) {
         var files           = [],
             isActive        = false,
             paneViewList    = getPaneViewList(ALL_PANES),
-            currentDoc      = _currentDocument,
+            currentDoc      = DocumentManager.getCurrentDocument,
             projectRoot     = ProjectManager.getProjectRoot(),
             context         = { location : { scope: "user",
                                              layer: "project",
@@ -543,9 +531,6 @@ define(function (require, exports, module) {
     exports._getPaneViewListMRU     = _getPaneViewListMRU;
     exports._getPaneViewListAdded   = _getPaneViewListAdded;
 
-    // Scaffolding
-    exports._setCurrentDocument = _setCurrentDocument;
-    
     // API Exports
     exports.addToPaneViewList                = addToPaneViewList;
     exports.addListToPaneViewList            = addListToPaneViewList;

@@ -109,13 +109,6 @@ define(function (require, exports, module) {
         Strings             = require("strings");
 
 
-    // _currentDocument is temporarily moved to avoid a circular dependency
-    /**
-     * @private
-     * @see DocumentManager.getCurrentDocument()
-     */
-    var _currentDocument = null;
-
     /**
      * @private
      * Random path prefix for untitled documents
@@ -150,14 +143,6 @@ define(function (require, exports, module) {
                                           "MainViewManger." + newEventName);
     }
         
-    
-    function _getDocName(doc) {
-        if (!doc) {
-            return "no doc";
-        }
-        return doc.file.fullPath;
-    }
-    
     /**
      * Returns the existing open Document for the given file, or null if the file is not open ('open'
      * means referenced by the UI somewhere). If you will hang onto the Document, you must addRef()
@@ -167,6 +152,10 @@ define(function (require, exports, module) {
      */
     function getOpenDocumentForPath(fullPath) {
         var id;
+        
+        if (!fullPath) {
+            return null;
+        }
         
         // Need to walk all open documents and check for matching path. We can't
         // use getFileForPath(fullPath).id since the file it returns won't match
@@ -188,20 +177,7 @@ define(function (require, exports, module) {
         //      even though it does not have focus (such as when clicking on another element (toolbar, menu, etc...)
         //      So we'll have to do amend this to MainViewManager.getTargetPane().getCurrentFullEditor().getDocument()
         //      at some point which changes the deprecation warning below
-        var doc,
-            path = EditorManager.getCurrentlyViewedPath();
-        if (path) {
-            doc = getOpenDocumentForPath(path);
-        }
-        if (doc) {
-            if (doc._masterEditor !== EditorManager.getCurrentFullEditor()) {
-                console.debug("current document mismatch");
-            }
-        }
-        if (doc !== _currentDocument) {
-            console.debug("current document mismatch: " + _getDocName(doc) + " vs. " + _getDocName(_currentDocument));
-        }
-        return doc;
+        return getOpenDocumentForPath(EditorManager.getCurrentlyViewedPath());
     }
 
     /**
@@ -209,7 +185,7 @@ define(function (require, exports, module) {
      * @return {?Document}
      */
     function getCurrentDocument() {
-        DeprecationWarning.deprecationWarning("Use EditorManager.getCurrentFullEditor().getDocument() instead of DocumentManager.getCurrentDocument()", true);
+        //DeprecationWarning.deprecationWarning("Use EditorManager.getCurrentlyViewedPath()", true);
         return _getCurrentDocument();
     }
 
@@ -226,13 +202,7 @@ define(function (require, exports, module) {
         
         // (this event triggers EditorManager to actually clear the editor UI)
         $(exports).triggerHandler("currentDocumentChange", [null, previousDocument]);
-        MainViewManager._setCurrentDocument(_currentDocument);
-        
-        var newDoc = _getCurrentDocument();
-        if (newDoc !== null) {
-            console.debug("_clearDocumentFailed: " + _getDocName(newDoc) + " vs. " + _getDocName(_currentDocument));
-        }
-        
+        MainViewManager._setCurrentDocument(null);
     }
     
     /**
@@ -381,7 +351,7 @@ define(function (require, exports, module) {
         if (_documentNavPending) {
             _documentNavPending = false;
             
-            _markMostRecent(_currentDocument);
+            _markMostRecent(_getCurrentDocument());
         }
     }
     
@@ -407,9 +377,10 @@ define(function (require, exports, module) {
      *      working set.
      */
     function setCurrentDocument(doc) {
+        var currentDocument = _getCurrentDocument();
         
         // If this doc is already current, do nothing
-        if (_currentDocument === doc) {
+        if (currentDocument === doc) {
             return;
         }
 
@@ -421,24 +392,16 @@ define(function (require, exports, module) {
             MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file);
         }
         
-        // Make it the current document
-        var previousDocument = _currentDocument;
-        _currentDocument = doc;
         
         // (this event triggers EditorManager to actually switch editors in the UI)
-        $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
+        $(exports).triggerHandler("currentDocumentChange", [doc, currentDocument]);
 
         // TODO: Remove this
-        MainViewManager._setCurrentDocument(_currentDocument);
+        MainViewManager._setCurrentDocument(doc);
 
         // Adjust MRU working set ordering (except while in the middle of a Ctrl+Tab sequence)
         if (!_documentNavPending) {
             _markMostRecent(doc);
-        }
-        
-        var newDoc = _getCurrentDocument();
-        if (newDoc !== doc) {
-            console.debug("setDocumentFailed: " + _getDocName(newDoc) + " vs. " + _getDocName(_currentDocument));
         }
         PerfUtils.addMeasurement(perfTimerName);
     }
@@ -459,10 +422,11 @@ define(function (require, exports, module) {
     function closeFullEditor(file, skipAutoSelect) {
         // If this was the current document shown in the editor UI, we're going to switch to a
         // different document (or none if working set has no other options)
-        if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
+        var currentDocument = _getCurrentDocument();
+        if (currentDocument && currentDocument.file.fullPath === file.fullPath) {
             // Get next most recent doc in the MRU order
             var nextFile = MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, 1);
-            if (nextFile && nextFile.fullPath === _currentDocument.file.fullPath) {
+            if (nextFile && nextFile.fullPath === currentDocument.file.fullPath) {
                 // getNextPrevFile() might return the file we're about to close if it's the only one open (due to wraparound)
                 nextFile = null;
             }
@@ -470,10 +434,6 @@ define(function (require, exports, module) {
             // Switch editor to next document (or blank it out)
             if (nextFile && !skipAutoSelect) {
                 CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath })
-                    .done(function () {
-                        // (Now we're guaranteed that the current document is not the one we're closing)
-                        console.assert(!(_currentDocument && _currentDocument.file.fullPath === file.fullPath));
-                    })
                     .fail(function () {
                         // File chosen to be switched to could not be opened, and the original file
                         // is still in editor. Close it again so code will try to open the next file,
