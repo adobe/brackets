@@ -509,7 +509,7 @@ define(function (require, exports, module) {
             
             // Displays the primary console messages from the test window in the the
             // test runner's console as well.
-            ["log", "info", "warn", "error"].forEach(function (method) {
+            ["debug", "log", "info", "warn", "error"].forEach(function (method) {
                 var originalMethod = _testWindow.console[method];
                 _testWindow.console[method] = function () {
                     var log = ["[testWindow] "].concat(Array.prototype.slice.call(arguments, 0));

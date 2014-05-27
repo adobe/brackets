@@ -109,25 +109,6 @@ define(function (require, exports, module) {
         Strings             = require("strings");
 
 
-    
-    // _currentDocument is temporarily moved to avoid a circular dependency
-    /**
-     * @private
-     * @see DocumentManager.getCurrentDocument()
-     */
-    var _currentDocument = null;
-    
-    
-    /**
-     * Returns the Document that is currently open in the editor UI. May be null.
-     * When this changes, DocumentManager dispatches a "currentDocumentChange" event. The current
-     * document always has a backing Editor (Document._masterEditor != null) and is thus modifiable.
-     * @return {?Document}
-     */
-    function getCurrentDocument() {
-        return _currentDocument;
-    }
-    
     /**
      * @private
      * Random path prefix for untitled documents
@@ -162,22 +143,65 @@ define(function (require, exports, module) {
                                           "MainViewManger." + newEventName);
     }
         
+    /**
+     * Returns the existing open Document for the given file, or null if the file is not open ('open'
+     * means referenced by the UI somewhere). If you will hang onto the Document, you must addRef()
+     * it; see {@link getDocumentForPath()} for details.
+     * @param {!string} fullPath
+     * @return {?Document}
+     */
+    function getOpenDocumentForPath(fullPath) {
+        var id;
+        
+        if (!fullPath) {
+            return null;
+        }
+        
+        // Need to walk all open documents and check for matching path. We can't
+        // use getFileForPath(fullPath).id since the file it returns won't match
+        // an Untitled document's InMemoryFile.
+        for (id in _openDocuments) {
+            if (_openDocuments.hasOwnProperty(id)) {
+                if (_openDocuments[id].file.fullPath === fullPath) {
+                    return _openDocuments[id];
+                }
+            }
+        }
+        return null;
+    }
+ 
+    
+    function _getCurrentDocument() {
+        // using getCurrentFullEditor() will return the editor whether it has focus or not
+        //      this doesn't work in scenarios where you want the active editor's document
+        //      even though it does not have focus (such as when clicking on another element (toolbar, menu, etc...)
+        //      So we'll have to do amend this to MainViewManager.getTargetPane().getCurrentFullEditor().getDocument()
+        //      at some point which changes the deprecation warning below
+        return getOpenDocumentForPath(EditorManager.getCurrentlyViewedPath());
+    }
+
+    /**
+     * [deprecated] Returns the Document that is currently open in the editor UI. May be null.
+     * @return {?Document}
+     */
+    function getCurrentDocument() {
+        //DeprecationWarning.deprecationWarning("Use EditorManager.getCurrentlyViewedPath()", true);
+        return _getCurrentDocument();
+    }
+
+    
+    
     /** Changes currentDocument to null, causing no full Editor to be shown in the UI */
     function _clearCurrentDocument() {
-        // If editor already blank, do nothing
-        if (!_currentDocument) {
+        // Change model & dispatch event
+        var previousDocument = _getCurrentDocument();
+
+        if (!previousDocument) {
             return;
         }
-
-        // Change model & dispatch event
-        var previousDocument = _currentDocument;
-        _currentDocument = null;
-
-        // TODO: Remove this
-        MainViewManager._setCurrentDocument(_currentDocument);
-
+        
         // (this event triggers EditorManager to actually clear the editor UI)
-        $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
+        $(exports).triggerHandler("currentDocumentChange", [null, previousDocument]);
     }
     
     /**
@@ -207,7 +231,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the index of the file matching fullPath in MainViewManager._getPaneViewListAdded().
+     * Returns the index of the file matching fullPath 
      * Returns -1 if not found.
      * @param {!string} fullPath
      * @returns {number} index
@@ -326,7 +350,7 @@ define(function (require, exports, module) {
         if (_documentNavPending) {
             _documentNavPending = false;
             
-            _markMostRecent(_currentDocument);
+            _markMostRecent(_getCurrentDocument());
         }
     }
     
@@ -352,9 +376,10 @@ define(function (require, exports, module) {
      *      working set.
      */
     function setCurrentDocument(doc) {
+        var currentDocument = _getCurrentDocument();
         
         // If this doc is already current, do nothing
-        if (_currentDocument === doc) {
+        if (currentDocument === doc) {
             return;
         }
 
@@ -366,21 +391,14 @@ define(function (require, exports, module) {
             MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file);
         }
         
+        
+        // (this event triggers EditorManager to actually switch editors in the UI)
+        $(exports).triggerHandler("currentDocumentChange", [doc, currentDocument]);
+
         // Adjust MRU working set ordering (except while in the middle of a Ctrl+Tab sequence)
         if (!_documentNavPending) {
             _markMostRecent(doc);
         }
-        
-        // Make it the current document
-        var previousDocument = _currentDocument;
-        _currentDocument = doc;
-        
-        // TODO: Remove this
-        MainViewManager._setCurrentDocument(_currentDocument);
-
-        $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
-        // (this event triggers EditorManager to actually switch editors in the UI)
-        
         PerfUtils.addMeasurement(perfTimerName);
     }
 
@@ -400,10 +418,11 @@ define(function (require, exports, module) {
     function closeFullEditor(file, skipAutoSelect) {
         // If this was the current document shown in the editor UI, we're going to switch to a
         // different document (or none if working set has no other options)
-        if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
+        var currentDocument = _getCurrentDocument();
+        if (currentDocument && currentDocument.file.fullPath === file.fullPath) {
             // Get next most recent doc in the MRU order
             var nextFile = MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, 1);
-            if (nextFile && nextFile.fullPath === _currentDocument.file.fullPath) {
+            if (nextFile && nextFile.fullPath === currentDocument.file.fullPath) {
                 // getNextPrevFile() might return the file we're about to close if it's the only one open (due to wraparound)
                 nextFile = null;
             }
@@ -411,10 +430,6 @@ define(function (require, exports, module) {
             // Switch editor to next document (or blank it out)
             if (nextFile && !skipAutoSelect) {
                 CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath })
-                    .done(function () {
-                        // (Now we're guaranteed that the current document is not the one we're closing)
-                        console.assert(!(_currentDocument && _currentDocument.file.fullPath === file.fullPath));
-                    })
                     .fail(function () {
                         // File chosen to be switched to could not be opened, and the original file
                         // is still in editor. Close it again so code will try to open the next file,
@@ -462,28 +477,6 @@ define(function (require, exports, module) {
         });
     }
     
-    /**
-     * Returns the existing open Document for the given file, or null if the file is not open ('open'
-     * means referenced by the UI somewhere). If you will hang onto the Document, you must addRef()
-     * it; see {@link getDocumentForPath()} for details.
-     * @param {!string} fullPath
-     * @return {?Document}
-     */
-    function getOpenDocumentForPath(fullPath) {
-        var id;
-        
-        // Need to walk all open documents and check for matching path. We can't
-        // use getFileForPath(fullPath).id since the file it returns won't match
-        // an Untitled document's InMemoryFile.
-        for (id in _openDocuments) {
-            if (_openDocuments.hasOwnProperty(id)) {
-                if (_openDocuments[id].file.fullPath === fullPath) {
-                    return _openDocuments[id];
-                }
-            }
-        }
-        return null;
-    }
     
     /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
