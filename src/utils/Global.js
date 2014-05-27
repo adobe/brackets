@@ -107,9 +107,9 @@ define(function (require, exports, module) {
     };
     
     // Create empty app namespace if running in-browser
-//    if (!global.brackets.app) {
-//        global.brackets.app = require("appShellImpl");
-//    }
+    if (!global.brackets.app) {
+        global.brackets.app = require("appShellImpl");
+    }
     
     // Loading extensions requires creating new require.js contexts, which
     // requires access to the global 'require' object that always gets hidden
