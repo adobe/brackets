@@ -330,6 +330,18 @@ define(function (require, exports, module) {
             });
         }
         
+        // Code to enable/disable the OK button at the bottom of dialog (whether filter is empty or not)
+        var $primaryBtn = dialog.getElement().find(".primary");
+
+        function updatePrimaryButton() {
+            var trimmedValue = $editField.val().trim();
+
+            $primaryBtn.prop("disabled", !trimmedValue.length);
+        }
+
+        $editField.on("input", updatePrimaryButton);
+        updatePrimaryButton();
+
         if (_context) {
             $editField.on("input", _.debounce(updateFileCount, 400));
             updateFileCount();
