@@ -670,8 +670,8 @@ define(function (require, exports, module) {
                 "mouseup.jstree",
                 function (event) {
                     var treenode = $(event.target).closest("li");
-                    // How long do we wait for the long press. OS X testing seemed to imply 2 seconds
-                    var longPressThreshhold = 200;
+                    // Guess (based on eye-test) for Mac and Win length of a long press before the rename input show sup.
+                    var longPressThreshhold = 250;
                     
                     // Check to make sure the event is happening on the selected item
                     if ($(treenode)[0] === $(_lastSelected)[0]) {
