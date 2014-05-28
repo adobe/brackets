@@ -541,6 +541,8 @@ define(function (require, exports, module) {
      */
     function finalize() {
         var promiseList = [
+                PreferencesImpl.managerReady,
+                PreferencesImpl.smUserScopeLoading,
                 PreferencesImpl.manager._finalize(),
                 PreferencesImpl.stateManager._finalize()
             ],
