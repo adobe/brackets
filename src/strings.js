@@ -52,6 +52,7 @@ define(function (require, exports, module) {
     additionalGlobals.VERSION_MAJOR = parsedVersion[1];
     additionalGlobals.VERSION_MINOR = parsedVersion[2];
     additionalGlobals.VERSION_PATCH = parsedVersion[3];
+    additionalGlobals.BUILD_TIMESTAMP = brackets.config.build_timestamp;
 
     var isDevBuild = !StringUtils.endsWith(decodeURI(window.location.pathname), "/www/index.html");
     additionalGlobals.BUILD_TYPE    = (isDevBuild ? strings.DEVELOPMENT_BUILD : strings.EXPERIMENTAL_BUILD);
