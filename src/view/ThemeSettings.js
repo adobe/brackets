@@ -71,17 +71,17 @@ define(function(require, exports, module) {
             .on("change", function() {
                 var $target = $(":selected", this);
                 var attr = $target.attr("data-target");
-                if ( attr ) {
+                if (attr) {
                     var items = $target.map(function(i, item) {return $(item).val();}).toArray();
-                    prefs.set( attr, items );
+                    prefs.set(attr, items);
                 }
             });
 
-        Dialogs.showModalDialogUsingTemplate($template).done(function( id ) {
-            if ( id === "save" ) {
-                for( var i in newSettings ) {
-                    if ( currentSettings.hasOwnProperty(i) ) {
-                        prefs.set( i, newSettings[i] );
+        Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
+            if (id === "save") {
+                for (var i in newSettings) {
+                    if (currentSettings.hasOwnProperty(i)) {
+                        prefs.set(i, newSettings[i]);
                     }
                 }
             }
@@ -94,7 +94,7 @@ define(function(require, exports, module) {
     }
 
 
-    function getValues () {
+    function getValues() {
         return _.transform(arguments, function(result, value, key) {
             result[value] = prefs.get(value);
         });

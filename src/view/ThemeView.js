@@ -42,7 +42,7 @@ define(function (require, exports, module) {
     }
 
 
-    function updateFontType () {
+    function updateFontType() {
         clearFonts();
         var value = prefs.get("fontType");
         templates.$fontType.text(".CodeMirror{" + "font-family: " + value + " !important; }");
@@ -55,7 +55,7 @@ define(function (require, exports, module) {
     }
 
 
-    function updateFonts () {
+    function updateFonts() {
         clearFonts();
         updateLineHeight();
         updateFontSize();
@@ -65,7 +65,7 @@ define(function (require, exports, module) {
 
     function updateScrollbars(theme) {
         theme = theme || {};
-        if ( prefs.get("customScrollbars") ) {
+        if (prefs.get("customScrollbars")) {
             var scrollbar = (theme.scrollbar || []).join(" ");
             templates.$scrollbars.text(scrollbar || "");
         }
@@ -78,7 +78,7 @@ define(function (require, exports, module) {
     /**
     *  Handles updating codemirror with the current selection of themes.
     */
-    function updateThemes (cm) {
+    function updateThemes(cm) {
         var newThemes = (prefs.get("themes") || []).join(" "),
             cmThemes  = cm.getOption("theme").replace(/[\s]*/, " "); // Normalize themes string
 

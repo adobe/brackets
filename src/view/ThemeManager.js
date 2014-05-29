@@ -50,10 +50,10 @@ define(function (require, exports, module) {
 
         var cm = getCM();
 
-        if(cm) {
+        if (cm) {
             ThemeView.setDocumentMode(cm);
 
-            if(!force) {
+            if (!force) {
                 ThemeView.updateThemes(cm);
                 refreshEditor(cm);
             }
@@ -88,7 +88,7 @@ define(function (require, exports, module) {
         file.exists(function(err, exists) {
             var theme;
 
-            if(exists) {
+            if (exists) {
                 theme = new Theme(file, displayName);
                 _themes[theme.name] = theme;
                 ThemeSettings.setThemes(_themes);
@@ -96,13 +96,13 @@ define(function (require, exports, module) {
                 // For themes that are loaded after ThemeManager has been loaded,
                 // we should check if it the theme in the selected array so that
                 // we can determine if we need to trigger a refresh
-                if(currentThemes.indexOf(theme.name) !== -1) {
+                if (currentThemes.indexOf(theme.name) !== -1) {
                     refresh(true);
                 }
 
                 deferred.resolve(theme);
             }
-            else if(err) {
+            else if (err) {
                 deferred.reject(err);
             }
         });
@@ -126,7 +126,7 @@ define(function (require, exports, module) {
     function loadDirectory(path) {
         var result = new $.Deferred();
 
-        if(!path) {
+        if (!path) {
             return result.reject({
                 path: path,
                 error: "Path not defined"
@@ -143,7 +143,7 @@ define(function (require, exports, module) {
                 }
             }
 
-            if ( err ) {
+            if (err) {
                 result.reject({
                     path: path,
                     error: err
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
     */
     function loadThemes(themes, refresh) {
         var pending = _.map(themes, function (theme) {
-            if ( theme ) {
+            if (theme) {
                 return theme.load(refresh);
             }
         });
@@ -258,7 +258,7 @@ define(function (require, exports, module) {
         var name = (file.name || "").substring(0, file.name.lastIndexOf('.')),
             theme = _themes[name];
 
-        if ( theme && theme.getFile().parentPath === file.parentPath ) {
+        if (theme && theme.getFile().parentPath === file.parentPath) {
             refresh(true);
         }
     });
@@ -275,7 +275,7 @@ define(function (require, exports, module) {
     * the whole workflow of loading an entire directory and also to show case themes in brackets :)
     */
     var cm_path = FileUtils.getNativeBracketsDirectoryPath() + "/thirdparty/CodeMirror2";
-    loadDirectory( cm_path + "/theme" );
+    loadDirectory(cm_path + "/theme");
 
 
     //
