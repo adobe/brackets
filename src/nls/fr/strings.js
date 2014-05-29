@@ -179,11 +179,14 @@ define({
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
     
     // File exclusion filters
-	"NO_FILE_FILTER": "Exclure des fichiers\u2026",
+	"NEW_FILE_FILTER": "[7553590] !é=New Exclusion Set\u2026=!",
+	"CLEAR_FILE_FILTER": "[7553587] !é=Don't Exclude Files=!",
+	"NO_FILE_FILTER": "[7510072] !é=No Files Excluded=!",
+	"EXCLUDE_FILE_FILTER": "[7553588] !é=Exclude {0}=!",
 	"EDIT_FILE_FILTER": "Modifier\u2026",
-	"FILE_FILTER_DIALOG": "Modifier le filtre",
+	"FILE_FILTER_DIALOG": "[7510061] !é=Edit Exclusion Set=!",
 	"FILE_FILTER_INSTRUCTIONS": "Exclure les fichiers et dossiers correspondant à l’une des chaînes/sous-chaînes ou aux <a href='{0}' title='{0}'>caractères génériques</a> suivants. Entrez chaque chaîne sur une ligne différente.",
-	"FILE_FILTER_LIST_PREFIX": "sauf",
+	"FILTER_NAME_PLACEHOLDER": "[7553589] !é=Name this exclusion set (optional)=!",
 	"FILE_FILTER_CLIPPED_SUFFIX": "et {0} autre(s)",
 	"FILTER_COUNTING_FILES": "Comptage des fichiers\u2026",
 	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) sur les {1} {2}",

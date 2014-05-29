@@ -179,11 +179,14 @@ define({
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "サーバーから最新の更新情報を取得する際にエラーが発生しました。インターネット接続を確認してリトライしてください。",
     
     // File exclusion filters
-	"NO_FILE_FILTER": "ファイルを除外\u2026",
+	"NEW_FILE_FILTER": "!能=[7553590] New Exclusion Set\u2026_=!",
+	"CLEAR_FILE_FILTER": "!能=[7553587] Don't Exclude Files_=!",
+	"NO_FILE_FILTER": "!能=[7510072] No Files Excluded_=!",
+	"EXCLUDE_FILE_FILTER": "!能=[7553588] Exclude {0}_=!",
 	"EDIT_FILE_FILTER": "編集\u2026",
-	"FILE_FILTER_DIALOG": "フィルターを編集",
+	"FILE_FILTER_DIALOG": "!能=[7510061] Edit Exclusion Set_=!",
 	"FILE_FILTER_INSTRUCTIONS": "次の文字列やサブストリング、または<a href='{0}' title='{0}'>ワイルドカード</a>のいずれかに一致するファイルおよびフォルダーを除外します。各文字列を新しい行に入力してください。",
-	"FILE_FILTER_LIST_PREFIX": "例外",
+	"FILTER_NAME_PLACEHOLDER": "!能=[7553589] Name this exclusion set (optional)_=!",
 	"FILE_FILTER_CLIPPED_SUFFIX": "さらに {0} 件",
 	"FILTER_COUNTING_FILES": "ファイル数を確認中\u2026",
 	"FILTER_FILE_COUNT": "{2}の {1} ファイル中 {0} ファイルを許可",
