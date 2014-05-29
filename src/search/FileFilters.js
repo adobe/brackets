@@ -289,12 +289,22 @@ define(function (require, exports, module) {
                 instruction: StringUtils.format(Strings.FILE_FILTER_INSTRUCTIONS, brackets.config.glob_help_url),
                 Strings: Strings
             };
-        var dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(EditFilterTemplate, templateVars)),
-            $nameField = dialog.getElement().find(".exclusions-name"),
-            $editField = dialog.getElement().find(".exclusions-editor");
+        var dialog         = Dialogs.showModalDialogUsingTemplate(Mustache.render(EditFilterTemplate, templateVars)),
+            $dialog        = $(".file-filter-dialog"),
+            $submit        = $dialog.find(".dialog-button[data-button-id='" + Dialogs.DIALOG_BTN_OK + "']"),
+            $nameField     = dialog.getElement().find(".exclusions-name"),
+            $editField     = dialog.getElement().find(".exclusions-editor"),
+            filterPatterns = filter.patterns.join("\n");
         
+        function enableOKButton(event) {
+            filterPatterns = $editField.val();
+            $submit.prop("disabled", filterPatterns === "");
+        }
+
         $nameField.val(filter.name);
-        $editField.val(filter.patterns.join("\n")).focus();
+        $editField.on("focus keyup", enableOKButton)
+            .val(filterPatterns)
+            .focus();
         
         function getValue() {
             var newFilter = $editField.val().split("\n");
@@ -308,9 +318,11 @@ define(function (require, exports, module) {
         dialog.done(function (buttonId) {
             if (buttonId === Dialogs.DIALOG_BTN_OK) {
                 // Update saved filter preference
-                setActiveFilter({ name: $nameField.val(), patterns: getValue() }, index);
-                _updatePicker();
-                _doPopulate();
+                if (filterPatterns.length) {
+                    setActiveFilter({ name: $nameField.val(), patterns: getValue() }, index);
+                    _updatePicker();
+                    _doPopulate();
+                }
             }
             lastFocus.focus();  // restore focus to old pos
         });
