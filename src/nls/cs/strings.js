@@ -117,20 +117,21 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> byl smazán z disku, ale změny nebyly uloženy v {APP_NAME}.<br /><br />Chcete uložit změny?",
 
     // Obecné označení - dialogy, tlačítka
-    "EXPERIMENTAL_BUILD"                   : "experimentální verze",
-    "DEVELOPMENT_BUILD"                    : "vývojová verze",
-    "OK"                                   : "OK",
-    "DONT_SAVE"                            : "Neukládat",
-    "SAVE"                                 : "Uložit",
-    "SAVE_AS"                              : "Uložit jako\u2026",
-    "SAVE_AND_OVERWRITE"                   : "Přepsat",
+    "OK"                                : "OK",
+    "CANCEL"                            : "Zrušit",
+    "DONT_SAVE"                         : "Neukládat",
+    "SAVE"                              : "Uložit",
+    "SAVE_AS"                           : "Uložit jako\u2026",
+    "SAVE_AND_OVERWRITE"                : "Přepsat",
+    "DELETE"                            : "Smazat",
+    "BUTTON_YES"                        : "Ano",
+    "BUTTON_NO"                         : "Ne",
   
+    // Find, Replace, Find in Files
     "FIND_RESULT_COUNT"                 : "{0} výsledků",
     "FIND_RESULT_COUNT_SINGLE"          : "1 výsledek",
     "FIND_NO_RESULTS"                   : "Žádné výsledky",
     "REPLACE_PLACEHOLDER"               : "Nahradit s\u2026",
-    "BUTTON_YES"                        : "Ano",
-    "BUTTON_NO"                         : "Ne",
     "BUTTON_REPLACE_ALL"                : "Vše\u2026",
     "BUTTON_REPLACE"                    : "Nahradit",
 
@@ -363,8 +364,8 @@ define({
     "CMD_OPEN_PREFERENCES"                : "Otevřít soubor s preferencemi",
 
     // Řetězce pro main-view.html
-    "CANCEL"                               : "Zrušit",
-    "DELETE"                               : "Smazat",
+    "EXPERIMENTAL_BUILD"                   : "experimentální verze",
+    "DEVELOPMENT_BUILD"                    : "vývojová verze",
     "RELOAD_FROM_DISK"                     : "Načíst z disku",
     "KEEP_CHANGES_IN_EDITOR"               : "Ponechat změny v editoru",
     "CLOSE_DONT_SAVE"                      : "Zavřít (neukládat)",
@@ -500,11 +501,11 @@ define({
     "CMD_LOG_NODE_STATE"                  : "Uložit stav Node do konzole",
     "CMD_RESTART_NODE"                    : "Restartovat Node",
 
-    "LANGUAGE_TITLE"                    : "Změnit jazyk",
-    "LANGUAGE_MESSAGE"                  : "Prosím, vyberte jazyk ze seznamu:",
-    "LANGUAGE_SUBMIT"                   : "Restartovat {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Zrušit",
-    "LANGUAGE_SYSTEM_DEFAULT"           : "Výchozí",
+    "LANGUAGE_TITLE"                      : "Změnit jazyk",
+    "LANGUAGE_MESSAGE"                    : "Prosím, vyberte jazyk ze seznamu:",
+    "LANGUAGE_SUBMIT"                     : "Restartovat {APP_NAME}",
+    "LANGUAGE_CANCEL"                     : "Zrušit",
+    "LANGUAGE_SYSTEM_DEFAULT"             : "Výchozí",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Doba",
