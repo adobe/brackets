@@ -41,10 +41,10 @@ define({
 	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
 	"FILE": "fichier",
 	"DIRECTORY": "répertoire",
-	"DIRECTORY_NAMES_LEDE": "Noms de répertoire",
-	"FILENAMES_LEDE": "Noms de fichier",
-	"FILENAME": "nom de fichier",
-	"DIRECTORY_NAME": "nom de répertoire",
+	"DIRECTORY_NAMES_LEDE": "noms de répertoires",
+	"FILENAMES_LEDE": "noms de fichiers",
+	"FILENAME": "Nom de fichier",
+	"DIRECTORY_NAME": "Nom de répertoire",
     
 
     // Project error strings
@@ -66,7 +66,7 @@ define({
 	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du fichier",
 	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "{0} non valide",
-	"INVALID_FILENAME_MESSAGE": "Le {0} ne peut pas utiliser de termes réservés au système, finir par un point (.) ou contenir l’un des caractères suivants : <code class='emphasized'>{1}</code>",
+	"INVALID_FILENAME_MESSAGE": "Les {0} ne peuvent pas utiliser de termes réservés au système, finir par un point (.) ou contenir l’un des caractères suivants : <code class='emphasized'>{1}</code>",
 	"ENTRY_WITH_SAME_NAME_EXISTS": "Il existe déjà un fichier ou un répertoire portant le nom <span class='dialog-filename'>{0}</span>.",
 	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création du {0}",
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du {0} <span class='dialog-filename'>{1}</span>. {2}",
@@ -179,11 +179,14 @@ define({
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
     
     // File exclusion filters
-	"NO_FILE_FILTER": "Exclure des fichiers\u2026",
+	"NEW_FILE_FILTER": "[7553590] !é=New Exclusion Set\u2026=!",
+	"CLEAR_FILE_FILTER": "[7553587] !é=Don't Exclude Files=!",
+	"NO_FILE_FILTER": "[7510072] !é=No Files Excluded=!",
+	"EXCLUDE_FILE_FILTER": "[7553588] !é=Exclude {0}=!",
 	"EDIT_FILE_FILTER": "Modifier\u2026",
-	"FILE_FILTER_DIALOG": "Modifier le filtre",
+	"FILE_FILTER_DIALOG": "[7510061] !é=Edit Exclusion Set=!",
 	"FILE_FILTER_INSTRUCTIONS": "Exclure les fichiers et dossiers correspondant à l’une des chaînes/sous-chaînes ou aux <a href='{0}' title='{0}'>caractères génériques</a> suivants. Entrez chaque chaîne sur une ligne différente.",
-	"FILE_FILTER_LIST_PREFIX": "sauf",
+	"FILTER_NAME_PLACEHOLDER": "[7553589] !é=Name this exclusion set (optional)=!",
 	"FILE_FILTER_CLIPPED_SUFFIX": "et {0} autre(s)",
 	"FILTER_COUNTING_FILES": "Comptage des fichiers\u2026",
 	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) sur les {1} {2}",

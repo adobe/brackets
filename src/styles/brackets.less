@@ -1199,27 +1199,78 @@ a, img {
 }
 
 // File exclusion filter (used only in Find in Files search bar, for now)
-.filter-picker {
-    display: inline-block;
-    margin-left: 8px;
-    button {
-        margin-left: 8px;
-    }
+.filter-trash-icon {
+    position: absolute;
+    left: 7px;
+    width: 16px;
+    height: 16px;
+    font-size: 20px;
+    color: rgba(0, 0, 0, 0.5);
+    line-height: 15px;
+    text-align: center;
+    visibility: hidden;
+}
+
+.filter-trash-icon:hover {
+    color: rgba(0, 0, 0, 1);
+}
+
+.filter-edit-icon {
+    float: right;
+    width: 13px;
+    height: 13px;
+    background-image: url("images/edit-icon.svg");
+    background-repeat: no-repeat;
+    opacity: 0.5;
+    visibility: hidden;
+    position: relative;
+    top: 2px;
+    right: -4px;
+}
+
+.filter-edit-icon:hover {
+    opacity: 1;
+}
+
+li:hover .filter-trash-icon,
+li:hover .filter-edit-icon {
+    visibility: visible;
+}
+
+.recent-filter-name {
+    margin-left: 12px;
+}
+
+.recent-filter-patterns {
+    color: @tc-light-weight-quiet-text;
+    padding-right: 52px;
+}
+
+button.file-filter-picker {
+    margin-left: 10px;
 }
 
 // File exclusion filter editor dialog
+input.exclusions-name {
+    display: block;
+    width: 100%;
+    height: 30px;
+    box-sizing: border-box; // needed for width: 100% since it has padding
+    margin-top: 12px;
+    margin-bottom: 0;
+}
 textarea.exclusions-editor {
     display: block;
     width: 100%;
-    height: 160px;
+    height: 120px;
     box-sizing: border-box; // needed for width: 100% since it has padding
-    margin-top: 12px;
+    margin-top: 5px;
     margin-bottom: 0;
     .code-font();
 }
 .exclusions-filecount {
-    margin: 12px 0 -20px 0;
-    padding: 4px 6px;
+    margin: 12px 0 -14px 0;
+    padding: 4px 8px;
     background-color: @tc-highlight;
     border-radius: @tc-control-border-radius;
 }
