@@ -452,8 +452,9 @@ define(function (require, exports, module) {
      * outcome. Also, in cases where asynchronous tasks are performed after the dialog closes,
      * clients must also wait for any additional promises.
      * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
+     * @param {boolean=} enableFirst  If true, then enable the button before clicking.
      */
-    function clickDialogButton(buttonId) {
+    function clickDialogButton(buttonId, enableFirst) {
         // Make sure there's one and only one dialog open
         var $dlg = _testWindow.$(".modal.instance"),
             promise = $dlg.data("promise");
@@ -461,11 +462,16 @@ define(function (require, exports, module) {
         expect($dlg.length).toBe(1);
         
         // Make sure desired button exists
-        var dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
-        expect(dismissButton.length).toBe(1);
+        var $dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
+        expect($dismissButton.length).toBe(1);
+        
+        if (enableFirst) {
+            // Remove the disabled prop.
+            $dismissButton.prop("disabled", false);
+        }
         
         // Click the button
-        dismissButton.click();
+        $dismissButton.click();
 
         // Dialog should resolve/reject the promise
         waitsForDone(promise, "dismiss dialog");
