@@ -21,9 +21,8 @@ define(function(require, exports, module) {
         "themes": ["default"]
     };
 
-    var tmpl = {
-        "settings": require("text!htmlContent/themes-settings.html"),
-        "general": require("text!htmlContent/themes-general.html")
+    var templates = {
+        "settings": require("text!htmlContent/themes-settings.html")
     };
 
     var _                  = require("thirdparty/lodash"),
@@ -35,9 +34,7 @@ define(function(require, exports, module) {
 
 
     // Setup all the templates so that we can easily render them with Mustache
-    var $settings = $(tmpl.settings).addClass("themeSettings");
-    $("#generalSettings", $settings).html(tmpl.general);
-
+    var $settings = $(templates.settings).addClass("themeSettings");
 
     function showDialog() {
         var currentSettings = getValues("themes", "fontSize", "fontType", "lineHeight", "customScrollbars");
