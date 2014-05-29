@@ -25,7 +25,7 @@ define(function (require, exports, module) {
             fontSizeNumeric = Number(fontSize.replace(/px|em/, "")),
             fontSizeOffset  = fontSizeNumeric - ThemeSettings.defaults.fontSize;
 
-        if(!isNaN(fontSizeOffset)) {
+        if (!isNaN(fontSizeOffset)) {
             PreferencesManager.setViewState("fontSizeAdjustment", fontSizeOffset);
             PreferencesManager.setViewState("fontSizeStyle", fontSize);
         }
