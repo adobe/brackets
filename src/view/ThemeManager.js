@@ -53,7 +53,7 @@ define(function (require, exports, module) {
         if(cm) {
             ThemeView.setDocumentMode(cm);
 
-            if(force === false) {
+            if(!force) {
                 ThemeView.updateThemes(cm);
                 refreshEditor(cm);
             }
@@ -250,7 +250,7 @@ define(function (require, exports, module) {
 
 
     $(EditorManager).on("activeEditorChange", function() {
-        refresh(true);
+        refresh();
     });
 
 
