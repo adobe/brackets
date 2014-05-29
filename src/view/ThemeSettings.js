@@ -1,33 +1,46 @@
-/*
+/**
  * Brackets Themes Copyright (c) 2014 Miguel Castillo.
  *
  * Licensed under MIT
  */
 
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global $, define, require, Mustache */
 
-define(function(require) {
+define(function(require, exports, module) {
     "use strict";
 
-    var _       = require("thirdparty/lodash"),
-        Dialogs = require("widgets/Dialogs"),
-        Strings = require("strings"),
+    var _themes = {};
 
-        tmpl = {
-            "settings": require("text!htmlContent/themes-settings.html"),
-            "general": require("text!htmlContent/themes-general.html")
-        };
+    var defaults = {
+        "fontSize": 12,
+        "lineHeight": '1.3em',
+        "fontType": "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace",
+        "customScrollbars": true,
+        "themes": ["default"]
+    };
 
-    var _themes;
+    var tmpl = {
+        "settings": require("text!htmlContent/themes-settings.html"),
+        "general": require("text!htmlContent/themes-general.html")
+    };
+
+    var _                  = require("thirdparty/lodash"),
+        FileUtils          = require("file/FileUtils"),
+        Dialogs            = require("widgets/Dialogs"),
+        Strings            = require("strings"),
+        PreferencesManager = require("preferences/PreferencesManager"),
+        prefs              = PreferencesManager.getExtensionPrefs("brackets-themes");
+
 
     // Setup all the templates so that we can easily render them with Mustache
     var $settings = $(tmpl.settings).addClass("themeSettings");
     $("#generalSettings", $settings).html(tmpl.general);
 
 
-    function show(settings) {
-        var currentSettings = settings.getAll("themes", "fontSize", "fontType", "lineHeight", "customScrollbars");
+    function showDialog() {
+        var currentSettings = getValues("themes", "fontSize", "fontType", "lineHeight", "customScrollbars");
         var newSettings     = {};
         var themes          = _.map(_themes, function(theme) {return theme;});
         var template        = $("<div>").append($settings).html();
@@ -60,7 +73,7 @@ define(function(require) {
                 var attr = $target.attr("data-target");
                 if ( attr ) {
                     var items = $target.map(function(i, item) {return $(item).val();}).toArray();
-                    settings.setValue( attr, items );
+                    prefs.set( attr, items );
                 }
             });
 
@@ -68,7 +81,7 @@ define(function(require) {
             if ( id === "save" ) {
                 for( var i in newSettings ) {
                     if ( currentSettings.hasOwnProperty(i) ) {
-                        settings.setValue( i, newSettings[i] );
+                        prefs.set( i, newSettings[i] );
                     }
                 }
             }
@@ -81,8 +94,31 @@ define(function(require) {
     }
 
 
-    return {
-        setThemes: setThemes,
-        show: show
-    };
+    function getValues () {
+        return _.transform(arguments, function(result, value, key) {
+            result[value] = prefs.get(value);
+        });
+    }
+
+
+    function reset() {
+        prefs.set("themes",           defaults.themes);
+        prefs.set("fontSize",         defaults.fontSize + "px");
+        prefs.set("lineHeight",       defaults.lineHeight);
+        prefs.set("fontType",         defaults.fontType);
+        prefs.set("customScrollbars", defaults.customScrollbars);
+    }
+
+
+    prefs.definePreference("themes", "array", defaults.themes);
+    prefs.definePreference("fontSize", "string", defaults.fontSize + "px");
+    prefs.definePreference("lineHeight", "string", defaults.lineHeight);
+    prefs.definePreference("fontType", "string", defaults.fontType);
+    prefs.definePreference("customScrollbars", "boolean", defaults.customScrollbars);
+
+
+    // Exposed API
+    exports.defaults   = defaults;
+    exports.setThemes  = setThemes;
+    exports.showDialog = showDialog;
 });

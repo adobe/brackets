@@ -28,6 +28,8 @@
 define(function(require) {
     "use strict";
 
+    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror");
+
     // Load CodeMirror add-ons--these attach themselves to the CodeMirror module
     require("thirdparty/CodeMirror2/addon/fold/xml-fold");
     require("thirdparty/CodeMirror2/addon/edit/matchtags");
@@ -36,10 +38,15 @@ define(function(require) {
     require("thirdparty/CodeMirror2/addon/edit/closetag");
     require("thirdparty/CodeMirror2/addon/scroll/scrollpastend");
     require("thirdparty/CodeMirror2/addon/selection/active-line");
+    require("thirdparty/CodeMirror2/addon/selection/mark-selection");
     require("thirdparty/CodeMirror2/addon/mode/multiplex");
     require("thirdparty/CodeMirror2/addon/mode/overlay");
     require("thirdparty/CodeMirror2/addon/search/match-highlighter");
     require("thirdparty/CodeMirror2/addon/search/searchcursor");
     require("thirdparty/CodeMirror2/keymap/sublime");
+
+
+    CodeMirror.defaults.highlightSelectionMatches = true;
+    CodeMirror.defaults.styleSelectedText = true;
 
 });

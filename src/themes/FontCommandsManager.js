@@ -8,24 +8,22 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global $, define, require */
 
-define(function (require) {
+define(function (require, exports, module) {
     "use strict";
 
-    var Settings            = require("themes/SettingsManager"),
-        DefaultSettings     = require("themes/DefaultSettings"),
+    var ThemeSettings       = require("view/ThemeSettings"),
         ViewCommandHandlers = require("view/ViewCommandHandlers"),
-        PreferencesManager  = require("preferences/PreferencesManager");
-
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        prefs               = PreferencesManager.getExtensionPrefs("brackets-themes");
 
     function updateThemeFontSize (evt, adjustment, fontSize /*, lineHeight*/) {
-        Settings.setValue("fontSize", fontSize);
+        prefs.set("fontSize", fontSize);
     }
 
-
     function updateBracketsFontSize() {
-        var fontSize = Settings.getValue("fontSize"),
+        var fontSize        = prefs.get("fontSize"),
             fontSizeNumeric = Number(fontSize.replace(/px|em/, "")),
-            fontSizeOffset = fontSizeNumeric - DefaultSettings.fontSize;
+            fontSizeOffset  = fontSizeNumeric - ThemeSettings.defaults.fontSize;
 
         if(!isNaN(fontSizeOffset)) {
             PreferencesManager.setViewState("fontSizeAdjustment", fontSizeOffset);
@@ -33,8 +31,7 @@ define(function (require) {
         }
     }
 
-
     $(ViewCommandHandlers).on("fontSizeChange", updateThemeFontSize);
-    $(Settings).on("change:fontSize", updateBracketsFontSize);
+    prefs.on("change", "fontSize", updateBracketsFontSize);
     updateBracketsFontSize();
 });
