@@ -217,6 +217,36 @@ define(function (require, exports, module) {
 
         context.allowInstall = context.isCompatible && !context.isInstalled;
 
+        if (Array.isArray(info.metadata.i18n) && info.metadata.i18n.length > 0) {
+            var lang      = brackets.getLocale(),
+                shortLang = lang.split("-")[0];
+
+            // TODO: Unify with the exact same function in extensions/default/DebugCommands/main.js
+            // New module?
+            var getLocalizedLabel = function (locale) {
+                var key  = "LOCALE_" + locale.toUpperCase().replace("-", "_"),
+                    i18n = Strings[key];
+
+                return i18n === undefined ? locale : i18n;
+            };
+
+            // TODO: Simplify
+            context.langTranslated = (brackets.isLocaleDefault() && $.inArray(shortLang, info.metadata.i18n) !== -1) ||
+                $.inArray(lang, info.metadata.i18n) !== -1;
+            if (context.langTranslated) {
+                // TODO: Is there a way not to use this var?
+                var langNames = [];
+                info.metadata.i18n.forEach(function (value, key) {
+                    langNames.push(getLocalizedLabel(value));
+                });
+                langNames.sort(function (lang1, lang2) {
+                    return lang1.localeCompare(lang2);
+                });
+
+                context.translatedLangs = StringUtils.format(Strings.EXTENSION_TRANSLATED_LANGS, langNames.join(", "));
+            }
+        }
+
         var isInstalledInUserFolder = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
         context.allowRemove = isInstalledInUserFolder;
         context.allowUpdate = context.showUpdateButton && context.isCompatible && context.updateCompatible && isInstalledInUserFolder;

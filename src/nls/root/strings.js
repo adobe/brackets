@@ -462,6 +462,8 @@ define({
     "EXTENSION_MORE_INFO"                  : "More info...",
     "EXTENSION_ERROR"                      : "Extension error",
     "EXTENSION_KEYWORDS"                   : "Keywords",
+    "EXTENSION_TRANSLATED"                 : "Translated into your language",
+    "EXTENSION_TRANSLATED_LANGS"           : "This extension has been translated into these languages: {0}",
     "EXTENSION_INSTALLED"                  : "Installed",
     "EXTENSION_UPDATE_INSTALLED"           : "This extension update has been downloaded and will be installed after {APP_NAME} reloads.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
