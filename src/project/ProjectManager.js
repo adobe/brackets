@@ -76,42 +76,10 @@ define(function (require, exports, module) {
         Async               = require("utils/Async"),
         FileSyncManager     = require("project/FileSyncManager"),
         EditorManager       = require("editor/EditorManager"),
-        FileTreeView        = require("jsx!project/FileTreeView");
+        ProjectModel        = require("project/ProjectModel"),
+        FileTreeView        = require("project/FileTreeView");
     
     
-    /**
-     * Name of the preferences for sorting directories first
-     * 
-     * @type {string}
-     */
-    var SORT_DIRECTORIES_FIRST = "sortDirectoriesFirst";
-    
-    
-    /**
-     * @private
-     * Forward declaration for the _fileSystemChange and _fileSystemRename functions to make JSLint happy.
-     */
-    var _fileSystemChange,
-        _fileSystemRename;
-
-    /**
-     * @private
-     * File tree sorting for mac-specific sorting behavior
-     */
-    var _sortPrefixDir,
-        _sortPrefixFile;
-    
-    /**
-     * @private
-     * File and folder names which are not displayed or searched
-     * TODO: We should add the rest of the file names that TAR excludes:
-     *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
-     * TODO: This should be user configurable
-     *    https://github.com/adobe/brackets/issues/6781
-     * @type {RegExp}
-     */
-    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.hgtags$|^\.idea$|^\.c9revisions$|^\.SyncArchive$|^\.SyncID$|^\.SyncIgnore$|\~$/;
-
     /**
      * @private
      * Filename to use for project settings files.
@@ -119,62 +87,7 @@ define(function (require, exports, module) {
      */
     var SETTINGS_FILENAME = "." + PreferencesManager.SETTINGS_FILENAME;
 
-    /**
-     * @private
-     * Reference to the tree control container div. Initialized by
-     * htmlReady handler
-     * @type {jQueryObject}
-     */
-    var $projectTreeContainer;
-    
-    /**
-     * @private
-     * Reference to the tree control
-     * @type {jQueryObject}
-     */
-    var _projectTree = null;
-        
-    /**
-     * @private
-     * Reference to previous selected jstree leaf node when ProjectManager had
-     * selection focus from FileViewController.
-     * @type {DOMElement}
-     */
-    var _lastSelected = null;
-    
-    /**
-     * @private
-     * Internal flag to suppress firing of selectionChanged event.
-     * @type {boolean}
-     */
-    var _suppressSelectionChange = false;
-    
-    /**
-     * @private
-     * Reference to the tree control UL element
-     * @type {DOMElement}
-     */
-    var $projectTreeList;
-    
-    /**
-     * @private
-     * @see getProjectRoot()
-     * @type {Directory}
-     */
-    var _projectRoot = null;
-
-    /**
-     * @private
-     * Encoded URL
-     * @ see getBaseUrl(), setBaseUrl()
-     */
-    var _projectBaseUrl = "";
-    
-    /**
-     * @private
-     * Used to initialize jstree state
-     */
-    var _projectInitialLoad = null;
+    var SORT_DIRECTORIES_FIRST = "sortDirectoriesFirst";
     
     /**
      * @private
@@ -187,65 +100,37 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * RegEx to validate if a filename is not allowed even if the system allows it.
-     * This is done to prevent cross-platform issues.
+     * Forward declaration for the _fileSystemChange and _fileSystemRename functions to make JSLint happy.
      */
-            
-    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux|)$|\.+$/i;
+    var _fileSystemChange,
+        _fileSystemRename;
+
+    /**
+     * @private
+     * Reference to the tree control container div. Initialized by
+     * htmlReady handler
+     * @type {jQueryObject}
+     */
+    var $projectTreeContainer;
+    
+    /**
+     * @private
+     * Internal flag to suppress firing of selectionChanged event.
+     * @type {boolean}
+     */
+    var _suppressSelectionChange = false;
     
     var suppressToggleOpen = false;
     
-    /**
-     * @private
-     * @type {?jQuery.Promise.<Array<File>>}
-     * A promise that is resolved with an array of all project files. Used by 
-     * ProjectManager.getAllFiles().
-     */
-    var _allFilesCachePromise = null;
+    var viewModel = new FileTreeView.ViewModel(),
+        model = new ProjectModel.ProjectModel();
     
-    /**
-     * @private
-     */
-    function _hasFileSelectionFocus() {
-        return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
+    function Dispatcher(model, viewModel) {
+        this.model = model;
+        this.viewModel = viewModel;
     }
     
-    /**
-     * @private
-     */
-    function _redraw(selectionChanged, reveal) {
-        reveal = (reveal === undefined) ? true : reveal;
-        
-        // redraw selection
-        if ($projectTreeList) {
-            if (selectionChanged && !_suppressSelectionChange) {
-                $projectTreeList.triggerHandler("selectionChanged", reveal);
-            }
-
-            // reposition the selection triangle
-            $projectTreeContainer.triggerHandler("selectionRedraw");
-            
-            // in-lieu of resize events, manually trigger contentChanged for every
-            // FileViewController focus change. This event triggers scroll shadows
-            // on the jstree to update. documentSelectionFocusChange fires when
-            // a new file is added and removed (causing a new selection) from the working set
-            _projectTree.triggerHandler("contentChanged");
-        }
-    }
-    
-    /**
-     * Returns the File or Directory corresponding to the item selected in the file tree, or null
-     * if no item is selected in the tree (though the working set may still have a selection; use
-     * getSelectedItem() to get the selection regardless of whether it's in the tree or working set).
-     * @return {?(File|Directory)}
-     */
-    function _getTreeSelectedItem() {
-        var selected = _projectTree.jstree("get_selected");
-        if (selected) {
-            return selected.data("entry");
-        }
-        return null;
-    }
+    var _renderTree;
     
     /**
      * Returns the File or Directory corresponding to the item selected in the sidebar panel, whether in
@@ -256,7 +141,7 @@ define(function (require, exports, module) {
      */
     function getSelectedItem() {
         // Prefer file tree selection, else use working set selection
-        var selectedEntry = _getTreeSelectedItem();
+        var selectedEntry = viewModel.selected();
         if (!selectedEntry) {
             var doc = DocumentManager.getCurrentDocument();
             selectedEntry = (doc && doc.file);
@@ -265,57 +150,20 @@ define(function (require, exports, module) {
     }
 
     function _fileViewFocusChange() {
-        _redraw(true);
+        _renderTree();
     }
     
     function _documentSelectionFocusChange() {
         _renderTree();
     }
     
-    function _olddocumentSelectionFocusChange() {
-        var curFile = EditorManager.getCurrentlyViewedPath();
-        if (curFile && _hasFileSelectionFocus()) {
-            var nodeFound = $("#project-files-container li").is(function (index) {
-                var $treeNode = $(this),
-                    entry = $treeNode.data("entry");
-                if (entry && entry.fullPath === curFile) {
-                    if (!_projectTree.jstree("is_selected", $treeNode)) {
-                        if ($treeNode.parents(".jstree-closed").length) {
-                            //don't auto-expand tree to show file - but remember it if parent is manually expanded later
-                            _projectTree.jstree("deselect_all");
-                            _lastSelected = $treeNode;
-                        } else {
-                            //we don't want to trigger another selection change event, so manually deselect
-                            //and select without sending out notifications
-                            _projectTree.jstree("deselect_all");
-                            _projectTree.jstree("select_node", $treeNode, false);  // sets _lastSelected
-                        }
-                    }
-                    return true;
-                }
-                return false;
-            });
-            
-            // file is outside project subtree, or in a folder that's never been expanded yet
-            if (!nodeFound) {
-                _projectTree.jstree("deselect_all");
-                _lastSelected = null;
-            }
-        } else if (_projectTree !== null) {
-            _projectTree.jstree("deselect_all");
-            _lastSelected = null;
-        }
-        
-        _redraw(true);
-    }
-
     /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
      * startup, or running outside of app shell).
      * @return {Directory}
      */
     function getProjectRoot() {
-        return _projectRoot;
+        return model.projectRoot;
     }
 
     /**
@@ -324,7 +172,7 @@ define(function (require, exports, module) {
      * @return {String}
      */
     function getBaseUrl() {
-        return _projectBaseUrl;
+        return model.projectBaseUrl;
     }
 
     /**
@@ -334,17 +182,11 @@ define(function (require, exports, module) {
     function setBaseUrl(projectBaseUrl) {
         var context = { location : { scope: "user",
                                      layer: "project",
-                                     layerID: _projectRoot.fullPath} };
+                                     layerID: model.projectRoot.fullPath} };
         
-        _projectBaseUrl = projectBaseUrl;
+        projectBaseUrl = model.setBaseUrl(projectBaseUrl);
 
-        // Ensure trailing slash to be consistent with _projectRoot.fullPath
-        // so they're interchangable (i.e. easy to convert back and forth)
-        if (_projectBaseUrl.length > 0 && _projectBaseUrl[_projectBaseUrl.length - 1] !== "/") {
-            _projectBaseUrl += "/";
-        }
-
-        PreferencesManager.setViewState("project.baseUrl", _projectBaseUrl, context);
+        PreferencesManager.setViewState("project.baseUrl", projectBaseUrl, context);
     }
     
     /**
@@ -354,9 +196,9 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     function isWithinProject(absPathOrEntry) {
-        var absPath = absPathOrEntry.fullPath || absPathOrEntry;
-        return (_projectRoot && absPath.indexOf(_projectRoot.fullPath) === 0);
+        return model.isWithinProject(absPathOrEntry);
     }
+    
     /**
      * If absPath lies within the project, returns a project-relative path. Else returns absPath
      * unmodified.
@@ -365,10 +207,7 @@ define(function (require, exports, module) {
      * @return {!string}
      */
     function makeProjectRelativeIfPossible(absPath) {
-        if (isWithinProject(absPath)) {
-            return absPath.slice(_projectRoot.fullPath.length);
-        }
-        return absPath;
+        return model.makeProjectRelativeIfPossible(absPath);
     }
 
     /**
@@ -376,397 +215,17 @@ define(function (require, exports, module) {
      * Save ProjectManager project path and tree state.
      */
     function _savePreferences() {
-        
-        // save the current project
-        PreferencesManager.setViewState("projectPath", _projectRoot.fullPath);
-
-        // save jstree state
-        var openNodes = [],
-            projectPathLength = _projectRoot.fullPath.length,
-            entry,
-            fullPath,
-            shortPath,
-            depth,
-            context = { location : { scope: "user",
+        var context = { location : { scope: "user",
                                      layer: "project",
-                                     layerID: _projectRoot.fullPath } };
+                                     layerID: model.projectRoot.fullPath } };
 
-        // Query open nodes by class selector
-        $(".jstree-open:visible").each(function (index) {
-            entry = $(this).data("entry");
-
-            if (entry.fullPath) {
-                fullPath = entry.fullPath;
-
-                // Truncate project path prefix (including its last slash) AND remove trailing slash suffix
-                // So "/foo/bar/projroot/abc/xyz/" -> "abc/xyz"
-                shortPath = fullPath.slice(projectPathLength, -1);
-
-                // Determine depth of the node by counting path separators.
-                // Children at the root have depth of zero
-                depth = shortPath.split("/").length - 1;
-
-                // Map tree depth to list of open nodes
-                if (openNodes[depth] === undefined) {
-                    openNodes[depth] = [];
-                }
-
-                openNodes[depth].push(fullPath);
-            }
-        });
-
+        // save the current project
+        PreferencesManager.setViewState("projectPath", model.projectRoot.fullPath);
+        
+        var openNodes = viewModel.getTreeState();
+        
         // Store the open nodes by their full path and persist to storage
         PreferencesManager.setViewState("project.treeState", openNodes, context);
-    }
-    
-    /**
-     * @private
-     */
-    function _forceSelection(current, target) {
-        // select_node will force the target to be revealed. Instead,
-        // keep the scroller position stable.
-        var savedScrollTop = $projectTreeContainer.get(0).scrollTop;
-        
-        // suppress selectionChanged event from firing by jstree select_node
-        _suppressSelectionChange = true;
-        if (current) {
-            _projectTree.jstree("deselect_node", current);
-        }
-        _projectTree.jstree("select_node", target, false);
-        _suppressSelectionChange = false;
-        
-        $projectTreeContainer.get(0).scrollTop = savedScrollTop;
-        
-        _redraw(true, false);
-    }
-
-    /**
-     * Returns false when the event occured without any input present in the li closest to the DOM object
-     *
-     * @param {event} event to check
-     * @return boolean true if an input field is present
-     */
-    function _isInRename(element) {
-        return ($(element).closest("li").find("input").length > 0);
-    }
-        
-    /**
-     * @private
-     * Reopens a set of nodes in the tree by ID.
-     * @param {Array.<Array.<string>>} nodesByDepth An array of arrays of node ids to reopen. The ids within
-     *     each sub-array are reopened in parallel, and the sub-arrays are reopened in order, so they should
-     *     be sorted by depth within the tree.
-     * @param {$.Deferred} resultDeferred A Deferred that will be resolved when all nodes have been fully
-     *     reopened.
-     */
-    function _reopenNodes(nodesByDepth, resultDeferred) {
-        if (nodesByDepth.length === 0) {
-            // All paths are opened and fully rendered.
-            resultDeferred.resolve();
-        } else {
-            var toOpenPaths = nodesByDepth.shift(),
-                toOpenIds   = [],
-                node        = null;
-
-            // use path to lookup ID
-            toOpenPaths.forEach(function (value, index) {
-                node = _projectInitialLoad.fullPathToIdMap[value];
-                
-                if (node) {
-                    toOpenIds.push(node);
-                }
-            });
-            
-            Async.doInParallel(
-                toOpenIds,
-                function (id) {
-                    var result = new $.Deferred();
-                    _projectTree.jstree("open_node", "#" + id, function () {
-                        result.resolve();
-                    }, true);
-                    return result.promise();
-                },
-                false
-            ).always(function () {
-                _reopenNodes(nodesByDepth, resultDeferred);
-            });
-        }
-    }
-
-    var openPaths = {},
-        fileContext = null,
-        rename = null,
-        _renderTree;
-    
-    function _togglePath(path, open) {
-        if (open) {
-            openPaths[path] = true;
-        } else {
-            delete openPaths[path];
-        }
-        _renderTree();
-    }
-    
-    function _setSelected(path) {
-        fileContext = null;
-        var openResult = FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
-
-        openResult.done(function () {
-            _renderTree();
-        });
-    }
-    
-    function _setContext(path) {
-        fileContext = path;
-        _renderTree();
-    }
-    
-    function getContext() {
-        return fileContext;
-    }
-    
-    _renderTree = function () {
-        if (!_projectRoot) {
-            return;
-        }
-        var curDoc = DocumentManager.getCurrentDocument(),
-            selected = curDoc && curDoc.file ? curDoc.file.fullPath : "";
-        
-        FileTreeView.render($projectTreeContainer[0], _projectRoot, {
-            openPaths: openPaths,
-            selected: selected,
-            setSelected: _setSelected,
-            context: fileContext,
-            setContext: _setContext,
-            togglePath: _togglePath,
-            rename: rename,
-            dirsFirst: PreferencesManager.get(SORT_DIRECTORIES_FIRST)
-        });
-        return new $.Deferred().resolve();
-    };
-    
-    /**
-     * @private
-     * Given an input to jsTree's json_data.data setting, display the data in the file tree UI
-     * (replacing any existing file tree that was previously displayed). This input could be
-     * raw JSON data, or it could be a dataprovider function. See jsTree docs for details:
-     * http://www.jstree.com/documentation/json_data
-     */
-    function _oldrenderTree(treeDataProvider) {
-        var result = new $.Deferred();
-
-        // For #1542, make sure the tree is scrolled to the top before refreshing.
-        // If we try to do this later (e.g. after the tree has been refreshed), it
-        // doesn't seem to work properly.
-        $projectTreeContainer.scrollTop(0);
-        
-        // Instantiate tree widget
-        // (jsTree is smart enough to replace the old tree if there's already one there)
-        $projectTreeContainer.hide()
-            .addClass("no-focus");
-        _projectTree = $projectTreeContainer
-            .jstree({
-                plugins : ["ui", "themes", "json_data", "crrm", "sort"],
-                ui : { select_limit: 1, select_multiple_modifier: "", select_range_modifier: "" },
-                json_data : { data: treeDataProvider, correct_state: false },
-                core : { html_titles: true, animation: 0, strings : { loading : Strings.PROJECT_LOADING, new_node : "New node" } },
-                themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
-                    //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
-                    // file because jsTree insists on loading one itself)
-                sort : _projectTreeSortComparator
-            }).bind(
-                "before.jstree",
-                function (event, data) {
-                    if (data.func === "toggle_node") {
-                        // jstree will automaticaly select parent node when the parent is closed
-                        // and any descendant is selected. Prevent the select_node handler from
-                        // immediately toggling open again in this case.
-                        suppressToggleOpen = _projectTree.jstree("is_open", data.args[0]);
-                    }
-                }
-            ).bind(
-                "select_node.jstree",
-                function (event, data) {
-                    var entry = data.rslt.obj.data("entry");
-                    if (entry) {
-                        if (entry.isFile) {
-                            var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
-                        
-                            openResult.done(function () {
-                                // update when tree display state changes
-                                _redraw(true);
-                                _lastSelected = data.rslt.obj;
-                            }).fail(function () {
-                                if (_lastSelected) {
-                                    // revert this new selection and restore previous selection
-                                    _forceSelection(data.rslt.obj, _lastSelected);
-                                } else {
-                                    _projectTree.jstree("deselect_all");
-                                    _lastSelected = null;
-                                }
-                            });
-                        } else {
-                            FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
-                            // show selection marker on folders
-                            _redraw(true);
-                            
-                            // toggle folder open/closed
-                            // suppress if this selection was triggered by clicking the disclousre triangle
-                            if (!suppressToggleOpen) {
-                                _projectTree.jstree("toggle_node", data.rslt.obj);
-                            }
-                        }
-                    }
-                    suppressToggleOpen = false;
-                }
-            ).bind(
-                "reopen.jstree",
-                function (event, data) {
-                    if (_projectInitialLoad.previous) {
-                        // Start reopening nodes that were previously open, starting
-                        // with the first recorded depth level. As each level completes,
-                        // it will trigger the next level to finish.
-                        _reopenNodes(_projectInitialLoad.previous, result);
-                        _projectInitialLoad.previous = null;
-                    }
-                }
-            ).bind(
-                "scroll.jstree",
-                function (e) {
-                    // close all dropdowns on scroll
-                    Menus.closeAll();
-                }
-            ).bind(
-                "loaded.jstree open_node.jstree close_node.jstree",
-                function (event, data) {
-                    if (event.type === "open_node") {
-                        // select the current document if it becomes visible when this folder is opened
-                        var curDoc = DocumentManager.getCurrentDocument();
-                        
-                        if (_hasFileSelectionFocus() && curDoc && data) {
-                            var entry = data.rslt.obj.data("entry");
-                            
-                            if (entry && curDoc.file.fullPath.indexOf(entry.fullPath) === 0) {
-                                _forceSelection(data.rslt.obj, _lastSelected);
-                            } else {
-                                _redraw(true, false);
-                            }
-                        }
-                    } else if (event.type === "close_node") {
-                        // always update selection marker position when collapsing a node
-                        _redraw(true, false);
-                    } else {
-                        _redraw(false);
-                    }
-                    
-                    _savePreferences();
-                }
-            ).bind(
-                "mousedown.jstree",
-                function (event) {
-                    // select tree node on right-click
-                    if (event.which === 3 || (event.ctrlKey && event.which === 1 && brackets.platform === "mac")) {
-                        var treenode = $(event.target).closest("li");
-                        if (treenode) {
-                            var saveSuppressToggleOpen = suppressToggleOpen;
-                            
-                            // don't toggle open folders (just select)
-                            suppressToggleOpen = true;
-                            _projectTree.jstree("deselect_all");
-                            _projectTree.jstree("select_node", treenode, false);
-                            suppressToggleOpen = saveSuppressToggleOpen;
-                        }
-                    }
-                }
-            );
-
-        // jstree has a default event handler for dblclick that attempts to clear the
-        // global window selection (presumably because it doesn't want text within the tree
-        // to be selected). This ends up messing up CodeMirror, and we don't need this anyway
-        // since we've turned off user selection of UI text globally. So we just unbind it,
-        // and add our own double-click handler here.
-        // Filed this bug against jstree at https://github.com/vakata/jstree/issues/163
-        _projectTree.bind("init.jstree", function () {
-            // install scroller shadows
-            ViewUtils.addScrollerShadow(_projectTree.get(0));
-            
-            var findEventHandler = function (type, namespace, selector) {
-                var events        = $._data(_projectTree[0], "events"),
-                    eventsForType = events ? events[type] : null,
-                    event         = eventsForType ? _.find(eventsForType, function (e) {
-                        return e.namespace === namespace && e.selector === selector;
-                    }) : null,
-                    eventHandler  = event ? event.handler : null;
-                if (!eventHandler) {
-                    console.error(type + "." + namespace + " " + selector + " handler not found!");
-                }
-                return eventHandler;
-            };
-            var createCustomHandler = function (originalHandler) {
-                return function (event) {
-                    var $node = $(event.target).parent("li"),
-                        methodName;
-                    if (event.ctrlKey || event.metaKey) {
-                        if (event.altKey) {
-                            // collapse subtree
-                            // note: expanding using open_all is a bad idea due to poor performance
-                            methodName = $node.is(".jstree-open") ? "close_all" : "open_node";
-                            _projectTree.jstree(methodName, $node);
-                            return;
-                        } else {
-                            // toggle siblings
-                            methodName = $node.is(".jstree-open") ? "close_node" : "open_node";
-                            $node.parent().children("li").each(function () {
-                                _projectTree.jstree(methodName, $(this));
-                            });
-                            return;
-                        }
-                    }
-                    // original behaviour
-                    originalHandler.apply(this, arguments);
-                };
-            };
-            var originalHrefHandler = findEventHandler("click", "jstree", "a");
-            var originalInsHandler = findEventHandler("click", "jstree", "li > ins");
-
-            _projectTree
-                .off("click.jstree", "a")
-                .on("click.jstree", "a", createCustomHandler(originalHrefHandler))
-                .off("click.jstree", "li > ins")
-                .on("click.jstree", "li > ins", createCustomHandler(originalInsHandler))
-                .unbind("dblclick.jstree")
-                .bind("dblclick.jstree", function (event) {
-                    var entry = $(event.target).closest("li").data("entry");
-                    if (entry && entry.isFile && !_isInRename(event.target)) {
-                        FileViewController.addToWorkingSetAndSelect(entry.fullPath);
-                    }
-                });
-
-            // fire selection changed events for sidebar-selection
-            $projectTreeList = $projectTreeContainer.find("ul");
-            ViewUtils.sidebarList($projectTreeContainer, "jstree-clicked", "jstree-leaf");
-            $projectTreeContainer.show();
-        });
-
-        return Async.withTimeout(result.promise(), 1000);
-    }
-    
-    /**
-     * @private
-     * See shouldShow
-     */
-    function _shouldShowName(name) {
-        return !name.match(_exclusionListRegEx);
-    }
-    
-    /**
-     * Returns false for files and directories that are not commonly useful to display.
-     *
-     * @param {FileSystemEntry} entry File or directory to filter
-     * @return boolean true if the file should be displayed
-     */
-    function shouldShow(entry) {
-        return _shouldShowName(entry.name);
     }
     
     /**
@@ -780,241 +239,40 @@ define(function (require, exports, module) {
         return LanguageManager.getLanguageForPath(fileName).isBinary();
     }
     
-    /**
+    /** 
      * @private
-     * Generate a string suitable for sorting
-     * @param {string} name
-     * @param {boolean} isFolder
-     * @return {string}
-     */
-    function _toCompareString(name, isFolder) {
-        return (isFolder ? _sortPrefixDir : _sortPrefixFile) + name;
-    }
-    
-    /**
-     * @private
-     * Insert a path in the fullPath-to-DOM ID cache
-     * @param {!(FileSystemEntry|string)} entry Entry or full path to add to cache
-     */
-    function _insertTreeNodeCache(entry, id) {
-        var fullPath = entry.fullPath || entry;
-        _projectInitialLoad.fullPathToIdMap[fullPath] = id;
-    }
-    
-    /**
-     * @private
-     * Delete a path from the fullPath-to-DOM ID cache
-     * @param {!(FileSystemEntry|string)} entry Entry or full path to remove from cache
-     */
-    function _deleteTreeNodeCache(entry) {
-        var fullPath = entry.fullPath || entry;
-        delete _projectInitialLoad.fullPathToIdMap[fullPath];
-    }
-    
-    /**
-     * @private
-     * Create JSON object for a jstree node. Insert mapping from full path to
-     * jstree node ID.
      * 
-     * For more info on jsTree's JSON format see: http://www.jstree.com/documentation/json_data
-     * @param {!FileSystemEntry} entry
-     * @return {data: string, attr: {id: string}, metadata: {entry: FileSystemEntry}, children: Array.<Object>, state: string}
-     */
-    function _entryToJSON(entry) {
-        if (!shouldShow(entry)) {
-            return null;
-        }
-        
-        var jsonEntry = {
-            data                : entry.name,
-            attr                : { id: "node" + _projectInitialLoad.id++ },
-            metadata: {
-                entry           : entry,
-                compareString   : _toCompareString(entry.name, entry.isDirectory)
-            }
-        };
-
-        if (entry.isDirectory) {
-            jsonEntry.children = [];
-            jsonEntry.state = "closed";
-            jsonEntry.data = _.escape(jsonEntry.data);
-        } else {
-            jsonEntry.data = ViewUtils.getFileEntryDisplay(entry);
-        }
-
-        // Map path to ID to initialize loaded and opened states
-        _insertTreeNodeCache(entry, jsonEntry.attr.id);
-        
-        return jsonEntry;
-    }
-
-    /**
-     * @private
-     * Given an array of file system entries, returns a JSON array representing them in the format
-     * required by jsTree. Saves the corresponding Entry object as metadata (which jsTree will store in
-     * the DOM via $.data()).
-     *
-     * Does NOT recursively traverse the file system: folders are marked as expandable but are given no
-     * children initially.
-     *
-     * @param {Array.<FileSystemEntry>} entries  Array of FileSystemEntry entry objects.
-     * @return {Array} jsTree node data: array of JSON objects
-     */
-    function _convertEntriesToJSON(entries) {
-        var jsonEntryList = [],
-            entry,
-            entryI,
-            jsonEntry;
-
-        for (entryI = 0; entryI < entries.length; entryI++) {
-            jsonEntryList.push(_entryToJSON(entries[entryI]));
-        }
-        
-        return jsonEntryList;
-    }
-
-    /**
-     * @private
-     * Called by jsTree when the user has expanded a node that has never been expanded before. We call
-     * jsTree back asynchronously with the node's immediate children data once the subfolder is done
-     * being fetched.
-     *
-     * @param {jQueryObject} $treeNode  jQ object for the DOM node being expanded
-     * @param {function(Array)} jsTreeCallback  jsTree callback to provide children to
-     */
-    function _treeDataProvider($treeNode, jsTreeCallback) {
-        var dirEntry, isProjectRoot = false, deferred = new $.Deferred();
-        
-        function processEntries(entries) {
-            var subtreeJSON = _convertEntriesToJSON(entries),
-                wasNodeOpen = false,
-                emptyDirectory = (subtreeJSON.length === 0);
-            
-            if (emptyDirectory) {
-                if (!isProjectRoot) {
-                    wasNodeOpen = $treeNode.hasClass("jstree-open");
-                } else {
-                    // project root is a special case, add a placeholder
-                    subtreeJSON.push({});
-                }
-            }
-            
-            jsTreeCallback(subtreeJSON);
-            
-            if (!isProjectRoot && emptyDirectory) {
-                // If the directory is empty, force it to appear as an open or closed node.
-                // This is a workaround for issue #149 where jstree would show this node as a leaf.
-                var classToAdd = (wasNodeOpen) ? "jstree-closed" : "jstree-open";
-                
-                $treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
-                    .addClass(classToAdd);
-                
-                // This is a workaround for a part of issue #2085, where the file creation process
-                // depends on the open_node.jstree event being triggered, which doesn't happen on
-                // empty folders
-                if (!wasNodeOpen) {
-                    $treeNode.trigger("open_node.jstree");
-                }
-            }
-            
-            deferred.resolve();
-        }
-
-        if ($treeNode === -1) {
-            // Special case: root of tree
-            dirEntry = _projectRoot;
-            isProjectRoot = true;
-        } else {
-            // All other nodes: the Directory is saved as jQ data in the tree (by _convertEntriesToJSON())
-            dirEntry = $treeNode.data("entry");
-        }
-        
-        // Fetch dirEntry's contents
-        dirEntry.getContents(function (err, contents, stats, statsErrs) {
-            if (err) {
-                Dialogs.showModalDialog(
-                    DefaultDialogs.DIALOG_ID_ERROR,
-                    Strings.ERROR_LOADING_PROJECT,
-                    StringUtils.format(
-                        Strings.READ_DIRECTORY_ENTRIES_ERROR,
-                        StringUtils.breakableUrl(dirEntry.fullPath),
-                        err
-                    )
-                );
-                // Reject the render promise so we can move on.
-                deferred.reject();
-            } else {
-                if (statsErrs) {
-                    // some but not all entries failed to load, so render what we can
-                    console.warn("Error reading a subset of folder " + dirEntry);
-                }
-                processEntries(contents);
-            }
-        });
-    }
-    
-    /**
-     * Forces createNewItem() to complete by removing focus from the rename field which causes
-     * the new file to be written to disk
-     */
-    function forceFinishRename() {
-        $(".jstree-rename-input").blur();
-    }
-    
-    
-    /**
-     * Although Brackets is generally standardized on folder paths with a trailing "/", some APIs here
-     * receive project paths without "/" due to legacy preference storage formats, etc.
-     * @param {!string} fullPath  Path that may or may not end in "/"
-     * @return {!string} Path that ends in "/"
-     */
-    function _ensureTrailingSlash(fullPath) {
-        if (fullPath[fullPath.length - 1] !== "/") {
-            return fullPath + "/";
-        }
-        return fullPath;
-    }
-    
-    /** Returns the full path to the welcome project, which we open on first launch.
-     * @private
+     * Returns the full path to the welcome project, which we open on first launch.
+     * 
+     * @param {string} sampleUrl URL for getting started project
+     * @param {string} initialPath Path to Brackets directory (see FileUtils.getNativeBracketsDirectoryPath())
      * @return {!string} fullPath reference
      */
     function _getWelcomeProjectPath() {
-        var initialPath = FileUtils.getNativeBracketsDirectoryPath(),
-            sampleUrl = Urls.GETTING_STARTED;
-        if (sampleUrl) {
-            // Back up one more folder. The samples folder is assumed to be at the same level as
-            // the src folder, and the sampleUrl is relative to the samples folder.
-            initialPath = initialPath.substr(0, initialPath.lastIndexOf("/")) + "/samples/" + sampleUrl;
-        }
-
-        return _ensureTrailingSlash(initialPath); // paths above weren't canonical
-    }
-    
-    /**
-     * Returns true if the given path is the same as one of the welcome projects we've previously opened,
-     * or the one for the current build.
-     */
-    function isWelcomeProjectPath(path) {
-        if (path === _getWelcomeProjectPath()) {
-            return true;
-        }
-        var pathNoSlash = FileUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
-        var welcomeProjects = PreferencesManager.getViewState("welcomeProjects") || [];
-        return welcomeProjects.indexOf(pathNoSlash) !== -1;
+        return ProjectModel._getWelcomeProjectPath(Urls.GETTING_STARTED, FileUtils.getNativeBracketsDirectoryPath());
     }
     
     /**
      * Adds the path to the list of welcome projects we've ever seen, if not on the list already.
+     * 
+     * @param {string} path Path to possibly add
      */
     function addWelcomeProjectPath(path) {
-        var pathNoSlash = FileUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
-        
-        var welcomeProjects = PreferencesManager.getViewState("welcomeProjects") || [];
-        if (welcomeProjects.indexOf(pathNoSlash) === -1) {
-            welcomeProjects.push(pathNoSlash);
-            PreferencesManager.setViewState("welcomeProjects", welcomeProjects);
-        }
+        var welcomeProjects = ProjectModel.addWelcomeProjectPath(path,
+                                                                 PreferencesManager.getViewState("welcomeProjects"));
+        PreferencesManager.setViewState("welcomeProjects", welcomeProjects);
+    }
+
+
+    /**
+     * Returns true if the given path is the same as one of the welcome projects we've previously opened,
+     * or the one for the current build.
+     * 
+     * @param {string} path Path to check to see if it's a welcome project path
+     * @return {boolean} true if this is a welcome project path
+     */
+    function isWelcomeProjectPath(path) {
+        return ProjectModel._isWelcomeProjectPath(path, _getWelcomeProjectPath(), PreferencesManager.getViewState("welcomeProjects"));
     }
     
     /**
@@ -1027,6 +285,27 @@ define(function (require, exports, module) {
             return path;
         }
     }
+    
+    _renderTree = function () {
+        var projectRoot = getProjectRoot();
+        if (!projectRoot) {
+            return;
+        }
+        var curDoc = DocumentManager.getCurrentDocument(),
+            selected = curDoc && curDoc.file ? curDoc.file.fullPath : "";
+
+        FileTreeView.render($projectTreeContainer[0], projectRoot, {
+            openPaths: openPaths,
+            selected: selected,
+            setSelected: _setSelected,
+            context: fileContext,
+            setContext: _setContext,
+            togglePath: _togglePath,
+            rename: rename,
+            dirsFirst: PreferencesManager.get(SORT_DIRECTORIES_FIRST)
+        });
+        return new $.Deferred().resolve();
+    };
 
     /**
      * Initial project path is stored in prefs, which defaults to the welcome project on
@@ -1052,7 +331,7 @@ define(function (require, exports, module) {
         FileSystem.on("change", _fileSystemChange);
         FileSystem.on("rename", _fileSystemRename);
 
-        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), _shouldShowName, function (err) {
+        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), model._shouldShowName, function (err) {
             if (err === FileSystemError.TOO_MANY_ENTRIES) {
                 _showMaxFilesDialog();
             } else if (err) {
@@ -1061,7 +340,7 @@ define(function (require, exports, module) {
         });
         
         // Reset allFiles cache
-        _allFilesCachePromise = null;
+        model._resetCache();
     }
 
         
@@ -1073,15 +352,15 @@ define(function (require, exports, module) {
      */
     function _unwatchProjectRoot() {
         var result = new $.Deferred();
-        if (!_projectRoot) {
+        if (!model.projectRoot) {
             result.reject();
         } else {
             FileSystem.off("change", _fileSystemChange);
             FileSystem.off("rename", _fileSystemRename);
 
-            FileSystem.unwatch(_projectRoot, function (err) {
+            FileSystem.unwatch(model.projectRoot, function (err) {
                 if (err) {
-                    console.error("Error unwatching project root: ", _projectRoot.fullPath, err);
+                    console.error("Error unwatching project root: ", model.projectRoot.fullPath, err);
                     result.reject();
                 } else {
                     result.resolve();
@@ -1089,7 +368,7 @@ define(function (require, exports, module) {
             });
             
             // Reset allFiles cache
-            _allFilesCachePromise = null;
+            model.resetCache();
         }
         
         return result.promise();
@@ -1126,22 +405,20 @@ define(function (require, exports, module) {
             startLoad = new $.Deferred(),
             resultRenderTree;
 
-        forceFinishRename();    // in case we're in the middle of renaming a file in the project
-        
         // Some legacy code calls this API with a non-canonical path
-        rootPath = _ensureTrailingSlash(rootPath);
+        rootPath = ProjectModel._ensureTrailingSlash(rootPath);
         
         if (isUpdating) {
             // We're just refreshing. Don't need to unwatch the project root, so we can start loading immediately.
             startLoad.resolve();
         } else {
-            if (_projectRoot && _projectRoot.fullPath === rootPath) {
+            if (model.projectRoot && model.projectRoot.fullPath === rootPath) {
                 return (new $.Deferred()).resolve().promise();
             }
             
             // About to close current project (if any)
-            if (_projectRoot) {
-                $(exports).triggerHandler("beforeProjectClose", _projectRoot);
+            if (model.projectRoot) {
+                $(exports).triggerHandler("beforeProjectClose", model.projectRoot);
             }
             
             // close all the old files
@@ -1149,8 +426,8 @@ define(function (require, exports, module) {
     
             _unwatchProjectRoot().always(function () {
                 // Done closing old project (if any)
-                if (_projectRoot) {
-                    $(exports).triggerHandler("projectClose", _projectRoot);
+                if (model.projectRoot) {
+                    $(exports).triggerHandler("projectClose", model.projectRoot);
                 }
                 
                 startLoad.resolve();
@@ -1162,19 +439,10 @@ define(function (require, exports, module) {
                                          layer: "project" } };
 
             // Clear project path map
-            _projectInitialLoad = {
-                previous        : [],   /* array of arrays containing full paths to open at each depth of the tree */
-                id              : 0,    /* incrementing id */
-                fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
-            };
-
             if (!isUpdating) {
                 PreferencesManager._stateProjectLayer.setProjectPath(rootPath);
             }
             
-            // restore project tree state from last time this project was open
-            _projectInitialLoad.previous = PreferencesManager.getViewState("project.treeState", context) || [];
-
             // Populate file tree as long as we aren't running in the browser
             if (!brackets.inBrowser) {
                 if (!isUpdating) {
@@ -1184,22 +452,22 @@ define(function (require, exports, module) {
                 var rootEntry = FileSystem.getDirectoryForPath(rootPath);
                 rootEntry.exists(function (err, exists) {
                     if (exists) {
-                        var projectRootChanged = (!_projectRoot || !rootEntry) ||
-                            _projectRoot.fullPath !== rootEntry.fullPath;
+                        var projectRootChanged = (!model.projectRoot || !rootEntry) ||
+                            model.projectRoot.fullPath !== rootEntry.fullPath;
                         var i;
                         
                         // Success!
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
-                        _projectRoot = rootEntry;
+                        model.projectRoot = rootEntry;
                         
                         if (projectRootChanged) {
                             _reloadProjectPreferencesScope();
                             PreferencesManager._setCurrentEditingFile(rootPath);
                         }
 
-                        _projectBaseUrl = PreferencesManager.getViewState("project.baseUrl", context) || "";
-                        _allFilesCachePromise = null;  // invalidate getAllFiles() cache as soon as _projectRoot changes
+                        model.setBaseUrl(PreferencesManager.getViewState("project.baseUrl", context) || "");
+                        model._resetCache();  // invalidate getAllFiles() cache as soon as _projectRoot changes
 
                         // If this is the most current welcome project, record it. In future launches, we want
                         // to substitute the latest welcome project from the current build instead of using an
@@ -1208,29 +476,16 @@ define(function (require, exports, module) {
                             addWelcomeProjectPath(rootPath);
                         }
 
-                        // The tree will invoke our "data provider" function to populate the top-level items, then
-                        // go idle until a node is expanded - at which time it'll call us again to fetch the node's
-                        // immediate children, and so on.
-                        resultRenderTree = _renderTree(_treeDataProvider);
-
-                        resultRenderTree.always(function () {
-                            if (projectRootChanged) {
-                                // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
-                                var promises = [];
-                                $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
-                                $.when.apply($, promises).then(result.resolve, result.reject);
-                            } else {
-                                $(exports).triggerHandler("projectRefresh", _projectRoot);
-                                result.resolve();
-                            }
-                        });
-                        resultRenderTree.fail(function () {
-                            PerfUtils.finalizeMeasurement(perfTimerName);
-                            result.reject();
-                        });
-                        resultRenderTree.always(function () {
-                            PerfUtils.addMeasurement(perfTimerName);
-                        });
+                        if (projectRootChanged) {
+                            // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
+                            var promises = [];
+                            $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [model.projectRoot]);
+                            $.when.apply($, promises).then(result.resolve, result.reject);
+                        } else {
+                            $(exports).triggerHandler("projectRefresh", model.projectRoot);
+                            result.resolve();
+                        }
+                        PerfUtils.addMeasurement(perfTimerName);
                     } else {
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
@@ -1244,7 +499,8 @@ define(function (require, exports, module) {
                             // Reset _projectRoot to null so that the following _loadProject call won't 
                             // run the 'beforeProjectClose' event a second time on the original project, 
                             // which is now partially torn down (see #6574).
-                            _projectRoot = null;
+                            // TODO loadProject should really just instantiate a new project model
+                            model.projectRoot = null;
                             
                             // The project folder stored in preference doesn't exist, so load the default
                             // project directory.
@@ -1263,141 +519,6 @@ define(function (require, exports, module) {
         });
         
         return result.promise();
-    }
-    
-    /**
-     * @private
-     * Lookup jQuery node for a given FileSystem Entry
-     * @param {!File|Directory|string} entry String or File/Directory entry to find in the tree
-     * @return {?jQuery} The jQuery node for this entry or null if not found
-     */
-    function _getTreeNode(entry) {
-        // Special case if the entry matches the project root
-        if (entry === getProjectRoot()) {
-            return $projectTreeList;
-        }
-        
-        var fullPath = entry.fullPath || entry,
-            id = _projectInitialLoad.fullPathToIdMap[fullPath],
-            node = null;
-        
-        if (id) {
-            node = $("#" + id);
-        }
-        
-        return node;
-    }
-    
-    /**
-     * Finds the tree node corresponding to the given file/folder (rejected if the path lies
-     * outside the project, or if it doesn't exist).
-     *
-     * @param {!(File|Directory)} entry File or Directory to find
-     * @return {$.Promise} Resolved with jQ obj for the jsTree tree node; or rejected if not found
-     */
-    function _findTreeNode(entry) {
-        var result = new $.Deferred(),
-            $renderedNode = _getTreeNode(entry);
-        
-        // Check if tree node was already rendered
-        if ($renderedNode) {
-            return result.resolve($renderedNode).promise();
-        }
-        
-        var projRelativePath = makeProjectRelativeIfPossible(entry.fullPath);
-
-        if (projRelativePath === entry.fullPath) {
-            // If path not within project, ignore
-            return result.reject().promise();
-        } else if (entry === getProjectRoot()) {
-            // If path is the project root, return the tree itself
-            return result.resolve($projectTreeList).promise();
-        }
-        
-        var treeAPI = $.jstree._reference(_projectTree);
-        
-        // We're going to traverse from root of tree, one segment at a time
-        var pathSegments = projRelativePath.split("/");
-        if (entry.isDirectory) {
-            pathSegments.pop();  // Directory always has a trailing "/"
-        }
-        
-        function findInSubtree($nodes, segmentI) {
-            var seg = pathSegments[segmentI];
-            var match = _.findIndex($nodes, function (node, i) {
-                var entry = $(node).data("entry"),
-                    nodeName = entry ? entry.name : null;
-                
-                return nodeName === seg;
-            });
-            
-            if (match === -1) {
-                result.reject();    // path doesn't exist
-            } else {
-                var $node = $nodes.eq(match);
-                if (segmentI === pathSegments.length - 1) {
-                    result.resolve($node);  // done searching!
-                } else {
-                    // Search next level down
-                    var subChildren = treeAPI._get_children($node);
-                    if (subChildren.length > 0) {
-                        findInSubtree(subChildren, segmentI + 1);
-                    } else {
-                        // Subtree not loaded yet: force async load & try again
-                        treeAPI.load_node($node, function (data) {
-                            subChildren = treeAPI._get_children($node);
-                            findInSubtree(subChildren, segmentI + 1);
-                        }, function (err) {
-                            result.reject();  // includes case where folder is empty
-                        });
-                    }
-                }
-            }
-        }
-        
-        // Begin searching from root
-        var topLevelNodes = treeAPI._get_children(-1);  // -1 means top level in jsTree-ese
-        findInSubtree(topLevelNodes, 0);
-        
-        return result.promise();
-    }
-    
-    /**
-     * Internal function to refresh the project's file tree, maintaining the
-     * current selection. This function is expensive and not concurrency-safe,
-     * so most callers should use the synchronized and throttled version below,
-     * refreshFileTree.
-     * 
-     * @private
-     * @return {$.Promise} A promise object that will be resolved when the
-     *  project tree is reloaded, or rejected if the project path
-     *  fails to reload. If the previous selected entry is not found, 
-     *  the promise is still resolved.
-     */
-    function _refreshFileTreeInternal() {
-        var selectedEntry,
-            deferred = new $.Deferred();
-
-        if (_lastSelected) {
-            selectedEntry = _lastSelected.data("entry");
-        }
-        _lastSelected = null;
-        
-        _loadProject(getProjectRoot().fullPath, true)
-            .then(function () {
-                if (selectedEntry) {
-                    // restore selection, always resolve
-                    _findTreeNode(selectedEntry)
-                        .done(function ($node) {
-                            _forceSelection(null, $node);
-                        })
-                        .always(deferred.resolve);
-                } else {
-                    deferred.resolve();
-                }
-            }, deferred.reject);
-
-        return deferred.promise();
     }
     
     /**
@@ -1432,8 +553,7 @@ define(function (require, exports, module) {
      */
     function refreshFileTree() {
         if (!_refreshFileTreePromise) {
-            var internalRefreshPromise  = _refreshFileTreeInternal(),
-                deferred                = new $.Deferred();
+            var deferred                = new $.Deferred();
 
             _refreshFileTreePromise = deferred.promise();
             
@@ -1448,7 +568,7 @@ define(function (require, exports, module) {
 
             // Wait at least one second before resolving the promise
             window.setTimeout(function () {
-                internalRefreshPromise.then(deferred.resolve, deferred.reject);
+                deferred.resolve();
             }, _refreshDelay);
         } else {
             _refreshPending = true;
@@ -1465,11 +585,11 @@ define(function (require, exports, module) {
      * @return {$.Promise} Resolved when done; or rejected if not found
      */
     function showInTree(entry) {
-        return _findTreeNode(entry)
-            .done(function ($node) {
-                // jsTree will automatically expand parent nodes to ensure visible
-                _projectTree.jstree("select_node", $node, false);
-            });
+        var deferred = new $.Deferred();
+        viewModel.setSelected(entry);
+        // TODO we may need to do some work to ensure that this has actually been expanded
+        deferred.resolve();
+        return deferred.promise();
     }
     
     
@@ -1498,7 +618,7 @@ define(function (require, exports, module) {
                     _loadProject(path, false).then(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
-                    FileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null, function (err, files) {
+                    FileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, model.projectRoot.fullPath, null, function (err, files) {
                         if (!err) {
                             // If length == 0, user canceled the dialog; length should never be > 1
                             if (files.length > 0) {
@@ -1546,11 +666,7 @@ define(function (require, exports, module) {
      * @return {boolean} Returns true if no illegal characters are found
      */
     function _checkForValidFilename(filename, isFolder) {
-        // Validate file name
-        // Checks for valid Windows filenames:
-        // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-        if ((filename.search(new RegExp("[" + _invalidChars + "]+")) !== -1) ||
-                filename.match(_illegalFilenamesRegEx)) {
+        if (ProjectModel.isValidFilename(filename, _invalidChars)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
                 StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME),
@@ -1561,44 +677,6 @@ define(function (require, exports, module) {
         return true;
     }
     
-    /**
-     * @private
-     * Add a new node (existing FileSystemEntry or untitled file) to the project tree
-     * 
-     * @param {?jQueryObject} $target Parent or sibling node
-     * @param {?number|string} position Position to insert
-     * @param {!Object|Array.<Object>} arr Node data or array of node data
-     * @param {!boolean} skipRename
-     * @param {!boolean} skipRedraw
-     */
-    function _createNode($target, position, arr, skipRename, skipRedraw) {
-        if (typeof arr === "string") {
-            arr = [{ data: arr }];
-        } else if (!Array.isArray(arr)) {
-            arr = [arr];
-        }
-        
-        position = position || 0;
-        
-        arr.forEach(function (node) {
-            // Convert strings to objects
-            if (typeof node === "string") {
-                node = {
-                    data: node,
-                    metadata: { compareString: _sortPrefixFile + node }
-                };
-            }
-            
-            if (node) {
-                _projectTree.jstree("create", $target, position, node, null, skipRename);
-            }
-        });
-        
-        if (!skipRedraw) {
-            _redraw(true);
-        }
-    }
-
     /**
      * Create a new item in the current project.
      *
@@ -1612,6 +690,8 @@ define(function (require, exports, module) {
      *  filename.
      */
     function createNewItem(baseDir, initialName, skipRename, isFolder) {
+        // TODO fixme
+        
         // We assume the parent directory exists
         var entry               = (typeof baseDir === "string") ? FileSystem.getDirectoryForPath(baseDir) : baseDir,
             baseDirEntry        = isWithinProject(entry) ? entry : getProjectRoot(),
@@ -1802,7 +882,6 @@ define(function (require, exports, module) {
                     );
                 }
                 
-                _redraw(true);
                 result.resolve();
             } else {
                 // Show an error alert
@@ -1824,176 +903,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    function renameItemInline(entry) {
-        rename = {
-            path: entry,
-            cancel: _cancelRename
-        };
-        fileContext = entry;
-        _renderTree();
-    }
-    
-    function _cancelRename() {
-        fileContext = null;
-        rename = null;
-        _renderTree();
-    }
-    
-    /**
-     * Initiates a rename of the selected item in the project tree, showing an inline editor
-     * for input. Silently no-ops if the entry lies outside the tree or doesn't exist.
-     * @param {!(File|Directory)} entry File or Directory to rename
-     */
-    function oldrenameItemInline(entry) {
-        // First make sure the item in the tree is visible - jsTree's rename API doesn't do anything to ensure inline input is visible
-        showInTree(entry)
-            .done(function ($selected) {
-                // Don't try to rename again if we are already renaming
-                if (_isInRename($selected)) {
-                    return;
-                }
-                
-                var isFolder = $selected.hasClass("jstree-open") || $selected.hasClass("jstree-closed");
-        
-                _projectTree.one("rename.jstree", function (event, data) {
-                    var unescapedOldName = _.unescape(data.rslt.old_name),
-                        unescapedNewName = _.unescape(data.rslt.new_name),
-                        // Make sure the file was actually renamed
-                        changed = (unescapedOldName !== unescapedNewName);
-                    
-                    var _resetOldFilename = function () {
-                        _projectTree.jstree("set_text", $selected, ViewUtils.getFileEntryDisplay(entry));
-                    };
-                    
-                    if (!changed || !_checkForValidFilename(unescapedNewName, isFolder)) {
-                        // No change or invalid filename. Reset the old name and bail.
-                        _resetOldFilename();
-                        return;
-                    }
-                    
-                    var oldFullPath = $selected.data("entry").fullPath;
-                    // Folder paths have to end with a slash. Use look-head (?=...) to only replace the folder's name, not the slash as well
-                    
-                    var oldNameEndPattern = isFolder ? "(?=\/$)" : "$";
-                    var oldNameRegex = new RegExp(StringUtils.regexEscape(unescapedOldName) + oldNameEndPattern);
-                    var newName = oldFullPath.replace(oldNameRegex, unescapedNewName);
-                    
-                    renameItem(oldFullPath, newName, isFolder)
-                        .done(function () {
-                            _projectTree.jstree("set_text", $selected, ViewUtils.getFileEntryDisplay(entry));
-                            
-                            // Update caches: compareString and fullPathToIdMap
-                            $selected.data("compareString", _toCompareString(entry.name, isFolder));
-                            _deleteTreeNodeCache(oldFullPath);
-                            _insertTreeNodeCache(entry, $selected.attr("id"));
-                            
-                            // If a folder was renamed, re-select it here, since openAndSelectDocument()
-                            // changed the selection.
-                            if (isFolder) {
-                                var oldSuppressToggleOpen = suppressToggleOpen;
-                                
-                                // Supress the open/close toggle
-                                suppressToggleOpen = true;
-                                _projectTree.jstree("select_node", $selected, true);
-                                suppressToggleOpen = oldSuppressToggleOpen;
-                            }
-                        })
-                        .fail(function (err) {
-                            // Error during rename. Reset to the old name and alert the user.
-                            _resetOldFilename();
-                        })
-                        .always(function () {
-                            _projectTree.jstree("sort", $selected.parent());
-                            _redraw(true);
-                        });
-                });
-                
-                // Since html_titles are enabled, we have to reset the text without markup.
-                // And we also need to explicitly escape all html-sensitive characters.
-                var escapedName = _.escape(entry.name);
-                _projectTree.jstree("set_text", $selected, escapedName);
-                _projectTree.jstree("rename");
-
-                var extension = FileUtils.getSmartFileExtension(entry.name);
-                if (extension) {
-                    var indexOfExtension = escapedName.length - extension.length - 1;
-                    if (indexOfExtension > 0) {
-                        $selected.children(".jstree-rename-input")[0].setSelectionRange(0, indexOfExtension);
-                    }
-                }
-            });
-        // No fail handler: silently no-op if file doesn't exist in tree
-    }
-    
-    /**
-     * @private
-     * Deletes a node from jstree. Does not make assumptions on file existence.
-     * @param {FileSystemEntry|Array.<FileSystemEntry>} target Entry or array of entries to delete
-     * @param {boolean} skipRedraw
-     */
-    function _deleteTreeNode(target, skipRedraw) {
-        var arr = !Array.isArray(target) ? [target] : target,
-            oldSuppressToggleOpen = suppressToggleOpen,
-            treeAPI = $.jstree._reference(_projectTree);
-        
-        suppressToggleOpen = true;
-        
-        arr.forEach(function (entry) {
-            var $treeNode = _getTreeNode(entry),
-                parentEntry,
-                parentNode,
-                siblings,
-                parentWasOpen = false;
-
-            // Save parent node open/closed state for non-root nodes
-            if (entry.parentPath) {
-                parentEntry = FileSystem.getDirectoryForPath(entry.parentPath);
-                parentNode  = (parentEntry !== getProjectRoot()) && _getTreeNode(parentEntry);
-
-                if (parentNode) {
-                    parentWasOpen = parentNode.hasClass("jstree-open");
-                }
-            }
-            
-            if ($treeNode) {
-                _projectTree.jstree("delete_node", $treeNode);
-                _deleteTreeNodeCache(entry);
-                
-                if (parentNode) {
-                    siblings    = treeAPI._get_children(parentNode);
-                    
-                    // Make sure it didn't turn into a leaf node. This happens if
-                    // the only file in the directory was deleted
-                    if (siblings.length === 0 && parentNode.hasClass("jstree-leaf")) {
-                        parentNode.removeClass("jstree-leaf jstree-open jstree-closed");
-
-                        // Only apply style if parent is a tree node (i.e. not project root)
-                        if (parentWasOpen) {
-                            parentNode.addClass("jstree-open");
-                        } else {
-                            parentNode.addClass("jstree-closed");
-                        }
-                    }
-                }
-            }
-        });
-        
-        suppressToggleOpen = oldSuppressToggleOpen;
-        
-        if (!skipRedraw) {
-            _redraw(true);
-        }
-        
-        // Trigger notifications after tree updates are complete
-        arr.forEach(function (entry) {
-            if (DocumentManager.getCurrentDocument()) {
-                DocumentManager.notifyPathDeleted(entry.fullPath);
-            } else {
-                EditorManager.notifyPathDeleted(entry.fullPath);
-            }
-        });
-    }
-
     /**
      * Delete file or directore from project
      * @param {!(File|Directory)} entry File or Directory to delete
@@ -2003,7 +912,7 @@ define(function (require, exports, module) {
 
         entry.moveToTrash(function (err) {
             if (!err) {
-                _deleteTreeNode(entry);
+                // TODO notify the model
                 result.resolve();
             } else {
                 // Show an error alert
@@ -2022,99 +931,6 @@ define(function (require, exports, module) {
         });
 
         return result.promise();
-    }
-    
-    /**
-     * Returns a promise that resolves with a cached copy of all project files.
-     * Used by ProjectManager.getAllFiles(). Ensures that at most one un-cached
-     * directory traversal is active at a time, which is useful at project load
-     * time when watchers (and hence filesystem-level caching) has not finished
-     * starting up. The cache is cleared on every filesystem change event, and
-     * also on project load and unload.
-     * 
-     * @private
-     * @return {jQuery.Promise.<Array.<File>>}
-     */
-    function _getAllFilesCache() {
-        if (!_allFilesCachePromise) {
-            var deferred = new $.Deferred(),
-                allFiles = [],
-                allFilesVisitor = function (entry) {
-                    if (shouldShow(entry)) {
-                        if (entry.isFile) {
-                            allFiles.push(entry);
-                        }
-                        return true;
-                    }
-                    return false;
-                };
-
-            _allFilesCachePromise = deferred.promise();
-            
-            getProjectRoot().visit(allFilesVisitor, function (err) {
-                if (err) {
-                    deferred.reject();
-                    _allFilesCachePromise = null;
-                } else {
-                    deferred.resolve(allFiles);
-                }
-            });
-        }
-        
-        return _allFilesCachePromise;
-    }
-    
-    /**
-     * Returns an Array of all files for this project, optionally including
-     * files in the working set that are *not* under the project root. Files filtered
-     * out by shouldShow().
-     *
-     * @param {function (File, number):boolean=} filter Optional function to filter
-     *          the file list (does not filter directory traversal). API matches Array.filter().
-     * @param {boolean=} includeWorkingSet If true, include files in the working set
-     *          that are not under the project root (*except* for untitled documents).
-     *
-     * @return {$.Promise} Promise that is resolved with an Array of File objects.
-     */
-    function getAllFiles(filter, includeWorkingSet) {
-        // The filter and includeWorkingSet params are both optional.
-        // Handle the case where filter is omitted but includeWorkingSet is
-        // specified.
-        if (includeWorkingSet === undefined && typeof (filter) !== "function") {
-            includeWorkingSet = filter;
-            filter = null;
-        }
-        
-        var filteredFilesDeferred = new $.Deferred();
-        
-        // First gather all files in project proper
-        _getAllFilesCache().done(function (result) {
-            // Add working set entries, if requested
-            if (includeWorkingSet) {
-                DocumentManager.getWorkingSet().forEach(function (file) {
-                    if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
-                        result.push(file);
-                    }
-                });
-            }
-            
-            // Filter list, if requested
-            if (filter) {
-                result = result.filter(filter);
-            }
-            
-            // If a done handler attached to the returned filtered files promise
-            // throws an exception that isn't handled here then it will leave
-            // _allFilesCachePromise in an inconsistent state such that no
-            // additional done handlers will ever be called!
-            try {
-                filteredFilesDeferred.resolve(result);
-            } catch (e) {
-                console.warn("Unhandled exception in getAllFiles handler: ", e);
-            }
-        });
-        
-        return filteredFilesDeferred.promise();
     }
     
     /**
@@ -2143,7 +959,7 @@ define(function (require, exports, module) {
         FileSyncManager.syncOpenDocuments();
         
         // Reset allFiles cache
-        _allFilesCachePromise = null;
+        model._resetCache();
 
         // A whole-sale change event; refresh the entire file tree
         if (!entry) {
@@ -2151,11 +967,9 @@ define(function (require, exports, module) {
             return;
         }
         
-        var $directoryNode = _getTreeNode(entry);
-        
         // Ignore change event when: the entry is not a directory, the directory
         // was not yet rendered or the directory is outside the current project
-        if (!entry.isDirectory || !$directoryNode || !isWithinProject(entry.fullPath)) {
+        if (!entry.isDirectory || !isWithinProject(entry.fullPath)) {
             return;
         }
         
@@ -2164,83 +978,21 @@ define(function (require, exports, module) {
         // 
         // TODO: in the former case we really should just refresh the affected
         // directory instead of refreshing the entire tree.
+        // TODO: new implementation this should likely just update the model
         if (!added || !removed) {
             refreshFileTree();
             return;
         }
 
-        var wasOpen = $directoryNode.hasClass("jstree-open"),
-            doRedraw = false;
+        // TODO probably new to move the isOpen check up before updating the model
+        var wasOpen = viewModel.isOpen(entry);
         
         // Directory contents removed
         if (removed.length > 0) {
             // Synchronously remove all tree nodes
-            _deleteTreeNode(removed, true);
-            doRedraw = true;
+            // TODO this is just a model update
         }
 
-        // Before creating new nodes, make sure it doesn't already exist
-        var addedJSON = added.filter(function (addedEntry) {
-            return !_getTreeNode(addedEntry);
-        });
-
-        // Convert entries to JSON objects for jstree
-        addedJSON = addedJSON.map(_entryToJSON);
-
-        // Directory contents added
-        if (addedJSON.length > 0) {
-            var isClosed = $directoryNode.hasClass("jstree-closed");
-
-            // Manually force the directory to open in case it was auto-closed
-            // when deleting the files in the removed file set for this event.
-            // This starts an async call to load_node/Directory.getContents().
-            // We do this to avoid a race condition in jstree create_node where
-            // jstree attempts to load empty nodes during the create workflow,
-            // resulting in duplicate nodes for the same entry, see
-            // https://github.com/adobe/brackets/issues/6474.
-            if (wasOpen && isClosed) {
-                _projectTree.one("open_node.jstree", function () {
-                    _redraw(true);
-                });
-        
-                // Open the node before creating the new child
-                _projectTree.jstree("open_node", $directoryNode);
-            } else {
-                // We can only incrementally create new child nodes when the 
-                // DOM node for the directory is not currently empty. The reason
-                // is due to the fact that jstree treats empty DOM folders as
-                // not-loaded. When jstree sees this, it calls the JSON data
-                // provider to populate the DOM, always. Creating a node in this
-                // state leads to duplicate nodes. Avoid this by calling load_node
-                // instead of create_node.
-                var treeAPI = $.jstree._reference(_projectTree),
-                    directoryNodeOrRoot = (entry === getProjectRoot()) ? -1 : $directoryNode,
-                    hasDOMChildren = treeAPI._get_children(directoryNodeOrRoot).length > 0;
-                
-                if (hasDOMChildren) {
-                    // The directory was already loaded and currently has
-                    // children, so we can incrementally create all new nodes
-                    // in a batch
-                    _createNode($directoryNode, null, addedJSON, true, true);
-                } else if (!isClosed) {
-                    // Call load_node for the directory to add the new entries
-                    // for this change event. We only call load_node immediately
-                    // in the case where the empty directory DOM node was
-                    // already open. If the directory is currently closed,
-                    // jstree will call load_node when the user opens the node
-                    // interactively
-                    _projectTree.jstree("load_node", $directoryNode, function () {}, function () {
-                        console.error("Error loading project tree for changed path: " + entry.fullPath);
-                    });
-                }
-                
-                doRedraw = true;
-            }
-        }
-        
-        if (doRedraw) {
-            _redraw(true);
-        }
     };
 
     /**
@@ -2253,6 +1005,9 @@ define(function (require, exports, module) {
         DocumentManager.notifyPathNameChanged(oldName, newName);
     };
     
+    function forceFinishRename() {
+        // TODO implement some form of this
+    }
     
     
     // Initialize variables and listeners that depend on the HTML DOM
@@ -2260,7 +1015,7 @@ define(function (require, exports, module) {
         $projectTreeContainer = $("#project-files-container");
         
         $("#open-files-container").on("contentChanged", function () {
-            _redraw(false); // redraw jstree when working set size changes
+            _renderTree(); // redraw jstree when working set size changes
         });
         
         $(".main-view").click(function (jqEvent) {
@@ -2326,14 +1081,7 @@ define(function (require, exports, module) {
     }
     
     $(exports).on("projectOpen", _reloadProjectPreferencesScope);
-    // Initialize the sort prefixes and make sure to change them when the sort pref changes
-    _generateSortPrefixes();
-    PreferencesManager.on("change", "sortDirectoriesFirst", function () {
-        if (_generateSortPrefixes()) {
-            refreshFileTree();
-        }
-    });
-    
+
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
     $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
@@ -2356,8 +1104,21 @@ define(function (require, exports, module) {
     // Define the preference to decide how to sort the Project Tree files
     PreferencesManager.definePreference(SORT_DIRECTORIES_FIRST, "boolean", brackets.platform !== "mac")
         .on("change", function () {
-            _renderTree();
+            // TODO implement
         });
+    
+    // TODO fixme
+    function getContext() {
+        return viewModel.selected;
+    }
+    
+    function renameItemInline() {
+        // TODO implement
+    }
+    
+    function getAllFiles() {
+        return model.getAllFiles();
+    }
 
     // Define public API
     exports.getProjectRoot           = getProjectRoot;
@@ -2365,7 +1126,7 @@ define(function (require, exports, module) {
     exports.setBaseUrl               = setBaseUrl;
     exports.isWithinProject          = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
-    exports.shouldShow               = shouldShow;
+    exports.shouldShow               = ProjectModel.shouldShow;
     exports.isBinaryFile             = isBinaryFile;
     exports.openProject              = openProject;
     exports.getSelectedItem          = getSelectedItem;
