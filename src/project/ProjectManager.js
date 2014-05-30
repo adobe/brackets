@@ -55,6 +55,7 @@ define(function (require, exports, module) {
         PreferencesDialogs  = require("preferences/PreferencesDialogs"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
         InMemoryFile        = require("document/InMemoryFile"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
@@ -2049,7 +2050,7 @@ define(function (require, exports, module) {
         _getAllFilesCache().done(function (result) {
             // Add working set entries, if requested
             if (includeWorkingSet) {
-                DocumentManager.getWorkingSet().forEach(function (file) {
+                MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).forEach(function (file) {
                     if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
                         result.push(file);
                     }

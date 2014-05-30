@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         Dialogs         = require("widgets/Dialogs"),
         DefaultDialogs  = require("widgets/DefaultDialogs"),
         DocumentManager = require("document/DocumentManager"),
+        MainViewManager = require("view/MainViewManager"),
         FileSystem      = require("filesystem/FileSystem"),
         EditorManager   = require("editor/EditorManager"),
         FileUtils       = require("file/FileUtils"),
@@ -111,7 +112,7 @@ define(function (require, exports, module) {
                     // file in the list, return. If this *is* the last file,
                     // always open it so it gets selected.
                     if (idx < filteredFiles.length - 1) {
-                        if (DocumentManager.findInWorkingSet(path) !== -1) {
+                        if (MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, path) !== -1) {
                             result.resolve();
                             return;
                         }

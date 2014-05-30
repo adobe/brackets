@@ -31,6 +31,7 @@ define(function (require, exports, module) {
         CommandManager          = brackets.getModule("command/CommandManager"),
         Commands                = brackets.getModule("command/Commands"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
+        MainViewManager         = brackets.getModule("view/MainViewManager"),
         Strings                 = brackets.getModule("strings"),
         workingSetCmenu         = Menus.getContextMenu(Menus.ContextMenuIds.PANE_VIEW_LIST_CONTEXT_MENU),
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager");
@@ -54,8 +55,8 @@ define(function (require, exports, module) {
      * @param {string} mode
      */
     function handleClose(mode) {
-        var targetIndex = DocumentManager.findInWorkingSet(DocumentManager.getCurrentDocument().file.fullPath),
-            workingSet  = DocumentManager.getWorkingSet().slice(0),
+        var targetIndex = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, DocumentManager.getCurrentDocument().file.fullPath),
+            workingSet  = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).slice(0),
             start       = (mode === closeBelow) ? (targetIndex + 1) : 0,
             end         = (mode === closeAbove) ? (targetIndex) : (workingSet.length),
             files       = [],
@@ -80,8 +81,8 @@ define(function (require, exports, module) {
         var doc = DocumentManager.getCurrentDocument();
         
         if (doc) {
-            var docIndex   = DocumentManager.findInWorkingSet(doc.file.fullPath),
-                workingSet = DocumentManager.getWorkingSet().slice(0);
+            var docIndex   = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, doc.file.fullPath),
+                workingSet = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).slice(0);
             
             if (docIndex === workingSet.length - 1) { // hide "Close Others Below" if the last file in Working Files is selected
                 CommandManager.get(closeBelow).setEnabled(false);

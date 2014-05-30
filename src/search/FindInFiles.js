@@ -54,6 +54,7 @@ define(function (require, exports, module) {
         ProjectManager        = require("project/ProjectManager"),
         DocumentModule        = require("document/Document"),
         DocumentManager       = require("document/DocumentManager"),
+        MainViewManager       = require("view/MainViewManager"),
         EditorManager         = require("editor/EditorManager"),
         FileSystem            = require("filesystem/FileSystem"),
         FileUtils             = require("file/FileUtils"),
@@ -769,7 +770,7 @@ define(function (require, exports, module) {
             // Still need to make sure it's within project or working set
             // In getCandidateFiles(), this is covered by the baseline getAllFiles() itself
             if (file.fullPath.indexOf(ProjectManager.getProjectRoot().fullPath) !== 0) {
-                var inWorkingSet = DocumentManager.getWorkingSet().some(function (wsFile) {
+                var inWorkingSet = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).some(function (wsFile) {
                     return wsFile.fullPath === file.fullPath;
                 });
                 if (!inWorkingSet) {

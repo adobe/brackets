@@ -443,7 +443,7 @@ define(function (require, exports, module) {
         
         // Remove closed doc from working set, if it was in there
         // This happens regardless of whether the document being closed was the current one or not
-        removeFromWorkingSet(file);
+        MainViewManager.removeFromPaneViewList(MainViewManager.FOCUSED_PANE, file);
         
         // Note: EditorManager will dispose the closed document's now-unneeded editor either in
         // response to the editor-swap call above, or the removeFromWorkingSet() call, depending on

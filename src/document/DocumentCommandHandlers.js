@@ -326,7 +326,7 @@ define(function (require, exports, module) {
                         filteredPaths.forEach(function (file) {
                             filesToOpen.push(FileSystem.getFileForPath(file));
                         });
-                        DocumentManager.addListToWorkingSet(filesToOpen);
+                        MainViewManager.addListToPaneViewList(MainViewManager.FOCUSED_PANE, filesToOpen);
                         
                         doOpen(filteredPaths[filteredPaths.length - 1], silent)
                             .done(function (doc) {
@@ -734,7 +734,7 @@ define(function (require, exports, module) {
                         .openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
                 } else {
                     // If selection is in working set, replace orig item in place with the new file
-                    var index = DocumentManager.findInWorkingSet(doc.file.fullPath);
+                    var index = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, doc.file.fullPath);
                     // Remove old file from working set; no redraw yet since there's a pause before the new file is opened
                     DocumentManager.removeFromWorkingSet(doc.file, true);
                     // Add new file to working set, and ensure we now redraw (even if index hasn't changed)
@@ -908,7 +908,7 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function saveAll() {
-        return _saveFileList(DocumentManager.getWorkingSet());
+        return _saveFileList(MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE));
     }
 
     /**
@@ -1186,7 +1186,11 @@ define(function (require, exports, module) {
         result.done(function (listAfterSave) {
             listAfterSave = listAfterSave || list;
             if (!promptOnly) {
-                MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, listAfterSave, clearCurrentDoc);
+                // TODO: previously, we passed the parameter `clearCurrentDoc` to
+                //       DocumentManager.removeListFromWorkingSet() and it would call
+                //       DocumentManager._clearCurrentDocument() to close the open document in the editor.
+                //       This new API doesn't provide this functionality, so we need to be sure to add it back.
+                MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, listAfterSave);
             }
         });
         

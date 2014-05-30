@@ -37,6 +37,7 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var DocumentManager       = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
         MainViewManager       = require("view/MainViewManager"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
@@ -234,7 +235,7 @@ define(function (require, exports, module) {
             selected        = $listItem.hasClass("selected"),
             prevSelected    = $prevListItem.hasClass("selected"),
             nextSelected    = $nextListItem.hasClass("selected"),
-            index           = DocumentManager.findInWorkingSet($listItem.data(_FILE_KEY).fullPath),
+            index           = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, $listItem.data(_FILE_KEY).fullPath),
             height          = $listItem.height(),
             startPageY      = event.pageY,
             listItemTop     = startPageY - $listItem.offset().top,

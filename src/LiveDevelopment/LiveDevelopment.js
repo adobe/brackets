@@ -1249,7 +1249,7 @@ define(function LiveDevelopment(require, exports, module) {
                 otherDocumentsInWorkingFiles;
 
             if (doc && !doc._masterEditor) {
-                otherDocumentsInWorkingFiles = DocumentManager.getWorkingSet().length;
+                otherDocumentsInWorkingFiles = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).length;
                 MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file);
 
                 if (!otherDocumentsInWorkingFiles) {
