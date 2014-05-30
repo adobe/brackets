@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         MainViewManager         = require("view/MainViewManager"),
         DocumentManager         = require("document/DocumentManager"),
+        MainViewManager         = require("view/MainViewManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         FileUtils               = require("file/FileUtils"),
         AppInit                 = require("utils/AppInit"),
@@ -298,8 +299,8 @@ define(function (require, exports, module) {
     register(
         Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED,
         function (file1, file2) {
-            var index1 = DocumentManager.findInWorkingSetAddedOrder(file1.fullPath),
-                index2 = DocumentManager.findInWorkingSetAddedOrder(file2.fullPath);
+            var index1 = MainViewManager.findInPaneViewListAddedOrder(MainViewManager.ALL_PANES, file1.fullPath),
+                index2 = MainViewManager.findInPaneViewListAddedOrder(MainViewManager.ALL_PANES, file2.fullPath);
             
             return index1 - index2;
         },

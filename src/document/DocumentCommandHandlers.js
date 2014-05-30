@@ -235,7 +235,7 @@ define(function (require, exports, module) {
                 MainViewManager.notifyPathDeleted(fullFilePath);
             } else {
                 // For performance, we do lazy checking of file existence, so it may be in working set
-                DocumentManager.removeFromWorkingSet(FileSystem.getFileForPath(fullFilePath));
+                MainViewManager.removeFromPaneViewList(MainViewManager.FOCUSED_PANE, FileSystem.getFileForPath(fullFilePath));
                 EditorManager.focusEditor();
             }
             result.reject();
