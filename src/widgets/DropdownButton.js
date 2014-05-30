@@ -149,7 +149,13 @@ define(function (require, exports, module) {
         // Also trigger listRendered handler so that custom event handlers can be
         // set up for any custom UI in the list.
         $(this).triggerHandler("listRendered", [parent]);
-
+        
+        if (this._dropdownEventHandler) {
+            // Re-create and re-attach event handlers for the new rendered list.
+            this._dropdownEventHandler = new DropdownEventHandler(parent, this._onSelect.bind(this), this._onDropdownClose.bind(this));
+            this._dropdownEventHandler.open();
+        }
+        
         return parent;
     };
     
