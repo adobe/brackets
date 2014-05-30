@@ -55,6 +55,26 @@ define(function (require, exports, module) {
     var _picker  = null;
     
     /**
+     * Get the condensed form of the filter set by joining the first two in the set with
+     * a comma separator and appending a short message with the number of filters being clipped.
+     * @param {Array.<string>} filter
+     * @return {string} Condensed form of filter set if `filter` is a valid array.
+     *                  Otherwise, return an empty string.
+     */
+    function _getCondensedForm(filter) {
+        if (!_.isArray(filter)) {
+            return "";
+        }
+        
+        // Format filter in condensed form
+        if (filter.length > 2) {
+            return filter.slice(0, 2).join(", ") + " " +
+                   StringUtils.format(Strings.FILE_FILTER_CLIPPED_SUFFIX, filter.length - 2);
+        }
+        return filter.join(", ");
+    }
+    
+    /**
      * Populate the list of dropdown menu with two filter commands and
      * the list of saved filter sets.
      */
@@ -64,6 +84,12 @@ define(function (require, exports, module) {
 
         if (filterSets.length) {
             dropdownItems.push("---");
+
+            // Remove all the empty exclusion sets before concatenating to the dropdownItems.
+            filterSets = filterSets.filter(function (filter) {
+                return (_getCondensedForm(filter.patterns) !== "");
+            });
+
             // FIRST_FILTER_INDEX needs to stay in sync with the number of static items (plus separator)
             // ie. the number of items populated so far before we concatenate with the actual filter sets.
             dropdownItems = dropdownItems.concat(filterSets);
@@ -74,7 +100,7 @@ define(function (require, exports, module) {
     /**
      * Find the index of a filter set in the list of saved filter sets.
      * @param {Array.<{name: string, patterns: Array.<string>}>} filterSets
-     * @param {{name: string, patterns: Array.<string>}} filter
+     * @return {{name: string, patterns: Array.<string>}} filter
      */
     function _getFilterIndex(filterSets, filter) {
         var index = -1,
@@ -114,22 +140,6 @@ define(function (require, exports, module) {
         }
         
         return activeFilter;
-    }
-    
-    /**
-     * Get the condensed form of the filter set by joining the first two in the set with
-     * a comma separator and appending a short message with the number of filters being clipped.
-     * @param {Array.<string>} filter
-     * @param {string} condensed form of filter set
-     */
-    function _getCondensedForm(filter) {
-        // Format filter in condensed form
-        if (filter.length > 2) {
-            return filter.slice(0, 2).join(", ") + " " +
-                   StringUtils.format(Strings.FILE_FILTER_CLIPPED_SUFFIX, filter.length - 2);
-        } else {
-            return filter.join(", ");
-        }
     }
     
     /**
@@ -330,6 +340,18 @@ define(function (require, exports, module) {
             });
         }
         
+        // Code to enable/disable the OK button at the bottom of dialog (whether filter is empty or not)
+        var $primaryBtn = dialog.getElement().find(".primary");
+
+        function updatePrimaryButton() {
+            var trimmedValue = $editField.val().trim();
+
+            $primaryBtn.prop("disabled", !trimmedValue.length);
+        }
+
+        $editField.on("input", updatePrimaryButton);
+        updatePrimaryButton();
+
         if (_context) {
             $editField.on("input", _.debounce(updateFileCount, 400));
             updateFileCount();

@@ -563,7 +563,7 @@ define(function (require, exports, module) {
 
                 // Edit the filter & confirm changes
                 $(".modal.instance textarea").val("*.css");
-                SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
+                SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK, true);
             }
             
             it("should exclude files from search", function () {
@@ -622,7 +622,7 @@ define(function (require, exports, module) {
 
                     // Edit the filter & confirm changes
                     $(".modal.instance textarea").val("test1.*\n*.css");
-                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK, true);
                 });
                 runs(function () {
                     executeSearch("{1}");
@@ -753,7 +753,7 @@ define(function (require, exports, module) {
                 // Edit the filter & confirm changes
                 $(".modal.instance .exclusions-name").val("CSS Files");
                 $(".modal.instance .exclusions-editor").val("*.css\n*.less\n*.scss");
-                SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
+                SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK, true);
             }
 
             // Trigger a mouseover event on the 'parent' and then click on the button with the given 'selector'.
@@ -916,7 +916,7 @@ define(function (require, exports, module) {
                     
                     $(".modal.instance .exclusions-name").val("");
                     $(".modal.instance .exclusions-editor").val("*.css");
-                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK, true);
                 });
                 
                 runs(function () {
@@ -935,17 +935,17 @@ define(function (require, exports, module) {
                 // Create three filter sets and make the last one active.
                 runs(function () {
                     FileFilters.editFilter(filters[0], 0);
-                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK, true);
                 });
 
                 runs(function () {
                     FileFilters.editFilter(filters[1], -1);
-                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK, true);
                 });
                 
                 runs(function () {
                     FileFilters.editFilter(filters[2], -1);
-                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK, true);
                 });
 
                 runs(function () {
@@ -1045,5 +1045,5 @@ define(function (require, exports, module) {
                 });
             });
         });
-    });    
+    });
 });
