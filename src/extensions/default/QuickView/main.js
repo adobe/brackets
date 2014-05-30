@@ -45,7 +45,9 @@ define(function (require, exports, module) {
         prefs                      = null,   // Preferences
         $previewContainer,                   // Preview container
         $previewContent,                     // Preview content holder
-        lastPos;                             // Last line/ch pos processed by handleMouseMove
+        lastPos,                             // Last line/ch pos processed by handleMouseMove
+        lastMousePos,                        // Last mouse position
+        animationRequest;                    // Request for animation frame
     
     // Constants
     var CMD_ENABLE_QUICK_VIEW       = "view.enableQuickView",
@@ -146,13 +148,13 @@ define(function (require, exports, module) {
             .addClass("active");
     }
     
-    function divContainsMouse($div, event) {
+    function divContainsMouse($div, mousePos) {
         var offset = $div.offset();
         
-        return (event.clientX >= offset.left &&
-                event.clientX <= offset.left + $div.width() &&
-                event.clientY >= offset.top &&
-                event.clientY <= offset.top + $div.height());
+        return (mousePos.clientX >= offset.left &&
+                mousePos.clientX <= offset.left + $div.width() &&
+                mousePos.clientY >= offset.top &&
+                mousePos.clientY <= offset.top + $div.height());
     }
     
     
@@ -516,13 +518,69 @@ define(function (require, exports, module) {
         return null;
     }
     
+    function getHoveredEditor(mousePos) {
+        // Figure out which editor we are over
+        var fullEditor = EditorManager.getCurrentFullEditor();
+        
+        if (!fullEditor || !mousePos) {
+            return;
+        }
+        
+        // Check for inline Editor instances first
+        var inlines = fullEditor.getInlineWidgets(),
+            i,
+            editor;
+        
+        for (i = 0; i < inlines.length; i++) {
+            var $inlineEditorRoot = inlines[i].editor && $(inlines[i].editor.getRootElement()), // see MultiRangeInlineEditor
+                $otherDiv = inlines[i].$htmlContent;
+            
+            if ($inlineEditorRoot && divContainsMouse($inlineEditorRoot, mousePos)) {
+                editor = inlines[i].editor;
+                break;
+            } else if ($otherDiv && divContainsMouse($otherDiv, mousePos)) {
+                // Mouse inside unsupported inline editor like Quick Docs or Color Editor
+                return;
+            }
+        }
+        
+        // Check main editor
+        if (!editor) {
+            if (divContainsMouse($(fullEditor.getRootElement()), mousePos)) {
+                editor = fullEditor;
+            }
+        }
+        
+        return editor;
+    }
+    
     /**
      * Changes the current hidden popoverState to visible, showing it in the UI and highlighting
      * its matching text in the editor.
      */
     function showPreview(editor, popover) {
-        var token,
-            cm = editor._codeMirror;
+        var token, cm;
+
+        // Figure out which editor we are over
+        if (!editor) {
+            editor = getHoveredEditor(lastMousePos);
+        }
+
+        if (!editor || !editor._codeMirror) {
+            return;
+        }
+
+        cm = editor._codeMirror;
+
+        // Find char mouse is over
+        var pos = cm.coordsChar({left: lastMousePos.clientX, top: lastMousePos.clientY});
+
+        lastPos = pos;
+
+        // No preview if mouse is past last char on line
+        if (pos.ch >= editor.document.getLine(pos.line).length) {
+            return;
+        }
 
         if (popover) {
             popoverState = popover;
@@ -552,99 +610,80 @@ define(function (require, exports, module) {
         }
     }
     
+    function processMouseMove() {
+        animationRequest = null;
+        
+        if (!lastMousePos) {
+            return;         // should never get here, but safety first!
+        }
+
+        var showImmediately = false,
+            editor = null;
+
+        if (popoverState && popoverState.visible) {
+            // Only figure out which editor we are over when there is already a popover
+            // showing (otherwise wait until after delay to minimize processing)
+            editor = getHoveredEditor(lastMousePos);
+            if (editor && editor._codeMirror) {
+                // Find char mouse is over
+                var cm = editor._codeMirror,
+                    pos = cm.coordsChar({left: lastMousePos.clientX, top: lastMousePos.clientY});
+
+                if (lastPos && lastPos.line === pos.line && lastPos.ch === pos.ch) {
+                    return;
+                }
+                lastPos = pos;
+
+                if (popoverState.start && popoverState.end &&
+                        editor.posWithinRange(pos, popoverState.start, popoverState.end, 1)) {
+
+                    // That one's still relevant - nothing more to do
+                    return;
+                }
+            }
+
+            // That one doesn't cover this pos - hide it and start anew
+            showImmediately = true;
+        }
+
+        // Initialize popoverState
+        hidePreview();
+        popoverState = {};
+
+        // Set timer to scan and show. This will get cancelled (in hidePreview())
+        // if mouse movement rendered this popover inapplicable before timer fires.
+        // When showing "immediately", still use setTimeout() to make this async
+        // so we return from this mousemove event handler ASAP.
+        popoverState.hoverTimer = window.setTimeout(function () {
+            showPreview(editor);
+        }, showImmediately ? 0 : HOVER_DELAY);
+    }
+    
     function handleMouseMove(event) {
+        lastMousePos = null;
+
         if (!enabled) {
             return;
         }
-        
+
         if (event.which) {
             // Button is down - don't show popovers while dragging
             hidePreview();
             return;
         }
-        
-        // Figure out which editor we are over
-        var fullEditor = EditorManager.getCurrentFullEditor();
-        
-        if (!fullEditor) {
-            hidePreview();
-            return;
-        }
-        
-        // Check for inline Editor instances first
-        var inlines = fullEditor.getInlineWidgets(),
-            i,
-            editor;
-        
-        for (i = 0; i < inlines.length; i++) {
-            var $inlineEditorRoot = inlines[i].editor && $(inlines[i].editor.getRootElement()),  // see MultiRangeInlineEditor
-                $otherDiv = inlines[i].$htmlContent;
-            
-            if ($inlineEditorRoot && divContainsMouse($inlineEditorRoot, event)) {
-                editor = inlines[i].editor;
-                break;
-            } else if ($otherDiv && divContainsMouse($otherDiv, event)) {
-                // Mouse inside unsupported inline editor like Quick Docs or Color Editor
-                hidePreview();
-                return;
-            }
-        }
-        
-        // Check main editor
-        if (!editor) {
-            if (divContainsMouse($(fullEditor.getRootElement()), event)) {
-                editor = fullEditor;
-            }
-        }
-        
-        if (editor && editor._codeMirror) {
-            // Find char mouse is over
-            var cm = editor._codeMirror,
-                pos = cm.coordsChar({left: event.clientX, top: event.clientY}),
-                showImmediately = false;
-            
-            // Bail if mouse is on same char as last event
-            if (lastPos && lastPos.line === pos.line && lastPos.ch === pos.ch) {
-                return;
-            }
-            lastPos = pos;
-            
-            // No preview if mouse is past last char on line
-            if (pos.ch >= editor.document.getLine(pos.line).length) {
-                hidePreview();
-                return;
-            }
-            
-            // Is there already a popover provider and range?
-            if (popoverState) {
-                if (popoverState.start && popoverState.end &&
-                        editor.posWithinRange(pos, popoverState.start, popoverState.end, 1)) {
-                    // That one's still relevant - nothing more to do
-                    return;
-                } else {
-                    // That one doesn't cover this pos - hide it and start anew
-                    showImmediately = popoverState.visible;
-                    hidePreview();
-                }
-            }
-            
-            // Initialize popoverState
-            popoverState = {};
-            
-            // Set timer to scan and show. This will get cancelled (in hidePreview())
-            // if mouse movement rendered this popover inapplicable before timer fires.
-            // When showing "immediately", still use setTimeout() to make this async
-            // so we return from this mousemove event handler ASAP.
-            popoverState.hoverTimer = window.setTimeout(function () {
-                showPreview(editor, null);
-            }, showImmediately ? 0 : HOVER_DELAY);
-                
-        } else {
-            // Mouse not over any Editor - immediately hide popover
-            hidePreview();
+
+        // Keep track of last mouse position
+        lastMousePos = {
+            clientX: event.clientX,
+            clientY: event.clientY
+        };
+
+        // Prevent duplicate animation frame requests
+        if (!animationRequest) {
+            animationRequest = window.webkitRequestAnimationFrame(processMouseMove);
         }
     }
-    
+
     function onActiveEditorChange(event, current, previous) {
         // Hide preview when editor changes
         hidePreview();
@@ -701,7 +740,16 @@ define(function (require, exports, module) {
     function toggleEnableQuickView() {
         setEnabled(!enabled);
     }
-        
+    
+    function _forceShow(popover) {
+        hidePreview();
+        lastMousePos = {
+            clientX: popover.xpos,
+            clientY: Math.floor((popover.ybot + popover.ytop) / 2)
+        };
+        showPreview(popover.editor, popover);
+    }
+    
     // Create the preview container
     $previewContainer = $(previewContainerHTML).appendTo($("body"));
     $previewContent = $previewContainer.find(".preview-content");
@@ -727,8 +775,5 @@ define(function (require, exports, module) {
     
     // For unit testing
     exports._queryPreviewProviders  = queryPreviewProviders;
-    exports._forceShow              = function (popover) {
-        hidePreview();
-        showPreview(popover.editor, popover);
-    };
+    exports._forceShow              = _forceShow;
 });
