@@ -37,7 +37,6 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var DocumentManager       = require("document/DocumentManager"),
-        MainViewManager     = require("view/MainViewManager"),
         MainViewManager       = require("view/MainViewManager"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
