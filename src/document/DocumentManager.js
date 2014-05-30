@@ -209,7 +209,7 @@ define(function (require, exports, module) {
      * @return {Array.<File>}
      */
     function getWorkingSet() {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneViewList() instead of DocumentManager.getWorkingSet()", true);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.getPaneViewList() instead of DocumentManager.getWorkingSet()", true);
         return MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE);
     }
 

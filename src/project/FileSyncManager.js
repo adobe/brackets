@@ -45,6 +45,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
         EditorManager       = require("editor/EditorManager"),
         Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
@@ -170,7 +171,7 @@ define(function (require, exports, module) {
      */
     function syncUnopenWorkingSet() {
         // We only care about working set entries that have never been open (have no Document).
-        var unopenWorkingSetFiles = DocumentManager.getWorkingSet().filter(function (wsFile) {
+        var unopenWorkingSetFiles = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).filter(function (wsFile) {
             return !DocumentManager.getOpenDocumentForPath(wsFile.fullPath);
         });
         

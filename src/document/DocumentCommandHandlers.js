@@ -1186,7 +1186,7 @@ define(function (require, exports, module) {
         result.done(function (listAfterSave) {
             listAfterSave = listAfterSave || list;
             if (!promptOnly) {
-                DocumentManager.removeListFromWorkingSet(listAfterSave, clearCurrentDoc);
+                MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, listAfterSave, clearCurrentDoc);
             }
         });
         
@@ -1202,7 +1202,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
-        return _closeList(DocumentManager.getWorkingSet(),
+        return _closeList(MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE),
                                     (commandData && commandData.promptOnly), true).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager._closeCustomViewer();

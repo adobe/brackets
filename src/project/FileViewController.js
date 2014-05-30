@@ -89,7 +89,7 @@ define(function (require, exports, module) {
         if (!_curDocChangedDueToMe) {
             var curDoc = DocumentManager.getCurrentDocument();
             perfTimerName = PerfUtils.markStart("FileViewController._onCurrentDocumentChange():\t" + (!curDoc || curDoc.file.fullPath));
-            if (curDoc && DocumentManager.findInWorkingSet(curDoc.file.fullPath) !== -1) {
+            if (curDoc && MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES,  curDoc.file.fullPath) !== -1) {
                 _fileSelectionFocus = PANE_VIEW_LIST_VIEW;
             } else {
                 _fileSelectionFocus = PROJECT_MANAGER;
