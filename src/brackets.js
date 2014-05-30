@@ -69,6 +69,7 @@ define(function (require, exports, module) {
         CSSInlineEditor         = require("editor/CSSInlineEditor"),
         JSUtils                 = require("language/JSUtils"),
         PaneViewListView        = require("project/PaneViewListView"),
+        WorkingSetView          = require("project/WorkingSetView"),
         PaneViewListSort        = require("project/PaneViewListSort"),
         DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
         FileViewController      = require("project/FileViewController"),
