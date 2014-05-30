@@ -150,10 +150,9 @@ define(function (require, exports, module) {
         // set up for any custom UI in the list.
         $(this).triggerHandler("listRendered", [parent]);
         
+        // Also need to re-register mouse event handlers with the updated list.
         if (this._dropdownEventHandler) {
-            // Re-create and re-attach event handlers for the new rendered list.
-            this._dropdownEventHandler = new DropdownEventHandler(parent, this._onSelect.bind(this), this._onDropdownClose.bind(this));
-            this._dropdownEventHandler.open();
+            this._dropdownEventHandler.reRegisterMouseHandlers(parent);
         }
         
         return parent;
