@@ -293,6 +293,21 @@ define(function (require, exports, module) {
                 }
             });
     };
+    
+    /**
+     * Re-register mouse event handlers
+     * @param {!jQueryObject} $list  newly updated list object
+     */
+    DropdownEventHandler.prototype.reRegisterMouseHandlers = function ($list) {
+        if (this.$list) {
+            this.$list.off("click mouseover");
+            
+            this.$list = $list;
+            this.$items = $list.find("li");
+            
+            this._registerMouseEvents();
+        }
+    };
 
     // Export public API
     exports.DropdownEventHandler    = DropdownEventHandler;
