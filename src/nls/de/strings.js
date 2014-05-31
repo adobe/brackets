@@ -555,4 +555,4 @@ define({
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
 
-/* Last translated for 45ad989284156a2b6c9e1b3669c2ce5c61055089 */
+/* Last translated for 3727e3103255acb0c72ee63c57949428a4ba1334 */
