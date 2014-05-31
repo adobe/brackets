@@ -6,7 +6,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, require */
+/*global $, define, require, less */
 
 define(function (require, exports, module) {
     "use strict";
@@ -19,25 +19,125 @@ define(function (require, exports, module) {
         FileUtils          = require("file/FileUtils"),
         EditorManager      = require("editor/EditorManager"),
         ExtensionUtils     = require("utils/ExtensionUtils"),
-        Theme              = require("view/Theme"),
         ThemeSettings      = require("view/ThemeSettings"),
         ThemeView          = require("view/ThemeView"),
         AppInit            = require("utils/AppInit"),
         PreferencesManager = require("preferences/PreferencesManager"),
         prefs              = PreferencesManager.getExtensionPrefs("brackets-themes");
 
+    var _themes         = {},
+        appReady        = false,
+        commentRegex    = /\/\*([\s\S]*?)\*\//mg,
+        scrollbarsRegex = /(?:[^}|,]*)::-webkit-scrollbar(?:[\s\S]*?){(?:[\s\S]*?)}/mg,
+        validExtensions = ["css", "less"];
+
+
     // Load up reset.css to override brackground settings from brackets because
     // they make the themes look really bad.
     ExtensionUtils.addLinkedStyleSheet("themes/reset.css");
     ExtensionUtils.addLinkedStyleSheet("styles/brackets_theme_settings.css");
 
-    var appReady = false;
 
-    // Bucket with all fully resolved theme objects.
-    var _themes = {};
+    /**
+    * @constructor
+    */
+    function Theme(file, displayName) {
+        var _self     = this,
+            fileName  = file.name;
 
-    // Valid theme file extensions
-    var validExtensions = ["css", "less"];
+        _self.file        = file;
+        _self.displayName = displayName || toDisplayName(fileName);
+        _self.name        = fileName.substring(0, fileName.lastIndexOf('.'));
+        _self.className   = "theme-" + _self.name;
+    }
+
+
+    Theme.prototype.getFile = function() {
+        return this.file;
+    };
+
+
+    Theme.prototype.load = function(force) {
+        var theme = this;
+
+        if (theme.css && !force) {
+            return theme;
+        }
+
+        if (theme.css) {
+            $(theme.css).remove();
+        }
+
+        return FileUtils.readAsText(this.getFile())
+            .then(function(content) {
+                var result = extractScrollbars(content);
+                theme.scrollbar = result.scrollbar;
+                return result.content;
+            })
+            .then(function(content) {
+                return lessifyTheme(content, theme);
+            })
+            .then(function(style) {
+                return ExtensionUtils.addEmbeddedStyleSheet(style);
+            })
+            .then(function(styleNode) {
+                theme.css = styleNode;
+                return theme;
+            })
+            .promise();
+    };
+
+
+    /**
+    *  Takes all dashes and converts them to white spaces...
+    *  Then takes all first letters and capitalizes them.
+    */
+    function toDisplayName (name) {
+        name = name.substring(0, name.lastIndexOf('.')).replace(/-/g, ' ');
+        var parts = name.split(" ");
+
+        $.each(parts.slice(0), function (index, part) {
+            parts[index] = part[0].toUpperCase() + part.substring(1);
+        });
+
+        return parts.join(" ");
+    }
+
+
+    function extractScrollbars(content) {
+        var scrollbar = [];
+
+        // Go through and extract out scrollbar customizations so that we can
+        // enable/disable via settings.
+        content = content
+            .replace(commentRegex, "")
+            .replace(scrollbarsRegex, function(match) {
+                scrollbar.push(match);
+                return "";
+            });
+
+        return {
+            content: content,
+            scrollbar: scrollbar
+        };
+    }
+
+
+    function lessifyTheme(content, theme) {
+        var deferred = $.Deferred(),
+            parser = new less.Parser();
+
+        parser.parse("." + theme.className + "{" + content + "}", function (err, tree) {
+            if (err) {
+                deferred.reject(err);
+            }
+            else {
+                deferred.resolve(tree.toCSS());
+            }
+        });
+
+        return deferred.promise();
+    }
 
 
     /**
