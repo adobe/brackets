@@ -365,7 +365,7 @@ define(function (require, exports, module) {
     AppInit.appReady(function() {
         loadThemes(getThemes(), true).done(function(){
             themeReady = true;
-            refresh(true);
+            refresh();
         });
     });
 
