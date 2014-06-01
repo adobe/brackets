@@ -26,7 +26,7 @@ define(function (require, exports, module) {
         prefs              = PreferencesManager.getExtensionPrefs("brackets-themes");
 
     var _themes         = {},
-        appReady        = false,
+        themeReady      = false,
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
         scrollbarsRegex = /(?:[^}|,]*)::-webkit-scrollbar(?:[\s\S]*?){(?:[\s\S]*?)}/mg,
         validExtensions = ["css", "less"];
@@ -144,7 +144,7 @@ define(function (require, exports, module) {
     * Refresh currently load theme
     */
     function refresh(force) {
-        if (!appReady) {
+        if (!themeReady) {
             return;
         }
 
@@ -348,12 +348,6 @@ define(function (require, exports, module) {
         ThemeView.updateFontType();
     });
 
-
-    $(EditorManager).on("activeEditorChange", function() {
-        refresh();
-    });
-
-
     FileSystem.on("change", function(evt, file) {
         var name = (file.name || "").substring(0, file.name.lastIndexOf('.')),
             theme = _themes[name];
@@ -363,10 +357,16 @@ define(function (require, exports, module) {
         }
     });
 
+    $(EditorManager).on("activeEditorChange", function() {
+        refresh();
+    });
 
+    // When the app is ready, we need to try to load whatever theme needs to be processed
     AppInit.appReady(function() {
-        appReady = true;
-        refresh(true);
+        loadThemes(getThemes(), true).done(function(){
+            themeReady = true;
+            refresh(true);
+        });
     });
 
 
