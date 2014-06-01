@@ -142,7 +142,7 @@ define(function (require, exports, module) {
      */
     DropdownEventHandler.prototype._cleanup = function () {
         if (this.$list) {
-            this.$list.off("click.dropdownEventHandler mouseover.dropdownEventHandler");
+            this.$list.off(".dropdownEventHandler");
         }
         if (this.closeCallback) {
             this.closeCallback();
@@ -300,7 +300,7 @@ define(function (require, exports, module) {
      */
     DropdownEventHandler.prototype.reRegisterMouseHandlers = function ($list) {
         if (this.$list) {
-            this.$list.off("click.dropdownEventHandler mouseover.dropdownEventHandler");
+            this.$list.off(".dropdownEventHandler");
             
             this.$list = $list;
             this.$items = $list.find("li");
