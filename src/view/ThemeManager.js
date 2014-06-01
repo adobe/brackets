@@ -42,55 +42,19 @@ define(function (require, exports, module) {
     * @constructor
     */
     function Theme(file, displayName) {
-        var _self     = this,
-            fileName  = file.name;
+        var fileName = file.name;
 
-        _self.file        = file;
-        _self.displayName = displayName || toDisplayName(fileName);
-        _self.name        = fileName.substring(0, fileName.lastIndexOf('.'));
-        _self.className   = "theme-" + _self.name;
+        this.file        = file;
+        this.displayName = displayName || toDisplayName(fileName);
+        this.name        = fileName.substring(0, fileName.lastIndexOf('.'));
+        this.className   = "theme-" + this.name;
     }
 
 
-    Theme.prototype.getFile = function() {
-        return this.file;
-    };
-
-
-    Theme.prototype.load = function(force) {
-        var theme = this;
-
-        if (theme.css && !force) {
-            return theme;
-        }
-
-        if (theme.css) {
-            $(theme.css).remove();
-        }
-
-        return FileUtils.readAsText(this.getFile())
-            .then(function(content) {
-                var result = extractScrollbars(content);
-                theme.scrollbar = result.scrollbar;
-                return result.content;
-            })
-            .then(function(content) {
-                return lessifyTheme(content, theme);
-            })
-            .then(function(style) {
-                return ExtensionUtils.addEmbeddedStyleSheet(style);
-            })
-            .then(function(styleNode) {
-                theme.css = styleNode;
-                return theme;
-            })
-            .promise();
-    };
-
-
     /**
-    *  Takes all dashes and converts them to white spaces...
-    *  Then takes all first letters and capitalizes them.
+    * @private
+    * Takes all dashes and converts them to white spaces...
+    * Then takes all first letters and capitalizes them.
     */
     function toDisplayName (name) {
         name = name.substring(0, name.lastIndexOf('.')).replace(/-/g, ' ');
@@ -104,6 +68,12 @@ define(function (require, exports, module) {
     }
 
 
+    /**
+    * @private
+    * Extracts the scrollbar text from the css/less content so that it can be treated
+    * as a separate styling component that can be anabled/disabled independently from
+    * the theme.
+    */
     function extractScrollbars(content) {
         var scrollbar = [];
 
@@ -123,6 +93,11 @@ define(function (require, exports, module) {
     }
 
 
+    /**
+    * @private
+    * Takes the content of a file and feeds it through the less processor in order
+    * to provide support for less files.
+    */
     function lessifyTheme(content, theme) {
         var deferred = $.Deferred(),
             parser = new less.Parser();
@@ -140,40 +115,96 @@ define(function (require, exports, module) {
     }
 
 
+    function isFileTypeValid(file) {
+        return file.isFile &&
+            validExtensions.indexOf(FileUtils.getFileExtension(file.name)) !== -1;
+    }
+
+
     /**
-    * Refresh currently load theme
+    * @private
+    * Will trigger a refresh of codemirror instance and editor resize so that
+    * inline widgets get properly
     */
-    function refresh(force) {
-        if (!themeReady) {
-            return;
-        }
+    function refreshEditor(cm) {
+        // Really dislike timing issues with CodeMirror.  I have to refresh
+        // the editor after a little bit of time to make sure that themes
+        // are properly applied to quick edit widgets
+        setTimeout(function(){
+            cm.refresh();
+            EditorManager.resizeEditor();
+        }, 100);
+    }
 
-        var cm = getCM();
 
-        if (cm) {
-            ThemeView.setDocumentMode(cm);
-
-            if (!force) {
-                ThemeView.updateThemes(cm);
-                refreshEditor(cm);
+    /**
+    * Loads theme style files
+    */
+    function loadCurrentThemes() {
+        return $.when(undefined, _.map(getCurrentThemes(), function (theme) {
+            if (theme.css) {
+                $(theme.css).remove();
             }
-            else {
-                loadThemes(getThemes(), true).done(function() {
-                    ThemeView.updateThemes(cm);
-                    refreshEditor(cm);
-                });
-            }
-        }
+
+            return FileUtils.readAsText(theme.file)
+                .then(function(content) {
+                    var result = extractScrollbars(content);
+                    theme.scrollbar = result.scrollbar;
+                    return result.content;
+                })
+                .then(function(content) {
+                    return lessifyTheme(content, theme);
+                })
+                .then(function(style) {
+                    return ExtensionUtils.addEmbeddedStyleSheet(style);
+                })
+                .then(function(styleNode) {
+                    theme.css = styleNode;
+                    return theme;
+                })
+                .promise();
+        }));
     }
 
 
     /**
     * Returns all current theme objects
     */
-    function getThemes() {
+    function getCurrentThemes() {
         return _.map(prefs.get("themes").slice(0), function (item) {
             return _themes[item];
         });
+    }
+
+
+    /**
+    * Refresh currently load theme
+    * @param <boolean> force is to cause the refresh to force reload the current themes
+    */
+    function refresh(force) {
+        if (!themeReady) {
+            return;
+        }
+
+        var editor = EditorManager.getActiveEditor();
+        if (!editor || !editor._codeMirror) {
+            return;
+        }
+
+        var cm =  editor._codeMirror;
+
+        ThemeView.setDocumentMode(cm);
+
+        if (!force) {
+            ThemeView.updateThemes(cm);
+            refreshEditor(cm);
+        }
+        else {
+            loadCurrentThemes().done(function() {
+                ThemeView.updateThemes(cm);
+                refreshEditor(cm);
+            });
+        }
     }
 
 
@@ -194,8 +225,8 @@ define(function (require, exports, module) {
                 ThemeSettings.setThemes(_themes);
 
                 // For themes that are loaded after ThemeManager has been loaded,
-                // we should check if it the theme in the selected array so that
-                // we can determine if we need to trigger a refresh
+                // we should check if it's the current theme.  It is, then we just
+                // load it.
                 if (currentThemes.indexOf(theme.name) !== -1) {
                     refresh(true);
                 }
@@ -212,7 +243,7 @@ define(function (require, exports, module) {
 
 
     /**
-    * Loads a theme from a file. fileName is the full path to the file
+    * Loads a theme from a file.
     */
     function loadPackage(themePackage) {
         var fileName = themePackage.path + "/" + themePackage.metadata.theme;
@@ -257,80 +288,31 @@ define(function (require, exports, module) {
             }
         }
 
+        function loadThemesFiles(themes) {
+            // Iterate through each name in the themes and make them theme objects
+            var deferred = _.map(themes.files, function (themeFile) {
+                return loadFile(themes.path + "/" + themeFile);
+            });
+
+            return $.when.apply(undefined, deferred);
+        }
 
         FileSystem.getDirectoryForPath(path).getContents(readContent);
         return result.then(loadThemesFiles).promise();
     }
 
 
-    function isFileTypeValid(file) {
-        return file.isFile &&
-            validExtensions.indexOf(FileUtils.getFileExtension(file.name)) !== -1;
-    }
-
-
-    /**
-    * Process theme meta deta to create theme instances
-    */
-    function loadThemesFiles(themes) {
-        // Iterate through each name in the themes and make them theme objects
-        var deferred = _.map(themes.files, function (themeFile) {
-            return loadFile(themes.path + "/" + themeFile);
-        });
-
-        return $.when.apply(undefined, deferred);
-    }
-
-
-    /**
-    * Loads theme style files
-    */
-    function loadThemes(themes, refresh) {
-        var pending = _.map(themes, function (theme) {
-            if (theme) {
-                return theme.load(refresh);
-            }
-        });
-
-        return $.when.apply(undefined, pending);
-    }
-
-
-    /**
-    * Will trigger a refresh of codemirror instance and editor resize so that
-    * inline widgets get properly
-    */
-    function refreshEditor(cm) {
-        // Really dislike timing issues with CodeMirror.  I have to refresh
-        // the editor after a little bit of time to make sure that themes
-        // are properly applied to quick edit widgets
-        setTimeout(function(){
-            cm.refresh();
-            EditorManager.resizeEditor();
-        }, 100);
-    }
-
-
-    function getCM() {
-        var editor = EditorManager.getActiveEditor();
-        if (!editor || !editor._codeMirror) {
-            return;
-        }
-        return editor._codeMirror;
-    }
-
-
     prefs.on("change", "themes", function() {
         refresh(true);
-        ThemeView.updateScrollbars(getThemes()[0]);
+        ThemeView.updateScrollbars(getCurrentThemes()[0]);
 
         // Expose event for theme changes
-        $(exports).trigger("themeChange", getThemes());
+        $(exports).trigger("themeChange", getCurrentThemes());
     });
 
     prefs.on("change", "customScrollbars", function() {
         refresh();
-        ThemeView.updateScrollbars(getThemes()[0]);
+        ThemeView.updateScrollbars(getCurrentThemes()[0]);
     });
 
     prefs.on("change", "fontSize", function() {
@@ -352,7 +334,7 @@ define(function (require, exports, module) {
         var name = (file.name || "").substring(0, file.name.lastIndexOf('.')),
             theme = _themes[name];
 
-        if (theme && theme.getFile().parentPath === file.parentPath) {
+        if (theme && theme.file.parentPath === file.parentPath) {
             refresh(true);
         }
     });
@@ -363,7 +345,7 @@ define(function (require, exports, module) {
 
     // When the app is ready, we need to try to load whatever theme needs to be processed
     AppInit.appReady(function() {
-        loadThemes(getThemes(), true).done(function(){
+        loadCurrentThemes().done(function(){
             themeReady = true;
             refresh();
         });
@@ -381,9 +363,9 @@ define(function (require, exports, module) {
     //
     // Exposed API
     //
-    exports.refresh       = refresh;
-    exports.loadFile      = loadFile;
-    exports.loadPackage   = loadPackage;
-    exports.loadDirectory = loadDirectory;
-    exports.getThemes     = getThemes;
+    exports.refresh          = refresh;
+    exports.loadFile         = loadFile;
+    exports.loadPackage      = loadPackage;
+    exports.loadDirectory    = loadDirectory;
+    exports.getCurrentThemes = getCurrentThemes;
 });
