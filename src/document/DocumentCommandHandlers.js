@@ -100,13 +100,13 @@ define(function (require, exports, module) {
 
     /**
      * Last known height of _$titleContainerToolbar
-     * @type {Number}
+     * @type {number}
      */
     var _lastToolbarHeight = null;
 
     /**
      * index to use for next, new Untitled document
-     * @type {Number}
+     * @type {number}
      */
     var _nextUntitledIndexToUse = 1;
 
