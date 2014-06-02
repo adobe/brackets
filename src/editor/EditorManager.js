@@ -62,7 +62,10 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         LanguageManager     = require("language/LanguageManager");
     
-    /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
+    /**
+     * DOM node that contains all editors (visible and hidden alike)
+     * @type {jQueryObject}
+     */
     var _editorHolder = null;
     
     /**
@@ -70,15 +73,35 @@ define(function (require, exports, module) {
      * @type {?Editor}
      */
     var _currentEditor = null;
-    /** @type {?Document} */
+
+    /**
+     * Document in current editor
+     * @type {?Document}
+     */
     var _currentEditorsDocument = null;
-    /** @type {?string} full path to file */
+
+    /**
+     * full path to file
+     * @type {?string}
+     */
     var _currentlyViewedPath = null;
-    /** @type {?JQuery} DOM node representing UI of custom view   */
+
+    /**
+     * DOM node representing UI of custom view  
+     * @type {?JQuery}
+     */
     var _$currentCustomViewer = null;
-    /** @type {?Object} view provider */
+
+    /**
+     * view provider
+     * @type {?Object}
+     */
     var _currentViewProvider = null;
-    /** @type {?Object} view provider registry */
+
+    /**
+     * view provider registry
+     * @type {?Object}
+     */
     var _customViewerRegistry = {};
     
     /**

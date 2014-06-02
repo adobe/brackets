@@ -44,7 +44,10 @@ define(function (require, exports, module) {
         ViewUtils             = require("utils/ViewUtils");
     
     
-    /** @const @type {number} Constants for event.which values */
+    /**
+     * Constants for event.which values
+     * @enum {number}
+     */
     var LEFT_BUTTON = 1,
         MIDDLE_BUTTON = 2;
     

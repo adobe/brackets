@@ -80,7 +80,9 @@ define(function (require, exports, module) {
         // closeInlineWidget() causes our onClosed() handler to be called
     };
     
-    /** @return {boolean} True if any part of the inline widget is focused */
+    /**
+     * @return {boolean} True if any part of the inline widget is focused
+     */
     InlineWidget.prototype.hasFocus = function () {
         var focusedItem = window.document.activeElement,
             htmlContent = this.$htmlContent[0];

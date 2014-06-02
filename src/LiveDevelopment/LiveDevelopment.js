@@ -146,13 +146,22 @@ define(function LiveDevelopment(require, exports, module) {
         "highlight" : true
     };
 
-    // store the names (matching property names in the 'agent' object) of agents that we've loaded
+    /**
+     * Store the names (matching property names in the 'agent' object) of agents that we've loaded
+     * @type {string}
+     */
     var _loadedAgentNames = [];
 
-    /** @type {HTMLDocument} */
+    /**
+     * Live Preview current Document info
+     * @type {HTMLDocument}
+     */
     var _liveDocument;
     
-    /** @type {Object.<string: {HTMLDocument|CSSDocument}>} */
+    /**
+     * Related Live Documents
+     * @type {Object.<string: {HTMLDocument|CSSDocument}>}
+     */
     var _relatedDocuments = {};
     
     /**

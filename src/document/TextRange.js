@@ -78,11 +78,22 @@ define(function (require, exports, module) {
     };
     
     
-    /** @type {!Document} */
+    /**
+     * Containing document
+     * @type {!Document}
+     */
     TextRange.prototype.document = null;
-    /** @type {?number} Null after "lostSync" is dispatched */
+
+    /**
+     * Starting Line
+     * @type {?number} Null after "lostSync" is dispatched
+     */
     TextRange.prototype.startLine = null;
-    /** @type {?number} Null after "lostSync" is dispatched */
+
+    /**
+     * Ednign Line
+     * @type {?number} Null after "lostSync" is dispatched
+     */
     TextRange.prototype.endLine = null;
     
     

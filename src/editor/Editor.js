@@ -94,7 +94,10 @@ define(function (require, exports, module) {
     
     var cmOptions         = {};
     
-    /** @type {number} Constants */
+    /**
+     * Constants
+     * @type {number}
+     */
     var MIN_SPACE_UNITS         =  0,
         MIN_TAB_SIZE            =  1,
         DEFAULT_SPACE_UNITS     =  4,
@@ -136,10 +139,16 @@ define(function (require, exports, module) {
 
     /** Editor preferences */
     
-    /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
+    /**
+     * Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors
+     * @type {boolean}
+     */
     var _duringFocus = false;
 
-    /** @type {number}  Constant: ignore upper boundary when centering text */
+    /**
+     * Constant: ignore upper boundary when centering text
+     * @type {number}
+     */
     var BOUNDARY_CHECK_NORMAL   = 0,
         BOUNDARY_IGNORE_TOP     = 1;
 
@@ -631,7 +640,9 @@ define(function (require, exports, module) {
         });
     };
     
-    /** @return {boolean} True if editor is not showing the entire text of the document (i.e. an inline editor) */
+    /**
+     * @return {boolean} True if editor is not showing the entire text of the document (i.e. an inline editor)
+     */
     Editor.prototype.isTextSubset = function () {
         return Boolean(this._visibleRange);
     };

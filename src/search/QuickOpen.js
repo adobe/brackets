@@ -54,23 +54,39 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils");
     
     
-    /** @const {RegExp} The regular expression to check the cursor position */
+    /**
+     * The regular expression to check the cursor position
+     * @const {RegExp}
+     */
     var CURSOR_POS_EXP = new RegExp(":([^,]+)?(,(.+)?)?");
     
-    /** @type Array.<QuickOpenPlugin> */
+    /**
+     * List of plugins
+     * @type {Array.<QuickOpenPlugin>}
+     */
     var plugins = [];
 
-    /** @type {QuickOpenPlugin} */
+    /**
+     * Current plugin
+     * @type {QuickOpenPlugin}
+     */
     var currentPlugin = null;
 
-    /** @type Array.<FileInfo>*/
+    /**
+     * List of files
+     * @type {Array.<FileInfo>}
+     */
     var fileList;
     
-    /** @type $.Promise */
+    /**
+     * File list promise
+     * @type {$.Promise}
+     */
     var fileListPromise;
 
     /**
      * The currently open quick open dialog.
+     * @type {Dialog}
      */
     var _curDialog;
 

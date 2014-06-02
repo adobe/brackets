@@ -74,26 +74,49 @@ define(function (require, exports, module) {
             .on("click", this._onClick);
     }
     
-    /** @type {!Array.<*>} Items in dropdown list - may be changed any time dropdown isn't open */
+    /**
+     * Items in dropdown list - may be changed any time dropdown isn't open
+     * @type {!Array.<*>}
+     */
     DropdownButton.prototype.items = null;
     
-    /** @type {!jQueryObject} The clickable button. Available as soon as the DropdownButton is constructed. */
+    /**
+     * The clickable button. Available as soon as the DropdownButton is constructed.
+     * @type {!jQueryObject}
+     */
     DropdownButton.prototype.$button = null;
     
-    /** @type {?jQueryObject} The dropdown element. Only non-null while open. */
+    /**
+     * The dropdown element. Only non-null while open.
+     * @type {?jQueryObject}
+     */
     DropdownButton.prototype.$dropdown = null;
     
-    /** @type {?string} Extra CSS class(es) to apply to $dropdown */
+    /**
+     * Extra CSS class(es) to apply to $dropdown
+     * @type {?string}
+     */
     DropdownButton.prototype.dropdownExtraClasses = null;
     
-    /** @private @type {?HTMLElement} Where to restore focus when dropdown closed */
+    /**
+     * @private
+     * Where to restore focus when dropdown closed
+     * @type {?HTMLElement}
+     */
     DropdownButton.prototype._lastFocus = null;
     
-    /** @private @type {?DropdownEventHandler} Helper object for dropdown. Only non-null while open. */
+    /**
+     * @private
+     * Helper object for dropdown. Only non-null while open.
+     * @type {?DropdownEventHandler}
+     */
     DropdownButton.prototype._dropdownEventHandler = null;
     
     
-    /** @private Handle clicking button */
+    /**
+     * @private
+     * Handle clicking button
+     */
     DropdownButton.prototype._onClick = function (event) {
         if (!this.$button.hasClass("disabled")) {
             this.toggleDropdown();
@@ -277,7 +300,10 @@ define(function (require, exports, module) {
         }
     };
     
-    /** @private Clicking outside the dropdown closes it */
+    /**
+     * @private
+     * Clicking outside the dropdown closes it
+     */
     DropdownButton.prototype._onClickOutside = function (event) {
         var $container = $(event.target).closest(".dropdownbutton-popup");
 

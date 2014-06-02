@@ -340,31 +340,58 @@ define(function (require, exports, module) {
     }
     
     
-    /** @type {string} Identifier for this language */
+    /**
+     * Identifier for this language
+     * @type {string}
+     */
     Language.prototype._id = null;
     
-    /** @type {string} Human-readable name of this language */
+    /**
+     * Human-readable name of this language
+     * @type {string}
+     */
     Language.prototype._name = null;
     
-    /** @type {string} CodeMirror mode for this language */
+    /**
+     * CodeMirror mode for this language
+     * @type {string}
+     */
     Language.prototype._mode = null;
     
-    /** @type {Array.<string>} File extensions that use this language */
+    /**
+     * File extensions that use this language
+     * @type {Array.<string>}
+     */
     Language.prototype._fileExtensions = null;
     
-    /** @type {Array.<string>} File names for extensionless files that use this language */
+    /**
+     * File names for extensionless files that use this language
+     * @type {Array.<string>}
+     */
     Language.prototype._fileNames = null;
     
-    /** @type {Array.<string>} Line comment syntax */
+    /**
+     * Line comment syntax
+     * @type {Array.<string>}
+     */
     Language.prototype._lineCommentSyntax = null;
     
-    /** @type {Object.<string,Language>} Which language to use for what CodeMirror mode */
+    /**
+     * Which language to use for what CodeMirror mode
+     * @type {Object.<string,Language>}
+     */
     Language.prototype._modeToLanguageMap = null;
     
-    /** @type {{ prefix: string, suffix: string }} Block comment syntax */
+    /**
+     * Block comment syntax
+     * @type {{ prefix: string, suffix: string }}
+     */
     Language.prototype._blockCommentSyntax = null;
     
-    /** @type {boolean} Whether or not the language is binary */
+    /**
+     * Whether or not the language is binary
+     * @type {boolean}
+     */
     Language.prototype._isBinary = false;
     
     /**

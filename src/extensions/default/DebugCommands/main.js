@@ -47,10 +47,16 @@ define(function (require, exports, module) {
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
-    /** @const {string} Brackets Application Menu Constant */
+    /**
+     * Brackets Application Menu Constant
+     * @const {string}
+     */
     var DEBUG_MENU = "debug-menu";
     
-     /** @const {string} Debug commands IDs */
+     /**
+      * Debug commands IDs
+      * @enum {string}
+      */
     var DEBUG_REFRESH_WINDOW            = "debug.refreshWindow", // string must MATCH string in native code (brackets_extensions)
         DEBUG_SHOW_DEVELOPER_TOOLS      = "debug.showDeveloperTools",
         DEBUG_RUN_UNIT_TESTS            = "debug.runUnitTests",

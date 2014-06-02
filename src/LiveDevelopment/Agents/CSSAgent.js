@@ -39,13 +39,22 @@ define(function CSSAgent(require, exports, module) {
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 
-    /** @type {Object.<string, CSS.CSSStyleSheetHeader>} */
+    /**
+     * STylesheet urls
+     * @type {Object.<string, CSS.CSSStyleSheetHeader>}
+     */
     var _urlToStyle = {};
     
-    /** @type {Object.<string, string>} */
+    /**
+     * Map of stylesheet ids to urls
+     * @type {Object.<string, string>}
+     */
     var _styleSheetIdToUrl;
 
-    /** @type {boolean} This is undefined until we test for API */
+    /**
+     * Is getAllStyleSheets() API defined? - This is undefined until we test for API
+     * @type {boolean}
+     */
     var _getAllStyleSheetsNotFound;
 
     /** 
