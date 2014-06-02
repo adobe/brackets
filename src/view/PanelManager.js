@@ -36,7 +36,7 @@ define(function (require, exports, module) {
     
     // Define public API
     exports.createBottomPanel   = function (id, $panel, minSize) {
-        DeprecationWarning.deprecationWarning("PanelManager.createBottomPanel() is deprecated. Use WorkspaceManager.createBottomPanel() instead.");
+        DeprecationWarning.deprecationWarning("PanelManager.createBottomPanel() is deprecated. Use WorkspaceManager.createBottomPanel() instead.", true);
         WorkspaceManager.createBottomPanel(id, $panel, minSize);
     };
 });
