@@ -50,7 +50,7 @@ module.exports = function (grunt) {
             distConfig.version = distConfig.version.substr(0, distConfig.version.lastIndexOf("-") + 1) + gitInfo.commits;
             distConfig.repository.SHA = gitInfo.sha;
             distConfig.repository.branch = gitInfo.branch;
-            distConfig.config.build_timestamp = new Date().toUTCString();
+            distConfig.config.build_timestamp = new Date().toString().split('(')[0].trim();
     
             common.writeJSON(grunt, "dist/config.json", distConfig);
             
