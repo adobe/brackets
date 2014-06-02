@@ -208,13 +208,6 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {number}
-     * Timestamp of the last mousedown event. For tracking long presses.
-     */
-    var _mousedownTimestamp;
-    
-    /**
-     * @private
      * Generates the prefixes used for sorting the files in the project tree
      * @return {boolean} true if the sort prefixes have changed
      */
@@ -648,38 +641,26 @@ define(function (require, exports, module) {
             ).bind(
                 "mousedown.jstree",
                 function (event) {
-                    // Track the mousedown time
-                    _mousedownTimestamp = event.timeStamp;
-                    
+                    var $treenode = $(event.target).closest("li");
                     // select tree node on right-click
                     if (event.which === 3 || (event.ctrlKey && event.which === 1 && brackets.platform === "mac")) {
-                        var treenode = $(event.target).closest("li");
-                        if (treenode) {
+                        if ($treenode) {
                             var saveSuppressToggleOpen = suppressToggleOpen;
                            
                             // don't toggle open folders (just select)
                             suppressToggleOpen = true;
                             _projectTree.jstree("deselect_all");
-                            _projectTree.jstree("select_node", treenode, false);
+                            _projectTree.jstree("select_node", $treenode, false);
                             suppressToggleOpen = saveSuppressToggleOpen;
                         }
-                    }
-                   
-                }
-            ).bind(
-                "mouseup.jstree",
-                function (event) {
-                    var treenode = $(event.target).closest("li");
-                    // Guess (based on eye-test) for Mac and Win length of a long press before the rename input show sup.
-                    var longPressThreshhold = 250;
-                    
-                    // Check to make sure the event is happening on the selected item
-                    if ($(treenode)[0] === $(_lastSelected)[0]) {
-                        var pressLength = event.timeStamp - _mousedownTimestamp;
-                        if (pressLength >= longPressThreshhold) {
+                    } else {
+                        // if it's not a right click interaction first check to see if the item is selected
+                        var isSelected = $treenode.hasClass("jstree-leaf") && $treenode.children("a").hasClass("jstree-clicked");
+                        if (isSelected) {
                             CommandManager.execute(Commands.FILE_RENAME);
                         }
                     }
+                   
                 }
             );
 
