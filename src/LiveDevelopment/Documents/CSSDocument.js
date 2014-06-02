@@ -55,9 +55,10 @@ define(function CSSDocumentModule(require, exports, module) {
         HighlightAgent  = require("LiveDevelopment/Agents/HighlightAgent"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector");
 
-    /** Constructor
-     *
-     * @param Document the source document from Brackets
+    /**
+     * @constructor
+     * @param {!Document} doc The source document from Brackets
+     * @param {!Editor} editor The editor for this document
      */
     var CSSDocument = function CSSDocument(doc, editor) {
         this.doc = doc;

@@ -56,9 +56,9 @@ define(function HTMLDocumentModule(require, exports, module) {
         _                   = require("thirdparty/lodash");
 
     /**
-     * Constructor
-     * @param {!DocumentManager.Document} doc the source document from Brackets
-     * @param {editor=} editor
+     * @constructor
+     * @param {!Document} doc The source document from Brackets
+     * @param {!Editor} editor The editor for this document
      */
     var HTMLDocument = function HTMLDocument(doc, editor) {
         var self = this;

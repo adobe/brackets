@@ -49,9 +49,10 @@ define(function JSDocumentModule(require, exports, module) {
     var ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent");
     var HighlightAgent = require("LiveDevelopment/Agents/HighlightAgent");
 
-    /** Constructor
-     *
-     * @param {Document} the source document
+    /**
+     * @constructor
+     * @param {!Document} doc The source document from Brackets
+     * @param {!Editor} editor The editor for this document
      */
     var JSDocument = function JSDocument(doc, editor) {
         if (!editor) {

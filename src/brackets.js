@@ -145,6 +145,9 @@ define(function (require, exports, module) {
     // read URL params
     params.parse();
     
+    /**
+     * Setup test object
+     */
     function _initTest() {
         // TODO: (issue #265) Make sure the "test" object is not included in final builds
         // All modules that need to be tested from the context of the application
@@ -197,7 +200,10 @@ define(function (require, exports, module) {
             brackets.test.doneLoading = true;
         });
     }
-            
+
+    /**
+     * Setup Brackets
+     */
     function _onReady() {
         PerfUtils.addMeasurement("window.document Ready");
 
