@@ -54,29 +54,29 @@ define({
 	"READ_DIRECTORY_ENTRIES_ERROR": "ディレクトリ <span class='dialog-filename'>{0}</span> の内容を読み込む際にエラーが発生しました。(エラー {1})",
 
     // File open/save error string
-	"ERROR_OPENING_FILE_TITLE": "!能=[6307139] Error Opening File_=!",
+	"ERROR_OPENING_FILE_TITLE": "ファイルを開く際にエラーが発生しました。",
 	"ERROR_OPENING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を開く際にエラーが発生しました。{1}",
 	"ERROR_OPENING_FILES": "次のファイルを開くときにエラーが発生しました :",
-	"ERROR_RELOADING_FILE_TITLE": "!能=[6307142] Error Reloading Changes From Disk_=!",
+	"ERROR_RELOADING_FILE_TITLE": "ディスクから変更を再読み込みする際にエラーが発生しました。",
 	"ERROR_RELOADING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を再読込する際にエラーが発生しました。{1}",
-	"ERROR_SAVING_FILE_TITLE": "!能=[6307144] Error Saving File_=!",
+	"ERROR_SAVING_FILE_TITLE": "ファイルを保存する際にエラーが発生しました。",
 	"ERROR_SAVING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を保存する際にエラーが発生しました。{1}",
-	"ERROR_RENAMING_FILE_TITLE": "!能=[6484475] Error Renaming File_=!",
+	"ERROR_RENAMING_FILE_TITLE": "ファイル名を変更する際にエラーが発生しました。",
 	"ERROR_RENAMING_FILE": "ファイル <span class='dialog-filename'>{0}</span> の名前を変更する際にエラーが発生しました。{1}",
-	"ERROR_DELETING_FILE_TITLE": "ファイルの削除エラー",
+	"ERROR_DELETING_FILE_TITLE": "ファイルの削除中にエラーが発生しました。",
 	"ERROR_DELETING_FILE": "ファイルを削除する際にエラーが発生しました <span class='dialog-filename'>{0}</span>。{1}",
 	"INVALID_FILENAME_TITLE": "無効な{0}",
 	"INVALID_FILENAME_MESSAGE": "{0}にはシステムのすべての予約語、末尾のピリオド (.)、および次の文字を含めることはできません : <code class='emphasized'>{1}</code>",
 	"ENTRY_WITH_SAME_NAME_EXISTS": "<span class='dialog-filename'>{0}</span> という名前のファイルまたはディレクトリは既に存在します。",
-	"ERROR_CREATING_FILE_TITLE": "!能=[6307132] Error Creating {0}_=!",
+	"ERROR_CREATING_FILE_TITLE": "{0} を作成する際にエラーが発生しました。",
 	"ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span> を作成する際にエラーが発生しました。{2}",
 
     // Application preferences corrupt error strings
-	"ERROR_PREFS_CORRUPT_TITLE": "!能=[7510056] Error Reading Preferences_=!",
+	"ERROR_PREFS_CORRUPT_TITLE": "環境設定を読み込む際にエラーが発生しました。",
 	"ERROR_PREFS_CORRUPT": "環境設定ファイルが有効な JSON ではありません。ファイルが開かれます。フォーマットを修正してください。変更を反映するには、{APP_NAME} を再起動する必要があります。",
 
     // Application error strings
-	"ERROR_IN_BROWSER_TITLE": "!能=[6333033] Oops! {APP_NAME} Doesn't Run in Browsers Yet._=!",
+	"ERROR_IN_BROWSER_TITLE": "{APP_NAME} は、まだブラウザー上で実行されていません。",
 	"ERROR_IN_BROWSER": "{APP_NAME} は HTML で構築されていますが、デスクトップアプリとして実行することで、ローカルファイルを編集することができます。{APP_NAME} を実行するために、<b>github.com/adobe/brackets-shell</b> リポジトリのアプリケーションシェルを使用してください。",
     
     // ProjectManager max files error string
@@ -84,7 +84,7 @@ define({
 	"ERROR_MAX_FILES": "インデックス化できるファイルの最大数に達しました。インデックス内でファイルを見つける機能は正しく動作しないことがあります。",
 
     // Live Preview error strings
-	"ERROR_LAUNCHING_BROWSER_TITLE": "!能=[6307134] Error Launching Browser_=!",
+	"ERROR_LAUNCHING_BROWSER_TITLE": "ブラウザーの起動時にエラーが発生しました。",
 	"ERROR_CANT_FIND_CHROME": "Google Chrome ブラウザーが見つかりません。インストールされていることを確認してください。",
 	"ERROR_LAUNCHING_BROWSER": "ブラウザーの起動時にエラーが発生しました。(エラー {0})",
     
@@ -152,7 +152,7 @@ define({
 	"CHOOSE_FOLDER": "フォルダーを選択",
 
 	"RELEASE_NOTES": "リリースノート",
-	"NO_UPDATE_TITLE": "!能=[6310580] You're Up to Date!_=!",
+	"NO_UPDATE_TITLE": "最新バージョンです。",
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
 
     // Replace All (in single file)
