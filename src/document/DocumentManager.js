@@ -313,7 +313,7 @@ define(function (require, exports, module) {
         }
         
         if (clearCurrentDocument) {
-            DeprecationWarning.deprecationWarning("clearCurrentDocument is not a supported option for MainViewManager.removeListFromPaneViewList() Use DocumentManager.resetCurrentDocument() instead", true);
+            DeprecationWarning.deprecationWarning("clearCurrentDocument is not a supported option for MainViewManager.removeListFromPaneViewList() Use DocumentManager.clearCurrentDocument() instead", true);
             clearCurrentDocument();
         }
         
