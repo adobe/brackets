@@ -40,6 +40,9 @@ define(function (require, exports, module) {
 
     /**
     * @constructor
+    *
+    * @param {File} file for the theme
+    * @param {string} displayName is an optional parameter used as the display name for the theme
     */
     function Theme(file, displayName) {
         var fileName = file.name;
@@ -53,8 +56,11 @@ define(function (require, exports, module) {
 
     /**
     * @private
-    * Takes all dashes and converts them to white spaces...
-    * Then takes all first letters and capitalizes them.
+    * Takes all dashes and converts them to white spaces. Then takes all first letters
+    * and capitalizes them.
+    *
+    * @param {string} name is what needs to be procseed to generate a display name
+    * @return {string} theme name properly formatted for display
     */
     function toDisplayName (name) {
         name = name.substring(0, name.lastIndexOf('.')).replace(/-/g, ' ');
@@ -73,6 +79,10 @@ define(function (require, exports, module) {
     * Extracts the scrollbar text from the css/less content so that it can be treated
     * as a separate styling component that can be anabled/disabled independently from
     * the theme.
+    *
+    * @param {string} content is the css/less input string to be processed
+    * @return {{content: string, scrollbar: string}} content is the new css/less content
+    * with the scrollbar rules extracted out and put in scrollbar
     */
     function extractScrollbars(content) {
         var scrollbar = [];
@@ -97,6 +107,10 @@ define(function (require, exports, module) {
     * @private
     * Takes the content of a file and feeds it through the less processor in order
     * to provide support for less files.
+    *
+    * @param {string} content is the css/less string to be processed
+    * @param {Theme} theme is the object the css/less corresponds to
+    * @return {$.Deferred} promsie with the processed css/less as the resolved value
     */
     function lessifyTheme(content, theme) {
         var deferred = $.Deferred(),
@@ -124,7 +138,9 @@ define(function (require, exports, module) {
     /**
     * @private
     * Will trigger a refresh of codemirror instance and editor resize so that
-    * inline widgets get properly
+    * inline widgets get properly rendered
+    *
+    * @param {CodeMiror} cm code mirror instance to refresh
     */
     function refreshEditor(cm) {
         // Really dislike timing issues with CodeMirror.  I have to refresh
@@ -138,7 +154,11 @@ define(function (require, exports, module) {
 
 
     /**
-    * Loads theme style files
+    * @private
+    * Loads all current themes
+    *
+    * @return {$.Deferred} promise object resolved with the theme object and all
+    *    corresponding new css/less and scrollbar information
     */
     function loadCurrentThemes() {
         return $.when(undefined, _.map(getCurrentThemes(), function (theme) {
@@ -168,7 +188,10 @@ define(function (require, exports, module) {
 
 
     /**
-    * Returns all current theme objects
+    * @private
+    * Get all current theme objects
+    *
+    * @return {_.map} collection of the current theme instances
     */
     function getCurrentThemes() {
         return _.map(prefs.get("themes").slice(0), function (item) {
@@ -178,8 +201,9 @@ define(function (require, exports, module) {
 
 
     /**
-    * Refresh currently load theme
-    * @param <boolean> force is to cause the refresh to force reload the current themes
+    * Refresh currently loaded themes
+    *
+    * @param <boolean> force is to force reload the current themes
     */
     function refresh(force) {
         if (!themeReady) {
@@ -209,7 +233,12 @@ define(function (require, exports, module) {
 
 
     /**
-    * Loads a theme from a file. fileName is the full path to the file
+    * Loads a theme from a file.
+    *
+    * @param {string} fileName is the full path to the file to be opened
+    * @param {!srting} displayName is an optional parameter to specify the display
+    *    name for the theme
+    * @return {$.Deferred} promise object resolved with the theme to be loaded from fileName
     */
     function loadFile(fileName, displayName) {
         var deferred      = new $.Deferred(),
@@ -243,7 +272,10 @@ define(function (require, exports, module) {
 
 
     /**
-    * Loads a theme from a file.
+    * Loads a theme from an extension package.
+    *
+    * @param {package} themePackage is a package for the theme to be loaded.
+    * @return {$.Deferred} promise object resolved with the theme to be loaded from the pacakge
     */
     function loadPackage(themePackage) {
         var fileName = themePackage.path + "/" + themePackage.metadata.theme;
@@ -253,6 +285,9 @@ define(function (require, exports, module) {
 
     /**
     * Load css/less files from a directory to be treated as themes
+    *
+    * @param {string} path where theme files are to be loaded from
+    * @return {$.Deferred} promise object resolved with the themes to be loaded from the directory
     */
     function loadDirectory(path) {
         var result = new $.Deferred();
