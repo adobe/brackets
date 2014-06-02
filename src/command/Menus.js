@@ -116,6 +116,7 @@ define(function (require, exports, module) {
      * Insertion position constants
      * Used by addMenu(), addMenuItem(), and addSubMenu() to
      * specify the relative position of a newly created menu object
+     * @enum {string}
      */
     var BEFORE           = "before",
         AFTER            = "after",
@@ -131,6 +132,7 @@ define(function (require, exports, module) {
 
     /**
      * Error Codes from Brackets Shell
+     * @enum {number}
      */
     var NO_ERROR           = 0,
         ERR_UNKNOWN        = 1,

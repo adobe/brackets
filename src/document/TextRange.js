@@ -91,7 +91,7 @@ define(function (require, exports, module) {
     TextRange.prototype.startLine = null;
 
     /**
-     * Ednign Line
+     * Ending Line
      * @type {?number} Null after "lostSync" is dispatched
      */
     TextRange.prototype.endLine = null;

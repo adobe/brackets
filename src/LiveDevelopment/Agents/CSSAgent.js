@@ -40,7 +40,7 @@ define(function CSSAgent(require, exports, module) {
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 
     /**
-     * STylesheet urls
+     * Stylesheet urls
      * @type {Object.<string, CSS.CSSStyleSheetHeader>}
      */
     var _urlToStyle = {};
