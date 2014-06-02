@@ -192,7 +192,7 @@ define(function (require, exports, module) {
     
     
     /** Changes currentDocument to null, causing no full Editor to be shown in the UI */
-    function _clearCurrentDocument() {
+    function clearCurrentDocument() {
         // Change model & dispatch event
         var previousDocument = _getCurrentDocument();
 
@@ -314,7 +314,7 @@ define(function (require, exports, module) {
         
         if (clearCurrentDocument) {
             DeprecationWarning.deprecationWarning("clearCurrentDocument is not a supported option for MainViewManager.removeListFromPaneViewList() Use DocumentManager.resetCurrentDocument() instead", true);
-            _clearCurrentDocument();
+            clearCurrentDocument();
         }
         
         MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, list);
@@ -437,7 +437,7 @@ define(function (require, exports, module) {
                         closeFullEditor(file);
                     });
             } else {
-                _clearCurrentDocument();
+                clearCurrentDocument();
             }
         }
         
@@ -455,7 +455,7 @@ define(function (require, exports, module) {
      * unsaved changes, so the UI should confirm with the user before calling this.
      */
     function closeAll() {
-        _clearCurrentDocument();
+        clearCurrentDocument();
         MainViewManager.removeAllFromPaneViewList(MainViewManager.ALL_PANES);
     }
         
@@ -776,7 +776,7 @@ define(function (require, exports, module) {
     });
     
     // For unit tests and internal use only
-    exports._clearCurrentDocument       = _clearCurrentDocument;
+    exports.clearCurrentDocument       = clearCurrentDocument;
     
 
     // Define public API

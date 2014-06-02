@@ -1186,10 +1186,7 @@ define(function (require, exports, module) {
         result.done(function (listAfterSave) {
             listAfterSave = listAfterSave || list;
             if (!promptOnly) {
-                // TODO: previously, we passed the parameter `clearCurrentDoc` to
-                //       DocumentManager.removeListFromWorkingSet() and it would call
-                //       DocumentManager._clearCurrentDocument() to close the open document in the editor.
-                //       This new API doesn't provide this functionality, so we need to be sure to add it back.
+                DocumentManager.clearCurrentDocument();
                 MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, listAfterSave);
             }
         });

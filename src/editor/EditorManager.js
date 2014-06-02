@@ -696,7 +696,7 @@ define(function (require, exports, module) {
         }
         
         // Clean up currently viewing document or custom viewer
-        DocumentManager._clearCurrentDocument();
+        DocumentManager.clearCurrentDocument();
         _removeCustomViewer();
     
         // Hide the not-editor or reset current editor
