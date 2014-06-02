@@ -1819,16 +1819,22 @@ define(function (require, exports, module) {
                 _redraw(true);
                 result.resolve();
             } else {
+                var titleType = isFolder ? Strings.DIRECTORY_TITLE : Strings.FILE_TITLE,
+                    entryType = isFolder ? Strings.DIRECTORY : Strings.FILE;
                 // Show an error alert
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_ERROR,
-                    Strings.ERROR_RENAMING_FILE_TITLE,
+                    StringUtils.format(
+                        Strings.ERROR_RENAMING_FILE_TITLE,
+                        titleType
+                    ),
                     StringUtils.format(
                         Strings.ERROR_RENAMING_FILE,
                         StringUtils.breakableUrl(newName),
                         err === FileSystemError.ALREADY_EXISTS ?
                                 Strings.FILE_EXISTS_ERR :
-                                FileUtils.getFileErrorString(err)
+                                FileUtils.getFileErrorString(err),
+                        entryType
                     )
                 );
                 result.reject(err);
@@ -2005,14 +2011,20 @@ define(function (require, exports, module) {
                 _deleteTreeNode(entry);
                 result.resolve();
             } else {
+                var titleType = entry.isDirectory ? Strings.DIRECTORY_TITLE : Strings.FILE_TITLE,
+                    entryType = entry.isDirectory ? Strings.DIRECTORY : Strings.FILE;
                 // Show an error alert
                 Dialogs.showModalDialog(
                     Dialogs.DIALOG_ID_ERROR,
-                    Strings.ERROR_DELETING_FILE_TITLE,
+                    StringUtils.format(
+                        Strings.ERROR_DELETING_FILE_TITLE,
+                        titleType
+                    ),
                     StringUtils.format(
                         Strings.ERROR_DELETING_FILE,
-                        _.escape(entry.fullPath),
-                        FileUtils.getFileErrorString(err)
+                        StringUtils.breakableUrl(entry.fullPath),
+                        FileUtils.getFileErrorString(err),
+                        entryType
                     )
                 );
     
