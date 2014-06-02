@@ -34,6 +34,9 @@ define(function (require, exports, module) {
     
     var DOM = React.DOM;
     
+    // Constants
+    var CHANGE = "change";
+
     /**
      * Name of the preferences for sorting directories first
      * 
@@ -73,20 +76,23 @@ define(function (require, exports, module) {
         return result;
     }
     
-    function _dirsFirst(a, b) {
+    function _dirsFirstCompare(a, b) {
         if (a.children !== undefined && b.children === undefined) {
             return -1;
+        } else if (a.children === undefined && b.children !== undefined) {
+            return 1;
+        } else {
+            return _nameCompare(a, b);
         }
     }
     
     function _sortFormattedDirectory(contents, dirsFirst) {
-        return contents.sort(_nameCompare);
+        return contents.sort(dirsFirst ? _dirsFirstCompare : _nameCompare);
     }
     
     function ViewModel(projectRoot) {
         this.projectRoot = projectRoot;
         this.treeData = [];
-        this.updateContents("");
     }
     
     /**
@@ -106,8 +112,26 @@ define(function (require, exports, module) {
     
     ViewModel.prototype.treeData = null;
     
-    ViewModel.prototype.updateContents = function updateContents(subpath) {
-        
+    ViewModel.prototype.updateContents = function updateContents(directory, treeData) {
+        var deferred = new $.Deferred();
+        directory.getContents(function (err, contents) {
+            if (err) {
+                deferred.reject(err);
+                return;
+            }
+            var sorted = _sortFormattedDirectory(_formatDirectoryContents(contents), this.sortDirsFirst);
+            // TODO: this is not going to work for actually updating
+            sorted.forEach(function (item) {
+                treeData.push(item);
+            });
+            deferred.resolve();
+            $(this).trigger(CHANGE);
+        }.bind(this));
+        return deferred.promise();
+    };
+    
+    ViewModel.prototype.initializeRoot = function () {
+        return this.updateContents(this.projectRoot, this.treeData);
     };
     
     /**
@@ -259,15 +283,14 @@ define(function (require, exports, module) {
             return true;
         },
         render: function () {
-            var entry = this.props.file,
-                i = entry.name.lastIndexOf("."),
-                name = entry.name.substr(0, i > -1 ? i : entry.name.length),
-                extension;
+            var entry = this.props.entry,
+                name = entry.name,
+                extension = entry.extension;
             
-            if (i > -1) {
+            if (extension) {
                 extension = DOM.span({
                     className: "extension"
-                }, entry.name.substring(i));
+                }, extension);
             }
             
             var fileClasses = "";
@@ -316,24 +339,6 @@ define(function (require, exports, module) {
     });
 
     var directoryNode = React.createClass({
-        getInitialState: function () {
-            return {};
-        },
-        loadContents: function () {
-            this.props.directory.getContents(function (err, contents) {
-                if (!err) {
-                    this.setState({
-                        contents: contents
-                    });
-                }
-            }.bind(this));
-        },
-        componentDidMount: function () {
-            var open = this.props.open;
-            if (open) {
-                this.loadContents();
-            }
-        },
         handleClick: function () {
             if (this.props.togglePath) {
                 var newOpen = !this.props.open;
@@ -345,19 +350,11 @@ define(function (require, exports, module) {
             return false;
         },
         render: function () {
-            var nodes;
-            if (this.state.contents) {
+            var nodes,
+                entry = this.props.entry;
+            if (entry.children) {
                 var dirsFirst = this.props.dirsFirst;
-                nodes = _(this.state.contents).clone().sort(function (a, b) {
-                    if (dirsFirst) {
-                        if (a.isDirectory && !b.isDirectory) {
-                            return -1;
-                        } else if (!a.isDirectory && b.isDirectory) {
-                            return 1;
-                        }
-                    }
-                    return FileUtils.compareFilenames(a.name, b.name, false);
-                }).map(function (entry) {
+                nodes = entry.children.map(function (entry) {
                     return this._formatEntry(entry);
                 }.bind(this));
             } else {
@@ -368,7 +365,7 @@ define(function (require, exports, module) {
                 return DOM.div(null, nodes);
             }
             
-            var open = this.props.open ? "open" : "closed";
+            var open = entry.children !== null ? "open" : "closed";
             
             return DOM.li({
                 className: "jstree-" + open,
@@ -383,24 +380,15 @@ define(function (require, exports, module) {
                     DOM.ins({
                         className: "jstree-icon"
                     }, "&nbsp;"),
-                    this.props.directory.name),
+                    entry.name),
                     DOM.ul(null, nodes));
         },
         
         _formatEntry: function (entry) {
-            if (entry.isDirectory) {
-                var open = !!this.props.openPaths[entry.fullPath];
+            if (entry.children !== undefined) {
                 return directoryNode({
                     key: entry.fullPath,
-                    open: open,
-                    openPaths: this.props.openPaths,
-                    selected: this.props.selected,
-                    setSelected: this.props.setSelected,
-                    context: this.props.context,
-                    setContext: this.props.setContext,
-                    rename: this.props.rename,
-                    togglePath: this.props.togglePath,
-                    directory: entry
+                    entry: entry
                 });
             } else {
                 if (this.props.rename && this.props.context === entry.fullPath) {
@@ -412,11 +400,7 @@ define(function (require, exports, module) {
                 }
                 return fileNode({
                     key: entry.fullPath,
-                    selected: this.props.selected === entry.fullPath,
-                    setSelected: this.props.setSelected,
-                    context: this.props.context === entry.fullPath,
-                    setContext: this.props.setContext,
-                    file: entry
+                    entry: entry
                 });
             }
         }
@@ -479,6 +463,11 @@ define(function (require, exports, module) {
     
     exports._formatDirectoryContents = _formatDirectoryContents;
     exports._sortFormattedDirectory = _sortFormattedDirectory;
+    exports._fileNode = fileNode;
+    exports._directoryNode = directoryNode;
+    exports._fileTreeView = fileTreeView;
+    
+    exports.CHANGE = CHANGE;
     exports.render = render;
     exports.ViewModel = ViewModel;
 });

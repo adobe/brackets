@@ -27,7 +27,9 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileTreeView = require("project/FileTreeView");
+    var FileTreeView = require("project/FileTreeView"),
+        React = require("thirdparty/React"),
+        RTU = React.addons.TestUtils;
 
     describe("FileTreeView", function () {
         describe("ViewModel", function () {
@@ -135,54 +137,68 @@ define(function (require, exports, module) {
                         }
                     ]);
                 });
+                
+                it("can sort by directories first", function () {
+                    var formatted = [
+                        {
+                            name: "README",
+                            extension: ".md"
+                        },
+                        {
+                            name: "afile",
+                            extension: ".js"
+                        },
+                        {
+                            name: "subdir",
+                            children: null,
+                            directory: subdir
+                        }
+                    ];
+                    expect(FileTreeView._sortFormattedDirectory(formatted, true)).toEqual([
+                        {
+                            name: "subdir",
+                            children: null,
+                            directory: subdir
+                        },
+                        {
+                            name: "afile",
+                            extension: ".js"
+                        },
+                        {
+                            name: "README",
+                            extension: ".md"
+                        }
+                    ]);
+                });
             });
             
             describe("updateContents", function () {
-                xit("should create a formatted, sorted list of objects", function () {
-                    var subdir = {
-                        fullPath: "/path/to/project/subdir/",
-                        name: "subdir",
-                        isFile: false
-                    },
-                        vm = new FileTreeView.ViewModel({
-                            fullPath: "/path/to/project/",
-                            getContents: function () {
-                                var deferred = new $.Deferred();
-                                setTimeout(function () {
-                                    deferred.resolve([
-                                        {
-                                            fullPath: "/path/to/project/README.md",
-                                            name: "README.md",
-                                            isFile: true
-                                        },
-                                        {
-                                            fullPath: "/path/to/project/afile.js",
-                                            name: "afile.js",
-                                            isFile: true
-                                        },
-                                        subdir
-                                    ]);
-                                }, 10);
-                                return deferred.promise();
-                            }
-                        });
-                    
-                    var deferred = new $.Deferred();
-                    vm.on("change", function () {
-                        deferred.resolve();
+                it("should create a formatted, sorted list of objects", function () {
+                    var vm = new FileTreeView.ViewModel({
+                        fullPath: "/path/to/project/",
+                        getContents: function (callback) {
+                            setTimeout(function () {
+                                callback(null, contents);
+                            }, 10);
+                        }
                     });
                     
-                    waitsForDone(deferred.promise());
+                    var receivedChange = false;
+                    vm.on(FileTreeView.CHANGE, function () {
+                        receivedChange = true;
+                    });
+                    
+                    waitsForDone(vm.initializeRoot());
                     
                     runs(function () {
                         expect(vm.treeData).toEqual([
                             {
                                 name: "afile",
-                                extension: "js"
+                                extension: ".js"
                             },
                             {
                                 name: "README",
-                                extension: "md"
+                                extension: ".md"
                             },
                             {
                                 name: "subdir",
@@ -190,8 +206,87 @@ define(function (require, exports, module) {
                                 directory: subdir
                             }
                         ]);
+                        expect(receivedChange).toBe(true);
                     });
                 });
+            });
+        });
+        
+        describe("_fileNode", function () {
+            it("should create a component with the right information", function () {
+                var rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                    entry: {
+                        name: "afile",
+                        extension: ".js"
+                    }
+                }));
+                var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
+                expect(a.props.children[0]).toBe("afile");
+                expect(a.props.children[1].props.children).toBe(".js");
+            });
+        });
+        
+        describe("_directoryNode", function () {
+            it("should be able to list files", function () {
+                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
+                    entry: {
+                        name: "thedir",
+                        children: [
+                            {
+                                name: "afile",
+                                extension: ".js"
+                            }
+                        ]
+                    }
+                }));
+                var dirLI = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-open"),
+                    fileLI = RTU.findRenderedDOMComponentWithClass(dirLI, "jstree-leaf"),
+                    fileA = RTU.findRenderedDOMComponentWithTag(fileLI, "a");
+                expect(fileA.props.children[0]).toBe("afile");
+            });
+            
+            it("should be able to list closed directories", function () {
+                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
+                    entry: {
+                        name: "thedir",
+                        children: [
+                            {
+                                name: "subdir",
+                                children: null
+                            }
+                        ]
+                    }
+                }));
+                
+                var subdirLI = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-closed"),
+                    subdirA = RTU.findRenderedDOMComponentWithTag(subdirLI, "a");
+                expect(subdirA.props.children[1]).toBe("subdir");
+            });
+            
+            it("should be able to list open subdirectories", function () {
+                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
+                    entry: {
+                        name: "thedir",
+                        children: [
+                            {
+                                name: "subdir",
+                                children: [
+                                    {
+                                        name: "afile",
+                                        extension: ".js"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }));
+                var dirLIs = RTU.scryRenderedDOMComponentsWithClass(rendered, "jstree-open");
+                expect(dirLIs.length).toBe(2);
+                var subdirLI = dirLIs[1],
+                    aTags = RTU.scryRenderedDOMComponentsWithTag(subdirLI, "a");
+                expect(aTags.length).toBe(2);
+                expect(aTags[0].props.children[1]).toBe("subdir");
+                expect(aTags[1].props.children[0]).toBe("afile");
             });
         });
     });
