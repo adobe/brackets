@@ -160,7 +160,7 @@ define(function LiveDevelopment(require, exports, module) {
     
     /**
      * Related Live Documents
-     * @type {Object.<string: {HTMLDocument|CSSDocument}>}
+     * @type {Object.<string: (HTMLDocument|CSSDocument)>}
      */
     var _relatedDocuments = {};
     
