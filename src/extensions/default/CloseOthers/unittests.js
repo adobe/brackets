@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         Dialogs,
         EditorManager,
         DocumentManager,
+        MainViewManager,
         FileSystem;
 
     describe("CloseOthers", function () {
