@@ -1160,7 +1160,13 @@ input[type="color"],
     }
 
     // Active and Disabled states
-    &.active:not([disabled]),
+    &.active:not([disabled]) {
+        background-image: none;
+        background-color: @tc-highlight;
+        box-shadow: @tc-button-down-shadow;
+        color: @tc-link;
+    }
+    
     &:active:not([disabled]) {
         background-image: none;
         background-color: @tc-button-down-background;
