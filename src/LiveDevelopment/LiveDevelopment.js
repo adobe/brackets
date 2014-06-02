@@ -985,7 +985,11 @@ define(function LiveDevelopment(require, exports, module) {
             loadAgents().then(_openDeferred.resolve, _openDeferred.reject);
 
             _getInitialDocFromCurrent().done(function (doc) {
-                if (doc && _liveDocument && doc === _liveDocument.doc) {
+                if (doc && _liveDocument) {
+                    if (doc !== _liveDocument.doc) {
+                        _createLiveDocumentForFrame(doc);
+                    }
+
                     // Navigate from interstitial to the document
                     // Fires a frameNavigated event
                     if (_server) {
