@@ -74,7 +74,7 @@ define(function (require, exports, module) {
 
     /**
      * Get command id
-     * @return {Command}
+     * @return {string}
      */
     Command.prototype.getID = function () {
         return this._id;
@@ -164,7 +164,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Get comamdn name 
+     * Get command name
      * @return {string}
      */
     Command.prototype.getName = function () {

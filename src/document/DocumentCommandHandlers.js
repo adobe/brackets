@@ -122,8 +122,8 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference("defaultExtension", "string", "");
 
     /**
-     *
-     * @type {function} JSLint workaround for circular dependency
+     * JSLint workaround for circular dependency
+     * @type {function}
      */
     var handleFileSaveAs;
 
