@@ -143,7 +143,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Loads the extension that lives at baseUrl
+     * Loads the extension that lives at baseUrl into its own Require.js context
      *
      * @param {!string} name, used to identify the extension
      * @param {!{baseUrl: string}} config object with baseUrl property containing absolute path of extension
