@@ -40,7 +40,6 @@ define(function (require, exports, module) {
     "use strict";
     
     var AppInit                 = require("utils/AppInit"),
-        EditorManager           = require("editor/EditorManager"),
         Resizer                 = require("utils/Resizer");
     
     
@@ -102,7 +101,7 @@ define(function (require, exports, module) {
         $editorHolder.height(editorAreaHeight);  // affects size of "not-editor" placeholder as well
         
         // Resize editor to fill the space
-        $(exports).trigger("editorAreaResize", [editorAreaHeight, refreshHint]);
+        $(exports).trigger("editorAreaResize", [editorAreaHeight, refreshHint || {}]);
     }
     
     
@@ -147,22 +146,7 @@ define(function (require, exports, module) {
 
         // Scroll to show cursor above panel if necessary
         $panel.on("panelExpanded", function () {
-            var _currentEditor = EditorManager.getCurrentFullEditor();
-            
-            // Make sure that we're not switching files and still on an active editor
-            if (_currentEditor) {
-                // Gather info to determine whether to scroll after editor resizies
-                var height     = _currentEditor._codeMirror.getScrollInfo().clientHeight,
-                    textHeight = _currentEditor.getTextHeight(),
-                    cursorTop  = _currentEditor._codeMirror.cursorCoords().top,
-                    bottom     = cursorTop - $("#editor-holder").offset().top + textHeight - height;
-                
-                // Determine whether panel would block text at cursor.
-                // If so, scroll the editor to expose the cursor above the panel
-                if (bottom <= $panel.height() && bottom >= 5) {
-                    _currentEditor._codeMirror.scrollIntoView();
-                }
-            }
+            triggerEditorResize({scrollToCursor: true, panelHeight: $panel.height()});
         });
     }
     

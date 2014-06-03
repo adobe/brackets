@@ -478,29 +478,47 @@ define(function (require, exports, module) {
      * some other cases are handled by external code calling resizeEditor() (e.g. ModalBar hide/show).
      * 
      * @param {number} editorAreaHt
-     * @param {string=} refreshFlag For internal use. Set to "force" to ensure the editor will refresh, 
-     *    "skip" to ensure the editor does not refresh, or leave undefined to let _onEditorAreaResize()
-     *    determine whether it needs to refresh.
+     * @param {{refresh:string=, scrollToCursor:boolean, panelHeight:number} refreshFlag For internal use. Set
+     *    refresh to "force" to ensure the editor will refresh, "skip" to ensure the editor does not refresh, or
+     *    leave undefined to let _onEditorAreaResize() determine whether it needs to refresh.
+     *    Set scrollToCursor to true and panelHeight to the height of the shown panel to reveal cursor. Use only
+     *    on panel expansion.
      */
     function _onEditorAreaResize(event, editorAreaHt, refreshFlag) {
         if (_currentEditor) {
             var curRoot = _currentEditor.getRootElement(),
-                curWidth = $(curRoot).width();
-            if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
+                curWidth = $(curRoot).width(),
+                curHeight = $(curRoot).height();
+            
+            if (refreshFlag.scrollToCursor && refreshFlag.panelHeight) {
+                // Gather info to determine whether to scroll after editor resizies
+                var height     = _currentEditor._codeMirror.getScrollInfo().clientHeight,
+                    textHeight = _currentEditor.getTextHeight(),
+                    cursorTop  = _currentEditor._codeMirror.cursorCoords().top,
+                    bottom     = cursorTop - $("#editor-holder").offset().top + textHeight - height;
+
+                // Determine whether panel would block text at cursor.
+                // If so, scroll the editor to expose the cursor above the panel
+                if (bottom <= refreshFlag.panelHeight && bottom >= 5) {
+                    _currentEditor._codeMirror.scrollIntoView();
+                }
+            }
+            
+            if (!curRoot.style.height || curHeight !== editorAreaHt) {
                 // Call setSize() instead of $.height() to allow CodeMirror to
                 // check for options like line wrapping
                 _currentEditor.setSize(null, editorAreaHt);
-                if (refreshFlag === undefined) {
-                    refreshFlag = REFRESH_FORCE;
+                if (refreshFlag.refresh === undefined) {
+                    refreshFlag.refresh = REFRESH_FORCE;
                 }
             } else if (curWidth !== _lastEditorWidth) {
-                if (refreshFlag === undefined) {
-                    refreshFlag = REFRESH_FORCE;
+                if (refreshFlag.refresh === undefined) {
+                    refreshFlag.refresh = REFRESH_FORCE;
                 }
             }
             _lastEditorWidth = curWidth;
 
-            if (refreshFlag === REFRESH_FORCE) {
+            if (refreshFlag.refresh === REFRESH_FORCE) {
                 _currentEditor.refreshAll(true);
             }
         }
