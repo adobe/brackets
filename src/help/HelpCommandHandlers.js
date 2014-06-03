@@ -42,7 +42,10 @@ define(function (require, exports, module) {
         AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
         ContributorsTemplate    = require("text!htmlContent/contributors-list.html");
     
-    /** @const This is the thirdparty API's (GitHub) maximum contributors per page limit */
+    /**
+     * This is the thirdparty API's (GitHub) maximum contributors per page limit
+     * @const {number}
+     */
     var CONTRIBUTORS_PER_PAGE   = 100;
 
     var buildInfo;

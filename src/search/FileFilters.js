@@ -42,16 +42,23 @@ define(function (require, exports, module) {
         EditFilterTemplate = require("text!htmlContent/edit-filter-dialog.html"),
         FilterNameTemplate = require("text!htmlContent/filter-name.html");
   
-    /** @type {number} Constant: first filter index in the filter dropdown list */
+    /**
+     * Constant: first filter index in the filter dropdown list
+     * @type {number}
+     */
     var FIRST_FILTER_INDEX = 3;
     
-    /** @type {?{label:string, promise:$.Promise}} context Info on which files the filter will be applied to. 
-     *          It will be initialized when createFilterPicker is called and if specified, editing UI will 
-     *          indicate how many files are excluded by the filter. Label should be of the form "in ..."
+    /**
+     * Context Info on which files the filter will be applied to. 
+     * It will be initialized when createFilterPicker is called and if specified, editing UI will 
+     * indicate how many files are excluded by the filter. Label should be of the form "in ..."
+     * @type {?{label:string, promise:$.Promise}}
      */
     var _context = null;
     
-    /** @type {DropdownButton} */
+    /**
+     * @type {DropdownButton}
+     */
     var _picker  = null;
     
     /**
