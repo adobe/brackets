@@ -35,7 +35,6 @@
  *
  * This module does not dispatch any events.
  */
-
 define(function (require, exports, module) {
     "use strict";
     
