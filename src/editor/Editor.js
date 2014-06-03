@@ -36,7 +36,7 @@
  * as the Document's internal model of the text state - and the multitude of "slave" secondary Editors
  * which, via Document, sync their changes to and from that master.
  *
- * For now, direct access to the underlying CodeMirror object is still possible via _codeMirror --
+ * For now, direct access to the underlying CodeMirror object is still possible via `_codeMirror` --
  * but this is considered deprecated and may go away.
  *
  * The Editor object dispatches the following events:

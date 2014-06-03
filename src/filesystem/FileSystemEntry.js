@@ -21,6 +21,9 @@
  * 
  */
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/*global define */
+
 /*
  * To ensure cache coherence, current and future asynchronous state-changing 
  * operations of FileSystemEntry and its subclasses should implement the 
@@ -59,11 +62,6 @@
  * operations, but required for read-only operations. The first argument to the
  * callback should always be a nullable error string from FileSystemError.
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define(function (require, exports, module) {
     "use strict";
     

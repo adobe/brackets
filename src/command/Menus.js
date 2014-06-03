@@ -991,7 +991,6 @@ define(function (require, exports, module) {
 
     /**
      * @constructor
-     * @extends {Menu}
      *
      * Represents a context menu that can open at a specific location in the UI.
      *
@@ -1004,6 +1003,7 @@ define(function (require, exports, module) {
      * Events:
      *      beforeContextMenuOpen
      *
+     * @extends {Menu}
      */
     function ContextMenu(id) {
         Menu.apply(this, arguments);
