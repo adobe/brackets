@@ -322,6 +322,7 @@ define({
     "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
     "CMD_REPLACE"                         : "Replace",
     "CMD_REPLACE_IN_FILES"                : "Replace in Files",
+    "CMD_REPLACE_IN_SUBTREE"              : "Replace in\u2026",
     
     // View menu commands
     "VIEW_MENU"                           : "View",

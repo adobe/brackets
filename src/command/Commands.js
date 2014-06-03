@@ -107,8 +107,8 @@ define(function (require, exports, module) {
     
     // FIND
     exports.CMD_FIND                    = "cmd.find";                   // FindReplace.js               _launchFind()
-    exports.CMD_FIND_IN_FILES           = "cmd.findInFiles";            // FindInFiles.js               _doFindInFiles()
-    exports.CMD_FIND_IN_SELECTED        = "cmd.findInSelected";         // FindInFiles.js               _doFindInSubtree()
+    exports.CMD_FIND_IN_FILES           = "cmd.findInFiles";            // FindInFilesUI.js               _doFindInFiles()
+    exports.CMD_FIND_IN_SELECTED        = "cmd.findInSelected";         // FindInFilesUI.js               _doFindInSubtree()
     exports.CMD_FIND_IN_SUBTREE         = "cmd.findInSubtree";          // FindInFiles.js               _doFindInSubtree()
     exports.CMD_FIND_NEXT               = "cmd.findNext";               // FindReplace.js               _findNext()
     exports.CMD_FIND_PREVIOUS           = "cmd.findPrevious";           // FindReplace.js               _findPrevious()
@@ -116,7 +116,8 @@ define(function (require, exports, module) {
     exports.CMD_ADD_NEXT_MATCH          = "cmd.addNextMatch";           // FindReplace.js               _expandAndAddNextToSelection()
     exports.CMD_SKIP_CURRENT_MATCH      = "cmd.skipCurrentMatch";       // FindReplace.js               _skipCurrentMatch()
     exports.CMD_REPLACE                 = "cmd.replace";                // FindReplace.js               _replace()
-    exports.CMD_REPLACE_IN_FILES        = "cmd.replaceInFiles";         // FindInFiles.js               _doReplaceInFiles()
+    exports.CMD_REPLACE_IN_FILES        = "cmd.replaceInFiles";         // FindInFilesUI.js               _doReplaceInFiles()
+    exports.CMD_REPLACE_IN_SUBTREE      = "cmd.replaceInSubtree";       // FindInFilesUI.js               _doFindInSubtree()
     
     // VIEW
     exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";           // SidebarView.js               toggle()

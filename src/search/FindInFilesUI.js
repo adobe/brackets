@@ -148,14 +148,14 @@ define(function (require, exports, module) {
         if (_findBar) {
             _findBar.close();
         }
-        
+
         _findBar = new FindBar({
             navigator: false,
             replace: showReplace,
             replaceAllOnly: showReplace,
             scope: true,
             initialQuery: initialString,
-            queryPlaceholder: Strings.CMD_FIND_IN_SUBTREE,
+            queryPlaceholder: (showReplace ? Strings.CMD_REPLACE_IN_SUBTREE : Strings.CMD_FIND_IN_SUBTREE),
             scopeLabel: FindUtils.labelForScope(scope)
         });
         _findBar.open();
@@ -350,6 +350,15 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Search within the file/subtree defined by the sidebar selection
+     */
+    function _showReplaceBarForSubtree() {
+        var selectedEntry = ProjectManager.getSelectedItem();
+        _showFindBar(selectedEntry, true);
+    }
+    
+    /**
+     * @private
      * Close the open search bar, if any. For unit tests.
      */
     function _closeFindBar() {
@@ -375,10 +384,11 @@ define(function (require, exports, module) {
     $(ProjectManager).on("beforeProjectClose", function () { _resultsView.close(); });
     
     // Initialize: command handlers
-    CommandManager.register(Strings.CMD_FIND_IN_FILES,      Commands.CMD_FIND_IN_FILES,     _showFindBar);
-    CommandManager.register(Strings.CMD_REPLACE_IN_FILES,   Commands.CMD_REPLACE_IN_FILES,  _showReplaceBar);
-    CommandManager.register(Strings.CMD_FIND_IN_SELECTED,   Commands.CMD_FIND_IN_SELECTED,  _showFindBarForSubtree);
-    CommandManager.register(Strings.CMD_FIND_IN_SUBTREE,    Commands.CMD_FIND_IN_SUBTREE,   _showFindBarForSubtree);
+    CommandManager.register(Strings.CMD_FIND_IN_FILES,      Commands.CMD_FIND_IN_FILES,      _showFindBar);
+    CommandManager.register(Strings.CMD_REPLACE_IN_FILES,   Commands.CMD_REPLACE_IN_FILES,   _showReplaceBar);
+    CommandManager.register(Strings.CMD_FIND_IN_SELECTED,   Commands.CMD_FIND_IN_SELECTED,   _showFindBarForSubtree);
+    CommandManager.register(Strings.CMD_FIND_IN_SUBTREE,    Commands.CMD_FIND_IN_SUBTREE,    _showFindBarForSubtree);
+    CommandManager.register(Strings.CMD_REPLACE_IN_SUBTREE, Commands.CMD_REPLACE_IN_SUBTREE, _showReplaceBarForSubtree);
     
     // Public exports
     exports.searchAndShowResults = searchAndShowResults;
