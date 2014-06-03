@@ -1392,6 +1392,54 @@ define(function (require, exports, module) {
                         });
                     });
 
+                    it("should do a search in folder, replace all from find bar", function () {
+                        openTestProjectCopy(defaultSourcePath);
+                        var dirEntry = FileSystem.getDirectoryForPath(defaultSourcePath + "/css/");
+                        openSearchBar(null, true);
+                        executeReplace("foo", "bar", true);
+
+                        waitsFor(function () {
+                            return FindInFiles._searchDone;
+                        }, "search finished");
+
+                        // Click the "Replace" button in the search panel - this should kick off the replace
+                        runs(function () {
+                            $(".replace-checked").click();
+                        });
+
+                        waitsFor(function () {
+                            return FindInFiles._replaceDone;
+                        }, "replace finished");
+                        expectInMemoryFiles({
+                            inMemoryFiles: ["/css/foo.css"],
+                            inMemoryKGFolder: "simple-case-insensitive-only-foo.css"
+                        });
+                    });
+
+                    it("should do a search in file, replace all from find bar", function () {
+                        openTestProjectCopy(defaultSourcePath);
+                        var dirEntry = FileSystem.getDirectoryForPath(defaultSourcePath + "/css/foo.css");
+                        openSearchBar(null, true);
+                        executeReplace("foo", "bar", true);
+
+                        waitsFor(function () {
+                            return FindInFiles._searchDone;
+                        }, "search finished");
+
+                        // Click the "Replace" button in the search panel - this should kick off the replace
+                        runs(function () {
+                            $(".replace-checked").click();
+                        });
+
+                        waitsFor(function () {
+                            return FindInFiles._replaceDone;
+                        }, "replace finished");
+                        expectInMemoryFiles({
+                            inMemoryFiles: ["/css/foo.css"],
+                            inMemoryKGFolder: "simple-case-insensitive-only-foo.css"
+                        });
+                    });
+
                     it("should do a regexp search/replace from find bar", function () {
                         openTestProjectCopy(defaultSourcePath);
                         openSearchBar(null, true);
