@@ -638,7 +638,7 @@ define(function (require, exports, module) {
     /**
      *  Test if a hint popup is open.
      *
-     * @returns {boolean} - true if the hints are open, false otherwise.
+     * @return {boolean} - true if the hints are open, false otherwise.
      */
     function isOpen() {
         return (hintList && hintList.isOpen());

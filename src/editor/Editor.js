@@ -1275,7 +1275,7 @@ define(function (require, exports, module) {
     
     /**
      * Gets the total number of lines in the the document (includes lines not visible in the viewport)
-     * @returns {!number}
+     * @return {!number}
      */
     Editor.prototype.lineCount = function () {
         return this._codeMirror.lineCount();
@@ -1298,7 +1298,7 @@ define(function (require, exports, module) {
     
     /**
      * Gets the number of the first visible line in the editor.
-     * @returns {number} The 0-based index of the first visible line.
+     * @return {number} The 0-based index of the first visible line.
      */
     Editor.prototype.getFirstVisibleLine = function () {
         return (this._visibleRange ? this._visibleRange.startLine : 0);
@@ -1306,7 +1306,7 @@ define(function (require, exports, module) {
     
     /**
      * Gets the number of the last visible line in the editor.
-     * @returns {number} The 0-based index of the last visible line.
+     * @return {number} The 0-based index of the last visible line.
      */
     Editor.prototype.getLastVisibleLine = function () {
         return (this._visibleRange ? this._visibleRange.endLine : this.lineCount() - 1);
@@ -1337,7 +1337,7 @@ define(function (require, exports, module) {
 
     /**
      * Gets the total height of the document in pixels (not the viewport)
-     * @returns {!number} height in pixels
+     * @return {!number} height in pixels
      */
     Editor.prototype.totalHeight = function () {
         return this.getScrollerElement().scrollHeight;
@@ -1345,7 +1345,7 @@ define(function (require, exports, module) {
 
     /**
      * Gets the scroller element from the editor.
-     * @returns {!HTMLDivElement} scroller
+     * @return {!HTMLDivElement} scroller
      */
     Editor.prototype.getScrollerElement = function () {
         return this._codeMirror.getScrollerElement();
@@ -1353,7 +1353,7 @@ define(function (require, exports, module) {
     
     /**
      * Gets the root DOM node of the editor.
-     * @returns {!HTMLDivElement} The editor's root DOM node.
+     * @return {!HTMLDivElement} The editor's root DOM node.
      */
     Editor.prototype.getRootElement = function () {
         return this._codeMirror.getWrapperElement();
@@ -1363,7 +1363,7 @@ define(function (require, exports, module) {
      * Gets the lineSpace element within the editor (the container around the individual lines of code).
      * FUTURE: This is fairly CodeMirror-specific. Logic that depends on this may break if we switch
      * editors.
-     * @returns {!HTMLDivElement} The editor's lineSpace element.
+     * @return {!HTMLDivElement} The editor's lineSpace element.
      */
     Editor.prototype._getLineSpaceElement = function () {
         return $(".CodeMirror-lines", this.getScrollerElement()).children().get(0);
@@ -1371,7 +1371,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the current scroll position of the editor.
-     * @returns {{x:number, y:number}} The x,y scroll position in pixels
+     * @return {{x:number, y:number}} The x,y scroll position in pixels
      */
     Editor.prototype.getScrollPos = function () {
         var scrollInfo = this._codeMirror.getScrollInfo();
@@ -1389,7 +1389,7 @@ define(function (require, exports, module) {
     
     /*
      * Returns the current text height of the editor.
-     * @returns {number} Height of the text in pixels
+     * @return {number} Height of the text in pixels
      */
     Editor.prototype.getTextHeight = function () {
         return this._codeMirror.defaultTextHeight();

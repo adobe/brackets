@@ -976,7 +976,7 @@ define(function (require, exports, module) {
      * Shows the search dialog
      * @param {string=} initialString  Default text to prepopulate the search field with
      * @param {Entry=} scope  Search scope, or null to search whole project
-     * @returns {$.Promise} that is resolved with the string to search for
+     * @return {$.Promise} that is resolved with the string to search for
      */
     FindInFilesDialog.prototype.showDialog = function (initialString, scope) {
         // Note the prefix label is a simple "Find:" - the "in ..." part comes after the text field

@@ -197,7 +197,7 @@ define(function CSSDocumentModule(require, exports, module) {
     
     /**
      * Returns a JSON object with HTTP response overrides
-     * @returns {{body: string}}
+     * @return {{body: string}}
      */
     CSSDocument.prototype.getResponseData = function getResponseData(enabled) {
         return {

@@ -644,7 +644,7 @@ define(function (require, exports, module) {
 
     /**
      * Returns the currently focused MultiRangeInlineEditor.
-     * @returns {MultiRangeInlineEditor}
+     * @return {MultiRangeInlineEditor}
      */
     function getFocusedMultiRangeInlineEditor() {
         var focusedWidget = EditorManager.getFocusedInlineWidget();
