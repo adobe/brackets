@@ -230,22 +230,6 @@ define(function (require, exports, module) {
         return MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, fullPath);
     }
     
-    /**
-     * Returns the index of the file matching fullPath 
-     * Returns -1 if not found.
-     * @param {!string} fullPath
-     * @returns {number} index
-     */
-    function findInWorkingSetAddedOrder(fullPath) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneViewList() instead of DocumentManager.findInWorkingSetAddedOrder()", true);
-        return MainViewManager.findInPaneViewListAddedOrder(MainViewManager.ALL_PANES, fullPath);
-    }
-
-    
-    // STUB
-    function _findInWorkingSetMRUOrder(fullPath) {
-        return MainViewManager.findInPaneViewListMRUOrder(MainViewManager.ALL_PANES, fullPath);
-    }
     
     /**
      * Returns all Documents that are 'open' in the UI somewhere (for now, this means open in an
@@ -305,23 +289,6 @@ define(function (require, exports, module) {
         MainViewManager.removeFromPaneViewList(MainViewManager.FOCUSED_PANE, file, suppressRedraw);
     }
     
-    function removeListFromWorkingSet(list, clearCurrentDocument) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.removeListFromPaneViewList() instead of DocumentManager.removeListFromWorkingSet()", true);
-
-        if (!list) {
-            return;
-        }
-        
-        if (clearCurrentDocument) {
-            DeprecationWarning.deprecationWarning("clearCurrentDocument is not a supported option for MainViewManager.removeListFromPaneViewList() Use DocumentManager.clearCurrentDocument() instead", true);
-            clearCurrentDocument();
-        }
-        
-        MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, list);
-    }
-        
-
-
 
     /**
      * Moves document to the front of the MRU list, IF it's in the working set; no-op otherwise.
@@ -777,24 +744,24 @@ define(function (require, exports, module) {
     
     // For unit tests and internal use only
     exports.clearCurrentDocument       = clearCurrentDocument;
+
+    // Deprecated APIs
+    exports.getWorkingSet               = getWorkingSet;
+    exports.findInWorkingSet            = findInWorkingSet;
+    exports.addListToWorkingSet         = addListToWorkingSet;
+    exports.removeFromWorkingSet        = removeFromWorkingSet;
+    exports.getNextPrevFile             = getNextPrevFile;
+    exports.getCurrentDocument          = getCurrentDocument;
     
 
     // Define public API
     exports.Document                    = DocumentModule.Document;
-    exports.getCurrentDocument          = getCurrentDocument;
     exports.getDocumentForPath          = getDocumentForPath;
     exports.getOpenDocumentForPath      = getOpenDocumentForPath;
     exports.getDocumentText             = getDocumentText;
     exports.createUntitledDocument      = createUntitledDocument;
-    exports.getWorkingSet               = getWorkingSet;
-    exports.findInWorkingSet            = findInWorkingSet;
-    exports.findInWorkingSetAddedOrder  = findInWorkingSetAddedOrder;
     exports.getAllOpenDocuments         = getAllOpenDocuments;
     exports.setCurrentDocument          = setCurrentDocument;
-    exports.addListToWorkingSet         = addListToWorkingSet;
-    exports.removeFromWorkingSet        = removeFromWorkingSet;
-    exports.removeListFromWorkingSet    = removeListFromWorkingSet;
-    exports.getNextPrevFile             = getNextPrevFile;
     exports.beginDocumentNavigation     = beginDocumentNavigation;
     exports.finalizeDocumentNavigation  = finalizeDocumentNavigation;
     exports.closeFullEditor             = closeFullEditor;
