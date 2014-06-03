@@ -28,13 +28,13 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var EditorManager    = require("view/MainViewManager"),
+    var MainViewManager  = require("view/MainViewManager"),
         WorkspaceManager = require("view/WorkspaceManager"),
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 
     describe("MainViewManager", function () {
         it("should exist", function () {
-            expect (EditorManager).toNotBe(null);    
-        });    
+            expect(MainViewManager).toNotBe(null);
+        });
     });
 });
