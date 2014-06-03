@@ -43,29 +43,29 @@ define(function (require, exports, module) {
      *
      * Document dispatches these events:
      *
-     * change -- When the text of the editor changes (including due to undo/redo). 
+     * __change__ -- When the text of the editor changes (including due to undo/redo). 
      *
-     *        Passes ({Document}, {ChangeList}), where ChangeList is an array
-     *        of change record objects. Each change record looks like:
+     * Passes ({Document}, {ChangeList}), where ChangeList is an array
+     * of change record objects. Each change record looks like:
      *
-     *            { from: start of change, expressed as {line: <line number>, ch: <character offset>},
-     *              to: end of change, expressed as {line: <line number>, ch: <chracter offset>},
-     *              text: array of lines of text to replace existing text }
+     *     { from: start of change, expressed as {line: <line number>, ch: <character offset>},
+     *       to: end of change, expressed as {line: <line number>, ch: <chracter offset>},
+     *       text: array of lines of text to replace existing text }
      *      
-     *        The line and ch offsets are both 0-based.
+     * The line and ch offsets are both 0-based.
      *
-     *        The ch offset in "from" is inclusive, but the ch offset in "to" is exclusive. For example,
-     *        an insertion of new content (without replacing existing content) is expressed by a range
-     *        where from and to are the same.
+     * The ch offset in "from" is inclusive, but the ch offset in "to" is exclusive. For example,
+     * an insertion of new content (without replacing existing content) is expressed by a range
+     * where from and to are the same.
      *
-     *        If "from" and "to" are undefined, then this is a replacement of the entire text content.
+     * If "from" and "to" are undefined, then this is a replacement of the entire text content.
      *
-     *        IMPORTANT: If you listen for the "change" event, you MUST also addRef() the document 
-     *        (and releaseRef() it whenever you stop listening). You should also listen to the "deleted"
-     *        event.
+     * IMPORTANT: If you listen for the "change" event, you MUST also addRef() the document 
+     * (and releaseRef() it whenever you stop listening). You should also listen to the "deleted"
+     * event.
      *
-     * deleted -- When the file for this document has been deleted. All views onto the document should
-     *      be closed. The document will no longer be editable or dispatch "change" events.
+     * __deleted__ -- When the file for this document has been deleted. All views onto the document should
+     * be closed. The document will no longer be editable or dispatch "change" events.
      *
      * @param {!File} file  Need not lie within the project.
      * @param {!Date} initialTimestamp  File's timestamp when we read it off disk.

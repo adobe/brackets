@@ -32,9 +32,9 @@
  * 
  * Events:
  *    - editorAreaResize -- When editor-holder's size changes for any reason (including panel show/hide
- *              panel resize, or the window resize).
- *              The 2nd arg is the new editor-holder height.
- *              The 3rd arg is a refreshHint flag for internal EditorManager use.
+ *      panel resize, or the window resize).
+ *      The 2nd arg is the new editor-holder height.
+ *      The 3rd arg is a refreshHint flag for internal EditorManager use.
  */
 define(function (require, exports, module) {
     "use strict";

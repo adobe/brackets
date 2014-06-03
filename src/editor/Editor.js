@@ -41,25 +41,25 @@
  *
  * The Editor object dispatches the following events:
  *    - keyEvent -- When any key event happens in the editor (whether it changes the text or not).
- *          Event handlers are passed ({Editor}, {KeyboardEvent}). The 2nd arg is the raw DOM event.
- *          Note: most listeners will only want to respond when event.type === "keypress".
+ *      Event handlers are passed `({Editor}, {KeyboardEvent})`. The 2nd arg is the raw DOM event.
+ *      Note: most listeners will only want to respond when `event.type === "keypress"`.
  *    - cursorActivity -- When the user moves the cursor or changes the selection, or an edit occurs.
- *          Note: do not listen to this in order to be generally informed of edits--listen to the
- *          "change" event on Document instead.
+ *      Note: do not listen to this in order to be generally informed of edits--listen to the
+ *      "change" event on Document instead.
  *    - scroll -- When the editor is scrolled, either by user action or programmatically.
  *    - lostContent -- When the backing Document changes in such a way that this Editor is no longer
- *          able to display accurate text. This occurs if the Document's file is deleted, or in certain
- *          Document->editor syncing edge cases that we do not yet support (the latter cause will
- *          eventually go away).
+ *      able to display accurate text. This occurs if the Document's file is deleted, or in certain
+ *      Document->editor syncing edge cases that we do not yet support (the latter cause will
+ *      eventually go away).
  *    - optionChange -- Triggered when an option for the editor is changed. The 2nd arg to the listener
- *          is a string containing the editor option that is changing. The 3rd arg, which can be any
- *          data type, is the new value for the editor option.
+ *      is a string containing the editor option that is changing. The 3rd arg, which can be any
+ *      data type, is the new value for the editor option.
  *
  * The Editor also dispatches "change" events internally, but you should listen for those on
  * Documents, not Editors.
  *
  * These are jQuery events, so to listen for them you do something like this:
- *    $(editorInstance).on("eventname", handler);
+ *     `$(editorInstance).on("eventname", handler);`
  */
 define(function (require, exports, module) {
     "use strict";

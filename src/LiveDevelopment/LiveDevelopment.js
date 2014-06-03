@@ -27,31 +27,31 @@
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
  *
- * # STARTING
+ * __STARTING__
  *
  * To start a session call `open`. This will read the currentDocument from brackets,
  * launch the LiveBrowser (currently Chrome) with the remote debugger port open,
  * establish the Inspector connection to the remote debugger, and finally load all
  * agents.
  *
- * # STOPPING
+ * __STOPPING__
  *
  * To stop a session call `close`. This will close the active browser window,
  * disconnect the Inspector, unload all agents, and clean up.
  *
- * # STATUS
+ * __STATUS__
  *
  * Status updates are dispatched as `statusChange` jQuery events. The status
  * is passed as the first parameter and the reason for the change as the second
  * parameter. Currently only the "Inactive" status supports the reason parameter.
  * The status codes are:
  *
- * -1: Error
- *  0: Inactive
- *  1: Connecting to the remote debugger
- *  2: Loading agents
- *  3: Active
- *  4: Out of sync
+ *     -1: Error
+ *      0: Inactive
+ *      1: Connecting to the remote debugger
+ *      2: Loading agents
+ *      3: Active
+ *      4: Out of sync
  *
  * The reason codes are:
  * - null (Unknown reason)

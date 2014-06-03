@@ -28,22 +28,23 @@
 /**
  * CSSDocument manages a single CSS source document
  *
- * # EDITING
+ * __EDITING__
  *
  * Editing the document will cause the style sheet to be reloaded via the
  * CSSAgent, which immediately updates the appearance of the rendered document.
  *
- * # HIGHLIGHTING
+ * __HIGHLIGHTING__
  *
  * CSSDocument supports highlighting nodes from the HighlightAgent and
  * highlighting all DOMNode corresponding to the rule at the cursor position
  * in the editor.
  *
- * # EVENTS
+ * __EVENTS__
  *
  * CSSDocument dispatches these events:
- *  deleted - When the file for the underlying Document has been deleted. The
- *      2nd argument to the listener will be this CSSDocument.
+ *
+ * - deleted -- When the file for the underlying Document has been deleted.
+ *   The 2nd argument to the listener will be this CSSDocument.
  */
 define(function CSSDocumentModule(require, exports, module) {
     "use strict";
