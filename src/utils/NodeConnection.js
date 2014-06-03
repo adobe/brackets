@@ -29,24 +29,32 @@ maxerr: 50, browser: true */
 define(function (require, exports, module) {
     "use strict";
     
-    /** @define{number} Connection attempts to make before failing */
+    /**
+     * Connection attempts to make before failing
+     * @type {number}
+     */
     var CONNECTION_ATTEMPTS = 10;
 
     /**
-     * @define{number} Milliseconds to wait before a particular connection
-     *     attempt is considered failed.
-     *
+     * Milliseconds to wait before a particular connection attempt is considered failed.
      * NOTE: It's okay for the connection timeout to be long because the
      * expected behavior of WebSockets is to send a "close" event as soon
      * as they realize they can't connect. So, we should rarely hit the
      * connection timeout even if we try to connect to a port that isn't open.
+     * @type {number}
      */
     var CONNECTION_TIMEOUT  = 10000; // 10 seconds
 
-    /** @define{number} Milliseconds to wait before retrying connecting */
+    /**
+     * Milliseconds to wait before retrying connecting
+     * @type {number}
+     */
     var RETRY_DELAY         = 500;   // 1/2 second
 
-    /** @define {number} Maximum value of the command ID counter */
+    /**
+     * Maximum value of the command ID counter
+     * @type  {number}
+     */
     var MAX_COUNTER_VALUE = 4294967295; // 2^32 - 1
     
     /**

@@ -184,7 +184,7 @@ define(function (require, exports, module) {
      * @param {!string} fullPath
      * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
      *          use only.
-     * @returns {number} index
+     * @return {number} index
      */
     function findInWorkingSet(fullPath, list) {
         list = list || _workingSet;
@@ -198,7 +198,7 @@ define(function (require, exports, module) {
      * Returns the index of the file matching fullPath in _workingSetAddedOrder.
      * Returns -1 if not found.
      * @param {!string} fullPath
-     * @returns {number} index
+     * @return {number} index
      */
     function findInWorkingSetAddedOrder(fullPath) {
         return findInWorkingSet(fullPath, _workingSetAddedOrder);

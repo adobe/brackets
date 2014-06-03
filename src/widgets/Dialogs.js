@@ -58,7 +58,10 @@ define(function (require, exports, module) {
         DIALOG_BTN_CLASS_NORMAL     = "",
         DIALOG_BTN_CLASS_LEFT       = "left";
     
-    /** @type {number} The z-index used for the dialogs. Each new dialog increase this number by 2 */
+    /**
+     * The z-index used for the dialogs. Each new dialog increase this number by 2
+     * @type {number}
+     */
     var zIndex = 1050;
 
     /**
@@ -199,12 +202,18 @@ define(function (require, exports, module) {
         this._promise = promise;
     }
     
-    /** @type {$.Element} The dialog jQuery element */
+    /**
+     * The dialog jQuery element
+     * @type {$.Element}
+     */
     Dialog.prototype.getElement = function () {
         return this._$dlg;
     };
     
-    /** @type {$.Promise} The dialog promise */
+    /**
+     * The dialog promise
+     * @type {$.Promise}
+     */
     Dialog.prototype.getPromise = function () {
         return this._promise;
     };

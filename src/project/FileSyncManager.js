@@ -70,13 +70,24 @@ define(function (require, exports, module) {
      */
     var _restartPending = false;
     
-    /** @type {Array.<Document>} */
+    /**
+     * @type {Array.<Document>}
+     */
     var toReload;
-    /** @type {Array.<Document>} */
+
+    /**
+     * @type {Array.<Document>}
+     */
     var toClose;
-    /** @type {Array.<{doc: Document, fileTime: number}>} */
+
+    /**
+     * @type {Array.<{doc: Document, fileTime: number}>}
+     */
     var editConflicts;
-    /** @type {Array.<{doc: Document, fileTime: number}>} */
+
+    /**
+     * @type {Array.<{doc: Document, fileTime: number}>}
+     */
     var deleteConflicts;
     
     
