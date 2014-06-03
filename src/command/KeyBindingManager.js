@@ -505,7 +505,7 @@ define(function (require, exports, module) {
 
     /**
      * Returns a copy of the keymap
-     * @returns {!Object.<string, {commandID: string, key: string, displayKey: string}>}
+     * @return {!Object.<string, {commandID: string, key: string, displayKey: string}>}
      */
     function getKeymap() {
         return $.extend({}, _keyMap);

@@ -932,7 +932,7 @@ define(function (require, exports, module) {
      * getActiveEditor() will return the last visible editor that was given focus (but
      * may not currently have focus because, for example, a dialog with editable text
      * is open).
-     * @returns {?Editor}
+     * @return {?Editor}
      */
     function getFocusedEditor() {
         if (_currentEditor) {
@@ -957,7 +957,7 @@ define(function (require, exports, module) {
      * have focus at the moment, but it is visible and was the last editor that was given 
      * focus. Returns null if no editors are active.
      * @see getFocusedEditor()
-     * @returns {?Editor}
+     * @return {?Editor}
      */
     function getActiveEditor() {
         return _lastFocusedEditor;
