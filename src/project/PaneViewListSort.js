@@ -35,7 +35,6 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         MainViewManager         = require("view/MainViewManager"),
         DocumentManager         = require("document/DocumentManager"),
-        MainViewManager         = require("view/MainViewManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         FileUtils               = require("file/FileUtils"),
         AppInit                 = require("utils/AppInit"),
@@ -78,6 +77,9 @@ define(function (require, exports, module) {
         "view.sortWorkingSetByType"  : "cmd.sortPaneViewListByType"
     };
     
+    var PANE_SORT_PREF = "paneSortMethod";
+    var WORKSPACE_SORT_PREF = "currentSort";
+    
     /**
      * Retrieves a Sort object by id
      * @param {(string|Command)} command A command ID or a command object.
@@ -104,7 +106,9 @@ define(function (require, exports, module) {
         
         if (_sortPrefConversionMap.hasOwnProperty(sortMethod)) {
             sortMethod = _sortPrefConversionMap[sortMethod];
-            PreferencesManager.setViewState("currentSort", sortMethod);
+            PreferencesManager.setViewState(PANE_SORT_PREF, sortMethod);
+        } else {
+            sortMethod = undefined;
         }
         
         return sortMethod;
@@ -181,7 +185,7 @@ define(function (require, exports, module) {
             
             CommandManager.get(Commands.CMD_TOGGLE_AUTO_SORT).setEnabled(!!newSort.getEvents());
             _currentSort = newSort;
-            PreferencesManager.setViewState("currentSort", _currentSort.getCommandID());
+            PreferencesManager.setViewState(PANE_SORT_PREF, _currentSort.getCommandID());
         }
     }
     
@@ -325,25 +329,35 @@ define(function (require, exports, module) {
     // Register Command Handlers
     CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_ADDED, Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED, _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED));
     CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_NAME,  Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME,  _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME));
-    CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,  Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,  _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME));
+    CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,  Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,  _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE));
     CommandManager.register(Strings.CMD_TOGGLE_AUTO_SORT,             Commands.CMD_TOGGLE_AUTO_SORT,             _handleToggleAutoSort);
     
     
     // Initialize default values for sorting preferences
-    
-    // TODO: Migrate currentSort to a new pref
-    PreferencesManager.stateManager.definePreference("currentSort", "string", Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED);
     PreferencesManager.stateManager.definePreference("automaticSort", "boolean", false);
+    PreferencesManager.convertPreferences(module, {WORKSPACE_SORT_PREF: "user", "automaticSort": "user"}, true);
     
-    PreferencesManager.convertPreferences(module, {"currentSort": "user", "automaticSort": "user"}, true);
+    // default sort method
+    PreferencesManager.stateManager.definePreference(PANE_SORT_PREF, "string");
+    
+    function initSortMethod() {
+        var sortMethod = PreferencesManager.getViewState(PANE_SORT_PREF);
+        
+        if (!sortMethod) {
+            sortMethod = _convertSortPref(PreferencesManager.getViewState(WORKSPACE_SORT_PREF));
+        }
+
+        if (!sortMethod) {
+            sortMethod = Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED;
+        }
+        return sortMethod;
+    }
     
     // Initialize items dependent on extensions/workingSet
     AppInit.appReady(function () {
-        var sortMethod = _convertSortPref(PreferencesManager.getViewState("currentSort")),
+        var sortMethod = initSortMethod(),
             curSort    = get(sortMethod),
             autoSort   = PreferencesManager.getViewState("automaticSort");
-        
-
         
         if (curSort) {
             _setCurrentSort(curSort);

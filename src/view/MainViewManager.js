@@ -141,16 +141,9 @@ define(function (require, exports, module) {
         });
     }
     
-    function _onWorkspaceAreaResize(event, editorAreaHt, refreshFlag) {
-        
-    }
-    
-    
     function _canOpenFile(file) {
         return !EditorManager.getCustomViewerForPath(file.fullPath);
     }
-    
-    $(WorkspaceManager).on("workspaceAreaResize",  _onWorkspaceAreaResize);
     
     /* 
      * Public API
