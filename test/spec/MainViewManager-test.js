@@ -37,4 +37,5 @@ define(function (require, exports, module) {
             expect(MainViewManager).toNotBe(null);
         });
     });
+    // Other tests go here as we develop more functionality into MainViewManager.
 });
