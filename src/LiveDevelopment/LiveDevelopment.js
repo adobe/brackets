@@ -27,31 +27,31 @@
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
  *
- * # STARTING
+ * __STARTING__
  *
  * To start a session call `open`. This will read the currentDocument from brackets,
  * launch the LiveBrowser (currently Chrome) with the remote debugger port open,
  * establish the Inspector connection to the remote debugger, and finally load all
  * agents.
  *
- * # STOPPING
+ * __STOPPING__
  *
  * To stop a session call `close`. This will close the active browser window,
  * disconnect the Inspector, unload all agents, and clean up.
  *
- * # STATUS
+ * __STATUS__
  *
  * Status updates are dispatched as `statusChange` jQuery events. The status
  * is passed as the first parameter and the reason for the change as the second
  * parameter. Currently only the "Inactive" status supports the reason parameter.
  * The status codes are:
  *
- * -1: Error
- *  0: Inactive
- *  1: Connecting to the remote debugger
- *  2: Loading agents
- *  3: Active
- *  4: Out of sync
+ *     -1: Error
+ *      0: Inactive
+ *      1: Connecting to the remote debugger
+ *      2: Loading agents
+ *      3: Active
+ *      4: Out of sync
  *
  * The reason codes are:
  * - null (Unknown reason)
@@ -146,13 +146,22 @@ define(function LiveDevelopment(require, exports, module) {
         "highlight" : true
     };
 
-    // store the names (matching property names in the 'agent' object) of agents that we've loaded
+    /**
+     * Store the names (matching property names in the 'agent' object) of agents that we've loaded
+     * @type {string}
+     */
     var _loadedAgentNames = [];
 
-    /** @type {HTMLDocument} */
+    /**
+     * Live Preview current Document info
+     * @type {HTMLDocument}
+     */
     var _liveDocument;
     
-    /** @type {Object.<string: {HTMLDocument|CSSDocument}>} */
+    /**
+     * Related Live Documents
+     * @type {Object.<string: (HTMLDocument|CSSDocument)>}
+     */
     var _relatedDocuments = {};
     
     /**
@@ -984,7 +993,11 @@ define(function LiveDevelopment(require, exports, module) {
             loadAgents().then(_openDeferred.resolve, _openDeferred.reject);
 
             _getInitialDocFromCurrent().done(function (doc) {
-                if (doc && _liveDocument && doc === _liveDocument.doc) {
+                if (doc && _liveDocument) {
+                    if (doc !== _liveDocument.doc) {
+                        _createLiveDocumentForFrame(doc);
+                    }
+
                     // Navigate from interstitial to the document
                     // Fires a frameNavigated event
                     if (_server) {

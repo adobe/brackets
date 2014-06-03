@@ -32,9 +32,9 @@
  * 
  * Events:
  *    - editorAreaResize -- When editor-holder's size changes for any reason (including panel show/hide
- *              panel resize, or the window resize).
- *              The 2nd arg is the new editor-holder height.
- *              The 3rd arg is a refreshHint flag for internal EditorManager use.
+ *      panel resize, or the window resize).
+ *      The 2nd arg is the new editor-holder height.
+ *      The 3rd arg is a refreshHint flag for internal EditorManager use.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -43,14 +43,23 @@ define(function (require, exports, module) {
         Resizer                 = require("utils/Resizer");
     
     
-    /** @type {jQueryObject} The ".content" vertical stack (editor + all header/footer panels) */
+    /**
+     * The ".content" vertical stack (editor + all header/footer panels)
+     * @type {jQueryObject}
+     */
     var $windowContent;
     
-    /** @type {jQueryObject} The "#editor-holder": has only one visible child, the current CodeMirror
-        instance (or the no-editor placeholder) */
+    /**
+     * The "#editor-holder": has only one visible child, the current CodeMirror
+     * instance (or the no-editor placeholder)
+     * @type {jQueryObject}
+     */
     var $editorHolder;
     
-    /** @type {boolean} Have we already started listening for the end of the ongoing window resize? */
+    /**
+     * Have we already started listening for the end of the ongoing window resize?
+     * @type {boolean}
+     */
     var windowResizing = false;
     
 
@@ -159,7 +168,10 @@ define(function (require, exports, module) {
         listenToResize($panel);
     }
     
-    /** @type {jQueryObject} */
+    /**
+     * Panel instance
+     * @type {jQueryObject}
+     */
     Panel.prototype.$panel = null;
     
     Panel.prototype.isVisible = function () {

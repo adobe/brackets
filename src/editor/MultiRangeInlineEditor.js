@@ -35,7 +35,6 @@
  *
  * This module does not dispatch any events.
  */
-
 define(function (require, exports, module) {
     "use strict";
     
@@ -118,7 +117,10 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype.$selectedMarker = null;
     MultiRangeInlineEditor.prototype.$rangeList = null;
     
-    /** @type {Array.<SearchResultItem>} */
+    /**
+     * List of search results
+     * @type {Array.<SearchResultItem>}
+     */
     MultiRangeInlineEditor.prototype._ranges = null;
     MultiRangeInlineEditor.prototype._selectedRangeIndex = null;
     MultiRangeInlineEditor.prototype._messageCB = null;
