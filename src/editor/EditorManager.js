@@ -478,7 +478,7 @@ define(function (require, exports, module) {
      * some other cases are handled by external code calling resizeEditor() (e.g. ModalBar hide/show).
      * 
      * @param {number} editorAreaHt
-     * @param {{refresh:string=, scrollToCursor:boolean, panelHeight:number} refreshFlag For internal use. Set
+     * @param {{refresh:string=, scrollToCursor:boolean, panelHeight:number}} refreshFlag For internal use. Set
      *    refresh to "force" to ensure the editor will refresh, "skip" to ensure the editor does not refresh, or
      *    leave undefined to let _onEditorAreaResize() determine whether it needs to refresh.
      *    Set scrollToCursor to true and panelHeight to the height of the shown panel to reveal cursor. Use only
