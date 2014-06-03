@@ -185,7 +185,6 @@ define(function (require, exports, module) {
      * @return {?Document}
      */
     function getCurrentDocument() {
-        //DeprecationWarning.deprecationWarning("Use EditorManager.getCurrentlyViewedPath()", true);
         return _getCurrentDocument();
     }
 
@@ -230,6 +229,21 @@ define(function (require, exports, module) {
         return MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, fullPath);
     }
     
+    
+    function removeListFromWorkingSet(list, clearCurrentDocument) {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.removeListFromPaneViewList() instead of DocumentManager.removeListFromWorkingSet()", true);
+
+        if (!list) {
+            return;
+        }
+        
+        if (clearCurrentDocument) {
+            DeprecationWarning.deprecationWarning("clearCurrentDocument is not a supported option for MainViewManager.removeListFromPaneViewList() Use DocumentManager.clearCurrentDocument() instead", true);
+            clearCurrentDocument();
+        }
+        
+        MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, list);
+    }
     
     /**
      * Returns all Documents that are 'open' in the UI somewhere (for now, this means open in an
@@ -750,6 +764,7 @@ define(function (require, exports, module) {
     exports.findInWorkingSet            = findInWorkingSet;
     exports.addListToWorkingSet         = addListToWorkingSet;
     exports.removeFromWorkingSet        = removeFromWorkingSet;
+    exports.removeListFromWorkingSet    = removeListFromWorkingSet;
     exports.getNextPrevFile             = getNextPrevFile;
     exports.getCurrentDocument          = getCurrentDocument;
     
