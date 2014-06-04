@@ -117,6 +117,7 @@ define(function (require, exports, module) {
     exports.CMD_SKIP_CURRENT_MATCH      = "cmd.skipCurrentMatch";       // FindReplace.js               _skipCurrentMatch()
     exports.CMD_REPLACE                 = "cmd.replace";                // FindReplace.js               _replace()
     exports.CMD_REPLACE_IN_FILES        = "cmd.replaceInFiles";         // FindInFilesUI.js             _showReplaceBar()
+    exports.CMD_REPLACE_IN_SELECTED     = "cmd.replaceInSelected";      // FindInFilesUI.js             _showReplaceBarForSubtree()
     exports.CMD_REPLACE_IN_SUBTREE      = "cmd.replaceInSubtree";       // FindInFilesUI.js             _showReplaceBarForSubtree()
     
     // VIEW

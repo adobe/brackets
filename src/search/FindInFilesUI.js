@@ -384,11 +384,12 @@ define(function (require, exports, module) {
     $(ProjectManager).on("beforeProjectClose", function () { _resultsView.close(); });
     
     // Initialize: command handlers
-    CommandManager.register(Strings.CMD_FIND_IN_FILES,      Commands.CMD_FIND_IN_FILES,      _showFindBar);
-    CommandManager.register(Strings.CMD_REPLACE_IN_FILES,   Commands.CMD_REPLACE_IN_FILES,   _showReplaceBar);
-    CommandManager.register(Strings.CMD_FIND_IN_SELECTED,   Commands.CMD_FIND_IN_SELECTED,   _showFindBarForSubtree);
-    CommandManager.register(Strings.CMD_FIND_IN_SUBTREE,    Commands.CMD_FIND_IN_SUBTREE,    _showFindBarForSubtree);
-    CommandManager.register(Strings.CMD_REPLACE_IN_SUBTREE, Commands.CMD_REPLACE_IN_SUBTREE, _showReplaceBarForSubtree);
+    CommandManager.register(Strings.CMD_FIND_IN_FILES,       Commands.CMD_FIND_IN_FILES,       _showFindBar);
+    CommandManager.register(Strings.CMD_REPLACE_IN_FILES,    Commands.CMD_REPLACE_IN_FILES,    _showReplaceBar);
+    CommandManager.register(Strings.CMD_FIND_IN_SELECTED,    Commands.CMD_FIND_IN_SELECTED,    _showFindBarForSubtree);
+    CommandManager.register(Strings.CMD_REPLACE_IN_SELECTED, Commands.CMD_REPLACE_IN_SELECTED, _showReplaceBarForSubtree);
+    CommandManager.register(Strings.CMD_FIND_IN_SUBTREE,     Commands.CMD_FIND_IN_SUBTREE,     _showFindBarForSubtree);
+    CommandManager.register(Strings.CMD_REPLACE_IN_SUBTREE,  Commands.CMD_REPLACE_IN_SUBTREE,  _showReplaceBarForSubtree);
     
     // Public exports
     exports.searchAndShowResults = searchAndShowResults;
