@@ -19,7 +19,7 @@
         "extension_registry": "https://s3.amazonaws.com/extend.brackets/registry.json",
         "extension_url": "https://s3.amazonaws.com/extend.brackets/{0}/{0}-{1}.zip",
         "linting.enabled_by_default": true,
-        "build_timestamp": "DEBUG"
+        "build_timestamp": ""
     },
     "name": "Brackets",
     "version": "0.41.0-0",
