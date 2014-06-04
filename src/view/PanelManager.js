@@ -31,12 +31,12 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var WorkspaceManager        = require("WorkspaceManager"),
+    var WorkspaceManager        = require("view/WorkspaceManager"),
         DeprecationWarning      = require("utils/DeprecationWarning");
     
     // Define public API
     exports.createBottomPanel   = function (id, $panel, minSize) {
         DeprecationWarning.deprecationWarning("PanelManager.createBottomPanel() is deprecated. Use WorkspaceManager.createBottomPanel() instead.", true);
-        WorkspaceManager.createBottomPanel(id, $panel, minSize);
+        return WorkspaceManager.createBottomPanel(id, $panel, minSize);
     };
 });

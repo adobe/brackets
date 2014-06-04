@@ -118,6 +118,7 @@ define(function (require, exports, module) {
         }
     });
     
+  
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
@@ -137,6 +138,9 @@ define(function (require, exports, module) {
     require("project/FileIndexManager");
     require("file/NativeFileSystem");
     require("file/NativeFileError");
+    
+    // Compatibility shim for PanelManager to Workspace Manager migration
+    require("view/PanelManager");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
     
