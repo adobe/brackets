@@ -104,7 +104,7 @@ define(function (require, exports, module) {
     
     /** 
      * @private
-     * @returns {$.Promise}
+     * @return {$.Promise}
      */
     function _selectCurrentDocument() {
         // If fullPath corresonds to the current doc being viewed then opening the file won't
@@ -136,7 +136,7 @@ define(function (require, exports, module) {
      * fileSelectionFocus
      * @param {!fullPath}
      * @param {string} - must be either WORKING_SET_VIEW or PROJECT_MANAGER
-     * @returns {$.Promise}
+     * @return {$.Promise}
      */
     function openAndSelectDocument(fullPath, fileSelectionFocus) {
         var result;

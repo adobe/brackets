@@ -53,6 +53,10 @@ define(function (require, exports, module) {
     
     // Init default last build number
     PreferencesManager.stateManager.definePreference("lastNotifiedBuildNumber", "number", 0);
+    
+    // Init default last info URL fetch time
+    PreferencesManager.stateManager.definePreference("lastInfoURLFetchTime", "number", 0);
+    
     // Time of last registry check for update
     PreferencesManager.stateManager.definePreference("lastExtensionRegistryCheckTime", "number", 0);
     // Data about available updates in the registry
@@ -64,14 +68,6 @@ define(function (require, exports, module) {
         "updateInfo": "user"
     }, true);
     
-    // This is the last version we notified the user about. If checkForUpdate()
-    // is called with "false", only show the update notification dialog if there
-    // is an update newer than this one. This value is saved in preferences.
-    var _lastNotifiedBuildNumber = PreferencesManager.getViewState("lastNotifiedBuildNumber");
-    
-    // Last time the versionInfoURL was fetched
-    var _lastInfoURLFetchTime = PreferencesManager.getViewState("lastInfoURLFetchTime");
-
     // URL to load version info from. By default this is loaded no more than once a day. If
     // you force an update check it is always loaded.
     
@@ -125,6 +121,9 @@ define(function (require, exports, module) {
      * _versionInfoUrl is used for unit testing.
      */
     function _getUpdateInformation(force, dontCache, _versionInfoUrl) {
+        // Last time the versionInfoURL was fetched
+        var lastInfoURLFetchTime = PreferencesManager.getViewState("lastInfoURLFetchTime");
+
         var result = new $.Deferred();
         var fetchData = false;
         var data;
@@ -141,7 +140,7 @@ define(function (require, exports, module) {
         }
         
         // If more than 24 hours have passed since our last fetch, fetch again
-        if ((new Date()).getTime() > _lastInfoURLFetchTime + ONE_DAY) {
+        if ((new Date()).getTime() > lastInfoURLFetchTime + ONE_DAY) {
             fetchData = true;
         }
         
@@ -195,8 +194,8 @@ define(function (require, exports, module) {
                     cache: false
                 }).done(function (updateInfo, textStatus, jqXHR) {
                     if (!dontCache) {
-                        _lastInfoURLFetchTime = (new Date()).getTime();
-                        PreferencesManager.setViewState("lastInfoURLFetchTime", _lastInfoURLFetchTime);
+                        lastInfoURLFetchTime = (new Date()).getTime();
+                        PreferencesManager.setViewState("lastInfoURLFetchTime", lastInfoURLFetchTime);
                         PreferencesManager.setViewState("updateInfo", updateInfo);
                     }
                     result.resolve(updateInfo);
@@ -324,6 +323,11 @@ define(function (require, exports, module) {
      * @return {$.Promise} jQuery Promise object that is resolved or rejected after the update check is complete.
      */
     function checkForUpdate(force, _testValues) {
+        // This is the last version we notified the user about. If checkForUpdate()
+        // is called with "false", only show the update notification dialog if there
+        // is an update newer than this one. This value is saved in preferences.
+        var lastNotifiedBuildNumber = PreferencesManager.getViewState("lastNotifiedBuildNumber");
+
         // The second param, if non-null, is an Object containing value overrides. Values
         // in the object temporarily override the local values. This should *only* be used for testing.
         // If any overrides are set, permanent changes are not made (including showing
@@ -342,9 +346,9 @@ define(function (require, exports, module) {
                 usingOverrides = true;
             }
 
-            if (_testValues.hasOwnProperty("_lastNotifiedBuildNumber")) {
-                oldValues._lastNotifiedBuildNumber = _lastNotifiedBuildNumber;
-                _lastNotifiedBuildNumber = _testValues._lastNotifiedBuildNumber;
+            if (_testValues.hasOwnProperty("lastNotifiedBuildNumber")) {
+                oldValues.lastNotifiedBuildNumber = lastNotifiedBuildNumber;
+                lastNotifiedBuildNumber = _testValues.lastNotifiedBuildNumber;
                 usingOverrides = true;
             }
 
@@ -382,14 +386,14 @@ define(function (require, exports, module) {
                 
                     // Only show the update dialog if force = true, or if the user hasn't been
                     // alerted of this update
-                    if (force || allUpdates[0].buildNumber >  _lastNotifiedBuildNumber) {
+                    if (force || allUpdates[0].buildNumber >  lastNotifiedBuildNumber) {
                         _showUpdateNotificationDialog(allUpdates);
                         
                         // Update prefs with the last notified build number
-                        _lastNotifiedBuildNumber = allUpdates[0].buildNumber;
+                        lastNotifiedBuildNumber = allUpdates[0].buildNumber;
                         // Don't save prefs is we have overridden values
                         if (!usingOverrides) {
-                            PreferencesManager.setViewState("lastNotifiedBuildNumber", _lastNotifiedBuildNumber);
+                            PreferencesManager.setViewState("lastNotifiedBuildNumber", lastNotifiedBuildNumber);
                         }
                     }
                 } else if (force) {
@@ -405,8 +409,8 @@ define(function (require, exports, module) {
                     if (oldValues.hasOwnProperty("_buildNumber")) {
                         _buildNumber = oldValues._buildNumber;
                     }
-                    if (oldValues.hasOwnProperty("_lastNotifiedBuildNumber")) {
-                        _lastNotifiedBuildNumber = oldValues._lastNotifiedBuildNumber;
+                    if (oldValues.hasOwnProperty("lastNotifiedBuildNumber")) {
+                        lastNotifiedBuildNumber = oldValues.lastNotifiedBuildNumber;
                     }
                 }
                 result.resolve();

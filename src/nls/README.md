@@ -89,6 +89,79 @@ point the process will switch to the one above. But until then, please _do not
 use_ http://translate.adobe.com for these languages.
 
 
+## Contributing Translations directly from github.com
+
+You must be logged in to your github.com id (e.g. `user1`).
+
+### Adding a New Translation
+To add a new translation, you need to start with a copy of the
+root `strings.js` file which is located at
+[https://github.com/adobe/brackets/blob/master/src/nls/root/strings.js](https://github.com/adobe/brackets/blob/master/src/nls/root/strings.js).
+New translations can be added by navigating to the
+[nls folder on github](https://github.com/adobe/brackets/tree/master/src/nls)
+and then clicking on the [+] button to add a new file.
+You will be taken to a New File page where you:
+
+1. Specify the file name as *language-id*/strings.js
+2. Paste in the contents of root/strings.js and edit strings for new language
+3. Add this comment `/* Last translated for SHA_of_root_strings.js */`
+at the end of your strings.js and replace `SHA_of_root_strings.js` with the actual SHA.
+You can copy the actual SHA in this
+[history page](https://github.com/adobe/brackets/commits/master/src/nls/root/strings.js)
+by hovering on the one you used for this translation and click on Copy SHA button.
+4. Add short and (optional) long description of new file
+5. Click "Propose New File" button
+
+### Editing an Existing Translation
+Existing files can be edited directly in
+[brackets repo on github](https://github.com/adobe/brackets).
+
+Navigate to the file to edit and click "Edit" button above file.
+You will be taken to an Edit File page where you:
+
+1. Make desired edits to file
+2. Make sure that you also update the comment on the last line with the correct SHA of
+strings.js from root directory, which you used for your translation. If the SHA comment
+is missing, then add one with the correct SHA. See step 6 in How to add translations
+for a new locale section for adding a new one.
+3. Add short and (optional) long description of Commit changes
+4. Click "Commit changes" button
+
+### Branch and Pull Request
+For either case, if you have not yet forked the brackets repository in your
+github account (`https://github.com/user1/brackets`), it's done automatically.
+A new branch will be created in your brackets fork with a unique name
+which is something like `patch-1` that contains your changes.
+
+You are then taken to the New Pull Request dialog which is filled in
+with all of the information from previous dialog.
+It also shows contents of new file or a "diff" of changes to existing file.
+You can make any changes if desired, then click "Send Pull Request" when done
+(or close page to Cancel).
+A pull request for your branch is created and submitted to the brackets "repo".
+
+### Code Review
+Someone on the Brackets team will review the pull request. If it's ok, it will
+be merged. If changes need to be made, the reviewer will post comments in the
+pull request which will send you an e-mail notification.
+
+You should make updates in the `patch-1` branch in your github fork of brackets
+so all of your changes for this update are in a single branch.
+Creating a new branch for every update makes it difficult for core team
+to see all changes at once, and can even create conflicts that are
+very difficult to resolve.
+
+Follow the link in the notification e-mail to the pull request if you need
+to determine which branch to edit. Once in the branch, navigate to the file
+to edit (same as you would in main repo) and click "Edit" button.
+Make any changes following directions for Editing an Existing Translation.
+
+Saved edits show up as a new commit, so they automatically show up in the original
+pull request. After making an update, add a comment to the pull request such as
+"Changes made -- ready for another review" to notify reviewer
+that it's time to review the changes again.
+
+
 # Translation limitations
 
 Some strings cannot be localized yet:

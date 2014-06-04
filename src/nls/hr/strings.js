@@ -282,9 +282,11 @@ define({
     "CMD_SPLIT_SEL_INTO_LINES"            : "Razdvoji odabrano u redove",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "Dodaj kursor u sljedeći red",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "Dodaj kursor u prošli red",
+    "FIND_MENU"                           : "Nađi",
     "CMD_FIND"                            : "Nađi",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "Nađi\u2026",
     "CMD_FIND_IN_FILES"                   : "Nađi u datotekama",
+    "CMD_FIND_IN_SELECTED"                : "Nađi u odabranoj Datoteci/Mapi",
     "CMD_FIND_IN_SUBTREE"                 : "Nađi u\u2026",
     "CMD_FIND_NEXT"                       : "Nađi sljedeće",
     "CMD_FIND_PREVIOUS"                   : "Nađi prethodno",
@@ -471,7 +473,11 @@ define({
     
     "INLINE_EDITOR_NO_MATCHES"             : "Poklapanja nisu nađena.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Nema postojećih CSS pravila koji odgovaraju vašem odabiru.<br> Kliknite \"New Rule\" da biste ih stvorili.",
-    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Ne postoje stilovi u vašem projektu.<br>Stvorite jednu da dodate CSS pravila.",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Ne postoje stilovi u vašem projektu.<br>Stvorite jedan da dodate CSS pravila.",
+    
+    
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON" : "najveća",
     
     /**
      * Unit names
@@ -491,6 +497,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Uključi Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Zapiši u konzolu stanje Node-a",
     "CMD_RESTART_NODE"                          : "Ponovo pokreni Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Prikaži greške u statusnoj traci",
     
     "LANGUAGE_TITLE"                            : "Promjeni Jezik",
     "LANGUAGE_MESSAGE"                          : "Jezik:",

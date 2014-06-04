@@ -32,8 +32,6 @@
  *
  *  "Go Live": open or close a Live Development session and visualize the status
  *  "Highlight": toggle source highlighting
- *
- * @require DocumentManager
  */
 define(function main(require, exports, module) {
     "use strict";

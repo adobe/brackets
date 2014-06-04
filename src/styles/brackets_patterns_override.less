@@ -122,6 +122,7 @@ a:focus {
             //max-height: calc(~"100vh - 34px"); doesn't seem to work...
             max-height: 90vh;
             overflow-y: auto;
+            -webkit-animation: none;
         }
     }
     .title {
@@ -464,7 +465,7 @@ a:focus {
     &.dropdown-menu {
         border: none;
         border-radius: @tc-control-border-radius;
-        padding: 0;
+        padding: 5px 0;
         position: absolute;
         display: block;
         box-shadow: @tc-dropdown-shadow;
@@ -477,6 +478,7 @@ a:focus {
     
     &.dropdown-menu li a {
         padding: 1px 15px 1px 15px;
+        color: @bc-black;
     }
     
     &.dropdown-menu .stylesheet-link {
@@ -488,8 +490,33 @@ a:focus {
         color: @bc-black !important;
     }
 
+    &.dropdown-menu a {
+        &::before {
+            position: absolute;
+            left: 10px;
+            text-align: center;
+            content: "✓";
+            display: none;
+        }
+        /* toggle checkmark visibility */
+        &.checked::before {
+            display: inline-block;
+        }
+    }
+    
+    &.dropdown-menu a:hover {
+        /* toggle checkmark visibility */
+        &.checked::before {
+            display: none;
+        }
+    }
+
     &.dropdown-menu a:not(.selected):hover {
-         background: none;
+        background: none;
+    }
+    
+    .divider {
+        margin: 5px 1px;
     }
 }
 
@@ -1133,7 +1160,13 @@ input[type="color"],
     }
 
     // Active and Disabled states
-    &.active:not([disabled]),
+    &.active:not([disabled]) {
+        background-image: none;
+        background-color: @tc-highlight;
+        box-shadow: @tc-button-down-shadow;
+        color: @tc-link;
+    }
+    
     &:active:not([disabled]) {
         background-image: none;
         background-color: @tc-button-down-background;

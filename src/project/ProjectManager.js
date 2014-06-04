@@ -30,12 +30,13 @@
  * the file tree.
  *
  * This module dispatches these events:
- *    - beforeProjectClose -- before _projectRoot changes, but working set files still open
- *    - projectClose       -- *just* before _projectRoot changes; working set already cleared & project root unwatched
+ *    - beforeProjectClose -- before `_projectRoot` changes, but working set files still open
+ *    - projectClose       -- *just* before `_projectRoot` changes; working set already cleared
+ *      & project root unwatched
  *    - beforeAppClose     -- before Brackets quits entirely
- *    - projectOpen        -- after _projectRoot changes and the tree is re-rendered
+ *    - projectOpen        -- after `_projectRoot` changes and the tree is re-rendered
  *    - projectRefresh     -- when project tree is re-rendered for a reason other than
- *                            a project being opened (e.g. from the Refresh command)
+ *      a project being opened (e.g. from the Refresh command)
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(ProjectManager).on("eventname", handler);
@@ -185,7 +186,8 @@ define(function (require, exports, module) {
      * RegEx to validate if a filename is not allowed even if the system allows it.
      * This is done to prevent cross-platform issues.
      */
-    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux)$/i;
+            
+    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux|)$|\.+$/i;
     
     var suppressToggleOpen = false;
     
@@ -1529,8 +1531,8 @@ define(function (require, exports, module) {
                 filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
-                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
-                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, _invalidChars)
+                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME),
+                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE,  _invalidChars)
             );
             return false;
         }
@@ -1657,15 +1659,13 @@ define(function (require, exports, module) {
                 };
                 
                 var errorCallback = function (error, entry) {
-                    var entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
-                        oppositeEntryType = isFolder ? Strings.FILE : Strings.DIRECTORY;
+                    var titleType = isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME,
+                        entryType = isFolder ? Strings.DIRECTORY : Strings.FILE;
                     if (error === FileSystemError.ALREADY_EXISTS) {
-                        var useOppositeType = (isFolder === entry.isFile);
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
-                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
-                            StringUtils.format(Strings.FILE_ALREADY_EXISTS,
-                                useOppositeType ? oppositeEntryType : entryType,
+                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, titleType),
+                            StringUtils.format(Strings.ENTRY_WITH_SAME_NAME_EXISTS,
                                 StringUtils.breakableUrl(data.rslt.name))
                         );
                     } else {

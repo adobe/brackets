@@ -21,8 +21,11 @@
  *
  */
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, brackets */
+
 /*
- * CodeHintManager Overview:
+ * __CodeHintManager Overview:__
  *
  * The CodeHintManager mediates the interaction between the editor and a
  * collection of hint providers. If hints are requested explicitly by the
@@ -59,17 +62,17 @@
  * session.
  *
  *
- * CodeHintProvider Overview:
+ * __CodeHintProvider Overview:__
  *
  * A code hint provider should implement the following three functions:
  *
- * CodeHintProvider.hasHints(editor, implicitChar)
- * CodeHintProvider.getHints(implicitChar)
- * CodeHintProvider.insertHint(hint)
+ * - `CodeHintProvider.hasHints(editor, implicitChar)`
+ * - `CodeHintProvider.getHints(implicitChar)`
+ * - `CodeHintProvider.insertHint(hint)`
  *
  * The behavior of these three functions is described in detail below.
  *
- * # CodeHintProvider.hasHints(editor, implicitChar)
+ * __CodeHintProvider.hasHints(editor, implicitChar)__
  *
  * The method by which a provider indicates intent to provide hints for a
  * given editor. The manager calls this method both when hints are
@@ -113,7 +116,7 @@
  * whether it is appropriate to do so.
  *
  *
- * # CodeHintProvider.getHints(implicitChar)
+ * __CodeHintProvider.getHints(implicitChar)__
  *
  * The method by which a provider provides hints for the editor context
  * associated with the current session. The getHints method is called only
@@ -172,11 +175,11 @@
  * Either null, if the request to update the hint list was a result of
  * navigation, or a single character that represents the last insertion.
  *
- * return {jQuery.Deferred|{
- *      hints: Array.<string|jQueryObject>,
- *      match: string,
- *      selectInitial: boolean,
- *      handleWideResults: boolean}}
+ *     return {jQuery.Deferred|{
+ *          hints: Array.<string|jQueryObject>,
+ *          match: string,
+ *          selectInitial: boolean,
+ *          handleWideResults: boolean}}
  *
  * Null if the provider wishes to end the hinting session. Otherwise, a
  * response object, possibly deferred, that provides 1. a sorted array
@@ -197,7 +200,7 @@
  * a more sophisticated matching algorithm.
  *
  *
- * # CodeHintProvider.insertHint(hint)
+ * __CodeHintProvider.insertHint(hint)__
  *
  * The method by which a provider inserts a hint into the editor context
  * associated with the current session. The provider may assume that the
@@ -217,7 +220,7 @@
  * explicit hint request.
  *
  *
- * # CodeHintProvider.insertHintOnTab
+ * __CodeHintProvider.insertHintOnTab__
  *
  * type {?boolean} insertHintOnTab
  * Indicates whether the CodeHintManager should request that the provider of
@@ -227,11 +230,6 @@
  * behavior is to insert a tab character, but this can be changed with the
  * insertHintOnTab Preference.
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -453,6 +451,11 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      */
     _beginSession = function (editor) {
+        // Don't start a session if we have a multiple selection.
+        if (editor.getSelections().length > 1) {
+            return;
+        }
+        
         // Find a suitable provider, if any
         var language = editor.getLanguageForSelection(),
             enabledProviders = _getProvidersForLanguageId(language.getId());
@@ -560,6 +563,20 @@ define(function (require, exports, module) {
             }
         }
     }
+    
+    /**
+     * Handle a selection change event in the editor. If the selection becomes a
+     * multiple selection, end our current session.
+     * @param {Event} jqEvent
+     * @param {Editor} editor
+     */
+    function _handleCursorActivity(jqEvent, editor) {
+        if (_inSession(editor)) {
+            if (editor.getSelections().length > 1) {
+                _endSession();
+            }
+        }
+    }
 
     /**
      * Start a new implicit hinting session, or update the existing hint list.
@@ -621,7 +638,7 @@ define(function (require, exports, module) {
     /**
      *  Test if a hint popup is open.
      *
-     * @returns {boolean} - true if the hints are open, false otherwise.
+     * @return {boolean} - true if the hints are open, false otherwise.
      */
     function isOpen() {
         return (hintList && hintList.isOpen());
@@ -640,6 +657,7 @@ define(function (require, exports, module) {
             $(current).on("keydown",  _handleKeydownEvent);
             $(current).on("keypress", _handleKeypressEvent);
             $(current).on("keyup",    _handleKeyupEvent);
+            $(current).on("cursorActivity", _handleCursorActivity);
         }
 
         if (previous) {
@@ -648,6 +666,7 @@ define(function (require, exports, module) {
             $(previous).off("keydown",  _handleKeydownEvent);
             $(previous).off("keypress", _handleKeypressEvent);
             $(previous).off("keyup",    _handleKeyupEvent);
+            $(previous).off("cursorActivity", _handleCursorActivity);
         }
     }
 
