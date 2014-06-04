@@ -299,6 +299,8 @@ define(function (require, exports, module) {
         get(commandId).execute();
     }
     
+    var events = "paneViewListAdd paneViewListAddList";
+    
     // Register Sort Methods
     register(
         Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED,
@@ -308,21 +310,21 @@ define(function (require, exports, module) {
             
             return index1 - index2;
         },
-        "paneViewListAdd paneViewListAddList"
+        events
     );
     register(
         Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME,
         function (file1, file2) {
             return FileUtils.compareFilenames(file1.name, file2.name, false);
         },
-        "paneViewListAdd paneViewListAddList"
+        events
     );
     register(
         Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,
         function (file1, file2) {
             return FileUtils.compareFilenames(file1.name, file2.name, true);
         },
-        "paneViewListAdd paneViewListAddList"
+        events
     );
     
     

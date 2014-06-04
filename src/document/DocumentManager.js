@@ -140,7 +140,7 @@ define(function (require, exports, module) {
                                           oldEventName,
                                           newEventName,
                                           "DocumentManager." + oldEventName,
-                                          "MainViewManger." + newEventName);
+                                          "MainViewManager." + newEventName);
     }
         
     /**
