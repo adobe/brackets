@@ -123,6 +123,7 @@ define({
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
     
     // Generic dialog/button labels
+	"DONE": "完了",
 	"OK": "OK",
 	"CANCEL": "キャンセル",
 	"DONT_SAVE": "保存しない",
