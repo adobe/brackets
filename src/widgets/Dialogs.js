@@ -165,7 +165,11 @@ define(function (require, exports, module) {
             // Enter key in single-line text input always dismisses; in text area, only Ctrl+Enter dismisses
             // Click primary
             stopEvent();
-            $primaryBtn.click();
+            if (e.target.tagName === "BUTTON") {
+                this.find(e.target).click();
+            } else {
+                $primaryBtn.click();
+            }
         } else if (e.which === KeyEvent.DOM_VK_SPACE) {
             if ($focusedElement.length) {
                 // Space bar on focused button or link
