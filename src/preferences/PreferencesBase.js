@@ -687,7 +687,7 @@ define(function (require, exports, module) {
     /**
      * @constructor
      * 
-     * Create a language layer object. Language Layer is comletely stateless, it
+     * Create a language layer object. Language Layer is completely stateless, it
      * only knows how look up and process prefs set in the language layer. Desired
      * language id should be specified in the "language" field of the context. 
      */
@@ -1768,7 +1768,7 @@ define(function (require, exports, module) {
          * Calling this function will cause all the listeners to get notified if there're
          * potential changes in the preferences due to the language change
          * 
-         * @param {string} filename New language id used to look up preferences
+         * @param {string} languageID New language id used to look up preferences
          */
         setLanguage: function (languageID) {
             var oldLanguageID = this._defaultContext.language;
