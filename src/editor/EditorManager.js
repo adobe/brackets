@@ -504,8 +504,7 @@ define(function (require, exports, module) {
      * @param {{refresh:string=, scrollToCursor:boolean, panelHeight:number}} refreshFlag For internal use.
      *    Set to "force" to ensure the editor will refresh, "skip" to ensure the editor does not refresh, or
      *    leave undefined to let `_onEditorAreaResize()` determine whether it needs to refresh.
-     *    Set scrollToCursor to true and panelHeight to the height of the shown panel to reveal cursor. Use only
-     *    on panel expansion.
+     *    Set scrollToCursor to true to reveal cursor. Use only on panel expansion.
      */
     function _onEditorAreaResize(event, editorAreaHt, refreshFlag) {
         if (_currentEditor) {
@@ -513,18 +512,8 @@ define(function (require, exports, module) {
                 curWidth = $(curRoot).width(),
                 curHeight = $(curRoot).height();
             
-            if (refreshFlag.scrollToCursor && refreshFlag.panelHeight) {
-                // Gather info to determine whether to scroll after editor resizies
-                var height     = _currentEditor._codeMirror.getScrollInfo().clientHeight,
-                    textHeight = _currentEditor.getTextHeight(),
-                    cursorTop  = _currentEditor._codeMirror.cursorCoords().top,
-                    bottom     = cursorTop - $("#editor-holder").offset().top + textHeight - height;
-
-                // Determine whether panel would block text at cursor.
-                // If so, scroll the editor to expose the cursor above the panel
-                if (bottom <= refreshFlag.panelHeight && bottom >= 5) {
-                    _currentEditor._codeMirror.scrollIntoView();
-                }
+            if (refreshFlag.scrollToCursor) {
+                _currentEditor.pushUpCursor();
             }
             
             if (!curRoot.style.height || curHeight !== editorAreaHt) {
@@ -565,7 +554,7 @@ define(function (require, exports, module) {
                 // from an older version.
                 editor.setSelection(viewState.selection.start, viewState.selection.end);
             }
-            if (viewState.selections) {
+            if (viewState.selections) {s
                 editor.setSelections(viewState.selections);
             }
             if (viewState.scrollPos) {

@@ -1030,6 +1030,24 @@ define(function (require, exports, module) {
             this.setScrollPos(null, pos);
         }
     };
+    
+    /**
+     * Scrolls the editor viewport to maintain the distance between the cursor
+     * and the bottom of the editor. Use only for panel expansion.
+     */
+    Editor.prototype.pushUpCursor = function () {
+        var $scrollerElement = $(this.getScrollerElement()),
+            editorHeight = $scrollerElement.height(),
+            statusBarHeight = $scrollerElement.outerHeight() - editorHeight,
+            menuBarHeight = $scrollerElement.offset().top,
+            bottom = window.innerHeight - menuBarHeight - statusBarHeight - editorHeight + 4;
+        
+        this.setScrollPos(null, this.getScrollPos().y + bottom);
+        
+        if (this._codeMirror.cursorCoords(null, "page").bottom < editorHeight / 2) {
+            this.centerOnCursor();
+        }
+    };
 
     /**
      * Given a position, returns its index within the text (assuming \n newlines)

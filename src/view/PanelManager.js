@@ -155,7 +155,7 @@ define(function (require, exports, module) {
 
         // Scroll to show cursor above panel if necessary
         $panel.on("panelExpanded", function () {
-            triggerEditorResize({scrollToCursor: true, panelHeight: $panel.height()});
+            triggerEditorResize({scrollToCursor: true});
         });
     }
     
