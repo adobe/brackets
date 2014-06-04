@@ -412,36 +412,22 @@ define(function (require, exports, module) {
                 className: "jstree-no-dots jstree-no-icons"
             },
                 directoryNode({
-                    key: this.props.root.fullPath,
-                    directory: this.props.root,
-                    open: true,
+                    key: this.props.viewModel.projectRoot.fullPath,
+                    entry: this.props.viewModel.projectRoot,
                     skipRoot: true,
-                    selected: this.props.selected,
-                    setSelected: this.props.setSelected,
-                    context: this.props.context,
-                    setContext: this.props.setContext,
-                    rename: this.props.rename,
-                    togglePath: this.props.togglePath,
-                    openPaths: this.props.openPaths,
-                    dirsFirst: this.props.dirsFirst
                 }));
         }
         
     });
     
-    function render(element, root, props) {
+    function render(element, viewModel) {
         $(element).addClass("jstree jstree-brackets");
         $(element).css("overflow", "auto");
+        if (!viewModel.projectRoot) {
+            return;
+        }
         React.renderComponent(fileTreeView({
-            root: root,
-            openPaths: props.openPaths,
-            selected: props.selected,
-            togglePath: props.togglePath,
-            setSelected: props.setSelected,
-            setContext: props.setContext,
-            context: props.context,
-            rename: props.rename,
-            dirsFirst: props.dirsFirst
+            viewModel: viewModel
         }),
             element);
     }

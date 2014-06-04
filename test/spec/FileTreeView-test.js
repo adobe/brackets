@@ -226,6 +226,21 @@ define(function (require, exports, module) {
             });
         });
         
+        var twoLevel = {
+            name: "thedir",
+            children: [
+                {
+                    name: "subdir",
+                    children: [
+                        {
+                            name: "afile",
+                            extension: ".js"
+                        }
+                    ]
+                }
+            ]
+        };
+        
         describe("_directoryNode", function () {
             it("should be able to list files", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
@@ -265,20 +280,7 @@ define(function (require, exports, module) {
             
             it("should be able to list open subdirectories", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
-                    entry: {
-                        name: "thedir",
-                        children: [
-                            {
-                                name: "subdir",
-                                children: [
-                                    {
-                                        name: "afile",
-                                        extension: ".js"
-                                    }
-                                ]
-                            }
-                        ]
-                    }
+                    entry: twoLevel
                 }));
                 var dirLIs = RTU.scryRenderedDOMComponentsWithClass(rendered, "jstree-open");
                 expect(dirLIs.length).toBe(2);
@@ -287,6 +289,43 @@ define(function (require, exports, module) {
                 expect(aTags.length).toBe(2);
                 expect(aTags[0].props.children[1]).toBe("subdir");
                 expect(aTags[1].props.children[0]).toBe("afile");
+            });
+            
+            it("can skip the root node", function () {
+                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
+                    entry: twoLevel,
+                    skipRoot: true
+                }));
+                var dirLIs = RTU.scryRenderedDOMComponentsWithClass(rendered, "jstree-open");
+                expect(dirLIs.length).toBe(1);
+                var subdirLI = dirLIs[0],
+                    aTags = RTU.scryRenderedDOMComponentsWithTag(subdirLI, "a");
+                expect(aTags.length).toBe(2);
+                expect(aTags[0].props.children[1]).toBe("subdir");
+                expect(aTags[1].props.children[0]).toBe("afile");
+            });
+        });
+        
+        describe("_fileTreeView", function () {
+            it("should render the directory with the root skipped", function () {
+                var rendered = RTU.renderIntoDocument(FileTreeView._fileTreeView({
+                    viewModel: new FileTreeView.ViewModel(twoLevel)
+                })),
+                    rootNode = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-no-dots"),
+                    aTags = RTU.scryRenderedDOMComponentsWithTag(rootNode, "a");
+                expect(aTags.length).toBe(2);
+                expect(aTags[0].props.children[1]).toBe("subdir");
+                expect(aTags[1].props.children[0]).toBe("afile");
+            });
+        });
+        
+        describe("render", function () {
+            it("should render into the given element", function () {
+                var el = document.createElement("div"),
+                    viewModel = new FileTreeView.ViewModel(twoLevel);
+                FileTreeView.render(el, viewModel);
+                expect($(el).hasClass("jstree")).toBe(true);
+                expect($(".jstree-no-dots", el).length).toBe(1);
             });
         });
     });

@@ -357,6 +357,7 @@ define(function (require, exports, module) {
     exports._isWelcomeProjectPath = _isWelcomeProjectPath;
     exports._ensureTrailingSlash = _ensureTrailingSlash;
     exports.isValidFilename = isValidFilename;
+    exports._shouldShowName = _shouldShowName;
     exports.shouldShow = shouldShow;
     exports.CHANGE = CHANGE;
 });

@@ -165,6 +165,12 @@ define(function (require, exports, module) {
     function getProjectRoot() {
         return model.projectRoot;
     }
+    
+    function _setProjectRoot(rootEntry) {
+        model.projectRoot = rootEntry;
+        model._resetCache();  // invalidate getAllFiles() cache as soon as _projectRoot changes
+        viewModel = new FileTreeView.ViewModel(rootEntry);
+    }
 
     /**
      * Returns the encoded Base URL of the currently loaded project, or empty string if no project
@@ -294,16 +300,7 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument(),
             selected = curDoc && curDoc.file ? curDoc.file.fullPath : "";
 
-        FileTreeView.render($projectTreeContainer[0], projectRoot, {
-            openPaths: openPaths,
-            selected: selected,
-            setSelected: _setSelected,
-            context: fileContext,
-            setContext: _setContext,
-            togglePath: _togglePath,
-            rename: rename,
-            dirsFirst: PreferencesManager.get(SORT_DIRECTORIES_FIRST)
-        });
+        FileTreeView.render($projectTreeContainer[0], viewModel);
         return new $.Deferred().resolve();
     };
 
@@ -331,7 +328,7 @@ define(function (require, exports, module) {
         FileSystem.on("change", _fileSystemChange);
         FileSystem.on("rename", _fileSystemRename);
 
-        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), model._shouldShowName, function (err) {
+        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), ProjectModel._shouldShowName, function (err) {
             if (err === FileSystemError.TOO_MANY_ENTRIES) {
                 _showMaxFilesDialog();
             } else if (err) {
@@ -458,16 +455,14 @@ define(function (require, exports, module) {
                         
                         // Success!
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
-
-                        model.projectRoot = rootEntry;
                         
+                        _setProjectRoot(rootEntry);
+                        model.setBaseUrl(PreferencesManager.getViewState("project.baseUrl", context) || "");
+
                         if (projectRootChanged) {
                             _reloadProjectPreferencesScope();
                             PreferencesManager._setCurrentEditingFile(rootPath);
                         }
-
-                        model.setBaseUrl(PreferencesManager.getViewState("project.baseUrl", context) || "");
-                        model._resetCache();  // invalidate getAllFiles() cache as soon as _projectRoot changes
 
                         // If this is the most current welcome project, record it. In future launches, we want
                         // to substitute the latest welcome project from the current build instead of using an
