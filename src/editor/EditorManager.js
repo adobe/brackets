@@ -502,8 +502,8 @@ define(function (require, exports, module) {
      * 
      * @param {number} editorAreaHt
      * @param {{refresh:string=, scrollToCursor:boolean, panelHeight:number}} refreshFlag For internal use.
-	 *    Set to "force" to ensure the editor will refresh, "skip" to ensure the editor does not refresh, or
-	 *    leave undefined to let `_onEditorAreaResize()` determine whether it needs to refresh.
+     *    Set to "force" to ensure the editor will refresh, "skip" to ensure the editor does not refresh, or
+     *    leave undefined to let `_onEditorAreaResize()` determine whether it needs to refresh.
      *    Set scrollToCursor to true and panelHeight to the height of the shown panel to reveal cursor. Use only
      *    on panel expansion.
      */
