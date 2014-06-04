@@ -91,7 +91,8 @@ define(function (require, exports, module) {
     
     var _ = require("thirdparty/lodash");
     
-    var DocumentModule      = require("document/Document"),
+    var AppInit                 = require("utils/AppInit"),
+        DocumentModule      = require("document/Document"),
         DeprecationWarning  = require("utils/DeprecationWarning"),
         MainViewManager     = require("view/MainViewManager"),
         ProjectManager      = require("project/ProjectManager"),
@@ -748,6 +749,27 @@ define(function (require, exports, module) {
         
         return null;
     }
+
+    /* 
+     * Setup an appReady handler to register deprecated events.  
+     * We do this so these events are added to the end of the event
+     * handler chain which gives the system a chance to process them
+     * before they are dispatched to extensions.  
+     * 
+     * Extensions that listen to the new event (paneViewXXX events) are 
+     * always added to the end so this effectively puts the legacy events 
+     * at the end of the event list. This prevents extensiosn from 
+     * handling the event too soon. (e.g.  paneViewListView needs to 
+     * process these events before the Extension Highlighter extension)
+     */
+    AppInit.appReady(function () {
+        
+        _deprecateEvent("workingSetAdd",         "paneViewListAdd");
+        _deprecateEvent("workingSetAddList",     "paneViewListAddList");
+        _deprecateEvent("workingSetRemove",      "paneViewListRemove");
+        _deprecateEvent("workingSetRemoveList",  "paneViewListRemoveList");
+        _deprecateEvent("workingSetSort",        "paneViewListSort");
+    });
     
     PreferencesManager.convertPreferences(module, {"files_": "user"}, true, _checkPreferencePrefix);
 
@@ -757,33 +779,33 @@ define(function (require, exports, module) {
     });
     
     // For unit tests and internal use only
-    exports.clearCurrentDocument       = clearCurrentDocument;
-
-    // Deprecated APIs
-    exports.getWorkingSet               = getWorkingSet;
-    exports.findInWorkingSet            = findInWorkingSet;
-    exports.addListToWorkingSet         = addListToWorkingSet;
-    exports.removeFromWorkingSet        = removeFromWorkingSet;
-    exports.removeListFromWorkingSet    = removeListFromWorkingSet;
-    exports.getNextPrevFile             = getNextPrevFile;
-    exports.getCurrentDocument          = getCurrentDocument;
-    
-
-    // Define public API
-    exports.Document                    = DocumentModule.Document;
-    exports.getDocumentForPath          = getDocumentForPath;
-    exports.getOpenDocumentForPath      = getOpenDocumentForPath;
-    exports.getDocumentText             = getDocumentText;
-    exports.createUntitledDocument      = createUntitledDocument;
-    exports.getAllOpenDocuments         = getAllOpenDocuments;
-    exports.setCurrentDocument          = setCurrentDocument;
-    exports.beginDocumentNavigation     = beginDocumentNavigation;
-    exports.finalizeDocumentNavigation  = finalizeDocumentNavigation;
-    exports.closeFullEditor             = closeFullEditor;
-    exports.closeAll                    = closeAll;
-    exports.notifyFileDeleted           = notifyFileDeleted;
-    exports.notifyPathNameChanged       = notifyPathNameChanged;
-    exports.notifyPathDeleted           = notifyPathDeleted;
+    exports.clearCurrentDocument           = clearCurrentDocument;
+   
+    // Deprecated APIs   
+    exports.getWorkingSet                  = getWorkingSet;
+    exports.findInWorkingSet               = findInWorkingSet;
+    exports.addListToWorkingSet            = addListToWorkingSet;
+    exports.removeFromWorkingSet           = removeFromWorkingSet;
+    exports.removeListFromWorkingSet       = removeListFromWorkingSet;
+    exports.getNextPrevFile                = getNextPrevFile;
+    exports.getCurrentDocument             = getCurrentDocument;
+       
+   
+    // Define public API   
+    exports.Document                       = DocumentModule.Document;
+    exports.getDocumentForPath             = getDocumentForPath;
+    exports.getOpenDocumentForPath         = getOpenDocumentForPath;
+    exports.getDocumentText                = getDocumentText;
+    exports.createUntitledDocument         = createUntitledDocument;
+    exports.getAllOpenDocuments            = getAllOpenDocuments;
+    exports.setCurrentDocument             = setCurrentDocument;
+    exports.beginDocumentNavigation        = beginDocumentNavigation;
+    exports.finalizeDocumentNavigation     = finalizeDocumentNavigation;
+    exports.closeFullEditor                = closeFullEditor;
+    exports.closeAll                       = closeAll;
+    exports.notifyFileDeleted              = notifyFileDeleted;
+    exports.notifyPathNameChanged          = notifyPathNameChanged;
+    exports.notifyPathDeleted              = notifyPathDeleted;
 
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
@@ -791,9 +813,4 @@ define(function (require, exports, module) {
     // Handle Language change events
     $(LanguageManager).on("languageAdded", _handleLanguageAdded);
     $(LanguageManager).on("languageModified", _handleLanguageModified);
-    
-    _deprecateEvent("workingSetAdd",         "paneViewListAdd");
-    _deprecateEvent("workingSetAddList",     "paneViewListAddList");
-    _deprecateEvent("workingSetRemove",      "paneViewListRemove");
-    _deprecateEvent("workingSetRemoveList",  "paneViewListRemoveList");
 });
