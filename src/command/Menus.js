@@ -30,25 +30,6 @@ define(function (require, exports, module) {
 
     var _ = require("thirdparty/lodash");
 
-    var DeprecationWarning = require("utils/DeprecationWarning");
-    
-    /**
-     * @private
-     * Create a deprecation warning and action for updated menu constants
-     * @param {!string} oldConstant
-     * @param {!string} newConstant
-     */
-    function _deprecateMenuId(obj, oldId, newId) {
-        var warning     = "Use Menus." + oldId + " instead of Menus." + newId,
-            newValue    = obj[newId];
-        
-        Object.defineProperty(obj, oldId, {
-            get: function () {
-                DeprecationWarning.deprecationWarning(warning, true);
-                return newValue;
-            }
-        });
-    }    
     
     // Load dependent modules
     var Global              = require("utils/Global"),
@@ -60,6 +41,25 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils"),
         DeprecationWarning  = require("utils/DeprecationWarning");
 
+    
+    /**
+     * @private
+     * Create a deprecation warning and action for updated menu constants
+     * @param {!string} oldConstant
+     * @param {!string} newConstant
+     */
+    function _deprecateMenuId(obj, oldId, newId) {
+        var warning     = "Use Menus." + newId + " instead of Menus." + oldId,
+            newValue    = obj[newId];
+        
+        Object.defineProperty(obj, oldId, {
+            get: function () {
+                DeprecationWarning.deprecationWarning(warning, true);
+                return newValue;
+            }
+        });
+    }
+    
     /**
      * Brackets Application Menu Constants
      * @enum {string}
@@ -1196,8 +1196,8 @@ define(function (require, exports, module) {
     }
 
     // Deprecated menu ids
-    _deprecateMenuId (ContextMenuIds, "WORKING_SET_MENU", "PANE_VIEW_LIST_CONTEXT_MENU");
-    _deprecateMenuId (ContextMenuIds, "WORKING_SET_SETTINGS_MENU", "PANE_VIEW_LIST_CONFIG_MENU");
+    _deprecateMenuId(ContextMenuIds, "WORKING_SET_MENU", "PANE_VIEW_LIST_CONTEXT_MENU");
+    _deprecateMenuId(ContextMenuIds, "WORKING_SET_SETTINGS_MENU", "PANE_VIEW_LIST_CONFIG_MENU");
     
     // Define public API
     exports.AppMenuBar = AppMenuBar;
