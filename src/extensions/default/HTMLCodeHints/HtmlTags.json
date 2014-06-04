@@ -65,6 +65,7 @@
     "legend":     { "attributes": [] },
     "li":         { "attributes": ["value"] },
     "link":       { "attributes": ["disabled", "href", "hreflang", "media", "rel", "sizes", "type"] },
+    "main":       { "attributes": [] },
     "map":        { "attributes": ["name"] },
     "mark":       { "attributes": [] },
     "marquee":    { "attributes": ["align", "behavior", "bgcolor", "direction", "height", "hspace", "loop", "scrollamount", "scrolldelay", "truespeed", "vspace", "width"] },

@@ -37,7 +37,7 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
 	"CONTENTS_MODIFIED_ERR": "Le fichier a été modifié dans une application autre que {APP_NAME}.",
-	"UNSUPPORTED_ENCODING_ERR": "[7527206] !é={APP_NAME} currently only supports UTF-8 encoded text files.=!",
+	"UNSUPPORTED_ENCODING_ERR": "Pour le moment, {APP_NAME} ne prend en charge que les fichiers texte avec encodage UTF-8.",
 	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
 	"FILE": "fichier",
 	"DIRECTORY": "répertoire",
@@ -123,6 +123,7 @@ define({
 	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
     
     // Generic dialog/button labels
+	"DONE": "Terminé",
 	"OK": "OK",
 	"CANCEL": "Annuler",
 	"DONT_SAVE": "Ne pas enregistrer",
@@ -181,7 +182,7 @@ define({
     // File exclusion filters
 	"NEW_FILE_FILTER": "Nouveau jeu d’exclusion\u2026",
 	"CLEAR_FILE_FILTER": "Ne pas exclure les fichiers",
-	"NO_FILE_FILTER": "Aucun fichier exclus",
+	"NO_FILE_FILTER": "Aucun fichier exclu",
 	"EXCLUDE_FILE_FILTER": "Exclure {0}",
 	"EDIT_FILE_FILTER": "Modifier\u2026",
 	"FILE_FILTER_DIALOG": "Modifier le jeu d’exclusion",

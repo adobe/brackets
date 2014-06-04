@@ -37,7 +37,7 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR": "対象ディレクトリは変更できません。",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
 	"CONTENTS_MODIFIED_ERR": "このファイルは {APP_NAME} 以外で変更されています。",
-	"UNSUPPORTED_ENCODING_ERR": "!能=[7527206] {APP_NAME} currently only supports UTF-8 encoded text files._=!",
+	"UNSUPPORTED_ENCODING_ERR": "{APP_NAME} は現在 UTF-8 でエンコードされたテキストファイルのみをサポートしています。",
 	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
 	"FILE": "ファイル",
 	"DIRECTORY": "ディレクトリ",
@@ -123,6 +123,7 @@ define({
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
     
     // Generic dialog/button labels
+	"DONE": "完了",
 	"OK": "OK",
 	"CANCEL": "キャンセル",
 	"DONT_SAVE": "保存しない",
