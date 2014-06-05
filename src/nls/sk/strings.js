@@ -151,7 +151,7 @@ define({
      */
     "PROJECT_LOADING"   : "Načítavanie\u2026",
     "UNTITLED"          : "bez názvu",
-    "OPEN_PANES"     : "Otvorené súbory",
+    "WORKING_FILES"     : "Otvorené súbory",
 
     /**
      * Keyboard modifier names
@@ -187,7 +187,7 @@ define({
     "CMD_FILE_NEW"                        : "Nový súbor",
     "CMD_FILE_NEW_FOLDER"                 : "Nový adresár",
     "CMD_FILE_OPEN"                       : "Otvoriť\u2026",
-    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Pridať do pracovnej sady",
+    "CMD_ADD_TO_WORKING_SET"              : "Pridať do pracovnej sady",
     "CMD_OPEN_FOLDER"                     : "Otvoriť adresár\u2026",
     "CMD_FILE_CLOSE"                      : "Zatvoriť",
     "CMD_FILE_CLOSE_ALL"                  : "Zatvoriť všetko",
@@ -246,10 +246,10 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Čísla riadkov",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Zvýrazniť aktívny riadok",
     "CMD_TOGGLE_WORD_WRAP"                : "Zalomenie riadkov",
-    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Usporiadať podľa dátumu",
-    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Usporiadať podľa mena",
-    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Usporiadať podľa typu",
-    "CMD_TOGGLE_AUTO_SORT"            : "Automatické usporiadanie",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Usporiadať podľa dátumu",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Usporiadať podľa mena",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Usporiadať podľa typu",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Automatické usporiadanie",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigácia",

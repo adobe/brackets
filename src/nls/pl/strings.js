@@ -201,6 +201,7 @@ define({
      */
     "PROJECT_LOADING"                   : "Ładowanie\u2026",
     "UNTITLED"                          : "Bez_nazwy",
+    "WORKING_FILES"                     : "Otwarte pliki",
 
     /**
      * Keyboard modifier names
@@ -253,6 +254,7 @@ define({
     "CMD_FILE_NEW"                        : "Nowy plik",
     "CMD_FILE_NEW_FOLDER"                 : "Nowy folder",
     "CMD_FILE_OPEN"                       : "Otwórz\u2026",
+    "CMD_ADD_TO_WORKING_SET"              : "Dodaj do folderu robocze",
     "CMD_OPEN_DROPPED_FILES"              : "Otwórz przeciągnięte pliki",
     "CMD_OPEN_FOLDER"                     : "Otwórz folder\u2026",
     "CMD_FILE_CLOSE"                      : "Zamknij",
@@ -328,6 +330,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Zawijaj wiersze",
     "CMD_LIVE_HIGHLIGHT"                  : "Podświetlanie przy podglądzie błyskawicznym",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Sprawdzaj poprawność przy zapisywaniu",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sortuj według dodanych",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortuj według nazwy",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortuj według typu",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Automatyczne sortowanie",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Nawigacja",

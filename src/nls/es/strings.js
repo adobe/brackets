@@ -201,7 +201,7 @@ define({
      */
     "PROJECT_LOADING"   : "Cargando\u2026",
     "UNTITLED"          : "Sin título",
-    "OPEN_PANES"     : "Área de trabajo",
+    "WORKING_FILES"     : "Área de trabajo",
     
     /**
      * Keyboard modifier names
@@ -254,7 +254,7 @@ define({
     "CMD_FILE_NEW"                        : "Nuevo archivo",
     "CMD_FILE_NEW_FOLDER"                 : "Nueva carpeta",
     "CMD_FILE_OPEN"                       : "Abrir\u2026",
-    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Añadir al espacio de trabajo",
+    "CMD_ADD_TO_WORKING_SET"              : "Añadir al espacio de trabajo",
     "CMD_OPEN_DROPPED_FILES"              : "Abrir archivos soltados",
     "CMD_OPEN_FOLDER"                     : "Abrir carpeta\u2026",
     "CMD_FILE_CLOSE"                      : "Cerrar",
@@ -330,10 +330,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Habilitar ajuste de línea",
     "CMD_LIVE_HIGHLIGHT"                  : "Resaltado en Vista Previa en Vivo",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Inspeccionar el código al guardar",
-    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Ordenar por Añadido",
-    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Ordenar por Nombre",
-    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Ordenar por Tipo",
-    "CMD_TOGGLE_AUTO_SORT"            : "Ordenación automática",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ordenar por Añadido",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por Nombre",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ordenar por Tipo",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Ordenación automática",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navegación",

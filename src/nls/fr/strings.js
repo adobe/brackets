@@ -210,7 +210,7 @@ define({
      */
 	"PROJECT_LOADING": "Chargement\u2026",
 	"UNTITLED": "Sans titre",
-	"OPEN_PANES": "Fichiers de travail",
+	"WORKING_FILES": "Fichiers de travail",
 
     /**
      * Keyboard modifier names
@@ -263,7 +263,7 @@ define({
 	"CMD_FILE_NEW": "Nouveau fichier",
 	"CMD_FILE_NEW_FOLDER": "Nouveau dossier",
 	"CMD_FILE_OPEN": "Ouvrir\u2026",
-	"CMD_ADD_TO_PANE_VIEW_LIST": "Ajouter à l’ensemble de travail",
+	"CMD_ADD_TO_WORKING_SET": "Ajouter à l’ensemble de travail",
 	"CMD_OPEN_DROPPED_FILES": "Ouvrir les fichiers déposés",
 	"CMD_OPEN_FOLDER": "Ouvrir un dossier\u2026",
 	"CMD_FILE_CLOSE": "Fermer",
@@ -339,10 +339,10 @@ define({
 	"CMD_TOGGLE_WORD_WRAP": "Renvoi à la ligne",
 	"CMD_LIVE_HIGHLIGHT": "Surlignement dans l’Aperçu en direct",
 	"CMD_VIEW_TOGGLE_INSPECTION": "Effectuer une analyse lint des fichiers à l’enregistrement",
-	"CMD_SORT_PANE_VIEW_LIST_BY_ADDED": "Trier par date d’ajout",
-	"CMD_SORT_PANE_VIEW_LIST_BY_NAME": "Trier par nom",
-	"CMD_SORT_PANE_VIEW_LIST_BY_TYPE": "Trier par type",
-	"CMD_TOGGLE_AUTO_SORT": "Tri automatique",
+	"CMD_SORT_WORKINGSET_BY_ADDED": "Trier par date d’ajout",
+	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
+	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
+	"CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "Naviguer",

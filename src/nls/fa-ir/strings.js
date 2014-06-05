@@ -173,7 +173,7 @@ define({
      */
     "PROJECT_LOADING"   : "درحال بارگذاری\u2026",
     "UNTITLED"          : "عنوان گذاری نشده",
-    "OPEN_PANES"     : "پرونده های کاری",
+    "WORKING_FILES"     : "پرونده های کاری",
 
     /**
      * Keyboard modifier names
@@ -220,7 +220,7 @@ define({
     "CMD_FILE_NEW"                        : "پرونده جدید",
     "CMD_FILE_NEW_FOLDER"                 : "پوشه جدید",
     "CMD_FILE_OPEN"                       : "باز کردن\u2026",
-    "CMD_ADD_TO_PANE_VIEW_LIST"              : "افزودن به محیط کاری",
+    "CMD_ADD_TO_WORKING_SET"              : "افزودن به محیط کاری",
 	"CMD_OPEN_DROPPED_FILES"              : "بازکردن فایل های درنظر گرفته نشده",
     "CMD_OPEN_FOLDER"                     : "باز کردن پوشه\u2026",
     "CMD_FILE_CLOSE"                      : "بستن",
@@ -286,10 +286,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "شکستن عبارات طولانی",
 	"CMD_LIVE_HIGHLIGHT"                  : "نشانه گذاری پیش نمایش",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "نشانه گذاری فایل های تغییر یافته برای ذخیره سازی",
-    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "مرتب سازی بر اساس ترتیب افزودن",
-    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "مرتب سازی بر اساس نام",
-    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "مرتب سازی بر اساس نوع",
-    "CMD_TOGGLE_AUTO_SORT"            : "مرتب سازی خودکار",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "مرتب سازی بر اساس ترتیب افزودن",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "مرتب سازی بر اساس نام",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "مرتب سازی بر اساس نوع",
+    "CMD_SORT_WORKINGSET_AUTO"            : "مرتب سازی خودکار",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "انتقال",

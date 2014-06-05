@@ -159,7 +159,7 @@ define({
      */
     "PROJECT_LOADING"   : "Учитавање\u2026",
     "UNTITLED"          : "Неименовани документ",
-    "OPEN_PANES"     : "Радне датотеке",
+    "WORKING_FILES"     : "Радне датотеке",
 
     /**
      * Keyboard modifier names
@@ -205,7 +205,7 @@ define({
     "CMD_FILE_NEW"                        : "Нова датотека",
     "CMD_FILE_NEW_FOLDER"                 : "Нови директоријум",
     "CMD_FILE_OPEN"                       : "Отвори\u2026",
-    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Додај у радни сет",
+    "CMD_ADD_TO_WORKING_SET"              : "Додај у радни сет",
     "CMD_OPEN_FOLDER"                     : "Отвори директоријум\u2026",
     "CMD_FILE_CLOSE"                      : "Затвори",
     "CMD_FILE_CLOSE_ALL"                  : "Затвори све",
@@ -265,10 +265,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Прелом текста",
     "CMD_LIVE_HIGHLIGHT"                  : "Обележи живи приказ",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Преконтролиши датотеке приликом чувања",
-    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Сортирај по датуму додавања",
-    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Сортирај по имену",
-    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Сортирај по типу",
-    "CMD_TOGGLE_AUTO_SORT"            : "Аутоматско сортирање",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Сортирај по датуму додавања",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Сортирај по имену",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Сортирај по типу",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Аутоматско сортирање",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Навигација",

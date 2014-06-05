@@ -172,7 +172,7 @@ define({
      */
     "PROJECT_LOADING"   : "Încărcare\u2026",
     "UNTITLED"          : "Neintitulat",
-    "OPEN_PANES"     : "Fișierele active",
+    "WORKING_FILES"     : "Fișierele active",
 
     /**
      * Keyboard modifier names
@@ -220,7 +220,7 @@ define({
     "CMD_FILE_NEW"                        : "Fișier nou",
     "CMD_FILE_NEW_FOLDER"                 : "Dosar nou",
     "CMD_FILE_OPEN"                       : "Deschide\u2026",
-    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Adaugă la setul de lucru",
+    "CMD_ADD_TO_WORKING_SET"              : "Adaugă la setul de lucru",
     "CMD_OPEN_DROPPED_FILES"              : "Deschide fișierele depuse",
     "CMD_OPEN_FOLDER"                     : "Deshide un dosar\u2026",
     "CMD_FILE_CLOSE"                      : "Închide",
@@ -286,10 +286,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Potrivește cuvintele în rând",
     "CMD_LIVE_HIGHLIGHT"                  : "Evidențiere Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Verifică codul din fișiere la salvare",
-    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Sortare după adăugare",
-    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Sortare după nume",
-    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Sortare după tip",
-    "CMD_TOGGLE_AUTO_SORT"            : "Sortare automată",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sortare după adăugare",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortare după nume",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortare după tip",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Sortare automată",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigare",

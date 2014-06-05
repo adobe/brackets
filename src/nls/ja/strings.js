@@ -210,7 +210,7 @@ define({
      */
 	"PROJECT_LOADING": "読み込んでいます\u2026",
 	"UNTITLED": "名称未設定",
-	"OPEN_PANES": "作業中ファイル",
+	"WORKING_FILES": "作業中ファイル",
 
     /**
      * Keyboard modifier names
@@ -263,7 +263,7 @@ define({
 	"CMD_FILE_NEW": "新しいファイル",
 	"CMD_FILE_NEW_FOLDER": "新しいフォルダー",
 	"CMD_FILE_OPEN": "開く\u2026",
-	"CMD_ADD_TO_PANE_VIEW_LIST": "ワーキングセットに追加する",
+	"CMD_ADD_TO_WORKING_SET": "ワーキングセットに追加する",
 	"CMD_OPEN_DROPPED_FILES": "ドロップしたファイルを開く",
 	"CMD_OPEN_FOLDER": "フォルダーを開く\u2026",
 	"CMD_FILE_CLOSE": "閉じる",
@@ -339,10 +339,10 @@ define({
 	"CMD_TOGGLE_WORD_WRAP": "折り返し",
 	"CMD_LIVE_HIGHLIGHT": "ライブプレビューハイライト",
 	"CMD_VIEW_TOGGLE_INSPECTION": "保存時にファイルを Lint チェック",
-	"CMD_SORT_PANE_VIEW_LIST_BY_ADDED": "追加日時順",
-	"CMD_SORT_PANE_VIEW_LIST_BY_NAME": "名前順",
-	"CMD_SORT_PANE_VIEW_LIST_BY_TYPE": "種類順",
-	"CMD_TOGGLE_AUTO_SORT": "自動ソート",
+	"CMD_SORT_WORKINGSET_BY_ADDED": "追加日時順",
+	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
+	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
+	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "ナビゲート",

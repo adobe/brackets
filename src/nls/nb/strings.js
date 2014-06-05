@@ -25,16 +25,17 @@
 /*global define */
 
 define({
+
     /**
      * Errors
      */
 
     // General file io error strings
-    "GENERIC_ERROR" : "(feil {0})",
-    "NOT_FOUND_ERR" : "Kunne ikke finne filen.",
-    "NOT_READABLE_ERR" : "Filen kunne ikke bli lest.",
-    "NO_MODIFICATION_ALLOWED_ERR" : "Målkatalogen kunnet ikke bli modifisert.",
-    "NO_MODIFICATION_ALLOWED_ERR_FILE" : "Rettighetene tillater ikke modifikasjoner.",
+    "GENERIC_ERROR"                     : "(feil {0})",
+    "NOT_FOUND_ERR"                     : "Kunne ikke finne filen.",
+    "NOT_READABLE_ERR"                  : "Filen kunne ikke bli lest.",
+    "NO_MODIFICATION_ALLOWED_ERR"       : "Målkatalogen kunnet ikke bli modifisert.",
+    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Rettighetene tillater ikke modifikasjoner.",
     "CONTENTS_MODIFIED_ERR"             : "Filen har blitt modifisert utenfor  {APP_NAME}.",
     "UNSUPPORTED_ENCODING_ERR"          : "Filen er ikke UTF-8 kodet tekst.",
     "FILE_EXISTS_ERR"                   : "Filen eller katalogen eksisterer allerede.",
@@ -47,25 +48,25 @@ define({
 
 
     // Project error strings
-    "ERROR_LOADING_PROJECT" : "Feil ved lasting av prosjektet",
-    "OPEN_DIALOG_ERROR" : "Det oppstod en feil ved forsøk på å åpne fildialog. (feil {0})",
-    "REQUEST_NATIVE_FILE_SYSTEM_ERROR" : "Det oppstod en feil ved forsøk på å laste katalogen <span class='dialog-filename'>{0}</span>. (feil {1})",
-    "READ_DIRECTORY_ENTRIES_ERROR" : "Det oppstod en feil ved lesing av innholdet i katalogen <span class='dialog-filename'>{0}</span>. (feil {1})",
+    "ERROR_LOADING_PROJECT"             : "Feil ved lasting av prosjektet",
+    "OPEN_DIALOG_ERROR"                 : "Det oppstod en feil ved forsøk på å åpne fildialog. (feil {0})",
+    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Det oppstod en feil ved forsøk på å laste katalogen <span class='dialog-filename'>{0}</span>. (feil {1})",
+    "READ_DIRECTORY_ENTRIES_ERROR"      : "Det oppstod en feil ved lesing av innholdet i katalogen <span class='dialog-filename'>{0}</span>. (feil {1})",
 
     // File open/save error string
-    "ERROR_OPENING_FILE_TITLE" : "Feil ved åpning av filen",
-    "ERROR_OPENING_FILE" : "Det oppstod en feil ved forsøk på å åpne filen <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_OPENING_FILE_TITLE"          : "Feil ved åpning av filen",
+    "ERROR_OPENING_FILE"                : "Det oppstod en feil ved forsøk på å åpne filen <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_OPENING_FILES"               : "Det oppstod en feil ved forsøk på å åpne følgende filer:",
-    "ERROR_RELOADING_FILE_TITLE" : "Feil ved oppfriskning av endringer fra disk",
-    "ERROR_RELOADING_FILE" : "Det oppstod en feil ved forsøk på å oppfriske filen <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_SAVING_FILE_TITLE" : "Feil ved lagring av fil",
-    "ERROR_SAVING_FILE" : "Det oppstod en feil ved forsøk på å lagre filen <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RELOADING_FILE_TITLE"        : "Feil ved oppfriskning av endringer fra disk",
+    "ERROR_RELOADING_FILE"              : "Det oppstod en feil ved forsøk på å oppfriske filen <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_SAVING_FILE_TITLE"           : "Feil ved lagring av fil",
+    "ERROR_SAVING_FILE"                 : "Det oppstod en feil ved forsøk på å lagre filen <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Det oppstod en feil ved forsøk på å gi nytt navn til filen",
     "ERROR_RENAMING_FILE"               : "Det oppstod en feil ved forsøk på å gi nytt navn til filen <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Det oppstod en feil ved forsøk på å slette filen",
     "ERROR_DELETING_FILE"               : "Det oppstod en feil ved forsøk på å slette filen <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Ugyldig filnavn {0}",
-    "INVALID_FILENAME_MESSAGE" : "Filnavn kan ikke inneholde følgende tegn: {0}",
+    "INVALID_FILENAME_MESSAGE"          : "Filnavn kan ikke inneholde følgende tegn: {0}",
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "En fil eller katalog med navnet <span class='dialog-filename'>{0}</span> eksisterer allerede.",
     "ERROR_CREATING_FILE_TITLE"         : "Feil ved oppretting av fil {0}",
     "ERROR_CREATING_FILE"               : "Det oppstod en feil ved forsøk på å opprette filen  {0} <span class='dialog-filename'>{1}</span>. {2}",
@@ -75,33 +76,33 @@ define({
     "ERROR_PREFS_CORRUPT"               : "Din preferansefil er ikke gyldig JSON. Filen vil bli åpnet slik at du kan korrigere formatet. Du trenger å starte {APP_NAME} på nytt for at endringene skal ha effekt.",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE" : "Oops! {APP_NAME} kjører ikke i nettlesere ennå.",
-    "ERROR_IN_BROWSER" : "{APP_NAME} er bygd med HTML, men akkurat nå kjører den som en skrivebords-app slik at du kan bruke den til å redigere lokale filer. Vennligst bruk applikasjonsskallet <b>github.com/adobe/brackets-app</b> repo'et for å kjøre {APP_NAME}",
+    "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} kjører ikke i nettlesere ennå.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} er bygd med HTML, men akkurat nå kjører den som en skrivebords-app slik at du kan bruke den til å redigere lokale filer. Vennligst bruk applikasjonsskallet <b>github.com/adobe/brackets-app</b> repo'et for å kjøre {APP_NAME}",
 
     // FileIndexManager error string
-    "ERROR_MAX_FILES_TITLE" : "Feil ved indeksering av filer",
-    "ERROR_MAX_FILES" : "Maksimalt antall filer har blitt indeksert. Handlinger som slår opp filer i indeksen kan feile.",
+    "ERROR_MAX_FILES_TITLE"             : "Feil ved indeksering av filer",
+    "ERROR_MAX_FILES"                   : "Maksimalt antall filer har blitt indeksert. Handlinger som slår opp filer i indeksen kan feile.",
 
     // Live Preview error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE" : "Feil ved åpning av nettleser",
-    "ERROR_CANT_FIND_CHROME" : "Nettleseren Google Chrome ble ikke funnet. Vennligst sørg for at den er installert.",
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Feil ved åpning av nettleser",
+    "ERROR_CANT_FIND_CHROME"            : "Nettleseren Google Chrome ble ikke funnet. Vennligst sørg for at den er installert.",
     "ERROR_LAUNCHING_BROWSER"           : "En feil skjedde ved åpning av nettleseren. (feil {0})",
 
-    "LIVE_DEVELOPMENT_ERROR_TITLE" : "Live Preview feil",
-    "LIVE_DEVELOPMENT_RELAUNCH_TITLE" : "Kobler til nettleser",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE" : "En Live Preview kobling til Chrome kunne ikke bli etablert. For at Live Preview skal fungere må Chrome startes med remote debugging på.<br /><br />Ønsker du å start Chrome på nytt med remote debugging slått på?",
+    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Live Preview feil",
+    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Kobler til nettleser",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "En Live Preview kobling til Chrome kunne ikke bli etablert. For at Live Preview skal fungere må Chrome startes med remote debugging på.<br /><br />Ønsker du å start Chrome på nytt med remote debugging slått på?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Kan ikke laste Live Preview siden",
-    "LIVE_DEV_NEED_HTML_MESSAGE" : "Åpne en HTML-fil for å åpne live Preview.",
+    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Åpne en HTML-fil for å åpne live Preview.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "For å starte Live Preview med en server-side fil må du spesifisere en base-url for dette prosjektet.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Feil ved starting av HTTP serveren for Live Preview filer. Vennligst prøv igjen.",
-    "LIVE_DEVELOPMENT_INFO_TITLE" : "Velkommen til Live Preview!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE" : "Live Preview kobler {APP_NAME} til din nettleser. Den åpner en forhåndsvisning av HTML-filen i nettleseren. Forhåndsvisningen oppdateres umiddelbart når du redigerer koden.<br /><br />I denne tidlige versjonen av {APP_NAME} fungerer Live Preview bare for endringer av <strong>CSS-filer</strong> og bare med <strong>Google Chrome</strong>. Vi ønsker å implementere det for HTML og JavaScript også snart!<br /><br /> (Du ser bare denne meldingen en gang).",
+    "LIVE_DEVELOPMENT_INFO_TITLE"       : "Velkommen til Live Preview!",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview kobler {APP_NAME} til din nettleser. Den åpner en forhåndsvisning av HTML-filen i nettleseren. Forhåndsvisningen oppdateres umiddelbart når du redigerer koden.<br /><br />I denne tidlige versjonen av {APP_NAME} fungerer Live Preview bare for endringer av <strong>CSS-filer</strong> og bare med <strong>Google Chrome</strong>. Vi ønsker å implementere det for HTML og JavaScript også snart!<br /><br /> (Du ser bare denne meldingen en gang).",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For mer informasjon, se <a href='{0}' title='{0}'>Troubleshooting Live Preview connection errors</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1" : "Live Preview: Kobler til\u2026",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2" : "Live Preview: Initaliserer\u2026",
-    "LIVE_DEV_STATUS_TIP_CONNECTED" : "Koble fra Live Preview",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Kobler til\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initaliserer\u2026",
+    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Koble fra Live Preview",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview (lagre fil for oppfriskning)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Live Preview (kan ikke oppdatere p.g.a. syntax error)",
 
@@ -110,16 +111,16 @@ define({
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Live Preview ble kansellert fordi nettleseren navigerte til en side som ikke er en del av prosjektet",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Live Preview ble kansellert for en ukjent årsak ({0})",
 
-    "SAVE_CLOSE_TITLE" : "Lagre endringer",
-    "SAVE_CLOSE_MESSAGE" : "Ønsker du å lagre enderinger i dokumentet <span class='dialog-filename'>{0}</span>?",
-    "SAVE_CLOSE_MULTI_MESSAGE" : "Ønsker du å lagre enderinger i følgende filer?",
-    "EXT_MODIFIED_TITLE" : "Eksterne endringer",
+    "SAVE_CLOSE_TITLE"                  : "Lagre endringer",
+    "SAVE_CLOSE_MESSAGE"                : "Ønsker du å lagre enderinger i dokumentet <span class='dialog-filename'>{0}</span>?",
+    "SAVE_CLOSE_MULTI_MESSAGE"          : "Ønsker du å lagre enderinger i følgende filer?",
+    "EXT_MODIFIED_TITLE"                : "Eksterne endringer",
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Bekreft sletting",
     "CONFIRM_FOLDER_DELETE"             : "Er du sikker på at du vil slette katalogen <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Fil slettet",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> har blitt modifisert på disk.<br /><br />Vil du lagre filen og overskrive de endringene?",
-    "EXT_MODIFIED_MESSAGE" : "<span class='dialog-filename'>{0}</span> er blitt endret på disk, men har samtidig ulagrede endringer i {APP_NAME}.<br /><br />Hvilken versjon ønsker du å beholde?",
-    "EXT_DELETED_MESSAGE" : "<span class='dialog-filename'>{0}</span> er blitt slettet på disken, men har ulagrede endringer i {APP_NAME}.<br /><br />Ønsker du å beholde endringene?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> er blitt endret på disk, men har samtidig ulagrede endringer i {APP_NAME}.<br /><br />Hvilken versjon ønsker du å beholde?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> er blitt slettet på disken, men har ulagrede endringer i {APP_NAME}.<br /><br />Ønsker du å beholde endringene?",
 
     // Generic dialog/button labels
     "OK"                                : "Ok",
@@ -129,8 +130,8 @@ define({
     "SAVE_AS"                           : "Lagre som\u2026",
     "SAVE_AND_OVERWRITE"                : "Overskriv",
     "DELETE"                            : "Slett",
-    "BUTTON_YES" : "Ja",
-    "BUTTON_NO" : "Nei",
+    "BUTTON_YES"                        : "Ja",
+    "BUTTON_NO"                         : "Nei",
 
     // Find, Replace, Find in Files
     "FIND_RESULT_COUNT"                 : "{0} resultater",
@@ -146,14 +147,14 @@ define({
     "BUTTON_CASESENSITIVE_HINT"         : "Skill mellom store og små (bokstaver)",
     "BUTTON_REGEXP_HINT"                : "Regulært uttrykk",
 
-    "OPEN_FILE" : "Åpne fil",
+    "OPEN_FILE"                         : "Åpne fil",
     "SAVE_FILE_AS"                      : "Lagre fil",
-    "CHOOSE_FOLDER" : "Velg katalog",
+    "CHOOSE_FOLDER"                     : "Velg katalog",
 
-    "RELEASE_NOTES" : "Versjonsmerknader",
-    "NO_UPDATE_TITLE" : "Du er oppdatert!",
-    "NO_UPDATE_MESSAGE" : "Du kjører den nyeste versjonen av {APP_NAME}.",
-
+    "RELEASE_NOTES"                     : "Versjonsmerknader",
+    "NO_UPDATE_TITLE"                   : "Du er oppdatert!",
+    "NO_UPDATE_MESSAGE"                 : "Du kjører den nyeste versjonen av {APP_NAME}.",
+    
     // Replace All (in single file)
     "FIND_REPLACE_TITLE_PART1"          : "Erstatt \"",
     "FIND_REPLACE_TITLE_PART2"          : "\" med \"",
@@ -166,10 +167,10 @@ define({
     "FIND_IN_FILES_SCOPED"              : "i <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "i prosjekt",
     "FIND_IN_FILES_ZERO_FILES"          : "Filter ekskluderer alle filer {0}",
-    "FIND_IN_FILES_FILE" : "fil",
-    "FIND_IN_FILES_FILES" : "filer",
-    "FIND_IN_FILES_MATCH" : "treff",
-    "FIND_IN_FILES_MATCHES" : "treff",
+    "FIND_IN_FILES_FILE"                : "fil",
+    "FIND_IN_FILES_FILES"               : "filer",
+    "FIND_IN_FILES_MATCH"               : "treff",
+    "FIND_IN_FILES_MATCHES"             : "treff",
     "FIND_IN_FILES_MORE_THAN"           : "Over ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
@@ -205,7 +206,7 @@ define({
      */
     "PROJECT_LOADING"   : "Laster\u2026",
     "UNTITLED"          : "Uten tittel",
-    
+    "WORKING_FILES"     : "Arbeidsfiler",
 
     /**
      * Keyboard modifier names
@@ -252,53 +253,54 @@ define({
      */
 
     // File menu commands
-    "FILE_MENU" : "Fil",
+    "FILE_MENU"                           : "Fil",
     "CMD_FILE_NEW_UNTITLED"               : "Ny",
-    "CMD_FILE_NEW" : "Ny",
+    "CMD_FILE_NEW"                        : "Ny",
     "CMD_FILE_NEW_FOLDER"                 : "Ny katalog",
-    "CMD_FILE_OPEN" : "Åpne\u2026",
+    "CMD_FILE_OPEN"                       : "Åpne\u2026",
+    "CMD_ADD_TO_WORKING_SET"              : "Tilføye til arbeidsset",
     "CMD_OPEN_DROPPED_FILES"              : "Åpne droppete filer",
     "CMD_OPEN_FOLDER"                     : "Åpne katalogen\u2026",
-    "CMD_FILE_CLOSE" : "Lukk",
-    "CMD_FILE_CLOSE_ALL" : "Lukk alle",
+    "CMD_FILE_CLOSE"                      : "Lukk",
+    "CMD_FILE_CLOSE_ALL"                  : "Lukk alle",
     "CMD_FILE_CLOSE_LIST"                 : "Lukk liste",
     "CMD_FILE_CLOSE_OTHERS"               : "Lukk andre",
     "CMD_FILE_CLOSE_ABOVE"                : "Lukke andre over",
     "CMD_FILE_CLOSE_BELOW"                : "Lukk andre under",
-    "CMD_FILE_SAVE" : "Lagre",
-    "CMD_FILE_SAVE_ALL" : "Lagre alle",
+    "CMD_FILE_SAVE"                       : "Lagre",
+    "CMD_FILE_SAVE_ALL"                   : "Lagre alle",
     "CMD_FILE_SAVE_AS"                    : "Lagre som\u2026",
-    "CMD_LIVE_FILE_PREVIEW" : "Live Preview",
+    "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
     "CMD_PROJECT_SETTINGS"                : "Prosjektinstillinger\u2026",
     "CMD_FILE_RENAME"                     : "Gi nytt navn",
     "CMD_FILE_DELETE"                     : "Slett",
     "CMD_INSTALL_EXTENSION"               : "Installer utvidelser\u2026",
     "CMD_EXTENSION_MANAGER"               : "Utvidelsebehandleren\u2026",
     "CMD_FILE_REFRESH"                    : "Oppdater filtre",
-    "CMD_QUIT" : "Avslutt",
+    "CMD_QUIT"                            : "Avslutt",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Avslutt",
 
     // Edit menu commands
-    "EDIT_MENU" : "Rediger",
+    "EDIT_MENU"                           : "Rediger",
     "CMD_UNDO"                            : "Angre",
     "CMD_REDO"                            : "Gjenta",
     "CMD_CUT"                             : "Klipp",
     "CMD_COPY"                            : "Kopier",
     "CMD_PASTE"                           : "Lim inn",
-    "CMD_SELECT_ALL" : "Velg alt",
+    "CMD_SELECT_ALL"                      : "Velg alt",
     "CMD_SELECT_LINE"                     : "Velg linje",
     "CMD_SPLIT_SEL_INTO_LINES"            : "Splitt utvalg til linjer",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "Legg til markør på neste linje",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "Legg til markør på forrige linje",
-    "CMD_INDENT" : "Øk innrykk",
-    "CMD_UNINDENT" : "Reduser innrykk",
+    "CMD_INDENT"                          : "Øk innrykk",
+    "CMD_UNINDENT"                        : "Reduser innrykk",
     "CMD_DUPLICATE"                       : "Dupliser",
     "CMD_DELETE_LINES"                    : "Slett linje",
-    "CMD_COMMENT" : "Kommenter/utkommenter linjer",
+    "CMD_COMMENT"                         : "Kommenter/utkommenter linjer",
     "CMD_BLOCK_COMMENT"                   : "Veksle blokkommentar",
-    "CMD_LINE_UP" : "Flytt linje(r) opp",
-    "CMD_LINE_DOWN" : "Flytt linje(r) ned",
+    "CMD_LINE_UP"                         : "Flytt linje(r) opp",
+    "CMD_LINE_DOWN"                       : "Flytt linje(r) ned",
     "CMD_OPEN_LINE_ABOVE"                 : "Åpne linje over",
     "CMD_OPEN_LINE_BELOW"                 : "Åpne linje under",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Automatisk avslutt krøllparenteser",
@@ -319,12 +321,12 @@ define({
     "CMD_REPLACE"                         : "Erstatt",
 
     // View menu commands
-    "VIEW_MENU" : "Vis",
-    "CMD_HIDE_SIDEBAR" : "Gjem sidestolpe",
-    "CMD_SHOW_SIDEBAR" : "Vis sidestolpe",
-    "CMD_INCREASE_FONT_SIZE" : "Større skrift",
-    "CMD_DECREASE_FONT_SIZE" : "Mindre skrift",
-    "CMD_RESTORE_FONT_SIZE" : "Tilbakestill skriftstørrelse",
+    "VIEW_MENU"                           : "Vis",
+    "CMD_HIDE_SIDEBAR"                    : "Gjem sidestolpe",
+    "CMD_SHOW_SIDEBAR"                    : "Vis sidestolpe",
+    "CMD_INCREASE_FONT_SIZE"              : "Større skrift",
+    "CMD_DECREASE_FONT_SIZE"              : "Mindre skrift",
+    "CMD_RESTORE_FONT_SIZE"               : "Tilbakestill skriftstørrelse",
     "CMD_SCROLL_LINE_UP"                  : "Rull linje opp",
     "CMD_SCROLL_LINE_DOWN"                : "Rull linje ned",
     "CMD_TOGGLE_LINE_NUMBERS"             : "Linjenummer",
@@ -332,29 +334,32 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Tekstbryting",
     "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint filer ved lagring",
-    
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sorter på tilføyd",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sorter på navn",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sorter på type",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Automatisk sortering",
 
     // Navigate menu Commands
-    "NAVIGATE_MENU" : "Naviger",
-    "CMD_QUICK_OPEN" : "Hurtigåpne",
-    "CMD_GOTO_LINE" : "Gå til linje",
-    "CMD_GOTO_DEFINITION" : "Gå til definisjon",
+    "NAVIGATE_MENU"                       : "Naviger",
+    "CMD_QUICK_OPEN"                      : "Hurtigåpne",
+    "CMD_GOTO_LINE"                       : "Gå til linje",
+    "CMD_GOTO_DEFINITION"                 : "Gå til definisjon",
     "CMD_GOTO_FIRST_PROBLEM"              : "Gå til første feil/advarsel",
-    "CMD_TOGGLE_QUICK_EDIT" : "Hurtigrediger",
+    "CMD_TOGGLE_QUICK_EDIT"               : "Hurtigrediger",
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Forrige treff",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Neste treff",
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Ny regel",
-    "CMD_NEXT_DOC" : "Neste dokument",
-    "CMD_PREV_DOC" : "Forrige dokument",
+    "CMD_NEXT_DOC"                        : "Neste dokument",
+    "CMD_PREV_DOC"                        : "Forrige dokument",
     "CMD_SHOW_IN_TREE"                    : "Vis i filtre",
     "CMD_SHOW_IN_EXPLORER"                : "Vis i utforsker",
     "CMD_SHOW_IN_FINDER"                  : "Show in Finder",
     "CMD_SHOW_IN_OS"                      : "Vis i OS",
 
     // Help menu commands
-    "HELP_MENU" : "Hjelp",
-    "CMD_CHECK_FOR_UPDATE" : "Se etter oppdateringer",
+    "HELP_MENU"                           : "Hjelp",
+    "CMD_CHECK_FOR_UPDATE"                : "Se etter oppdateringer",
     "CMD_HOW_TO_USE_BRACKETS"             : "Hvordan bruke {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} support",
     "CMD_SUGGEST"                         : "Foreslå en funksjonalitet",
@@ -363,28 +368,28 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Vis utvidelser",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} hjemmeside",
     "CMD_TWITTER"                         : "{TWITTER_NAME} på Twitter",
-    "CMD_ABOUT" : "Om {APP_TITLE}",
+    "CMD_ABOUT"                           : "Om {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Åpne preferansefilen",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "eksperimentell bygg",
     "DEVELOPMENT_BUILD"                    : "utvikler bygg",
-    "RELOAD_FROM_DISK" : "Oppdater fra disk",
-    "KEEP_CHANGES_IN_EDITOR" : "Behold endringer i editor",
-    "CLOSE_DONT_SAVE" : "Lukk (ikke lagre)",
-    "RELAUNCH_CHROME" : "Start Chrome på nytt",
+    "RELOAD_FROM_DISK"                     : "Oppdater fra disk",
+    "KEEP_CHANGES_IN_EDITOR"               : "Behold endringer i editor",
+    "CLOSE_DONT_SAVE"                      : "Lukk (ikke lagre)",
+    "RELAUNCH_CHROME"                      : "Start Chrome på nytt",
     "ABOUT"                                : "Om",
-    "CLOSE" : "Lukk",
+    "CLOSE"                                : "Lukk",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3" : "Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
-    "ABOUT_TEXT_LINE4" : "Documentation and source at <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
+    "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Made with \u2764 and JavaScript by:",
     "ABOUT_TEXT_LINE6"                     : "Lots of people (but we're having trouble loading that data right now).",
     "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
-    "UPDATE_NOTIFICATION_TOOLTIP" : "En ny for {APP_NAME} er tilgjengelig! Klikk her for mer informasjon.",
-    "UPDATE_AVAILABLE_TITLE" : "Oppdatering er tilgjengelig",
-    "UPDATE_MESSAGE" : "Hei, en ny bygg for {APP_NAME} er tilgjengelig. Her er noen av de nye funksjonene:",
-    "GET_IT_NOW" : "Hent den nå!",
+    "UPDATE_NOTIFICATION_TOOLTIP"          : "En ny for {APP_NAME} er tilgjengelig! Klikk her for mer informasjon.",
+    "UPDATE_AVAILABLE_TITLE"               : "Oppdatering er tilgjengelig",
+    "UPDATE_MESSAGE"                       : "Hei, en ny bygg for {APP_NAME} er tilgjengelig. Her er noen av de nye funksjonene:",
+    "GET_IT_NOW"                           : "Hent den nå!",
     "PROJECT_SETTINGS_TITLE"               : "Prosjektinstillinger for: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Live Preview base URL",
     "PROJECT_SETTING_BASE_URL_HINT"        : "For å bruke en lokal server, skriv inn en url lingnende http://localhost:8000/",
@@ -393,7 +398,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Base URL kan ikke inneholde hashes som \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Spesialtegn som '{0}' må bli %-kodet.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Ukjent feil ved tolking av base URL",
-    
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Ny regel",
     
@@ -490,26 +495,26 @@ define({
      */
 
     "UNIT_PIXELS"                          : "piksler",
-    
+
     // extensions/default/DebugCommands
-    "DEBUG_MENU" : "Debug",
+    "DEBUG_MENU"                                : "Debug",
     "ERRORS"                                    : "Feil",
-    "CMD_SHOW_DEV_TOOLS" : "Vis utviklerverktøy",
+    "CMD_SHOW_DEV_TOOLS"                        : "Vis utviklerverktøy",
     "CMD_REFRESH_WINDOW"                        : "Gjenåpne med utvidelser",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Gjenåpne uten utvidelser",
-    "CMD_NEW_BRACKETS_WINDOW" : "Nytt {APP_NAME} vindu",
-    "CMD_SWITCH_LANGUAGE" : "Bytt språk",
-    "CMD_RUN_UNIT_TESTS" : "Kjør tester",
-    "CMD_SHOW_PERF_DATA" : "Vis ytelsesdata",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "Nytt {APP_NAME} vindu",
+    "CMD_SWITCH_LANGUAGE"                       : "Bytt språk",
+    "CMD_RUN_UNIT_TESTS"                        : "Kjør tester",
+    "CMD_SHOW_PERF_DATA"                        : "Vis ytelsesdata",
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Aktiver Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Logg Nodestatus til konsoll",
     "CMD_RESTART_NODE"                          : "Omstart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Vis feil i statuslinjen",
-    
-    "LANGUAGE_TITLE" : "Bytt språk",
-    "LANGUAGE_MESSAGE" : "Velg ønsket språk fra listen under:",
-    "LANGUAGE_SUBMIT" : "Gjenåpne {APP_NAME}",
-    "LANGUAGE_CANCEL" : "Avbryt",
+
+    "LANGUAGE_TITLE"                            : "Bytt språk",
+    "LANGUAGE_MESSAGE"                          : "Velg ønsket språk fra listen under:",
+    "LANGUAGE_SUBMIT"                           : "Gjenåpne {APP_NAME}",
+    "LANGUAGE_CANCEL"                           : "Avbryt",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Sett systemforvalg",
     
     // extensions/default/InlineTimingFunctionEditor
@@ -532,7 +537,7 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Hopp til definisjonen",
     "CMD_SHOW_PARAMETER_HINT"                   : "Vis parameter hint",
     "NO_ARGUMENTS"                              : "<ingen parametere>",
-    
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
 

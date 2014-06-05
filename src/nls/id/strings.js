@@ -172,7 +172,7 @@ define({
      */
     "PROJECT_LOADING"   : "Memuat\u2026",
     "UNTITLED"          : "Tanpa Judul",
-    "OPEN_PANES"     : "Berkas aktif",
+    "WORKING_FILES"     : "Berkas aktif",
 
     /**
      * Keyboard modifier names
@@ -220,7 +220,7 @@ define({
     "CMD_FILE_NEW"                        : "Berkas Baru",
     "CMD_FILE_NEW_FOLDER"                 : "Folder Baru",
     "CMD_FILE_OPEN"                       : "Buka\u2026",
-    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Tambahkan ke working set",
+    "CMD_ADD_TO_WORKING_SET"              : "Tambahkan ke working set",
     "CMD_OPEN_DROPPED_FILES"              : "Buka file yang di-drop",
     "CMD_OPEN_FOLDER"                     : "Buka Folder\u2026",
     "CMD_FILE_CLOSE"                      : "Tutup",
@@ -286,10 +286,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
     "CMD_LIVE_HIGHLIGHT"                  : "Tandai Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Berkas Saat Disimpan",
-    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Urutkan berdasarkan Waktu",
-    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Urutkan Berdasarkan Nama",
-    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Urutkan Berdasarkan Jenis",
-    "CMD_TOGGLE_AUTO_SORT"            : "Urutkan Secara Otomatis",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Urutkan berdasarkan Waktu",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Urutkan Berdasarkan Nama",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Urutkan Berdasarkan Jenis",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Urutkan Secara Otomatis",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigasi",

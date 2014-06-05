@@ -140,7 +140,7 @@ define({
      */
     "PROJECT_LOADING"   : "Betöltés\u2026",
     "UNTITLED"          : "Névtelen",
-    "OPEN_PANES"     : "Munka fájlok",
+    "WORKING_FILES"     : "Munka fájlok",
 
     /**
      * Keyboard modifier names
@@ -171,7 +171,7 @@ define({
     "CMD_FILE_NEW"                        : "Új Fájl",
     "CMD_FILE_NEW_FOLDER"                 : "Új Mappa",
     "CMD_FILE_OPEN"                       : "Megnyitás\u2026",
-    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Hozzáadás a Munkakészlethez",
+    "CMD_ADD_TO_WORKING_SET"              : "Hozzáadás a Munkakészlethez",
     "CMD_OPEN_FOLDER"                     : "Mappa Megnyitása\u2026",
     "CMD_FILE_CLOSE"                      : "Bezárás",
     "CMD_FILE_CLOSE_ALL"                  : "Összes Bezárása",
@@ -230,10 +230,10 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Sorok száma",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Aktív sor megjelölése",
     "CMD_TOGGLE_WORD_WRAP"                : "Sortörés",
-    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Rendezés Hozzáadás Szerint",
-    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Rendezés Név Szerint",
-    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Rendezés Típus Szerint",
-    "CMD_TOGGLE_AUTO_SORT"            : "Automatikus Rendezés",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Rendezés Hozzáadás Szerint",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Rendezés Név Szerint",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Rendezés Típus Szerint",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Automatikus Rendezés",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigálás",

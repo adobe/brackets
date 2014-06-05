@@ -202,7 +202,7 @@ define({
      */
     "PROJECT_LOADING"   : "Загрузка\u2026",
     "UNTITLED"          : "Без названия",
-    "OPEN_PANES"     : "Рабочие файлы",
+    "WORKING_FILES"     : "Рабочие файлы",
 
     /**
      * Keyboard modifier names
@@ -255,7 +255,7 @@ define({
     "CMD_FILE_NEW"                        : "Новый файл",
     "CMD_FILE_NEW_FOLDER"                 : "Новая директория",
     "CMD_FILE_OPEN"                       : "Открыть\u2026",
-    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Добавить в рабочий набор",
+    "CMD_ADD_TO_WORKING_SET"              : "Добавить в рабочий набор",
     "CMD_OPEN_DROPPED_FILES"              : "Открыть перетащенные файлы",
     "CMD_OPEN_FOLDER"                     : "Открыть директорию\u2026",
     "CMD_FILE_CLOSE"                      : "Закрыть",
@@ -331,10 +331,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Заворачивать строки",
     "CMD_LIVE_HIGHLIGHT"                  : "Подсвечивать в Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Анализировать при сохранении",
-    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Сортировать по порядку добавления",
-    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Сортировать по имени",
-    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Сортировать по типу",
-    "CMD_TOGGLE_AUTO_SORT"            : "Автоматическая сортировка",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Сортировать по порядку добавления",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Сортировать по имени",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Сортировать по типу",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Автоматическая сортировка",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Навигация",

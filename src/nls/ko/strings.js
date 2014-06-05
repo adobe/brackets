@@ -167,7 +167,7 @@ define({
      */
     "PROJECT_LOADING": "프로젝트 여는중\u2026",
     "UNTITLED": "제목없음",
-    "OPEN_PANES": "현재 파일",
+    "WORKING_FILES": "현재 파일",
 
     /**
      * Keyboard modifier names
@@ -215,7 +215,7 @@ define({
     "CMD_FILE_NEW": "파일 만들기",
     "CMD_FILE_NEW_FOLDER": "폴더 만들기",
     "CMD_FILE_OPEN": "파일 열기\u2026",
-    "CMD_ADD_TO_PANE_VIEW_LIST": "작업세트에 추가",
+    "CMD_ADD_TO_WORKING_SET": "작업세트에 추가",
     "CMD_OPEN_DROPPED_FILES": "드롭한 파일들 열기",
     "CMD_OPEN_FOLDER": "폴더 열기\u2026",
     "CMD_FILE_CLOSE": "닫기",
@@ -280,10 +280,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP": "자동 줄내림",
     "CMD_LIVE_HIGHLIGHT": "실시간 프리뷰 하이라이트",
     "CMD_VIEW_TOGGLE_INSPECTION": "저장시 파일 Lint표시",
-    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED": "추가순으로 워킹셋 정렬",
-    "CMD_SORT_PANE_VIEW_LIST_BY_NAME": "이름순으로 워킹셋 정렬",
-    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE": "타입별로 워킹셋 정렬",
-    "CMD_TOGGLE_AUTO_SORT": "자동으로 워킹셋 정렬",
+    "CMD_SORT_WORKINGSET_BY_ADDED": "추가순으로 워킹셋 정렬",
+    "CMD_SORT_WORKINGSET_BY_NAME": "이름순으로 워킹셋 정렬",
+    "CMD_SORT_WORKINGSET_BY_TYPE": "타입별로 워킹셋 정렬",
+    "CMD_SORT_WORKINGSET_AUTO": "자동으로 워킹셋 정렬",
 
     // Navigate menu Commands
     "NAVIGATE_MENU": "탐색",

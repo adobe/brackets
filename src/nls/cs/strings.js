@@ -202,7 +202,7 @@ define({
      */
     "PROJECT_LOADING" : "Načítání\u2026",
     "UNTITLED" : "Nový",
-    "OPEN_PANES"     : "Pracovní soubory",
+    "WORKING_FILES"     : "Pracovní soubory",
 
     /**
      * Jména kláves
@@ -255,7 +255,7 @@ define({
     "CMD_FILE_NEW"                        : "Nový soubor",
     "CMD_FILE_NEW_FOLDER"                 : "Nová složka",
     "CMD_FILE_OPEN"                       : "Otevřít\u2026",
-    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Přidat k pracovní sadě",
+    "CMD_ADD_TO_WORKING_SET"              : "Přidat k pracovní sadě",
     "CMD_OPEN_DROPPED_FILES"              : "Otevřít opuštěné soubory",
     "CMD_OPEN_FOLDER"                     : "Otevřít složku\u2026",
     "CMD_FILE_CLOSE"                      : "Zavřít",
@@ -327,10 +327,10 @@ define({
     "CMD_TOGGLE_ACTIVE_LINE"              : "Zvýraznit aktivní řádek",
     "CMD_TOGGLE_WORD_WRAP"                : "Zalomit řádky",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint soubory při uložení",
-    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Řadit podle data",
-    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Řadit podle jména",
-    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Řadit podle typu",
-    "CMD_TOGGLE_AUTO_SORT"            : "Automatické řazení",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Řadit podle data",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Řadit podle jména",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Řadit podle typu",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Automatické řazení",
 
     // Příkazy menu Navigace
     "NAVIGATE_MENU"                       : "Navigace",

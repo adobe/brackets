@@ -159,7 +159,7 @@ define({
      */
     "PROJECT_LOADING"   : "Ladataan\u2026",
     "UNTITLED"          : "nimetön",
-    "OPEN_PANES"     : "Työtiedostot",
+    "WORKING_FILES"     : "Työtiedostot",
 
     /**
      * Keyboard modifier names
@@ -205,7 +205,7 @@ define({
     "CMD_FILE_NEW"                        : "Uusi tiedosto",
     "CMD_FILE_NEW_FOLDER"                 : "Uusi kansio",
     "CMD_FILE_OPEN"                       : "Avaa\u2026",
-    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Lisää työtilaan",
+    "CMD_ADD_TO_WORKING_SET"              : "Lisää työtilaan",
     "CMD_OPEN_DROPPED_FILES"              : "Avaa pudotetut tiedostot",
     "CMD_OPEN_FOLDER"                     : "Avaa kansio\u2026",
     "CMD_FILE_CLOSE"                      : "Sulje",
@@ -270,10 +270,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Tekstin rivitys",
     "CMD_LIVE_HIGHLIGHT"                  : "Esikatselun korostus",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Tarkista tiedostot tallennettaessa",
-    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Järjestä lisäysajan mukaan",
-    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Järjestä nimen mukaan",
-    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Järjestä tyypin mukaan",
-    "CMD_TOGGLE_AUTO_SORT"            : "Automaattinen järjestys",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Järjestä lisäysajan mukaan",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Järjestä nimen mukaan",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Järjestä tyypin mukaan",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Automaattinen järjestys",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Siirry",

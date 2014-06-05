@@ -155,7 +155,7 @@ define({
     "CMD_FILE_NEW"                        : "Novo",
     "CMD_FILE_NEW_FOLDER"                 : "Nova pasta",
     "CMD_FILE_OPEN"                       : "Abrir\u2026",
-    "CMD_ADD_TO_PANE_VIEW_LIST"              : "Adicionar ao conjunto de trabalho",
+    "CMD_ADD_TO_WORKING_SET"              : "Adicionar ao conjunto de trabalho",
     "CMD_OPEN_FOLDER"                     : "Abrir pasta\u2026",
     "CMD_FILE_CLOSE"                      : "Fechar",
     "CMD_FILE_CLOSE_ALL"                  : "Fechar tudo",
@@ -192,10 +192,10 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Aumentar tamanho da fonte",
     "CMD_DECREASE_FONT_SIZE"              : "Diminuir tamanho da fonte",
     "CMD_RESTORE_FONT_SIZE"               : "Restaurar tamanho da fonte",
-    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"        : "Ordenar por data adicionado",
-    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"         : "Ordenar por nome",
-    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"         : "Ordenar por tipo",
-    "CMD_TOGGLE_AUTO_SORT"            : "Ordenação automática",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ordenar por data adicionado",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por nome",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ordenar por tipo",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Ordenação automática",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navegar",
