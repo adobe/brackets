@@ -1040,12 +1040,17 @@ define(function (require, exports, module) {
             editorHeight = $scrollerElement.height(),
             statusBarHeight = $scrollerElement.outerHeight() - editorHeight,
             menuBarHeight = $scrollerElement.offset().top,
-            bottom = window.innerHeight - menuBarHeight - statusBarHeight - editorHeight + 4;
+            bottom = window.innerHeight - menuBarHeight - statusBarHeight - editorHeight + 4,
+            cursorPosition = this._codeMirror.cursorCoords(null, "page").bottom;
         
-        this.setScrollPos(null, this.getScrollPos().y + bottom);
-        
-        if (this._codeMirror.cursorCoords(null, "page").bottom < editorHeight / 2) {
-            this.centerOnCursor();
+        if (cursorPosition > $scrollerElement.outerHeight() + 4) {
+            var target = this.getScrollPos().y;
+            if (cursorPosition - bottom < editorHeight / 2) {
+                target += cursorPosition - editorHeight / 2;
+            } else {
+                target += bottom;
+            }
+            this.setScrollPos(null, target);
         }
     };
 
