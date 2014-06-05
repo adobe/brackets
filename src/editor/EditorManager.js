@@ -874,9 +874,9 @@ define(function (require, exports, module) {
      */
     function notifyPathRemovedFromPaneList(paneId, removedFiles) {
         if ($.isArray(removedFiles)) {
-        removedFiles.forEach(function (removedFile) {
+            removedFiles.forEach(function (removedFile) {
                 _onFileRemoved(removedFile);
-        });
+            });
         } else {
             _onFileRemoved(removedFiles);
         }
