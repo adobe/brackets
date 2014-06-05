@@ -37,14 +37,14 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
 	"CONTENTS_MODIFIED_ERR": "Le fichier a été modifié dans une application autre que {APP_NAME}.",
-	"UNSUPPORTED_ENCODING_ERR": "Le fichier n’est pas codé au format UTF-8.",
+	"UNSUPPORTED_ENCODING_ERR": "Pour le moment, {APP_NAME} ne prend en charge que les fichiers texte avec encodage UTF-8.",
 	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
 	"FILE": "fichier",
 	"DIRECTORY": "répertoire",
-	"DIRECTORY_NAMES_LEDE": "Noms de répertoire",
-	"FILENAMES_LEDE": "Noms de fichier",
-	"FILENAME": "nom de fichier",
-	"DIRECTORY_NAME": "nom de répertoire",
+	"DIRECTORY_NAMES_LEDE": "noms de répertoires",
+	"FILENAMES_LEDE": "noms de fichiers",
+	"FILENAME": "Nom de fichier",
+	"DIRECTORY_NAME": "Nom de répertoire",
     
 
     // Project error strings
@@ -66,9 +66,9 @@ define({
 	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du fichier",
 	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "{0} non valide",
-	"INVALID_FILENAME_MESSAGE": "Le {0} ne peut pas utiliser de termes réservés au système, finir par un point (.) ou contenir l’un des caractères suivants : <code class='emphasized'>{1}</code>",
+	"INVALID_FILENAME_MESSAGE": "Les {0} ne peuvent pas utiliser de termes réservés au système, finir par un point (.) ou contenir l’un des caractères suivants : <code class='emphasized'>{1}</code>",
 	"ENTRY_WITH_SAME_NAME_EXISTS": "Il existe déjà un fichier ou un répertoire portant le nom <span class='dialog-filename'>{0}</span>.",
-	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création du {0}",
+	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création de l’élément {0}",
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application preferences corrupt error strings
@@ -123,6 +123,7 @@ define({
 	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
     
     // Generic dialog/button labels
+	"DONE": "Terminé",
 	"OK": "OK",
 	"CANCEL": "Annuler",
 	"DONT_SAVE": "Ne pas enregistrer",
@@ -152,7 +153,7 @@ define({
 	"CHOOSE_FOLDER": "Choisir un dossier",
 
 	"RELEASE_NOTES": "Notes de mise à jour",
-	"NO_UPDATE_TITLE": "Votre logiciel est à jour !",
+	"NO_UPDATE_TITLE": "Vos logiciels sont à jour !",
 	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
 
     // Replace All (in single file)
@@ -179,11 +180,14 @@ define({
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
     
     // File exclusion filters
-	"NO_FILE_FILTER": "Exclure des fichiers\u2026",
+	"NEW_FILE_FILTER": "Nouveau jeu d’exclusion\u2026",
+	"CLEAR_FILE_FILTER": "Ne pas exclure les fichiers",
+	"NO_FILE_FILTER": "Aucun fichier exclu",
+	"EXCLUDE_FILE_FILTER": "Exclure {0}",
 	"EDIT_FILE_FILTER": "Modifier\u2026",
-	"FILE_FILTER_DIALOG": "Modifier le filtre",
+	"FILE_FILTER_DIALOG": "Modifier le jeu d’exclusion",
 	"FILE_FILTER_INSTRUCTIONS": "Exclure les fichiers et dossiers correspondant à l’une des chaînes/sous-chaînes ou aux <a href='{0}' title='{0}'>caractères génériques</a> suivants. Entrez chaque chaîne sur une ligne différente.",
-	"FILE_FILTER_LIST_PREFIX": "sauf",
+	"FILTER_NAME_PLACEHOLDER": "Nommer ce jeu d’exclusion (facultatif)",
 	"FILE_FILTER_CLIPPED_SUFFIX": "et {0} autre(s)",
 	"FILTER_COUNTING_FILES": "Comptage des fichiers\u2026",
 	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) sur les {1} {2}",

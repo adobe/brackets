@@ -179,7 +179,7 @@ define(function (require, exports, module) {
         
     describe("Inspector", function () {
         
-        this.category = "integration";
+        this.category = "livepreview";
 
         it("should return a ready socket on Inspector.connect and close the socket on Inspector.disconnect", function () {
             var id  = Math.floor(Math.random() * 100000),
@@ -232,6 +232,8 @@ define(function (require, exports, module) {
 
     describe("URL Mapping", function () {
 
+        this.category = "livepreview";
+
         it("should validate base urls", function () {
             expect(PreferencesDialogs._validateBaseUrl("http://localhost"))
                 .toBe("");
@@ -264,6 +266,8 @@ define(function (require, exports, module) {
     
     describe("HighlightAgent", function () {
         
+        this.category = "livepreview";
+
         describe("Highlighting elements in browser from a CSS rule", function () {
             
             var testDocument,
@@ -514,7 +518,7 @@ define(function (require, exports, module) {
 
     describe("Live Development", function () {
         
-        this.category = "integration";
+        this.category = "livepreview";
 
         beforeFirst(function () {
             SpecRunnerUtils.createTempDirectory();
@@ -937,6 +941,9 @@ define(function (require, exports, module) {
     });
 
     describe("Servers", function () {
+
+        this.category = "livepreview";
+
         // Define testing parameters, files do not need to exist on disk
         // File paths used in tests:
         //  * file1 - file inside  project
@@ -997,6 +1004,9 @@ define(function (require, exports, module) {
     });
     
     describe("Default HTML Document", function () {
+
+        this.category = "livepreview";
+
         var brackets,
             LiveDevelopment,
             ProjectManager,
@@ -1030,6 +1040,7 @@ define(function (require, exports, module) {
         }
 
         describe("Find static page for Live Development", function () {
+
             it("should return the same HTML document like the currently open document", function () {
                 var promise,
                     document,
@@ -1202,6 +1213,7 @@ define(function (require, exports, module) {
         });
 
         describe("Find dynamic page for Live Development", function () {
+
             it("should return the same index.php document like the currently opened document", function () {
                 var promise,
                     document,

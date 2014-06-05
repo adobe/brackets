@@ -40,16 +40,28 @@ define(function (require, exports, module) {
         PanelManager        = require("view/PanelManager");
     
     
-    /** @type {?Editor} Editor the markers are currently shown for, or null if not shown */
+    /**
+     * Editor the markers are currently shown for, or null if not shown
+     * @type {?Editor}
+     */
     var editor;
     
-    /** @type {number} Top of scrollbar track area, relative to top of scrollbar */
+    /**
+     * Top of scrollbar track area, relative to top of scrollbar
+     * @type {number}
+     */
     var trackOffset;
     
-    /** @type {number} Height of scrollbar track area */
+    /**
+     * Height of scrollbar track area
+     * @type {number}
+     */
     var trackHt;
     
-    /** @type {!Array.<{line: number, ch: number}>} Text positions of markers */
+    /**
+     * Text positions of markers
+     * @type {!Array.<{line: number, ch: number}>}
+     */
     var marks = [];
     
     

@@ -58,7 +58,10 @@ define(function (require, exports, module) {
         DIALOG_BTN_CLASS_NORMAL     = "",
         DIALOG_BTN_CLASS_LEFT       = "left";
     
-    /** @type {number} The z-index used for the dialogs. Each new dialog increase this number by 2 */
+    /**
+     * The z-index used for the dialogs. Each new dialog increase this number by 2
+     * @type {number}
+     */
     var zIndex = 1050;
 
     /**
@@ -199,12 +202,18 @@ define(function (require, exports, module) {
         this._promise = promise;
     }
     
-    /** @type {$.Element} The dialog jQuery element */
+    /**
+     * The dialog jQuery element
+     * @type {$.Element}
+     */
     Dialog.prototype.getElement = function () {
         return this._$dlg;
     };
     
-    /** @type {$.Promise} The dialog promise */
+    /**
+     * The dialog promise
+     * @type {$.Promise}
+     */
     Dialog.prototype.getPromise = function () {
         return this._promise;
     };
@@ -263,10 +272,11 @@ define(function (require, exports, module) {
         
         $("body").append("<div class='modal-wrapper'><div class='modal-inner-wrapper'></div></div>");
 
-        var result    = $.Deferred(),
-            promise   = result.promise(),
-            $dlg      = $(template)
+        var result  = new $.Deferred(),
+            promise = result.promise(),
+            $dlg    = $(template)
                 .addClass("instance")
+                .prop("tabindex", "-1")
                 .appendTo(".modal-inner-wrapper:last");
 
         // Don't allow dialog to exceed viewport size
@@ -302,11 +312,17 @@ define(function (require, exports, module) {
             //Remove wrapper
             $(".modal-wrapper:last").remove();
         }).one("shown", function () {
-            // Set focus to the default button
-            var primaryBtn = $dlg.find(".primary");
-
-            if (primaryBtn) {
-                primaryBtn.focus();
+            var $primaryBtn = $dlg.find(".primary:enabled"),
+                $otherBtn   = $dlg.find(".modal-footer .dialog-button:enabled:eq(0)");
+            
+            // Set focus to the primary button, to any other button, or to the dialog depending
+            // if there are buttons
+            if ($primaryBtn.length) {
+                $primaryBtn.focus();
+            } else if ($otherBtn.length) {
+                $otherBtn.focus();
+            } else {
+                $dlg.focus();
             }
 
             // Push our global keydown handler onto the global stack of handlers.

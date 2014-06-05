@@ -3,7 +3,7 @@
         "app_title": "Brackets",
         "app_name_about": "Brackets",
         "about_icon": "styles/images/brackets_icon.svg",
-        "update_info_url": "http://brackets.io/updates/stable/",
+        "update_info_url": "http://s3.amazonaws.com/files.brackets.io/updates/stable/",
         "how_to_use_url": "https://github.com/adobe/brackets/wiki/How-to-Use-Brackets",
         "support_url": "https://github.com/adobe/brackets/wiki/Troubleshooting",
         "suggest_feature_url": "https://github.com/adobe/brackets/wiki/Suggest-a-Feature",
@@ -21,8 +21,8 @@
         "linting.enabled_by_default": true
     },
     "name": "Brackets",
-    "version": "0.40.0-0",
-    "apiVersion": "0.40.0",
+    "version": "0.41.0-0",
+    "apiVersion": "0.41.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"
