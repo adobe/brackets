@@ -27,7 +27,7 @@
 
 /**
  * brackets is the root of the Brackets codebase. This file pulls in all other modules as
- * dependencies (or dependencies thereof), initializes  the UI, and binds global menus & keyboard
+ * dependencies (or dependencies thereof), initializes the UI, and binds global menus & keyboard
  * shortcuts to their Commands.
  *
  * TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic

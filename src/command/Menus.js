@@ -30,7 +30,6 @@ define(function (require, exports, module) {
 
     var _ = require("thirdparty/lodash");
 
-    
     // Load dependent modules
     var Global              = require("utils/Global"),
         Commands            = require("command/Commands"),
@@ -41,7 +40,6 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils"),
         DeprecationWarning  = require("utils/DeprecationWarning");
 
-    
     /**
      * @private
      * Create a deprecation warning and action for updated menu constants

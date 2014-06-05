@@ -36,8 +36,6 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
-        // TODO: We want to remove this dependency.
-        //           This is just here until we've migrated everything related view related into MainViewManager
         MainViewManager     = require("view/MainViewManager"),
         EditorManager       = require("editor/EditorManager"),
         FileSystem          = require("filesystem/FileSystem"),
@@ -1186,6 +1184,9 @@ define(function (require, exports, module) {
         result.done(function (listAfterSave) {
             listAfterSave = listAfterSave || list;
             if (!promptOnly) {
+                // Call clear current document here because we need the editor
+                //  to close the current document and this is the only way to 
+                //  do that at the moment.
                 DocumentManager.clearCurrentDocument();
                 MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, listAfterSave);
             }

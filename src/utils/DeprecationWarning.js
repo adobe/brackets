@@ -99,13 +99,21 @@ define(function (require, exports, module) {
      * @param {String=} the cannonical name of the new event                  "MainViewManager.paneViewListAdd"
      */
     function deprecateEvent(outbound, inbound, oldEventName, newEventName, cannonicalOutboundName, cannonicalInboundName) {
+        // create an event handler for the new event to listen for 
         $(inbound).on(newEventName, function () {
+            // Get the jQuery event data from the outbound object -- usually the module's exports
             var listeners = $._data(outbound, "events");
+            // If there are there any listeners then display a deprecation warning
             if (listeners && listeners.hasOwnProperty(oldEventName) && listeners[oldEventName].length > 0) {
-                console.warn("The Event " + (cannonicalOutboundName || oldEventName) + " has been deprecated. Use " + (cannonicalInboundName || newEventName) + " instead.");
+                var message = "The Event " + (cannonicalOutboundName || oldEventName) + " has been deprecated. Use " + (cannonicalInboundName || newEventName) + " instead.";
+                // We only want to show the deprecation warning once
+                if (!displayedWarnings[message]) {
+                    displayedWarnings[message] = true;
+                    console.warn(message);
+                }
             }
 
-            // dispatch the event anyway just in case the jQuery data is wrong for some reason
+            // dispatch the event even if there are no listeners just in case the jQuery data is wrong for some reason
             $(outbound).trigger(oldEventName, Array.prototype.slice.call(arguments, 1));
         });
     }

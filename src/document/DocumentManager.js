@@ -26,8 +26,9 @@
 /*global define, $ */
 
 /**
- * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in
- * the working set, and the notion of which Document is currently shown in the main editor UI area.
+ * DocumentManager maintains a list of currently 'open' Documents. The DocumentManager is responsible 
+ * manifesting documents into the editor, closing documents and coordinating document operations and 
+ * dispatching certain document events.
  *
  * Document is the model for a file's contents; it dispatches events whenever those contents change.
  * To transiently inspect a file's content, simply get a Document and call getText() on it. However,
@@ -58,24 +59,15 @@
  *      Document that has been saved.
  *    - documentRefreshed -- When a Document's contents have been reloaded from disk. The 2nd arg to the
  *      listener is the Document that has been refreshed.
+ * 
+ * NOTE: WorkingSet APIs have been deprecated and have moved to MainViewManager as PaneViewList APIs
+ *       Some WorkingSet APIs that have been identified as being used by 3rd party extensions will
+ *       emit deprecation warnings and call the PaneViewList APIS to maintain backwards compatibility
  *
- *    - currentDocumentChange -- When the value of getCurrentDocument() changes. 2nd argument to the listener
- *      is the current document and 3rd argument is the previous document.
- *
- *    To listen for working set changes, you must listen to *all* of these events:
- *    - paneViewListAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
- *      to the listener is the added File, and the 3rd arg is the index it was inserted at.
- *    - paneViewListAddList -- When multiple files are added to the working set (e.g. project open, multiple file open).
- *      The 2nd arg to the listener is the array of added File objects.
- *    - workingSetRemove -- When a file is removed from the working set (see getWorkingSet()). The
- *      2nd arg to the listener is the removed File.
- *    - workingSetRemoveList -- When multiple files are removed from the working set (e.g. project close).
- *      The 2nd arg to the listener is the array of removed File objects.
- *    - paneViewListSort -- When the workingSet array is reordered without additions or removals.
- *      Listener receives no arguments.
- *
- *    - paneViewListDisableAutoSorting -- Dispatched in addition to paneViewListSort when the reorder was caused
- *      by manual dragging and dropping. Listener receives no arguments.
+ *    - currentDocumentChange -- This is being deprecated and is currently ony used as a shim to assist 
+ *      the document open process so that the editor will actually open or close the desired document. 
+ *      This will change accordingly once work begins to refactor EditorManager to be a view provider
+ *      and open documents directly.
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.
@@ -172,26 +164,39 @@ define(function (require, exports, module) {
     }
  
     
+    /**
+     * [shim] Returns a document open for the currently focused pane's editor
+     * @return {?Document}
+     */
     function _getCurrentDocument() {
         // using getCurrentFullEditor() will return the editor whether it has focus or not
         //      this doesn't work in scenarios where you want the active editor's document
         //      even though it does not have focus (such as when clicking on another element (toolbar, menu, etc...)
-        //      So we'll have to do amend this to MainViewManager.getTargetPane().getCurrentFullEditor().getDocument()
-        //      at some point which changes the deprecation warning below
+        //      So we'll have to do revise this to call
+        //          MainViewManager.getTargetPane().getCurrentFullEditor().getDocument()
         return getOpenDocumentForPath(EditorManager.getCurrentlyViewedPath());
     }
 
     /**
-     * [deprecated] Returns the Document that is currently open in the editor UI. May be null.
+     * Returns the Document that is currently open in the editor UI. May be null.
      * @return {?Document}
      */
     function getCurrentDocument() {
+        // NOTE: This will eventually be deprecated and a deprecation warning will be added here
+        //          the shim _getCurrentDocument() is being used because the MainViewManager has
+        //          not been fully fleshed out to support a method for getting the current
+        //          editor. Once that has been done then the instances of getCurrentDocument in
+        //          Brackets will change to use that API and this function will emit a deprecation
+        //          warning for extensions still using DocumentManager.getCurrentDocument();
         return _getCurrentDocument();
     }
 
     
     
-    /** Changes currentDocument to null, causing no full Editor to be shown in the UI */
+    /**
+     * [shim] Clears the current document.  This is usually in response to a close all command
+     *         or close current document when there are no other documents left to open. This
+     */
     function clearCurrentDocument() {
         // Change model & dispatch event
         var previousDocument = _getCurrentDocument();
@@ -205,6 +210,7 @@ define(function (require, exports, module) {
     }
     
     /**
+     * deprecated Use MainViewManager.getPaneViewList() instead
      * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
      * @return {Array.<File>}
      */
@@ -214,6 +220,7 @@ define(function (require, exports, module) {
     }
 
     /**
+     * deprecated Use MainViewManager.findInPaneViewList() instead
      * Returns the index of the file matching fullPath in the working set.
      * Returns -1 if not found.
      * @param {!string} fullPath
@@ -230,7 +237,13 @@ define(function (require, exports, module) {
         return MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, fullPath);
     }
     
-    
+    /**
+     * deprecated Use MainViewManager.removeListFromPaneViewList() instead
+     * Removes a list of files from the working set
+     * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
+     *          use only.
+     * @param {boolean=} true to close the current document too [deprecated]
+     */
     function removeListFromWorkingSet(list, clearCurrentDocument) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.removeListFromPaneViewList() instead of DocumentManager.removeListFromWorkingSet()", true);
 
@@ -265,8 +278,9 @@ define(function (require, exports, module) {
     
     
     /**
-     * Adds the given file to the end of the working set list, if it is not already in the list
-     * and it does not have a custom viewer.
+     * deprecated Use MainViewManager.addToPaneViewList() instead 
+     * Adds the given file to the end of the working set list, if it is not 
+     * already in the list and it does not have a custom viewer.
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!File} file
      * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
@@ -279,6 +293,7 @@ define(function (require, exports, module) {
     }
     
     /**
+     * deprecated Use MainViewManager.addListToPaneViewList() instead 
      * Adds the given file list to the end of the working set list.
      * If a file in the list has its own custom viewer, then it 
      * is not added into the working set.
@@ -293,6 +308,7 @@ define(function (require, exports, module) {
     }
 
     /**
+     * deprecated Use MainViewManager.removeFromPaneViewList() instead 
      * Warning: low level API - use FILE_CLOSE command in most cases.
      * Removes the given file from the working set list, if it was in the list. Does not change
      * the current editor even if it's for this file. Does not prompt for unsaved changes.
@@ -763,7 +779,6 @@ define(function (require, exports, module) {
      * process these events before the Extension Highlighter extension)
      */
     AppInit.appReady(function () {
-        
         _deprecateEvent("workingSetAdd",         "paneViewListAdd");
         _deprecateEvent("workingSetAddList",     "paneViewListAddList");
         _deprecateEvent("workingSetRemove",      "paneViewListRemove");
