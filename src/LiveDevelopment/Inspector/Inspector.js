@@ -30,19 +30,19 @@
  * Inspector manages the connection to Chrome/Chromium's remote debugger.
  * See inspector.html for the documentation of the remote debugger.
  *
- * # SETUP
+ * __SETUP__
  *
  * To enable remote debugging in Chrome or Chromium open either application
  * with the following parameters:
  *
- *   --enable-remote-debugger --remote-debugging-port=9222
+ *     --enable-remote-debugger --remote-debugging-port=9222
  *
  * This will open an HTTP server on the specified port, which can be used to
  * browse the available remote debugger sessions. In general, every open
  * browser tab can host an individual remote debugger session. The
  * available interfaces can be exported by requesting:
  *
- *   http://127.0.0.1:9222/json
+ *     http://127.0.0.1:9222/json
  *
  * The response is a JSON-formatted array that specifies all available remote
  * debugger sessions including the remote debugging web sockets.
@@ -52,7 +52,7 @@
  * connect to it via `connectToURL(url)`. The later returns a promise. To 
  * disconnect use `disconnect()`.
  *
- * # EVENTS
+ * __EVENTS__
  *
  * Inspector dispatches several connectivity-related events + all remote debugger
  * events (see below). Event handlers are attached via `on(event, function)` and
@@ -62,9 +62,9 @@
  *   `disconnect` Inspector did disconnect from the remote debugger
  *   `error`      Inspector encountered an error
  *   `message`    Inspector received a message from the remote debugger - this
- *                  provides a low-level entry point to remote debugger events
+ *                provides a low-level entry point to remote debugger events
  *
- * # REMOTE DEBUGGER COMMANDS
+ * __REMOTE DEBUGGER COMMANDS__
  *
  * Commands are executed by calling `{Domain}.{Command}()` with the parameters
  * specified in the order of the remote debugger documentation. These command
@@ -74,7 +74,7 @@
  * transmits the command to the remote debugger. If the last parameter of any
  * command function call is a function, it will be used as the callback.
  *
- * # REMOTE DEBUGGER EVENTS
+ * __REMOTE DEBUGGER EVENTS__
  *
  * Debugger events are dispatched as regular events using {Domain}.{Event} as
  * the event name. The handler function will be called with a single parameter

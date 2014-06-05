@@ -36,10 +36,10 @@
  * PreferencesManager.js sets up a singleton PreferencesSystem that has the following Scopes:
  *
  * * default (the default values for any settings that are explicitly registered)
- * *  user (the user's customized settings – the equivalent of Brackets' old 
- *        localStorage-based system. This is the settings file that lives in AppData)
+ * * user (the user's customized settings – the equivalent of Brackets' old 
+ *   localStorage-based system. This is the settings file that lives in AppData)
  * * Additional scopes for each .brackets.json file going upward in the file tree from the
- *        current file
+ *   current file
  * 
  * For example, if spaceUnits has a value set in a .brackets.json file near the open file, 
  * then a call to get("spaceUnits") would return the value from that file. File values come 

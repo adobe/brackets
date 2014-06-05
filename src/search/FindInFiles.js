@@ -74,13 +74,18 @@ define(function (require, exports, module) {
         searchSummaryTemplate = require("text!htmlContent/search-summary.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html");
     
-    /** @const Constants used to define the maximum results show per page and found in a single file */
-
+    /**
+     * Constants used to define the maximum results show per page and found in a single file
+     * @type {number}
+     */
     var RESULTS_PER_PAGE = 100,
         FIND_IN_FILE_MAX = 300,
         UPDATE_TIMEOUT   = 400;
     
-    /** @const @type {!Object} Token used to indicate a specific reason for zero search results */
+    /**
+     * Token used to indicate a specific reason for zero search results
+     * @const @type {!Object}
+     */
     var ZERO_FILES_TO_SEARCH = {};
     
     /**
@@ -89,43 +94,79 @@ define(function (require, exports, module) {
      */
     var searchResults = {};
     
-    /** @type {Array.<string>} Keeps a copy of the searched files sorted by name and with the selected file first */
+    /**
+     * Keeps a copy of the searched files sorted by name and with the selected file first
+     * @type {Array.<string>}
+     */
     var searchFiles = [];
     
-    /** @type {Panel} Bottom panel holding the search results. Initialized in htmlReady() */
+    /**
+     * Bottom panel holding the search results. Initialized in htmlReady()
+     * @type {Panel}
+     */
     var searchResultsPanel;
     
-    /** @type {Entry} the File selected on the initial search */
+    /**
+     * The File selected on the initial search
+     * @type {Entry}
+     */
     var selectedEntry;
     
-    /** @type {number} The index of the first result that is displayed */
+    /**
+     * The index of the first result that is displayed
+     * @type {number}
+     */
     var currentStart = 0;
     
-    /** @type {string} The current search query */
+    /**
+     * The current search query
+     * @type {string}
+     */
     var currentQuery = "";
     
-    /** @type {RegExp} The current search query regular expression */
+    /**
+     * The current search query regular expression
+     * @type {RegExp}
+     */
     var currentQueryExpr = null;
     
-    /** @type {?FileSystemEntry} Root of subtree to search in, or single file to search in, or null to search entire project */
+    /**
+     * Root of subtree to search in, or single file to search in, or null to search entire project
+     * @type {?FileSystemEntry}
+     */
     var currentScope = null;
     
-    /** @type {string} Compiled filter from FileFilters */
+    /**
+     * Compiled filter from FileFilters
+     * @type {string}
+     */
     var currentFilter = null;
     
-    /** @type {boolean} True if the matches in a file reached FIND_IN_FILE_MAX */
+    /**
+     * True if the matches in a file reached FIND_IN_FILE_MAX
+     * @type {boolean}
+     */
     var maxHitsFoundInFile = false;
     
-    /** @type {string} The setTimeout id, used to clear it if required */
+    /**
+     * The setTimeout id, used to clear it if required
+     * @type {string}
+     */
     var timeoutID = null;
     
-    /** @type {$.Element} jQuery elements used in the search results */
+    /**
+     * jQuery elements used in the search results
+     * @type {$.Element}
+     */
     var $searchResults,
         $searchSummary,
         $searchContent,
         $selectedRow;
     
-    /** @type {FindInFilesDialog} dialog having the modalbar for search */
+    /**
+     * dialog having the modalbar for search
+     * @type {FindInFilesDialog}
+     */
     var dialog = null;
     
     /**
@@ -936,7 +977,7 @@ define(function (require, exports, module) {
      * Shows the search dialog
      * @param {string=} initialString  Default text to prepopulate the search field with
      * @param {Entry=} scope  Search scope, or null to search whole project
-     * @returns {$.Promise} that is resolved with the string to search for
+     * @return {$.Promise} that is resolved with the string to search for
      */
     FindInFilesDialog.prototype.showDialog = function (initialString, scope) {
         // Note the prefix label is a simple "Find:" - the "in ..." part comes after the text field

@@ -63,26 +63,58 @@ define(function (require, exports, module) {
      * Handlers for commands related to document handling (opening, saving, etc.)
      */
 
-    /** @type {jQueryObject} Container for label shown above editor; must be an inline element */
+    /**
+     * Container for label shown above editor; must be an inline element
+     * @type {jQueryObject}
+     */
     var _$title = null;
-    /** @type {jQueryObject} Container for dirty dot; must be an inline element */
+
+    /**
+     * Container for dirty dot; must be an inline element
+     * @type {jQueryObject}
+     */
     var _$dirtydot = null;
-    /** @type {jQueryObject} Container for _$title; need not be an inline element */
+
+    /**
+     * Container for _$title; need not be an inline element
+     * @type {jQueryObject}
+     */
     var _$titleWrapper = null;
-    /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
+
+    /**
+     * Label shown above editor for current document: filename and potentially some of its path
+     * @type {string}
+     */
     var _currentTitlePath = null;
-    /** @type {string} String template for window title. Use emdash on mac only. */
+
+    /**
+     * String template for window title. Use emdash on mac only.
+     * @type {string}
+     */
     var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} - {1}" : "{0} \u2014 {1}";
 
-    /** @type {jQueryObject} Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize */
+    /**
+     * Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize
+     * @type {jQueryObject}
+     */
     var _$titleContainerToolbar = null;
-    /** @type {Number} Last known height of _$titleContainerToolbar */
+
+    /**
+     * Last known height of _$titleContainerToolbar
+     * @type {number}
+     */
     var _lastToolbarHeight = null;
 
-    /** @type {Number} index to use for next, new Untitled document */
+    /**
+     * index to use for next, new Untitled document
+     * @type {number}
+     */
     var _nextUntitledIndexToUse = 1;
 
-    /** @type {boolean} prevents reentrancy of browserReload() */
+    /**
+     * prevents reentrancy of browserReload()
+     * @type {boolean}
+     */
     var _isReloading = false;
 
     /** Unique token used to indicate user-driven cancellation of Save As (as opposed to file IO error) */
@@ -90,7 +122,10 @@ define(function (require, exports, module) {
 
     PreferencesManager.definePreference("defaultExtension", "string", "");
 
-    /** @type {function} JSLint workaround for circular dependency */
+    /**
+     * JSLint workaround for circular dependency
+     * @type {function}
+     */
     var handleFileSaveAs;
 
     function updateTitle() {

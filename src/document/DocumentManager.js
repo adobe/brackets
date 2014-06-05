@@ -226,7 +226,7 @@ define(function (require, exports, module) {
      * @param {!string} fullPath
      * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
      *          use only.
-     * @returns {number} index
+     * @return {number} index
      */
     function findInWorkingSet(fullPath, list) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneViewList() instead of DocumentManager.findInWorkingSet()", true);

@@ -58,32 +58,56 @@ define(function (require, exports, module) {
         searchReplacePanelTemplate   = require("text!htmlContent/search-replace-panel.html"),
         searchReplaceResultsTemplate = require("text!htmlContent/search-replace-results.html");
 
-    /** @const Maximum file size to search within (in chars) */
+    /**
+     * Maximum file size to search within (in chars)
+     * @const {number}
+     */
     var FIND_MAX_FILE_SIZE  = 500000;
 
-    /** @const If the number of matches exceeds this limit, inline text highlighting and scroll-track tickmarks are disabled */
+    /**
+     * If the number of matches exceeds this limit, inline text highlighting and scroll-track tickmarks are disabled
+     * @const {number}
+     */
     var FIND_HIGHLIGHT_MAX  = 2000;
 
-    /** @const Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced */
+    /**
+     * Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced
+     * @const {number}
+     */
     var REPLACE_ALL_MAX     = 300;
     
-    /** @type {!Panel} Panel that shows results of replaceAll action */
+    /**
+     * Panel that shows results of replaceAll action
+     * @type {!Panel}
+     */
     var replaceAllPanel = null;
 
-    /** @type {?Document} Instance of the currently opened document when replaceAllPanel is visible */
+    /**
+     * Instance of the currently opened document when replaceAllPanel is visible
+     * @type {?Document}
+     */
     var currentDocument = null;
 
-    /** @type {$.Element} jQuery elements used in the replaceAll panel */
+    /**
+     * jQuery elements used in the replaceAll panel
+     * @type {$.Element}
+     */
     var $replaceAllContainer,
         $replaceAllWhat,
         $replaceAllWith,
         $replaceAllSummary,
         $replaceAllTable;
 
-    /** @type {?ModalBar} Currently open Find or Find/Replace bar, if any */
+    /**
+     * Currently open Find or Find/Replace bar, if any
+     * @type {?ModalBar}
+     */
     var modalBar;
     
-    /** @type {!function():void} API from FindInFiles for closing its conflicting search bar, if open */
+    /**
+     * API from FindInFiles for closing its conflicting search bar, if open
+     * @type {!function():void}
+     */
     var closeFindInFilesBar;
     
     function SearchState() {

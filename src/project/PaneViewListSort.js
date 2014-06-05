@@ -206,17 +206,26 @@ define(function (require, exports, module) {
         this._events    = events;
     }
     
-    /** @return {string} The Command ID */
+    /**
+     * The Command ID
+     * @return {string}
+     */
     Sort.prototype.getCommandID = function () {
         return this._commandID;
     };
     
-    /** @return {function(File, File): number} The compare function */
+    /**
+     * The compare function
+     * @return {function(File, File): number}
+     */
     Sort.prototype.getCompareFn = function () {
         return this._compareFn;
     };
     
-    /** @return {string} The DocumentManager events */
+    /**
+     * The DocumentManager events
+     * @return {string}
+     */
     Sort.prototype.getEvents = function () {
         return this._events;
     };

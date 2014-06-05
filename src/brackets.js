@@ -25,12 +25,12 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global require, define, brackets: true, $, window, navigator, Mustache */
 
+// TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
+
 /**
  * brackets is the root of the Brackets codebase. This file pulls in all other modules as
  * dependencies (or dependencies thereof), initializes the UI, and binds global menus & keyboard
  * shortcuts to their Commands.
- *
- * TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
  *
  * Unlike other modules, this one can be accessed without an explicit require() because it exposes
  * a global object, window.brackets.
@@ -150,6 +150,9 @@ define(function (require, exports, module) {
     // read URL params
     params.parse();
     
+    /**
+     * Setup test object
+     */
     function _initTest() {
         // TODO: (issue #265) Make sure the "test" object is not included in final builds
         // All modules that need to be tested from the context of the application
@@ -203,7 +206,10 @@ define(function (require, exports, module) {
             brackets.test.doneLoading = true;
         });
     }
-            
+
+    /**
+     * Setup Brackets
+     */
     function _onReady() {
         PerfUtils.addMeasurement("window.document Ready");
 
