@@ -23,6 +23,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, window, $, brackets */
+
 define(function (require, exports, module) {
     "use strict";
     
@@ -406,19 +407,23 @@ define(function (require, exports, module) {
 
     /* 
      * TODO: This is scaffolding for now.  
-     *       There were 2 different impls of notifyPathDeleted and depending on who caught the 
-     *          operation, it called a different API
-     *       I've refactored projectManager to always call DocumentManager's implementation
-     *          instead of deciding if it should call DocumentManager's or EditorManager's
-     *          Impl based on whether or not the DocumentManager has an open document. This reduces
-     *          the dependency on EditorManager and the decision on whether a document is open.
-     *       The DocumentCammandCommandHandler's doOpen function has _cleanUp code that
-     *          now calls this function to remove the custom viewer and open the next document 
-     *          in the MRU list 
-     *       The impl in DocumentManager  does something I'm not familiar with by calling syncOpenDocuments
-     *          I've redirected it to this function when there isn't an open document so that editorManager
-     *          can release whatever references it had to the document and tear down the editor for it.
-     *       This avoids a circular dependency between EditorManager and DocumentManager (at least for this API)
+     * There were 2 different impls of notifyPathDeleted and depending on who caught the 
+     *  operation, it called a different API
+     *
+     * I've refactored projectManager to always call DocumentManager's implementation
+     *  instead of deciding if it should call DocumentManager's or EditorManager's
+     *  Impl based on whether or not the DocumentManager has an open document. This reduces
+     *  the dependency on EditorManager and the decision on whether a document is open.
+     *
+     * The DocumentCammandCommandHandler's doOpen function has _cleanUp code that
+     *  now calls this function to remove the custom viewer and open the next document 
+     *  in the MRU list 
+     *
+     * The impl in DocumentManager  does something I'm not familiar with by calling syncOpenDocuments
+     *  I've redirected it to this function when there isn't an open document so that editorManager
+     *  can release whatever references it had to the document and tear down the editor for it.
+     *
+     * This avoids a circular dependency between EditorManager and DocumentManager (at least for this API)
      */
     function notifyPathDeleted(fullpath) {
         var fileToOpen = traversePaneViewListByMRU(FOCUSED_PANE, 1);
