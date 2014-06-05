@@ -83,7 +83,7 @@ define(function (require, exports, module) {
     
     var _ = require("thirdparty/lodash");
     
-    var AppInit                 = require("utils/AppInit"),
+    var AppInit             = require("utils/AppInit"),
         DocumentModule      = require("document/Document"),
         DeprecationWarning  = require("utils/DeprecationWarning"),
         MainViewManager     = require("view/MainViewManager"),
@@ -767,7 +767,7 @@ define(function (require, exports, module) {
     }
 
     /* 
-     * Setup an appReady handler to register deprecated events.  
+     * Setup an extensionsReady handler to register deprecated events.  
      * We do this so these events are added to the end of the event
      * handler chain which gives the system a chance to process them
      * before they are dispatched to extensions.  
@@ -778,7 +778,7 @@ define(function (require, exports, module) {
      * handling the event too soon. (e.g.  paneViewListView needs to 
      * process these events before the Extension Highlighter extension)
      */
-    AppInit.appReady(function () {
+    AppInit.extensionsReady(function () {
         _deprecateEvent("workingSetAdd",         "paneViewListAdd");
         _deprecateEvent("workingSetAddList",     "paneViewListAddList");
         _deprecateEvent("workingSetRemove",      "paneViewListRemove");
@@ -793,9 +793,6 @@ define(function (require, exports, module) {
         PreferencesManager.fileChanged(doc.file.fullPath);
     });
     
-    // For unit tests and internal use only
-    exports.clearCurrentDocument           = clearCurrentDocument;
-   
     // Deprecated APIs   
     exports.getWorkingSet                  = getWorkingSet;
     exports.findInWorkingSet               = findInWorkingSet;
@@ -814,6 +811,7 @@ define(function (require, exports, module) {
     exports.createUntitledDocument         = createUntitledDocument;
     exports.getAllOpenDocuments            = getAllOpenDocuments;
     exports.setCurrentDocument             = setCurrentDocument;
+    exports.clearCurrentDocument           = clearCurrentDocument;
     exports.beginDocumentNavigation        = beginDocumentNavigation;
     exports.finalizeDocumentNavigation     = finalizeDocumentNavigation;
     exports.closeFullEditor                = closeFullEditor;

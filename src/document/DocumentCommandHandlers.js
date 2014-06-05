@@ -267,7 +267,7 @@ define(function (require, exports, module) {
                 // the previously opened text file or show no-editor if none exists.
                 MainViewManager.notifyPathDeleted(fullFilePath);
             } else {
-                // For performance, we do lazy checking of file existence, so it may be in working set
+                // For performance, we do lazy checking of file existence, so it may be in pane view list
                 MainViewManager.removeFromPaneViewList(MainViewManager.FOCUSED_PANE, FileSystem.getFileForPath(fullFilePath));
                 EditorManager.focusEditor();
             }
@@ -351,7 +351,7 @@ define(function (require, exports, module) {
             FileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null, function (err, paths) {
                 if (!err) {
                     if (paths.length > 0) {
-                        // Add all files to the working set without verifying that
+                        // Add all files to the pane view list without verifying that
                         // they still exist on disk (for faster opening)
                         var filesToOpen = [],
                             filteredPaths = DragAndDrop.filterFilesToOpen(paths);
@@ -364,7 +364,7 @@ define(function (require, exports, module) {
                         doOpen(filteredPaths[filteredPaths.length - 1], silent)
                             .done(function (doc) {
                                 //  doc may be null, i.e. if an image has been opened.
-                                // Then we do not add the opened file to the working set.
+                                // Then we do not add the opened file to the pane view list.
                                 if (doc) {
                                     MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file);
                                 }
@@ -411,7 +411,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Opens the given file and makes it the current document. Does NOT add it to the working set.
+     * Opens the given file and makes it the current document. Does NOT add it to the pane view list.
      * @param {!{fullPath:string}} Params for FILE_OPEN command;
      * the fullPath string is of the form "path[:lineNumber[:columnNumber]]"
      * lineNumber and columnNumber are 1-origin: the very first line is line 1, and the very first column is column 1.
@@ -447,16 +447,16 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Opens the given file, makes it the current document, AND adds it to the working set
+     * Opens the given file, makes it the current document, AND adds it to the pane view list
      * only if the file does not have a custom viewer.
      * @param {!{fullPath:string, index:number=, forceRedraw:boolean}} commandData  File to open; optional position in
-     *   working set list (defaults to last); optional flag to force working set redraw
+     *   pane view list list (defaults to last); optional flag to force pane view list redraw
      */
     function handleOpenDocumentInNewPane(commandData) {
         return handleFileOpen(commandData).done(function (doc) {
-            // addToWorkingSet is synchronous
+            // addToPaneViewList is synchronous
             // When opening a file with a custom viewer, we get a null doc.
-            // So check it before we add it to the working set.
+            // So check it before we add it to the pane view list.
             if (doc) {
                 MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file, commandData.index, commandData.forceRedraw);
             }
@@ -520,7 +520,7 @@ define(function (require, exports, module) {
         // If a file is currently selected in the tree, put it next to it.
         // If a directory is currently selected in the tree, put it in it.
         // If an Untitled document is selected or nothing is selected in the tree, put it at the root of the project.
-        // (Note: 'selected' may be an item that's selected in the working set and not the tree; but in that case
+        // (Note: 'selected' may be an item that's selected in the pane view list and not the tree; but in that case
         // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
         var baseDirEntry,
             selected = ProjectManager.getSelectedItem();
@@ -546,7 +546,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Create a new untitled document in the working set, and make it the current document.
+     * Create a new untitled document in the pane view list, and make it the current document.
      * Promise is resolved (synchronously) with the newly-created Document.
      */
     function handleFileNew() {
@@ -757,20 +757,20 @@ define(function (require, exports, module) {
                 result.resolve(newFile);
             }
             
-            // Replace old document with new one in open editor & working set
+            // Replace old document with new one in open editor & pane view list
             function openNewFile() {
                 var fileOpenPromise;
 
                 if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
-                    // If selection is in the tree, leave working set unchanged - even if orig file is in the list
+                    // If selection is in the tree, leave pane view list unchanged - even if orig file is in the list
                     fileOpenPromise = FileViewController
                         .openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
                 } else {
-                    // If selection is in working set, replace orig item in place with the new file
+                    // If selection is in pane view list, replace orig item in place with the new file
                     var index = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, doc.file.fullPath);
-                    // Remove old file from working set; no redraw yet since there's a pause before the new file is opened
-                    DocumentManager.removeFromWorkingSet(doc.file, true);
-                    // Add new file to working set, and ensure we now redraw (even if index hasn't changed)
+                    // Remove old file from pane view list; no redraw yet since there's a pause before the new file is opened
+                    DocumentManager.removeFromPaneViewList(doc.file, true);
+                    // Add new file to pane view list, and ensure we now redraw (even if index hasn't changed)
                     fileOpenPromise = handleOpenDocumentInNewPane({fullPath: path, index: index, forceRedraw: true});
                 }
 
@@ -800,9 +800,9 @@ define(function (require, exports, module) {
                     // If there were unsaved changes before Save As, they don't stay with the old
                     // file anymore - so must revert the old doc to match disk content.
                     // Only do this if the doc was dirty: doRevert on a file that is not dirty and
-                    // not in the working set has the side effect of adding it to the working set.
+                    // not in the pane view list has the side effect of adding it to the pane view list.
                     if (doc.isDirty && !(doc.isUntitled())) {
-                        // if the file is dirty it must be in the working set
+                        // if the file is dirty it must be in the pane view list
                         // doRevert is side effect free in this case
                         doRevert(doc).always(openNewFile);
                     } else {
@@ -925,7 +925,7 @@ define(function (require, exports, module) {
                         });
                     return savePromise;
                 } else {
-                    // working set entry that was never actually opened - ignore
+                    // pane view list entry that was never actually opened - ignore
                     filesAfterSave.push(file);
                     return (new $.Deferred()).resolve().promise();
                 }
@@ -980,7 +980,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Closes the specified file: removes it from the working set, and closes the main editor if one
+     * Closes the specified file: removes it from the pane view list, and closes the main editor if one
      * is open. Prompts user about saving changes first, if document is dirty.
      *
      * @param {?{file: File, promptOnly:boolean}} commandData  Optional bag of arguments:
@@ -1004,10 +1004,10 @@ define(function (require, exports, module) {
             _forceClose = commandData._forceClose;
         }
         
-        // utility function for handleFileClose: closes document & removes from working set
+        // utility function for handleFileClose: closes document & removes from pane view list
         function doClose(file) {
             if (!promptOnly) {
-                // This selects a different document if the working set has any other options
+                // This selects a different document if the pane view list has any other options
                 DocumentManager.closeFullEditor(file);
                 
                 EditorManager.focusEditor();
@@ -1330,7 +1330,7 @@ define(function (require, exports, module) {
         // Prefer selected sidebar item (which could be a folder)
         var entry = ProjectManager.getSelectedItem();
         if (!entry) {
-            // Else use current file (not selected in ProjectManager if not visible in tree or working set)
+            // Else use current file (not selected in ProjectManager if not visible in tree or pane view list)
             var doc = DocumentManager.getCurrentDocument();
             entry = doc && doc.file;
         }
@@ -1432,7 +1432,7 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Show the selected sidebar (tree or working set) item in Finder/Explorer */
+    /** Show the selected sidebar (tree or pane view list) item in Finder/Explorer */
     function handleShowInOS() {
         var entry = ProjectManager.getSelectedItem();
         if (entry) {

@@ -117,7 +117,6 @@ define(function (require, exports, module) {
             return CodeMirror;
         }
     });
-    
   
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
@@ -139,7 +138,7 @@ define(function (require, exports, module) {
     require("file/NativeFileSystem");
     require("file/NativeFileError");
     
-    // Compatibility shim for PanelManager to Workspace Manager migration
+    // Compatibility shim for PanelManager to WorkspaceManager migration
     require("view/PanelManager");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
@@ -248,6 +247,9 @@ define(function (require, exports, module) {
             
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
+               // Signal that extensions are loaded
+                AppInit._dispatchReady(AppInit.EXTENSIONS_READY);
+
                 // Finish UI initialization
                 ViewCommandHandlers.restoreFontSize();
                 var initialProjectPath = ProjectManager.getInitialProjectPath();

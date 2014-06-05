@@ -43,8 +43,8 @@ define(function (require, exports, module) {
     /**
      * @private
      * Create a deprecation warning and action for updated menu constants
-     * @param {!string} oldConstant
-     * @param {!string} newConstant
+     * @param {!string} old Menu Id
+     * @param {!string} new Menu Id
      */
     function _deprecateMenuId(obj, oldId, newId) {
         var warning     = "Use Menus." + newId + " instead of Menus." + oldId,

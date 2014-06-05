@@ -425,7 +425,7 @@ define(function (require, exports, module) {
      */
     function notifyPathDeleted(fullpath) {
         var fileToOpen = traversePaneViewListByMRU(FOCUSED_PANE, 1);
-        EditorManager.notifyPathDeleted(fullpath);
+        EditorManager.notifyPathDeleted(fullpath, fileToOpen);
     }
     
     /**
