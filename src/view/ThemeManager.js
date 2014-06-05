@@ -162,10 +162,6 @@ define(function (require, exports, module) {
                 return $.Deferred().reject("Theme not found");
             }
 
-            if (theme.css) {
-                $(theme.css).remove();
-            }
-
             return FileUtils.readAsText(theme.file)
                 .then(function(content) {
                     var result = extractScrollbars(content);
@@ -176,10 +172,14 @@ define(function (require, exports, module) {
                     return lessifyTheme(content, theme);
                 })
                 .then(function(style) {
-                    console.log(style);
                     return ExtensionUtils.addEmbeddedStyleSheet(style);
                 })
                 .then(function(styleNode) {
+                    // Remove after the style has been applied to avoid weird flashes
+                    if (theme.css) {
+                        $(theme.css).remove();
+                    }
+
                     theme.css = styleNode;
                     return theme;
                 })
