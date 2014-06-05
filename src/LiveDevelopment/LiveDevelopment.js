@@ -376,8 +376,8 @@ define(function LiveDevelopment(require, exports, module) {
     /**
      * @private
      * Create a live version of a Brackets document
-     * @param {Document} doc
-     * @param {Editor} editor
+     * @param {Document} doc Current document
+     * @param {Editor} editor Current editor
      * @return {?(HTMLDocument|CSSDocument)}
      */
     function _createDocument(doc, editor) {
@@ -395,6 +395,18 @@ define(function LiveDevelopment(require, exports, module) {
         return liveDocument;
     }
 
+    /**
+     * @private
+     * Initialize `_liveDocument`.
+     * @param {Document} doc Current document
+     */
+    function _createLiveDocumentForFrame(doc) {
+        // create live document
+        doc._ensureMasterEditor();
+        _liveDocument = _createDocument(doc, doc._masterEditor);
+        _server.add(_liveDocument);
+    }
+    
     /** Enable an agent. Takes effect next time a connection is made. Does not affect
      *  current live development sessions.
      *
@@ -1162,13 +1174,6 @@ define(function LiveDevelopment(require, exports, module) {
         });
     }
 
-    function _createLiveDocumentForFrame(doc) {
-        // create live document
-        doc._ensureMasterEditor();
-        _liveDocument = _createDocument(doc, doc._masterEditor);
-        _server.add(_liveDocument);
-    }
-    
     // helper function that actually does the launch once we are sure we have
     // a doc and the server for that doc is up and running.
     function _doLaunchAfterServerReady(initialDoc) {
