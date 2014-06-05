@@ -31,12 +31,7 @@ define(function (require, exports, module) {
         scrollbarsRegex = /(?:[^}|,]*)::-webkit-scrollbar(?:[\s\S]*?){(?:[\s\S]*?)}/mg,
         validExtensions = ["css", "less"];
 
-
-    // Load up reset.css to override brackground settings from brackets because
-    // they make the themes look really bad.
-    ExtensionUtils.addLinkedStyleSheet("themes/reset.css");
     ExtensionUtils.addLinkedStyleSheet("styles/brackets_theme_settings.css");
-
 
     /**
     * @constructor
@@ -44,13 +39,14 @@ define(function (require, exports, module) {
     * @param {File} file for the theme
     * @param {string} displayName is an optional parameter used as the display name for the theme
     */
-    function Theme(file, displayName) {
+    function Theme(file, options) {
+        options = options || {};
         var fileName = file.name;
 
         this.file        = file;
-        this.displayName = displayName || toDisplayName(fileName);
-        this.name        = fileName.substring(0, fileName.lastIndexOf('.'));
-        this.className   = "theme-" + this.name;
+        this.displayName = options.title     || toDisplayName(fileName);
+        this.name        = options.name      || fileName.substring(0, fileName.lastIndexOf('.'));
+        this.className   = options.className || "theme-" + this.name;
     }
 
 
@@ -162,6 +158,10 @@ define(function (require, exports, module) {
     */
     function loadCurrentThemes() {
         return $.when(undefined, _.map(getCurrentThemes(), function (theme) {
+            if (!theme) {
+                return $.Deferred().reject("Theme not found");
+            }
+
             if (theme.css) {
                 $(theme.css).remove();
             }
@@ -176,6 +176,7 @@ define(function (require, exports, module) {
                     return lessifyTheme(content, theme);
                 })
                 .then(function(style) {
+                    console.log(style);
                     return ExtensionUtils.addEmbeddedStyleSheet(style);
                 })
                 .then(function(styleNode) {
@@ -240,7 +241,8 @@ define(function (require, exports, module) {
     *    name for the theme
     * @return {$.Deferred} promise object resolved with the theme to be loaded from fileName
     */
-    function loadFile(fileName, displayName) {
+    function loadFile(fileName, options) {
+        options = options || {};
         var deferred      = new $.Deferred(),
             file          = FileSystem.getFileForPath(fileName),
             currentThemes = (prefs.get("themes") || []);
@@ -249,7 +251,7 @@ define(function (require, exports, module) {
             var theme;
 
             if (exists) {
-                theme = new Theme(file, displayName);
+                theme = new Theme(file, options);
                 _themes[theme.name] = theme;
                 ThemeSettings.setThemes(_themes);
 
@@ -279,7 +281,7 @@ define(function (require, exports, module) {
     */
     function loadPackage(themePackage) {
         var fileName = themePackage.path + "/" + themePackage.metadata.theme;
-        return loadFile(fileName, themePackage.metadata.title);
+        return loadFile(fileName, themePackage.metadata);
     }
 
 
@@ -380,10 +382,13 @@ define(function (require, exports, module) {
 
     // When the app is ready, we need to try to load whatever theme needs to be processed
     AppInit.appReady(function() {
-        loadCurrentThemes().done(function(){
-            themeReady = true;
-            refresh();
-        });
+        loadCurrentThemes()
+            .always(function() {
+                themeReady = true;
+            })
+            .done(function(){
+                refresh();
+            });
     });
 
 
