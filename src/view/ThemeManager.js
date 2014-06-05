@@ -391,15 +391,6 @@ define(function (require, exports, module) {
             });
     });
 
-
-    /**
-    * TODO: remove temporary code to load all themes from CodeMirror.  This is just to test
-    * the whole workflow of loading an entire directory and also to show case themes in brackets :)
-    */
-    var cm_path = FileUtils.getNativeBracketsDirectoryPath() + "/thirdparty/CodeMirror2";
-    loadDirectory(cm_path + "/theme");
-
-
     //
     // Exposed API
     //
