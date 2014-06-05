@@ -1761,12 +1761,17 @@ define(function (require, exports, module) {
             // Return the promise for the `_nextSaveDeferred` if there is one.
             // If there isn't, return the promise for the current save operation (if there is one).
             // If there isn't one of those, return a resolved promise.
-            var deferred = this._nextSaveDeferred || this._saveInProgress || (new $.Deferred()).resolve();
-            
+            var deferred = this._nextSaveDeferred || this._saveInProgress;
+
+            if (!deferred) {
+                this.finalized = true;
+                return (new $.Deferred()).resolve().promise();
+            }
+
             deferred.done(function () {
                 this.finalized = true;
-            });
-            
+            }.bind(this));
+
             return deferred.promise();
         }
     });
