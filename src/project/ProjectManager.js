@@ -126,13 +126,23 @@ define(function (require, exports, module) {
     var viewModel = new FileTreeView.ViewModel(),
         model = new ProjectModel.ProjectModel();
     
+    var _renderTree;
+    
     function Dispatcher(model, viewModel) {
         this.model = model;
         this.viewModel = viewModel;
+        this._bindEvents();
     }
     
-    var _renderTree;
+    Dispatcher.prototype._bindEvents = function () {
+        this.viewModel.on(FileTreeView.CHANGE, function () {
+            _renderTree();
+        });
+    };
     
+    var dispatcher = new Dispatcher(model, viewModel);
+    
+
     /**
      * Returns the File or Directory corresponding to the item selected in the sidebar panel, whether in
      * the file tree OR in the working set; or null if no item is selected anywhere in the sidebar.
@@ -170,9 +180,7 @@ define(function (require, exports, module) {
     function _setProjectRoot(rootEntry) {
         model.projectRoot = rootEntry;
         model._resetCache();  // invalidate getAllFiles() cache as soon as _projectRoot changes
-        viewModel.setProjectRoot(rootEntry).then(function () {
-            _renderTree();
-        });
+        viewModel.setProjectRoot(rootEntry);
     }
 
     /**
