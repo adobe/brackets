@@ -554,7 +554,7 @@ define(function (require, exports, module) {
                 // from an older version.
                 editor.setSelection(viewState.selection.start, viewState.selection.end);
             }
-            if (viewState.selections) {s
+            if (viewState.selections) {
                 editor.setSelections(viewState.selections);
             }
             if (viewState.scrollPos) {
