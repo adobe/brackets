@@ -47,7 +47,8 @@ define(function (require, exports, module) {
     function _formatDirectoryContents(contents) {
         return contents.map(function (entry) {
             if (entry.isFile) {
-                var i = entry.name.lastIndexOf(".");
+                // if the name starts with a dot, treat the whole name as the filename not an extension
+                var i = entry.name.lastIndexOf(".") || entry.name.length;
                 return {
                     name: entry.name.substr(0, i > -1 ? i : entry.name.length),
                     extension: entry.name.substring(i)
@@ -90,9 +91,8 @@ define(function (require, exports, module) {
         return contents.sort(dirsFirst ? _dirsFirstCompare : _nameCompare);
     }
     
-    function ViewModel(projectRoot) {
-        this.projectRoot = projectRoot;
-        this.treeData = [];
+    function ViewModel() {
+        this.setProjectRoot(null);
     }
     
     /**
@@ -130,7 +130,12 @@ define(function (require, exports, module) {
         return deferred.promise();
     };
     
-    ViewModel.prototype.initializeRoot = function () {
+    ViewModel.prototype.setProjectRoot = function (root) {
+        this.projectRoot = root;
+        this.treeData = [];
+        if (!root) {
+            return new $.Deferred().resolve().promise();
+        }
         return this.updateContents(this.projectRoot, this.treeData);
     };
     
@@ -307,7 +312,7 @@ define(function (require, exports, module) {
             },
                 DOM.ins({
                     className: "jstree-icon"
-                }, "&nbsp;"),
+                }, " "),
                 DOM.a({
                     href: "#",
                     className: fileClasses
@@ -327,7 +332,7 @@ define(function (require, exports, module) {
             },
                 DOM.ins({
                     className: "jstree-icon"
-                }, "&nbsp;"),
+                }, " "),
                 DOM.input({
                     className: "sidebar-context jstree-clicked",
                     type: "text",
@@ -337,8 +342,43 @@ define(function (require, exports, module) {
                 }));
         }
     });
+    
+    var directoryNode, directoryContents;
+    
+    directoryNode = React.createClass({
+        render: function () {
+            var entry = this.props.entry,
+                nodeClass,
+                childNodes;
+            
+            if (entry.children) {
+                nodeClass = "open";
+                childNodes = directoryContents({
+                    contents: entry.children
+                });
+            } else {
+                nodeClass = "closed";
+            }
+            
+            return DOM.li({
+                className: "jstree-" + nodeClass,
+                onClick: this.handleClick
+            },
+                DOM.ins({
+                    className: "jstree-icon"
+                }, " "),
+                DOM.a({
+                    href: "#"
+                },
+                      DOM.ins({
+                        className: "jstree-icon"
+                    }, " "),
+                      entry.name),
+                childNodes);
+        }
+    });
 
-    var directoryNode = React.createClass({
+    directoryContents = React.createClass({
         handleClick: function () {
             if (this.props.togglePath) {
                 var newOpen = !this.props.open;
@@ -350,72 +390,39 @@ define(function (require, exports, module) {
             return false;
         },
         render: function () {
-            var nodes,
-                entry = this.props.entry;
-            if (entry.children) {
-                var dirsFirst = this.props.dirsFirst;
-                nodes = entry.children.map(function (entry) {
-                    return this._formatEntry(entry);
-                }.bind(this));
-            } else {
-                nodes = [];
-            }
+            var ulProps = this.props.isRoot ? {
+                className: "jstree-no-dots jstree-no-icons"
+            } : null;
             
-            if (this.props.skipRoot) {
-                return DOM.div(null, nodes);
-            }
-            
-            var open = entry.children !== null ? "open" : "closed";
-            
-            return DOM.li({
-                className: "jstree-" + open,
-                onClick: this.handleClick
-            },
-                DOM.ins({
-                    className: "jstree-icon"
-                }, "&nbsp;"),
-                DOM.a({
-                    href: "#"
-                },
-                    DOM.ins({
-                        className: "jstree-icon"
-                    }, "&nbsp;"),
-                    entry.name),
-                    DOM.ul(null, nodes));
-        },
-        
-        _formatEntry: function (entry) {
-            if (entry.children !== undefined) {
-                return directoryNode({
-                    key: entry.fullPath,
-                    entry: entry
-                });
-            } else {
-                if (this.props.rename && this.props.context === entry.fullPath) {
-                    return fileRename({
-                        key: entry.fullPath,
-                        cancel: this.props.rename.cancel,
-                        file: entry
+            return DOM.ul(ulProps, this.props.contents.map(function (entry) {
+                // TODO: set keys
+                if (entry.children !== undefined) {
+                    return directoryNode({
+                        entry: entry
+                    });
+                } else {
+                    return fileNode({
+                        entry: entry
                     });
                 }
-                return fileNode({
-                    key: entry.fullPath,
-                    entry: entry
-                });
-            }
+            }));
         }
     });
     
     var fileTreeView = React.createClass({
         render: function () {
-            return DOM.ul({
-                className: "jstree-no-dots jstree-no-icons"
-            },
-                directoryNode({
-                    key: this.props.viewModel.projectRoot.fullPath,
-                    entry: this.props.viewModel.projectRoot,
-                    skipRoot: true,
-                }));
+            return directoryContents({
+                isRoot: true,
+                contents: this.props.viewModel.treeData
+            });
+//            return DOM.ul({
+//                className: "jstree-no-dots jstree-no-icons"
+//            },
+//                directoryContents({
+//                    key: this.props.viewModel.projectRoot.fullPath,
+//                    entry: this.props.viewModel.treeData,
+//                    skipRoot: true,
+//                }));
         }
         
     });
@@ -451,6 +458,7 @@ define(function (require, exports, module) {
     exports._sortFormattedDirectory = _sortFormattedDirectory;
     exports._fileNode = fileNode;
     exports._directoryNode = directoryNode;
+    exports._directoryContents = directoryContents;
     exports._fileTreeView = fileTreeView;
     
     exports.CHANGE = CHANGE;

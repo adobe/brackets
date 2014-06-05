@@ -71,6 +71,22 @@ define(function (require, exports, module) {
                         }
                     ]);
                 });
+                
+                it("should treat dotfiles as filenames and not extensions", function () {
+                    var result = FileTreeView._formatDirectoryContents([
+                        {
+                            fullPath: "/path/to/.dotfile",
+                            name: ".dotfile",
+                            isFile: true
+                        }
+                    ]);
+                    expect(result).toEqual([
+                        {
+                            name: ".dotfile",
+                            extension: ""
+                        }
+                    ]);
+                });
             });
             
             describe("_sortFormattedDirectory", function () {
@@ -173,22 +189,24 @@ define(function (require, exports, module) {
             });
             
             describe("updateContents", function () {
+                var root = {
+                    fullPath: "/path/to/project/",
+                    getContents: function (callback) {
+                        setTimeout(function () {
+                            callback(null, contents);
+                        }, 10);
+                    }
+                };
+                
                 it("should create a formatted, sorted list of objects", function () {
-                    var vm = new FileTreeView.ViewModel({
-                        fullPath: "/path/to/project/",
-                        getContents: function (callback) {
-                            setTimeout(function () {
-                                callback(null, contents);
-                            }, 10);
-                        }
-                    });
+                    var vm = new FileTreeView.ViewModel();
                     
                     var receivedChange = false;
                     vm.on(FileTreeView.CHANGE, function () {
                         receivedChange = true;
                     });
                     
-                    waitsForDone(vm.initializeRoot());
+                    waitsForDone(vm.setProjectRoot(root));
                     
                     runs(function () {
                         expect(vm.treeData).toEqual([
@@ -207,6 +225,15 @@ define(function (require, exports, module) {
                             }
                         ]);
                         expect(receivedChange).toBe(true);
+                    });
+                });
+                
+                it("should reset the treeData if the project root changes", function () {
+                    var vm = new FileTreeView.ViewModel();
+                    waitsForDone(vm.setProjectRoot(root));
+                    waitsForDone(vm.setProjectRoot(root));
+                    runs(function () {
+                        expect(vm.treeData.length).toBe(3);
                     });
                 });
             });
@@ -241,21 +268,29 @@ define(function (require, exports, module) {
             ]
         };
         
-        describe("_directoryNode", function () {
-            it("should be able to list files", function () {
+        describe("_directoryNode and _directoryContents", function () {
+            it("should format a closed directory", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
                     entry: {
                         name: "thedir",
-                        children: [
-                            {
-                                name: "afile",
-                                extension: ".js"
-                            }
-                        ]
+                        children: null
                     }
                 }));
-                var dirLI = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-open"),
-                    fileLI = RTU.findRenderedDOMComponentWithClass(dirLI, "jstree-leaf"),
+                var dirLI = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-closed"),
+                    dirA = RTU.findRenderedDOMComponentWithTag(dirLI, "a");
+                expect(dirA.props.children[1]).toBe("thedir");
+            });
+            
+            it("should be able to list files", function () {
+                var rendered = RTU.renderIntoDocument(FileTreeView._directoryContents({
+                    contents: [
+                        {
+                            name: "afile",
+                            extension: ".js"
+                        }
+                    ]
+                }));
+                var fileLI = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-leaf"),
                     fileA = RTU.findRenderedDOMComponentWithTag(fileLI, "a");
                 expect(fileA.props.children[0]).toBe("afile");
             });
@@ -290,26 +325,15 @@ define(function (require, exports, module) {
                 expect(aTags[0].props.children[1]).toBe("subdir");
                 expect(aTags[1].props.children[0]).toBe("afile");
             });
-            
-            it("can skip the root node", function () {
-                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
-                    entry: twoLevel,
-                    skipRoot: true
-                }));
-                var dirLIs = RTU.scryRenderedDOMComponentsWithClass(rendered, "jstree-open");
-                expect(dirLIs.length).toBe(1);
-                var subdirLI = dirLIs[0],
-                    aTags = RTU.scryRenderedDOMComponentsWithTag(subdirLI, "a");
-                expect(aTags.length).toBe(2);
-                expect(aTags[0].props.children[1]).toBe("subdir");
-                expect(aTags[1].props.children[0]).toBe("afile");
-            });
         });
         
         describe("_fileTreeView", function () {
-            it("should render the directory with the root skipped", function () {
+            it("should render the directory", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._fileTreeView({
-                    viewModel: new FileTreeView.ViewModel(twoLevel)
+                    viewModel: {
+                        projectRoot: {},
+                        treeData: twoLevel.children
+                    }
                 })),
                     rootNode = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-no-dots"),
                     aTags = RTU.scryRenderedDOMComponentsWithTag(rootNode, "a");
@@ -322,7 +346,9 @@ define(function (require, exports, module) {
         describe("render", function () {
             it("should render into the given element", function () {
                 var el = document.createElement("div"),
-                    viewModel = new FileTreeView.ViewModel(twoLevel);
+                    viewModel = new FileTreeView.ViewModel();
+                viewModel.treeData = twoLevel.children;
+                viewModel.projectRoot = {};
                 FileTreeView.render(el, viewModel);
                 expect($(el).hasClass("jstree")).toBe(true);
                 expect($(".jstree-no-dots", el).length).toBe(1);

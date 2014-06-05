@@ -170,7 +170,9 @@ define(function (require, exports, module) {
     function _setProjectRoot(rootEntry) {
         model.projectRoot = rootEntry;
         model._resetCache();  // invalidate getAllFiles() cache as soon as _projectRoot changes
-        viewModel = new FileTreeView.ViewModel(rootEntry);
+        viewModel.setProjectRoot(rootEntry).then(function () {
+            _renderTree();
+        });
     }
 
     /**
