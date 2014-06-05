@@ -671,6 +671,13 @@ define(function (require, exports, module) {
      * @param {string} path The path of the file/folder that has been deleted
      */
     function notifyPathDeleted(path) {
+        /*
+         * This code was migrated from Project Manager to start condensing the 
+         *  functionality into MainViewManager and reduce dependencies. Unfortunately, 
+         *  the case of deleting the current document still needs to go through the 
+         *  syncOpenDocuments API and dispatch the pathDeleted event. This will be
+         *  refactored soon.
+         */
         if (getCurrentDocument()) {
             /* FileSyncManager.syncOpenDocuments() does all the work of closing files
                in the working set and notifying the user of any unsaved changes. */
