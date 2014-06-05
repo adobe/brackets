@@ -211,25 +211,17 @@ define(function (require, exports, module) {
             return;
         }
 
-        var editor = EditorManager.getActiveEditor();
-        if (!editor || !editor._codeMirror) {
-            return;
-        }
+        $.when(force && loadCurrentThemes()).done(function() {
+            var editor = EditorManager.getActiveEditor();
+            if (!editor || !editor._codeMirror) {
+                return;
+            }
 
-        var cm =  editor._codeMirror;
-
-        ThemeView.setDocumentMode(cm);
-
-        if (!force) {
+            var cm =  editor._codeMirror;
+            ThemeView.setDocumentMode(cm);
             ThemeView.updateThemes(cm);
             refreshEditor(cm);
-        }
-        else {
-            loadCurrentThemes().done(function() {
-                ThemeView.updateThemes(cm);
-                refreshEditor(cm);
-            });
-        }
+        });
     }
 
 
