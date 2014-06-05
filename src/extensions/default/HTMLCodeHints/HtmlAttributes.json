@@ -75,6 +75,7 @@
     "onreadystatechange": { "attribOption": [], "global": "true" },
     "onreset":            { "attribOption": [], "global": "true" },
     "onscroll":           { "attribOption": [], "global": "true" },
+    "onsearch":           { "attribOption": [], "global": "true" },
     "onseeked":           { "attribOption": [], "global": "true" },
     "onseeking":          { "attribOption": [], "global": "true" },
     "onselect":           { "attribOption": [], "global": "true" },
