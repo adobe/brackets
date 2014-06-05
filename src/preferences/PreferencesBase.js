@@ -36,10 +36,10 @@
  * PreferencesManager.js sets up a singleton PreferencesSystem that has the following Scopes:
  *
  * * default (the default values for any settings that are explicitly registered)
- * *  user (the user's customized settings – the equivalent of Brackets' old 
- *        localStorage-based system. This is the settings file that lives in AppData)
+ * * user (the user's customized settings – the equivalent of Brackets' old 
+ *   localStorage-based system. This is the settings file that lives in AppData)
  * * Additional scopes for each .brackets.json file going upward in the file tree from the
- *        current file
+ *   current file
  * 
  * For example, if spaceUnits has a value set in a .brackets.json file near the open file, 
  * then a call to get("spaceUnits") would return the value from that file. File values come 
@@ -75,6 +75,7 @@ define(function (require, exports, module) {
      */
     
     /**
+     * @constructor
      * MemoryStorage, as the name implies, stores the preferences in memory.
      * This is suitable for single session data or testing.
      * 
@@ -122,6 +123,7 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @constructor
      * Error type for problems parsing preference files.
      * 
      * @param {string} message Error message
@@ -134,6 +136,7 @@ define(function (require, exports, module) {
     ParsingError.prototype = new Error();
     
     /**
+     * @constructor
      * Loads/saves preferences from a JSON file on disk.
      * 
      * @param {string} path Path to the preferences file
@@ -251,6 +254,7 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @constructor
      * A `Scope` is a data container that is tied to a `Storage`.
      * 
      * Additionally, `Scope`s support "layers" which are additional levels of preferences
@@ -672,6 +676,7 @@ define(function (require, exports, module) {
 //    }
     
     /**
+     * @constructor
      * There can be multiple paths and they are each checked in turn. The first that matches the
      * currently edited file wins.
      * 
@@ -833,6 +838,7 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @constructor
      * Represents a single, known Preference.
      * 
      * @param {Object} properties Information about the Preference that is stored on this object
@@ -864,10 +870,11 @@ define(function (require, exports, module) {
     });
     
     /**
+     * @constructor
      * Provides a subset of the PreferencesSystem functionality with preference
      * access always occurring with the given prefix.
      * 
-     * @param {PreferencesSystem} baseSystem The real PreferencesSystem that is backing this one
+     * @param {PreferencesSystem} base The real PreferencesSystem that is backing this one
      * @param {string} prefix Prefix that is used for preferences lookup. Any separator characters should already be added.
      */
     function PrefixedPreferencesSystem(base, prefix) {
@@ -1030,6 +1037,7 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @constructor
      * PreferencesSystem ties everything together to provide a simple interface for
      * managing the whole prefs system.
      * 
