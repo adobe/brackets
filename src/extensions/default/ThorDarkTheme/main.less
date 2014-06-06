@@ -1,0 +1,149 @@
+// Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
+// Style definitions are from
+// https://github.com/chriskempson/tomorrow-theme/tree/master/Brackets
+
+
+// Brackets-specific default font and color definitions
+@import url("styles/brackets_colors.less");
+
+// Default theme -- all UI styling comes from variables in a theme
+// Themes can rely on variables defined above
+@import url("styles/brackets_theme_default.less");
+
+// Include Codemirror styling overrides so that we can overrides proper values
+// for the theme.  If you need to customize the tree, you also include jsTree.less
+// and even brackets_scrollbars.less
+@import url("styles/brackets_codemirror_override.less");
+
+
+/*
+ * Brackets Default Theme
+ *
+ * Defines all the variables that one can configure in a theme. This should
+ * contain all variables / mixins for UI styling that we want to be able to
+ * change in a theme.
+ *
+ * Throughout the rest of the LESS files we should _only_ use color
+ * variable names that are on the LHS of the list below. So, if we
+ * need a new color for some UI element, we should add a variable
+ * in this file.
+ */
+
+/* Overall Colors */
+@background: #1d1f21;
+@current-line: #282a2e;
+@foreground: #c5c8c6;
+@comment: #969896;
+@orange: #de935f;
+@blue: #81a2be;
+@purple: #b294bb;
+@green: #b5bd68;
+@red: #cc6666;
+@aqua: #8abeb7;
+@yellow: #f0c674;
+
+/*
+ * Background colors are ordered from least "intense" to most "intense"
+ * So, if the background is light, then @background-color-3 should be
+ * lightest, -2 should be darker, and -1 should be darker still.
+ *
+ * The opposite is true for a dark background -- background-color-3 should be
+ * the darkest, -2 should be lighter, and -1 should be lighter still.
+ */
+@background-color-1: lighten(@background, @bc-color-step-size*2);
+@background-color-2: lighten(@background, @bc-color-step-size);
+@background-color-3: @background;
+
+/*
+ * @content-color-stronger should be should be further away from the
+ * background color than @content-color (i.e. more contrasty).
+ *
+ * @content-color-weaker should be closer to the background color
+ * than @content-color (i.e. less contrasty).
+ */
+@content-color: @foreground;
+@content-color-stronger: lighten(@foreground, @bc-color-step-size);
+@content-color-weaker: darken(@foreground, @bc-color-step-size);
+
+/* Code Styling */
+
+/* code accent colors */
+@accent-keyword: @purple;
+@accent-atom: @orange;
+@accent-number: @green;
+@accent-def: @foreground;
+@accent-variable: @orange;
+@accent-variable-2: @blue;
+@accent-variable-3: @yellow;
+@accent-property: @yellow;
+@accent-operator: @foreground;
+@accent-comment: @comment;
+@accent-string: @green;
+@accent-string-2: @aqua;
+@accent-meta: @red;
+@accent-error: @red;
+@accent-qualifier: @blue;
+@accent-builtin: @yellow;
+@accent-bracket: @foreground;
+@accent-tag: @blue;
+@accent-attribute: @orange;
+@accent-header: @purple;
+@accent-quote: @blue;
+@accent-hr: @orange;
+@accent-link: @yellow;
+@accent-rangeinfo: @aqua;
+@accent-minus: @red;
+@accent-plus: @green;
+
+/* inline editor colors */
+@inline-background-color-1: lighten(@background, @bc-color-step-size);
+@inline-background-color-2: lighten(@background, @bc-color-step-size*2);
+@inline-background-color-3: rgba(0,0,0,0);
+
+@inline-color-1: darken(@foreground, @bc-color-step-size*2);
+@inline-color-2: darken(@foreground, @bc-color-step-size);
+@inline-color-3: @background;
+
+/* Selection colors */
+@selection-color-focused: #585858;
+@selection-color-unfocused: #424242;
+
+@activeline-bgcolor: rgba(96, 96, 96, 0.5);
+@activeline-number-bgcolor: rgba(96, 96, 96, 0.5);
+@matching-bracket: rgba(189, 100, 100, 0.8);
+
+.code-cursor() {
+    // to make a block cursor, use something like this:
+    // background-color: fadeout(@blue, 50%);
+    // border: none !important;
+
+    // to make an I-cursor, use something like this:
+    border-left: 1px solid @content-color !important;
+}
+
+.CodeMirror .CodeMirror-gutters {
+    border-right: 1px solid #696969;
+}
+
+.CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
+    color: @comment;
+}
