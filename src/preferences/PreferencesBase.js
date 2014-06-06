@@ -75,6 +75,7 @@ define(function (require, exports, module) {
      */
     
     /**
+     * @constructor
      * MemoryStorage, as the name implies, stores the preferences in memory.
      * This is suitable for single session data or testing.
      * 
@@ -93,7 +94,7 @@ define(function (require, exports, module) {
          * @return {Promise} promise that is already resolved
          */
         load: function () {
-            var result = $.Deferred();
+            var result = new $.Deferred();
             result.resolve(this.data);
             return result.promise();
         },
@@ -106,7 +107,7 @@ define(function (require, exports, module) {
          * @return {Promise} promise that is already resolved
          */
         save: function (newData) {
-            var result = $.Deferred();
+            var result = new $.Deferred();
             this.data = newData;
             result.resolve();
             return result.promise();
@@ -122,6 +123,7 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @constructor
      * Error type for problems parsing preference files.
      * 
      * @param {string} message Error message
@@ -134,6 +136,7 @@ define(function (require, exports, module) {
     ParsingError.prototype = new Error();
     
     /**
+     * @constructor
      * Loads/saves preferences from a JSON file on disk.
      * 
      * @param {string} path Path to the preferences file
@@ -156,7 +159,7 @@ define(function (require, exports, module) {
          * @return {Promise} Resolved with the data once it has been parsed.
          */
         load: function () {
-            var result = $.Deferred();
+            var result = new $.Deferred();
             var path = this.path;
             var createIfNew = this.createIfNew;
             var self = this;
@@ -200,7 +203,7 @@ define(function (require, exports, module) {
          * @return {Promise} Promise resolved (with no arguments) once the data has been saved
          */
         save: function (newData) {
-            var result = $.Deferred();
+            var result = new $.Deferred();
             var path = this.path;
             var prefFile = FileSystem.getFileForPath(path);
             
@@ -251,6 +254,7 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @constructor
      * A `Scope` is a data container that is tied to a `Storage`.
      * 
      * Additionally, `Scope`s support "layers" which are additional levels of preferences
@@ -275,7 +279,7 @@ define(function (require, exports, module) {
          * @return {Promise} Promise that is resolved once loading is complete
          */
         load: function () {
-            var result = $.Deferred();
+            var result = new $.Deferred();
             this.storage.load()
                 .then(function (data) {
                     var oldKeys = this.getKeys();
@@ -302,7 +306,7 @@ define(function (require, exports, module) {
                 self._dirty = false;
                 return this.storage.save(this.data);
             } else {
-                return $.Deferred().resolve().promise();
+                return (new $.Deferred()).resolve().promise();
             }
         },
         
@@ -672,6 +676,7 @@ define(function (require, exports, module) {
 //    }
     
     /**
+     * @constructor
      * There can be multiple paths and they are each checked in turn. The first that matches the
      * currently edited file wins.
      * 
@@ -833,6 +838,7 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @constructor
      * Represents a single, known Preference.
      * 
      * @param {Object} properties Information about the Preference that is stored on this object
@@ -864,10 +870,11 @@ define(function (require, exports, module) {
     });
     
     /**
+     * @constructor
      * Provides a subset of the PreferencesSystem functionality with preference
      * access always occurring with the given prefix.
      * 
-     * @param {PreferencesSystem} baseSystem The real PreferencesSystem that is backing this one
+     * @param {PreferencesSystem} base The real PreferencesSystem that is backing this one
      * @param {string} prefix Prefix that is used for preferences lookup. Any separator characters should already be added.
      */
     function PrefixedPreferencesSystem(base, prefix) {
@@ -1030,6 +1037,7 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @constructor
      * PreferencesSystem ties everything together to provide a simple interface for
      * managing the whole prefs system.
      * 
@@ -1064,8 +1072,9 @@ define(function (require, exports, module) {
         
         this._pendingScopes = {};
         
-        this._saveInProgress = false;
+        this._saveInProgress = null;
         this._nextSaveDeferred = null;
+        this.finalized = false;
         
         // The objects that define the different kinds of path-based Scope handlers.
         // Examples could include the handler for .brackets.json files or an .editorconfig
@@ -1552,31 +1561,37 @@ define(function (require, exports, module) {
         
         /**
          * Saves the preferences. If a save is already in progress, a Promise is returned for
-         * that save operation.
+         * that save operation. If preferences have already been finalized then return a
+         * rejected promise.
          * 
          * @return {Promise} Resolved when the preferences are done saving.
          */
         save: function () {
+            if (this.finalized) {
+                console.log("PreferencesSystem.save() called after finalized!");
+                return (new $.Deferred()).reject().promise();
+            }
+            
             if (this._saveInProgress) {
                 if (!this._nextSaveDeferred) {
-                    this._nextSaveDeferred = $.Deferred();
+                    this._nextSaveDeferred = new $.Deferred();
                 }
                 return this._nextSaveDeferred.promise();
             }
             
-            this._saveInProgress = true;
-            var deferred = this._nextSaveDeferred || $.Deferred();
+            var deferred = this._nextSaveDeferred || (new $.Deferred());
+            this._saveInProgress = deferred;
             this._nextSaveDeferred = null;
             
             Async.doInParallel(_.values(this._scopes), function (scope) {
                 if (scope) {
                     return scope.save();
                 } else {
-                    return $.Deferred().resolve().promise();
+                    return (new $.Deferred()).resolve().promise();
                 }
             }.bind(this))
                 .then(function () {
-                    this._saveInProgress = false;
+                    this._saveInProgress = null;
                     if (this._nextSaveDeferred) {
                         this.save();
                     }
@@ -1742,6 +1757,34 @@ define(function (require, exports, module) {
          */
         getPrefixedSystem: function (prefix) {
             return new PrefixedPreferencesSystem(this, prefix + ".");
+        },
+        
+        /**
+         * Return a promise that is resolved when all preferences have been saved.
+         * Disallow any other preferences from getting saved after promise is resolved.
+         * 
+         * @return {Promise} Resolved when the preferences are done saving.
+         */
+        _finalize: function () {
+            var deferred = new $.Deferred(),
+                self = this;
+
+            // Don't resolve promise until last `_saveInProgress` promise completes.
+            // There will only ever be a `_nextSaveDeferred`, if there is already a
+            // `_saveInProgress` and it will become the new `_saveInProgress` as soon as
+            // previous `_saveInProgress` resolves, so only need to wait for `_saveInProgress`.
+            function checkForSaveAndFinalize() {
+                if (self._saveInProgress) {
+                    self._saveInProgress.done(checkForSaveAndFinalize);
+                } else {
+                    self.finalized = true;
+                    deferred.resolve();
+                }
+            }
+
+            checkForSaveAndFinalize();
+
+            return deferred.promise();
         }
     });
     

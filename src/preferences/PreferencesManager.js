@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     
     var OldPreferenceStorage    = require("preferences/PreferenceStorage").PreferenceStorage,
         AppInit                 = require("utils/AppInit"),
+        Async                   = require("utils/Async"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         DeprecationWarning      = require("utils/DeprecationWarning"),
@@ -532,6 +533,24 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Return a promise that is resolved when all preferences have been resolved,
+     * or rejected if any have been rejected.
+     * 
+     * @return {Promise} Resolved when the preferences are done saving.
+     */
+    function finalize() {
+        var promiseList = [
+                PreferencesImpl.managerReady,
+                PreferencesImpl.smUserScopeLoading,
+                PreferencesImpl.manager._finalize(),
+                PreferencesImpl.stateManager._finalize()
+            ],
+            identityFunc = function (promise) { return promise; };
+        
+        return Async.doSequentially(promiseList, identityFunc, false);
+    }
+    
     AppInit.appReady(function () {
         PreferencesImpl.manager.resumeChangeEvents();
     });
@@ -562,6 +581,7 @@ define(function (require, exports, module) {
     exports.setValueAndSave     = setValueAndSave;
     exports.getViewState        = getViewState;
     exports.setViewState        = setViewState;
+    exports.finalize            = finalize;
     exports.addScope            = PreferencesImpl.manager.addScope.bind(PreferencesImpl.manager);
     exports.stateManager        = PreferencesImpl.stateManager;
     exports.FileStorage         = PreferencesBase.FileStorage;

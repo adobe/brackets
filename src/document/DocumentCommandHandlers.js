@@ -1280,7 +1280,7 @@ define(function (require, exports, module) {
                 
                 PreferencesManager.savePreferences();
                 
-                postCloseHandler();
+                PreferencesManager.finalize().always(postCloseHandler);
             })
             .fail(function () {
                 _windowGoingAway = false;
