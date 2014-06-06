@@ -1766,19 +1766,23 @@ define(function (require, exports, module) {
          * @return {Promise} Resolved when the preferences are done saving.
          */
         _finalize: function () {
-            // Return the promise for the `_nextSaveDeferred` if there is one.
-            // If there isn't, return the promise for the current save operation (if there is one).
-            // If there isn't one of those, return a resolved promise.
-            var deferred = this._nextSaveDeferred || this._saveInProgress;
+            var deferred = new $.Deferred(),
+                self = this;
 
-            if (!deferred) {
-                this.finalized = true;
-                return (new $.Deferred()).resolve().promise();
+            // Don't resolve promise until last `_saveInProgress` promise completes.
+            // There will only ever be a `_nextSaveDeferred`, if there is already a
+            // `_saveInProgress` and it will become the new `_saveInProgress` as soon as
+            // previous `_saveInProgress` resolves, so only need to wait for `_saveInProgress`.
+            function checkForSaveAndFinalize() {
+                if (self._saveInProgress) {
+                    self._saveInProgress.done(checkForSaveAndFinalize);
+                } else {
+                    self.finalized = true;
+                    deferred.resolve();
+                }
             }
 
-            deferred.done(function () {
-                this.finalized = true;
-            }.bind(this));
+            checkForSaveAndFinalize();
 
             return deferred.promise();
         }
