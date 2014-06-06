@@ -237,6 +237,46 @@ define(function (require, exports, module) {
                     });
                 });
             });
+            
+            describe("toggleDirectory", function () {
+                it("should throw if it is passed a file and not a directory", function () {
+                    var vm = new FileTreeView.ViewModel();
+                    try {
+                        vm.toggleDirectory({
+                            name: "afile",
+                            extension: ".js"
+                        });
+                        expect("should have thrown an error").toBe("but it didn't");
+                    } catch (e) {
+                        // Do nothing. This is actually what we expect.
+                    }
+                });
+                it("should close a directory that's open", function () {
+                    var vm = new FileTreeView.ViewModel();
+                    vm.treeData = [
+                        {
+                            name: "subdir",
+                            children: [
+                                {
+                                    name: "afile",
+                                    extension: ".js"
+                                }
+                            ]
+                        }
+                    ];
+                    
+                    var changeFired = false;
+                    vm.on(FileTreeView.CHANGE, function () {
+                        changeFired = true;
+                    });
+                    
+                    waitsForDone(vm.toggleDirectory(vm.treeData[0]));
+                    runs(function () {
+                        expect(vm.treeData[0].children).toBeNull();
+                        expect(changeFired).toBe(true);
+                    });
+                });
+            });
         });
         
         describe("_fileNode", function () {

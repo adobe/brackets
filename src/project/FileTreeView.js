@@ -226,6 +226,17 @@ define(function (require, exports, module) {
         }
     };
     
+    ViewModel.prototype.toggleDirectory = function (treeDataEntry) {
+        if (treeDataEntry.children === undefined) {
+            throw new Error("toggleDirectory was called with a file treeDataEntry");
+        }
+        if (treeDataEntry.children !== null) {
+            treeDataEntry.children = null;
+            $(this).trigger(CHANGE);
+            return new $.Deferred().resolve().promise();
+        }
+    };
+    
     ViewModel.prototype.on = function (event, handler) {
         $(this).on(event, handler);
     };
