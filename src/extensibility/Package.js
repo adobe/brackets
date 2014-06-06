@@ -26,8 +26,9 @@
 indent: 4, maxerr: 50 */
 /*global define, $, brackets, PathUtils */
 
-/* Functions for working with extension packages */
-
+/**
+ * Functions for working with extension packages
+ */
 define(function (require, exports, module) {
     "use strict";
     

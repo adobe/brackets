@@ -1,43 +1,43 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *
+ *  
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
  * Software is furnished to do so, subject to the following conditions:
- *
+ *  
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ *  
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
  * DEALINGS IN THE SOFTWARE.
- *
+ * 
  */
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global require, define, brackets: true, $, window, navigator, Mustache */
 
+// TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
+
 /**
  * brackets is the root of the Brackets codebase. This file pulls in all other modules as
  * dependencies (or dependencies thereof), initializes the UI, and binds global menus & keyboard
  * shortcuts to their Commands.
- *
- * TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
  *
  * Unlike other modules, this one can be accessed without an explicit require() because it exposes
  * a global object, window.brackets.
  */
 define(function (require, exports, module) {
     "use strict";
-
+    
     // Load dependent non-module scripts
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
@@ -45,7 +45,7 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete-local/jquery.smart_autocomplete");
 
-    // Load CodeMirror add-ons--these attach themselves to the CodeMirror module
+    // Load CodeMirror add-ons--these attach themselves to the CodeMirror module    
     require("thirdparty/CodeMirror2/addon/fold/xml-fold");
     require("thirdparty/CodeMirror2/addon/edit/matchtags");
     require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
@@ -59,7 +59,7 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/addon/search/match-highlighter");
     require("thirdparty/CodeMirror2/addon/search/searchcursor");
     require("thirdparty/CodeMirror2/keymap/sublime");
-
+    
     // Load dependent modules
     var Global                  = require("utils/Global"),
         AppInit                 = require("utils/AppInit"),
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
         ViewCommandHandlers     = require("view/ViewCommandHandlers"),
         ThemeManager            = require("view/ThemeManager"),
         _                       = require("thirdparty/lodash");
-
+    
     // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
     // expose our required CodeMirror globally so as to avoid breaking extensions in the
     // interim.
@@ -118,7 +118,7 @@ define(function (require, exports, module) {
             return CodeMirror;
         }
     });
-
+    
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
@@ -131,22 +131,25 @@ define(function (require, exports, module) {
     require("extensibility/InstallExtensionDialog");
     require("extensibility/ExtensionManagerDialog");
     require("editor/ImageViewer");
-
+    
     // Deprecated modules loaded just so extensions can still use them for now
     require("utils/CollectionUtils");
     // Compatibility shims for filesystem API migration
     require("project/FileIndexManager");
     require("file/NativeFileSystem");
     require("file/NativeFileError");
-
+    
     PerfUtils.addMeasurement("brackets module dependencies resolved");
-
+    
     // Local variables
     var params = new UrlParams();
-
+    
     // read URL params
     params.parse();
-
+    
+    /**
+     * Setup test object
+     */
     function _initTest() {
         // TODO: (issue #265) Make sure the "test" object is not included in final builds
         // All modules that need to be tested from the context of the application
@@ -200,6 +203,9 @@ define(function (require, exports, module) {
         });
     }
 
+    /**
+     * Setup Brackets
+     */
     function _onReady() {
         PerfUtils.addMeasurement("window.document Ready");
 
@@ -216,16 +222,16 @@ define(function (require, exports, module) {
 
         // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
         // use native scroll bars when the mouse is not plugged in or when
-        // using the "Always" scroll bar setting.
+        // using the "Always" scroll bar setting. 
         var osxMatch = /Mac OS X 10\D([\d+])\D/.exec(navigator.userAgent);
         if (osxMatch && osxMatch[1] && Number(osxMatch[1]) >= 7) {
             // test a scrolling div for scrollbars
             var $testDiv = $("<div style='position:fixed;left:-50px;width:50px;height:50px;overflow:auto;'><div style='width:100px;height:100px;'/></div>").appendTo(window.document.body);
-
+            
             if ($testDiv.outerWidth() === $testDiv.get(0).clientWidth) {
                 $(".sidebar").removeClass("quiet-scrollbars");
             }
-
+            
             $testDiv.remove();
         }
 
@@ -235,7 +241,7 @@ define(function (require, exports, module) {
             // extensions fail to load.
             var extensionPathOverride = params.get("extensions");  // used by unit tests
             var extensionLoaderPromise = ExtensionLoader.init(extensionPathOverride ? extensionPathOverride.split(",") : null);
-
+            
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
                 // Finish UI initialization
@@ -243,13 +249,13 @@ define(function (require, exports, module) {
                 var initialProjectPath = ProjectManager.getInitialProjectPath();
                 ProjectManager.openProject(initialProjectPath).always(function () {
                     _initTest();
-
+                    
                     // If this is the first launch, and we have an index.html file in the project folder (which should be
                     // the samples folder on first launch), open it automatically. (We explicitly check for the
                     // samples folder in case this is the first time we're launching Brackets after upgrading from
                     // an old version that might not have set the "afterFirstLaunch" pref.)
                     var deferred = new $.Deferred();
-
+                    
                     if (!params.get("skipSampleProjectLoad") && !PreferencesManager.getViewState("afterFirstLaunch")) {
                         PreferencesManager.setViewState("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
@@ -267,13 +273,13 @@ define(function (require, exports, module) {
                     } else {
                         deferred.resolve();
                     }
-
+                    
                     deferred.always(function () {
                         // Signal that Brackets is loaded
                         AppInit._dispatchReady(AppInit.APP_READY);
-
+                        
                         PerfUtils.addMeasurement("Application Startup");
-
+                        
                         if (PreferencesManager._isUserScopeCorrupt()) {
                             Dialogs.showModalDialog(
                                 DefaultDialogs.DIALOG_ID_ERROR,
@@ -284,9 +290,9 @@ define(function (require, exports, module) {
                                     CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
                                 });
                         }
-
+                        
                     });
-
+                    
                     // See if any startup files were passed to the application
                     if (brackets.app.getPendingFilesToOpen) {
                         brackets.app.getPendingFilesToOpen(function (err, files) {
@@ -296,7 +302,7 @@ define(function (require, exports, module) {
                 });
             });
         });
-
+        
         // Check for updates
         if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
             AppInit.appReady(function () {
@@ -305,14 +311,14 @@ define(function (require, exports, module) {
             });
         }
     }
-
+    
     /**
      * Setup event handlers prior to dispatching AppInit.HTML_READY
      */
     function _beforeHTMLReady() {
         // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
         $("body").addClass("platform-" + brackets.platform);
-
+        
         // Browser-hosted version may also have different CSS (e.g. since '#titlebar' is shown)
         if (brackets.inBrowser) {
             $("body").addClass("in-browser");
@@ -335,14 +341,14 @@ define(function (require, exports, module) {
                 };
             }());
         }
-
+        
         // Localize MainViewHTML and inject into <BODY> tag
         $("body").html(Mustache.render(MainViewHTML, Strings));
-
+        
         // Update title
         $("title").text(brackets.config.app_title);
-
-        // Prevent unhandled drag and drop of files into the browser from replacing
+            
+        // Prevent unhandled drag and drop of files into the browser from replacing 
         // the entire Brackets app. This doesn't prevent children from choosing to
         // handle drops.
         $(window.document.body)
@@ -370,14 +376,14 @@ define(function (require, exports, module) {
                     });
                 }
             });
-
+        
         // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
         $(window).focus(function () {
             // This call to syncOpenDocuments() *should* be a no-op now that we have
             // file watchers, but is still here as a safety net.
             FileSyncManager.syncOpenDocuments();
         });
-
+        
         // Prevent unhandled middle button clicks from triggering native behavior
         // Example: activating AutoScroll (see #510)
         $("html").on("mousedown", ".inline-widget", function (e) {
@@ -385,7 +391,7 @@ define(function (require, exports, module) {
                 e.preventDefault();
             }
         });
-
+        
         // The .no-focus style is added to clickable elements that should
         // not steal focus. Calling preventDefault() on mousedown prevents
         // focus from going to the click target.
@@ -398,12 +404,12 @@ define(function (require, exports, module) {
                     $target.is("input[type=password]") ||
                     $target.is("input:not([type])") || // input with no type attribute defaults to text
                     $target.is("textarea");
-
+    
             if (!isTextField) {
                 e.preventDefault();
             }
         });
-
+        
         // Prevent clicks on any link from navigating to a different page (which could lose unsaved
         // changes). We can't use a simple .on("click", "a") because of http://bugs.jquery.com/ticket/3861:
         // jQuery hides non-left clicks from such event handlers, yet middle-clicks still cause CEF to
@@ -424,7 +430,7 @@ define(function (require, exports, module) {
             }
         }, true);
     }
-
+    
     // Wait for view state to load.
     var viewStateTimer = PerfUtils.markStart("User viewstate loading");
     PreferencesManager._smUserScopeLoading.always(function () {
