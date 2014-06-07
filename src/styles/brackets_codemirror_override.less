@@ -146,7 +146,7 @@ span.CodeMirror-nonmatchingbracket {
     border-right: none;
 }
 
-.platform-mac & {
+.platform-mac {
     .CodeMirror-scrollbar-filler {
         background-image: url(images/scrollbar-mac-corner.png);
     }
@@ -154,7 +154,8 @@ span.CodeMirror-nonmatchingbracket {
         background-image: url(images/scrollbar-mac-bg.png);
     }
 }
-.platform-win & {
+
+.platform-win {
     .CodeMirror-scrollbar-filler,
     .CodeMirror-gutter-filler {
         background-color: @win-scrollbar-track;
@@ -164,7 +165,8 @@ span.CodeMirror-nonmatchingbracket {
         width: 12px !important;
     }
 }
-.platform-linux & {
+
+.platform-linux {
     .CodeMirror-scrollbar-filler,
     .CodeMirror-gutter-filler {
         background-color: @background-color-3;
