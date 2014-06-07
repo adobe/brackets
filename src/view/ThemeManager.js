@@ -375,7 +375,6 @@ define(function (require, exports, module) {
         var name = (file.name || "").substring(0, file.name.lastIndexOf('.')),
             theme = getThemeByFile(file);
 
-        console.log(theme);
         if (theme) {
             refresh(true);
         }
