@@ -274,21 +274,21 @@ define(function (require, exports, module) {
                     
                     deferred.always(function () {
                         // Signal that Brackets is loaded
-                        AppInit._dispatchReady(AppInit.APP_READY);
-                        
-                        PerfUtils.addMeasurement("Application Startup");
-                        
-                        if (PreferencesManager._isUserScopeCorrupt()) {
-                            Dialogs.showModalDialog(
-                                DefaultDialogs.DIALOG_ID_ERROR,
-                                Strings.ERROR_PREFS_CORRUPT_TITLE,
-                                Strings.ERROR_PREFS_CORRUPT
-                            )
-                                .done(function () {
-                                    CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
-                                });
-                        }
-                        
+                        AppInit._dispatchReady(AppInit.APP_READY)
+                            .always(function () {
+                                PerfUtils.addMeasurement("Application Startup");
+
+                                if (PreferencesManager._isUserScopeCorrupt()) {
+                                    Dialogs.showModalDialog(
+                                        DefaultDialogs.DIALOG_ID_ERROR,
+                                        Strings.ERROR_PREFS_CORRUPT_TITLE,
+                                        Strings.ERROR_PREFS_CORRUPT
+                                    )
+                                        .done(function () {
+                                            CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
+                                        });
+                                }
+                            });
                     });
                     
                     // See if any startup files were passed to the application
@@ -435,7 +435,9 @@ define(function (require, exports, module) {
         PerfUtils.addMeasurement(viewStateTimer);
         // Dispatch htmlReady event
         _beforeHTMLReady();
-        AppInit._dispatchReady(AppInit.HTML_READY);
-        $(window.document).ready(_onReady);
+        AppInit._dispatchReady(AppInit.HTML_READY)
+            .always(function () {
+                $(window.document).ready(_onReady);
+            });
     });
 });

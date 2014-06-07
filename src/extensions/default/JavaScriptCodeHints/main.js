@@ -814,5 +814,7 @@ define(function (require, exports, module) {
         exports.jsHintProvider = jsHints;
         exports.initializeSession = initializeSession;
         exports.handleJumpToDefinition = handleJumpToDefinition;
+
+        return ScopeManager._readyPromise();
     });
 });
