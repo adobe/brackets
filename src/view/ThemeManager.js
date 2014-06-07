@@ -129,6 +129,14 @@ define(function (require, exports, module) {
         return file.isFile &&
             validExtensions.indexOf(FileUtils.getFileExtension(file.name)) !== -1;
     }
+    
+    
+    function getThemeByFile(file) {
+        var path = file._path;
+        return _.find(_themes, function(item) {
+            return item.file._path === path;
+        });
+    }
 
 
     /**
@@ -360,10 +368,15 @@ define(function (require, exports, module) {
     });
 
     FileSystem.on("change", function(evt, file) {
+        if ( file.isDirectory ) {
+            return;
+        }
+        
         var name = (file.name || "").substring(0, file.name.lastIndexOf('.')),
-            theme = _themes[name];
+            theme = getThemeByFile(file);
 
-        if (theme && theme.file.parentPath === file.parentPath) {
+        console.log(theme);
+        if (theme) {
             refresh(true);
         }
     });
