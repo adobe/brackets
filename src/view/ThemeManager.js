@@ -29,9 +29,11 @@ define(function (require, exports, module) {
         themeReady      = false,
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
         scrollbarsRegex = /(?:[^}|,]*)::-webkit-scrollbar(?:[\s\S]*?){(?:[\s\S]*?)}/mg,
+        stylesPath       = FileUtils.getNativeBracketsDirectoryPath() + "/styles/",
         validExtensions = ["css", "less"];
 
     ExtensionUtils.addLinkedStyleSheet("styles/brackets_theme_settings.css");
+
 
     /**
     * @constructor
@@ -109,8 +111,11 @@ define(function (require, exports, module) {
     * @return {$.Deferred} promsie with the processed css/less as the resolved value
     */
     function lessifyTheme(content, theme) {
-        var deferred = $.Deferred(),
-            parser = new less.Parser();
+        var deferred = $.Deferred();
+        var parser   = new less.Parser({
+            rootpath: stylesPath,
+            filename: theme.file._path
+        });
 
         parser.parse("." + theme.className + "{" + content + "}", function (err, tree) {
             if (err) {
@@ -129,8 +134,8 @@ define(function (require, exports, module) {
         return file.isFile &&
             validExtensions.indexOf(FileUtils.getFileExtension(file.name)) !== -1;
     }
-    
-    
+
+
     function getThemeByFile(file) {
         var path = file._path;
         return _.find(_themes, function(item) {
@@ -371,7 +376,7 @@ define(function (require, exports, module) {
         if ( file.isDirectory ) {
             return;
         }
-        
+
         var name = (file.name || "").substring(0, file.name.lastIndexOf('.')),
             theme = getThemeByFile(file);
 
