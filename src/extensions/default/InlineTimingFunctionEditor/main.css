@@ -79,7 +79,6 @@
         -ms-transform-origin: bottom left;
          -o-transform-origin: bottom left;
     -webkit-transform-origin: bottom left;
-            transform-origin: bottom left;
     white-space: nowrap;
 }
 
@@ -231,7 +230,6 @@
         -ms-transform-origin: top left;
          -o-transform-origin: top left;
     -webkit-transform-origin: top left;
-            transform-origin: top left;
     white-space: nowrap;
 }
 

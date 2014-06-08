@@ -2,7 +2,6 @@
     display: none;
 
     -webkit-transition: opacity 0.125s ease-in, -webkit-transform 0.125s;
-    transition: opacity 0.125s ease-in, transform 0.125s;
 
     -webkit-transform: scale(0);
     transform: scale(0);

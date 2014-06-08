@@ -236,7 +236,7 @@
     border: 1px solid #2893ef;
     z-index: 911;
 }
-@media all and (-webkit-min-device-pixel-ratio : 2), (min-device-pixel-ratio : 2) {
+@media all and (-webkit-min-device-pixel-ratio : 2) {
     .color-editor aside header .large-swatches {
         background-image: url("../img/color_thumb_back@2x.png");
     }
