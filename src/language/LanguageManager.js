@@ -340,8 +340,8 @@ define(function (require, exports, module) {
     
 
     /**
-     * @constructor
      * Model for a language.
+     * @constructor
      */
     function Language() {
         this._fileExtensions    = [];

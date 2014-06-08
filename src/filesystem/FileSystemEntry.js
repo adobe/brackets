@@ -75,12 +75,12 @@ define(function (require, exports, module) {
     var nextId = 0;
     
     /**
-     * @constructor
      * Model for a file system entry. This is the base class for File and Directory,
      * and is never used directly.
      *
      * See the File, Directory, and FileSystem classes for more details.
      *
+     * @constructor
      * @param {string} path The path for this entry.
      * @param {FileSystem} fileSystem The file system associated with this entry.
      */
