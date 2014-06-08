@@ -26,6 +26,11 @@
     "file.liveFilePreview":  [
         "Ctrl-Alt-P"
     ],
+    "file.reloadLivePreview": [
+        {
+            "key": "Ctrl-Shift-R"
+        }
+    ],
     "file.previewHighlight":  [
         "Ctrl-Shift-C"
     ],
