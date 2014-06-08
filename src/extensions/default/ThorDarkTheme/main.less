@@ -50,16 +50,18 @@
 
 /* Overall Colors */
 @background: #1d1f21;
-@current-line: #282a2e;
+@current-line: #000;
 @foreground: #c5c8c6;
-@comment: #969896;
-@orange: #de935f;
-@blue: #81a2be;
-@purple: #b294bb;
-@green: #b5bd68;
-@red: #cc6666;
+@comment: #767676;
+@orange: #d89333;
+@blue: #6c9ef8;
+@purple: #b77fdb;
+@green: #85a300;
+@red: #dc322f;
 @aqua: #8abeb7;
+@violet: #6c71c4;
 @yellow: #f0c674;
+@pink: #d85896;
 
 /*
  * Background colors are ordered from least "intense" to most "intense"
@@ -87,30 +89,30 @@
 /* Code Styling */
 
 /* code accent colors */
-@accent-keyword: @purple;
+@accent-keyword: @blue;
 @accent-atom: @orange;
 @accent-number: @green;
-@accent-def: @foreground;
-@accent-variable: @orange;
-@accent-variable-2: @blue;
-@accent-variable-3: @yellow;
-@accent-property: @yellow;
+@accent-def: @purple;
+@accent-variable: @foreground;
+@accent-variable-2: @foreground;
+@accent-variable-3: @foreground;
+@accent-property: @purple;
 @accent-operator: @foreground;
 @accent-comment: @comment;
-@accent-string: @green;
-@accent-string-2: @aqua;
-@accent-meta: @red;
+@accent-string: @orange;
+@accent-string-2: @orange;
+@accent-meta: @foreground;
 @accent-error: @red;
 @accent-qualifier: @blue;
-@accent-builtin: @yellow;
+@accent-builtin: @blue;
 @accent-bracket: @foreground;
 @accent-tag: @blue;
-@accent-attribute: @orange;
-@accent-header: @purple;
+@accent-attribute: @green;
+@accent-header: @pink;
 @accent-quote: @blue;
 @accent-hr: @orange;
-@accent-link: @yellow;
-@accent-rangeinfo: @aqua;
+@accent-link: @purple;
+@accent-rangeinfo: @violet;
 @accent-minus: @red;
 @accent-plus: @green;
 
@@ -124,12 +126,21 @@
 @inline-color-3: @background;
 
 /* Selection colors */
-@selection-color-focused: #585858;
+@selection-color-focused: #133c53;
 @selection-color-unfocused: #424242;
 
-@activeline-bgcolor: rgba(96, 96, 96, 0.5);
-@activeline-number-bgcolor: rgba(96, 96, 96, 0.5);
-@matching-bracket: rgba(189, 100, 100, 0.8);
+@activeline-bgcolor: rgb(49, 49, 49);
+@activeline-number-bgcolor: rgb(0, 0, 0);
+@matching-bracket: rgba(100, 189, 138, 0.43);
+
+/* Status Bar Colors */
+@status-bar-background-color: #1C1C1E;
+@status-bar-border: rgba(255, 255, 255, 0.08);
+@status-bar-text-color: #a1a1a1;
+@status-bar-quiet-text-color: #666;
+
+
+/* Extra CSS */
 
 .code-cursor() {
     // to make a block cursor, use something like this:
@@ -141,9 +152,33 @@
 }
 
 .CodeMirror .CodeMirror-gutters {
-    border-right: 1px solid #696969;
+    // gutter border:
+    // border-right: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 .CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
     color: @comment;
+}
+
+#status-bar {
+    background: @status-bar-background-color;
+    border-top: 1px solid @status-bar-border;
+    color:@status-bar-text-color;
+}
+
+#status-info {
+    color: @status-bar-text-color;
+}
+
+#status-file {
+    color: @status-bar-quiet-text-color;
+}
+
+#status-indicators {
+    background: @status-bar-background-color;
+    color: @status-bar-text-color;
+
+    > div {
+        border-left: 1px solid @status-bar-border;
+    }
 }
