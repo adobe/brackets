@@ -99,8 +99,8 @@ define(function (require, exports, module) {
         WatchedRoot     = require("filesystem/WatchedRoot");
     
     /**
-     * @constructor
      * The FileSystem is not usable until init() signals its callback.
+     * @constructor
      */
     function FileSystem() {
         // Create a file index

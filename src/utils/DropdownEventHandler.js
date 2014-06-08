@@ -34,22 +34,22 @@ define(function (require, exports, module) {
         ViewUtils         = require("utils/ViewUtils");
     
     /**
-     * @constructor
      * Object to handle events for a dropdown list.
      *
      * DropdownEventHandler handles these events:
      *
      * Mouse:
-     *  click       - execute selection callback and dismiss list
-     *  mouseover   - highlight item
-     *  mouseleave  - remove mouse highlighting
+     * - click       - execute selection callback and dismiss list
+     * - mouseover   - highlight item
+     * - mouseleave  - remove mouse highlighting
      *
      * Keyboard:
-     *  Enter       - execute selection callback and dismiss list
-     *  Esc         - dismiss list
-     *  Up/Down     - change selection
-     *  PageUp/Down - change selection
+     * - Enter       - execute selection callback and dismiss list
+     * - Esc         - dismiss list
+     * - Up/Down     - change selection
+     * - PageUp/Down - change selection
      *
+     * @constructor
      * @param {jQueryObject} $list  associated list object
      * @param {Function} selectionCallback  function called when list item is selected.
      */

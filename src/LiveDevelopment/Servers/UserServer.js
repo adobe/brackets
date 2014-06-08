@@ -31,7 +31,6 @@ define(function (require, exports, module) {
         FileUtils   = require("file/FileUtils");
 
     /**
-     * @constructor
      * Live preview server for user specified server as defined with Live Preview Base Url
      * Project setting. In a clean installation of Brackets, this is the highest priority
      * server provider, if defined.
@@ -41,6 +40,7 @@ define(function (require, exports, module) {
      * - pathResolver - Function to covert absolute native paths to project relative paths
      * - root         - Native path to the project root (and base URL)
      *
+     * @constructor
      * @param {!{baseUrl: string, root: string, pathResolver: function(string)}} config
      * @extends {BaseServer}
      */

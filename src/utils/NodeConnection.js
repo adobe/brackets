@@ -112,8 +112,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @constructor
      * Provides an interface for interacting with the node server.
+     * @constructor
      */
     function NodeConnection() {
         this.domains = {};

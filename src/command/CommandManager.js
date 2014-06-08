@@ -50,19 +50,19 @@ define(function (require, exports, module) {
     var _commandsOriginal = {};
     
     /**
+     * Events:
+     * - enabledStateChange
+     * - checkedStateChange
+     * - keyBindingAdded
+     * - keyBindingRemoved
+     *
      * @constructor
      * @private
-     *
      * @param {string} name - text that will be displayed in the UI to represent command
      * @param {string} id
      * @param {function} commandFn - the function that is called when the command is executed.
      *
      * TODO: where should this be triggered, The Command or Exports?
-     * Events:
-     *      enabledStateChange
-     *      checkedStateChange
-     *      keyBindingAdded
-     *      keyBindingRemoved
      */
     function Command(name, id, commandFn) {
         this._name = name;

@@ -37,7 +37,6 @@ define(function (require, exports, module) {
         _                   = require("thirdparty/lodash");
     
     /**
-     * @constructor
      * Model for the contents of a single file and its current modification state.
      * See DocumentManager documentation for important usage notes.
      *
@@ -67,6 +66,7 @@ define(function (require, exports, module) {
      * __deleted__ -- When the file for this document has been deleted. All views onto the document should
      * be closed. The document will no longer be editable or dispatch "change" events.
      *
+     * @constructor
      * @param {!File} file  Need not lie within the project.
      * @param {!Date} initialTimestamp  File's timestamp when we read it off disk.
      * @param {!string} rawText  Text content of the file.
