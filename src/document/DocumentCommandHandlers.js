@@ -53,6 +53,7 @@ define(function (require, exports, module) {
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent"),
         LanguageManager     = require("language/LanguageManager"),
+        LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         Menus               = require("command/Menus"),
         UrlParams           = require("utils/UrlParams").UrlParams,
@@ -1564,6 +1565,22 @@ define(function (require, exports, module) {
             browserReload(href);
         }, 100);
     }
+    
+    function handleBrowserForceReload() {
+        if (!Inspector.connected()) {
+            return;
+        }
+        
+        // Unload and reload agents before reloading the page
+        // Some agents (e.g. DOMAgent and RemoteAgent) require us to
+        // navigate to the page first before loading can complete.
+        // To accomodate this, we load all agents (in reconnect())
+        // and navigate in parallel.
+        LiveDevelopment.reconnect();
+
+        // Reload HTML page
+        Inspector.Page.reload();
+    }
 
     AppInit.htmlReady(function () {
         // If in Reload Without User Extensions mode, update UI and log console message
@@ -1628,6 +1645,7 @@ define(function (require, exports, module) {
     CommandManager.registerInternal(Commands.FILE_CLOSE_WINDOW,         handleFileCloseWindow);
     CommandManager.registerInternal(Commands.APP_RELOAD,                handleReload);
     CommandManager.registerInternal(Commands.APP_RELOAD_WITHOUT_EXTS,   handleReloadWithoutExts);
+    CommandManager.registerInternal(Commands.APP_BROWSER_FORCE_RELOAD,  handleBrowserForceReload);
 
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);

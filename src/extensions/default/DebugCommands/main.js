@@ -62,6 +62,7 @@ define(function (require, exports, module) {
         DEBUG_RUN_UNIT_TESTS            = "debug.runUnitTests",
         DEBUG_SHOW_PERF_DATA            = "debug.showPerfData",
         DEBUG_RELOAD_WITHOUT_USER_EXTS  = "debug.reloadWithoutUserExts",
+        DEBUG_BROWSER_FORCE_RELOAD      = "debug.browserForceReload",
         DEBUG_NEW_BRACKETS_WINDOW       = "debug.newBracketsWindow",
         DEBUG_SWITCH_LANGUAGE           = "debug.switchLanguage",
         DEBUG_ENABLE_NODE_DEBUGGER      = "debug.enableNodeDebugger",
@@ -103,6 +104,10 @@ define(function (require, exports, module) {
     
     function handleReloadWithoutUserExts() {
         CommandManager.execute(Commands.APP_RELOAD_WITHOUT_EXTS);
+    }
+    
+    function handleBrowserForceReload() {
+        CommandManager.execute(Commands.APP_BROWSER_FORCE_RELOAD);
     }
         
     function handleNewBracketsWindow() {
@@ -266,6 +271,7 @@ define(function (require, exports, module) {
         .setEnabled(!!brackets.app.showDeveloperTools);
     CommandManager.register(Strings.CMD_REFRESH_WINDOW,             DEBUG_REFRESH_WINDOW,           handleReload);
     CommandManager.register(Strings.CMD_RELOAD_WITHOUT_USER_EXTS,   DEBUG_RELOAD_WITHOUT_USER_EXTS, handleReloadWithoutUserExts);
+    CommandManager.register(Strings.CMD_BROWSER_FORCE_RELOAD,       DEBUG_BROWSER_FORCE_RELOAD,     handleBrowserForceReload);
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,        DEBUG_NEW_BRACKETS_WINDOW,      handleNewBracketsWindow);
     
     // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
@@ -291,6 +297,7 @@ define(function (require, exports, module) {
     menu.addMenuItem(DEBUG_SHOW_DEVELOPER_TOOLS, KeyboardPrefs.showDeveloperTools);
     menu.addMenuItem(DEBUG_REFRESH_WINDOW, KeyboardPrefs.refreshWindow);
     menu.addMenuItem(DEBUG_RELOAD_WITHOUT_USER_EXTS, KeyboardPrefs.reloadWithoutUserExts);
+    menu.addMenuItem(DEBUG_BROWSER_FORCE_RELOAD, KeyboardPrefs.browserForceReload);
     menu.addMenuItem(DEBUG_NEW_BRACKETS_WINDOW);
     menu.addMenuDivider();
     menu.addMenuItem(DEBUG_SWITCH_LANGUAGE);
