@@ -770,7 +770,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if we have a custom viewer showing false otherwise.
      */
     function showingCustomViewer() {
-        return (_currentViewProvider);
+        return (_currentViewProvider !== null);
     }
     
     /**
