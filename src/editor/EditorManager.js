@@ -682,10 +682,12 @@ define(function (require, exports, module) {
                     _currentlyViewedFileMTime = stat.mtime.getTime();
                     result.resolve();
                 } else {
+                    _currentlyViewedFileMTime = null;
                     result.reject();
                 }
             });
         } else {
+            _currentlyViewedFileMTime = null;
             result.reject();
         }
         
@@ -842,29 +844,28 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Calls refresh on custom viewer if the custom viewer implements it.
-     * This will happen when a file displayed by a custom viewer changes 
-     * on disk, to allow the custom viewer to force a reload of a file.  
-     * CEF caches files loaded via the file-protocol and doesn't honor the 
-     * files modification date to determin wether it is stale.
-     *
+     * Resync's the contents of the custom viewer if it's visible and
+     * refreshes the viewer if the file is out of date or removes it if the file
+     * has been deleted.
      * @param {!string} fullPath - path to file to be refreshed by custom viewer     
      */
     function notifyResyncCustomViewer() {
-        var file = FileSystem.getFileForPath(_currentlyViewedPath),
-            customViewer = getCustomViewerForPath(_currentlyViewedPath);
-        //
-        file.stat(function (err, stat) {
-            if (!err) {
-                if (stat.mtime !== _currentlyViewedFileMTime) {
-                    customViewer.refresh();
-                    _updateFileModificationTime(stat.mtime);
+        if (showingCustomViewerForPath(_currentlyViewedPath)) {
+            var file = FileSystem.getFileForPath(_currentlyViewedPath),
+                customViewer = getCustomViewerForPath(_currentlyViewedPath);
+            //
+            file.stat(function (err, stat) {
+                if (!err) {
+                    if (stat.mtime !== _currentlyViewedFileMTime) {
+                        customViewer.refresh();
+                        _updateFileModificationTime(stat.mtime);
+                    }
+                } else {
+                    // if we cannot stat the file we better close it.
+                    notifyPathDeleted(_currentlyViewedPath);
                 }
-            } else {
-                // if we cannot stat the file we better close it.
-                notifyPathDeleted(_currentlyViewedPath);
-            }
-        });
+            });
+        }
     }
 
     /**
