@@ -36,10 +36,10 @@
  * PreferencesManager.js sets up a singleton PreferencesSystem that has the following Scopes:
  *
  * * default (the default values for any settings that are explicitly registered)
- * *  user (the user's customized settings – the equivalent of Brackets' old 
- *        localStorage-based system. This is the settings file that lives in AppData)
+ * * user (the user's customized settings – the equivalent of Brackets' old 
+ *   localStorage-based system. This is the settings file that lives in AppData)
  * * Additional scopes for each .brackets.json file going upward in the file tree from the
- *        current file
+ *   current file
  * 
  * For example, if spaceUnits has a value set in a .brackets.json file near the open file, 
  * then a call to get("spaceUnits") would return the value from that file. File values come 
@@ -78,6 +78,7 @@ define(function (require, exports, module) {
      * MemoryStorage, as the name implies, stores the preferences in memory.
      * This is suitable for single session data or testing.
      * 
+     * @constructor
      * @param {?Object} data Initial data for the storage.
      */
     function MemoryStorage(data) {
@@ -93,7 +94,7 @@ define(function (require, exports, module) {
          * @return {Promise} promise that is already resolved
          */
         load: function () {
-            var result = $.Deferred();
+            var result = new $.Deferred();
             result.resolve(this.data);
             return result.promise();
         },
@@ -106,7 +107,7 @@ define(function (require, exports, module) {
          * @return {Promise} promise that is already resolved
          */
         save: function (newData) {
-            var result = $.Deferred();
+            var result = new $.Deferred();
             this.data = newData;
             result.resolve();
             return result.promise();
@@ -124,6 +125,7 @@ define(function (require, exports, module) {
     /**
      * Error type for problems parsing preference files.
      * 
+     * @constructor
      * @param {string} message Error message
      */
     function ParsingError(message) {
@@ -136,6 +138,7 @@ define(function (require, exports, module) {
     /**
      * Loads/saves preferences from a JSON file on disk.
      * 
+     * @constructor
      * @param {string} path Path to the preferences file
      * @param {boolean} createIfNew True if the file should be created if it doesn't exist.
      *                              If this is not true, an exception will be thrown if the
@@ -156,7 +159,7 @@ define(function (require, exports, module) {
          * @return {Promise} Resolved with the data once it has been parsed.
          */
         load: function () {
-            var result = $.Deferred();
+            var result = new $.Deferred();
             var path = this.path;
             var createIfNew = this.createIfNew;
             var self = this;
@@ -200,7 +203,7 @@ define(function (require, exports, module) {
          * @return {Promise} Promise resolved (with no arguments) once the data has been saved
          */
         save: function (newData) {
-            var result = $.Deferred();
+            var result = new $.Deferred();
             var path = this.path;
             var prefFile = FileSystem.getFileForPath(path);
             
@@ -256,6 +259,7 @@ define(function (require, exports, module) {
      * Additionally, `Scope`s support "layers" which are additional levels of preferences
      * that are stored within a single preferences file.
      * 
+     * @constructor
      * @param {Storage} storage Storage object from which prefs are loaded/saved
      */
     function Scope(storage) {
@@ -275,7 +279,7 @@ define(function (require, exports, module) {
          * @return {Promise} Promise that is resolved once loading is complete
          */
         load: function () {
-            var result = $.Deferred();
+            var result = new $.Deferred();
             this.storage.load()
                 .then(function (data) {
                     var oldKeys = this.getKeys();
@@ -302,7 +306,7 @@ define(function (require, exports, module) {
                 self._dirty = false;
                 return this.storage.save(this.data);
             } else {
-                return $.Deferred().resolve().promise();
+                return (new $.Deferred()).resolve().promise();
             }
         },
         
@@ -546,11 +550,10 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @constructor
-     * 
      * Create a default project layer object that has a single property "key"
      * with "project" as its value. 
      *
+     * @constructor
      */
     function ProjectLayer() {
         this.projectPath = null;
@@ -675,6 +678,7 @@ define(function (require, exports, module) {
      * There can be multiple paths and they are each checked in turn. The first that matches the
      * currently edited file wins.
      * 
+     * @constructor
      * @param {string} prefFilePath path to the preference file
      */
     function PathLayer(prefFilePath) {
@@ -835,6 +839,7 @@ define(function (require, exports, module) {
     /**
      * Represents a single, known Preference.
      * 
+     * @constructor
      * @param {Object} properties Information about the Preference that is stored on this object
      */
     function Preference(properties) {
@@ -867,7 +872,8 @@ define(function (require, exports, module) {
      * Provides a subset of the PreferencesSystem functionality with preference
      * access always occurring with the given prefix.
      * 
-     * @param {PreferencesSystem} baseSystem The real PreferencesSystem that is backing this one
+     * @constructor
+     * @param {PreferencesSystem} base The real PreferencesSystem that is backing this one
      * @param {string} prefix Prefix that is used for preferences lookup. Any separator characters should already be added.
      */
     function PrefixedPreferencesSystem(base, prefix) {
@@ -1041,6 +1047,7 @@ define(function (require, exports, module) {
      * The contextNormalizer is used to customize get/set contexts based on the needs of individual
      * context systems. It can be passed in at construction time or set later.
      * 
+     * @constructor
      * @param {function=} contextNormalizer function that is passed the context used for get or set to adjust for specific PreferencesSystem behavior
      */
     function PreferencesSystem(contextNormalizer) {
@@ -1064,8 +1071,9 @@ define(function (require, exports, module) {
         
         this._pendingScopes = {};
         
-        this._saveInProgress = false;
+        this._saveInProgress = null;
         this._nextSaveDeferred = null;
+        this.finalized = false;
         
         // The objects that define the different kinds of path-based Scope handlers.
         // Examples could include the handler for .brackets.json files or an .editorconfig
@@ -1552,31 +1560,37 @@ define(function (require, exports, module) {
         
         /**
          * Saves the preferences. If a save is already in progress, a Promise is returned for
-         * that save operation.
+         * that save operation. If preferences have already been finalized then return a
+         * rejected promise.
          * 
          * @return {Promise} Resolved when the preferences are done saving.
          */
         save: function () {
+            if (this.finalized) {
+                console.log("PreferencesSystem.save() called after finalized!");
+                return (new $.Deferred()).reject().promise();
+            }
+            
             if (this._saveInProgress) {
                 if (!this._nextSaveDeferred) {
-                    this._nextSaveDeferred = $.Deferred();
+                    this._nextSaveDeferred = new $.Deferred();
                 }
                 return this._nextSaveDeferred.promise();
             }
             
-            this._saveInProgress = true;
-            var deferred = this._nextSaveDeferred || $.Deferred();
+            var deferred = this._nextSaveDeferred || (new $.Deferred());
+            this._saveInProgress = deferred;
             this._nextSaveDeferred = null;
             
             Async.doInParallel(_.values(this._scopes), function (scope) {
                 if (scope) {
                     return scope.save();
                 } else {
-                    return $.Deferred().resolve().promise();
+                    return (new $.Deferred()).resolve().promise();
                 }
             }.bind(this))
                 .then(function () {
-                    this._saveInProgress = false;
+                    this._saveInProgress = null;
                     if (this._nextSaveDeferred) {
                         this.save();
                     }
@@ -1742,6 +1756,34 @@ define(function (require, exports, module) {
          */
         getPrefixedSystem: function (prefix) {
             return new PrefixedPreferencesSystem(this, prefix + ".");
+        },
+        
+        /**
+         * Return a promise that is resolved when all preferences have been saved.
+         * Disallow any other preferences from getting saved after promise is resolved.
+         * 
+         * @return {Promise} Resolved when the preferences are done saving.
+         */
+        _finalize: function () {
+            var deferred = new $.Deferred(),
+                self = this;
+
+            // Don't resolve promise until last `_saveInProgress` promise completes.
+            // There will only ever be a `_nextSaveDeferred`, if there is already a
+            // `_saveInProgress` and it will become the new `_saveInProgress` as soon as
+            // previous `_saveInProgress` resolves, so only need to wait for `_saveInProgress`.
+            function checkForSaveAndFinalize() {
+                if (self._saveInProgress) {
+                    self._saveInProgress.done(checkForSaveAndFinalize);
+                } else {
+                    self.finalized = true;
+                    deferred.resolve();
+                }
+            }
+
+            checkForSaveAndFinalize();
+
+            return deferred.promise();
         }
     });
     

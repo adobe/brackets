@@ -116,13 +116,22 @@ define({
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> byl změněn, ale neuložené změny se nachází také v {APP_NAME}.<br /><br /> Kterou verzi chcete zachovat?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> byl smazán z disku, ale změny nebyly uloženy v {APP_NAME}.<br /><br />Chcete uložit změny?",
 
-    // Najít, Nahradit, Nahradit v souborech
+    // Obecné označení - dialogy, tlačítka
+    "OK"                                : "OK",
+    "CANCEL"                            : "Zrušit",
+    "DONT_SAVE"                         : "Neukládat",
+    "SAVE"                              : "Uložit",
+    "SAVE_AS"                           : "Uložit jako\u2026",
+    "SAVE_AND_OVERWRITE"                : "Přepsat",
+    "DELETE"                            : "Smazat",
+    "BUTTON_YES"                        : "Ano",
+    "BUTTON_NO"                         : "Ne",
+  
+    // Find, Replace, Find in Files
     "FIND_RESULT_COUNT"                 : "{0} výsledků",
     "FIND_RESULT_COUNT_SINGLE"          : "1 výsledek",
     "FIND_NO_RESULTS"                   : "Žádné výsledky",
     "REPLACE_PLACEHOLDER"               : "Nahradit s\u2026",
-    "BUTTON_YES"                        : "Ano",
-    "BUTTON_NO"                         : "Ne",
     "BUTTON_REPLACE_ALL"                : "Vše\u2026",
     "BUTTON_REPLACE"                    : "Nahradit",
 
@@ -141,15 +150,18 @@ define({
     "NO_UPDATE_TITLE"                   : "Vše je aktuální!",
     "NO_UPDATE_MESSAGE"                 : "Verze {APP_NAME} je aktuální.",
 
+    // Nahradit vše (v jednom souboru)
     "FIND_REPLACE_TITLE_PART1"          : "Nahradit \"",
     "FIND_REPLACE_TITLE_PART2"          : "\" s \"",
     "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
 
+    // Najít v souborech
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" nalezen",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} v {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "v <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "v projektu",
+    "FIND_IN_FILES_ZERO_FILES"          : "Filtr vyloučil všechny soubory {0}",
     "FIND_IN_FILES_FILE"                : "souboru",
     "FIND_IN_FILES_FILES"               : "souborech",
     "FIND_IN_FILES_MATCH"               : "výsledek",
@@ -168,6 +180,22 @@ define({
     "FILE_FILTER_INSTRUCTIONS"          : "Vyloučit soubory a složky, které obsahují jakýkoliv z následujících řetězců / podřetězců nebo <a href='{0}' title='{0}'>vzorků</a>. Vložte každý řetězec na nový řádek.",
     "FILE_FILTER_LIST_PREFIX"           : "mimo",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "a {0} více",
+
+    "FILTER_COUNTING_FILES"             : "Počítání souborů\u2026",
+    "FILTER_FILE_COUNT"                 : "Povolit {0} z {1} souborů {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Povolit všechny {0} soubory {1}",
+
+    // Rychlá úprava
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Rychlá úprava není dostupná pro aktuální pozici kurzoru",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Rychlá úprava: umístěte kurzor do jména třídy",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Rychlá úprava: nekompletní class atribut",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Rychlá úprava: nekompletní id atribut",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Rychlá úprava: umístěte kurzor do elementu, třídy nebo id",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS Rychlá úprava časování: neplatná syntaxe",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Rychlá úprava: umístěte kurzor do jména funkce",
+
+    // Rychlá dokumentace
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Rychlá dokumentace není dostupná pro aktuální pozici kurzoru",
 
     /**
      * Správce projektu
@@ -190,6 +218,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Vybrány {0} sloupce",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Vybrán {0} řádek",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Vybrány {0} řádky",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} Vybráno",
     "STATUSBAR_CURSOR_POSITION"             : "Řádek {0}, Sloupec {1}",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Přepnout odsazení na mezery",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Přepnout odsazení na tabulátory",
@@ -212,6 +241,8 @@ define({
     "LINT_DISABLED"                         : "Lintování je vypnuto",
     "NO_LINT_AVAILABLE"                     : "Žádný linter není dostupný pro {0}",
     "NOTHING_TO_LINT"                       : "Nic k lintování",
+    "LINTER_TIMED_OUT"                      : "{0} - vypršel časový limit po uplynutí {1} ms",
+    "LINTER_FAILED"                         : "{0} byl(a) ukončen(a) s chybou: {1}",
 
 
     /**
@@ -258,11 +289,17 @@ define({
     "CMD_SELECT_ALL"                      : "Vybrat vše",
     "CMD_SELECT_LINE"                     : "Vybrat řádek",
     "CMD_FIND"                            : "Najít",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Rozdělit výběr na řádky",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Přidat kurzor na další řádek",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Přidat kurzor na předcházející řádek",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "Najít\u2026",
     "CMD_FIND_IN_FILES"                   : "Najít v souborech",
     "CMD_FIND_IN_SUBTREE"                 : "Najít v\u2026",
     "CMD_FIND_NEXT"                       : "Najít další",
     "CMD_FIND_PREVIOUS"                   : "Najít předchozí",
+    "CMD_FIND_ALL_AND_SELECT"             : "Najít vše a vybrat",
+    "CMD_ADD_NEXT_MATCH"                  : "Přidat další shodu do výběru",
+    "CMD_SKIP_CURRENT_MATCH"              : "Přeskočit a přidat další shodu do výběru",
     "CMD_REPLACE"                         : "Nahradit",
     "CMD_INDENT"                          : "Odsadit",
     "CMD_UNINDENT"                        : "Vrátit odsazení",
@@ -310,16 +347,17 @@ define({
     "CMD_PREV_DOC"                        : "Předchozí dokument",
     "CMD_SHOW_IN_TREE"                    : "Zobrazit stromovou strukturu",
     "CMD_SHOW_IN_OS"                      : "Zobrazit v OS",
-    "CMD_SHOW_IN_EXPLORER"                : "Zobrazit v Exploreru",
-    "CMD_SHOW_IN_FINDER"                  : "Zobrazit ve vyhledávači",
+    "CMD_SHOW_IN_EXPLORER"                : "Zobrazit v průzkumníkovi",
+    "CMD_SHOW_IN_FINDER"                  : "Zobrazit ve Finderu",
 
     // Příkazy menu nápověda
     "HELP_MENU"                           : "Nápověda",
     "CMD_CHECK_FOR_UPDATE"                : "Zkontrolovat aktualizace",
     "CMD_HOW_TO_USE_BRACKETS"             : "Jak používat {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME} fórum",
+    "CMD_SUPPORT"                         : "{APP_NAME} Podpora",
+    "CMD_SUGGEST"                         : "Navrhněte funkci",
+    "CMD_GET_INVOLVED"                    : "Zapojte se",
     "CMD_RELEASE_NOTES"                   : "Poznámky k verzi",
-    "CMD_REPORT_AN_ISSUE"                 : "Nahlásit problém",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s doplňky",
     "CMD_TWITTER"                         : "{TWITTER_NAME} - Twitter",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
@@ -328,13 +366,6 @@ define({
     // Řetězce pro main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentální verze",
     "DEVELOPMENT_BUILD"                    : "vývojová verze",
-    "OK"                                   : "OK",
-    "DONT_SAVE"                            : "Neukládat",
-    "SAVE"                                 : "Uložit",
-    "SAVE_AS"                              : "Uložit jako\u2026",
-    "SAVE_AND_OVERWRITE"                   : "Přepsat",
-    "CANCEL"                               : "Zrušit",
-    "DELETE"                               : "Smazat",
     "RELOAD_FROM_DISK"                     : "Načíst z disku",
     "KEEP_CHANGES_IN_EDITOR"               : "Ponechat změny v editoru",
     "CLOSE_DONT_SAVE"                      : "Zavřít (neukládat)",
@@ -448,6 +479,9 @@ define({
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Neexistují žádná CSS pravidla odpovídající vašemu výběru.<br> Pro vytvoření pravidla klikněte na \"Nové pravidlo\".",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Neexistují žádné soubory s kaskádovými styly ve vašem projektu.<br>Vytvořte nový soubor pro přidání CSS pravidel.",
 
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "největší",
+
     /**
      * Jména jednotek
      */
@@ -467,11 +501,11 @@ define({
     "CMD_LOG_NODE_STATE"                  : "Uložit stav Node do konzole",
     "CMD_RESTART_NODE"                    : "Restartovat Node",
 
-    "LANGUAGE_TITLE"                    : "Změnit jazyk",
-    "LANGUAGE_MESSAGE"                  : "Prosím, vyberte jazyk ze seznamu:",
-    "LANGUAGE_SUBMIT"                   : "Restartovat {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Zrušit",
-    "LANGUAGE_SYSTEM_DEFAULT"           : "Výchozí",
+    "LANGUAGE_TITLE"                      : "Změnit jazyk",
+    "LANGUAGE_MESSAGE"                    : "Prosím, vyberte jazyk ze seznamu:",
+    "LANGUAGE_SUBMIT"                     : "Restartovat {APP_NAME}",
+    "LANGUAGE_CANCEL"                     : "Zrušit",
+    "LANGUAGE_SYSTEM_DEFAULT"             : "Výchozí",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Doba",
@@ -506,3 +540,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Více"
 });
+
+/* Last translated for c3411bb7f686f98381b18e729c097b6c5e270694 */

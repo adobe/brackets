@@ -37,10 +37,15 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "Das Ziel-Verzeichnis kann nicht verändert werden.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Die Berechtigungen erlauben Ihnen nicht, Veränderungen vorzunehmen.",
     "CONTENTS_MODIFIED_ERR"             : "Die Datei wurde außerhalb von {APP_NAME} verändert.",
-    "UNSUPPORTED_ENCODING_ERR"          : "Die Datei ist nicht UTF-8-kodiert.",
+    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} unterstützt derzeit nur UTF-8-kodierte Textdateien.",
     "FILE_EXISTS_ERR"                   : "Die Datei existiert bereits.",
     "FILE"                              : "Datei",
     "DIRECTORY"                         : "Verzeichnis",
+    "DIRECTORY_NAMES_LEDE"              : "Ordnernamen",
+    "FILENAMES_LEDE"                    : "Dateinamen",
+    "FILENAME"                          : "Dateiname",
+    "DIRECTORY_NAME"                    : "Ordnername",
+
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Fehler beim Laden des Projekts",
@@ -60,9 +65,9 @@ define({
     "ERROR_RENAMING_FILE"               : "Beim Umbenennen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Fehler beim Löschen der Datei",
     "ERROR_DELETING_FILE"               : "Beim Löschen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}",
-    "INVALID_FILENAME_TITLE"            : "Ungültiger {0}name",
-    "INVALID_FILENAME_MESSAGE"          : "Dateinamen dürfen folgende Zeichen nicht enthalten: {0} Auch dürfen keine vom System reservierten Wörter vorkommen.",
-    "FILE_ALREADY_EXISTS"               : "{0} <span class='dialog-filename'>{1}</span> existiert bereits.", // TODO: depends on {0} gender
+    "INVALID_FILENAME_TITLE"            : "Ungültiger {0}",
+    "INVALID_FILENAME_MESSAGE"          : "{0} dürfen keine dem System vorbehaltenen Namen gebrauchen und nicht mit Punkten (.) enden oder die folgenden Zeichen enthalten: <span class='emphasized'>{1}</span>",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "Eine Datei oder ein Ordner mit dem Namen <span class='dialog-filename'>{0}</span> existiert bereits.",
     "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen von {0}", // TODO: depends on {0} gender
     "ERROR_CREATING_FILE"               : "Beim Erstellen von {0} <span class='dialog-filename'>{1}</span> ist ein Fehler aufgetreten: {2}", // TODO: depends on {0} gender
 
@@ -146,7 +151,7 @@ define({
     "SAVE_FILE_AS"                      : "Datei speichern",
     "CHOOSE_FOLDER"                     : "Ordner wählen",
 
-    "RELEASE_NOTES"                     : "Release-Notes",
+    "RELEASE_NOTES"                     : "Versionshinweise",
     "NO_UPDATE_TITLE"                   : "Sie sind auf dem Laufenden!",
     "NO_UPDATE_MESSAGE"                 : "Sie führen die neuste Version von {APP_NAME} aus.",
 
@@ -174,13 +179,15 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
 
     // File exclusion filters
-    "NO_FILE_FILTER"                    : "Dateien ausschließen\u2026",
+    "NEW_FILE_FILTER"                   : "Neuer Filter\u2026",
+    "CLEAR_FILE_FILTER"                 : "Keine Dateien ausschließen",
+    "NO_FILE_FILTER"                    : "Keine Dateien werden ausgeschlossen",
+    "EXCLUDE_FILE_FILTER"               : "{0} ausschließen",
     "EDIT_FILE_FILTER"                  : "Bearbeiten\u2026",
     "FILE_FILTER_DIALOG"                : "Filter bearbeiten",
     "FILE_FILTER_INSTRUCTIONS"          : "Schließe Dateien und Ordner aus, auf die einer der folgenden Pfade / Teilpfade oder <a href='{0}' title='{0}'>Platzhalter</a> zutrifft. Nutze für jeden Pfad eine neue Zeile.",
-    "FILE_FILTER_LIST_PREFIX"           : "ausgenommen",
+    "FILTER_NAME_PLACEHOLDER"           : "Benenne diesen Filter (optional)",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "und {0} weitere",
-
     "FILTER_COUNTING_FILES"             : "Dateien werden gezählt\u2026",
     "FILTER_FILE_COUNT"                 : "Lässt {0} von {1} Dateien {2} zu",
     "FILTER_FILE_COUNT_ALL"             : "Lässt alle {0} Dateien {1} zu",
@@ -363,6 +370,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Versionshinweise",
     "CMD_GET_INVOLVED"                    : "Mach mit",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
+    "CMD_HOMEPAGE"                        : "{APP_NAME}-Homepage",
     "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
     "CMD_ABOUT"                           : "Über {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Einstellungsdatei öffnen",
@@ -547,4 +555,4 @@ define({
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
 
-/* Last translated for 45ad989284156a2b6c9e1b3669c2ce5c61055089 */
+/* Last translated for 3727e3103255acb0c72ee63c57949428a4ba1334 */

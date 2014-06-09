@@ -42,7 +42,10 @@ define(function (require, exports, module) {
         AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
         ContributorsTemplate    = require("text!htmlContent/contributors-list.html");
     
-    /** @const This is the thirdparty API's (GitHub) maximum contributors per page limit */
+    /**
+     * This is the thirdparty API's (GitHub) maximum contributors per page limit
+     * @const {number}
+     */
     var CONTRIBUTORS_PER_PAGE   = 100;
 
     var buildInfo;
@@ -72,6 +75,7 @@ define(function (require, exports, module) {
         var templateVars = {
             ABOUT_ICON          : brackets.config.about_icon,
             APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
+            BUILD_TIMESTAMP     : brackets.config.build_timestamp,
             BUILD_INFO          : buildInfo || "",
             Strings             : Strings
         };

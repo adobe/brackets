@@ -30,12 +30,13 @@
  * the file tree.
  *
  * This module dispatches these events:
- *    - beforeProjectClose -- before _projectRoot changes, but working set files still open
- *    - projectClose       -- *just* before _projectRoot changes; working set already cleared & project root unwatched
+ *    - beforeProjectClose -- before `_projectRoot` changes, but working set files still open
+ *    - projectClose       -- *just* before `_projectRoot` changes; working set already cleared
+ *      & project root unwatched
  *    - beforeAppClose     -- before Brackets quits entirely
- *    - projectOpen        -- after _projectRoot changes and the tree is re-rendered
+ *    - projectOpen        -- after `_projectRoot` changes and the tree is re-rendered
  *    - projectRefresh     -- when project tree is re-rendered for a reason other than
- *                            a project being opened (e.g. from the Refresh command)
+ *      a project being opened (e.g. from the Refresh command)
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(ProjectManager).on("eventname", handler);
@@ -747,8 +748,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
      * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
+     * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
      * @param {string} fileName
      * @return {boolean}
      */

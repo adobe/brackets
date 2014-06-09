@@ -39,12 +39,12 @@
  *                             are complete. Doesn't fire when editor temporarily loses focus to a non-editor
  *                             control (e.g. search toolbar or modal dialog, or window deactivation). Does
  *                             fire when focus moves between inline editor and its full-size container.
- *                             This event tracks getActiveEditor() changes, while DocumentManager's
- *                             currentDocumentChange tracks getCurrentFullEditor() changes.
+ *      This event tracks `getActiveEditor()` changes, while DocumentManager's
+ *      `currentDocumentChange` tracks `getCurrentFullEditor()` changes.
  *                             The 2nd arg to the listener is which Editor became active; the 3rd arg is
  *                             which Editor is deactivated as a result. Either one may be null.
- *                             NOTE (#1257): getFocusedEditor() sometimes lags behind this event. Listeners
- *                             should use the arguments or call getActiveEditor() to reliably see which Editor 
+ *      NOTE (#1257): `getFocusedEditor()` sometimes lags behind this event. Listeners
+ *      should use the arguments or call `getActiveEditor()` to reliably see which Editor 
  *                             just gained focus.
  */
 define(function (require, exports, module) {
@@ -63,7 +63,10 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         LanguageManager     = require("language/LanguageManager");
     
-    /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
+    /**
+     * DOM node that contains all editors (visible and hidden alike)
+     * @type {jQueryObject}
+     */
     var _editorHolder = null;
     
     /**
@@ -71,17 +74,39 @@ define(function (require, exports, module) {
      * @type {?Editor}
      */
     var _currentEditor = null;
-    /** @type {?Document} */
+
+    /**
+     * Document in current editor
+     * @type {?Document}
+     */
     var _currentEditorsDocument = null;
-    /** @type {?string} full path to file */
+
+    /**
+     * full path to file
+     * @type {?string}
+     */
     var _currentlyViewedPath = null;
-    /** @type {?Date} modification time of file */
+     /** 
+      * modification time of file 
+      * @type {?Date} 
+      */
     var _currentlyViewedFileMTime = null;
-    /** @type {?JQuery} DOM node representing UI of custom view   */
+    /**
+     * DOM node representing UI of custom view  
+     * @type {?JQuery}
+     */
     var _$currentCustomViewer = null;
-    /** @type {?Object} view provider */
+
+    /**
+     * view provider
+     * @type {?Object}
+     */
     var _currentViewProvider = null;
-    /** @type {?Object} view provider registry */
+
+    /**
+     * view provider registry
+     * @type {?Object}
+     */
     var _customViewerRegistry = {};
     
     /**
@@ -405,9 +430,9 @@ define(function (require, exports, module) {
      * UI elements are still referencing the Document it will still be 'open' (kept alive) from
      * DocumentManager's standpoint. However, destroying the full-size editor does remove the backing
      * "master" editor from the Document, rendering it immutable until either inline-editor edits or
-     * currentDocument change triggers _createFullEditorForDocument() full-size editor again.
+     * currentDocument change triggers `_createFullEditorForDocument()` full-size editor again.
      *
-     * In certain edge cases, this is called directly by DocumentManager; see _gcDocuments() for details.
+     * In certain edge cases, this is called directly by DocumentManager; see `_gcDocuments()` for details.
      *
      * @param {!Document} document Document whose "master" editor we may destroy
      */
@@ -449,14 +474,14 @@ define(function (require, exports, module) {
     
     
     /**
-     * Flag for _onEditorAreaResize() to always force refresh.
+     * Flag for `_onEditorAreaResize()` to always force refresh.
      * @const
      * @type {string}
      */
     var REFRESH_FORCE = "force";
     
     /**
-     * Flag for _onEditorAreaResize() to never refresh.
+     * Flag for `_onEditorAreaResize()` to never refresh.
      * @const
      * @type {string}
      */
@@ -478,11 +503,11 @@ define(function (require, exports, module) {
      * Update the current CodeMirror editor's size. Must be called any time the contents of the editor area
      * are swapped or any time the editor-holder area has changed height. EditorManager calls us in the swap
      * case. PanelManager calls us in the most common height-change cases (panel and/or window resize), but
-     * some other cases are handled by external code calling resizeEditor() (e.g. ModalBar hide/show).
+     * some other cases are handled by external code calling `resizeEditor()` (e.g. ModalBar hide/show).
      * 
      * @param {number} editorAreaHt
      * @param {string=} refreshFlag For internal use. Set to "force" to ensure the editor will refresh, 
-     *    "skip" to ensure the editor does not refresh, or leave undefined to let _onEditorAreaResize()
+     *    "skip" to ensure the editor does not refresh, or leave undefined to let `_onEditorAreaResize()`
      *    determine whether it needs to refresh.
      */
     function _onEditorAreaResize(event, editorAreaHt, refreshFlag) {
@@ -604,8 +629,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * resets editor state to make sure getFocusedEditor(), getActiveEditor() 
-     * and getCurrentFullEditor() return null when an image or the NoEditor 
+     * Resets editor state to make sure `getFocusedEditor()`, `getActiveEditor()`,
+     * and `getCurrentFullEditor()` return null when an image or the NoEditor 
      * placeholder is displayed.
      */
     function _nullifyEditor() {
@@ -636,7 +661,7 @@ define(function (require, exports, module) {
             _currentEditor = null;
             _currentlyViewedPath = null;
             _currentlyViewedFileMTime = null;
-
+            
             // No other Editor is gaining focus, so in this one special case we must trigger event manually
             _notifyActiveEditorChanged(null);
         }
@@ -655,7 +680,7 @@ define(function (require, exports, module) {
     function getCurrentlyViewedPath() {
         return _currentlyViewedPath;
     }
-
+    
     /**
      * returns the the modification time stamp on disk of the file currently in view, 
      * i.e. a text doc in an editor or a file in a custom viewer, i.e. an image.
@@ -665,7 +690,7 @@ define(function (require, exports, module) {
         _currentlyViewedFileMTime = null;
         $(exports).triggerHandler("currentlyViewedFileChange");
     }
-
+    
     var notifyPathDeleted;
 
     function _updateFileModificationTime(mtime) {
@@ -696,10 +721,10 @@ define(function (require, exports, module) {
     
     function _setCurrentlyViewedPath(fullPath, mtime) {
         if (fullPath) {
-            _currentlyViewedPath = fullPath;
+        _currentlyViewedPath = fullPath;
             _updateFileModificationTime(mtime)
                 .done(function () {
-                    $(exports).triggerHandler("currentlyViewedFileChange");
+        $(exports).triggerHandler("currentlyViewedFileChange");
                 })
                 .fail(function () {
                     notifyPathDeleted(fullPath);
@@ -761,7 +786,7 @@ define(function (require, exports, module) {
         
         // add path, dimensions and file size to the view after loading image
         _$currentCustomViewer = provider.render(fullPath, $("#editor-holder"));
-
+        
         _setCurrentlyViewedPath(fullPath);
     }
 
@@ -843,7 +868,7 @@ define(function (require, exports, module) {
         return _customViewerRegistry[lang.getId()];
     }
     
-    /**
+    /** 
      * Resync's the contents of the custom viewer if it's visible and
      * refreshes the viewer if the file is out of date or removes it if the file
      * has been deleted.
@@ -874,9 +899,9 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Clears custom viewer for a file with a given path and displays
-     * an alternate file or the no editor view.
-     * If no param fullpath is passed an alternate file will be opened
+     * Clears custom viewer for a file with a given path and displays 
+     * an alternate file or the no editor view. 
+     * If no param fullpath is passed an alternate file will be opened 
      * regardless of the current value of _currentlyViewedPath.
      * If param fullpath is provided then only if fullpath matches 
      * the currently viewed file an alternate file will be opened.
@@ -938,21 +963,20 @@ define(function (require, exports, module) {
             _onWorkingSetRemove(event, removedFile);
         });
     }
-
-    // Note: there are several paths that can lead to an editor getting destroyed
-    //  - file was in working set, but not in current editor; then closed (via working set "X" button)
-    //      --> handled by _onWorkingSetRemove()
-    //  - file was in current editor, but not in working set; then navigated away from
-    //      --> handled by _onCurrentDocumentChange()
-    //  - file was in current editor, but not in working set; then closed (via File > Close) (and thus
-    //    implicitly navigated away from)
-    //      --> handled by _onCurrentDocumentChange()
-    //  - file was in current editor AND in working set; then closed (via File > Close OR working set
-    //    "X" button) (and thus implicitly navigated away from)
-    //      --> handled by _onWorkingSetRemove() currently, but could be _onCurrentDocumentChange()
-    //      just as easily (depends on the order of events coming from DocumentManager)
     
     /**
+     * Note: there are several paths that can lead to an editor getting destroyed
+     *  - file was in working set, but not in current editor; then closed (via working set "X" button)
+     *      --> handled by _onWorkingSetRemove()
+     *  - file was in current editor, but not in working set; then navigated away from
+     *      --> handled by _onCurrentDocumentChange()
+     *  - file was in current editor, but not in working set; then closed (via File > Close) (and thus
+     *    implicitly navigated away from)
+     *      --> handled by _onCurrentDocumentChange()
+     *  - file was in current editor AND in working set; then closed (via File > Close OR working set
+     *    "X" button) (and thus implicitly navigated away from)
+     *      --> handled by _onWorkingSetRemove() currently, but could be _onCurrentDocumentChange()
+     *      just as easily (depends on the order of events coming from DocumentManager)
      * Designates the DOM node that will contain the currently active editor instance. EditorManager
      * will own the content of this DOM node.
      * @param {!jQueryObject} holder
@@ -1005,7 +1029,7 @@ define(function (require, exports, module) {
      * getActiveEditor() will return the last visible editor that was given focus (but
      * may not currently have focus because, for example, a dialog with editable text
      * is open).
-     * @returns {?Editor}
+     * @return {?Editor}
      */
     function getFocusedEditor() {
         if (_currentEditor) {
@@ -1030,7 +1054,7 @@ define(function (require, exports, module) {
      * have focus at the moment, but it is visible and was the last editor that was given 
      * focus. Returns null if no editors are active.
      * @see getFocusedEditor()
-     * @returns {?Editor}
+     * @return {?Editor}
      */
     function getActiveEditor() {
         return _lastFocusedEditor;

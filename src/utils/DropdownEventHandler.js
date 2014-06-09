@@ -34,22 +34,22 @@ define(function (require, exports, module) {
         ViewUtils         = require("utils/ViewUtils");
     
     /**
-     * @constructor
      * Object to handle events for a dropdown list.
      *
      * DropdownEventHandler handles these events:
      *
      * Mouse:
-     *  click       - execute selection callback and dismiss list
-     *  mouseover   - highlight item
-     *  mouseleave  - remove mouse highlighting
+     * - click       - execute selection callback and dismiss list
+     * - mouseover   - highlight item
+     * - mouseleave  - remove mouse highlighting
      *
      * Keyboard:
-     *  Enter       - execute selection callback and dismiss list
-     *  Esc         - dismiss list
-     *  Up/Down     - change selection
-     *  PageUp/Down - change selection
+     * - Enter       - execute selection callback and dismiss list
+     * - Esc         - dismiss list
+     * - Up/Down     - change selection
+     * - PageUp/Down - change selection
      *
+     * @constructor
      * @param {jQueryObject} $list  associated list object
      * @param {Function} selectionCallback  function called when list item is selected.
      */
@@ -184,7 +184,12 @@ define(function (require, exports, module) {
             }
         }
 
-        this._setSelectedIndex(pos, true);
+        // If the item to be selected is a divider, then rotate one more.
+        if ($(this.$items[pos]).hasClass("divider")) {
+            this._rotateSelection((distance > 0) ? (distance + 1) : (distance - 1));
+        } else {
+            this._setSelectedIndex(pos, true);
+        }
     };
 
     /**
@@ -287,6 +292,21 @@ define(function (require, exports, module) {
                     }
                 }
             });
+    };
+    
+    /**
+     * Re-register mouse event handlers
+     * @param {!jQueryObject} $list  newly updated list object
+     */
+    DropdownEventHandler.prototype.reRegisterMouseHandlers = function ($list) {
+        if (this.$list) {
+            this.$list.off("click mouseover");
+            
+            this.$list = $list;
+            this.$items = $list.find("li");
+            
+            this._registerMouseEvents();
+        }
     };
 
     // Export public API
