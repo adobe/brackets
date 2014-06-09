@@ -575,7 +575,9 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Shows the document in a code mirror instance.
      * @private
+     * @param {!Document} Document to show
      */
     function _doShow(document) {
         // Show new editor
@@ -674,16 +676,15 @@ define(function (require, exports, module) {
     }
     
     /**
-     * returns the full path to the file currently in view, i.e. a text doc in an editor
-     * or a file in a custom viewer, i.e. an image.
+     * Retrieves the currently viewed file (document or otherwise)
+     * @return {!string} full path of the currently viewed file
      */
     function getCurrentlyViewedPath() {
         return _currentlyViewedPath;
     }
     
     /**
-     * returns the the modification time stamp on disk of the file currently in view, 
-     * i.e. a text doc in an editor or a file in a custom viewer, i.e. an image.
+     * Clears all internal data for the currently viewed file
      */
     function _clearCurrentlyViewedPath() {
         _currentlyViewedPath = null;
@@ -721,10 +722,10 @@ define(function (require, exports, module) {
     
     function _setCurrentlyViewedPath(fullPath, mtime) {
         if (fullPath) {
-        _currentlyViewedPath = fullPath;
+            _currentlyViewedPath = fullPath;
             _updateFileModificationTime(mtime)
                 .done(function () {
-        $(exports).triggerHandler("currentlyViewedFileChange");
+                    $(exports).triggerHandler("currentlyViewedFileChange");
                 })
                 .fail(function () {
                     notifyPathDeleted(fullPath);
