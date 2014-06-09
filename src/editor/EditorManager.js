@@ -501,10 +501,10 @@ define(function (require, exports, module) {
      * some other cases are handled by external code calling `resizeEditor()` (e.g. ModalBar hide/show).
      * 
      * @param {number} editorAreaHt
-     * @param {{refresh:string=, scrollToCursor:boolean, panelHeight:number}} refreshFlag For internal use.
+     * @param {{refresh:string=, revealCursor:boolean=}} refreshFlag For internal use.
      *    Set to "force" to ensure the editor will refresh, "skip" to ensure the editor does not refresh, or
      *    leave undefined to let `_onEditorAreaResize()` determine whether it needs to refresh.
-     *    Set scrollToCursor to true to reveal cursor. Use only on panel expansion.
+     *    Set revealCursor to true to reveal cursor.
      */
     function _onEditorAreaResize(event, editorAreaHt, refreshFlag) {
         if (_currentEditor) {

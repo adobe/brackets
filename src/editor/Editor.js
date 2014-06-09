@@ -1032,15 +1032,17 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Scrolls the editor viewport to maintain the distance between the cursor
-     * and the bottom of the editor. Use only for panel expansion.
+     * Determines if the cursor is currently visible and if not, and if not
+     * scrolls the editor view port maintaining the distance between the cursor
+     * and the bottom, to a maximum where the cursor is centered vertically
+     * within the editor.
      */
     Editor.prototype.pushUpCursor = function () {
         var $scrollerElement = $(this.getScrollerElement()),
             editorHeight = $scrollerElement.height(),
-            statusBarHeight = $scrollerElement.outerHeight() - editorHeight,
+            statusBarHeight = $("#status-bar").outerHeight(),
             menuBarHeight = $scrollerElement.offset().top,
-            bottom = window.innerHeight - menuBarHeight - statusBarHeight - editorHeight + 4,
+            bottom = window.innerHeight - menuBarHeight - statusBarHeight - editorHeight,
             cursorPosition = this._codeMirror.cursorCoords(null, "page").bottom;
         
         if (cursorPosition > $scrollerElement.outerHeight() + 4) {
