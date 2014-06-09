@@ -477,7 +477,7 @@ define(function (require, exports, module) {
                     });
             }).fail(function () {
                 // Unable to fetch timestamps for some reason - silently ignore (after logging to console)
-                // (We'll retry next time window is activated... and evenually we'll also be double
+                // (We'll retry next time window is activat ed... and evenually we'll also be double
                 // checking before each Save).
                 
                 // We can't go on without knowing which files are dirty, so bail now
@@ -485,33 +485,9 @@ define(function (require, exports, module) {
             });
 
         // 6) Handle custom viewer files: If a custom viewer is currently displaying a file, check if it has been updated or deleted
-        var fullPath = EditorManager.getCurrentlyViewedPath();
-        if (!DocumentManager.getCurrentDocument() && fullPath) {
-            var file = FileSystem.getFileForPath(fullPath);
-            //
-            file.stat(function (err, stat) {
-                if (!err) {
-                    // Does file's timestamp differ from last sync time on the Document?
-                    if (stat.mtime.getTime() !== EditorManager.getCurrentlyViewedFileMTime()) {
-
-                        EditorManager.refreshCustomViewer(fullPath, stat.mtime.getTime());
-                        
-//                        // Then close and reopen.
-//                        CommandManager.execute(Commands.FILE_CLOSE).done(function () {
-//                            CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath}).done(function () {
-//                                // CEF caches files loaded via the file-protocol but doesn't honor
-//                                // its timestamp to purge the cache. 
-//                                // Hence tell the custom viewer to refresh
-//                                EditorManager.refreshCustomViewer(fullPath);
-//                            });
-//                        });
-
-                    }
-                } else {
-                    // if we cannot stat the file we better close it.
-                    EditorManager.notifyPathDeleted(fullPath);
-                }
-            });
+        
+        if (EditorManager.showingCustomViewer()) {
+            EditorManager.notifyResyncCustomViewer();
         }
     }
     

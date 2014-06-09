@@ -660,10 +660,6 @@ define(function (require, exports, module) {
      * returns the the modification time stamp on disk of the file currently in view, 
      * i.e. a text doc in an editor or a file in a custom viewer, i.e. an image.
      */
-    function getCurrentlyViewedFileMTime() {
-        return _currentlyViewedFileMTime;
-    }
-
     function _clearCurrentlyViewedPath() {
         _currentlyViewedPath = null;
         _currentlyViewedFileMTime = null;
@@ -673,7 +669,7 @@ define(function (require, exports, module) {
     var notifyPathDeleted;
 
     function _updateCurrentlyViewedPathLastFileModificationSyncTime(mtime) {
-        var result = new $.Deferred(), 
+        var result = new $.Deferred(),
             file;
         
         if (mtime) {
@@ -700,10 +696,10 @@ define(function (require, exports, module) {
         if (fullPath) {
             _currentlyViewedPath = fullPath;
             _updateCurrentlyViewedPathLastFileModificationSyncTime(mtime)
-                .done(function() {
+                .done(function () {
                     $(exports).triggerHandler("currentlyViewedFileChange");
                 })
-                .fail(function() {
+                .fail(function () {
                     notifyPathDeleted(fullPath);
                 });
         } else {
@@ -764,9 +760,17 @@ define(function (require, exports, module) {
         // add path, dimensions and file size to the view after loading image
         _$currentCustomViewer = provider.render(fullPath, $("#editor-holder"));
 
-        _setCurrentlyViewedPath(fullPath, mtime);
+        _setCurrentlyViewedPath(fullPath);
     }
 
+    /**
+     * Check whether a custom viewer is visible
+     * @return {boolean} true if we have a custom viewer showing false otherwise.
+     */
+    function showingCustomViewer() {
+        return (_currentViewProvider);
+    }
+    
     /**
      * Check whether the given file is currently open in a custom viewer.
      *
@@ -836,7 +840,7 @@ define(function (require, exports, module) {
         
         return _customViewerRegistry[lang.getId()];
     }
-
+    
     /**
      * Calls refresh on custom viewer if the custom viewer implements it.
      * This will happen when a file displayed by a custom viewer changes 
@@ -846,14 +850,21 @@ define(function (require, exports, module) {
      *
      * @param {!string} fullPath - path to file to be refreshed by custom viewer     
      */
-    function refreshCustomViewer(fullPath, mtime) {
-        if (_currentlyViewedPath === fullPath) {
-            var customViewer = getCustomViewerForPath(fullPath);
-            if (customViewer && customViewer.refresh) {
-                customViewer.refresh();
-                _updateCurrentlyViewedPathLastFileModificationSyncTime(mtime);
+    function notifyResyncCustomViewer() {
+        var file = FileSystem.getFileForPath(_currentlyViewedPath),
+            customViewer = getCustomViewerForPath(_currentlyViewedPath);
+        //
+        file.stat(function (err, stat) {
+            if (!err) {
+                if (stat.mtime !== _currentlyViewedFileMTime) {
+                    customViewer.refresh();
+                    _updateCurrentlyViewedPathLastFileModificationSyncTime(stat.mtime);
+                }
+            } else {
+                // if we cannot stat the file we better close it.
+                notifyPathDeleted(_currentlyViewedPath);
             }
-        }
+        });
     }
 
     /**
@@ -1141,8 +1152,6 @@ define(function (require, exports, module) {
     exports._resetViewStates              = _resetViewStates;
     exports._doShow                       = _doShow;
     exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;
-    exports._showCustomViewer             = _showCustomViewer;
-    exports._closeCustomViewer            = _closeCustomViewer;
     
     
     
@@ -1157,7 +1166,6 @@ define(function (require, exports, module) {
     exports.getFocusedEditor              = getFocusedEditor;
     exports.getActiveEditor               = getActiveEditor;
     exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;
-    exports.getCurrentlyViewedFileMTime   = getCurrentlyViewedFileMTime;
     exports.getFocusedInlineWidget        = getFocusedInlineWidget;
     exports.resizeEditor                  = resizeEditor;
     exports.registerInlineEditProvider    = registerInlineEditProvider;
@@ -1166,11 +1174,12 @@ define(function (require, exports, module) {
     exports.getInlineEditors              = getInlineEditors;
     exports.closeInlineWidget             = closeInlineWidget;
     exports.registerCustomViewer          = registerCustomViewer;
-    exports.refreshCustomViewer           = refreshCustomViewer;
+    exports.notifyResyncCustomViewer      = notifyResyncCustomViewer;
     exports.getCustomViewerForPath        = getCustomViewerForPath;
     exports.notifyPathDeleted             = notifyPathDeleted;
+    exports.showingCustomViewer           = showingCustomViewer;
     exports.showingCustomViewerForPath    = showingCustomViewerForPath;
-    exports.showCustomViewer              = showCustomViewer;
-    exports.closeCustomViewer             = closeCustomViewer;
+    exports._showCustomViewer             = _showCustomViewer;
+    exports._closeCustomViewer            = _closeCustomViewer;
 
 });
