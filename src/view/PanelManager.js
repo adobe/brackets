@@ -101,16 +101,16 @@ define(function (require, exports, module) {
      * Calculates a new size for editor-holder and resizes it accordingly, then and dispatches the "editorAreaResize"
      * event. (The editors within are resized by EditorManager, in response to that event).
      * 
-     * @param {string=} refreshHint  One of "skip", "force", or undefined. See EditorManager docs.
+     * @param {{refresh:string=, revealCursor:boolean=}} options See EditorManager._onEditorAreaResize docs.
      */
-    function triggerEditorResize(refreshHint) {
+    function triggerEditorResize(options) {
         // Find how much space is left for the editor
         var editorAreaHeight = calcEditorHeight();
         
         $editorHolder.height(editorAreaHeight);  // affects size of "not-editor" placeholder as well
         
         // Resize editor to fill the space
-        $(exports).trigger("editorAreaResize", [editorAreaHeight, refreshHint || {}]);
+        $(exports).trigger("editorAreaResize", [editorAreaHeight, options || {}]);
     }
     
     
@@ -144,16 +144,15 @@ define(function (require, exports, module) {
     
     /** Trigger editor area resize whenever the given panel is shown/hidden/resized */
     function listenToResize($panel) {
-        // Update editor height when shown/hidden, & continuously as panel is resized
-        $panel.on("panelCollapsed panelExpanded panelResizeUpdate", function () {
+        // Update editor height when hidden, & continuously as panel is resized
+        $panel.on("panelCollapsed panelResizeUpdate", function () {
             triggerEditorResize();
         });
         // Update max size of sibling panels when shown/hidden, & at *end* of resize gesture
         $panel.on("panelCollapsed panelExpanded panelResizeEnd", function () {
             updateResizeLimits();
         });
-
-        // Scroll to show cursor above panel if necessary
+        // Update editor height when shown, & scroll to show cursor above panel if necessary
         $panel.on("panelExpanded", function () {
             triggerEditorResize({revealCursor: true});
         });
