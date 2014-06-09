@@ -21,7 +21,7 @@
  *
  */
 
-/*global $, define, brackets, describe, it, xit, expect, setTimeout, waitsForDone, runs */
+/*global $, define, brackets, describe, it, xit, expect, setTimeout, waitsForDone, runs, spyOn */
 /*unittests: FileTreeView*/
 
 define(function (require, exports, module) {
@@ -201,9 +201,9 @@ define(function (require, exports, module) {
                 it("should create a formatted, sorted list of objects", function () {
                     var vm = new FileTreeView.ViewModel();
                     
-                    var receivedChange = false;
+                    var changeFired = false;
                     vm.on(FileTreeView.CHANGE, function () {
-                        receivedChange = true;
+                        changeFired = true;
                     });
                     
                     waitsForDone(vm.setProjectRoot(root));
@@ -224,7 +224,7 @@ define(function (require, exports, module) {
                                 directory: subdir
                             }
                         ]);
-                        expect(receivedChange).toBe(true);
+                        expect(changeFired).toBe(true);
                     });
                 });
                 
@@ -251,6 +251,7 @@ define(function (require, exports, module) {
                         // Do nothing. This is actually what we expect.
                     }
                 });
+                
                 it("should close a directory that's open", function () {
                     var vm = new FileTreeView.ViewModel();
                     vm.treeData = [
@@ -275,6 +276,22 @@ define(function (require, exports, module) {
                         expect(vm.treeData[0].children).toBeNull();
                         expect(changeFired).toBe(true);
                     });
+                });
+                
+                it("should open a directory that's closed", function () {
+                    var vm = new FileTreeView.ViewModel();
+                    vm.treeData = [
+                        {
+                            name: "subdir",
+                            children: null,
+                            directory: {}
+                        }
+                    ];
+                    var deferred = new $.Deferred();
+                    spyOn(vm, "updateContents").andReturn(deferred.resolve().promise());
+                    vm.toggleDirectory(vm.treeData[0]);
+                    expect(vm.updateContents).toHaveBeenCalledWith(vm.treeData[0].directory, vm.treeData[0].children);
+                    expect(vm.treeData[0].children).toEqual([]);
                 });
             });
         });

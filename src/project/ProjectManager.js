@@ -140,6 +140,10 @@ define(function (require, exports, module) {
         });
     };
     
+    Dispatcher.prototype.toggleDirectory = function (treeDataEntry) {
+        this.viewModel.toggleDirectory(treeDataEntry);
+    };
+    
     var dispatcher = new Dispatcher(model, viewModel);
     
 
@@ -311,7 +315,7 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument(),
             selected = curDoc && curDoc.file ? curDoc.file.fullPath : "";
 
-        FileTreeView.render($projectTreeContainer[0], viewModel);
+        FileTreeView.render($projectTreeContainer[0], viewModel, dispatcher);
         return new $.Deferred().resolve();
     };
 

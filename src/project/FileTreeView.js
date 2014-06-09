@@ -48,7 +48,10 @@ define(function (require, exports, module) {
         return contents.map(function (entry) {
             if (entry.isFile) {
                 // if the name starts with a dot, treat the whole name as the filename not an extension
-                var i = entry.name.lastIndexOf(".") || entry.name.length;
+                var i = entry.name.lastIndexOf(".");
+                if (i === 0) {
+                    i = entry.name.length;
+                }
                 return {
                     name: entry.name.substr(0, i > -1 ? i : entry.name.length),
                     extension: entry.name.substring(i)
@@ -230,7 +233,10 @@ define(function (require, exports, module) {
         if (treeDataEntry.children === undefined) {
             throw new Error("toggleDirectory was called with a file treeDataEntry");
         }
-        if (treeDataEntry.children !== null) {
+        if (treeDataEntry.children === null) {
+            treeDataEntry.children = [];
+            this.updateContents(treeDataEntry.directory, treeDataEntry.children);
+        } else {
             treeDataEntry.children = null;
             $(this).trigger(CHANGE);
             return new $.Deferred().resolve().promise();
@@ -357,6 +363,11 @@ define(function (require, exports, module) {
     var directoryNode, directoryContents;
     
     directoryNode = React.createClass({
+        handleClick: function () {
+            this.props.dispatcher.toggleDirectory(this.props.entry);
+            return false;
+        },
+        
         render: function () {
             var entry = this.props.entry,
                 nodeClass,
@@ -365,7 +376,8 @@ define(function (require, exports, module) {
             if (entry.children) {
                 nodeClass = "open";
                 childNodes = directoryContents({
-                    contents: entry.children
+                    contents: entry.children,
+                    dispatcher: this.props.dispatcher
                 });
             } else {
                 nodeClass = "closed";
@@ -390,16 +402,6 @@ define(function (require, exports, module) {
     });
 
     directoryContents = React.createClass({
-        handleClick: function () {
-            if (this.props.togglePath) {
-                var newOpen = !this.props.open;
-                if (newOpen && !this.state.contents) {
-                    this.loadContents();
-                }
-                this.props.togglePath(this.props.directory.fullPath, !this.props.open);
-            }
-            return false;
-        },
         render: function () {
             var ulProps = this.props.isRoot ? {
                 className: "jstree-no-dots jstree-no-icons"
@@ -409,14 +411,16 @@ define(function (require, exports, module) {
                 // TODO: set keys
                 if (entry.children !== undefined) {
                     return directoryNode({
-                        entry: entry
+                        entry: entry,
+                        dispatcher: this.props.dispatcher
                     });
                 } else {
                     return fileNode({
-                        entry: entry
+                        entry: entry,
+                        dispatcher: this.props.dispatcher
                     });
                 }
-            }));
+            }.bind(this)));
         }
     });
     
@@ -424,7 +428,8 @@ define(function (require, exports, module) {
         render: function () {
             return directoryContents({
                 isRoot: true,
-                contents: this.props.viewModel.treeData
+                contents: this.props.viewModel.treeData,
+                dispatcher: this.props.dispatcher
             });
 //            return DOM.ul({
 //                className: "jstree-no-dots jstree-no-icons"
@@ -438,14 +443,15 @@ define(function (require, exports, module) {
         
     });
     
-    function render(element, viewModel) {
+    function render(element, viewModel, dispatcher) {
         $(element).addClass("jstree jstree-brackets");
         $(element).css("overflow", "auto");
         if (!viewModel.projectRoot) {
             return;
         }
         React.renderComponent(fileTreeView({
-            viewModel: viewModel
+            viewModel: viewModel,
+            dispatcher: dispatcher
         }),
             element);
     }
