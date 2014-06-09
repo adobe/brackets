@@ -668,7 +668,7 @@ define(function (require, exports, module) {
 
     var notifyPathDeleted;
 
-    function _updateCurrentlyViewedPathLastFileModificationSyncTime(mtime) {
+    function _updateFileModificationTime(mtime) {
         var result = new $.Deferred(),
             file;
         
@@ -695,7 +695,7 @@ define(function (require, exports, module) {
     function _setCurrentlyViewedPath(fullPath, mtime) {
         if (fullPath) {
             _currentlyViewedPath = fullPath;
-            _updateCurrentlyViewedPathLastFileModificationSyncTime(mtime)
+            _updateFileModificationTime(mtime)
                 .done(function () {
                     $(exports).triggerHandler("currentlyViewedFileChange");
                 })
@@ -858,7 +858,7 @@ define(function (require, exports, module) {
             if (!err) {
                 if (stat.mtime !== _currentlyViewedFileMTime) {
                     customViewer.refresh();
-                    _updateCurrentlyViewedPathLastFileModificationSyncTime(stat.mtime);
+                    _updateFileModificationTime(stat.mtime);
                 }
             } else {
                 // if we cannot stat the file we better close it.
