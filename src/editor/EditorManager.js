@@ -850,22 +850,27 @@ define(function (require, exports, module) {
      * @param {!string} fullPath - path to file to be refreshed by custom viewer     
      */
     function notifyResyncCustomViewer() {
-        if (showingCustomViewerForPath(_currentlyViewedPath)) {
-            var file = FileSystem.getFileForPath(_currentlyViewedPath),
-                customViewer = getCustomViewerForPath(_currentlyViewedPath);
-            //
-            file.stat(function (err, stat) {
-                if (!err) {
-                    if (stat.mtime !== _currentlyViewedFileMTime) {
-                        customViewer.refresh();
-                        _updateFileModificationTime(stat.mtime);
-                    }
-                } else {
-                    // if we cannot stat the file we better close it.
-                    notifyPathDeleted(_currentlyViewedPath);
-                }
-            });
+        var file = FileSystem.getFileForPath(_currentlyViewedPath),
+            customViewer = getCustomViewerForPath(_currentlyViewedPath);
+
+        if (!customViewer) {
+            return;
         }
+
+        // check to see if the file is out of date or missing
+        file.stat(function (err, stat) {
+            if (!err) {
+                if (stat.mtime !== _currentlyViewedFileMTime) {
+                    if (customViewer.refresh) {
+                        customViewer.refresh();
+                    }
+                    _updateFileModificationTime(stat.mtime);
+                }
+            } else {
+                // if we cannot stat the file we better close it.
+                notifyPathDeleted(_currentlyViewedPath);
+            }
+        });
     }
 
     /**
