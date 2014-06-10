@@ -63,16 +63,8 @@ define(function (require, exports, module) {
      */
     var _paneViewListAddedOrder = [];
     
-    
     /**
-     * Returns a list of items in the pane view list in UI list order. May be 0-length, but never null.
-     *
-     * When a file is added a paneViewList, a "paneViewListAdd" event is dispatched
-     * When a file is removed a paneViewList, a "paneViewListRemove" is dispatched.
-     */
-    
-    /**
-     * @param {!string} paneId (this will identify which Pane the caller wants a View List)
+     * @param {!string} paneId this will identify which Pane the caller wants a View List
      * @return {Array.<File>}
      */
     function getPaneViewList(paneId) {
@@ -92,7 +84,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Resets all internal data for the associated paneId
-     * @param {!string} paneId (this will identify which Pane the caller wants to reset)
+     * @param {!string} paneId this will identify which Pane the caller wants to reset
      */
     function _reset(paneId) {
         _paneViewList = [];
@@ -103,7 +95,7 @@ define(function (require, exports, module) {
     /**
      * Returns the index of the file matching fullPath in the pane view list.
      * Returns -1 if not found.
-     * @param {!string} paneId (this will identify which Pane the caller wants to search)
+     * @param {!string} paneId this will identify which Pane the caller wants to search
      * @param {!string} fullPath
      * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
      *          use only.
@@ -118,7 +110,7 @@ define(function (require, exports, module) {
     /**
      * Returns the index of the file matching fullPath in the pane view added order list
      * Returns -1 if not found.
-     * @param {!string} paneId (this will identify which Pane the caller wants to search)
+     * @param {!string} paneId this will identify which Pane the caller wants to search
      * @param {!string} fullPath
      * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
      *          use only.
@@ -133,7 +125,7 @@ define(function (require, exports, module) {
     /**
      * Returns the index of the file matching fullPath in the pane view MRU list
      * Returns -1 if not found.
-     * @param {!string} paneId (this will identify which Pane the caller wants to search)
+     * @param {!string} paneId Identifies which Pane the caller wants to search
      * @param {!string} fullPath
      * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
      *          use only.
@@ -146,17 +138,45 @@ define(function (require, exports, module) {
     }
     
     /**
+     * internal function for adding a file to the pane view list
+     * @param {!string} paneId the pane in which to add
+     * @param {!File} file the file to add
+     * @param {Object.<number, number>=} optional in place object which contains the index and indexRequested where to merge 
+     */
+    
+    function _addToPaneViewList(paneId, file, inPlace) {
+        if (inPlace && inPlace.indexRequested) {
+            // If specified, insert into the pane view list at this 0-based index
+            _paneViewList.splice(inPlace.index, 0, file);
+        } else {
+            // If no index is specified, just add the file to the end of the pane view list.
+            _paneViewList.push(file);
+        }
+        
+        // Add to MRU order: either first or last, depending on whether it's already the current doc or not
+        var currentDocument = DocumentManager.getCurrentDocument();
+        if (currentDocument && currentDocument.file.fullPath === file.fullPath) {
+            _paneViewListMRUOrder.unshift(file);
+        } else {
+            _paneViewListMRUOrder.push(file);
+        }
+        
+        // Add first to Added order
+        _paneViewListAddedOrder.unshift(file);
+    }
+    
+    /**
      * Adds the given file to the end of the pane view list, if it is not already in the list
      * and it does not have a custom viewer.
      * Does not change which document is currently open in the editor. Completes synchronously.
-     * @param {!string} paneId (this will identify which Pane with which the caller wants to add)
+     * @param {!string} paneId this will identify which Pane with which the caller wants to add
      * @param {!File} file
      * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
      * @param {boolean=} forceRedraw  If true, a pane view list change notification is always sent
      *    (useful if suppressRedraw was used with removeFromPaneViewList() earlier)
      */
     function addToPaneViewList(paneId, file, index, forceRedraw) {
-        var indexRequested = (index !== undefined && index !== null && index !== -1);
+        var indexRequested = (index !== undefined && index !== null && index >= 0);
         
         // If the file has a custom viewer, then don't add it to the pane view list.
         if (!_canOpenFile(file)) {
@@ -175,24 +195,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        if (!indexRequested) {
-            // If no index is specified, just add the file to the end of the pane view list.
-            _paneViewList.push(file);
-        } else {
-            // If specified, insert into the pane view list at this 0-based index
-            _paneViewList.splice(index, 0, file);
-        }
-        
-        // Add to MRU order: either first or last, depending on whether it's already the current doc or not
-        var currentDocument = DocumentManager.getCurrentDocument();
-        if (currentDocument && currentDocument.file.fullPath === file.fullPath) {
-            _paneViewListMRUOrder.unshift(file);
-        } else {
-            _paneViewListMRUOrder.push(file);
-        }
-        
-        // Add first to Added order
-        _paneViewListAddedOrder.unshift(file);
+        _addToPaneViewList(paneId, file, {indexRequested: indexRequested, index: index});
         
         // Dispatch event
         if (!indexRequested) {
@@ -209,7 +212,7 @@ define(function (require, exports, module) {
      * Does not change which document is currently open in the editor.
      * More efficient than calling addToPaneViewList() (in a loop) for
      * a list of files because there's only 1 redraw at the end
-     * @param {!string} paneId (this will identify which Pane with which the caller wants to add)
+     * @param {!string} paneId this will identify which Pane with which the caller wants to add
      * @param {!Array.<File>} fileList
      */
     function addListToPaneViewList(paneId, fileList) {
@@ -222,46 +225,47 @@ define(function (require, exports, module) {
             // Or if doc is already in pane view list, don't add it again.
             if (_canOpenFile(file) && findInPaneViewList(paneId, file.fullPath) === -1) {
                 uniqueFileList.push(file);
-
-                // Add
-                _paneViewList.push(file);
-
-                // Add to MRU order: either first or last, depending on whether it's already the current doc or not
-                if (currentDocument && currentDocument.file.fullPath === file.fullPath) {
-                    _paneViewListMRUOrder.unshift(file);
-                } else {
-                    _paneViewListMRUOrder.push(file);
-                }
-                
-                
-                // Add first to Added order
-                _paneViewListAddedOrder.splice(index, 1, file);
+                _addToPaneViewList(paneId, file);
             }
         });
 
         // Dispatch event
         $(exports).triggerHandler("paneViewListAddList", [uniqueFileList]);
     }
-
+    
     /**
-     * Warning: low level API - use FILE_CLOSE command in most cases.
-     * Removes the given file from the pane view list, if it was in the list. Does not change
-     * the current editor even if it's for this file. Does not prompt for unsaved changes.
-     * @param {!string} paneId (this will identify which Pane with which the caller wants to remove)
-     * @param {!File} file
-     * @param {boolean=} true to suppress redraw after removal
+     * internal function for removing a file from the pane view list
+     * @param paneId the pane in which to remove the file
+     * @param file the file to remove
+     * @return true if the file was removed, false if not
+     *
      */
-    function removeFromPaneViewList(paneId, file, suppressRedraw) {
+    function _removeFromPaneViewLIst(paneId, file) {
         // If doc isn't in pane view list, do nothing
         var index = findInPaneViewList(paneId, file.fullPath);
         if (index === -1) {
-            return;
+            return false;
         }
         
         // Remove
         _paneViewList.splice(index, 1);
         _paneViewListMRUOrder.splice(findInPaneViewListMRUOrder(paneId, file.fullPath), 1);
         _paneViewListAddedOrder.splice(findInPaneViewListAddedOrder(paneId, file.fullPath), 1);
+        return true;
+    }
+
+    /**
+     * Warning: low level API - use FILE_CLOSE command in most cases.
+     * Removes the given file from the pane view list, if it was in the list. Does not change
+     * the current editor even if it's for this file. Does not prompt for unsaved changes.
+     * @param {!string} paneId this will identify which Pane with which the caller wants to remove
+     * @param {!File} file
+     * @param {boolean=} true to suppress redraw after removal
+     */
+    function removeFromPaneViewList(paneId, file, suppressRedraw) {
+        if (!_removeFromPaneViewLIst(paneId, file)) {
+            return;
+        }
         
         // Dispatch event
         EditorManager.notifyPathRemovedFromPaneList(paneId, file);
@@ -273,7 +277,7 @@ define(function (require, exports, module) {
      * Warning: low level API - use FILE_CLOSE command in most cases.
      * Removes the given file list from the pane view list, if it was in the list. Does not change
      * the current editor even if it's for this file. Does not prompt for unsaved changes.
-     * @param {!string} paneId (this will identify which Pane with which the caller wants to remove)
+     * @param {!string} paneId this will identify which Pane with which the caller wants to remove
      * @param {!File} file
      * @param {boolean=} true to suppress redraw after removal
      */
@@ -285,18 +289,10 @@ define(function (require, exports, module) {
         }
         
         list.forEach(function (file) {
-            var index = findInPaneViewList(paneId, file.fullPath);
-            if (index === -1) {
+            if (!_removeFromPaneViewLIst(paneId, file)) {
                 return;
             }
-            
             fileList.push(file);
-            
-            // Remove
-            _paneViewList.splice(index, 1);
-            _paneViewListMRUOrder.splice(findInPaneViewListMRUOrder(paneId, file.fullPath), 1);
-            _paneViewListAddedOrder.splice(findInPaneViewListAddedOrder(paneId, file.fullPath), 1);
-
         });
         
         EditorManager.notifyPathRemovedFromPaneList(paneId, fileList);
@@ -320,7 +316,7 @@ define(function (require, exports, module) {
     
     /**
      * Makes the file the most recent for the selected pane's view list
-     * @param {!string} paneId (this will identify which Pane with which the caller wants to change)
+     * @param {!string} paneId this will identify which Pane with which the caller wants to change
      * @param {!File} file to make most recent
      */
     function makePaneViewMostRecent(paneId, file) {
@@ -336,7 +332,7 @@ define(function (require, exports, module) {
     
     /**
      * Sorts MainViewManager._paneViewList using the compare function
-     * @param {!string} paneId (this will identify which Pane with which the caller wants to sort)
+     * @param {!string} paneId this will identify which Pane with which the caller wants to sort
      * @param {function(File, File): number} compareFn  The function that will be used inside JavaScript's
      *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
      *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
@@ -348,18 +344,26 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("paneViewListSort");
     }
 
+    /** 
+     * @private
+     * @param {!string} paneId this will identify which Pane with which the caller wants to traverse
+     * @param {number} index to verify
+     * @retnr true if the index is in range, false if not
+     */
+    function _isPaneViewListIndexInRange(paneId, index) {
+        var length = _paneViewList.length;
+        return index !== undefined && index !== null && index >= 0 && index < length;
+    }
+    
     /**
      * Mutually exchanges the files at the indexes passed by parameters.
-     * @param {!string} paneId (this will identify which Pane with which the caller wants to change)
-     * @param {number} index  Old file index
-     * @param {number} index  New file index
+     * @param {!string} paneId this will identify which Pane with which the caller wants to change
+     * @param {!number} index  Old file index
+     * @param {!number} index  New file index
      */
     function swapPaneViewListIndexes(paneId, index1, index2) {
-        var length = _paneViewList.length - 1;
-        var temp;
-        
-        if (index1 >= 0 && index2 <= length && index1 >= 0 && index2 <= length) {
-            temp = _paneViewList[index1];
+        if (_isPaneViewListIndexInRange(paneId, index1) && _isPaneViewListIndexInRange(paneId, index2)) {
+            var temp = _paneViewList[index1];
             _paneViewList[index1] = _paneViewList[index2];
             _paneViewList[index2] = temp;
             
@@ -371,7 +375,7 @@ define(function (require, exports, module) {
     /**
      * Get the next or previous file in the pane view list, in MRU order (relative to currentDocument). May
      * return currentDocument itself if pane view list is length 1.
-     * @param {!string} paneId (this will identify which Pane with which the caller wants to traverse)
+     * @param {!string} paneId this will identify which Pane with which the caller wants to traverse
      * @param {number} inc  -1 for previous, +1 for next; no other values allowed
      * @return {?File}  null if pane view list empty
      */
@@ -425,6 +429,12 @@ define(function (require, exports, module) {
      *
      * This avoids a circular dependency between EditorManager and DocumentManager (at least for this API)
      */
+
+    /**
+     * finds the next file to move into view and notifies the editor manager
+     * of the file that's being deleted and the file to replace it with.
+     * @param {!string} fullpath path of the file that is being deleted
+     */
     function notifyPathDeleted(fullpath) {
         var fileToOpen = traversePaneViewListByMRU(FOCUSED_PANE, 1);
         EditorManager.notifyPathDeleted(fullpath, fileToOpen);
@@ -470,10 +480,10 @@ define(function (require, exports, module) {
         // Allow for restoring saved editor UI state
         EditorManager._resetViewStates(viewStates);
 
-        if (!activeFile) {
-            activeFile = (_paneViewList.length > 0) ? _paneViewList[0].fullPath : undefined;
+        if (!activeFile && _paneViewList.length > 0) {
+            activeFile = _paneViewList[0].fullPath;
         }
-
+        
         if (activeFile) {
             var promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeFile });
             // Add this promise to the event's promises to signal that this handler isn't done yet

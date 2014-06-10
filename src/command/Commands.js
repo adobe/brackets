@@ -128,7 +128,7 @@ define(function (require, exports, module) {
     exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";                // EditorOptionHandlers.js      _getToggler()
     exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";                  // EditorOptionHandlers.js      _getToggler()
 
-    exports.CMD_ADD_TO_PANE_VIEW_LIST         = "cmd.addToPaneViewList";          // MainViewManager.js           addToPaneViewList()
+    exports.CMD_ADD_TO_PANE_VIEW_LIST         = "cmd.addToPaneViewList";          // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()
     
     exports.CMD_SORT_PANE_VIEW_LIST_BY_ADDED  = "cmd.sortPaneViewListByAdded";    // PaneViewListSort.js          _handleSort()
     exports.CMD_SORT_PANE_VIEW_LIST_BY_NAME   = "cmd.sortPaneViewListByName";     // PaneViewListSort.js          _handleSort()

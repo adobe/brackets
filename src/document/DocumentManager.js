@@ -27,7 +27,7 @@
 
 /**
  * DocumentManager maintains a list of currently 'open' Documents. The DocumentManager is responsible 
- * manifesting documents into the editor, closing documents and coordinating document operations and 
+ * manifesting documents into the editor, closing documents, coordinating document operations and 
  * dispatching certain document events.
  *
  * Document is the model for a file's contents; it dispatches events whenever those contents change.
@@ -210,7 +210,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * deprecated Use MainViewManager.getPaneViewList() instead
+     * @deprecated Use MainViewManager.getPaneViewList() instead
      * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
      * @return {Array.<File>}
      */
@@ -220,7 +220,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * deprecated Use MainViewManager.findInPaneViewList() instead
+     * @deprecated Use MainViewManager.findInPaneViewList() instead
      * Returns the index of the file matching fullPath in the working set.
      * Returns -1 if not found.
      * @param {!string} fullPath
@@ -238,7 +238,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * deprecated Use MainViewManager.removeListFromPaneViewList() instead
+     * @deprecated Use MainViewManager.removeListFromPaneViewList() instead
      * Removes a list of files from the working set
      * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
      *          use only.
@@ -278,7 +278,7 @@ define(function (require, exports, module) {
     
     
     /**
-     * deprecated Use MainViewManager.addToPaneViewList() instead 
+     * @deprecated Use MainViewManager.addToPaneViewList() instead 
      * Adds the given file to the end of the working set list, if it is not 
      * already in the list and it does not have a custom viewer.
      * Does not change which document is currently open in the editor. Completes synchronously.
@@ -293,7 +293,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * deprecated Use MainViewManager.addListToPaneViewList() instead 
+     * @deprecated Use MainViewManager.addListToPaneViewList() instead 
      * Adds the given file list to the end of the working set list.
      * If a file in the list has its own custom viewer, then it 
      * is not added into the working set.
@@ -308,7 +308,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * deprecated Use MainViewManager.removeFromPaneViewList() instead 
+     * @deprecated Use MainViewManager.removeFromPaneViewList() instead 
      * Warning: low level API - use FILE_CLOSE command in most cases.
      * Removes the given file from the working set list, if it was in the list. Does not change
      * the current editor even if it's for this file. Does not prompt for unsaved changes.

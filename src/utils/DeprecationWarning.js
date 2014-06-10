@@ -91,12 +91,12 @@ define(function (require, exports, module) {
 
     /**
      * Show deprecation message if there are listeners for the event
-     * @param {Object} the object with the old event to dispatch              $(exports)
-     * @param {Object} the object with the new event to map to the old event  $(MainViewManager)
-     * @param {String} the name of the old event                              "workingSetAdd"
-     * @param {String} the name of the new event                              "paneViewListAdd"
-     * @param {String=} the cannonical name of the old event                  "DocumentManager.workingSetAdd"
-     * @param {String=} the cannonical name of the new event                  "MainViewManager.paneViewListAdd"
+     * @param {Object} outbound the object with the old event to dispatch                            $(exports)
+     * @param {Object} inbound the object with the new event to map to the old event                 $(MainViewManager)
+     * @param {string} oldEventName the name of the old event                                        "workingSetAdd"
+     * @param {string} newEventName the name of the new event                                        "paneViewListAdd"
+     * @param {string=} cannonicalOutboundName the cannonical name of the old event                  "DocumentManager.workingSetAdd"
+     * @param {string=} cannonicalInboundName the cannonical name of the new event                   "MainViewManager.paneViewListAdd"
      */
     function deprecateEvent(outbound, inbound, oldEventName, newEventName, cannonicalOutboundName, cannonicalInboundName) {
         // create an event handler for the new event to listen for 
