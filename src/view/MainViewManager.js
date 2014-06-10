@@ -24,6 +24,13 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, window, $, brackets */
 
+/**
+ * MainViewManager Manages the arrangement all open panes. Each panes contain one or more views wich are 
+ * are created by a view factory and inserted into a pane list. There may be several panes managed
+ * by the MainViewManager with each pane containing a list of views.  The panes are always visible and 
+ * the layout is determined by the MainViewManager and the user.  Currently we support only 1 pane.
+ *
+ */
 define(function (require, exports, module) {
     "use strict";
     
@@ -50,20 +57,21 @@ define(function (require, exports, module) {
     var _paneViewList = [];
     
     /**
-     * @private
      * Contains the same set of items as _paneViewList, but ordered by how recently they were viewed
+     * @private
      * @type {Array.<File>}
      */
     var _paneViewListMRUOrder = [];
     
     /**
-     * @private
      * Contains the same set of items as _paneViewList, but ordered in the way they where added to _paneViewList (0 = last added).
+     * @private
      * @type {Array.<File>}
      */
     var _paneViewListAddedOrder = [];
     
     /**
+     * Retrieves the PaneViewList for the given PaneId
      * @param {!string} paneId this will identify which Pane the caller wants a View List
      * @return {Array.<File>}
      */
@@ -72,9 +80,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @private 
-     * method to determine if the file is legal to put in the pane view list.  This will change
+     * Determinse if a file is legal to put in the pane view list.  This will change
      * as we allow different types of things to be added to the pane view list
+     * @private 
      * @return true if the file can be opened
      */
     function _canOpenFile(file) {
@@ -82,8 +90,8 @@ define(function (require, exports, module) {
     }
    
     /**
-     * @private
      * Resets all internal data for the associated paneId
+     * @private
      * @param {!string} paneId this will identify which Pane the caller wants to reset
      */
     function _reset(paneId) {
@@ -93,13 +101,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the index of the file matching fullPath in the pane view list.
-     * Returns -1 if not found.
+     * Gets the index of the file matching fullPath in the pane view list
      * @param {!string} paneId this will identify which Pane the caller wants to search
      * @param {!string} fullPath
      * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
      *          use only.
-     * @return {number} index
+     * @return {number} index, -1 if not found.
      */
     function findInPaneViewList(paneId, fullPath) {
         return _.findIndex(_paneViewList, function (file, i) {
@@ -108,13 +115,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the index of the file matching fullPath in the pane view added order list
-     * Returns -1 if not found.
+     * Gets the index of the file matching fullPath in the added order pane view list
      * @param {!string} paneId this will identify which Pane the caller wants to search
      * @param {!string} fullPath
      * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
      *          use only.
-     * @return {number} index
+     * @return {number} index, -1 if not found.
      */
     function findInPaneViewListAddedOrder(paneId, fullPath) {
         return _.findIndex(_paneViewListAddedOrder, function (file, i) {
@@ -123,13 +129,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the index of the file matching fullPath in the pane view MRU list
-     * Returns -1 if not found.
+     * Gets the index of the file matching fullPath in the MRU order pane view list
      * @param {!string} paneId Identifies which Pane the caller wants to search
      * @param {!string} fullPath
      * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
      *          use only.
-     * @return {number} index
+     * @return {number} index, -1 if not found.
      */
     function findInPaneViewListMRUOrder(paneId, fullPath) {
         return _.findIndex(_paneViewListMRUOrder, function (file, i) {
@@ -138,10 +143,10 @@ define(function (require, exports, module) {
     }
     
     /**
-     * internal function for adding a file to the pane view list
+     * Adds a file to all lists
      * @param {!string} paneId the pane in which to add
      * @param {!File} file the file to add
-     * @param {Object.<number, number>=} optional in place object which contains the index and indexRequested where to merge 
+     * @param {Object.<number, number>=} Object containing the index and indexRequested where to merge 
      */
     
     function _addToPaneViewList(paneId, file, inPlace) {
@@ -345,6 +350,7 @@ define(function (require, exports, module) {
     }
 
     /** 
+     * Determines if the index is in range of the paneViewList array
      * @private
      * @param {!string} paneId this will identify which Pane with which the caller wants to traverse
      * @param {number} index to verify
@@ -441,8 +447,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @private
      * Loads the pane view list state
+     * @private
      */
     function _loadViewState(e) {
         // file root is appended for each project
@@ -492,8 +498,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @private
      * Saves the pane view list state
+     * @private
      */
     function _saveViewState() {
     
