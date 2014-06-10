@@ -749,8 +749,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
      * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
+     * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
      * @param {string} fileName
      * @return {boolean}
      */

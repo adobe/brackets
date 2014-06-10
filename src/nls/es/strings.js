@@ -37,9 +37,15 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "El directorio de destino no se puede modificar.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Los permisos no permiten hacer modificaciones.",
     "CONTENTS_MODIFIED_ERR"             : "El archivo fue modificado fuera de {APP_NAME}.",
+    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} actualmente solo soporta archivos codificados como UTF-8.",
     "FILE_EXISTS_ERR"                   : "El archivo ya existe.",
     "FILE"                              : "archivo",
     "DIRECTORY"                         : "directorio",
+    "DIRECTORY_NAMES_LEDE"              : "nombres de directorios",
+    "FILENAMES_LEDE"                    : "nombres de archivos",
+    "FILENAME"                          : "Nombre de archivo",
+    "DIRECTORY_NAME"                    : "Nombre de directorio",
+    
     
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error abriendo el proyecto",
@@ -59,15 +65,15 @@ define({
     "ERROR_RENAMING_FILE"               : "Ha ocurrido un error al intentar renombrar el archivo <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Error eliminando archivo",
     "ERROR_DELETING_FILE"               : "Ha ocurrido un error al intentar eliminar el archivo <span class='dialog-filename'>{0}</span>. {1}",
-    "INVALID_FILENAME_TITLE"            : "Nombre de {0} inválido",
-    "INVALID_FILENAME_MESSAGE"          : "Los nombres de archivo no pueden contener los siguientes caracteres: {0} o usar palabras reservadas del sistema",
-    "FILE_ALREADY_EXISTS"               : "El {0} <span class='dialog-filename'>{0}</span> ya existe.",
+    "INVALID_FILENAME_TITLE"            : "{0} inválido",
+    "INVALID_FILENAME_MESSAGE"          : "Los {0} no puede utilizar ninguna palabra reservada por el sistema, terminar con puntos (.) o utilizar cualquiera de los siguientes caracteres: <code class='emphasized'>{1}</code>",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "Ya existe un archivo o directorio con el nombre <span class='dialog-filename'>{0}</span>.",
     "ERROR_CREATING_FILE_TITLE"         : "Error creando {0}",
     "ERROR_CREATING_FILE"               : "Ha ocurrido un error al intentar crear el {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Error leyendo las preferencias",
-    "ERROR_PREFS_CORRUPT"               : "El archivo de preferencias no tiene el formato JSON válido. El archivo se abrira para que pueda correguir el formato. Luego deberá reiniciar {APP_NAME} para que los cambios surtan efecto.",
+    "ERROR_PREFS_CORRUPT"               : "El archivo de preferencias no tiene el formato JSON válido. El archivo se abrirá para que pueda corregir el formato. Luego deberá reiniciar {APP_NAME} para que los cambios surtan efecto.",
     
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Vaya... parece que {APP_NAME} todavía no funciona en navegadores.",
@@ -90,7 +96,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Necesitas especificar una URL base en este proyecto para poder iniciar Vista Previa en Vivo con archivos de servidor.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para Vista Previa en Vivo. Vuelve a intentarlo, por favor.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a la Vista Previa en Vivo!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista Previa en Vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarollo en Vivo sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br /><br />(No volverás a ver este mensaje.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista Previa en Vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarrollo en Vivo sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br /><br />(No volverás a ver este mensaje.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Para más información, consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Vista Previa en Vivo</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Vista Previa en Vivo",
@@ -117,6 +123,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> ha sido eliminado, pero tiene cambios sin guardar en {APP_NAME}.<br /><br />¿Quieres conservar tus cambios?",
     
     // Generic dialog/button labels
+    "DONE"                              : "Aceptar",
     "OK"                                : "Aceptar",
     "CANCEL"                            : "Cancelar",
     "DONT_SAVE"                         : "No guardar",
@@ -173,13 +180,15 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a internet y vuelve a intentarlo.",
     
     // File exclusion filters
-    "NO_FILE_FILTER"                    : "Excluir archivos\u2026",
+    "NEW_FILE_FILTER"                   : "Nuevo conjunto de filtros\u2026",
+    "CLEAR_FILE_FILTER"                 : "No excluir archivos",
+    "NO_FILE_FILTER"                    : "No hay archivos excluidos",
+    "EXCLUDE_FILE_FILTER"               : "Excluir {0}",
     "EDIT_FILE_FILTER"                  : "Editar\u2026",
-    "FILE_FILTER_DIALOG"                : "Editar filtro",
+    "FILE_FILTER_DIALOG"                : "Editar conjunto de filtros",
     "FILE_FILTER_INSTRUCTIONS"          : "Excluir archivos y carpetas que coincidan con alguna de las siguientes cadenas / subcadenas o <a href='{0}' title='{0}'>comodines</a>. Ingrese una cadena por línea.",
-    "FILE_FILTER_LIST_PREFIX"           : "excepto",
+    "FILTER_NAME_PLACEHOLDER"           : "Nombrar este conjunto de filtros (opcional)",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "y {0} más",
-    
     "FILTER_COUNTING_FILES"             : "Contando archivos\u2026",
     "FILTER_FILE_COUNT"                 : "Permite {0} de {1} archivos {2}",
     "FILTER_FILE_COUNT_ALL"             : "Permite todos los {0} archivos {1}",
@@ -362,6 +371,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Notas de la versión",
     "CMD_GET_INVOLVED"                    : "Involúcrese",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Abrir carpeta de extensiones",
+    "CMD_HOMEPAGE"                        : "Página principal de {APP_TITLE}",
     "CMD_TWITTER"                         : "{TWITTER_NAME} en Twitter",
     "CMD_ABOUT"                           : "Acerca de {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Abrir archivo de preferencias",
@@ -546,4 +556,4 @@ define({
     "DOCS_MORE_LINK"                            : "Más"
 });
 
-/* Last translated for e47dc5b16ec4bfabacfdb5c62f67a94feca85d50 */
+/* Last translated for 49d489f351be42cbbca90be29454bd8e246e5d7a */

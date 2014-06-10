@@ -34,22 +34,22 @@ define(function (require, exports, module) {
         ViewUtils         = require("utils/ViewUtils");
     
     /**
-     * @constructor
      * Object to handle events for a dropdown list.
      *
      * DropdownEventHandler handles these events:
      *
      * Mouse:
-     *  click       - execute selection callback and dismiss list
-     *  mouseover   - highlight item
-     *  mouseleave  - remove mouse highlighting
+     * - click       - execute selection callback and dismiss list
+     * - mouseover   - highlight item
+     * - mouseleave  - remove mouse highlighting
      *
      * Keyboard:
-     *  Enter       - execute selection callback and dismiss list
-     *  Esc         - dismiss list
-     *  Up/Down     - change selection
-     *  PageUp/Down - change selection
+     * - Enter       - execute selection callback and dismiss list
+     * - Esc         - dismiss list
+     * - Up/Down     - change selection
+     * - PageUp/Down - change selection
      *
+     * @constructor
      * @param {jQueryObject} $list  associated list object
      * @param {Function} selectionCallback  function called when list item is selected.
      */
@@ -142,7 +142,7 @@ define(function (require, exports, module) {
      */
     DropdownEventHandler.prototype._cleanup = function () {
         if (this.$list) {
-            this.$list.off("click mouseover");
+            this.$list.off(".dropdownEventHandler");
         }
         if (this.closeCallback) {
             this.closeCallback();
@@ -276,10 +276,10 @@ define(function (require, exports, module) {
         var self = this;
         
         this.$list
-            .on("click", "a", function () {
+            .on("click.dropdownEventHandler", "a", function () {
                 self._clickHandler($(this));
             })
-            .on("mouseover", "a", function (e) {
+            .on("mouseover.dropdownEventHandler", "a", function (e) {
                 var $link = $(e.currentTarget),
                     $item = $link.closest("li"),
                     viewOffset = self.$list.offset(),
@@ -300,7 +300,7 @@ define(function (require, exports, module) {
      */
     DropdownEventHandler.prototype.reRegisterMouseHandlers = function ($list) {
         if (this.$list) {
-            this.$list.off("click mouseover");
+            this.$list.off(".dropdownEventHandler");
             
             this.$list = $list;
             this.$items = $list.find("li");

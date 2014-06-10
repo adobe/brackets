@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -136,6 +136,7 @@ define(function (require, exports, module) {
         _automaticSort = enable;
         PreferencesManager.setViewState("automaticSort", _automaticSort);
         CommandManager.get(Commands.CMD_TOGGLE_AUTO_SORT).setChecked(_automaticSort);
+        _currentSort.setChecked(enable);
         
         if (enable) {
             _currentSort.sort();
@@ -170,19 +171,15 @@ define(function (require, exports, module) {
         var command;
         if (_currentSort !== newSort) {
             if (_currentSort !== null) {
-                command = CommandManager.get(_currentSort.getCommandID());
-                if (command) {
-                    command.setChecked(false);
-                }
+                _currentSort.setChecked(false);
             }
-            command = CommandManager.get(newSort.getCommandID());
-            if (command) {
-                command.setChecked(true);
+            if (_automaticSort) {
+                newSort.setChecked(true);
             }
             
             CommandManager.get(Commands.CMD_TOGGLE_AUTO_SORT).setEnabled(!!newSort.getEvents());
+            PreferencesManager.setViewState(PANE_SORT_PREF, newSort.getCommandID());
             _currentSort = newSort;
-            PreferencesManager.setViewState(PANE_SORT_PREF, _currentSort.getCommandID());
         }
     }
     
@@ -225,6 +222,17 @@ define(function (require, exports, module) {
      */
     Sort.prototype.getEvents = function () {
         return this._events;
+    };
+    
+    /**
+     * Checks/Unchecks the command which will show a check in the menu
+     * @param {boolean} value
+     */
+    Sort.prototype.setChecked = function (value) {
+        var command = CommandManager.get(this._commandID);
+        if (command) {
+            command.setChecked(value);
+        }
     };
     
     /**
@@ -365,7 +373,7 @@ define(function (require, exports, module) {
     AppInit.appReady(function () {
         var sortMethod = initSortMethod(),
             curSort    = get(sortMethod),
-            autoSort   = PreferencesManager.getViewState("automaticSort");
+            autoSort = PreferencesManager.getViewState("automaticSort");
         
         if (curSort) {
             _setCurrentSort(curSort);

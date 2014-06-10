@@ -88,8 +88,9 @@ define(function CSSAgent(require, exports, module) {
     }
 
     /**
-     * @deprecated Use styleSheetAdded and styleSheetRemoved events
-     * Get a list of all loaded stylesheet files by URL
+     * Use styleSheetAdded and styleSheetRemoved events.
+     * Get a list of all loaded stylesheet files by URL.
+     * @deprecated
      */
     function getStylesheetURLs() {
         var urls = [], url;

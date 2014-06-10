@@ -31,8 +31,6 @@ define(function (require, exports, module) {
     "use strict";
     
     /**
-     * @constructor
-     *
      * Stores a range of lines that is automatically maintained as the Document changes. The range
      * MAY drop out of sync with the Document in certain edge cases; startLine & endLine will become
      * null when that happens.
@@ -51,6 +49,8 @@ define(function (require, exports, module) {
      * These events only ever occur in response to Document changes, so if you are already listening
      * to the Document, you could ignore the TextRange events and just read its updated value in your
      * own Document change handler.
+     *
+     * @constructor
      *
      * @param {!Document} document
      * @param {number} startLine First line in range (0-based, inclusive)

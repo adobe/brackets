@@ -348,7 +348,7 @@ define({
     "CMD_SHOW_IN_TREE"                    : "Zobrazit stromovou strukturu",
     "CMD_SHOW_IN_OS"                      : "Zobrazit v OS",
     "CMD_SHOW_IN_EXPLORER"                : "Zobrazit v průzkumníkovi",
-    "CMD_SHOW_IN_FINDER"                  : "Zobrazit ve vyhledávači",
+    "CMD_SHOW_IN_FINDER"                  : "Zobrazit ve Finderu",
 
     // Příkazy menu nápověda
     "HELP_MENU"                           : "Nápověda",
