@@ -114,7 +114,7 @@ define(function (require, exports, module) {
     /**
      * Maps full path to scroll pos & cursor/selection info. Not kept up to date while an editor is current.
      * Only updated when switching / closing editor, or when requested explicitly via _getViewState().
-     * @type {Object<string, {scrollPos:{x:number, y:number}, selection:{start:{line:number, ch:number}, end:{line:number, ch:number}}}>}
+     * @type {Object.<string, {scrollPos:{x:number, y:number}, selection:{start:{line:number, ch:number}, end:{line:number, ch:number}}}>}
      */
     var _viewStateCache = {};
     
@@ -744,34 +744,30 @@ define(function (require, exports, module) {
     function showingCustomViewerForPath(fullPath) {
         return (_currentViewProvider && _currentlyViewedPath === fullPath);
     }
+        
+  
     
     /**
      * Registers a new custom viewer provider. To create an extension 
      * that enables Brackets to view files that cannot be shown as  
      * text such as binary files, use this method to register a CustomViewer.
      * 
-     * A CustomViewer, such as ImageViewer in Brackets core needs to 
-     * implement and export two methods: 
-     * - render
-     *      @param {!string} fullPath Path to the image file
-     *      @param {!jQueryObject} $editorHolder The DOM element to append the view to.     
-     * - onRemove
-     *      signs off listeners and performs any required clean up when editor manager closes
-     *      the custom viewer
-     *
      * By registering a CustomViewer with EditorManager  Brackets is
      * enabled to view files for one or more given file extensions. 
      * The first argument defines a so called languageId which bundles
      * file extensions to be handled by the custom viewer, see more
      * in LanguageManager JSDocs.
-     * The second argument is an instance of the custom viewer that is ready to display 
-     * files.
      * 
      * @param {!String} languageId, i.e. string such as image, audio, etc to 
      *                              identify a language known to LanguageManager 
-     * @param {!Object} provider custom view provider instance
+     * @param {!Object.<render: function (fullpath, $holder), onRemove: function ()>} Provider the Custom View Provider
      */
     function registerCustomViewer(langId, provider) {
+        // 
+        // Custom View Providers must register an object which has the following method signatures:
+        // render(fullpath, $holder) is called to render the HTML Dom Node for the custom viewer at $holder for fullpath.  
+        // onRemove() is called when it's time to remove the DOM node  
+        // 
         if (!_customViewerRegistry[langId]) {
             _customViewerRegistry[langId] = provider;
         } else {
