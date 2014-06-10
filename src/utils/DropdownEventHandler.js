@@ -142,7 +142,7 @@ define(function (require, exports, module) {
      */
     DropdownEventHandler.prototype._cleanup = function () {
         if (this.$list) {
-            this.$list.off("click mouseover");
+            this.$list.off(".dropdownEventHandler");
         }
         if (this.closeCallback) {
             this.closeCallback();
@@ -276,10 +276,10 @@ define(function (require, exports, module) {
         var self = this;
         
         this.$list
-            .on("click", "a", function () {
+            .on("click.dropdownEventHandler", "a", function () {
                 self._clickHandler($(this));
             })
-            .on("mouseover", "a", function (e) {
+            .on("mouseover.dropdownEventHandler", "a", function (e) {
                 var $link = $(e.currentTarget),
                     $item = $link.closest("li"),
                     viewOffset = self.$list.offset(),
@@ -300,7 +300,7 @@ define(function (require, exports, module) {
      */
     DropdownEventHandler.prototype.reRegisterMouseHandlers = function ($list) {
         if (this.$list) {
-            this.$list.off("click mouseover");
+            this.$list.off(".dropdownEventHandler");
             
             this.$list = $list;
             this.$items = $list.find("li");
