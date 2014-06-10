@@ -31,8 +31,7 @@
  * currently available window size.
  * 
  * Events:
- *    - editorAreaResize -- When editor-holder's size changes for any reason (including panel show/hide
- *              panel resize, or the window resize).
+ * `editorAreaResize` When editor-holder's size changes for any reason (including panel show/hide panel resize, or the window resize).
  *              The 2nd arg is the new editor-holder height.
  *              The 3rd arg is a refreshHint flag for internal EditorManager use.
  */
@@ -43,14 +42,22 @@ define(function (require, exports, module) {
         Resizer                 = require("utils/Resizer");
     
     
-    /** @type {jQueryObject} The ".content" vertical stack (editor + all header/footer panels) */
+    /** 
+     * The ".content" vertical stack (editor + all header/footer panels) 
+     * @type {jQueryObject} 
+     */
     var $windowContent;
-    
-    /** @type {jQueryObject} The "#editor-holder": has only one visible child, the current CodeMirror
-        instance (or the no-editor placeholder) */
+
+    /** 
+     * The "#editor-holder": has only one visible child, the current CodeMirror instance (or the no-editor placeholder) 
+     * @type {jQueryObject} 
+     */
     var $editorHolder;
     
-    /** @type {boolean} Have we already started listening for the end of the ongoing window resize? */
+    /** 
+     * Have we already started listening for the end of the ongoing window resize? 
+     * @type {boolean} 
+     */
     var windowResizing = false;
     
 
@@ -133,7 +140,9 @@ define(function (require, exports, module) {
         }
     }
     
-    /** Trigger editor area resize whenever the given panel is shown/hidden/resized */
+    /** Trigger editor area resize whenever the given panel is shown/hidden/resized 
+     *  @param {!jQueryObject} $panel the jquery objec in which to attach event handlers 
+     */
     function listenToResize($panel) {
         // Update editor height when shown/hidden, & continuously as panel is resized
         $panel.on("panelCollapsed panelExpanded panelResizeUpdate", function () {
@@ -148,7 +157,7 @@ define(function (require, exports, module) {
     
     /**
      * Represents a panel below the editor area (a child of ".content").
-     * 
+     * @constructor
      * @param {!jQueryObject} $panel  The entire panel, including any chrome, already in the DOM.
      * @param {number=} minSize  Minimum height of panel in px.
      */
@@ -159,20 +168,38 @@ define(function (require, exports, module) {
         listenToResize($panel);
     }
     
-    /** @type {jQueryObject} */
+    /** 
+     * Dom node holding the rendered panel 
+     * @type {jQueryObject} 
+     */
     Panel.prototype.$panel = null;
     
+    /** 
+     * Determines if the panel is visible
+     * @return {boolean} true if visible, false if not
+     */
     Panel.prototype.isVisible = function () {
         return this.$panel.is(":visible");
     };
     
+    /** 
+     * Shows the panel
+     */
     Panel.prototype.show = function () {
         Resizer.show(this.$panel[0]);
     };
+
+    /** 
+     * Hides the panel
+     */
     Panel.prototype.hide = function () {
         Resizer.hide(this.$panel[0]);
     };
     
+    /** 
+     * Sets the panel's visibility state
+     * @param {boolean} visible true to show, false to hide
+     */
     Panel.prototype.setVisible = function (visible) {
         if (visible) {
             Resizer.show(this.$panel[0]);
@@ -203,7 +230,8 @@ define(function (require, exports, module) {
     
     /**
      * Used by EditorManager to notify us of layout changes our normal panel/window listeners wouldn't detect.
-     * For internal use only: most code should call EditorManager.resizeEditor().
+     * @private
+     * @param {boolean} refreshHint true to refresh the editor, false if not
      */
     function _notifyLayoutChange(refreshHint) {
         triggerEditorResize(refreshHint);
@@ -211,7 +239,7 @@ define(function (require, exports, module) {
     }
     
     
-    // Attach to key parts of the overall UI, once created
+    /* Attach to key parts of the overall UI, once created */
     AppInit.htmlReady(function () {
         $windowContent = $(".content");
         $editorHolder = $("#editor-holder");
@@ -221,20 +249,22 @@ define(function (require, exports, module) {
         listenToResize($("#sidebar"));
     });
     
-    // Unit test only: allow passing in mock DOM notes, e.g. for use with SpecRunnerUtils.createMockEditor()
+    /* Unit test only: allow passing in mock DOM notes, e.g. for use with SpecRunnerUtils.createMockEditor() */
     function _setMockDOM($mockWindowContent, $mockEditorHolder) {
         $windowContent = $mockWindowContent;
         $editorHolder = $mockEditorHolder;
     }
     
-    // If someone adds a panel in the .content stack the old way, make sure we still listen for resize/show/hide
-    // (Resizer emits a deprecation warning for us - no need to log anything here)
+    /* If someone adds a panel in the .content stack the old way, make sure we still listen for resize/show/hide
+     * (Resizer emits a deprecation warning for us - no need to log anything here) 
+     */
     $(Resizer).on("deprecatedPanelAdded", function (event, $panel) {
         listenToResize($panel);
     });
     
-    // Add this as a capture handler so we're guaranteed to run it before the editor does its own
-    // refresh on resize.
+    /* Add this as a capture handler so we're guaranteed to run it before the editor does its own
+     * refresh on resize.
+     */
     window.addEventListener("resize", handleWindowResize, true);
     
     

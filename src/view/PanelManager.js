@@ -25,8 +25,7 @@
 /*global define, window, $, brackets */
 
 /**
- * Deprecated: This module provided for backwards compatibility.  
- *             Use WorkspaceManager instead.  
+ * @deprecated This module provided for backwards compatibility.  Use WorkspaceManager instead.  
  */
 define(function (require, exports, module) {
     "use strict";

@@ -33,7 +33,6 @@ define(function (require, exports, module) {
         Commands        = require("command/Commands"),
         Dialogs         = require("widgets/Dialogs"),
         DefaultDialogs  = require("widgets/DefaultDialogs"),
-        DocumentManager = require("document/DocumentManager"),
         MainViewManager = require("view/MainViewManager"),
         FileSystem      = require("filesystem/FileSystem"),
         EditorManager   = require("editor/EditorManager"),

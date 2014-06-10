@@ -34,7 +34,6 @@ define(function (require, exports, module) {
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         MainViewManager         = require("view/MainViewManager"),
-        DocumentManager         = require("document/DocumentManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         FileUtils               = require("file/FileUtils"),
         AppInit                 = require("utils/AppInit"),
@@ -123,11 +122,9 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Removes the sort DocumentManager listeners.
+     * Removes the sort listeners.
      */
     function _removeListeners() {
-        // TODO: Remove This
-        $(DocumentManager).off(".sort");
         $(MainViewManager).off(".sort");
     }
     
@@ -149,7 +146,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Adds the current sort DocumentManager listeners.
+     * Adds the current sort MainViewManager listeners.
      */
     function _addListeners() {
         if (_automaticSort && _currentSort && _currentSort.getEvents()) {
@@ -197,7 +194,7 @@ define(function (require, exports, module) {
      * @param {string} commandID A valid command identifier.
      * @param {function(File, File): number} compareFn A valid sort
      *      function (see register for a longer explanation).
-     * @param {string} events Space-separated DocumentManager possible events
+     * @param {string} events Space-separated PaneViewListSort possible events
      *      ending with ".sort".
      */
     function Sort(commandID, compareFn, events, automaticFn) {
@@ -223,7 +220,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * The DocumentManager events
+     * Gets the event that this sort object is listening to
      * @return {string}
      */
     Sort.prototype.getEvents = function () {

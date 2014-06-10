@@ -93,6 +93,7 @@ define(function (require, exports, module) {
             Commands            = null;
             DocumentManager     = null;
             FileViewController  = null;
+            MainViewManager     = null;
             SpecRunnerUtils.closeTestWindow();
         }
         

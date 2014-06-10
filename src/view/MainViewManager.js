@@ -80,7 +80,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Determinse if a file is legal to put in the pane view list.  This will change
+     * Determines if a file is legal to put in the pane view list.  This will change
      * as we allow different types of things to be added to the pane view list
      * @private 
      * @return true if the file can be opened
@@ -336,13 +336,9 @@ define(function (require, exports, module) {
     
     
     /**
-     * Sorts MainViewManager._paneViewList using the compare function
+     * Sorts `MainViewManager._paneViewList` using the compare function
      * @param {!string} paneId this will identify which Pane with which the caller wants to sort
-     * @param {function(File, File): number} compareFn  The function that will be used inside JavaScript's
-     *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
-     *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
-     *      the same value when given a specific pair of elements a and b as its two arguments.
-     *      Documentation: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
+     * @param {function(File, File): number} compareFn see: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
      */
     function sortPaneViewList(paneId, compareFn) {
         _paneViewList.sort(compareFn);

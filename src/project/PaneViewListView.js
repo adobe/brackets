@@ -212,7 +212,7 @@ define(function (require, exports, module) {
     function _redraw() {
         var fileList = MainViewManager.getPaneViewList(_getMyPaneID());
         
-        if (fileList.length === 0) {
+        if (!fileList || fileList.length === 0) {
             $openFilesContainer.hide();
             $workingSetHeader.hide();
         } else {
@@ -559,7 +559,7 @@ define(function (require, exports, module) {
     function _handleFileAdded(file, index) {
         var fileList = MainViewManager.getPaneViewList(_getMyPaneID());
         
-        if (index === fileList.length - 1) {
+        if (fileList && index === fileList.length - 1) {
             // Simple case: append item to list
             _createNewListItem(file);
             _redraw();

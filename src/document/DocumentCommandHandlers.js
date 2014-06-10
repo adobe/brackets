@@ -768,8 +768,10 @@ define(function (require, exports, module) {
                 } else {
                     // If selection is in pane view list, replace orig item in place with the new file
                     var index = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, doc.file.fullPath);
+                    
                     // Remove old file from pane view list; no redraw yet since there's a pause before the new file is opened
                     MainViewManager.removeFromPaneViewList(MainViewManager.ALL_PANES, doc.file, true);
+                    
                     // Add new file to pane view list, and ensure we now redraw (even if index hasn't changed)
                     fileOpenPromise = handleOpenDocumentInNewPane({fullPath: path, index: index, forceRedraw: true});
                 }

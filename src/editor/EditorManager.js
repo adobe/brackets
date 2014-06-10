@@ -870,6 +870,7 @@ define(function (require, exports, module) {
 
     /** 
      * notifies the editor that a reference from the pane list view was removed
+     * @param {!string} paneId of the pane containing the path being removed
      * @param {?*} removedFiles. Can be, string, File, Array[string] or Array[File]
      */
     function notifyPathRemovedFromPaneList(paneId, removedFiles) {
