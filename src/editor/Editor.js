@@ -1700,7 +1700,7 @@ define(function (require, exports, module) {
                 $(self).on("scroll.msgbox", _removeMessagePopover);
 
                 // Animate closed -- which includes delay to show message
-                AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose", 600)
+                AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose", 6000)
                     .done(_removeMessagePopover);
             }
         });
