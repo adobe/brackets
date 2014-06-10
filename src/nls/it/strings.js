@@ -197,9 +197,9 @@ define({
      */
     "STATUSBAR_CURSOR_POSITION"             : "Linea {0}, Colonna {1}",
     "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Selezionata {0} colonna",
-    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selezionata {0} colonne",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selezionare {0} colonne",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Selezionata {0} linea",
-    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selezionata {0} linee",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selezionare {0} linee",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Clicca per passare alla indentazione a spazi",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Clicca per passare alla indentazione a tabulazione",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Clicca per cambiare il numero di spazi usati per l’indentazione",
@@ -362,11 +362,11 @@ define({
     "PROJECT_SETTINGS_TITLE"            : "Impostazioni del progetto per: {0}",
     "PROJECT_SETTING_BASE_URL"          : "URL di base per Anteprima Live",
     "PROJECT_SETTING_BASE_URL_HINT"     : "(lasciare vuoto per utilizzare l’URL del file)",
-    "BASEURL_ERROR_INVALID_PROTOCOL"    : "Il protocollo {0} non è supportato da Anteprima Lice&mdash;utilizzare http: o https: .",
+    "BASEURL_ERROR_INVALID_PROTOCOL"    : "Il protocollo {0} non è supportato da Anteprima Live&mdash;utilizzare http:// o https:// .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"   : "L’URL di base non può contenere parametri di ricerca come \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"     : "L’URL di base non può contenere hash come \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"        : "I caratteri speciali come '{0}' devono essere %-encodate.",
-    "BASEURL_ERROR_UNKNOWN_ERROR"       : "Trovato un carattere sconosciuto durante il parsing della URL di base",
+    "BASEURL_ERROR_UNKNOWN_ERROR"       : "Trovato un carattere sconosciuto durante l'analisi del URL di base",
     
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nuova regola",
@@ -517,5 +517,5 @@ define({
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
 
-/* Last translation of: e47dc5b16ec4bfabacfdb5c62f67a94feca85d50 */
+/* Last translation of: 0565e3daa00e27f02ce0975be779a583971b016f */
 
