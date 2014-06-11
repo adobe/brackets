@@ -265,13 +265,13 @@ define(function (require, exports, module) {
                         $prevListItem.insertAfter($listItem);
                         startPageY -= height;
                         top = top + height;
-                        MainViewManager.swapPaneViewListIndexes(MainViewManager.FOCUSED_PANE, index, --index);
+                        MainViewManager.swapPaneViewListIndexes(MainViewManager.FOCUSED_PANE, index, index - 1);
                     // If moving down, place the next item before the moving item
                     } else {
                         $nextListItem.insertBefore($listItem);
                         startPageY += height;
                         top = top - height;
-                        MainViewManager.swapPaneViewListIndexes(MainViewManager.FOCUSED_PANE, index, ++index);
+                        MainViewManager.swapPaneViewListIndexes(MainViewManager.FOCUSED_PANE, index, index + 1);
                     }
                     
                     // Update the selection when the previows or next element were selected

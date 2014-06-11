@@ -30,6 +30,10 @@
  * by the MainViewManager with each pane containing a list of views.  The panes are always visible and 
  * the layout is determined by the MainViewManager and the user.  Currently we support only 1 pane.
  *
+ * All of the PaneViewList APIs take a paneId Argument.  This can be an actual pane Id, ALL_PANES (in most cases) 
+ * or FOCUSED_PANE.  Currently we only support 1 pane so this argument is ignored but will be supported 
+ * when multiple panes are implemented
+ *
  */
 define(function (require, exports, module) {
     "use strict";
@@ -76,6 +80,7 @@ define(function (require, exports, module) {
      * @return {Array.<File>}
      */
     function getPaneViewList(paneId) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
         return _.clone(_paneViewList);
     }
     
@@ -95,6 +100,7 @@ define(function (require, exports, module) {
      * @param {!string} paneId this will identify which Pane the caller wants to reset
      */
     function _reset(paneId) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
         _paneViewList = [];
         _paneViewListMRUOrder = [];
         _paneViewListAddedOrder = [];
@@ -104,11 +110,10 @@ define(function (require, exports, module) {
      * Gets the index of the file matching fullPath in the pane view list
      * @param {!string} paneId this will identify which Pane the caller wants to search
      * @param {!string} fullPath
-     * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
-     *          use only.
      * @return {number} index, -1 if not found.
      */
     function findInPaneViewList(paneId, fullPath) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
         return _.findIndex(_paneViewList, function (file, i) {
             return file.fullPath === fullPath;
         });
@@ -118,11 +123,10 @@ define(function (require, exports, module) {
      * Gets the index of the file matching fullPath in the added order pane view list
      * @param {!string} paneId this will identify which Pane the caller wants to search
      * @param {!string} fullPath
-     * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
-     *          use only.
      * @return {number} index, -1 if not found.
      */
     function findInPaneViewListAddedOrder(paneId, fullPath) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
         return _.findIndex(_paneViewListAddedOrder, function (file, i) {
             return file.fullPath === fullPath;
         });
@@ -132,11 +136,10 @@ define(function (require, exports, module) {
      * Gets the index of the file matching fullPath in the MRU order pane view list
      * @param {!string} paneId Identifies which Pane the caller wants to search
      * @param {!string} fullPath
-     * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
-     *          use only.
      * @return {number} index, -1 if not found.
      */
     function findInPaneViewListMRUOrder(paneId, fullPath) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
         return _.findIndex(_paneViewListMRUOrder, function (file, i) {
             return file.fullPath === fullPath;
         });
@@ -150,6 +153,7 @@ define(function (require, exports, module) {
      */
     
     function _addToPaneViewList(paneId, file, inPlace) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
         if (inPlace && inPlace.indexRequested) {
             // If specified, insert into the pane view list at this 0-based index
             _paneViewList.splice(inPlace.index, 0, file);
@@ -181,6 +185,7 @@ define(function (require, exports, module) {
      *    (useful if suppressRedraw was used with removeFromPaneViewList() earlier)
      */
     function addToPaneViewList(paneId, file, index, forceRedraw) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
         var indexRequested = (index !== undefined && index !== null && index >= 0);
         
         // If the file has a custom viewer, then don't add it to the pane view list.
@@ -190,6 +195,7 @@ define(function (require, exports, module) {
             
         // If doc is already in pane view list, don't add it again
         var curIndex = findInPaneViewList(paneId, file.fullPath);
+        // TODO paneId is no yet used, but will be when multiple panels supported
         if (curIndex !== -1) {
             // File is in pane view list, but not at the specifically requested index - only need to reorder
             if (forceRedraw || (indexRequested && curIndex !== index)) {
@@ -221,6 +227,7 @@ define(function (require, exports, module) {
      * @param {!Array.<File>} fileList
      */
     function addListToPaneViewList(paneId, fileList) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
         var currentDocument = DocumentManager.getCurrentDocument(),
             uniqueFileList = [];
 
@@ -246,6 +253,8 @@ define(function (require, exports, module) {
      *
      */
     function _removeFromPaneViewLIst(paneId, file) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
+        
         // If doc isn't in pane view list, do nothing
         var index = findInPaneViewList(paneId, file.fullPath);
         if (index === -1) {
@@ -268,6 +277,7 @@ define(function (require, exports, module) {
      * @param {boolean=} true to suppress redraw after removal
      */
     function removeFromPaneViewList(paneId, file, suppressRedraw) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
         if (!_removeFromPaneViewLIst(paneId, file)) {
             return;
         }
@@ -287,6 +297,7 @@ define(function (require, exports, module) {
      * @param {boolean=} true to suppress redraw after removal
      */
     function removeListFromPaneViewList(paneId, list) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
         var fileList = [], index;
         
         if (!list) {
@@ -310,6 +321,7 @@ define(function (require, exports, module) {
      * @param {!string} paneId
      */
     function removeAllFromPaneViewList(paneId) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
         var fileList = getPaneViewList(paneId);
 
         _reset(paneId);
@@ -325,15 +337,13 @@ define(function (require, exports, module) {
      * @param {!File} file to make most recent
      */
     function makePaneViewMostRecent(paneId, file) {
-        var index = findInPaneViewListMRUOrder(file.fullpath);
+        // TODO paneId is no yet used, but will be when multiple panels supported
+        var index = findInPaneViewListMRUOrder(paneId, file.fullpath);
         if (index !== -1) {
             _paneViewListMRUOrder.splice(index, 1);
             _paneViewListMRUOrder.unshift(file);
         }
     }
-    
-
-    
     
     /**
      * Sorts `MainViewManager._paneViewList` using the compare function
@@ -341,6 +351,7 @@ define(function (require, exports, module) {
      * @param {function(File, File): number} compareFn see: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
      */
     function sortPaneViewList(paneId, compareFn) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
         _paneViewList.sort(compareFn);
         $(exports).triggerHandler("paneViewListSort");
     }
@@ -350,9 +361,10 @@ define(function (require, exports, module) {
      * @private
      * @param {!string} paneId this will identify which Pane with which the caller wants to traverse
      * @param {number} index to verify
-     * @retnr true if the index is in range, false if not
+     * @return true if the index is in range, false if not
      */
     function _isPaneViewListIndexInRange(paneId, index) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
         var length = _paneViewList.length;
         return index !== undefined && index !== null && index >= 0 && index < length;
     }
@@ -360,10 +372,11 @@ define(function (require, exports, module) {
     /**
      * Mutually exchanges the files at the indexes passed by parameters.
      * @param {!string} paneId this will identify which Pane with which the caller wants to change
-     * @param {!number} index  Old file index
-     * @param {!number} index  New file index
+     * @param {!number} index1 Old file index
+     * @param {!number} index2 New file index
      */
     function swapPaneViewListIndexes(paneId, index1, index2) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
         if (_isPaneViewListIndexInRange(paneId, index1) && _isPaneViewListIndexInRange(paneId, index2)) {
             var temp = _paneViewList[index1];
             _paneViewList[index1] = _paneViewList[index2];
@@ -382,6 +395,7 @@ define(function (require, exports, module) {
      * @return {?File}  null if pane view list empty
      */
     function traversePaneViewListByMRU(paneId, direction) {
+        // TODO paneId is no yet used, but will be when multiple panels supported
         if (Math.abs(direction) !== 1) {
             console.error("traversePaneViewList called with unsupported direction: " + direction.toString());
             return null;

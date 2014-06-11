@@ -325,7 +325,7 @@ define(function (require, exports, module) {
      * Moves document to the front of the MRU list, IF it's in the working set; no-op otherwise.
      * @param {!Document}
      */
-    function _markMostRecent(doc) {
+    function _makeMostRecent(doc) {
         MainViewManager.makePaneViewMostRecent(MainViewManager.FOCUSED_PANE, doc.file);
     }
 
@@ -348,7 +348,7 @@ define(function (require, exports, module) {
         if (_documentNavPending) {
             _documentNavPending = false;
             
-            _markMostRecent(_getCurrentDocument());
+            _makeMostRecent(_getCurrentDocument());
         }
     }
     
@@ -395,7 +395,7 @@ define(function (require, exports, module) {
 
         // Adjust MRU working set ordering (except while in the middle of a Ctrl+Tab sequence)
         if (!_documentNavPending) {
-            _markMostRecent(doc);
+            _makeMostRecent(doc);
         }
         PerfUtils.addMeasurement(perfTimerName);
     }

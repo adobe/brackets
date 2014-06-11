@@ -55,7 +55,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Show deprecation message with the call stack if it 
+     * Show deprecation warning with the call stack if it 
      * has never been displayed before.
      * @param {!string} message The deprecation message to be displayed.
      * @param {boolean=} oncePerCaller If true, displays the message once for each unique call location.
@@ -90,22 +90,32 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Show deprecation message if there are listeners for the event
-     * @param {Object} outbound the object with the old event to dispatch                            $(exports)
-     * @param {Object} inbound the object with the new event to map to the old event                 $(MainViewManager)
-     * @param {string} oldEventName the name of the old event                                        "workingSetAdd"
-     * @param {string} newEventName the name of the new event                                        "paneViewListAdd"
-     * @param {string=} cannonicalOutboundName the cannonical name of the old event                  "DocumentManager.workingSetAdd"
-     * @param {string=} cannonicalInboundName the cannonical name of the new event                   "MainViewManager.paneViewListAdd"
+     * Show a deprecation warning if there are listeners for the event
+     * 
+     * ```
+     *    DeprecationWarning.deprecateEvent($(exports), 
+     *                                      $(MainViewManager), 
+     *                                      "workingSetAdd", 
+     *                                      "paneViewListAdd", 
+     *                                      "DocumentManager.workingSetAdd", 
+     *                                      "MainViewManager.paneViewListAdd");
+     * ```
+     *
+     * @param {Object} outbound the object with the old event to dispatch
+     * @param {Object} inbound the object with the new event to map to the old event
+     * @param {string} oldEventName the name of the old event
+     * @param {string} newEventName the name of the new event
+     * @param {string=} canonicalOutboundName the canonical name of the old event
+     * @param {string=} canonicalInboundName the canonical name of the new event  
      */
-    function deprecateEvent(outbound, inbound, oldEventName, newEventName, cannonicalOutboundName, cannonicalInboundName) {
+    function deprecateEvent(outbound, inbound, oldEventName, newEventName, canonicalOutboundName, canonicalInboundName) {
         // create an event handler for the new event to listen for 
         $(inbound).on(newEventName, function () {
             // Get the jQuery event data from the outbound object -- usually the module's exports
             var listeners = $._data(outbound, "events");
             // If there are there any listeners then display a deprecation warning
             if (listeners && listeners.hasOwnProperty(oldEventName) && listeners[oldEventName].length > 0) {
-                var message = "The Event " + (cannonicalOutboundName || oldEventName) + " has been deprecated. Use " + (cannonicalInboundName || newEventName) + " instead.";
+                var message = "The Event " + (canonicalOutboundName || oldEventName) + " has been deprecated. Use " + (canonicalInboundName || newEventName) + " instead.";
                 // We only want to show the deprecation warning once
                 if (!displayedWarnings[message]) {
                     displayedWarnings[message] = true;
