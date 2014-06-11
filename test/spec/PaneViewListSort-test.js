@@ -42,7 +42,7 @@ define(function (require, exports, module) {
     
         var testPath = SpecRunnerUtils.getTestPath("/spec/PaneViewListView-test-files"),
             testWindow,
-            workingSetCount = 0;
+            paneViewListItemCount = 0;
         
         function openAndMakeDirty(path) {
             var doc, didOpen = false, gotError = false;
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
             runs(function () {
                 // Initialize: register listeners
                 testWindow.$(MainViewManager).on("paneViewListAdd", function (event, addedFile) {
-                    workingSetCount++;
+                    paneViewListItemCount++;
                 });
             });
         }
@@ -100,14 +100,14 @@ define(function (require, exports, module) {
         beforeFirst(function () {
             createTestWindow(this, true);
             
-            workingSetCount = 0;
+            paneViewListItemCount = 0;
             
             openAndMakeDirty(testPath + "/file_four.html");
             openAndMakeDirty(testPath + "/file_zero.css");
             openAndMakeDirty(testPath + "/file_two.js");
             
             // Wait for both files to be added to the working set
-            waitsFor(function () { return workingSetCount === 3; }, "workingSetCount to equal 3", 1000);
+            waitsFor(function () { return paneViewListItemCount === 3; }, "paneViewListItemCount to equal 3", 1000);
         });
         
         afterLast(function () {
@@ -121,11 +121,11 @@ define(function (require, exports, module) {
 
             // confirm files sorted correctly
             var $listItems = testWindow.$("#open-files-container > ul").children();
-            expect($listItems.length).toBe(workingSetCount);
+            expect($listItems.length).toBe(paneViewListItemCount);
             expect($listItems.find("a").get(0).text === "file_four.html").toBeTruthy();
             expect($listItems.find("a").get(1).text === "file_two.js").toBeTruthy();
             expect($listItems.find("a").get(2).text === "file_zero.css").toBeTruthy();
-            expect($listItems.find(".file-status-icon").length).toBe(workingSetCount);
+            expect($listItems.find(".file-status-icon").length).toBe(paneViewListItemCount);
         });
 
         it("should sort list as added", function () {
@@ -134,11 +134,11 @@ define(function (require, exports, module) {
 
             // confirm files sorted correctly
             var $listItems = testWindow.$("#open-files-container > ul").children();
-            expect($listItems.length).toBe(workingSetCount);
+            expect($listItems.length).toBe(paneViewListItemCount);
             expect($listItems.find("a").get(0).text === "file_two.js").toBeTruthy();
             expect($listItems.find("a").get(1).text === "file_zero.css").toBeTruthy();
             expect($listItems.find("a").get(2).text === "file_four.html").toBeTruthy();
-            expect($listItems.find(".file-status-icon").length).toBe(workingSetCount);
+            expect($listItems.find(".file-status-icon").length).toBe(paneViewListItemCount);
         });
 
         it("should sort list by type", function () {
@@ -147,11 +147,11 @@ define(function (require, exports, module) {
 
             // confirm files sorted correctly
             var $listItems = testWindow.$("#open-files-container > ul").children();
-            expect($listItems.length).toBe(workingSetCount);
+            expect($listItems.length).toBe(paneViewListItemCount);
             expect($listItems.find("a").get(0).text === "file_zero.css").toBeTruthy();
             expect($listItems.find("a").get(1).text === "file_four.html").toBeTruthy();
             expect($listItems.find("a").get(2).text === "file_two.js").toBeTruthy();
-            expect($listItems.find(".file-status-icon").length).toBe(workingSetCount);
+            expect($listItems.find(".file-status-icon").length).toBe(paneViewListItemCount);
         });
 
         it("should sort list by type automatically", function () {
@@ -161,17 +161,17 @@ define(function (require, exports, module) {
             // open another file, which should be added and auto-sorted into the list
             openAndMakeDirty(testPath + "/file_one.js");
 
-            waitsFor(function () { return workingSetCount === 4; }, "workingSetCount to equal 4", 5000);
+            waitsFor(function () { return paneViewListItemCount === 4; }, "paneViewListItemCount to equal 4", 5000);
             
             runs(function () {
                 // confirm files sorted correctly
                 var $listItems = testWindow.$("#open-files-container > ul").children();
-                expect($listItems.length).toBe(workingSetCount);
+                expect($listItems.length).toBe(paneViewListItemCount);
                 expect($listItems.find("a").get(0).text === "file_zero.css").toBeTruthy();
                 expect($listItems.find("a").get(1).text === "file_four.html").toBeTruthy();
                 expect($listItems.find("a").get(2).text === "file_one.js").toBeTruthy();
                 expect($listItems.find("a").get(3).text === "file_two.js").toBeTruthy();
-                expect($listItems.find(".file-status-icon").length).toBe(workingSetCount);
+                expect($listItems.find(".file-status-icon").length).toBe(paneViewListItemCount);
             });
         });
 
@@ -182,18 +182,18 @@ define(function (require, exports, module) {
             // open another file, which should not be added and auto-sorted into the list
             openAndMakeDirty(testPath + "/file_three.js");
 
-            waitsFor(function () { return workingSetCount === 5; }, "workingSetCount to equal 5", 5000);
+            waitsFor(function () { return paneViewListItemCount === 5; }, "paneViewListItemCount to equal 5", 5000);
             
             runs(function () {
                 // confirm files sorted correctly
                 var $listItems = testWindow.$("#open-files-container > ul").children();
-                expect($listItems.length).toBe(workingSetCount);
+                expect($listItems.length).toBe(paneViewListItemCount);
                 expect($listItems.find("a").get(0).text === "file_zero.css").toBeTruthy();
                 expect($listItems.find("a").get(1).text === "file_four.html").toBeTruthy();
                 expect($listItems.find("a").get(2).text === "file_one.js").toBeTruthy();
                 expect($listItems.find("a").get(3).text === "file_two.js").toBeTruthy();
                 expect($listItems.find("a").get(4).text === "file_three.js").toBeTruthy();
-                expect($listItems.find(".file-status-icon").length).toBe(workingSetCount);
+                expect($listItems.find(".file-status-icon").length).toBe(paneViewListItemCount);
             });
         });
         

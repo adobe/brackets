@@ -42,7 +42,7 @@ define(function (require, exports, module) {
     
         var testPath = SpecRunnerUtils.getTestPath("/spec/PaneViewListView-test-files"),
             testWindow,
-            workingSetCount;
+            paneViewListItemCount;
         
         function openAndMakeDirty(path) {
             var doc, didOpen = false, gotError = false;
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
             runs(function () {
                 // Initialize: register listeners
                 testWindow.$(MainViewManager).on("paneViewListAdd", function (event, addedFile) {
-                    workingSetCount++;
+                    paneViewListItemCount++;
                 });
             });
         }
@@ -93,6 +93,7 @@ define(function (require, exports, module) {
             Commands            = null;
             DocumentManager     = null;
             FileViewController  = null;
+            MainViewManager     = null;
             SpecRunnerUtils.closeTestWindow();
         }
         
@@ -103,13 +104,13 @@ define(function (require, exports, module) {
         afterLast(closeTestWindow);
         
         beforeEach(function () {
-            workingSetCount = 0;
+            paneViewListItemCount = 0;
             
             openAndMakeDirty(testPath + "/file_one.js");
             openAndMakeDirty(testPath + "/file_two.js");
             
             // Wait for both files to be added to the working set
-            waitsFor(function () { return workingSetCount === 2; }, "workingSetCount to equal 2", 1000);
+            waitsFor(function () { return paneViewListItemCount === 2; }, "paneViewListItemCount to equal 2", 1000);
         });
         
         afterEach(function () {
@@ -205,7 +206,7 @@ define(function (require, exports, module) {
             var didClose = false;
             
             // make 2nd doc clean
-            var fileList = DocumentManager.getWorkingSet();
+            var fileList = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE);
 
             runs(function () {
                 var doc0 = DocumentManager.getOpenDocumentForPath(fileList[0].fullPath);
@@ -222,7 +223,7 @@ define(function (require, exports, module) {
                 expect(closeIcon.length).toBe(1);
                 
                 // simulate click
-                $(DocumentManager).on("workingSetRemove", function (event, removedFile) {
+                $(MainViewManager).on("paneViewListRemove", function (event, removedFile) {
                     didClose = true;
                 });
 
@@ -241,7 +242,7 @@ define(function (require, exports, module) {
         it("should remove dirty icon when file becomes clean", function () {
             runs(function () {
                 // check that dirty icon is removed when docs are cleaned
-                var fileList = DocumentManager.getWorkingSet();
+                var fileList = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE);
                 var doc0 = DocumentManager.getOpenDocumentForPath(fileList[0].fullPath);
                 doc0._markClean();
                 
@@ -271,13 +272,13 @@ define(function (require, exports, module) {
         it("should show a directory name next to the file name when two files with same names are opened", function () {
             runs(function () {
                 // Count currently opened files
-                var workingSetCountBeforeTest = workingSetCount;
+                var paneViewListItemCountBeforeTest = paneViewListItemCount;
 
                 // First we need to open another file
                 openAndMakeDirty(testPath + "/directory/file_one.js");
 
                 // Wait for file to be added to the working set
-                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 1; }, 1000);
+                waitsFor(function () { return paneViewListItemCount === paneViewListItemCountBeforeTest + 1; }, 1000);
 
                 runs(function () {
                     // Two files with the same name file_one.js should be now opened
@@ -300,14 +301,14 @@ define(function (require, exports, module) {
         it("should show different directory names, when two files of the same name are opened, located in folders with same name", function () {
             runs(function () {
                 // Count currently opened files
-                var workingSetCountBeforeTest = workingSetCount;
+                var paneViewListItemCountBeforeTest = paneViewListItemCount;
 
                 // Open both files
                 openAndMakeDirty(testPath + "/directory/file_one.js");
                 openAndMakeDirty(testPath + "/directory/directory/file_one.js");
 
                 // Wait for them to load
-                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 2; }, "Open file count to be increased by 2", 1000);
+                waitsFor(function () { return paneViewListItemCount === paneViewListItemCountBeforeTest + 2; }, "Open file count to be increased by 2", 1000);
 
                 runs(function () {
                     // Collect all directory names displayed

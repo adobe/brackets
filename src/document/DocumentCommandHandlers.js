@@ -1224,7 +1224,9 @@ define(function (require, exports, module) {
                 // Call clear current document here because we need the editor
                 //  to close the current document and this is the only way to 
                 //  do that at the moment.
-                DocumentManager.clearCurrentDocument();
+                if (clearCurrentDoc) {
+                    DocumentManager.clearCurrentDocument();
+                }
                 MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, listAfterSave);
             }
         });
