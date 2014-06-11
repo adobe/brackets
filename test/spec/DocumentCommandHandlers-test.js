@@ -29,14 +29,15 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var CommandManager,          // loaded from brackets.test
-        Commands,                // loaded from brackets.test
+    var CommandManager,         // loaded from brackets.test
+        Commands,               // loaded from brackets.test
         DocumentCommandHandlers, // loaded from brackets.test
-        DocumentManager,         // loaded from brackets.test
-        Dialogs,                 // loaded from brackets.test
-        FileSystem,              // loaded from brackets.test
-        FileViewController,      // loaded from brackets.test
-        EditorManager,           // loaded from brackets.test
+        DocumentManager,        // loaded from brackets.test
+        MainViewManager,        // loaded from brackets.test
+        Dialogs,                // loaded from brackets.test
+        FileSystem,             // loaded from brackets.test
+        FileViewController,     // loaded from brackets.test
+        EditorManager,          // loaded from brackets.test
         SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
         FileUtils                = require("file/FileUtils"),
         StringUtils              = require("utils/StringUtils"),
@@ -65,6 +66,7 @@ define(function (require, exports, module) {
                 Commands                = testWindow.brackets.test.Commands;
                 DocumentCommandHandlers = testWindow.brackets.test.DocumentCommandHandlers;
                 DocumentManager         = testWindow.brackets.test.DocumentManager;
+                MainViewManager         = testWindow.brackets.test.MainViewManager;
                 Dialogs                 = testWindow.brackets.test.Dialogs;
                 FileSystem              = testWindow.brackets.test.FileSystem;
                 FileViewController      = testWindow.brackets.test.FileViewController;
@@ -78,6 +80,7 @@ define(function (require, exports, module) {
             Commands                = null;
             DocumentCommandHandlers = null;
             DocumentManager         = null;
+            MainViewManager         = null;
             Dialogs                 = null;
             FileViewController      = null;
             SpecRunnerUtils.closeTestWindow();
@@ -126,8 +129,8 @@ define(function (require, exports, module) {
             });
 
             /** @return {Array.<Document>} */
-            function getWorkingSetDocs() {
-                return DocumentManager.getWorkingSet().map(function (file) {
+            function getOpenDocsFromPaneViewList() {
+                return MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).map(function (file) {
                     return DocumentManager.getOpenDocumentForPath(file.fullPath);
                 });
             }
@@ -199,8 +202,8 @@ define(function (require, exports, module) {
                     expect(noLongerUntitledDocument.isDirty).toBe(false);
                     expect(noLongerUntitledDocument.isUntitled()).toBe(false);
                     expect(noLongerUntitledDocument.file.fullPath).toEqual(newFilePath);
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
-                    expect(DocumentManager.getWorkingSet().length).toEqual(1);  // no remnant of untitled doc left
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, newFilePath)).toBeGreaterThan(-1);
+                    expect(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).length).toEqual(1);  // no remnant of untitled doc left
 
                     // Verify file exists, & clean up
                     expectAndDelete(newFilePath);
@@ -265,8 +268,8 @@ define(function (require, exports, module) {
                     expect(noLongerUntitledDocument.isDirty).toBe(false);
                     expect(noLongerUntitledDocument.isUntitled()).toBe(false);
                     expect(noLongerUntitledDocument.file.fullPath).toEqual(newFilePath);
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
-                    expect(DocumentManager.getWorkingSet().length).toEqual(1);  // no remnant of untitled doc left
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, newFilePath)).toBeGreaterThan(-1);
+                    expect(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).length).toEqual(1);  // no remnant of untitled doc left
 
                     // Verify file exists, & clean up
                     expectAndDelete(newFilePath);
@@ -302,7 +305,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(DocumentManager.getWorkingSet().length).toEqual(0);
+                    expect(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).length).toEqual(0);
                     
                     // Verify file exists, & clean up
                     expectAndDelete(newFilePath);
@@ -335,7 +338,7 @@ define(function (require, exports, module) {
                     
                     expect(untitledDocument.isDirty).toBe(true);
                     expect(untitledDocument.isUntitled()).toBe(true);
-                    expect(DocumentManager.findInWorkingSet(untitledDocument.file.fullPath)).toBeGreaterThan(-1);
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, untitledDocument.file.fullPath)).toBeGreaterThan(-1);
                 });
             });
             
@@ -369,7 +372,7 @@ define(function (require, exports, module) {
                     
                     expect(untitledDocument.isDirty).toBe(true);
                     expect(untitledDocument.isUntitled()).toBe(true);
-                    expect(DocumentManager.findInWorkingSet(untitledDocument.file.fullPath)).toBeGreaterThan(-1);
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, untitledDocument.file.fullPath)).toBeGreaterThan(-1);
                 });
             });
 
@@ -395,7 +398,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(DocumentManager.getWorkingSet().length).toEqual(0);
+                    expect(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).length).toEqual(0);
                 });
             });
 
@@ -413,7 +416,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(DocumentManager.getWorkingSet().length).toEqual(0);
+                    expect(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).length).toEqual(0);
                 });
             });
             
@@ -424,28 +427,28 @@ define(function (require, exports, module) {
                 createUntitled(3);
 
                 runs(function () {
-                    var workingSetDocs = getWorkingSetDocs();
-                    expect(workingSetDocs.length).toEqual(3);
+                    var paneViewListDocs = getOpenDocsFromPaneViewList();
+                    expect(paneViewListDocs.length).toEqual(3);
                     
                     // Expect non-conflicting dummy paths
-                    expect(workingSetDocs[0].file.fullPath).not.toBe(workingSetDocs[1].file.fullPath);
-                    expect(workingSetDocs[0].file.fullPath).not.toBe(workingSetDocs[2].file.fullPath);
-                    expect(workingSetDocs[1].file.fullPath).not.toBe(workingSetDocs[2].file.fullPath);
+                    expect(paneViewListDocs[0].file.fullPath).not.toBe(paneViewListDocs[1].file.fullPath);
+                    expect(paneViewListDocs[0].file.fullPath).not.toBe(paneViewListDocs[2].file.fullPath);
+                    expect(paneViewListDocs[1].file.fullPath).not.toBe(paneViewListDocs[2].file.fullPath);
                     
                     // Expect separate Document objects
-                    expect(workingSetDocs[0]).not.toBe(workingSetDocs[1]);
-                    expect(workingSetDocs[0]).not.toBe(workingSetDocs[2]);
-                    expect(workingSetDocs[1]).not.toBe(workingSetDocs[2]);
+                    expect(paneViewListDocs[0]).not.toBe(paneViewListDocs[1]);
+                    expect(paneViewListDocs[0]).not.toBe(paneViewListDocs[2]);
+                    expect(paneViewListDocs[1]).not.toBe(paneViewListDocs[2]);
                     
                     // Expect all Documents to be untitled
-                    workingSetDocs.forEach(function (doc) {
+                    paneViewListDocs.forEach(function (doc) {
                         expect(doc.isUntitled()).toBe(true);
                     });
                     
                     // Expect separate, unique content
-                    expect(workingSetDocs[0].getText()).toBe("0");
-                    expect(workingSetDocs[1].getText()).toBe("1");
-                    expect(workingSetDocs[2].getText()).toBe("2");
+                    expect(paneViewListDocs[0].getText()).toBe("0");
+                    expect(paneViewListDocs[1].getText()).toBe("1");
+                    expect(paneViewListDocs[2].getText()).toBe("2");
                 });
             });
             
@@ -469,17 +472,17 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Expect clean Documents with correct, unique non-dummy paths
-                    var workingSetDocs = getWorkingSetDocs();
-                    expect(workingSetDocs.length).toEqual(3);
+                    var paneViewListDocs = getOpenDocsFromPaneViewList();
+                    expect(paneViewListDocs.length).toEqual(3);
                     
-                    workingSetDocs.forEach(function (doc, i) {
+                    paneViewListDocs.forEach(function (doc, i) {
                         expect(doc.isUntitled()).toBe(false);
                         expect(doc.isDirty).toBe(false);
                         expect(doc.file.fullPath).toBe(getFilename(i));
                     });
                     
                     // Verify files exist & clean up
-                    workingSetDocs.forEach(function (doc, i) {
+                    paneViewListDocs.forEach(function (doc, i) {
                         expectAndDelete(getFilename(i));
                     });
                 });
@@ -508,7 +511,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(DocumentManager.getWorkingSet().length).toEqual(0);
+                    expect(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).length).toEqual(0);
                     
                     // Verify files exist & clean up
                     [0, 1, 2].forEach(function (i) {
@@ -546,10 +549,10 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Expect *only* first Document was saved - others remain untitled & dirty
-                    var workingSetDocs = getWorkingSetDocs();
-                    expect(workingSetDocs.length).toEqual(3);
+                    var paneViewListDocs = getOpenDocsFromPaneViewList();
+                    expect(paneViewListDocs.length).toEqual(3);
                     
-                    workingSetDocs.forEach(function (doc, i) {
+                    paneViewListDocs.forEach(function (doc, i) {
                         if (i === 0) {
                             // First file was saved when we confirmed save dialog
                             expect(doc.isUntitled()).toBe(false);
@@ -601,10 +604,10 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Expect *all* Documents still open, and *only* first Document was saved
-                    var workingSetDocs = getWorkingSetDocs();
-                    expect(workingSetDocs.length).toEqual(3);
+                    var paneViewListDocs = getOpenDocsFromPaneViewList();
+                    expect(paneViewListDocs.length).toEqual(3);
                     
-                    workingSetDocs.forEach(function (doc, i) {
+                    paneViewListDocs.forEach(function (doc, i) {
                         if (i === 0) {
                             // First file was saved when we confirmed save dialog
                             expect(doc.isUntitled()).toBe(false);
@@ -824,7 +827,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // New file should not appear in working set
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(-1);
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, newFilePath)).toEqual(-1);
                     
                     // Verify file exists & clean it up
                     expectAndDelete(newFilePath);
@@ -862,8 +865,8 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Only new file should appear in working set
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
-                    expect(DocumentManager.findInWorkingSet(filePath)).toEqual(-1);
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, newFilePath)).toBeGreaterThan(-1);
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, filePath)).toEqual(-1);
                     
                     // Verify file exists & clean it up
                     expectAndDelete(newFilePath);
@@ -897,7 +900,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(-1);
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, newFilePath)).toEqual(-1);
                 });
             });
             
@@ -913,7 +916,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    index = DocumentManager.findInWorkingSet(filePath);
+                    index = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, filePath);
                     targetDoc = DocumentManager.getOpenDocumentForPath(filePath);
                 });
 
@@ -938,8 +941,8 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // New file should appear in working set at old file's index; old file shouldn't appear at all
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(index);
-                    expect(DocumentManager.findInWorkingSet(filePath)).toEqual(-1);
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, newFilePath)).toEqual(index);
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, filePath)).toEqual(-1);
 
                     // Verify file exists & clean it up
                     expectAndDelete(newFilePath);

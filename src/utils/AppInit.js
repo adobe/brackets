@@ -44,12 +44,16 @@ define(function (require, exports, module) {
 
     // Fires when all extensions are loaded
     var APP_READY   = "appReady";
+    
+    // Fires after extensions have been loaded
+    var EXTENSIONS_READY = "extensionsReady";
 
-    var status      = { HTML_READY : false, APP_READY : false },
+    var status      = { HTML_READY : false, APP_READY : false, EXTENSIONS_READY: false },
         callbacks   = {};
 
     callbacks[HTML_READY] = [];
     callbacks[APP_READY] = [];
+    callbacks[EXTENSIONS_READY] = [];
 
     function _callHandler(handler) {
         try {
@@ -104,12 +108,18 @@ define(function (require, exports, module) {
     function htmlReady(callback) {
         _addListener(HTML_READY, callback);
     }
+    
+    function extensionsReady(callback) {
+        _addListener(EXTENSIONS_READY, callback);
+    }
 
     exports.appReady = appReady;
     exports.htmlReady = htmlReady;
+    exports.extensionsReady = extensionsReady;
     
     exports.HTML_READY = HTML_READY;
     exports.APP_READY = APP_READY;
+    exports.EXTENSIONS_READY = EXTENSIONS_READY;
 
     // internal use only
     exports._dispatchReady = _dispatchReady;

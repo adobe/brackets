@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -21,21 +21,21 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets */
 
-/**
- * @deprecated This module provided for backwards compatibility.  Use WorkspaceManager instead.  
- */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, describe, it, spyOn, expect, beforeEach, afterEach, waitsFor, runs, $ */
+
 define(function (require, exports, module) {
-    "use strict";
+    'use strict';
     
-    var WorkspaceManager        = require("view/WorkspaceManager"),
-        DeprecationWarning      = require("utils/DeprecationWarning");
-    
-    // Define public API
-    exports.createBottomPanel   = function (id, $panel, minSize) {
-        DeprecationWarning.deprecationWarning("PanelManager.createBottomPanel() is deprecated. Use WorkspaceManager.createBottomPanel() instead.", true);
-        return WorkspaceManager.createBottomPanel(id, $panel, minSize);
-    };
+    var MainViewManager  = require("view/MainViewManager"),
+        WorkspaceManager = require("view/WorkspaceManager"),
+        SpecRunnerUtils  = require("spec/SpecRunnerUtils");
+
+    describe("MainViewManager", function () {
+        it("should exist", function () {
+            expect(MainViewManager).toNotBe(null);
+        });
+    });
+    // Other tests go here as we develop more functionality into MainViewManager.
 });
