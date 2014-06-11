@@ -85,6 +85,7 @@ define(function LiveDevelopment(require, exports, module) {
         FileSystemError      = require("filesystem/FileSystemError"),
         FileUtils            = require("file/FileUtils"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
+        MainViewManager      = require("view/MainViewManager"),
         NativeApp            = require("utils/NativeApp"),
         PreferencesDialogs   = require("preferences/PreferencesDialogs"),
         ProjectManager       = require("project/ProjectManager"),
@@ -1266,8 +1267,8 @@ define(function LiveDevelopment(require, exports, module) {
                 otherDocumentsInWorkingFiles;
 
             if (doc && !doc._masterEditor) {
-                otherDocumentsInWorkingFiles = DocumentManager.getWorkingSet().length;
-                DocumentManager.addToWorkingSet(doc.file);
+                otherDocumentsInWorkingFiles = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).length;
+                MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file);
 
                 if (!otherDocumentsInWorkingFiles) {
                     DocumentManager.setCurrentDocument(doc);

@@ -28,9 +28,9 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var EditorManager   = require("editor/EditorManager"),
-        PanelManager    = require("view/PanelManager"),
-        SpecRunnerUtils = require("spec/SpecRunnerUtils");
+    var EditorManager    = require("editor/EditorManager"),
+        WorkspaceManager = require("view/WorkspaceManager"),
+        SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 
     describe("EditorManager", function () {
 
@@ -45,8 +45,8 @@ define(function (require, exports, module) {
                     .css("height", "200px")
                     .appendTo(document.body);
                 
-                // createMockEditor() creates the mock-editor-holder, and links EditorManager/PanelManager
-                // to it (and links PanelManager to our content div)
+                // createMockEditor() creates the mock-editor-holder, and links EditorManager/WorkspaceManager
+                // to it (and links WorkspaceManager to our content div)
                 var mock = SpecRunnerUtils.createMockEditor("");
                 
                 // move newly created mock-editor-holder into the content div we created above
@@ -78,7 +78,7 @@ define(function (require, exports, module) {
                 EditorManager.resizeEditor(); // cache the width
                                 
                 spyOn(testEditor, "refreshAll");
-                PanelManager._notifyLayoutChange(EditorManager.REFRESH_FORCE);
+                WorkspaceManager._notifyLayoutChange(EditorManager.REFRESH_FORCE);
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -89,7 +89,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                PanelManager._notifyLayoutChange(EditorManager.REFRESH_FORCE);
+                WorkspaceManager._notifyLayoutChange(EditorManager.REFRESH_FORCE);
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -100,7 +100,7 @@ define(function (require, exports, module) {
                 $root.height(300); // change the height (to be different from content div)
                 
                 spyOn(testEditor, "refreshAll");
-                PanelManager._notifyLayoutChange(EditorManager.REFRESH_FORCE);
+                WorkspaceManager._notifyLayoutChange(EditorManager.REFRESH_FORCE);
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -112,7 +112,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                PanelManager._notifyLayoutChange(EditorManager.REFRESH_FORCE);
+                WorkspaceManager._notifyLayoutChange(EditorManager.REFRESH_FORCE);
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -123,7 +123,7 @@ define(function (require, exports, module) {
                 EditorManager.resizeEditor(); // cache the width
                                 
                 spyOn(testEditor, "refreshAll");
-                PanelManager._notifyLayoutChange(EditorManager.REFRESH_SKIP);
+                WorkspaceManager._notifyLayoutChange(EditorManager.REFRESH_SKIP);
                 expect(testEditor.refreshAll).not.toHaveBeenCalled();
             });
 
@@ -134,7 +134,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                PanelManager._notifyLayoutChange(EditorManager.REFRESH_SKIP);
+                WorkspaceManager._notifyLayoutChange(EditorManager.REFRESH_SKIP);
                 expect(testEditor.refreshAll).not.toHaveBeenCalled();
             });
 
@@ -145,7 +145,7 @@ define(function (require, exports, module) {
                 $root.height(300); // change the height (to be different from content div)
                 
                 spyOn(testEditor, "refreshAll");
-                PanelManager._notifyLayoutChange(EditorManager.REFRESH_SKIP);
+                WorkspaceManager._notifyLayoutChange(EditorManager.REFRESH_SKIP);
                 expect(testEditor.refreshAll).not.toHaveBeenCalled();
             });
 
@@ -157,7 +157,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                PanelManager._notifyLayoutChange(EditorManager.REFRESH_SKIP);
+                WorkspaceManager._notifyLayoutChange(EditorManager.REFRESH_SKIP);
                 expect(testEditor.refreshAll).not.toHaveBeenCalled();
             });
             
@@ -168,7 +168,7 @@ define(function (require, exports, module) {
                 EditorManager.resizeEditor(); // cache the width
                                 
                 spyOn(testEditor, "refreshAll");
-                PanelManager._notifyLayoutChange();
+                WorkspaceManager._notifyLayoutChange();
                 expect(testEditor.refreshAll).not.toHaveBeenCalled();
             });
 
@@ -179,7 +179,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                PanelManager._notifyLayoutChange();
+                WorkspaceManager._notifyLayoutChange();
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -190,7 +190,7 @@ define(function (require, exports, module) {
                 $root.height(300); // change the height (to be different from content div)
                 
                 spyOn(testEditor, "refreshAll");
-                PanelManager._notifyLayoutChange();
+                WorkspaceManager._notifyLayoutChange();
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -202,7 +202,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                PanelManager._notifyLayoutChange();
+                WorkspaceManager._notifyLayoutChange();
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
         });

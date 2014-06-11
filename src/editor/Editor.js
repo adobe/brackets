@@ -880,6 +880,13 @@ define(function (require, exports, module) {
 
         PerfUtils.addMeasurement(perfTimerName);
     };
+
+    /**
+    * Gets the document associated with this editor
+    */
+    Editor.prototype.getDocument = function () {
+        return this.document;
+    };    
     
     /**
      * Gets the current cursor position within the editor.

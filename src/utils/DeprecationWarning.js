@@ -21,7 +21,7 @@
  * 
  */
 
-/*global define, console */
+/*global define, console, $ */
 
 /**
  *  Utilities functions to display deprecation warning in the console.
@@ -89,6 +89,37 @@ define(function (require, exports, module) {
         displayedWarnings[message][callerLocation] = true;
     }
 
+    /**
+     * Show deprecation message if there are listeners for the event
+     * @param {Object} outbound the object with the old event to dispatch                            $(exports)
+     * @param {Object} inbound the object with the new event to map to the old event                 $(MainViewManager)
+     * @param {string} oldEventName the name of the old event                                        "workingSetAdd"
+     * @param {string} newEventName the name of the new event                                        "paneViewListAdd"
+     * @param {string=} cannonicalOutboundName the cannonical name of the old event                  "DocumentManager.workingSetAdd"
+     * @param {string=} cannonicalInboundName the cannonical name of the new event                   "MainViewManager.paneViewListAdd"
+     */
+    function deprecateEvent(outbound, inbound, oldEventName, newEventName, cannonicalOutboundName, cannonicalInboundName) {
+        // create an event handler for the new event to listen for 
+        $(inbound).on(newEventName, function () {
+            // Get the jQuery event data from the outbound object -- usually the module's exports
+            var listeners = $._data(outbound, "events");
+            // If there are there any listeners then display a deprecation warning
+            if (listeners && listeners.hasOwnProperty(oldEventName) && listeners[oldEventName].length > 0) {
+                var message = "The Event " + (cannonicalOutboundName || oldEventName) + " has been deprecated. Use " + (cannonicalInboundName || newEventName) + " instead.";
+                // We only want to show the deprecation warning once
+                if (!displayedWarnings[message]) {
+                    displayedWarnings[message] = true;
+                    console.warn(message);
+                }
+            }
+
+            // dispatch the event even if there are no listeners just in case the jQuery data is wrong for some reason
+            $(outbound).trigger(oldEventName, Array.prototype.slice.call(arguments, 1));
+        });
+    }
+    
+    
     // Define public API
     exports.deprecationWarning = deprecationWarning;
+    exports.deprecateEvent = deprecateEvent;
 });

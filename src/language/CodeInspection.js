@@ -43,7 +43,7 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var Commands                = require("command/Commands"),
-        PanelManager            = require("view/PanelManager"),
+        WorkspaceManager        = require("view/WorkspaceManager"),
         CommandManager          = require("command/CommandManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
@@ -576,7 +576,7 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         // Create bottom panel to list error details
         var panelHtml = Mustache.render(PanelTemplate, Strings);
-        var resultsPanel = PanelManager.createBottomPanel("errors", $(panelHtml), 100);
+        var resultsPanel = WorkspaceManager.createBottomPanel("errors", $(panelHtml), 100);
         $problemsPanel = $("#problems-panel");
 
         var $selectedRow;

@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         Dialogs,
         EditorManager,
         DocumentManager,
+        MainViewManager,
         FileSystem;
 
     describe("CloseOthers", function () {
@@ -86,6 +87,7 @@ define(function (require, exports, module) {
                     $ = testWindow.$;
                     brackets		= testWindow.brackets;
                     DocumentManager = testWindow.brackets.test.DocumentManager;
+                    MainViewManager = testWindow.brackets.test.MainViewManager;
                     CommandManager  = testWindow.brackets.test.CommandManager;
                     EditorManager   = testWindow.brackets.test.EditorManager;
                     Dialogs			= testWindow.brackets.test.Dialogs;
@@ -127,7 +129,7 @@ define(function (require, exports, module) {
 
 
         function runCloseOthers() {
-            var ws = DocumentManager.getWorkingSet(),
+            var ws = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE),
                 promise;
 
             if (ws.length > docSelectIndex) {
@@ -137,6 +139,7 @@ define(function (require, exports, module) {
 
                 promise = CommandManager.execute(cmdToRun);
                 waitsForDone(promise, cmdToRun);
+                expect(EditorManager.getCurrentlyViewedPath()).toEqual(ws[docSelectIndex].fullPath, "Path of document in editor after close others command should be the document that was selected");
             }
         }
 
@@ -147,7 +150,7 @@ define(function (require, exports, module) {
             runs(runCloseOthers);
             
             runs(function () {
-                expect(DocumentManager.getWorkingSet().length).toEqual(1);
+                expect(MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).length).toEqual(1);
             });
         });
 
@@ -158,7 +161,7 @@ define(function (require, exports, module) {
             runs(runCloseOthers);
 
             runs(function () {
-                expect(DocumentManager.getWorkingSet().length).toEqual(3);
+                expect(MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).length).toEqual(3);
             });
         });
 
@@ -169,7 +172,7 @@ define(function (require, exports, module) {
             runs(runCloseOthers);
 
             runs(function () {
-                expect(DocumentManager.getWorkingSet().length).toEqual(2);
+                expect(MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).length).toEqual(2);
             });
         });
     });

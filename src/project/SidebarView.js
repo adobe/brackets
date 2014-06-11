@@ -42,7 +42,7 @@ define(function (require, exports, module) {
     
     var AppInit             = require("utils/AppInit"),
         ProjectManager      = require("project/ProjectManager"),
-        WorkingSetView      = require("project/WorkingSetView"),
+        PaneViewListView        = require("project/PaneViewListView"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
@@ -125,7 +125,7 @@ define(function (require, exports, module) {
         }
 
         // init
-        WorkingSetView.create($openFilesContainer);
+        PaneViewListView.create($openFilesContainer);
         
         $sidebar.on("panelResizeStart", function (evt, width) {
             $sidebar.find(".sidebar-selection-triangle").css("display", "none");
@@ -149,7 +149,7 @@ define(function (require, exports, module) {
         });
         
         $sidebar.on("panelExpanded", function (evt, width) {
-            WorkingSetView.refresh();
+            PaneViewListView.refresh();
             _resizeSidebarSelection();
             $sidebar.find(".scroller-shadow").css("display", "block");
             $sidebar.find(".sidebar-selection-triangle").css("left", width);
