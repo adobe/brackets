@@ -274,7 +274,7 @@ define(function (require, exports, module) {
      * the current editor even if it's for this file. Does not prompt for unsaved changes.
      * @param {!string} paneId this will identify which Pane with which the caller wants to remove
      * @param {!File} file
-     * @param {boolean=} true to suppress redraw after removal
+     * @param {boolean=} supporessRedraw true to suppress redraw after removal, false if not
      */
     function removeFromPaneViewList(paneId, file, suppressRedraw) {
         // TODO paneId is no yet used, but will be when multiple panels supported
