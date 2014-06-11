@@ -46,38 +46,58 @@ define(function (require, exports, module) {
     };
     
     /**
+     * List of sorting method objects
      * @private
      * @type {Array.<Sort>}
      */
     var _sorts = [];
     
     /**
+     * Denotes the current sort method object
      * @private
      * @type {Sort}
      */
     var _currentSort = null;
     
     /**
+     * Denotes if automatic sorting is enabled or not
      * @private
      * @type {boolean}
      */
     var _automaticSort = false;
     
-    /**
+
+    /** 
+     * Maps Legacy sort method names  to new sort method names
      * @private
-     * @type {boolean}
-     * Used to know when to do the automatic sort for MRU order.
+     * @type {object.<string: string>} oldname: newname
      */
-    var _openedDocument = false;
-    
     var _sortPrefConversionMap = {
         "view.sortWorkingSetByAdded" : "cmd.sortPaneViewListByAdded",
         "view.sortWorkingSetByName"  : "cmd.sortPaneViewListByName",
         "view.sortWorkingSetByType"  : "cmd.sortPaneViewListByType"
     };
     
-    var PANE_SORT_PREF = "paneSortMethod";
-    var WORKSPACE_SORT_PREF = "currentSort";
+    /**
+     * Events which the sort command will listen for to trigger a sort
+     * @constant {string} 
+     * @private
+     */
+    var _SORT_EVENT_NAMES = "paneViewListAdd paneViewListAddList";
+    
+    /**
+     * Preference name
+     * @constant {string} 
+     * @private
+     */
+    var _PANE_SORT_PREF = "paneSortMethod";
+
+    /**
+     * Legacy preference name
+     * @constant {string} 
+     * @private
+     */
+    var _WORKSPACE_SORT_PREF = "currentSort";
     
     /**
      * Retrieves a Sort object by id
@@ -105,7 +125,7 @@ define(function (require, exports, module) {
         
         if (_sortPrefConversionMap.hasOwnProperty(sortMethod)) {
             sortMethod = _sortPrefConversionMap[sortMethod];
-            PreferencesManager.setViewState(PANE_SORT_PREF, sortMethod);
+            PreferencesManager.setViewState(_PANE_SORT_PREF, sortMethod);
         } else {
             sortMethod = undefined;
         }
@@ -178,7 +198,7 @@ define(function (require, exports, module) {
             }
             
             CommandManager.get(Commands.CMD_TOGGLE_AUTO_SORT).setEnabled(!!newSort.getEvents());
-            PreferencesManager.setViewState(PANE_SORT_PREF, newSort.getCommandID());
+            PreferencesManager.setViewState(_PANE_SORT_PREF, newSort.getCommandID());
             _currentSort = newSort;
         }
     }
@@ -304,18 +324,26 @@ define(function (require, exports, module) {
     }
     
     
-    /** Command Handlers */
+    /** 
+     * Command Handler for CMD_TOGGLE_AUTO_SORT
+     * @private
+     */
     function _handleToggleAutoSort() {
         setAutomatic(!getAutomatic());
     }
     
+    /** 
+     * Command Handler for CMD_SORT_PANE_VIEW_LIST_BY_* 
+     * @private
+     * @param {!string} commandId identifies the sort method to use 
+     */
     function _handleSort(commandId) {
         get(commandId).execute();
     }
     
-    var events = "paneViewListAdd paneViewListAddList";
-    
-    // Register Sort Methods
+    /**
+     * Register Sort Methods 
+     */
     register(
         Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED,
         function (file1, file2) {
@@ -324,43 +352,49 @@ define(function (require, exports, module) {
             
             return index1 - index2;
         },
-        events
+        _SORT_EVENT_NAMES
     );
     register(
         Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME,
         function (file1, file2) {
             return FileUtils.compareFilenames(file1.name, file2.name, false);
         },
-        events
+        _SORT_EVENT_NAMES
     );
     register(
         Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,
         function (file1, file2) {
             return FileUtils.compareFilenames(file1.name, file2.name, true);
         },
-        events
+        _SORT_EVENT_NAMES
     );
     
     
-    // Register Command Handlers
+    /**
+     * Register Command Handlers
+     */
     CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_ADDED, Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED, _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED));
     CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_NAME,  Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME,  _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME));
     CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,  Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,  _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE));
     CommandManager.register(Strings.CMD_TOGGLE_AUTO_SORT,             Commands.CMD_TOGGLE_AUTO_SORT,             _handleToggleAutoSort);
     
     
-    // Initialize default values for sorting preferences
+    /**
+     * Initialize default values for sorting preferences
+     */
     PreferencesManager.stateManager.definePreference("automaticSort", "boolean", false);
-    PreferencesManager.convertPreferences(module, {WORKSPACE_SORT_PREF: "user", "automaticSort": "user"}, true);
+    PreferencesManager.convertPreferences(module, {_WORKSPACE_SORT_PREF: "user", "automaticSort": "user"}, true);
     
-    // default sort method
-    PreferencesManager.stateManager.definePreference(PANE_SORT_PREF, "string");
+    /** 
+     * default sort method
+     */
+    PreferencesManager.stateManager.definePreference(_PANE_SORT_PREF, "string");
     
     function initSortMethod() {
-        var sortMethod = PreferencesManager.getViewState(PANE_SORT_PREF);
+        var sortMethod = PreferencesManager.getViewState(_PANE_SORT_PREF);
         
         if (!sortMethod) {
-            sortMethod = _convertSortPref(PreferencesManager.getViewState(WORKSPACE_SORT_PREF));
+            sortMethod = _convertSortPref(PreferencesManager.getViewState(_WORKSPACE_SORT_PREF));
         }
 
         if (!sortMethod) {
@@ -369,7 +403,9 @@ define(function (require, exports, module) {
         return sortMethod;
     }
     
-    // Initialize items dependent on extensions/workingSet
+    /**
+     * Initialize items dependent on extensions/workingSet
+     */
     AppInit.appReady(function () {
         var sortMethod = initSortMethod(),
             curSort    = get(sortMethod),
@@ -387,7 +423,6 @@ define(function (require, exports, module) {
     });
     
     
-    // Define public API
     exports.register        = register;
     exports.get             = get;
     exports.getAutomatic    = getAutomatic;
