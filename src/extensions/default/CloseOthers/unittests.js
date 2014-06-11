@@ -139,6 +139,7 @@ define(function (require, exports, module) {
 
                 promise = CommandManager.execute(cmdToRun);
                 waitsForDone(promise, cmdToRun);
+                expect(EditorManager.getCurrentlyViewedPath()).toEqual(ws[docSelectIndex].fullPath, "Path of document in editor after close others command should be the document that was selected");
             }
         }
 
