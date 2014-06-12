@@ -229,11 +229,11 @@ define(function (require, exports, module) {
     
     
     /**
-     * Used by EditorManager to notify us of layout changes our normal panel/window listeners wouldn't detect.
-     * @private
+     * Called when an external widget has appeared and needs some of the space occupied 
+     *  by the mainview manager
      * @param {boolean} refreshHint true to refresh the editor, false if not
      */
-    function _notifyLayoutChange(refreshHint) {
+    function recomputeLayout(refreshHint) {
         triggerEditorResize(refreshHint);
         updateResizeLimits();
     }
@@ -270,6 +270,6 @@ define(function (require, exports, module) {
     
     // Define public API
     exports.createBottomPanel    = createBottomPanel;
-    exports._notifyLayoutChange  = _notifyLayoutChange;
+    exports.recomputeLayout      = recomputeLayout;
     exports._setMockDOM          = _setMockDOM;
 });

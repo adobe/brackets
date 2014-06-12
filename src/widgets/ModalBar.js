@@ -32,9 +32,10 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager  = require("editor/EditorManager"),
-        KeyEvent       = require("utils/KeyEvent"),
-        AnimationUtils = require("utils/AnimationUtils");
+    var EditorManager    = require("editor/EditorManager"),
+        KeyEvent         = require("utils/KeyEvent"),
+        AnimationUtils   = require("utils/AnimationUtils"),
+        WorkspaceManager = require("view/WorkspaceManager");
 
     /**
      * Creates a modal bar whose contents are the given template.
@@ -103,7 +104,7 @@ define(function (require, exports, module) {
         if (fullEditor) {
             scrollPos = fullEditor.getScrollPos();
         }
-        EditorManager.resizeEditor();
+        WorkspaceManager.recomputeLayout();  // changes available ht for editor area
         if (fullEditor) {
             fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + this.height());
         }
@@ -169,7 +170,7 @@ define(function (require, exports, module) {
             barHeight = this.height();
             scrollPos = fullEditor.getScrollPos();
         }
-        EditorManager.resizeEditor();
+        WorkspaceManager.recomputeLayout();
         if (restoreScrollPos && fullEditor) {
             fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y - barHeight);
         }

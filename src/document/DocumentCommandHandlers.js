@@ -57,7 +57,8 @@ define(function (require, exports, module) {
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         Menus               = require("command/Menus"),
         UrlParams           = require("utils/UrlParams").UrlParams,
-        StatusBar           = require("widgets/StatusBar");
+        StatusBar           = require("widgets/StatusBar"),
+        WorkspaceManager    = require("View/WorkspaceManager");
 
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
@@ -162,7 +163,7 @@ define(function (require, exports, module) {
             var newToolbarHeight = _$titleContainerToolbar.height();
             if (_lastToolbarHeight !== newToolbarHeight) {
                 _lastToolbarHeight = newToolbarHeight;
-                EditorManager.resizeEditor();
+                WorkspaceManager.recomputeLayout();
             }
         }
 

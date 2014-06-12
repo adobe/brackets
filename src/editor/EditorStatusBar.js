@@ -243,10 +243,10 @@ define(function (require, exports, module) {
         }
         
         if (!current) {
-            StatusBar.hide();  // calls resizeEditor() if needed
+            StatusBar.hide();
         } else {
             var fullPath = current.document.file.fullPath;
-            StatusBar.show();  // calls resizeEditor() if needed
+            StatusBar.show();
             
             $(current).on("cursorActivity.statusbar", _updateCursorInfo);
             $(current).on("optionChange.statusbar", function () {

@@ -483,23 +483,12 @@ define(function (require, exports, module) {
      */
     var REFRESH_SKIP = "skip";
 
-    /**
-     * Must be called whenever the size/visibility of editor area siblings is changed without going through
-     * WorkspaceManager or Resizer. Resizable panels created via WorkspaceManager do not require this manual call.
-     */
-    function resizeEditor() {
-        if (!_editorHolder) {
-            return;  // still too early during init
-        }
-        // WorkspaceManager computes the correct editor-holder size & calls us back with it, via _onEditorAreaResize()
-        WorkspaceManager._notifyLayoutChange();
-    }
     
     /**
      * Update the current CodeMirror editor's size. Must be called any time the contents of the editor area
      * are swapped or any time the editor-holder area has changed height. EditorManager calls us in the swap
      * case. WorkspaceManager calls us in the most common height-change cases (panel and/or window resize), but
-     * some other cases are handled by external code calling `resizeEditor()` (e.g. ModalBar hide/show).
+     * some other cases are handled by external code calling `WorkspaceManager.recomputeLayout()` (e.g. ModalBar hide/show).
      * 
      * @param {number} editorAreaHt
      * @param {string=} refreshFlag For internal use. Set to "force" to ensure the editor will refresh, 
@@ -584,7 +573,7 @@ define(function (require, exports, module) {
         
         // Resize and refresh the editor, since it might have changed size or had other edits applied
         // since it was last visible.
-        WorkspaceManager._notifyLayoutChange(REFRESH_FORCE);
+        WorkspaceManager.recomputeLayout(REFRESH_FORCE);
     }
 
     /**
@@ -905,7 +894,7 @@ define(function (require, exports, module) {
         
         _editorHolder = holder;
         
-        resizeEditor();  // if no files open at startup, we won't get called back later to resize the "no-editor" placeholder
+        WorkspaceManager.recomputeLayout();
     }
     
     /**
@@ -1110,7 +1099,6 @@ define(function (require, exports, module) {
     exports.getActiveEditor               = getActiveEditor;
     exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;
     exports.getFocusedInlineWidget        = getFocusedInlineWidget;
-    exports.resizeEditor                  = resizeEditor;
     exports.registerInlineEditProvider    = registerInlineEditProvider;
     exports.registerInlineDocsProvider    = registerInlineDocsProvider;
     exports.registerJumpToDefProvider     = registerJumpToDefProvider;

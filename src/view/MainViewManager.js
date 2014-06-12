@@ -79,6 +79,12 @@ define(function (require, exports, module) {
     var _paneViewListAddedOrder = [];
     
     /**
+     * temporary global
+     * @private
+     */
+    var _$container = $("#editor-holder");
+    
+    /**
      * Retrieves the PaneViewList for the given PaneId
      * @param {!string} paneId this will identify which Pane the caller wants a View List
      * @return {Array.<File>}
@@ -561,21 +567,22 @@ define(function (require, exports, module) {
         EditorManager.resize(editorAreaHeight, refreshHint);
     }
     
+    
+    
     /**
      *
      */
-    function _doOpenDocument(event, doc) {
-        var container = $("#editor-holder");
-        EditorManager.doOpenDocument(container, doc);
+    function _openDocument(event, doc) {
+        EditorManager.doOpenDocument(_$container, doc);
     }
     
     // Event handlers
-    $(ProjectManager).on("projectOpen", _loadViewState);
+    $(ProjectManager).on("projectOpen",                       _loadViewState);
     $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
-    $(WorkspaceManager).on("workspaceUpdateLayout", _updateLayout);
-    $(DocumentManager).on("currentDocumentChange", _doOpenDocument);
+    $(WorkspaceManager).on("workspaceUpdateLayout",           _updateLayout);
+    $(DocumentManager).on("currentDocumentChange",            _openDocument);
     
-    // API Exports
+    // PaneView Management
     exports.addToPaneViewList                = addToPaneViewList;
     exports.addListToPaneViewList            = addListToPaneViewList;
     exports.findInPaneViewList               = findInPaneViewList;
@@ -583,15 +590,17 @@ define(function (require, exports, module) {
     exports.findInPaneViewListMRUOrder       = findInPaneViewListMRUOrder;
     exports.getPaneViewList                  = getPaneViewList;
     exports.makePaneViewMostRecent           = makePaneViewMostRecent;
-    exports.notifyPathDeleted                = notifyPathDeleted;
     exports.removeAllFromPaneViewList        = removeAllFromPaneViewList;
     exports.removeFromPaneViewList           = removeFromPaneViewList;
     exports.removeListFromPaneViewList       = removeListFromPaneViewList;
     exports.sortPaneViewList                 = sortPaneViewList;
     exports.swapPaneViewListIndexes          = swapPaneViewListIndexes;
     exports.traversePaneViewListByMRU        = traversePaneViewListByMRU;
+
+    // Migration helpers
+    exports.notifyPathDeleted                = notifyPathDeleted;
     
     // Constants
-    exports.ALL_PANES                    = ALL_PANES;
-    exports.FOCUSED_PANE                 = FOCUSED_PANE;
+    exports.ALL_PANES                        = ALL_PANES;
+    exports.FOCUSED_PANE                     = FOCUSED_PANE;
 });
