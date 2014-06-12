@@ -561,11 +561,19 @@ define(function (require, exports, module) {
         EditorManager.resize(editorAreaHeight, refreshHint);
     }
     
+    /**
+     *
+     */
+    function _doOpenDocument(event, doc) {
+        var container = $("#editor-holder");
+        EditorManager.doOpenDocument(container, doc);
+    }
     
     // Event handlers
     $(ProjectManager).on("projectOpen", _loadViewState);
     $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
     $(WorkspaceManager).on("workspaceUpdateLayout", _updateLayout);
+    $(DocumentManager).on("currentDocumentChange", _doOpenDocument);
     
     // API Exports
     exports.addToPaneViewList                = addToPaneViewList;

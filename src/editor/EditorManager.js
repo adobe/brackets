@@ -827,7 +827,7 @@ define(function (require, exports, module) {
     }
     
     /** Handles changes to DocumentManager.getCurrentDocument() */
-    function _onCurrentDocumentChange(event, doc, prev) {
+    function doOpenDocument(container, doc) {
         var container = _editorHolder.get(0);
         
         var perfTimerName = PerfUtils.markStart("EditorManager._onCurrentDocumentChange():\t" + (!doc || doc.file.fullPath));
@@ -1083,7 +1083,6 @@ define(function (require, exports, module) {
     PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
 
     // Initialize: register listeners
-    $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("fileNameChange",        _onFileNameChange);
 
     // For unit tests and internal use only
@@ -1122,6 +1121,7 @@ define(function (require, exports, module) {
     exports.notifyPathDeleted             = notifyPathDeleted;
     exports.notifyPathRemovedFromPaneList = notifyPathRemovedFromPaneList;
     exports.showingCustomViewerForPath    = showingCustomViewerForPath;
+    exports.doOpenDocument                = doOpenDocument;
     
     // migration
     exports.resize                        = resize;
