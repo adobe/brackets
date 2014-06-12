@@ -445,6 +445,56 @@ define(function (require, exports, module) {
         return extFirst ? (cmpExt || cmpNames) : (cmpNames || cmpExt);
     }
 
+    /**
+     * @private
+     * RegEx to validate if a filename is not allowed even if the system allows it.
+     * This is done to prevent cross-platform issues.
+     */
+    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux|)$|\.+$/i;
+    
+    /**
+     * @private
+     * A Regex containing all invalid characters for a specific platform.
+     */
+    var _invalidChars = /[\\?*]+/;
+    
+    /**
+     * Check a filename for illegal characters. If any are found, show an error
+     * dialog and return false. If no illegal characters are found, return true.
+     * Although Mac and Linux allow ?*|: characters, we still cannot allow them
+     * since these have special meaning for all file systems.
+     *
+     * @param {string} filename
+     * @return {boolean} Returns true if no illegal characters are found
+     */
+    function checkForValidFilename(filename) {
+        if ((filename.search(_invalidChars) !== -1) || filename.match(_illegalFilenamesRegEx)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @public
+     * A string representation of the invalid characters for a given platform.
+     * For use in error dialogs.
+     */
+    var invalidCharsString = "\\?*";
+    
+    /**
+     * Show an error dialog if there is an invalid filename
+     *
+     * @param {boolean} If the error is with a folder name
+     * @return {Dialog} Displays error dialog
+     */
+    
+    function showIllegalFilenameError(isFolder) {
+        return Dialogs.showModalDialog(
+            DefaultDialogs.DIALOG_ID_ERROR,
+            StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
+            StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE, invalidCharsString)
+        );
+    }
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -470,4 +520,7 @@ define(function (require, exports, module) {
     exports.getFileExtension               = getFileExtension;
     exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;
+    exports.checkForValidFilename          = checkForValidFilename;
+    exports.invalidCharsString             = invalidCharsString;
+    exports.showIllegalFilenameError       = showIllegalFilenameError;
 });

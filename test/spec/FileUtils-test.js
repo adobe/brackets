@@ -165,5 +165,20 @@ define(function (require, exports, module) {
                 expect(FileUtils.getSmartFileExtension("foo.bar.php.scss.erb")).toBe("php.scss.erb");
             });
         });
+        
+        describe("checkForValidFilename", function () {
+            it("should return false with a '?' in the filename", function () {
+                expect(FileUtils.checkForValidFilename("fo?o.bar.html")).toBe(false);
+            });
+            it("should return false with a '\' in the filename", function () {
+                expect(FileUtils.checkForValidFilename("foo.bar.h\\tml")).toBe(false);
+            });
+            it("should return false with a '*' in the filename", function () {
+                expect(FileUtils.checkForValidFilename("foo.ba*r.html")).toBe(false);
+            });
+            it("should return true with a well formed filename", function () {
+                expect(FileUtils.checkForValidFilename("foo.html")).toBe(true);
+            });
+        });
     });
 });
