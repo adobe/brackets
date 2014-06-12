@@ -49,7 +49,7 @@ define(function (require, exports, module) {
     
     // Define public API
     exports.createBottomPanel   = function (id, $panel, minSize) {
-        DeprecationWarning.deprecationWarning("PanelManager.createBottomPanel() is deprecated. Use WorkspaceManager.createBottomPanel() instead.", true);
+        DeprecationWarning.deprecationWarning("Use WorkspaceManager.createBottomPanel() instead of PanelManager.createBottomPanel().", true);
         return WorkspaceManager.createBottomPanel(id, $panel, minSize);
     };
     

@@ -61,7 +61,8 @@ define(function (require, exports, module) {
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         Strings             = require("strings"),
-        LanguageManager     = require("language/LanguageManager");
+        LanguageManager     = require("language/LanguageManager"),
+        DeprecationWarning  = require("utils/DeprecationWarning");
     
     /**
      * DOM node that contains all editors (visible and hidden alike)
@@ -117,11 +118,6 @@ define(function (require, exports, module) {
      * @type {Object.<string, {scrollPos:{x:number, y:number}, selection:{start:{line:number, ch:number}, end:{line:number, ch:number}}}>}
      */
     var _viewStateCache = {};
-    
-    /**
-     * Last known editor area width, used to detect when the window is resized horizontally.
-     */
-    var _lastEditorWidth = null;
     
     /**
      * Registered inline-editor widget providers sorted descending by priority. 
@@ -483,6 +479,14 @@ define(function (require, exports, module) {
      */
     var REFRESH_SKIP = "skip";
 
+    /**
+     * @deprecated
+     * resizes the editor
+     */
+    function resizeEditor() {
+        DeprecationWarning.deprecationWarning("Use WorkspaceManager.recomputeLayout() instead of EditorManager.resizeEditor().", true);
+        WorkspaceManager.recomputeLayout();
+    }
     
     /**
      * Update the current CodeMirror editor's size. Must be called any time the contents of the editor area
@@ -497,25 +501,7 @@ define(function (require, exports, module) {
      */
     function resize(editorAreaHt, refreshFlag) {
         if (_currentEditor) {
-            var curRoot = _currentEditor.getRootElement(),
-                curWidth = $(curRoot).width();
-            if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
-                // Call setSize() instead of $.height() to allow CodeMirror to
-                // check for options like line wrapping
-                _currentEditor.setSize(null, editorAreaHt);
-                if (refreshFlag === undefined) {
-                    refreshFlag = REFRESH_FORCE;
-                }
-            } else if (curWidth !== _lastEditorWidth) {
-                if (refreshFlag === undefined) {
-                    refreshFlag = REFRESH_FORCE;
-                }
-            }
-            _lastEditorWidth = curWidth;
-
-            if (refreshFlag === REFRESH_FORCE) {
-                _currentEditor.refreshAll(true);
-            }
+            _currentEditor.resize(editorAreaHt, refreshFlag !== undefined ? refreshFlag === REFRESH_FORCE : undefined);
         }
     }
     
@@ -1112,5 +1098,11 @@ define(function (require, exports, module) {
     exports.doOpenDocument                = doOpenDocument;
     
     // migration
+    exports.resizeEditor                  = resizeEditor;
+
+    // Scaffolding
     exports.resize                        = resize;
+    
+    // Deprecated
+    
 });

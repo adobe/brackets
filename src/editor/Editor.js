@@ -226,6 +226,7 @@ define(function (require, exports, module) {
         this._inlineWidgets = [];
         this._inlineWidgetQueues = {};
         this._hideMarks = [];
+        this._lastEditorWidth = null;
         
         this._$messagePopover = null;
         
@@ -2087,6 +2088,29 @@ define(function (require, exports, module) {
             this._codeMirror.setOption("styleActiveLine", this._currentOptions[STYLE_ACTIVE_LINE]);
         }
     };
+
+    
+    Editor.prototype.resize = function(editorAreaHt, forceRefresh) {
+        var curRoot = this.getRootElement(),
+            curWidth = $(curRoot).width();
+        if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
+            // Call setSize() instead of $.height() to allow CodeMirror to
+            // check for options like line wrapping
+            this.setSize(null, editorAreaHt);
+            if (forceRefresh === undefined) {
+                forceRefresh = true;
+            }
+        } else if (curWidth !== this._lastEditorWidth) {
+            if (forceRefresh === undefined) {
+                forceRefresh = true;
+            }
+        }
+        this._lastEditorWidth = curWidth;
+
+        if (forceRefresh) {
+            this.refreshAll(true);
+        }
+    }
     
     // Global settings that affect Editor instances that share the same preference locations
 
