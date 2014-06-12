@@ -96,7 +96,7 @@ define(function (require, exports, module) {
     
     
     /**
-     * Calculates a new size for editor-holder and resizes it accordingly, then and dispatches the "editorAreaResize"
+     * Calculates a new size for editor-holder and resizes it accordingly, then and dispatches the "workspaceUpdateLayout"
      * event. (The editors within are resized by EditorManager, in response to that event).
      * 
      * @param {string=} refreshHint  One of "skip", "force", or undefined. See EditorManager docs.
@@ -108,7 +108,7 @@ define(function (require, exports, module) {
         $editorHolder.height(editorAreaHeight);  // affects size of "not-editor" placeholder as well
         
         // Resize editor to fill the space
-        $(exports).trigger("editorAreaResize", [editorAreaHeight, refreshHint]);
+        $(exports).trigger("workspaceUpdateLayout", [editorAreaHeight, refreshHint]);
     }
     
     

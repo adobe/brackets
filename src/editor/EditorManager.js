@@ -506,7 +506,7 @@ define(function (require, exports, module) {
      *    "skip" to ensure the editor does not refresh, or leave undefined to let `_onEditorAreaResize()`
      *    determine whether it needs to refresh.
      */
-    function _onEditorAreaResize(event, editorAreaHt, refreshFlag) {
+    function resize(editorAreaHt, refreshFlag) {
         if (_currentEditor) {
             var curRoot = _currentEditor.getRootElement(),
                 curWidth = $(curRoot).width();
@@ -1085,8 +1085,6 @@ define(function (require, exports, module) {
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("fileNameChange",        _onFileNameChange);
-    $(WorkspaceManager).on("editorAreaResize",     _onEditorAreaResize);
-
 
     // For unit tests and internal use only
     exports._openInlineWidget             = _openInlineWidget;
@@ -1124,4 +1122,7 @@ define(function (require, exports, module) {
     exports.notifyPathDeleted             = notifyPathDeleted;
     exports.notifyPathRemovedFromPaneList = notifyPathRemovedFromPaneList;
     exports.showingCustomViewerForPath    = showingCustomViewerForPath;
+    
+    // migration
+    exports.resize                        = resize;
 });

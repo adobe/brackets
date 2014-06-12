@@ -53,6 +53,10 @@ define(function (require, exports, module) {
     var ALL_PANES           = "ALL_PANES",
         FOCUSED_PANE        = "FOCUSED_PANE";
     
+    /** 
+     * @private
+     */
+    var _paneList = [];
     
     /**
      * @private
@@ -546,10 +550,22 @@ define(function (require, exports, module) {
         // Writing out pane view list files using the project layer specified in 'context'.
         PreferencesManager.setViewState("project.files", files, context);
     }
+
+    /**
+     * Event handler for "workspaceUpdateLayout" to update the layout
+     * @param {Event} event 
+     * @param {number} editorAreaHt
+     * @param {string=} refreshFlag For internal use. see `EditorManager.refresh()`
+     */
+    function _updateLayout(event, editorAreaHeight, refreshHint) {
+        EditorManager.resize(editorAreaHeight, refreshHint);
+    }
+    
     
     // Event handlers
     $(ProjectManager).on("projectOpen", _loadViewState);
     $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
+    $(WorkspaceManager).on("workspaceUpdateLayout", _updateLayout);
     
     // API Exports
     exports.addToPaneViewList                = addToPaneViewList;

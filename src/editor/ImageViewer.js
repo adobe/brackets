@@ -247,7 +247,7 @@ define(function (require, exports, module) {
      * the image viewer
      */
     function onRemove() {
-        $(WorkspaceManager).off("editorAreaResize", _onEditorAreaResize);
+        $(WorkspaceManager).off("workspaceUpdateLayout", _onEditorAreaResize);
         $(DocumentManager).off("fileNameChange", _onFileNameChange);
         $("#img").off("mousemove", "#img-preview", _showImageTip)
                  .off("mouseleave", "#img-preview", _hideImageTip);
@@ -300,7 +300,7 @@ define(function (require, exports, module) {
             $("#image-holder").show();
             
             // listen to resize to  update the scale sticker
-            $(WorkspaceManager).on("editorAreaResize", _onEditorAreaResize);
+            $(WorkspaceManager).on("workspaceUpdateLayout", _onEditorAreaResize);
             
             // make sure we always show the right file name
             $(DocumentManager).on("fileNameChange", _onFileNameChange);
