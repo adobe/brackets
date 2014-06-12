@@ -21,7 +21,7 @@
  *
  */
 
-/*global $, define, brackets, describe, it, xit, expect, setTimeout, waitsForDone, runs, spyOn */
+/*global $, define, brackets, describe, it, xit, beforeEach, expect, setTimeout, waitsForDone, runs, spyOn */
 /*unittests: FileTreeView*/
 
 define(function (require, exports, module) {
@@ -292,6 +292,63 @@ define(function (require, exports, module) {
                     vm.toggleDirectory(vm.treeData[0]);
                     expect(vm.updateContents).toHaveBeenCalledWith(vm.treeData[0].directory, vm.treeData[0].children);
                     expect(vm.treeData[0].children).toEqual([]);
+                });
+            });
+            
+            describe("getOpenNodes", function () {
+                var vm;
+                
+                beforeEach(function () {
+                    vm = new FileTreeView.ViewModel();
+                    
+                    vm.projectRoot = {
+                        fullPath: "/foo/bar/"
+                    };
+                });
+                
+                it("should return an empty list when there are no open nodes", function () {
+                    vm.treeData = [
+                        {
+                            name: "file"
+                        },
+                        {
+                            name: "subdir",
+                            children: null,
+                            directory: {}
+                        }
+                    ];
+                    expect(vm.getOpenNodes()).toEqual([]);
+                });
+                
+                it("should return open directories grouped by level", function () {
+                    vm.treeData = [
+                        {
+                            name: "subdir1",
+                            children: [
+                                {
+                                    name: "subsubdir",
+                                    children: []
+                                }
+                            ]
+                        },
+                        {
+                            name: "subdir2",
+                            children: null
+                        },
+                        {
+                            name: "subdir3",
+                            children: []
+                        }
+                    ];
+                    expect(vm.getOpenNodes()).toEqual([
+                        [
+                            "/foo/bar/subdir1/",
+                            "/foo/bar/subdir3/"
+                        ],
+                        [
+                            "/foo/bar/subdir1/subsubdir/"
+                        ]
+                    ]);
                 });
             });
         });

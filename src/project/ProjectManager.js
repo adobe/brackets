@@ -142,6 +142,10 @@ define(function (require, exports, module) {
     
     Dispatcher.prototype.toggleDirectory = function (treeDataEntry) {
         this.viewModel.toggleDirectory(treeDataEntry);
+        var openNodes = this.viewModel.getOpenNodes();
+        PreferencesManager.setViewState("project.treeState", openNodes, { location : { scope: "user",
+                                                                                      layer: "project",
+                                                                                      layerID: model.projectRoot.fullPath } });
     };
     
     var dispatcher = new Dispatcher(model, viewModel);

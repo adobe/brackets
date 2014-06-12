@@ -146,44 +146,29 @@ define(function (require, exports, module) {
      * @private
      * Save ProjectManager project path and tree state.
      */
-    ViewModel.prototype._getOpenNodes = function _getOpenNodes() {
-
-        var openNodes = [],
-            projectPathLength = projectRoot.fullPath.length,
-            entry,
-            fullPath,
-            shortPath,
-            depth,
-            context = { location : { scope: "user",
-                                    layer: "project",
-                                    layerID: projectRoot.fullPath } };
-
-        // Query open nodes by class selector
-        $(".jstree-open:visible").each(function (index) {
-            entry = $(this).data("entry");
-
-            if (entry.fullPath) {
-                fullPath = entry.fullPath;
-
-                // Truncate project path prefix (including its last slash) AND remove trailing slash suffix
-                // So "/foo/bar/projroot/abc/xyz/" -> "abc/xyz"
-                shortPath = fullPath.slice(projectPathLength, -1);
-
-                // Determine depth of the node by counting path separators.
-                // Children at the root have depth of zero
-                depth = shortPath.split("/").length - 1;
-
-                // Map tree depth to list of open nodes
-                if (openNodes[depth] === undefined) {
-                    openNodes[depth] = [];
+    ViewModel.prototype.getOpenNodes = function _getOpenNodes() {
+        var openNodes = [];
+        
+        function addNodesAtDepth(treeList, parent, depth) {
+            treeList.forEach(function (node) {
+                // is it a file or closed? (undefined or null)
+                if (!node.children) {
+                    return;
                 }
-
-                openNodes[depth].push(fullPath);
-            }
-        });
-
-        // Store the open nodes by their full path and persist to storage
-        PreferencesManager.setViewState("project.treeState", openNodes, context);
+                var nodeList = openNodes[depth];
+                if (!nodeList) {
+                    nodeList = openNodes[depth] = [];
+                }
+                
+                var directoryPath = parent + node.name + "/";
+                nodeList.push(directoryPath);
+                console.log(node, node.children);
+                addNodesAtDepth(node.children, directoryPath, depth + 1);
+            });
+        }
+        
+        addNodesAtDepth(this.treeData, this.projectRoot.fullPath, 0);
+        return openNodes;
     };
     
     /**
