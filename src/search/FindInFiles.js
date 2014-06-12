@@ -28,7 +28,7 @@
  * Adds a "find in files" command to allow the user to find all occurrences of a string in all files in
  * the project.
  * 
- * The keyboard shortcut is Cmd(Ctrl)-Shift-F.
+ * The keyboard shortcut is Cmd/Ctrl-Shift-F.
  *
  * FUTURE:
  *  - Proper UI for both dialog and results
@@ -192,6 +192,12 @@ define(function (require, exports, module) {
         if (!query) {
             return null;
         }
+        
+        function showErrorMessage(text) {
+            $(".modal-bar .error")
+                .show()
+                .text(text);
+        }
 
         var caseSensitive = $("#find-case-sensitive").is(".active");
         
@@ -200,12 +206,17 @@ define(function (require, exports, module) {
             try {
                 return new RegExp(query, caseSensitive ? "g" : "gi");
             } catch (e) {
-                $(".modal-bar .error")
-                    .show()
-                    .text(e.message);
+                showErrorMessage(e.message);
                 return null;
             }
         
+        } else if ($("#find-whole-word").is(".active")) {
+            try {
+                return new RegExp("\\b" + StringUtils.regexEscape(query) + "\\b", caseSensitive ? "g" : "gi");
+            } catch (e) {
+                showErrorMessage("Something went wrong: " + e.message);
+                return "";
+            }
         } else {
             // Query is a plain string. Turn it into a regexp
             return new RegExp(StringUtils.regexEscape(query), caseSensitive ? "g" : "gi");
@@ -1044,7 +1055,7 @@ define(function (require, exports, module) {
             .bind("input", handleQueryChange)
             .focus();
         
-        this.modalBar.getRoot().on("click", "#find-case-sensitive, #find-regexp", function (e) {
+        this.modalBar.getRoot().on("click", "#find-case-sensitive, #find-regexp, #find-whole-word", function (e) {
             $(e.currentTarget).toggleClass('active');
             FindReplace._updatePrefsFromSearchBar();
             

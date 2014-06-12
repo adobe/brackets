@@ -132,29 +132,47 @@ define(function (require, exports, module) {
     function _updateSearchBarFromPrefs() {
         $("#find-case-sensitive").toggleClass("active", PreferencesManager.getViewState("caseSensitive"));
         $("#find-regexp").toggleClass("active",         PreferencesManager.getViewState("regexp"));
+        $("#find-whole-word").toggleClass("active",     PreferencesManager.getViewState("wholeWord"));
     }
     function _updatePrefsFromSearchBar() {
         PreferencesManager.setViewState("caseSensitive", $("#find-case-sensitive").is(".active"));
         PreferencesManager.setViewState("regexp",        $("#find-regexp").is(".active"));
+        PreferencesManager.setViewState("wholeWord",     $("#find-whole-word").is(".active"));
     }
     
     function parseQuery(query) {
         $(".modal-bar .message").show();
         $(".modal-bar .error").hide();
         
+        if (!query) {
+            return "";
+        }
+        
+        function showErrorMessage(text) {
+            $(".modal-bar .message").hide();
+            $(".modal-bar .error")
+                .show()
+                .text(text);
+        }
+        
+        var caseSensitive = $("#find-case-sensitive").is(".active");
+
         // Is it a (non-blank) regex?
-        if (query && $("#find-regexp").is(".active")) {
+        if ($("#find-regexp").is(".active")) {
             try {
-                var caseSensitive = $("#find-case-sensitive").is(".active");
                 return new RegExp(query, caseSensitive ? "" : "i");
             } catch (e) {
-                $(".modal-bar .message").hide();
-                $(".modal-bar .error")
-                    .show()
-                    .text(e.message);
+                showErrorMessage(e.message);
                 return "";
             }
-        
+
+        } else if ($("#find-whole-word").is(".active")) {
+            try {
+                return new RegExp("\\b" + StringUtils.regexEscape(query) + "\\b", caseSensitive ? "" : "i");
+            } catch (e) {
+                showErrorMessage("Something went wrong: " + e.message);
+                return "";
+            }
         } else {
             return query;
         }
@@ -647,7 +665,7 @@ define(function (require, exports, module) {
             .on("click", "#find-prev", function (e) {
                 findNext(editor, true);
             })
-            .on("click", "#find-case-sensitive, #find-regexp", function (e) {
+            .on("click", "#find-case-sensitive, #find-regexp, #find-whole-word", function (e) {
                 $(e.currentTarget).toggleClass('active');
                 _updatePrefsFromSearchBar();
                 
