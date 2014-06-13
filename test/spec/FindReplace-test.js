@@ -1538,7 +1538,7 @@ define(function (require, exports, module) {
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files"),
             CommandManager,
-            DocumentManager,
+            MainViewManager,
             EditorManager,
             FileFilters,
             FileSystem,
@@ -1553,7 +1553,7 @@ define(function (require, exports, module) {
 
                 // Load module instances from brackets.test
                 CommandManager  = testWindow.brackets.test.CommandManager;
-                DocumentManager = testWindow.brackets.test.DocumentManager;
+                MainViewManager = testWindow.brackets.test.MainViewManager;
                 EditorManager   = testWindow.brackets.test.EditorManager;
                 FileFilters     = testWindow.brackets.test.FileFilters;
                 FileSystem      = testWindow.brackets.test.FileSystem;
@@ -1567,7 +1567,7 @@ define(function (require, exports, module) {
 
         afterLast(function () {
             CommandManager  = null;
-            DocumentManager = null;
+            MainViewManager = null;
             EditorManager   = null;
             FileSystem      = null;
             FindInFiles     = null;
@@ -1853,7 +1853,7 @@ define(function (require, exports, module) {
 
             runs(function () {
                 // Verify document is not yet in working set
-                expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
+                expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, filePath)).toBe(-1);
 
                 // Get list in panel
                 var $panelResults = $("#search-results table.bottom-panel-table tr");
@@ -1865,7 +1865,7 @@ define(function (require, exports, module) {
                 $firstHit.dblclick();
 
                 // Verify document is now in working set
-                expect(DocumentManager.findInWorkingSet(filePath)).not.toBe(-1);
+                expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, filePath)).not.toBe(-1);
                 CommandManager.execute(Commands.FILE_CLOSE_ALL);
             });
         });
@@ -1883,7 +1883,7 @@ define(function (require, exports, module) {
 
             runs(function () {
                 // Verify document is not yet in working set
-                expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
+                expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, filePath)).toBe(-1);
 
                 // Get list in panel
                 $panelResults = $("#search-results table.bottom-panel-table tr");

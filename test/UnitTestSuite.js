@@ -58,6 +58,7 @@ define(function (require, exports, module) {
     require("spec/LanguageManager-test");
     require("spec/LiveDevelopment-test");
     require("spec/LowLevelFileIO-test");
+    require("spec/MainViewManager-test");
     require("spec/Menu-test");
     require("spec/MultiRangeInlineEditor-test");
     require("spec/NativeMenu-test");
@@ -75,5 +76,6 @@ define(function (require, exports, module) {
     require("spec/ValidationUtils-test");
     //require("spec/ViewCommandHandlers-test");
     require("spec/ViewUtils-test");
-    require("spec/WorkingSetView-test");
+    require("spec/PaneViewListView-test");
+    require("spec/PaneViewListSort-test");
 });

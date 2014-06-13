@@ -54,6 +54,7 @@ define(function (require, exports, module) {
         ProjectManager        = require("project/ProjectManager"),
         DocumentModule        = require("document/Document"),
         DocumentManager       = require("document/DocumentManager"),
+        MainViewManager       = require("view/MainViewManager"),
         EditorManager         = require("editor/EditorManager"),
         FileSystem            = require("filesystem/FileSystem"),
         FileUtils             = require("file/FileUtils"),
@@ -62,7 +63,7 @@ define(function (require, exports, module) {
         FindReplace           = require("search/FindReplace"),
         PerfUtils             = require("utils/PerfUtils"),
         InMemoryFile          = require("document/InMemoryFile"),
-        PanelManager          = require("view/PanelManager"),
+        WorkspaceManager      = require("view/WorkspaceManager"),
         KeyEvent              = require("utils/KeyEvent"),
         AppInit               = require("utils/AppInit"),
         StatusBar             = require("widgets/StatusBar"),
@@ -810,7 +811,7 @@ define(function (require, exports, module) {
             // Still need to make sure it's within project or working set
             // In getCandidateFiles(), this is covered by the baseline getAllFiles() itself
             if (file.fullPath.indexOf(ProjectManager.getProjectRoot().fullPath) !== 0) {
-                var inWorkingSet = DocumentManager.getWorkingSet().some(function (wsFile) {
+                var inWorkingSet = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).some(function (wsFile) {
                     return wsFile.fullPath === file.fullPath;
                 });
                 if (!inWorkingSet) {
@@ -1259,7 +1260,7 @@ define(function (require, exports, module) {
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var panelHtml = Mustache.render(searchPanelTemplate, Strings);
-        searchResultsPanel = PanelManager.createBottomPanel("find-in-files.results", $(panelHtml), 100);
+        searchResultsPanel = WorkspaceManager.createBottomPanel("find-in-files.results", $(panelHtml), 100);
         
         $searchResults = $("#search-results");
         $searchSummary = $searchResults.find(".title");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -26,7 +26,7 @@
 /*global define, $, window, brackets  */
 
 /**
- * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
+ * PaneViewListView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
  * The UI allows the user to see what files are open/dirty and allows them to close files and specify the current editor.
  *
  */
@@ -37,6 +37,7 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var DocumentManager       = require("document/DocumentManager"),
+        MainViewManager       = require("view/MainViewManager"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
         Menus                 = require("command/Menus"),
@@ -61,7 +62,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Internal flag to suppress redrawing the Working Set after a workingSetSort event.
+     * Internal flag to suppress redrawing the Working Set after a paneViewListSort event.
      * @type {boolean}
      */
     var _suppressSortRedraw = false;
@@ -95,7 +96,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _scrollSelectedDocIntoView() {
-        if (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW) {
+        if (FileViewController.getFileSelectionFocus() !== FileViewController.PANE_VIEW_LIST_VIEW) {
             return;
         }
 
@@ -169,6 +170,10 @@ define(function (require, exports, module) {
         });
     }
 
+    function _getMyPaneID() {
+        return MainViewManager.FOCUSED_PANE;
+    }
+    
     /**
      * @private
      * Looks for files with the same name in the working set
@@ -176,7 +181,7 @@ define(function (require, exports, module) {
      */
     function _checkForDuplicatesInWorkingTree() {
         var map = {},
-            fileList = DocumentManager.getWorkingSet();
+            fileList = MainViewManager.getPaneViewList(_getMyPaneID());
 
         // We need to always clear current directories as files could be removed from working tree.
         $openFilesContainer.find("ul > li > a > span.directory").remove();
@@ -205,7 +210,9 @@ define(function (require, exports, module) {
      * Shows/Hides open files list based on working set content.
      */
     function _redraw() {
-        if (DocumentManager.getWorkingSet().length === 0) {
+        var fileList = MainViewManager.getPaneViewList(_getMyPaneID());
+        
+        if (!fileList || fileList.length === 0) {
             $openFilesContainer.hide();
             $workingSetHeader.hide();
         } else {
@@ -230,7 +237,7 @@ define(function (require, exports, module) {
             selected        = $listItem.hasClass("selected"),
             prevSelected    = $prevListItem.hasClass("selected"),
             nextSelected    = $nextListItem.hasClass("selected"),
-            index           = DocumentManager.findInWorkingSet($listItem.data(_FILE_KEY).fullPath),
+            index           = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, $listItem.data(_FILE_KEY).fullPath),
             height          = $listItem.height(),
             startPageY      = event.pageY,
             listItemTop     = startPageY - $listItem.offset().top,
@@ -258,13 +265,13 @@ define(function (require, exports, module) {
                         $prevListItem.insertAfter($listItem);
                         startPageY -= height;
                         top = top + height;
-                        DocumentManager.swapWorkingSetIndexes(index, --index);
+                        MainViewManager.swapPaneViewListIndexes(MainViewManager.FOCUSED_PANE, index, --index);
                     // If moving down, place the next item before the moving item
                     } else {
                         $nextListItem.insertBefore($listItem);
                         startPageY += height;
                         top = top - height;
-                        DocumentManager.swapWorkingSetIndexes(index, ++index);
+                        MainViewManager.swapPaneViewListIndexes(MainViewManager.FOCUSED_PANE, index, ++index);
                     }
                     
                     // Update the selection when the previows or next element were selected
@@ -363,7 +370,7 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
                 } else {
                     // Normal right and left click - select the item
-                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
+                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.PANE_VIEW_LIST_VIEW);
                 }
             
             } else {
@@ -511,9 +518,11 @@ define(function (require, exports, module) {
      * @private
      */
     function _rebuildWorkingSet(forceRedraw) {
-        $openFilesContainer.find("ul").empty();
+        var fileList = MainViewManager.getPaneViewList(_getMyPaneID());
 
-        DocumentManager.getWorkingSet().forEach(function (file) {
+        $openFilesContainer.find("ul").empty();
+        
+        fileList.forEach(function (file) {
             _createNewListItem(file);
         });
 
@@ -527,7 +536,7 @@ define(function (require, exports, module) {
      */
     function _updateListSelection() {
         var doc;
-        if (FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW) {
+        if (FileViewController.getFileSelectionFocus() === FileViewController.PANE_VIEW_LIST_VIEW) {
             doc = DocumentManager.getCurrentDocument();
         } else {
             doc = null;
@@ -548,7 +557,9 @@ define(function (require, exports, module) {
      * @private
      */
     function _handleFileAdded(file, index) {
-        if (index === DocumentManager.getWorkingSet().length - 1) {
+        var fileList = MainViewManager.getPaneViewList(_getMyPaneID());
+        
+        if (fileList && index === fileList.length - 1) {
             // Simple case: append item to list
             _createNewListItem(file);
             _redraw();
@@ -606,7 +617,7 @@ define(function (require, exports, module) {
     /**
      * @private
      */
-    function _handleWorkingSetSort() {
+    function _handlePaneViewListSort() {
         if (!_suppressSortRedraw) {
             _rebuildWorkingSet(true);
         }
@@ -648,24 +659,24 @@ define(function (require, exports, module) {
         $openFilesList = $openFilesContainer.find("ul");
         
         // Register listeners
-        $(DocumentManager).on("workingSetAdd", function (event, addedFile) {
+        $(MainViewManager).on("paneViewListAdd", function (event, addedFile) {
             _handleFileAdded(addedFile);
         });
 
-        $(DocumentManager).on("workingSetAddList", function (event, addedFiles) {
+        $(MainViewManager).on("paneViewListAddList", function (event, addedFiles) {
             _handleFileListAdded(addedFiles);
         });
 
-        $(DocumentManager).on("workingSetRemove", function (event, removedFile, suppressRedraw) {
+        $(MainViewManager).on("paneViewListRemove", function (event, removedFile, suppressRedraw) {
             _handleFileRemoved(removedFile, suppressRedraw);
         });
 
-        $(DocumentManager).on("workingSetRemoveList", function (event, removedFiles) {
+        $(MainViewManager).on("paneViewListRemoveList", function (event, removedFiles) {
             _handleRemoveList(removedFiles);
         });
         
-        $(DocumentManager).on("workingSetSort", function (event) {
-            _handleWorkingSetSort();
+        $(MainViewManager).on("paneViewListSort", function (event) {
+            _handlePaneViewListSort();
         });
 
         $(DocumentManager).on("dirtyFlagChange", function (event, doc) {

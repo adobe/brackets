@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         Commands,            // loaded from brackets.test
         EditorManager,       // loaded from brackets.test
         DocumentManager,     // loaded from brackets.test
+        MainViewManager,     // loaded from brackets.test
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
     
     
@@ -227,6 +228,7 @@ define(function (require, exports, module) {
                 Commands            = testWindow.brackets.test.Commands;
                 EditorManager       = testWindow.brackets.test.EditorManager;
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
+                MainViewManager     = testWindow.brackets.test.MainViewManager;
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
@@ -238,6 +240,7 @@ define(function (require, exports, module) {
             Commands        = null;
             EditorManager   = null;
             DocumentManager = null;
+            MainViewManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
 
@@ -407,7 +410,7 @@ define(function (require, exports, module) {
                     cssMasterEditor;
                 
                 runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, {fullPath: HTML_FILE});
                     waitsForDone(promise, "Open into working set");
                 });
                 runs(function () {
@@ -416,7 +419,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "Open inline editor");
                 });
                 runs(function () {
-                    expect(DocumentManager.findInWorkingSet(CSS_FILE)).toBe(-1);
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.FOCUSED_PANE, CSS_FILE)).toBe(-1);
                     expect(DocumentManager.getOpenDocumentForPath(CSS_FILE)).toBeTruthy();
                     
                     // Force creation of master editor for CSS file

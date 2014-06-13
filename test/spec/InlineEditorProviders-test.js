@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         EditorManager,      // loaded from brackets.test
         FileSyncManager,    // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
+        MainViewManager,    // loaded from brackets.test
         FileViewController, // loaded from brackets.test
         InlineWidget     = require("editor/InlineWidget").InlineWidget,
         Dialogs          = require("widgets/Dialogs"),
@@ -81,18 +82,18 @@ define(function (require, exports, module) {
          * @param {string} openFile  Project relative file path to open in a main editor.
          * @param {number} openOffset  The offset index location within openFile to open an inline editor.
          * @param {boolean=} expectInline  Use false to verify that an inline editor should not be opened. Omit otherwise.
-         * @param {Array<{string}>=} workingSet  Optional array of files to open in working set
+         * @param {Array<{string}>=} documentList  Optional array of files to open in working set
          */
-        function initInlineTest(openFile, openOffset, expectInline, workingSet) {
+        function initInlineTest(openFile, openOffset, expectInline, documentList) {
             var editor;
             
-            workingSet = workingSet || [];
+            documentList = documentList || [];
             
             expectInline = (expectInline !== undefined) ? expectInline : true;
             
             runs(function () {
-                workingSet.push(openFile);
-                waitsForDone(SpecRunnerUtils.openProjectFiles(workingSet), "FILE_OPEN timeout", 1000);
+                documentList.push(openFile);
+                waitsForDone(SpecRunnerUtils.openProjectFiles(documentList), "FILE_OPEN timeout", 1000);
             });
             
             runs(function () {
@@ -208,6 +209,7 @@ define(function (require, exports, module) {
                     EditorManager       = testWindow.brackets.test.EditorManager;
                     FileSyncManager     = testWindow.brackets.test.FileSyncManager;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
+                    MainViewManager     = testWindow.brackets.test.MainViewManager;
                     FileViewController  = testWindow.brackets.test.FileViewController;
                 });
             });
@@ -218,6 +220,7 @@ define(function (require, exports, module) {
                 EditorManager       = null;
                 FileSyncManager     = null;
                 DocumentManager     = null;
+                MainViewManager     = null;
                 FileViewController  = null;
                 SpecRunnerUtils.closeTestWindow();
 
@@ -1009,7 +1012,7 @@ define(function (require, exports, module) {
                     initInlineTest("test1.html", 0);
                     
                     runs(function () {
-                        var i = DocumentManager.findInWorkingSet(infos["test1.css"].fileEntry.fullPath);
+                        var i = MainViewManager.findInPaneViewList(MainViewManager.FOCUSED_PANE, infos["test1.css"].fileEntry.fullPath);
                         expect(i).toEqual(-1);
                     });
                 });
@@ -1032,7 +1035,7 @@ define(function (require, exports, module) {
                             inlineEditor.getCursorPos()
                         );
                         
-                        var i = DocumentManager.findInWorkingSet(infos["test1.css"].fileEntry.fullPath);
+                        var i = MainViewManager.findInPaneViewList(MainViewManager.FOCUSED_PANE, infos["test1.css"].fileEntry.fullPath);
                         expect(i).toEqual(1);
 
                         inlineEditor = null;

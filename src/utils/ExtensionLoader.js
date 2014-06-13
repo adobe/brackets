@@ -55,7 +55,7 @@ define(function (require, exports, module) {
     
     /**
      * Stores require.js contexts of extensions
-     * @type {Object<string, Object>}
+     * @type {Object.<string, Object>}
      */
     var contexts    = {};
 

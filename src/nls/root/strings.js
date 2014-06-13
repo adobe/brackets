@@ -210,7 +210,7 @@ define({
      */
     "PROJECT_LOADING"   : "Loading\u2026",
     "UNTITLED"          : "Untitled",
-    "WORKING_FILES"     : "Working Files",
+    "OPEN_PANES"        : "Working Files",
 
     /**
      * Keyboard modifier names
@@ -263,7 +263,7 @@ define({
     "CMD_FILE_NEW"                        : "New File",
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Add To Working Set",
+    "CMD_ADD_TO_PANE_VIEW_LIST"           : "Add To Working Set",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
     "CMD_FILE_CLOSE"                      : "Close",
@@ -339,10 +339,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
     "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Files on Save",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sort by Added",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatic Sort",
+    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"    : "Sort by Added",
+    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"     : "Sort by Name",
+    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"     : "Sort by Type",
+    "CMD_TOGGLE_AUTO_SORT"                : "Automatic Sort",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigate",
