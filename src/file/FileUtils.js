@@ -99,10 +99,12 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-    /** @const */
-    var LINE_ENDINGS_CRLF = "CRLF";
-    /** @const */
-    var LINE_ENDINGS_LF = "LF";
+    /**
+     * Line endings
+     * @enum {string}
+     */
+    var LINE_ENDINGS_CRLF = "CRLF",
+        LINE_ENDINGS_LF   = "LF";
     
     /**
      * Returns the standard line endings for the current platform
@@ -366,7 +368,10 @@ define(function (require, exports, module) {
         return filename.substr(basePath.length);
     }
 
-    /** @const - hard-coded for now, but may want to make these preferences */
+    /**
+     * File extensions - hard-coded for now, but may want to make these preferences
+     * @const {Array.<string>}
+     */
     var _staticHtmlFileExts = ["htm", "html"],
         _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
 

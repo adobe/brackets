@@ -36,30 +36,30 @@
  * as the Document's internal model of the text state - and the multitude of "slave" secondary Editors
  * which, via Document, sync their changes to and from that master.
  *
- * For now, direct access to the underlying CodeMirror object is still possible via _codeMirror --
+ * For now, direct access to the underlying CodeMirror object is still possible via `_codeMirror` --
  * but this is considered deprecated and may go away.
  *
  * The Editor object dispatches the following events:
  *    - keyEvent -- When any key event happens in the editor (whether it changes the text or not).
- *          Event handlers are passed ({Editor}, {KeyboardEvent}). The 2nd arg is the raw DOM event.
- *          Note: most listeners will only want to respond when event.type === "keypress".
+ *      Event handlers are passed `({Editor}, {KeyboardEvent})`. The 2nd arg is the raw DOM event.
+ *      Note: most listeners will only want to respond when `event.type === "keypress"`.
  *    - cursorActivity -- When the user moves the cursor or changes the selection, or an edit occurs.
- *          Note: do not listen to this in order to be generally informed of edits--listen to the
- *          "change" event on Document instead.
+ *      Note: do not listen to this in order to be generally informed of edits--listen to the
+ *      "change" event on Document instead.
  *    - scroll -- When the editor is scrolled, either by user action or programmatically.
  *    - lostContent -- When the backing Document changes in such a way that this Editor is no longer
- *          able to display accurate text. This occurs if the Document's file is deleted, or in certain
- *          Document->editor syncing edge cases that we do not yet support (the latter cause will
- *          eventually go away).
+ *      able to display accurate text. This occurs if the Document's file is deleted, or in certain
+ *      Document->editor syncing edge cases that we do not yet support (the latter cause will
+ *      eventually go away).
  *    - optionChange -- Triggered when an option for the editor is changed. The 2nd arg to the listener
- *          is a string containing the editor option that is changing. The 3rd arg, which can be any
- *          data type, is the new value for the editor option.
+ *      is a string containing the editor option that is changing. The 3rd arg, which can be any
+ *      data type, is the new value for the editor option.
  *
  * The Editor also dispatches "change" events internally, but you should listen for those on
  * Documents, not Editors.
  *
  * These are jQuery events, so to listen for them you do something like this:
- *    $(editorInstance).on("eventname", handler);
+ *     `$(editorInstance).on("eventname", handler);`
  */
 define(function (require, exports, module) {
     "use strict";
@@ -94,7 +94,10 @@ define(function (require, exports, module) {
     
     var cmOptions         = {};
     
-    /** @type {number} Constants */
+    /**
+     * Constants
+     * @type {number}
+     */
     var MIN_SPACE_UNITS         =  0,
         MIN_TAB_SIZE            =  1,
         DEFAULT_SPACE_UNITS     =  4,
@@ -136,10 +139,16 @@ define(function (require, exports, module) {
 
     /** Editor preferences */
     
-    /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
+    /**
+     * Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors
+     * @type {boolean}
+     */
     var _duringFocus = false;
 
-    /** @type {number}  Constant: ignore upper boundary when centering text */
+    /**
+     * Constant: ignore upper boundary when centering text
+     * @type {number}
+     */
     var BOUNDARY_CHECK_NORMAL   = 0,
         BOUNDARY_IGNORE_TOP     = 1;
 
@@ -172,14 +181,14 @@ define(function (require, exports, module) {
     var _instances = [];
     
     /**
-     * @constructor
-     *
      * Creates a new CodeMirror editor instance bound to the given Document. The Document need not have
      * a "master" Editor realized yet, even if makeMasterEditor is false; in that case, the first time
      * an edit occurs we will automatically ask EditorManager to create a "master" editor to render the
      * Document modifiable.
      *
      * ALWAYS call destroy() when you are done with an Editor - otherwise it will leak a Document ref.
+     *
+     * @constructor
      *
      * @param {!Document} document
      * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the (secret) "master"
@@ -631,7 +640,9 @@ define(function (require, exports, module) {
         });
     };
     
-    /** @return {boolean} True if editor is not showing the entire text of the document (i.e. an inline editor) */
+    /**
+     * @return {boolean} True if editor is not showing the entire text of the document (i.e. an inline editor)
+     */
     Editor.prototype.isTextSubset = function () {
         return Boolean(this._visibleRange);
     };
@@ -1264,7 +1275,7 @@ define(function (require, exports, module) {
     
     /**
      * Gets the total number of lines in the the document (includes lines not visible in the viewport)
-     * @returns {!number}
+     * @return {!number}
      */
     Editor.prototype.lineCount = function () {
         return this._codeMirror.lineCount();
@@ -1287,7 +1298,7 @@ define(function (require, exports, module) {
     
     /**
      * Gets the number of the first visible line in the editor.
-     * @returns {number} The 0-based index of the first visible line.
+     * @return {number} The 0-based index of the first visible line.
      */
     Editor.prototype.getFirstVisibleLine = function () {
         return (this._visibleRange ? this._visibleRange.startLine : 0);
@@ -1295,7 +1306,7 @@ define(function (require, exports, module) {
     
     /**
      * Gets the number of the last visible line in the editor.
-     * @returns {number} The 0-based index of the last visible line.
+     * @return {number} The 0-based index of the last visible line.
      */
     Editor.prototype.getLastVisibleLine = function () {
         return (this._visibleRange ? this._visibleRange.endLine : this.lineCount() - 1);
@@ -1326,7 +1337,7 @@ define(function (require, exports, module) {
 
     /**
      * Gets the total height of the document in pixels (not the viewport)
-     * @returns {!number} height in pixels
+     * @return {!number} height in pixels
      */
     Editor.prototype.totalHeight = function () {
         return this.getScrollerElement().scrollHeight;
@@ -1334,7 +1345,7 @@ define(function (require, exports, module) {
 
     /**
      * Gets the scroller element from the editor.
-     * @returns {!HTMLDivElement} scroller
+     * @return {!HTMLDivElement} scroller
      */
     Editor.prototype.getScrollerElement = function () {
         return this._codeMirror.getScrollerElement();
@@ -1342,7 +1353,7 @@ define(function (require, exports, module) {
     
     /**
      * Gets the root DOM node of the editor.
-     * @returns {!HTMLDivElement} The editor's root DOM node.
+     * @return {!HTMLDivElement} The editor's root DOM node.
      */
     Editor.prototype.getRootElement = function () {
         return this._codeMirror.getWrapperElement();
@@ -1352,7 +1363,7 @@ define(function (require, exports, module) {
      * Gets the lineSpace element within the editor (the container around the individual lines of code).
      * FUTURE: This is fairly CodeMirror-specific. Logic that depends on this may break if we switch
      * editors.
-     * @returns {!HTMLDivElement} The editor's lineSpace element.
+     * @return {!HTMLDivElement} The editor's lineSpace element.
      */
     Editor.prototype._getLineSpaceElement = function () {
         return $(".CodeMirror-lines", this.getScrollerElement()).children().get(0);
@@ -1360,7 +1371,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the current scroll position of the editor.
-     * @returns {{x:number, y:number}} The x,y scroll position in pixels
+     * @return {{x:number, y:number}} The x,y scroll position in pixels
      */
     Editor.prototype.getScrollPos = function () {
         var scrollInfo = this._codeMirror.getScrollInfo();
@@ -1378,7 +1389,7 @@ define(function (require, exports, module) {
     
     /*
      * Returns the current text height of the editor.
-     * @returns {number} Height of the text in pixels
+     * @return {number} Height of the text in pixels
      */
     Editor.prototype.getTextHeight = function () {
         return this._codeMirror.defaultTextHeight();
@@ -1689,7 +1700,7 @@ define(function (require, exports, module) {
                 $(self).on("scroll.msgbox", _removeMessagePopover);
 
                 // Animate closed -- which includes delay to show message
-                AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose")
+                AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose", 6000)
                     .done(_removeMessagePopover);
             }
         });

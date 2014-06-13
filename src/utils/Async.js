@@ -285,23 +285,28 @@ define(function (require, exports, module) {
     var ERROR_TIMEOUT = {};
     
     /**
-     * Adds timeout-driven failure to a Promise: returns a new Promise that is resolved/rejected when
-     * the given original Promise is resolved/rejected, OR is rejected after the given delay - whichever
-     * happens first.
+     * Adds timeout-driven termination to a Promise: returns a new Promise that is resolved/rejected when
+     * the given original Promise is resolved/rejected, OR is resolved/rejected after the given delay -
+     * whichever happens first.
      * 
      * If the original Promise is resolved/rejected first, done()/fail() handlers receive arguments
-     * piped from the original Promise. If the timeout occurs first instead, fail() is called with the
-     * token Async.ERROR_TIMEOUT.
+     * piped from the original Promise. If the timeout occurs first instead, then resolve() or
+     * fail() (with Async.ERROR_TIMEOUT) is called based on value of resolveTimeout.
      * 
      * @param {$.Promise} promise
      * @param {number} timeout
+     * @param {boolean=} resolveTimeout If true, then resolve deferred on timeout, otherwise reject. Default is false.
      * @return {$.Promise}
      */
-    function withTimeout(promise, timeout) {
+    function withTimeout(promise, timeout, resolveTimeout) {
         var wrapper = new $.Deferred();
         
         var timer = window.setTimeout(function () {
-            wrapper.reject(ERROR_TIMEOUT);
+            if (resolveTimeout) {
+                wrapper.resolve();
+            } else {
+                wrapper.reject(ERROR_TIMEOUT);
+            }
         }, timeout);
         promise.always(function () {
             window.clearTimeout(timer);
@@ -464,11 +469,11 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @constructor
      * Creates a queue of async operations that will be executed sequentially. Operations can be added to the
      * queue at any time. If the queue is empty and nothing is currently executing when an operation is added, 
      * it will execute immediately. Otherwise, it will execute when the last operation currently in the queue 
      * has finished.
+     * @constructor
      */
     function PromiseQueue() {
         this._queue = [];

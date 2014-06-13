@@ -43,13 +43,19 @@ define(function (require, exports, module) {
         PerfUtils       = require("utils/PerfUtils"),
         FindUtils       = require("search/FindUtils");
     
-    /** @const @type {!Object} Token used to indicate a specific reason for zero search results */
+    /**
+     * Token used to indicate a specific reason for zero search results
+     * @const @type {!Object}
+     */
     var ZERO_FILES_TO_SEARCH = {};
     
-    /** @type {SearchModel} The search query and results model. */
+    /**
+     * The search query and results model.
+     * @type {SearchModel} 
+     */
     var searchModel = new SearchModel();
     
-    /** Forward declarations */
+    /* Forward declarations */
     var _documentChangeHandler, _fileSystemChangeHandler, _fileNameChangeHandler;
     
     /** Remove the listeners that were tracking potential search result changes */

@@ -54,19 +54,34 @@ define(function (require, exports, module) {
         _                   = require("thirdparty/lodash"),
         CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror");
     
-    /** @const Maximum file size to search within (in chars) */
+    /**
+     * Maximum file size to search within (in chars)
+     * @const {number}
+     */
     var FIND_MAX_FILE_SIZE  = 500000;
 
-    /** @const If the number of matches exceeds this limit, inline text highlighting and scroll-track tickmarks are disabled */
+    /**
+     * If the number of matches exceeds this limit, inline text highlighting and scroll-track tickmarks are disabled
+     * @const {number}
+     */
     var FIND_HIGHLIGHT_MAX  = 2000;
 
-    /** @const Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced */
+    /**
+     * Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced
+     * @const {number}
+     */
     var REPLACE_ALL_MAX     = 10000;
     
-    /** @type {?Document} Instance of the currently opened document when replaceAllPanel is visible */
+    /**
+     * Instance of the currently opened document when replaceAllPanel is visible
+     * @type {?Document}
+     */
     var currentDocument = null;
 
-    /** @type {?FindBar} Currently open Find or Find/Replace bar, if any */
+    /** 
+     * Currently open Find or Find/Replace bar, if any
+     * @type {?FindBar} 
+     */
     var findBar;
     
     function SearchState() {

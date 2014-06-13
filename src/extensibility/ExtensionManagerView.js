@@ -39,9 +39,9 @@ define(function (require, exports, module) {
         itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
     
     /**
-     * @constructor
      * Creates a view enabling the user to install and manage extensions. Must be initialized
      * with initialize(). When the view is closed, dispose() must be called.
+     * @constructor
      */
     function ExtensionManagerView() {
     }

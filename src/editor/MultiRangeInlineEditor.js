@@ -35,7 +35,6 @@
  *
  * This module does not dispatch any events.
  */
-
 define(function (require, exports, module) {
     "use strict";
     
@@ -64,9 +63,9 @@ define(function (require, exports, module) {
     
     
     /**
-     * @constructor
      * Stores one search result: its source file, line range, etc. plus the DOM node representing it
      * in the results list.
+     * @constructor
      */
     function SearchResultItem(rangeResult) {
         this.name = rangeResult.name;
@@ -118,7 +117,10 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype.$selectedMarker = null;
     MultiRangeInlineEditor.prototype.$rangeList = null;
     
-    /** @type {Array.<SearchResultItem>} */
+    /**
+     * List of search results
+     * @type {Array.<SearchResultItem>}
+     */
     MultiRangeInlineEditor.prototype._ranges = null;
     MultiRangeInlineEditor.prototype._selectedRangeIndex = null;
     MultiRangeInlineEditor.prototype._messageCB = null;
@@ -642,7 +644,7 @@ define(function (require, exports, module) {
 
     /**
      * Returns the currently focused MultiRangeInlineEditor.
-     * @returns {MultiRangeInlineEditor}
+     * @return {MultiRangeInlineEditor}
      */
     function getFocusedMultiRangeInlineEditor() {
         var focusedWidget = EditorManager.getFocusedInlineWidget();

@@ -52,7 +52,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @deprecated
+     * @deprecated Use lodash `escape()` instead.
      */
     function htmlEscape(str) {
         console.warn("StringUtils.htmlEscape is deprecated. Use _.escape instead.");

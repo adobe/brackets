@@ -3,13 +3,14 @@
         "app_title": "Brackets",
         "app_name_about": "Brackets",
         "about_icon": "styles/images/brackets_icon.svg",
-        "update_info_url": "http://brackets.io/updates/stable/",
+        "update_info_url": "http://s3.amazonaws.com/files.brackets.io/updates/stable/",
         "how_to_use_url": "https://github.com/adobe/brackets/wiki/How-to-Use-Brackets",
         "support_url": "https://github.com/adobe/brackets/wiki/Troubleshooting",
         "suggest_feature_url": "https://github.com/adobe/brackets/wiki/Suggest-a-Feature",
         "get_involved_url": "https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md",
         "glob_help_url": "https://github.com/adobe/brackets/wiki/Using-File-Filters",
         "release_notes_url": "https://github.com/adobe/brackets/wiki/Release-Notes",
+        "homepage_url": "http://brackets.io",
         "twitter_url": "https://twitter.com/brackets",
         "troubleshoot_url": "https://github.com/adobe/brackets/wiki/Troubleshooting#wiki-livedev",
         "twitter_name": "@brackets",
@@ -17,11 +18,12 @@
         "extension_listing_url": "",
         "extension_registry": "https://s3.amazonaws.com/extend.brackets/registry.json",
         "extension_url": "https://s3.amazonaws.com/extend.brackets/{0}/{0}-{1}.zip",
-        "linting.enabled_by_default": true
+        "linting.enabled_by_default": true,
+        "build_timestamp": ""
     },
     "name": "Brackets",
-    "version": "0.40.0-0",
-    "apiVersion": "0.40.0",
+    "version": "0.41.0-0",
+    "apiVersion": "0.41.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"

@@ -64,7 +64,7 @@ define(function (require, exports, module) {
             it("should show a notification if an update is available", function () {
                 var updateInfo = {
                     _buildNumber: 72,
-                    _lastNotifiedBuildNumber: 0,
+                    lastNotifiedBuildNumber: 0,
                     _versionInfoURL: updateInfoURL
                 };
 
@@ -81,7 +81,7 @@ define(function (require, exports, module) {
             it("should show update information for all available updates", function () {
                 var updateInfo = {
                     _buildNumber: 10,
-                    _lastNotifiedBuildNumber: 0,
+                    lastNotifiedBuildNumber: 0,
                     _versionInfoURL: updateInfoURL
                 };
 
@@ -100,7 +100,7 @@ define(function (require, exports, module) {
             it("should not show dialog if user has already been notified", function () {
                 var updateInfo = {
                     _buildNumber: 10,
-                    _lastNotifiedBuildNumber: 93,
+                    lastNotifiedBuildNumber: 93,
                     _versionInfoURL: updateInfoURL
                 };
 
@@ -118,7 +118,7 @@ define(function (require, exports, module) {
             it("should not show dialog if app is up to date", function () {
                 var updateInfo = {
                     _buildNumber: 93,
-                    _lastNotifiedBuildNumber: 0,
+                    lastNotifiedBuildNumber: 0,
                     _versionInfoURL: updateInfoURL
                 };
 
@@ -136,7 +136,7 @@ define(function (require, exports, module) {
             it("should show an 'up to date' alert if no updates are available and the user manually checks for updates", function () {
                 var updateInfo = {
                     _buildNumber: 93,
-                    _lastNotifiedBuildNumber: 93,
+                    lastNotifiedBuildNumber: 93,
                     _versionInfoURL: updateInfoURL
                 };
 
@@ -155,7 +155,7 @@ define(function (require, exports, module) {
             it("should sanitize text returned from server", function () {
                 var updateInfo = {
                     _buildNumber: 72,
-                    _lastNotifiedBuildNumber: 0,
+                    lastNotifiedBuildNumber: 0,
                     _versionInfoURL: maliciousInfoURL
                 };
 
@@ -177,7 +177,7 @@ define(function (require, exports, module) {
             it("should error dialog if json is broken and can not be parsed", function () {
                 var updateInfo = {
                     _buildNumber: 72,
-                    _lastNotifiedBuildNumber: 0,
+                    lastNotifiedBuildNumber: 0,
                     _versionInfoURL: brokenInfoURL
                 };
 
@@ -196,7 +196,7 @@ define(function (require, exports, module) {
         describe("Locale Fallback", function () {
             var updateInfo = {
                 _buildNumber: 72,
-                _lastNotifiedBuildNumber: 0,
+                lastNotifiedBuildNumber: 0,
                 _versionInfoURL: doesNotExistURL
             };
 
@@ -218,13 +218,16 @@ define(function (require, exports, module) {
 
             function setupAjaxSpy(defaultUpdateUrl) {
                 var jq = spyOn(testWindow.$, "ajax").andCallFake(function (req) {
-                    var d = $.Deferred();
+                    var d = new $.Deferred();
 
-                    if (req.url === defaultUpdateUrl) {
-                        d.resolve(expectedResult);
-                    } else {
-                        d.reject();
-                    }
+                    testWindow.setTimeout(function () {
+                        if (req.url === defaultUpdateUrl) {
+                            d.resolve(expectedResult);
+                        } else {
+                            d.reject();
+                        }
+                    }, 75);
+                    // we need to set a timeout in order to emulate the async behavior of $.ajax
 
                     return d.promise();
                 });
@@ -235,8 +238,8 @@ define(function (require, exports, module) {
 
                 setupAjaxSpy(defaultUpdateUrl);
 
-                // pretend that we are using the italian locale and we don't have a translation for the update notification
-                spyOn(testWindow.brackets, "getLocale").andReturn("de-ch");
+                // pretend that we are using the German (Switzerland) locale and we don't have a translation for the update notification
+                spyOn(testWindow.brackets, "getLocale").andReturn("de-CH");
 
                 runs(function () {
                     var promise = UpdateNotification.checkForUpdate(true, updateInfo);
@@ -254,7 +257,7 @@ define(function (require, exports, module) {
 
                 setupAjaxSpy(defaultUpdateUrl);
 
-                // pretend that we are using the italian locale and we don't have a translation for the update notification
+                // pretend that we are using the Italian locale and we don't have a translation for the update notification
                 spyOn(testWindow.brackets, "getLocale").andReturn("it");
 
                 runs(function () {

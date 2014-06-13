@@ -245,11 +245,11 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @constructor
      * Subclass of HTMLSimpleDOM.Builder that builds an updated DOM after changes have been made,
      * and maps nodes from the new DOM to the old DOM by tag ID. For non-structural edits, avoids reparsing
      * the whole editor. Also updates marks in the editor based on the new DOM state.
      *
+     * @constructor
      * @param {Object} previousDOM The root of the HTMLSimpleDOM tree representing a previous state of the DOM.
      * @param {Editor} editor The editor containing the instrumented HTML.
      * @param {Array=} changeList An optional array of CodeMirror change records representing the
