@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         StringMatch          = brackets.getModule("utils/StringMatch"),
         LanguageManager      = brackets.getModule("language/LanguageManager"),
         ProjectManager       = brackets.getModule("project/ProjectManager"),
+        PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         ParameterHintManager = require("ParameterHintManager"),
         HintUtils            = require("HintUtils"),
         ScopeManager         = require("ScopeManager"),
@@ -54,7 +55,10 @@ define(function (require, exports, module) {
         cachedToken  = null,  // the token used in the current hinting session
         matcher      = null,  // string matcher for hints
         ignoreChange;         // can ignore next "change" event if true;
-
+    
+    // Define the defaultExclusions which are files that are known to cause Tern to run out of control.
+    PreferencesManager.definePreference("jscodehints.defaultExclusions", "array", ["ionic*.min.js"]);
+    
     /**
      * Sets the configuration, generally for testing/debugging use.
      * Configuration keys are merged into the current configuration.
@@ -453,7 +457,7 @@ define(function (require, exports, module) {
             // type has changed since the last hint computation
             if (this.needNewHints(session)) {
                 if (key) {
-                    ScopeManager.handleFileChange({from: cursor, to: cursor, text: [key]});
+                    ScopeManager.handleFileChange([{from: cursor, to: cursor, text: [key]}]);
                     ignoreChange = true;
                 }
 
@@ -632,7 +636,7 @@ define(function (require, exports, module) {
 
                         
             // Only provide jump-to-definition results when cursor is in JavaScript content
-            if (session.editor.getModeForSelection() !== "javascript") {
+            if (!session || session.editor.getModeForSelection() !== "javascript") {
                 return null;
             }
 

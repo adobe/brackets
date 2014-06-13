@@ -24,7 +24,7 @@
 // FUTURE: Merge part (or all) of this class with InlineTextEditor
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window */
+/*global define, $, window */
 
 /**
  * An inline editor for displaying and editing multiple text ranges. Each range corresponds to a 
@@ -35,7 +35,6 @@
  *
  * This module does not dispatch any events.
  */
-
 define(function (require, exports, module) {
     "use strict";
     
@@ -64,9 +63,9 @@ define(function (require, exports, module) {
     
     
     /**
-     * @constructor
      * Stores one search result: its source file, line range, etc. plus the DOM node representing it
      * in the results list.
+     * @constructor
      */
     function SearchResultItem(rangeResult) {
         this.name = rangeResult.name;
@@ -118,7 +117,10 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype.$selectedMarker = null;
     MultiRangeInlineEditor.prototype.$rangeList = null;
     
-    /** @type {Array.<SearchResultItem>} */
+    /**
+     * List of search results
+     * @type {Array.<SearchResultItem>}
+     */
     MultiRangeInlineEditor.prototype._ranges = null;
     MultiRangeInlineEditor.prototype._selectedRangeIndex = null;
     MultiRangeInlineEditor.prototype._messageCB = null;
@@ -380,6 +382,12 @@ define(function (require, exports, module) {
         
         if (this._ranges.length === 1) {
             this.$relatedContainer.remove();
+            
+            // Refresh the height of the inline editor since we remove
+            // the entire selector list.
+            if (this.editor) {
+                this.editor.refresh();
+            }
         }
         
         this._updateCommands();
@@ -636,7 +644,7 @@ define(function (require, exports, module) {
 
     /**
      * Returns the currently focused MultiRangeInlineEditor.
-     * @returns {MultiRangeInlineEditor}
+     * @return {MultiRangeInlineEditor}
      */
     function getFocusedMultiRangeInlineEditor() {
         var focusedWidget = EditorManager.getFocusedInlineWidget();

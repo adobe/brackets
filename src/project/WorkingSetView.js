@@ -44,7 +44,10 @@ define(function (require, exports, module) {
         ViewUtils             = require("utils/ViewUtils");
     
     
-    /** @const @type {number} Constants for event.which values */
+    /**
+     * Constants for event.which values
+     * @enum {number}
+     */
     var LEFT_BUTTON = 1,
         MIDDLE_BUTTON = 2;
     
@@ -65,10 +68,57 @@ define(function (require, exports, module) {
     
     
     /**
+     * Finds the listItem item assocated with the file. Returns null if not found.
+     * @private
+     * @param {!File} file
+     * @return {HTMLLIItem}
+     */
+    function _findListItemFromFile(file) {
+        var result = null;
+
+        if (file) {
+            var items = $openFilesContainer.find("ul").children();
+            items.each(function () {
+                var $listItem = $(this);
+                if ($listItem.data(_FILE_KEY).fullPath === file.fullPath) {
+                    result = $listItem;
+                    return false;
+                    // breaks each
+                }
+            });
+        }
+
+        return result;
+    }
+
+    /**
+     * @private
+     */
+    function _scrollSelectedDocIntoView() {
+        if (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW) {
+            return;
+        }
+
+        var doc = DocumentManager.getCurrentDocument();
+        if (!doc) {
+            return;
+        }
+
+        var $selectedDoc = _findListItemFromFile(doc.file);
+        if (!$selectedDoc) {
+            return;
+        }
+
+        ViewUtils.scrollElementIntoView($openFilesContainer, $selectedDoc, false);
+    }
+
+    /**
      * @private
      * Redraw selection when list size changes or DocumentManager currentDocument changes.
      */
     function _fireSelectionChanged() {
+        _scrollSelectedDocIntoView();
+
         // redraw selection
         $openFilesList.trigger("selectionChanged");
 
@@ -470,51 +520,6 @@ define(function (require, exports, module) {
         if (forceRedraw) {
             _redraw();
         }
-    }
-
-    /**
-     * Finds the listItem item assocated with the file. Returns null if not found.
-     * @private
-     * @param {!File} file
-     * @return {HTMLLIItem}
-     */
-    function _findListItemFromFile(file) {
-        var result = null;
-
-        if (file) {
-            var items = $openFilesContainer.find("ul").children();
-            items.each(function () {
-                var $listItem = $(this);
-                if ($listItem.data(_FILE_KEY).fullPath === file.fullPath) {
-                    result = $listItem;
-                    return false;
-                    // breaks each
-                }
-            });
-        }
-
-        return result;
-    }
-
-    /**
-     * @private
-     */
-    function _scrollSelectedDocIntoView() {
-        if (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW) {
-            return;
-        }
-
-        var doc = DocumentManager.getCurrentDocument();
-        if (!doc) {
-            return;
-        }
-
-        var $selectedDoc = _findListItemFromFile(doc.file);
-        if (!$selectedDoc) {
-            return;
-        }
-
-        ViewUtils.scrollElementIntoView($openFilesContainer, $selectedDoc, false);
     }
 
     /** 

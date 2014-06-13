@@ -28,14 +28,14 @@
 /**
  * HTMLDocument manages a single HTML source document
  *
- * # EDITING
+ * __EDITING__
  *
  * Editing the document will cause the corresponding node to be updated
  * by calling `applyChanges` on the DOMAgent. This will only work for
  * altering text nodes and will break when attempting to change DOM elements
  * or inserting or deleting nodes.
  *
- * # HIGHLIGHTING
+ * __HIGHLIGHTING__
  *
  * HTMLDocument supports highlighting nodes from the HighlightAgent and
  * highlighting the DOMNode corresponding to the cursor position in the
@@ -52,12 +52,13 @@ define(function HTMLDocumentModule(require, exports, module) {
         LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
         PerfUtils           = require("utils/PerfUtils"),
         RemoteAgent         = require("LiveDevelopment/Agents/RemoteAgent"),
-        StringUtils         = require("utils/StringUtils");
+        StringUtils         = require("utils/StringUtils"),
+        _                   = require("thirdparty/lodash");
 
     /**
-     * Constructor
-     * @param {!DocumentManager.Document} doc the source document from Brackets
-     * @param {editor=} editor
+     * @constructor
+     * @param {!Document} doc The source document from Brackets
+     * @param {!Editor} editor The editor for this document
      */
     var HTMLDocument = function HTMLDocument(doc, editor) {
         var self = this;
@@ -140,17 +141,24 @@ define(function HTMLDocumentModule(require, exports, module) {
     
     /** Update the highlight */
     HTMLDocument.prototype.updateHighlight = function () {
-        var codeMirror = this.editor._codeMirror;
+        var editor = this.editor,
+            codeMirror = editor._codeMirror,
+            ids = [];
         if (Inspector.config.highlight) {
-            var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(
-                this.editor,
-                codeMirror.getCursor()
-            );
+            _.each(this.editor.getSelections(), function (sel) {
+                var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(
+                    editor,
+                    sel.reversed ? sel.end : sel.start
+                );
+                if (tagID !== -1) {
+                    ids.push(tagID);
+                }
+            });
             
-            if (tagID === -1) {
+            if (!ids.length) {
                 HighlightAgent.hide();
             } else {
-                HighlightAgent.domElement(tagID);
+                HighlightAgent.domElement(ids);
             }
         }
     };
@@ -213,7 +221,7 @@ define(function HTMLDocumentModule(require, exports, module) {
     /** Triggered on change by the editor */
     HTMLDocument.prototype._onChange = function (event, editor, change) {
         // Make sure LiveHTML is turned on
-        if (!brackets.livehtml || !this._instrumentationEnabled) {
+        if (!this._instrumentationEnabled) {
             return;
         }
 

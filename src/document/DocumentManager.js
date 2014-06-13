@@ -59,7 +59,8 @@
  *    - documentRefreshed -- When a Document's contents have been reloaded from disk. The 2nd arg to the
  *      listener is the Document that has been refreshed.
  *
- *    - currentDocumentChange -- When the value of getCurrentDocument() changes.
+ *    - currentDocumentChange -- When the value of getCurrentDocument() changes. 2nd argument to the listener
+ *      is the current document and 3rd argument is the previous document.
  *
  *    To listen for working set changes, you must listen to *all* of these events:
  *    - workingSetAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
@@ -110,12 +111,6 @@ define(function (require, exports, module) {
      * @see DocumentManager.getCurrentDocument()
      */
     var _currentDocument = null;
-    
-    /**
-     * @private
-     * @type {PreferenceStorage}
-     */
-    var _prefs = {};
     
     /**
      * Returns the Document that is currently open in the editor UI. May be null.
@@ -189,7 +184,7 @@ define(function (require, exports, module) {
      * @param {!string} fullPath
      * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
      *          use only.
-     * @returns {number} index
+     * @return {number} index
      */
     function findInWorkingSet(fullPath, list) {
         list = list || _workingSet;
@@ -203,7 +198,7 @@ define(function (require, exports, module) {
      * Returns the index of the file matching fullPath in _workingSetAddedOrder.
      * Returns -1 if not found.
      * @param {!string} fullPath
-     * @returns {number} index
+     * @return {number} index
      */
     function findInWorkingSetAddedOrder(fullPath) {
         return findInWorkingSet(fullPath, _workingSetAddedOrder);
@@ -494,8 +489,9 @@ define(function (require, exports, module) {
         }
         
         // Make it the current document
+        var previousDocument = _currentDocument;
         _currentDocument = doc;
-        $(exports).triggerHandler("currentDocumentChange");
+        $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
         // (this event triggers EditorManager to actually switch editors in the UI)
         
         PerfUtils.addMeasurement(perfTimerName);
@@ -509,9 +505,10 @@ define(function (require, exports, module) {
             return;
         } else {
             // Change model & dispatch event
+            var previousDocument = _currentDocument;
             _currentDocument = null;
             // (this event triggers EditorManager to actually clear the editor UI)
-            $(exports).triggerHandler("currentDocumentChange");
+            $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
         }
     }
     
@@ -816,11 +813,14 @@ define(function (require, exports, module) {
      */
     function _savePreferences() {
         // save the working set file paths
-        var files       = [],
-            isActive    = false,
-            workingSet  = getWorkingSet(),
-            currentDoc  = getCurrentDocument(),
-            projectRoot = ProjectManager.getProjectRoot();
+        var files        = [],
+            isActive     = false,
+            workingSet   = getWorkingSet(),
+            currentDoc   = getCurrentDocument(),
+            projectRoot  = ProjectManager.getProjectRoot(),
+            context      = { location : { scope: "user",
+                                          layer: "project",
+                                          layerID: projectRoot.fullPath } };
 
         if (!projectRoot) {
             return;
@@ -843,8 +843,8 @@ define(function (require, exports, module) {
             }
         });
 
-        // append file root to make file list unique for each project
-        _prefs.setValue("files_" + projectRoot.fullPath, files);
+        // Writing out working set files using the project layer specified in 'context'.
+        PreferencesManager.setViewState("project.files", files, context);
     }
 
     /**
@@ -854,7 +854,11 @@ define(function (require, exports, module) {
     function _projectOpen(e) {
         // file root is appended for each project
         var projectRoot = ProjectManager.getProjectRoot(),
-            files = _prefs.getValue("files_" + projectRoot.fullPath);
+            files = [],
+            context = { location : { scope: "user",
+                                     layer: "project" } };
+        
+        files = PreferencesManager.getViewState("project.files", context);
         
         console.assert(Object.keys(_openDocuments).length === 0);  // no files leftover from prev proj
 
@@ -992,6 +996,29 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("documentSaved", doc);
         });
     
+    /**
+     * @private
+     * Examine each preference key for migration of the working set files.
+     * If the key has a prefix of "files_/", then it is a working set files 
+     * preference from old preference model.
+     *
+     * @param {string} key The key of the preference to be examined
+     *      for migration of working set files.
+     * @return {?string} - the scope to which the preference is to be migrated
+     */
+    function _checkPreferencePrefix(key) {
+        var pathPrefix = "files_";
+        if (key.indexOf(pathPrefix) === 0) {
+            // Get the project path from the old preference key by stripping "files_".
+            var projectPath = key.substr(pathPrefix.length);
+            return "user project.files " + projectPath;
+        }
+        
+        return null;
+    }
+    
+    PreferencesManager.convertPreferences(module, {"files_": "user"}, true, _checkPreferencePrefix);
+
     // Handle file saves that may affect preferences
     $(exports).on("documentSaved", function (e, doc) {
         PreferencesManager.fileChanged(doc.file.fullPath);
@@ -1028,9 +1055,6 @@ define(function (require, exports, module) {
     exports.notifyPathNameChanged       = notifyPathNameChanged;
     exports.notifyPathDeleted           = notifyPathDeleted;
 
-    // Setup preferences
-    _prefs = PreferencesManager.getPreferenceStorage(module);
-    
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 

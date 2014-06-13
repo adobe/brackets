@@ -21,3 +21,13 @@
     transition-timing-function: step-start;
     transition-timing-function: step-end;
 }
+
+.qux {
+    transition-timing-function: cubic-bezier(-0.001, Infinity, 1.001, NaN);
+    transition-timing-function: cubic-bezier();
+}
+
+.quux {
+    transition-timing-function: steps(-5, s, 2, 3);
+    transition-timing-function: steps();
+}

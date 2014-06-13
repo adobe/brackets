@@ -29,24 +29,32 @@ maxerr: 50, browser: true */
 define(function (require, exports, module) {
     "use strict";
     
-    /** @define{number} Connection attempts to make before failing */
+    /**
+     * Connection attempts to make before failing
+     * @type {number}
+     */
     var CONNECTION_ATTEMPTS = 10;
 
     /**
-     * @define{number} Milliseconds to wait before a particular connection
-     *     attempt is considered failed.
-     *
+     * Milliseconds to wait before a particular connection attempt is considered failed.
      * NOTE: It's okay for the connection timeout to be long because the
      * expected behavior of WebSockets is to send a "close" event as soon
      * as they realize they can't connect. So, we should rarely hit the
      * connection timeout even if we try to connect to a port that isn't open.
+     * @type {number}
      */
     var CONNECTION_TIMEOUT  = 10000; // 10 seconds
 
-    /** @define{number} Milliseconds to wait before retrying connecting */
+    /**
+     * Milliseconds to wait before retrying connecting
+     * @type {number}
+     */
     var RETRY_DELAY         = 500;   // 1/2 second
 
-    /** @define {number} Maximum value of the command ID counter */
+    /**
+     * Maximum value of the command ID counter
+     * @type  {number}
+     */
     var MAX_COUNTER_VALUE = 4294967295; // 2^32 - 1
     
     /**
@@ -104,15 +112,14 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @constructor
      * Provides an interface for interacting with the node server.
+     * @constructor
      */
     function NodeConnection() {
         this.domains = {};
         this._registeredModules = [];
         this._pendingInterfaceRefreshDeferreds = [];
         this._pendingCommandDeferreds = [];
-        $(this).on("base.newDomains", this._refreshInterface.bind(this));
     }
     
     /**
@@ -124,7 +131,7 @@ define(function (require, exports, module) {
      * to call to enable the debugger.
      *
      * This object is automatically replaced every time the API changes (based
-     * on the base.newDomains event from the server). Therefore, code that
+     * on the base:newDomains event from the server). Therefore, code that
      * uses this object should not keep their own pointer to the domain property.
      */
     NodeConnection.prototype.domains = null;
@@ -460,7 +467,18 @@ define(function (require, exports, module) {
         
         switch (m.type) {
         case "event":
-            $(this).triggerHandler(m.message.domain + "." + m.message.event,
+            var $this = $(this);
+
+            if (m.message.domain === "base" && m.message.event === "newDomains") {
+                this._refreshInterface();
+            }
+            
+            // Event type for backwards compatibility for original design: "domain.event"
+            $this.triggerHandler(m.message.domain + "." + m.message.event,
+                                   m.message.parameters);
+
+            // Event type "domain:event"
+            $this.triggerHandler(m.message.domain + ":" + m.message.event,
                                    m.message.parameters);
             break;
         case "commandResponse":
@@ -492,7 +510,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Helper function for refreshing the interface in the "domain" property.
-     * Automatically called when the connection receives a base.newDomains
+     * Automatically called when the connection receives a base:newDomains
      * event from the server, and also called at connection time.
      */
     NodeConnection.prototype._refreshInterface = function () {

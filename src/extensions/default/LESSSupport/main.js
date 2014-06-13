@@ -36,5 +36,11 @@ define(function (require, exports, module) {
         fileExtensions: ["less"],
         blockComment: ["/*", "*/"],
         lineComment: ["//"]
+    }).done(function (lessLanguage) {
+        // Hack to make it so that when we see a "css" mode inside a LESS file,
+        // we know that it's really LESS. Ideally we would have a way to get the
+        // actual mime type from CodeMirror, so we know what mode configuration is
+        // in use (see #7345).
+        lessLanguage._setLanguageForMode("css", lessLanguage);
     });
 });

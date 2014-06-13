@@ -8,7 +8,7 @@
     transform: scale(0);
     opacity: 0;
                                             
-    background: #e0e1e3;
+    background: #dfe2e2;
     position: absolute;
     z-index: 5000;
     pointer-events: none;
@@ -17,7 +17,7 @@
     text-align: center;
 
     border-radius: 4px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.25), inset 0 0 0 1px #a6a6a6, inset 0 0 0 2px #ebedec;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.21), inset 0 0 0 1px #b2b5b5, inset 0 0 0 2px #ebedec;
 }
 
 #quick-view-container.active {
@@ -29,7 +29,7 @@
 #quick-view-container .preview-content {
     background-image: url(preview_bg.png);
     border-radius: 2px;
-    border: 1px solid #a6a8a8;
+    border: 1px solid #b2b5b5;
 }
 
 
@@ -50,8 +50,8 @@
 }
 
 #quick-view-container .img-size {
-    background-color: #c8cac9;
-    border-top: 1px solid #a6a8a8;
+    background-color: #d4d7d7;
+    border-top: 1px solid #b2b5b5;
     font-size: 0.9em;
     color: #565656;
     padding-left: 3px;

@@ -126,13 +126,24 @@ ins.jstree-icon {
 .jstree-brackets .jstree-locked a { color:silver; cursor:default; }
 
 .jstree-brackets .jstree-rename-input {
-    border: 1px solid silver;
-    color: black;
+    background: @bc-black;
+    border: 1px solid @bc-black;
+    border-radius: 2px;
+    box-shadow: @tc-call-to-action-down-shadow;
+    color: @bc-white;
+    font-style: normal;
+    font-weight: 400;
     left: 3px !important;
     padding: 0;
     position: absolute;
-    top: 0;
+    top: 2px;
     width: 150px;
+}
+
+.jstree-brackets .jstree-rename-input:focus {
+    border: 1px solid @tc-gray-component-focused-border;
+    box-shadow: @tc-input-glow;
+    outline: none;
 }
 
 #vakata-contextmenu.jstree-brackets-context,

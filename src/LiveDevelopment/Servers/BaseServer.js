@@ -28,14 +28,15 @@ define(function (require, exports, module) {
     "use strict";
 
     /**
-     * @constructor
      * Base class for live preview servers
      *
+     * Configuration parameters for this server:
+     * - baseUrl      - Optional base URL (populated by the current project)
+     * - pathResolver - Function to covert absolute native paths to project relative paths
+     * - root         - Native path to the project root (and base URL)
+     *
+     * @constructor
      * @param {!{baseUrl: string, root: string, pathResolver: function(string): string}} config
-     *    Configuration parameters for this server:
-     *        baseUrl       - Optional base URL (populated by the current project)
-     *        pathResolver  - Function to covert absolute native paths to project relative paths
-     *        root          - Native path to the project root (and base URL)
      */
     function BaseServer(config) {
         this._baseUrl       = config.baseUrl;
@@ -84,7 +85,7 @@ define(function (require, exports, module) {
 
         // TODO: Better workflow of liveDocument.doc.url assignment
         // Force sync the browser after a URL is assigned
-        if (liveDocument._updateBrowser) {
+        if (doc.isDirty && liveDocument._updateBrowser) {
             liveDocument._updateBrowser();
         }
     };
@@ -169,6 +170,10 @@ define(function (require, exports, module) {
      * @param {Object} liveDocument
      */
     BaseServer.prototype.add = function (liveDocument) {
+        if (!liveDocument) {
+            return;
+        }
+        
         // use the project relative path as a key to lookup requests
         var key = this._documentKey(liveDocument.doc.file.fullPath);
         
@@ -181,6 +186,10 @@ define(function (require, exports, module) {
      * @param {Object} liveDocument
      */
     BaseServer.prototype.remove = function (liveDocument) {
+        if (!liveDocument) {
+            return;
+        }
+        
         var key = this._liveDocuments[this._documentKey(liveDocument.doc.file.fullPath)];
         
         if (key) {

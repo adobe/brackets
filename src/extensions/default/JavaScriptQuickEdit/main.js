@@ -33,22 +33,24 @@ define(function (require, exports, module) {
         EditorManager           = brackets.getModule("editor/EditorManager"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
         JSUtils                 = brackets.getModule("language/JSUtils"),
+        LanguageManager         = brackets.getModule("language/LanguageManager"),
         PerfUtils               = brackets.getModule("utils/PerfUtils"),
-        ProjectManager          = brackets.getModule("project/ProjectManager");
+        ProjectManager          = brackets.getModule("project/ProjectManager"),
+        Strings                 = brackets.getModule("strings");
     
     /**
      * Return the token string that is at the specified position.
      *
      * @param hostEditor {!Editor} editor
-     * @param {!{line:Number, ch:Number}} pos
-     * @return {String} token string at the specified position
+     * @param {!{line:number, ch:number}} pos
+     * @return {functionName: string, reason: string}
      */
     function _getFunctionName(hostEditor, pos) {
         var token = hostEditor._codeMirror.getTokenAt(pos, true);
         
         // If the pos is at the beginning of a name, token will be the 
         // preceding whitespace or dot. In that case, try the next pos.
-        if (token.string.trim().length === 0 || token.string === ".") {
+        if (!/\S/.test(token.string) || token.string === ".") {
             token = hostEditor._codeMirror.getTokenAt({line: pos.line, ch: pos.ch + 1}, true);
         }
         
@@ -56,10 +58,16 @@ define(function (require, exports, module) {
         if (!((token.type === "variable") ||
               (token.type === "variable-2") ||
               (token.type === "property"))) {
-            return null;
+            return {
+                functionName: null,
+                reason: Strings.ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND
+            };
         }
         
-        return token.string;
+        return {
+            functionName: token.string,
+            reason: null
+        };
     }
     
     /**
@@ -75,7 +83,11 @@ define(function (require, exports, module) {
         
         PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
         
-        ProjectManager.getAllFiles()
+        function _nonBinaryFileFilter(file) {
+            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary();
+        }
+        
+        ProjectManager.getAllFiles(_nonBinaryFileFilter)
             .done(function (files) {
                 JSUtils.findMatchingFunctions(functionName, files)
                     .done(function (functions) {
@@ -100,8 +112,9 @@ define(function (require, exports, module) {
      *
      * @param {!Editor} hostEditor
      * @param {!string} functionName
-     * @return {$.Promise} a promise that will be resolved with an InlineWidget
-     *      or null if we're not going to provide anything.
+     * @return {?$.Promise} synchronously resolved with an InlineWidget, or
+     *         {string} if js other than function is detected at pos, or
+     *         null if we're not ready to provide anything.
      */
     function _createInlineEditor(hostEditor, functionName) {
         // Use Tern jump-to-definition helper, if it's available, to find InlineEditor target.
@@ -178,9 +191,9 @@ define(function (require, exports, module) {
      * and shows (one/all of them) in an inline editor.
      *
      * @param {!Editor} editor
-     * @param {!{line:Number, ch:Number}} pos
+     * @param {!{line:number, ch:number}} pos
      * @return {$.Promise} a promise that will be resolved with an InlineWidget
-     *      or null if we're not going to provide anything.
+     *      or null if we're not ready to provide anything.
      */
     function javaScriptFunctionProvider(hostEditor, pos) {
         // Only provide a JavaScript editor when cursor is in JavaScript content
@@ -196,12 +209,12 @@ define(function (require, exports, module) {
 
         // Always use the selection start for determining the function name. The pos
         // parameter is usually the selection end.        
-        var functionName = _getFunctionName(hostEditor, sel.start);
-        if (!functionName) {
-            return null;
+        var functionResult = _getFunctionName(hostEditor, sel.start);
+        if (!functionResult.functionName) {
+            return functionResult.reason || null;
         }
 
-        return _createInlineEditor(hostEditor, functionName);
+        return _createInlineEditor(hostEditor, functionResult.functionName);
     }
 
     // init

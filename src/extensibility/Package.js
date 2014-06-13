@@ -26,8 +26,9 @@
 indent: 4, maxerr: 50 */
 /*global define, $, brackets, PathUtils */
 
-/* Functions for working with extension packages */
-
+/**
+ * Functions for working with extension packages
+ */
 define(function (require, exports, module) {
     "use strict";
     
@@ -37,7 +38,10 @@ define(function (require, exports, module) {
         StringUtils          = require("utils/StringUtils"),
         Strings              = require("strings"),
         ExtensionLoader      = require("utils/ExtensionLoader"),
-        NodeConnection       = require("utils/NodeConnection");
+        NodeConnection       = require("utils/NodeConnection"),
+        PreferencesManager   = require("preferences/PreferencesManager");
+    
+    PreferencesManager.definePreference("proxy", "string");
     
     var Errors = {
         ERROR_LOADING: "ERROR_LOADING",
@@ -246,9 +250,9 @@ define(function (require, exports, module) {
             }
             
             // Download the bits (using Node since brackets-shell doesn't support binary file IO)
-            var r = extensionManager.downloadFile(downloadId, urlInfo.url);
+            var r = extensionManager.downloadFile(downloadId, urlInfo.url, PreferencesManager.get("proxy"));
             r.done(function (result) {
-                d.resolve({ localPath: result, filenameHint: urlInfo.filenameHint });
+                d.resolve({ localPath: FileUtils.convertWindowsPathToUnixPath(result), filenameHint: urlInfo.filenameHint });
             }).fail(function (err) {
                 d.reject(err);
             });

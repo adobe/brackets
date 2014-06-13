@@ -200,7 +200,7 @@ define(function (require, exports, module) {
             };
         } else {
             _addHint = function (hint) {
-                view.hints.push({ formattedHint: (hint instanceof $) ? "" : hint });
+                view.hints.push({ formattedHint: (hint.jquery) ? "" : hint });
             };
         }
 
@@ -237,7 +237,7 @@ define(function (require, exports, module) {
                 $element.data("hint", hint);
                 
                 // insert jQuery hint objects after the template is rendered
-                if (hint instanceof $) {
+                if (hint.jquery) {
                     $element.find(".codehint-item").append(hint);
                 }
             });
