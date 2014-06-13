@@ -175,25 +175,23 @@ define(function (require, exports, module) {
         function handleQueryChange() {
             // Check the query expression on every input event. This way the user is alerted
             // to any RegEx syntax errors immediately.
-            if (_findBar) {
-                var queryInfo = _findBar.getQueryInfo(),
-                    queryResult = FindInFiles.searchModel.setQueryInfo(queryInfo);
+            var queryInfo = _findBar.getQueryInfo(),
+                queryResult = FindInFiles.searchModel.setQueryInfo(queryInfo);
 
-                // Enable the replace button appropriately.
-                _findBar.enableReplace(queryResult.valid);
-                
-                if (queryResult.valid || queryResult.empty) {
-                    _findBar.showNoResults(false);
-                    _findBar.showError(null);
-                } else {
-                    _findBar.showNoResults(true, false);
-                    _findBar.showError(queryResult.error);
-                }
+            // Enable the replace button appropriately.
+            _findBar.enableReplace(queryResult.valid);
+
+            if (queryResult.valid || queryResult.empty) {
+                _findBar.showNoResults(false);
+                _findBar.showError(null);
+            } else {
+                _findBar.showNoResults(true, false);
+                _findBar.showError(queryResult.error);
             }
         }
         
         function startSearch(replaceText) {
-            var queryInfo = _findBar && _findBar.getQueryInfo();
+            var queryInfo = _findBar.getQueryInfo();
             if (queryInfo && queryInfo.query) {
                 _findBar.enable(false);
                 StatusBar.showBusyIndicator(true);

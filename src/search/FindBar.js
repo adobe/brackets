@@ -24,6 +24,9 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, $, window, Mustache */
 
+/*
+ * UI for the Find/Replace and Find in Files modal bar.
+ */
 define(function (require, exports, module) {
     "use strict";
     
@@ -51,26 +54,24 @@ define(function (require, exports, module) {
      *
      * Dispatches these events:
      *
-     * queryChange - when the user types in the input field or sets a query option. Use getQuery()
+     * - queryChange - when the user types in the input field or sets a query option. Use getQueryInfo()
      *      to get the current query state.
-     * doFind - when the user hits enter/shift-enter in an input field or clicks the Find Previous or Find Next button.
+     * - doFind - when the user hits enter/shift-enter in an input field or clicks the Find Previous or Find Next button.
      *      Parameters are:
      *          shiftKey - boolean, false for Find Next, true for Find Previous.
      *          replace - boolean, true if they hit enter in the Replace field
-     * doReplace - when the user clicks on the Replace or Replace All button. Parameter is a boolean,
+     * - doReplace - when the user clicks on the Replace or Replace All button. Parameter is a boolean,
      *      false for single Replace, true for Replace All. Use getReplaceText() to get the current
      *      replacement text.
-     * close - when the find bar is closed
+     *-  close - when the find bar is closed
      *
-     * @param {{navigator: boolean, replace: boolean, queryPlaceholder: string, initialQuery: string}} options
-     *      Options for the Find bar. 
-     *      navigator - true to show the Find Previous/Find Next buttons - default false
-     *      replace - true to show the Replace controls - default false
-     *      replaceAllOnly - true to show only a Replace All button (no Replace button) - default false
-     *      scope - true to show the scope filter controls - default false
-     *      queryPlaceholder - label to show in the Find field - default empty string
-     *      initialQuery - query to populate in the Find field on open - default empty string
-     *      scopeLabel - label to show for the scope of the search - default empty string
+     * @param {boolean=} options.navigator - true to show the Find Previous/Find Next buttons - default false
+     * @param {boolean=} options.replace - true to show the Replace controls - default false
+     * @param {boolean=} options.replaceAllOnly - true to show only a Replace All button (no Replace button) - default false
+     * @param {boolean=} options.scope - true to show the scope filter controls - default false
+     * @param {string=}  options.queryPlaceholder - label to show in the Find field - default empty string
+     * @param {string=}  options.initialQuery - query to populate in the Find field on open - default empty string
+     * @param {string=}  scopeLabel - HTML label to show for the scope of the search, expected to be already escaped - default empty string
      */
     function FindBar(options) {
         var defaults = {
@@ -97,6 +98,7 @@ define(function (require, exports, module) {
      * @private
      * Register a find bar so we can close it later if another one tries to open.
      * Note that this is a global function, not an instance function.
+     * @param {!FindBar} findBar The find bar to register.
      */
     FindBar._addFindBar = function (findBar) {
         FindBar._bars = FindBar._bars || [];
@@ -125,7 +127,7 @@ define(function (require, exports, module) {
         var bars = FindBar._bars;
         if (bars) {
             bars.forEach(function (bar) {
-                bar.close(true);
+                bar.close(true, false);
             });
             bars = [];
         }
@@ -138,7 +140,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Options passed into the FindBar.
-     * @type {?{navigator: boolean, replace: boolean, queryPlaceholder: string, initialQuery: string}}
+     * @type {!{navigator: boolean, replace: boolean, queryPlaceholder: string, initialQuery: string}}
      */
     FindBar.prototype._options = null;
     
@@ -184,8 +186,10 @@ define(function (require, exports, module) {
      * Set the state of the toggles in the Find bar to the saved prefs state.
      */
     FindBar.prototype._updateSearchBarFromPrefs = function () {
-        this.$("#find-case-sensitive").toggleClass("active", PreferencesManager.getViewState("caseSensitive"));
-        this.$("#find-regexp").toggleClass("active", PreferencesManager.getViewState("regexp"));
+        // Have to make sure we explicitly cast the second parameter to a boolean, because
+        // toggleClass expects literal true/false.
+        this.$("#find-case-sensitive").toggleClass("active", !!PreferencesManager.getViewState("caseSensitive"));
+        this.$("#find-regexp").toggleClass("active", !!PreferencesManager.getViewState("regexp"));
     };
     
     /**
@@ -400,9 +404,7 @@ define(function (require, exports, module) {
      */
     FindBar.prototype.enable = function (enable) {
         var self = this;
-        ["#find-what", "#replace-with", "#find-prev", "#find-next", "#find-case-sensitive", "#find-regexp"].forEach(function (selector) {
-            self.$(selector).prop("disabled", !enable);
-        });
+        this.$("#find-what, #replace-with, #find-prev, #find-next, #find-case-sensitive, #find-regexp").prop("disabled", !enable);
         this._enabled = enable;
     };
     
@@ -411,6 +413,13 @@ define(function (require, exports, module) {
      */
     FindBar.prototype.isEnabled = function () {
         return this._enabled;
+    };
+    
+    /**
+     * @return {boolean} true if the Replace button is enabled.
+     */
+    FindBar.prototype.isReplaceEnabled = function () {
+        return this.$("#replace-yes").is(":enabled");
     };
     
     /**
