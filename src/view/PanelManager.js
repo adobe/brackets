@@ -33,9 +33,28 @@ define(function (require, exports, module) {
     var WorkspaceManager        = require("view/WorkspaceManager"),
         DeprecationWarning      = require("utils/DeprecationWarning");
     
+    /**
+     * Creates a deprecation warning event handler
+     * @param {!string} the event being deprecated
+     * @param {!string} the new event to use
+     */
+    function _deprecateEvent(oldEventName, newEventName) {
+        DeprecationWarning.deprecateEvent(exports,
+                                          WorkspaceManager,
+                                          oldEventName,
+                                          newEventName,
+                                          "PanelManager." + oldEventName,
+                                          "MainViewManager." + newEventName);
+    }
+    
     // Define public API
     exports.createBottomPanel   = function (id, $panel, minSize) {
-        DeprecationWarning.deprecationWarning("PanelManager.createBottomPanel() is deprecated. Use WorkspaceManager.createBottomPanel() instead.", true);
+        DeprecationWarning.deprecationWarning("Use WorkspaceManager.createBottomPanel() instead of PanelManager.createBottomPanel().", true);
         return WorkspaceManager.createBottomPanel(id, $panel, minSize);
     };
+    
+    // Deprecated PanelManager events
+    // The name of this event will change but, for now, just move it
+    //  to the WorkspacMmanager
+    _deprecateEvent("editorAreaResize", "editorAreaResize");
 });
