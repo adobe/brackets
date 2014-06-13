@@ -181,8 +181,8 @@ define(function (require, exports, module) {
 
         var hasAboutItem = (brackets.platform !== "mac" || !brackets.nativeMenus);
         
-        // Add final divider only if we have a homepage URL or twitter URL or about item
-        if (hasAboutItem || brackets.config.homepage_url || brackets.config.twitter_url) {
+        // Add final divider only if we have a homepage URL or twitter URL or Google Groups URL or about item
+        if (hasAboutItem || brackets.config.homepage_url || brackets.config.twitter_url || brackets.config.google_groups_url) {
             menu.addMenuDivider();
         }
         
@@ -193,6 +193,11 @@ define(function (require, exports, module) {
         if (brackets.config.twitter_url) {
             menu.addMenuItem(Commands.HELP_TWITTER);
         }
+        
+        if (brackets.config.google_groups_url) {
+            menu.addMenuItem(Commands.HELP_GOOGLE_GROUPS);
+        }
+        
         // supress redundant about menu item in mac shell
         if (hasAboutItem) {
             menu.addMenuItem(Commands.HELP_ABOUT);

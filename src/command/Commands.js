@@ -159,6 +159,7 @@ define(function (require, exports, module) {
     exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";  // HelpCommandHandlers.js       _handleShowExtensionsFolder()
     exports.HELP_HOMEPAGE               = "help.homepage";              // HelpCommandHandlers.js       _handleLinkMenuItem()
     exports.HELP_TWITTER                = "help.twitter";               // HelpCommandHandlers.js       _handleLinkMenuItem()
+    exports.HELP_GOOGLE_GROUPS          = "help.googleGroups";          // HelpCommandHandlers.js       _handleLinkMenuItem()
     
     // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
     exports.HELP_ABOUT                  = "help.about";                 // HelpCommandHandlers.js       _handleAboutDialog()

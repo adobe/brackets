@@ -373,6 +373,7 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} Homepage",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
+    "CMD_GOOGLE_GROUPS"                   : "{GOOGLE_GROUPS_NAME} on Google Groups",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Open Preferences File",
 
