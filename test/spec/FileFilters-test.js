@@ -429,6 +429,7 @@ define(function (require, exports, module) {
                 FileFilters,
                 FileSystem,
                 FindInFiles,
+                FindInFilesUI,
                 CommandManager,
                 $;
             
@@ -441,6 +442,7 @@ define(function (require, exports, module) {
                     FileFilters     = testWindow.brackets.test.FileFilters;
                     FileSystem      = testWindow.brackets.test.FileSystem;
                     FindInFiles     = testWindow.brackets.test.FindInFiles;
+                    FindInFilesUI   = testWindow.brackets.test.FindInFilesUI;
                     CommandManager  = testWindow.brackets.test.CommandManager;
                     $               = testWindow.$;
                     
@@ -453,6 +455,7 @@ define(function (require, exports, module) {
                 FileSystem = null;
                 FileFilters = null;
                 FindInFiles = null;
+                FindInFilesUI = null;
                 CommandManager = null;
                 $ = null;
                 SpecRunnerUtils.closeTestWindow();
@@ -466,16 +469,17 @@ define(function (require, exports, module) {
                     }, "search bar close");
                 });
                 runs(function () {
-                    FindInFiles._doFindInFiles(scope);
+                    FindInFilesUI._showFindBar(scope);
                 });
             }
 
             function executeSearch(searchString) {
+                FindInFiles._searchDone = false;
                 var $searchField = $(".modal-bar #find-group input");
                 $searchField.val(searchString).trigger("input");
                 SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $searchField[0]);
                 waitsFor(function () {
-                    return FindInFiles._searchResults;
+                    return FindInFiles._searchDone;
                 }, "Find in Files done");
             }
 
@@ -485,8 +489,8 @@ define(function (require, exports, module) {
                     executeSearch("{1}");
                 });
                 runs(function () {
-                    expect(FindInFiles._searchResults[testPath + "/test1.css"]).toBeTruthy();
-                    expect(FindInFiles._searchResults[testPath + "/test1.html"]).toBeTruthy();
+                    expect(FindInFiles.searchModel.results[testPath + "/test1.css"]).toBeTruthy();
+                    expect(FindInFiles.searchModel.results[testPath + "/test1.html"]).toBeTruthy();
                 });
             });
             
@@ -510,8 +514,8 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     // *.css should have been excluded this time
-                    expect(FindInFiles._searchResults[testPath + "/test1.css"]).toBeFalsy();
-                    expect(FindInFiles._searchResults[testPath + "/test1.html"]).toBeTruthy();
+                    expect(FindInFiles.searchModel.results[testPath + "/test1.css"]).toBeFalsy();
+                    expect(FindInFiles.searchModel.results[testPath + "/test1.html"]).toBeTruthy();
                 });
             });
             
@@ -526,8 +530,8 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     // *.css should have been excluded this time
-                    expect(FindInFiles._searchResults[testPath + "/test1.css"]).toBeFalsy();
-                    expect(FindInFiles._searchResults[testPath + "/test1.html"]).toBeTruthy();
+                    expect(FindInFiles.searchModel.results[testPath + "/test1.css"]).toBeFalsy();
+                    expect(FindInFiles.searchModel.results[testPath + "/test1.html"]).toBeTruthy();
                 });
             });
             
@@ -544,7 +548,7 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     // ignore *.css exclusion since we're explicitly searching this file
-                    expect(FindInFiles._searchResults[testPath + "/test1.css"]).toBeTruthy();
+                    expect(FindInFiles.searchModel.results[testPath + "/test1.css"]).toBeTruthy();
                 });
             });
             
@@ -571,7 +575,7 @@ define(function (require, exports, module) {
                     expect($modalBar.find("#find-group div.error").is(":visible")).toBeTruthy();
 
                     // Search panel not showing
-                    expect($("#search-results").is(":visible")).toBeFalsy();
+                    expect($("#find-in-files-results").is(":visible")).toBeFalsy();
 
                     // Close search bar
                     var $searchField = $modalBar.find("#find-group input");
@@ -600,8 +604,8 @@ define(function (require, exports, module) {
                     waits(800);  // ensure _documentChangeHandler()'s timeout has time to run
                 });
                 runs(function () {
-                    expect(FindInFiles._searchResults[testPath + "/test1.css"]).toBeFalsy();  // *.css should still be excluded
-                    expect(FindInFiles._searchResults[testPath + "/test1.html"]).toBeTruthy();
+                    expect(FindInFiles.searchModel.results[testPath + "/test1.css"]).toBeFalsy();  // *.css should still be excluded
+                    expect(FindInFiles.searchModel.results[testPath + "/test1.html"]).toBeTruthy();
                 });
             });
         });

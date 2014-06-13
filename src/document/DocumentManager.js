@@ -735,23 +735,31 @@ define(function (require, exports, module) {
      * Differs from plain FileUtils.readAsText() in two ways: (a) line endings are still normalized
      * as in Document.getText(); (b) unsaved changes are returned if there are any.
      * 
-     * @param {!File} file
-     * @return {!string}
+     * @param {!File} file The file to get the text for.
+     * @param {boolean=} checkLineEndings Whether to return line ending information. Default false (slightly more efficient).
+     * @return {$.Promise} 
+     *     A promise that is resolved with three parameters:
+     *          contents - string: the document's text
+     *          timestamp - Date: the last time the document was changed on disk (might not be the same as the last time it was changed in memory)
+     *          lineEndings - string: the original line endings of the file, one of the FileUtils.LINE_ENDINGS_* constants;
+     *              will be null if checkLineEndings was false.
+     *     or rejected with a filesystem error.
      */
-    function getDocumentText(file) {
+    function getDocumentText(file, checkLineEndings) {
         var result = new $.Deferred(),
             doc = getOpenDocumentForPath(file.fullPath);
         if (doc) {
-            result.resolve(doc.getText());
+            result.resolve(doc.getText(), doc.diskTimestamp, checkLineEndings ? doc._lineEndings : null);
         } else {
-            file.read(function (err, contents) {
+            file.read(function (err, contents, stat) {
                 if (err) {
                     result.reject(err);
                 } else {
                     // Normalize line endings the same way Document would, but don't actually
                     // new up a Document (which entails a bunch of object churn).
+                    var originalLineEndings = checkLineEndings ? FileUtils.sniffLineEndings(contents) : null;
                     contents = DocumentModule.Document.normalizeText(contents);
-                    result.resolve(contents);
+                    result.resolve(contents, stat.mtime, originalLineEndings);
                 }
             });
         }

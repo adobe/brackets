@@ -78,7 +78,7 @@ define(function (require, exports, module) {
         
         this.file = file;
         this._updateLanguage();
-        this.refreshText(rawText, initialTimestamp);
+        this.refreshText(rawText, initialTimestamp, true);
     }
     
     /**
@@ -281,8 +281,10 @@ define(function (require, exports, module) {
      * the text's line-ending style. CAN be called even if there is no backing editor.
      * @param {!string} text The text to replace the contents of the document with.
      * @param {!Date} newTimestamp Timestamp of file at the time we read its new contents from disk.
+     * @param {boolean} initial True if this is the initial load of the document. In that case,
+     *      we don't send change events.
      */
-    Document.prototype.refreshText = function (text, newTimestamp) {
+    Document.prototype.refreshText = function (text, newTimestamp, initial) {
         var perfTimerName = PerfUtils.markStart("refreshText:\t" + (!this.file || this.file.fullPath));
 
         // If clean, don't transiently mark dirty during refresh
@@ -294,12 +296,17 @@ define(function (require, exports, module) {
             // _handleEditorChange() triggers "change" event for us
         } else {
             this._text = text;
-            // We fake a change record here that looks like CodeMirror's text change records, but
-            // omits "from" and "to", by which we mean the entire text has changed.
-            // TODO: Dumb to split it here just to join it again in the change handler, but this is
-            // the CodeMirror change format. Should we document our change format to allow this to
-            // either be an array of lines or a single string?
-            $(this).triggerHandler("change", [this, [{text: text.split(/\r?\n/)}]]);
+            
+            if (!initial) {
+                // We fake a change record here that looks like CodeMirror's text change records, but
+                // omits "from" and "to", by which we mean the entire text has changed.
+                // TODO: Dumb to split it here just to join it again in the change handler, but this is
+                // the CodeMirror change format. Should we document our change format to allow this to
+                // either be an array of lines or a single string?
+                var fakeChangeList = [{text: text.split(/\r?\n/)}];
+                $(this).triggerHandler("change", [this, fakeChangeList]);
+                $(exports).triggerHandler("documentChange", [this, fakeChangeList]);
+            }
         }
         this._updateTimestamp(newTimestamp);
        
