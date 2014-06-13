@@ -107,15 +107,18 @@ define(function (require, exports, module) {
     
     // FIND
     exports.CMD_FIND                    = "cmd.find";                   // FindReplace.js               _launchFind()
-    exports.CMD_FIND_IN_FILES           = "cmd.findInFiles";            // FindInFiles.js               _doFindInFiles()
-    exports.CMD_FIND_IN_SELECTED        = "cmd.findInSelected";         // FindInFiles.js               _doFindInSubtree()
-    exports.CMD_FIND_IN_SUBTREE         = "cmd.findInSubtree";          // FindInFiles.js               _doFindInSubtree()
+    exports.CMD_FIND_IN_FILES           = "cmd.findInFiles";            // FindInFilesUI.js             _showFindBar()
+    exports.CMD_FIND_IN_SELECTED        = "cmd.findInSelected";         // FindInFilesUI.js             _showFindBarForSubtree()
+    exports.CMD_FIND_IN_SUBTREE         = "cmd.findInSubtree";          // FindInFilesUI.js             _showFindBarForSubtree()
     exports.CMD_FIND_NEXT               = "cmd.findNext";               // FindReplace.js               _findNext()
     exports.CMD_FIND_PREVIOUS           = "cmd.findPrevious";           // FindReplace.js               _findPrevious()
     exports.CMD_FIND_ALL_AND_SELECT     = "cmd.findAllAndSelect";       // FindReplace.js               _findAllAndSelect()
     exports.CMD_ADD_NEXT_MATCH          = "cmd.addNextMatch";           // FindReplace.js               _expandAndAddNextToSelection()
     exports.CMD_SKIP_CURRENT_MATCH      = "cmd.skipCurrentMatch";       // FindReplace.js               _skipCurrentMatch()
     exports.CMD_REPLACE                 = "cmd.replace";                // FindReplace.js               _replace()
+    exports.CMD_REPLACE_IN_FILES        = "cmd.replaceInFiles";         // FindInFilesUI.js             _showReplaceBar()
+    exports.CMD_REPLACE_IN_SELECTED     = "cmd.replaceInSelected";      // FindInFilesUI.js             _showReplaceBarForSubtree()
+    exports.CMD_REPLACE_IN_SUBTREE      = "cmd.replaceInSubtree";       // FindInFilesUI.js             _showReplaceBarForSubtree()
     
     // VIEW
     exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";           // SidebarView.js               toggle()

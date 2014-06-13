@@ -151,6 +151,9 @@
     "cmd.findInFiles":  [
         "Ctrl-Shift-F"
     ],
+    "cmd.replaceInFiles":  [
+        "Ctrl-Alt-Shift-F"
+    ],
     "cmd.findNext":  [
         {
             "key": "F3"

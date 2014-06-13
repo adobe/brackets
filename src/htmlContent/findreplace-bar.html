@@ -1,24 +1,31 @@
-<div id="find-group"><!--
-    --><div class="search-input-container"><input type="text" id="find-what" placeholder="{{queryPlaceholder}}" value="{{initialQuery}}" /><div class="error"></div><span id="find-counter"></span></div><!--
-    --><button id="find-case-sensitive" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_CASESENSITIVE_HINT}}"><div class="button-icon"></div></button><!--
-    --><button id="find-regexp" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_REGEXP_HINT}}"><div class="button-icon"></div></button><!--
-    {{#navigator}}
-    --><div class="navigator"><!--
-        --><button id="find-prev" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_PREV_HINT}}">{{Strings.BUTTON_PREV}}</button><!--
-        --><button id="find-next" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_NEXT_HINT}}">{{Strings.BUTTON_NEXT}}</button><!--
-    --></div><!--
-    {{/navigator}}
-    -->
+<div class="find-input-group">
+    <div id="find-group"><!--
+        --><div class="search-input-container"><input type="text" id="find-what" placeholder="{{queryPlaceholder}}" value="{{initialQuery}}" /><div class="error"></div><span id="find-counter"></span></div><!--
+        --><button id="find-case-sensitive" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_CASESENSITIVE_HINT}}"><div class="button-icon"></div></button><!--
+        --><button id="find-regexp" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_REGEXP_HINT}}"><div class="button-icon"></div></button><!--
+        {{#navigator}}
+        --><div class="navigator"><!--
+            --><button id="find-prev" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_PREV_HINT}}">{{Strings.BUTTON_PREV}}</button><!--
+            --><button id="find-next" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_NEXT_HINT}}">{{Strings.BUTTON_NEXT}}</button><!--
+        --></div><!--
+        {{/navigator}}
+    --></div>
+
+    {{#replace}}
+    <div id="replace-group" {{#scope}}class="has-scope"{{/scope}}><!--
+        --><input type="text" id="replace-with" placeholder="{{Strings.REPLACE_PLACEHOLDER}}"/><!--
+        {{^replaceAllOnly}}
+        --><button id="replace-yes" class="btn no-focus" tabindex="-1">{{Strings.BUTTON_REPLACE}}</button><!--
+        {{/replaceAllOnly}}
+        --><button id="replace-all" class="btn no-focus {{#replaceAllOnly}}solo{{/replaceAllOnly}}" tabindex="-1">{{replaceAllLabel}}</button></div>
+    {{/replace}}
+</div>
+
+{{#scope}}
+<div class="scope-group">
     <div class="no-results-message">{{Strings.FIND_NO_RESULTS}}</div>
     <div class="message">
         <span id="searchlabel">{{{scopeLabel}}}</span>
     </div>
-</div><!--
-
-{{#replace}}
---><div id="replace-group"><!--
-    --><input type="text" id="replace-with" placeholder="{{Strings.REPLACE_PLACEHOLDER}}"/><!--
-    --><button id="replace-yes" class="btn no-focus" tabindex="-1">{{Strings.BUTTON_REPLACE}}</button><!--
-    --><button id="replace-all" class="btn no-focus" tabindex="-1">{{Strings.BUTTON_REPLACE_ALL}}</button><!--
---></div>
-{{/replace}}
+</div>
+{{/scope}}

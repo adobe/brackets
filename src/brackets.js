@@ -124,7 +124,7 @@ define(function (require, exports, module) {
     require("editor/EditorCommandHandlers");
     require("editor/EditorOptionHandlers");
     require("help/HelpCommandHandlers");
-    require("search/FindInFiles");
+    require("search/FindInFilesUI");
     require("search/FindReplace");
     require("extensibility/InstallExtensionDialog");
     require("extensibility/ExtensionManagerDialog");
@@ -161,16 +161,20 @@ define(function (require, exports, module) {
             Dialogs                 : Dialogs,
             DocumentCommandHandlers : DocumentCommandHandlers,
             DocumentManager         : DocumentManager,
+            DocumentModule          : require("document/Document"),
             DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
             DragAndDrop             : DragAndDrop,
             EditorManager           : EditorManager,
             ExtensionLoader         : ExtensionLoader,
             ExtensionUtils          : ExtensionUtils,
+            File                    : require("filesystem/File"),
             FileFilters             : require("search/FileFilters"),
             FileSyncManager         : FileSyncManager,
             FileSystem              : FileSystem,
             FileViewController      : FileViewController,
+            FileUtils               : require("file/FileUtils"),
             FindInFiles             : require("search/FindInFiles"),
+            FindInFilesUI           : require("search/FindInFilesUI"),
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),

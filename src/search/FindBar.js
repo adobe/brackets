@@ -53,8 +53,10 @@ define(function (require, exports, module) {
      *
      * queryChange - when the user types in the input field or sets a query option. Use getQuery()
      *      to get the current query state.
-     * doFind - when the user hits enter/shift-enter in the input field or clicks the Find Previous or Find Next button.
-     *      Parameter is a boolean, false for Find Next, true for Find Previous.
+     * doFind - when the user hits enter/shift-enter in an input field or clicks the Find Previous or Find Next button.
+     *      Parameters are:
+     *          shiftKey - boolean, false for Find Next, true for Find Previous.
+     *          replace - boolean, true if they hit enter in the Replace field
      * doReplace - when the user clicks on the Replace or Replace All button. Parameter is a boolean,
      *      false for single Replace, true for Replace All. Use getReplaceText() to get the current
      *      replacement text.
@@ -63,7 +65,9 @@ define(function (require, exports, module) {
      * @param {{navigator: boolean, replace: boolean, queryPlaceholder: string, initialQuery: string}} options
      *      Options for the Find bar. 
      *      navigator - true to show the Find Previous/Find Next buttons - default false
-     *      replace - true to show the Replace field - default false
+     *      replace - true to show the Replace controls - default false
+     *      replaceAllOnly - true to show only a Replace All button (no Replace button) - default false
+     *      scope - true to show the scope filter controls - default false
      *      queryPlaceholder - label to show in the Find field - default empty string
      *      initialQuery - query to populate in the Find field on open - default empty string
      *      scopeLabel - label to show for the scope of the search - default empty string
@@ -223,6 +227,7 @@ define(function (require, exports, module) {
         
         var templateVars = _.clone(this._options);
         templateVars.Strings = Strings;
+        templateVars.replaceAllLabel = (templateVars.replaceAllOnly ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_ALL);
         
         this._modalBar = new ModalBar(Mustache.render(_searchBarTemplate, templateVars), true);  // 2nd arg = auto-close on Esc/blur
         
@@ -249,11 +254,11 @@ define(function (require, exports, module) {
                 self._updatePrefsFromSearchBar();
                 $(self).triggerHandler("queryChange");
             })
-            .on("keydown", function (e) {
+            .on("keydown", "#find-what, #replace-with", function (e) {
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
-                    $(self).triggerHandler("doFind", e.shiftKey);
+                    $(self).triggerHandler("doFind", [e.shiftKey, (e.target.id === "replace-with")]);
                 }
             });
         
@@ -431,12 +436,28 @@ define(function (require, exports, module) {
     };
 
     /**
+     * @private
+     * Focus and select the contents of the given field.
+     * @param {string} selector The selector for the field.
+     */
+    FindBar.prototype._focus = function (selector) {
+        this.$(selector)
+            .focus()
+            .get(0).select();
+    };
+    
+    /**
      * Sets focus to the query field and selects its text.
      */
     FindBar.prototype.focusQuery = function () {
-        this.$("#find-what")
-            .focus()
-            .get(0).select();
+        this._focus("#find-what");
+    };
+    
+    /**
+     * Sets focus to the replace field and selects its text.
+     */
+    FindBar.prototype.focusReplace = function () {
+        this._focus("#replace-with");
     };
     
     PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);

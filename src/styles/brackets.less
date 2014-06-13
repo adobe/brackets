@@ -967,7 +967,7 @@ a, img {
 
 /* Find in Files results panel - temporary UI, to be replaced with a richer search feature later */
 
-#search-results .title, #replace-all-results .title {
+.search-results .title {
     .sane-box-model;
     padding-right: 20px;
     width: 100%;
@@ -984,7 +984,7 @@ a, img {
         .flex-item(0, 0);
     }
     .pagination-col {
-        .flex-item(1, 0);
+        .flex-item(0, 0);
         min-width: 100px;
         word-spacing: 0;
     }
@@ -1033,7 +1033,8 @@ a, img {
     }
 }
 
-#search-results .disclosure-triangle, #problems-panel .disclosure-triangle {
+.search-results .disclosure-triangle,
+#problems-panel .disclosure-triangle {
     .jstree-sprite;
     display: inline-block;
     &.expanded {
@@ -1110,6 +1111,7 @@ a, img {
             left: 5px;
             top: 24px;
             min-width: 291px + 2px;  // to align with search field above it
+            z-index: 1; // to appear above any controls that wrap below
 
             background-color: @bc-error;
             color: @bc-white;
@@ -1132,9 +1134,21 @@ a, img {
         }
     }
 
+    .find-input-group {
+        display: inline-block;
+    }
     #find-group, #replace-group {
         display: inline-block;
         white-space: nowrap;
+    }
+    #replace-group.has-scope {
+        // If scope controls are showing, force the replace controls to a second line.
+        display: block;
+    }
+    
+    .scope-group {
+        display: inline-block;
+        margin-left: 10px;
     }
 
     .message, .no-results-message {
@@ -1182,6 +1196,10 @@ a, img {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
         margin-left: 0;
+    }
+    #replace-all.solo {
+        border-left: none;
+        margin-left: 0px;
     }
 
     // Make find field snug with options buttons

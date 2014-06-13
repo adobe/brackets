@@ -38,11 +38,14 @@ define(function (require, exports, module) {
         AppInit             = require("utils/AppInit"),
         Commands            = require("command/Commands"),
         DocumentManager     = require("document/DocumentManager"),
+        ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
         FindBar             = require("search/FindBar").FindBar,
+        FindUtils           = require("search/FindUtils"),
+        FindInFilesUI       = require("search/FindInFilesUI"),
         ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
         PanelManager        = require("view/PanelManager"),
         Resizer             = require("utils/Resizer"),
@@ -51,9 +54,6 @@ define(function (require, exports, module) {
         _                   = require("thirdparty/lodash"),
         CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror");
     
-    var searchReplacePanelTemplate   = require("text!htmlContent/search-replace-panel.html"),
-        searchReplaceResultsTemplate = require("text!htmlContent/search-replace-results.html");
-
     /** @const Maximum file size to search within (in chars) */
     var FIND_MAX_FILE_SIZE  = 500000;
 
@@ -61,26 +61,13 @@ define(function (require, exports, module) {
     var FIND_HIGHLIGHT_MAX  = 2000;
 
     /** @const Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced */
-    var REPLACE_ALL_MAX     = 300;
+    var REPLACE_ALL_MAX     = 10000;
     
-    /** @type {!Panel} Panel that shows results of replaceAll action */
-    var replaceAllPanel = null;
-
     /** @type {?Document} Instance of the currently opened document when replaceAllPanel is visible */
     var currentDocument = null;
 
-    /** @type {$.Element} jQuery elements used in the replaceAll panel */
-    var $replaceAllContainer,
-        $replaceAllWhat,
-        $replaceAllWith,
-        $replaceAllSummary,
-        $replaceAllTable;
-
     /** @type {?FindBar} Currently open Find or Find/Replace bar, if any */
     var findBar;
-    
-    /** @type {!function():void} API from FindInFiles for closing its conflicting search bar, if open */
-    var closeFindInFilesBar;
     
     function SearchState() {
         this.searchStartPos = null;
@@ -140,24 +127,6 @@ define(function (require, exports, module) {
         } else {
             state.query = parseQuery(queryInfo);
         }
-    }
-
-    // NOTE: we can't just use the ordinary replace() function here because the string has been
-    // extracted from the original text and so might be missing some context that the regexp matched.
-    function parseDollars(replaceWith, match) {
-        replaceWith = replaceWith.replace(/(\$+)(\d{1,2}|&)/g, function (whole, dollars, index) {
-            var parsedIndex = parseInt(index, 10);
-            if (dollars.length % 2 === 1) { // check if dollar signs escape themselves (for example $$1, $$$$&)
-                if (index === "&") { // handle $&
-                    return dollars.substr(1) + (match[0] || "");
-                } else if (parsedIndex !== 0) { // handle $n or $nn, don't handle $0 or $00
-                    return dollars.substr(1) + (match[parsedIndex] || "");
-                }
-            }
-            return whole;
-        });
-        replaceWith = replaceWith.replace(/\$\$/g, "$"); // replace escaped dollar signs (for example $$) with single ones
-        return replaceWith;
     }
 
     /**
@@ -637,17 +606,6 @@ define(function (require, exports, module) {
         openSearchBar(editor, false);
     }
 
-    /**
-     * @private
-     * Closes a panel with search-replace results.
-     * Main purpose is to make sure that events are correctly detached from current document.
-     */
-    function _closeReplaceAllPanel() {
-        if (replaceAllPanel !== null && replaceAllPanel.isVisible()) {
-            replaceAllPanel.hide();
-        }
-        $(currentDocument).off("change.replaceAll");
-    }
     
     /**
      * @private
@@ -658,105 +616,6 @@ define(function (require, exports, module) {
         if (findBar) {
             findBar.close();
         }
-        _closeReplaceAllPanel();
-    }
-
-    /**
-     * @private
-     * Shows a panel with search results and offers to replace them,
-     * user can use checkboxes to select which results he wishes to replace.
-     * @param {Editor} editor - Currently active editor that was used to invoke this action.
-     * @param {string|RegExp} replaceWhat - Query that will be passed into CodeMirror Cursor to search for results.
-     * @param {string} replaceWith - String that should be used to replace chosen results.
-     */
-    function _showReplaceAllPanel(editor, replaceWhat, queryInfo, replaceWith) {
-        var results = [],
-            cm      = editor._codeMirror,
-            cursor  = getSearchCursor(cm, replaceWhat, queryInfo),
-            from,
-            to,
-            line,
-            multiLine,
-            matchResult = cursor.findNext();
-
-        // Collect all results from document
-        while (matchResult) {
-            from      = cursor.from();
-            to        = cursor.to();
-            line      = editor.document.getLine(from.line);
-            multiLine = from.line !== to.line;
-
-            results.push({
-                index:     results.length, // add indexes to array
-                from:      from,
-                to:        to,
-                line:      from.line + 1,
-                pre:       line.slice(0, from.ch),
-                highlight: line.slice(from.ch, multiLine ? undefined : to.ch),
-                post:      multiLine ? "\u2026" : line.slice(to.ch),
-                result:    matchResult
-            });
-
-            if (results.length >= REPLACE_ALL_MAX) {
-                break;
-            }
-            
-            matchResult = cursor.findNext();
-        }
-
-        // This text contains some formatting, so all the strings are assumed to be already escaped
-        var resultsLength = results.length,
-            summary = StringUtils.format(
-                Strings.FIND_REPLACE_TITLE_PART3,
-                resultsLength,
-                resultsLength > 1 ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
-                resultsLength >= REPLACE_ALL_MAX ? Strings.FIND_IN_FILES_MORE_THAN : ""
-            );
-
-        // Insert the search summary
-        $replaceAllWhat.text(replaceWhat.toString());
-        $replaceAllWith.text(replaceWith.toString());
-        $replaceAllSummary.html(summary);
-
-        // All checkboxes are checked by default
-        $replaceAllContainer.find(".check-all").prop("checked", true);
-
-        // Attach event to replace button
-        $replaceAllContainer.find("button.replace-checked").off().on("click", function (e) {
-            $replaceAllTable.find(".check-one:checked")
-                .closest(".replace-row")
-                .toArray()
-                .reverse()
-                .forEach(function (checkedRow) {
-                    var match = results[$(checkedRow).data("match")],
-                        rw    = typeof replaceWhat === "string" ? replaceWith : parseDollars(replaceWith, match.result);
-                    editor.document.replaceRange(rw, match.from, match.to, "+replaceAll");
-                });
-            _closeReplaceAllPanel();
-        });
-
-        // Insert the search results
-        $replaceAllTable
-            .empty()
-            .append(Mustache.render(searchReplaceResultsTemplate, {searchResults: results}))
-            .off()
-            .on("click", ".check-one", function (e) {
-                e.stopPropagation();
-            })
-            .on("click", ".replace-row", function (e) {
-                var match = results[$(e.currentTarget).data("match")];
-                editor.setSelection(match.from, match.to, true);
-            });
-
-        // we can't safely replace after document has been modified
-        // this handler is only attached, when replaceAllPanel is visible
-        currentDocument = DocumentManager.getCurrentDocument();
-        $(currentDocument).on("change.replaceAll", function () {
-            _closeReplaceAllPanel();
-        });
-
-        replaceAllPanel.show();
-        $replaceAllTable.scrollTop(0); // Otherwise scroll pos from previous contents is remembered
     }
     
     function doReplace(editor, all) {
@@ -766,9 +625,10 @@ define(function (require, exports, module) {
         
         if (all) {
             findBar.close();
-            _showReplaceAllPanel(editor, state.query, state.queryInfo, replaceText);
+            // Delegate to Replace in Files.
+            FindInFilesUI.searchAndShowResults(state.queryInfo, editor.document.file, null, replaceText);
         } else {
-            cm.replaceSelection(typeof state.query === "string" ? replaceText : parseDollars(replaceText, state.lastMatch));
+            cm.replaceSelection(typeof state.query === "string" ? replaceText : FindUtils.parseDollars(replaceText, state.lastMatch));
 
             updateResultSet(editor);  // we updated the text, so result count & tickmarks must be refreshed
 
@@ -823,28 +683,7 @@ define(function (require, exports, module) {
             replace(editor);
         }
     }
-
-    // Initialize items dependent on HTML DOM
-    AppInit.htmlReady(function () {
-        var panelHtml        = Mustache.render(searchReplacePanelTemplate, Strings);
-        replaceAllPanel      = PanelManager.createBottomPanel("findReplace-all.panel", $(panelHtml), 100);
-        $replaceAllContainer = replaceAllPanel.$panel;
-        $replaceAllWhat      = $replaceAllContainer.find(".replace-what");
-        $replaceAllWith      = $replaceAllContainer.find(".replace-with");
-        $replaceAllSummary   = $replaceAllContainer.find(".replace-summary");
-        $replaceAllTable     = $replaceAllContainer.children(".table-container");
-
-        // Attach events to the panel
-        replaceAllPanel.$panel
-            .on("click", ".close", function () {
-                _closeReplaceAllPanel();
-            })
-            .on("click", ".check-all", function (e) {
-                var isChecked = $(this).is(":checked");
-                replaceAllPanel.$panel.find(".check-one").prop("checked", isChecked);
-            });
-    });
-
+    
     $(DocumentManager).on("currentDocumentChange", _handleDocumentChange);
 
     CommandManager.register(Strings.CMD_FIND,                   Commands.CMD_FIND,                  _launchFind);
