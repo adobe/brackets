@@ -218,9 +218,9 @@ define(function (require, exports, module) {
                 }, "display file count");
 
                 runs(function () {
-                    // Dismiss filter dialog
-                    $dlg.find(".btn.primary").click();
-
+                    // Dismiss filter dialog (OK button is disabled, have to click on Cancel)
+                    $dlg.find(".dialog-button[data-button-id='cancel']").click();
+                    
                     // Close search bar
                     var $searchField = $(".modal-bar #find-group input");
                     SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keydown", $searchField[0]);
