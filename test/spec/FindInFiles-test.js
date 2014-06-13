@@ -1396,8 +1396,8 @@ define(function (require, exports, module) {
 
                     it("should do a search in folder, replace all from find bar", function () {
                         openTestProjectCopy(defaultSourcePath);
-                        var dirEntry = FileSystem.getDirectoryForPath(defaultSourcePath + "/css/");
-                        openSearchBar(null, true);
+                        var dirEntry = FileSystem.getDirectoryForPath(testPath + "/css/");
+                        openSearchBar(dirEntry, true);
                         executeReplace("foo", "bar", true);
 
                         waitsFor(function () {
@@ -1420,8 +1420,8 @@ define(function (require, exports, module) {
 
                     it("should do a search in file, replace all from find bar", function () {
                         openTestProjectCopy(defaultSourcePath);
-                        var dirEntry = FileSystem.getDirectoryForPath(defaultSourcePath + "/css/foo.css");
-                        openSearchBar(null, true);
+                        var fileEntry = FileSystem.getFileForPath(testPath + "/css/foo.css");
+                        openSearchBar(fileEntry, true);
                         executeReplace("foo", "bar", true);
 
                         waitsFor(function () {
