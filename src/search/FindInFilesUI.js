@@ -25,13 +25,9 @@
 /*global define, $, window, Mustache */
 
 /*
- * Adds a "find in files" command to allow the user to find all occurrences of a string in all files in
- * the project.
- * 
- * The keyboard shortcut is Cmd(Ctrl)-Shift-F.
+ * UI and controller logic for find/replace across multiple files within the project.
  *
  * FUTURE:
- *  - Search files in working set that are *not* in the project
  *  - Handle matches that span multiple lines
  */
 define(function (require, exports, module) {
@@ -44,6 +40,7 @@ define(function (require, exports, module) {
         DefaultDialogs    = require("widgets/DefaultDialogs"),
         EditorManager     = require("editor/EditorManager"),
         FileFilters       = require("search/FileFilters"),
+        FileUtils         = require("file/FileUtils"),
         FindBar           = require("search/FindBar").FindBar,
         FindInFiles       = require("search/FindInFiles"),
         FindUtils         = require("search/FindUtils"),
@@ -76,7 +73,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
      */
     function searchAndShowResults(queryInfo, scope, filter, replaceText, candidateFilesPromise) {
-        FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
+        return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
             .done(function (zeroFilesToken) {
                 // Done searching all files: show results
                 if (FindInFiles.searchModel.hasResults()) {
@@ -263,7 +260,7 @@ define(function (require, exports, module) {
         
         // Clone the search results so that they don't get updated in the middle of the replacement.
         var resultsClone = _.cloneDeep(model.results),
-            replacedFiles = _.filter(Object.keys(resultsClone), function (path) {
+            replacedFiles = Object.keys(resultsClone).filter(function (path) {
                 return FindUtils.hasCheckedMatches(resultsClone[path]);
             }),
             isRegexp = model.queryInfo.isRegexp,
@@ -273,8 +270,8 @@ define(function (require, exports, module) {
             StatusBar.showBusyIndicator(true);
             FindInFiles.doReplace(resultsClone, replaceText, { forceFilesOpen: forceFilesOpen, isRegexp: isRegexp })
                 .fail(function (errors) {
-                    var message = Strings.REPLACE_IN_FILES_ERRORS + StringUtils.makeDialogFileList(
-                            _.map(errors, function (errorInfo) {
+                    var message = Strings.REPLACE_IN_FILES_ERRORS + FileUtils.makeDialogFileList(
+                            errors.map(function (errorInfo) {
                                 return ProjectManager.makeProjectRelativeIfPossible(errorInfo.item);
                             })
                         );
@@ -370,7 +367,7 @@ define(function (require, exports, module) {
         var model = FindInFiles.searchModel;
         _resultsView = new SearchResultsView(model, "find-in-files-results", "find-in-files.results");
         $(_resultsView)
-            .on("doReplaceAll", function () {
+            .on("replaceAll", function () {
                 _finishReplaceAll(model);
             })
             .on("close", function () {

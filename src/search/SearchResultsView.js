@@ -23,6 +23,9 @@
 
 /*global define, $, window, Mustache */
 
+/*
+ * Panel showing search results for a Find/Replace in Files operation.
+ */
 define(function (require, exports, module) {
     "use strict";
     
@@ -41,13 +44,22 @@ define(function (require, exports, module) {
         
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html"),
-        searchPagingTemplate  = require("text!htmlContent/search-summary-paging.html"),
         searchSummaryTemplate = require("text!htmlContent/search-summary.html");
     
     
-    /** @const Constants used to define the maximum results show per page and found in a single file */
-    var RESULTS_PER_PAGE = 100,
-        UPDATE_TIMEOUT   = 400;
+    /** 
+     * @const 
+     * The maximum results to show per page.
+     * @type {number}
+     */
+    var RESULTS_PER_PAGE = 100;
+    
+    /**
+     * @const
+     * Debounce time for document changes updating the search results view.
+     * @type {number}
+     */
+    var UPDATE_TIMEOUT   = 400;
     
     /**
      * @constructor
@@ -74,7 +86,7 @@ define(function (require, exports, module) {
     
     /**
      * Array with content used in the Results Panel
-     * @type {Array.<{file: number, filename: string, fullPath: string, items: Array.<Object>}>}
+     * @type {Array.<{fileIndex: number, filename: string, fullPath: string, items: Array.<Object>}>}
      */
     SearchResultsView.prototype._searchList = [];
     
@@ -163,7 +175,7 @@ define(function (require, exports, module) {
             
             // Add the file to the working set on double click
             .on("dblclick.searchResults", ".table-container tr:not(.file-section)", function (e) {
-                var item = self._searchList[$(this).data("file")];
+                var item = self._searchList[$(this).data("file-index")];
                 FileViewController.addToWorkingSetAndSelect(item.fullPath);
             })
         
@@ -178,7 +190,7 @@ define(function (require, exports, module) {
                     $row.addClass("selected");
                     self._$selectedRow = $row;
 
-                    var searchItem = self._searchList[$row.data("file")],
+                    var searchItem = self._searchList[$row.data("file-index")],
                         fullPath   = searchItem.fullPath;
 
                     // This is a file title row, expand/collapse on click
@@ -194,7 +206,7 @@ define(function (require, exports, module) {
                         }
 
                         $titleRows.each(function () {
-                            fullPath   = self._searchList[$(this).data("file")].fullPath;
+                            fullPath   = self._searchList[$(this).data("file-index")].fullPath;
                             searchItem = self._model.results[fullPath];
 
                             if (searchItem.collapsed !== collapsed) {
@@ -214,7 +226,7 @@ define(function (require, exports, module) {
                     // This is a file row, show the result on click
                     } else {
                         // Grab the required item data
-                        var item = searchItem.items[$row.data("item")];
+                        var item = searchItem.items[$row.data("item-index")];
 
                         CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath})
                             .done(function (doc) {
@@ -241,8 +253,8 @@ define(function (require, exports, module) {
                 })
                 .on("click.searchResults", ".check-one", function (e) {
                     var $row = $(e.target).closest("tr"),
-                        item = self._searchList[$row.data("file")],
-                        match = self._model.results[item.fullPath].matches[$row.data("index")],
+                        item = self._searchList[$row.data("file-index")],
+                        match = self._model.results[item.fullPath].matches[$row.data("match-index")],
                         $checkAll = self._panel.$panel.find(".check-all");
 
                     match.isChecked = $(this).is(":checked");
@@ -252,7 +264,7 @@ define(function (require, exports, module) {
                     e.stopPropagation();
                 })
                 .on("click.searchResults", ".replace-checked", function (e) {
-                    $(self).triggerHandler("doReplaceAll");
+                    $(self).triggerHandler("replaceAll");
                 });
         }
     };
@@ -285,8 +297,8 @@ define(function (require, exports, module) {
         );
 
         this._$summary.html(Mustache.render(searchSummaryTemplate, {
-            query:       _.escape((this._model.queryInfo.query && this._model.queryInfo.query.toString()) || ""),
-            replaceWith: _.escape(this._model.replaceText),
+            query:       (this._model.queryInfo.query && this._model.queryInfo.query.toString()) || "",
+            replaceWith: this._model.replaceText,
             titleLabel:  this._model.isReplace ? Strings.FIND_REPLACE_TITLE_LABEL : Strings.FIND_TITLE_LABEL,
             scope:       this._model.scope ? "&nbsp;" + FindUtils.labelForScope(this._model.scope) + "&nbsp;" : "",
             summary:     summary,
@@ -297,7 +309,7 @@ define(function (require, exports, module) {
             hasNext:     lastIndex < count.matches,
             replace:     this._model.isReplace,
             Strings:     Strings
-        }, { paging: searchPagingTemplate }));
+        }));
     };
     
     /**
@@ -355,16 +367,16 @@ define(function (require, exports, module) {
                     multiLine = match.start.line !== match.end.line;
                     
                     searchItems.push({
-                        file:      self._searchList.length,
-                        item:      searchItems.length,
-                        index:     i,
-                        line:      match.start.line + 1,
-                        pre:       match.line.substr(0, match.start.ch),
-                        highlight: match.line.substring(match.start.ch, multiLine ? undefined : match.end.ch),
-                        post:      multiLine ? "\u2026" : match.line.substr(match.end.ch),
-                        start:     match.start,
-                        end:       match.end,
-                        isChecked: match.isChecked
+                        fileIndex:  self._searchList.length,
+                        itemIndex:  searchItems.length,
+                        matchIndex: i,
+                        line:       match.start.line + 1,
+                        pre:        match.line.substr(0, match.start.ch),
+                        highlight:  match.line.substring(match.start.ch, multiLine ? undefined : match.end.ch),
+                        post:       multiLine ? "\u2026" : match.line.substr(match.end.ch),
+                        start:      match.start,
+                        end:        match.end,
+                        isChecked:  match.isChecked
                     });
                     matchesCounter++;
                     i++;
@@ -381,10 +393,10 @@ define(function (require, exports, module) {
                     );
 
                 self._searchList.push({
-                    file:     self._searchList.length,
-                    filename: displayFileName,
-                    fullPath: fullPath,
-                    items:    searchItems
+                    fileIndex: self._searchList.length,
+                    filename:  displayFileName,
+                    fullPath:  fullPath,
+                    items:     searchItems
                 });
             }
         });
@@ -400,7 +412,7 @@ define(function (require, exports, module) {
             }))
             // Restore the collapsed files
             .find(".file-section").each(function () {
-                var fullPath = self._searchList[$(this).data("file")].fullPath;
+                var fullPath = self._searchList[$(this).data("file-index")].fullPath;
 
                 if (self._model.results[fullPath].collapsed) {
                     self._model.results[fullPath].collapsed = false;
@@ -421,6 +433,8 @@ define(function (require, exports, module) {
      * Updates the results view after a model change, preserving scroll position and selection.
      */
     SearchResultsView.prototype._updateResults = function () {
+        // In general this shouldn't get called if the panel is closed, but in case some
+        // asynchronous process kicks this (e.g. a debounced model change), we double-check.
         if (this._panel.isVisible()) {
             var scrollTop  = this._$table.scrollTop(),
                 index      = this._$selectedRow ? this._$selectedRow.index() : null,
@@ -442,7 +456,7 @@ define(function (require, exports, module) {
         
     /**
      * @private
-     * Returns the last result index displayed
+     * Returns one past the last result index displayed for the current page.
      * @param {number} numMatches
      * @return {number}
      */

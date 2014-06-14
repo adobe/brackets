@@ -79,7 +79,7 @@ define(function (require, exports, module) {
 
     /**
      * The file/folder path representing the scope that this query was performed in.
-     * @type {string}
+     * @type {FileSystemEntry}
      */
     SearchModel.prototype.scope = null;
     
@@ -121,8 +121,8 @@ define(function (require, exports, module) {
         this.queryInfo = queryInfo;
         this.queryExpr = null;
         
-        // TODO: only apparent difference between this one and the one in FindReplace is that this one returns
-        // null instead of "" for a bad query, and this always returns a regexp even for simple strings. Reconcile.
+        // TODO: only major difference between this one and the one in FindReplace is that 
+        // this always returns a regexp even for simple strings. Reconcile.
         if (!queryInfo || !queryInfo.query) {
             return {empty: true};
         }
@@ -151,12 +151,13 @@ define(function (require, exports, module) {
 
     /**
      * Adds the given result matches to the search results
-     * @param {string} fullpath
-     * @param {Array.<Object>} matches
-     * @return true if at least some matches were added, false if we've hit the limit on how many can be added
+     * @param {string} fullpath Full path to the file containing the matches.
+     * @param {!Array.<Object>} matches Array of matches, in the format returned by FindInFiles._getSearchMatches()
+     * @param {!Date} timestamp The timestamp of the document at the time we searched it.
+     * @return {boolean} true if at least some matches were added, false if we've hit the limit on how many can be added
      */
     SearchModel.prototype.addResultMatches = function (fullpath, matches, timestamp) {
-        if (this.foundMaximum) {
+        if (this.foundMaximum || !matches.length) {
             return false;
         }
         
@@ -175,7 +176,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * @return true if there are any results in this model.
+     * @return {boolean} true if there are any results in this model.
      */
     SearchModel.prototype.hasResults = function () {
         return Object.keys(this.results).length > 0;
@@ -201,10 +202,7 @@ define(function (require, exports, module) {
      * @return {Array.<string>}
      */
     SearchModel.prototype.getSortedFiles = function (firstFile) {
-        var searchFiles = Object.keys(this.results),
-            self        = this;
-
-        searchFiles.sort(function (key1, key2) {
+        return Object.keys(this.results).sort(function (key1, key2) {
             if (firstFile === key1) {
                 return -1;
             } else if (firstFile === key2) {
@@ -212,8 +210,6 @@ define(function (require, exports, module) {
             }
             return FileUtils.comparePaths(key1, key2);
         });
-
-        return searchFiles;
     };
 
     /**

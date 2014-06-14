@@ -211,7 +211,7 @@ define(function (require, exports, module) {
                     expectedMessage = StringUtils.format(Strings.FILTER_FILE_COUNT_ALL, 0, Strings.FIND_IN_FILES_NO_SCOPE);
                 });
 
-                // Message loads asynchronously, but dialog should evetually state: "Allows all 0 files in project"
+                // Message loads asynchronously, but dialog should eventually state: "Allows all 0 files in project"
                 waitsFor(function () {
                     actualMessage   = $dlg.find(".exclusions-filecount").text();
                     return (actualMessage === expectedMessage);
@@ -541,16 +541,16 @@ define(function (require, exports, module) {
                 
                 // Check for presence of file and first/last item rows within each file
                 options.matchRanges.forEach(function (range) {
-                    var $fileRow = $("#find-in-files-results tr.file-section[data-file='" + range.file + "']");
+                    var $fileRow = $("#find-in-files-results tr.file-section[data-file-index='" + range.file + "']");
                     expect($fileRow.length).toBe(1);
                     expect($fileRow.find(".dialog-filename").text()).toEqual(range.filename);
                     
-                    var $firstMatchRow = $("#find-in-files-results tr[data-file='" + range.file + "'][data-item='" + range.first + "']");
+                    var $firstMatchRow = $("#find-in-files-results tr[data-file-index='" + range.file + "'][data-item-index='" + range.first + "']");
                     expect($firstMatchRow.length).toBe(1);
                     expect($firstMatchRow.find(".line-number").text().match("\\b" + range.firstLine + "\\b")).toBeTruthy();
                     expect($firstMatchRow.find(".line-text").text().match(range.pattern)).toBeTruthy();
 
-                    var $lastMatchRow = $("#find-in-files-results tr[data-file='" + range.file + "'][data-item='" + range.last + "']");
+                    var $lastMatchRow = $("#find-in-files-results tr[data-file-index='" + range.file + "'][data-item-index='" + range.last + "']");
                     expect($lastMatchRow.length).toBe(1);
                     expect($lastMatchRow.find(".line-number").text().match("\\b" + range.lastLine + "\\b")).toBeTruthy();
                     expect($lastMatchRow.find(".line-text").text().match(range.pattern)).toBeTruthy();

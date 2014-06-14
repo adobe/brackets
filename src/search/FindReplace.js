@@ -67,12 +67,6 @@ define(function (require, exports, module) {
     var FIND_HIGHLIGHT_MAX  = 2000;
 
     /**
-     * Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced
-     * @const {number}
-     */
-    var REPLACE_ALL_MAX     = 10000;
-    
-    /**
      * Instance of the currently opened document when replaceAllPanel is visible
      * @type {?Document}
      */

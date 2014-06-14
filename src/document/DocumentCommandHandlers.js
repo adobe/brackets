@@ -1174,7 +1174,7 @@ define(function (require, exports, module) {
             
         } else {
             // Multiple unsaved files: show a single bulk prompt listing all files
-            var message = Strings.SAVE_CLOSE_MULTI_MESSAGE + StringUtils.makeDialogFileList(_.map(unsavedDocs, _shortTitleForDocument));
+            var message = Strings.SAVE_CLOSE_MULTI_MESSAGE + FileUtils.makeDialogFileList(_.map(unsavedDocs, _shortTitleForDocument));
             
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
@@ -1232,9 +1232,12 @@ define(function (require, exports, module) {
     /**
      * Closes all open documents; equivalent to calling handleFileClose() for each document, except
      * that unsaved changes are confirmed once, in bulk.
-     * @param {?{promptOnly: boolean}}  If true, only displays the relevant confirmation UI and does NOT
+     * @param {?{promptOnly: boolean, _forceClose: boolean}}
+     *          If promptOnly is true, only displays the relevant confirmation UI and does NOT
      *          actually close any documents. This is useful when chaining close-all together with
      *          other user prompts that may be cancelable.
+     *          If _forceClose is true, forces the files to close with no confirmation even if dirty. 
+     *          Should only be used for unit test cleanup.
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {

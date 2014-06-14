@@ -79,15 +79,15 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Searches through the contents an returns an array of matches
+     * Searches through the contents and returns an array of matches
      * @param {string} contents
      * @param {RegExp} queryExpr
-     * @return {Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, line: string}>}
+     * @return {!Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, line: string}>}
      */
     function _getSearchMatches(contents, queryExpr) {
         // Quick exit if not found or if we hit the limit
         if (searchModel.foundMaximum || contents.search(queryExpr) === -1) {
-            return null;
+            return [];
         }
         
         var match, lineNum, line, ch, matchLength,
@@ -129,13 +129,14 @@ define(function (require, exports, module) {
      * Searches and stores the match results for the given file, if there are matches
      * @param {string} fullPath
      * @param {string} contents
-     * @param {RegExp} queryExpr
+     * @param {!RegExp} queryExpr
+     * @param {!Date} timestamp
      * @return {boolean} True iff the matches were added to the search results
      */
     function _addSearchMatches(fullPath, contents, queryExpr, timestamp) {
         var matches = _getSearchMatches(contents, queryExpr);
         
-        if (matches && matches.length) {
+        if (matches.length) {
             searchModel.addResultMatches(fullPath, matches, timestamp);
             return true;
         }
@@ -201,7 +202,7 @@ define(function (require, exports, module) {
 
                 // Searches only over the lines that changed
                 matches = _getSearchMatches(lines.join("\r\n"), searchModel.queryExpr);
-                if (matches && matches.length) {
+                if (matches.length) {
                     // Updates the line numbers, since we only searched part of the file
                     matches.forEach(function (value, key) {
                         matches[key].start.line += change.from.line;
@@ -232,7 +233,8 @@ define(function (require, exports, module) {
         });
         
         if (resultsChanged) {
-            searchModel.fireChanged();
+            // Debounce document changes since the user might be typing quickly.
+            searchModel.fireChanged(true);
         }
     }
     
@@ -270,6 +272,8 @@ define(function (require, exports, module) {
     /**
      * Finds all candidate files to search in the given scope's subtree that are not binary content. Does NOT apply
      * the current filter yet.
+     * @param {?FileSystemEntry} scope Search scope, or null if whole project
+     * @return {$.Promise} A promise that will be resolved with the list of files in the scope. Never rejected.
      */
     function getCandidateFiles(scope) {
         function filter(file) {
@@ -278,8 +282,7 @@ define(function (require, exports, module) {
         
         // If the scope is a single file, just check if the file passes the filter directly rather than
         // trying to use ProjectManager.getAllFiles(), both for performance and because an individual
-        // in-memory file might be an untitled document or external file that doesn't show up in
-        // getAllFiles().
+        // in-memory file might be an untitled document that doesn't show up in getAllFiles().
         if (scope && scope.isFile) {
             return new $.Deferred().resolve(filter(scope) ? [scope] : []).promise();
         } else {
@@ -437,7 +440,8 @@ define(function (require, exports, module) {
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object
      * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
      * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
-     * @param {?string} replaceText If this is a replacement, the text to replace matches with.
+     * @param {?string} replaceText If this is a replacement, the text to replace matches with. This is just
+     *      stored in the model for later use - the replacement is not actually performed right now.
      * @param {?$.Promise} candidateFilesPromise If specified, a promise that should resolve with the same set of files that
      *      getCandidateFiles(scope) would return.
      * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
@@ -487,7 +491,7 @@ define(function (require, exports, module) {
         
         // Update the search results
         _.forEach(searchModel.results, function (item, fullPath) {
-            if (fullPath.match(oldName)) {
+            if (fullPath.indexOf(oldName) === 0) {
                 searchModel.results[fullPath.replace(oldName, newName)] = item;
                 delete searchModel.results[fullPath];
                 resultsChanged = true;
