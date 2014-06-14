@@ -56,18 +56,17 @@ define(function (require, exports, module) {
      *
      * - queryChange - when the user types in the input field or sets a query option. Use getQueryInfo()
      *      to get the current query state.
-     * - doFind - when the user hits enter/shift-enter in an input field or clicks the Find Previous or Find Next button.
+     * - doFind - when the user chooses to do a Find Previous or Find Next.
      *      Parameters are:
-     *          shiftKey - boolean, false for Find Next, true for Find Previous.
-     *          replace - boolean, true if they hit enter in the Replace field
-     * - doReplace - when the user clicks on the Replace or Replace All button. Parameter is a boolean,
-     *      false for single Replace, true for Replace All. Use getReplaceText() to get the current
-     *      replacement text.
+     *          shiftKey - boolean, false for Find Next, true for Find Previous
+     * - doReplace - when the user chooses to do a single replace. Use getReplaceText() to get the current replacement text.
+     * - doReplaceAll - when the user chooses to initiate a Replace All. Use getReplaceText() to get the current replacement text.
      *-  close - when the find bar is closed
      *
      * @param {boolean=} options.navigator - true to show the Find Previous/Find Next buttons - default false
      * @param {boolean=} options.replace - true to show the Replace controls - default false
-     * @param {boolean=} options.replaceAllOnly - true to show only a Replace All button (no Replace button) - default false
+     * @param {boolean=} options.multifile - true if this is a Find/Replace in Files (changes the behavior of Enter in
+     *      the fields and hides the Replace button, so there's only Replace All)
      * @param {boolean=} options.scope - true to show the scope filter controls - default false
      * @param {string=}  options.queryPlaceholder - label to show in the Find field - default empty string
      * @param {string=}  options.initialQuery - query to populate in the Find field on open - default empty string
@@ -77,6 +76,7 @@ define(function (require, exports, module) {
         var defaults = {
             navigator: false,
             replace: false,
+            multifile: false,
             queryPlaceholder: "",
             initialQuery: "",
             scopeLabel: ""
@@ -231,7 +231,7 @@ define(function (require, exports, module) {
         
         var templateVars = _.clone(this._options);
         templateVars.Strings = Strings;
-        templateVars.replaceAllLabel = (templateVars.replaceAllOnly ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_ALL);
+        templateVars.replaceAllLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_ALL);
         
         this._modalBar = new ModalBar(Mustache.render(_searchBarTemplate, templateVars), true);  // 2nd arg = auto-close on Esc/blur
         
@@ -262,7 +262,23 @@ define(function (require, exports, module) {
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
-                    $(self).triggerHandler("doFind", [e.shiftKey, (e.target.id === "replace-with")]);
+                    if (self._options.multifile) {
+                        if ($(e.target).is("#find-what")) {
+                            if (self._options.replace) {
+                                // Just set focus to the Replace field.
+                                self.focusReplace();
+                            } else {
+                                // Trigger a Find (which really means "Find All" in this context).
+                                $(self).triggerHandler("doFind");
+                            }
+                        } else {
+                            $(self).triggerHandler("doReplaceAll");
+                        }
+                    } else {
+                        // In the single file case, we just want to trigger a Find Next (or Find Previous
+                        // if Shift is held down).
+                        $(self).triggerHandler("doFind", [e.shiftKey]);
+                    }
                 }
             });
         
@@ -282,10 +298,10 @@ define(function (require, exports, module) {
             this._addShortcutToTooltip($("#replace-yes"), Commands.CMD_REPLACE);
             $root
                 .on("click", "#replace-yes", function (e) {
-                    $(self).triggerHandler("doReplace", false);
+                    $(self).triggerHandler("doReplace");
                 })
                 .on("click", "#replace-all", function (e) {
-                    $(self).triggerHandler("doReplace", true);
+                    $(self).triggerHandler("doReplaceAll");
                 })
                 // One-off hack to make Find/Replace fields a self-contained tab cycle
                 // TODO: remove once https://trello.com/c/lTSJgOS2 implemented

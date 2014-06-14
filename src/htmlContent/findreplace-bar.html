@@ -14,10 +14,10 @@
     {{#replace}}
     <div id="replace-group" {{#scope}}class="has-scope"{{/scope}}><!--
         --><input type="text" id="replace-with" placeholder="{{Strings.REPLACE_PLACEHOLDER}}"/><!--
-        {{^replaceAllOnly}}
+        {{^multifile}}
         --><button id="replace-yes" class="btn no-focus" tabindex="-1">{{Strings.BUTTON_REPLACE}}</button><!--
-        {{/replaceAllOnly}}
-        --><button id="replace-all" class="btn no-focus {{#replaceAllOnly}}solo{{/replaceAllOnly}}" tabindex="-1">{{replaceAllLabel}}</button></div>
+        {{/multifile}}
+        --><button id="replace-all" class="btn no-focus {{#multifile}}solo{{/multifile}}" tabindex="-1">{{replaceAllLabel}}</button></div>
     {{/replace}}
 </div>
 

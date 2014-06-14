@@ -149,7 +149,7 @@ define(function (require, exports, module) {
         _findBar = new FindBar({
             navigator: false,
             replace: showReplace,
-            replaceAllOnly: showReplace,
+            multifile: showReplace,
             scope: true,
             initialQuery: initialString,
             queryPlaceholder: (showReplace ? Strings.CMD_REPLACE_IN_SUBTREE : Strings.CMD_FIND_IN_SUBTREE),
@@ -210,15 +210,8 @@ define(function (require, exports, module) {
         }
         
         $(_findBar)
-            .on("doFind.FindInFiles", function (e, shiftKey, replace) {
-                // If in Replace mode, just set focus to the Replace field.
-                if (replace) {
-                    startReplace();
-                } else if (showReplace) {
-                    _findBar.focusReplace();
-                } else {
-                    startSearch();
-                }
+            .on("doFind.FindInFiles", function () {
+                startSearch();
             })
             .on("queryChange.FindInFiles", handleQueryChange)
             .on("close.FindInFiles", function (e) {
@@ -227,9 +220,9 @@ define(function (require, exports, module) {
             });
         
         if (showReplace) {
-            $(_findBar).on("doReplace.FindInFiles", function (e, all) {
-                startReplace();
-            });
+            // We shouldn't get a "doReplace" in this case, since the Replace button
+            // is hidden when we set options.multifile.
+            $(_findBar).on("doReplaceAll.FindInFiles", startReplace);
         }
                 
         // Show file-exclusion UI *unless* search scope is just a single file

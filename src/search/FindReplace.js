@@ -651,9 +651,13 @@ define(function (require, exports, module) {
         
         openSearchBar(editor, true);
         
-        $(findBar).on("doReplace.FindReplace", function (e, all) {
-            doReplace(editor, all);
-        });
+        $(findBar)
+            .on("doReplace.FindReplace", function (e) {
+                doReplace(editor, false);
+            })
+            .on("doReplaceAll.FindReplace", function (e) {
+                doReplace(editor, true);
+            });
     }
 
     function _launchFind() {
