@@ -1200,7 +1200,6 @@ define(function (require, exports, module) {
                     if (exists) {
                         var projectRootChanged = (!_projectRoot || !rootEntry) ||
                             _projectRoot.fullPath !== rootEntry.fullPath;
-                        var i;
                         
                         // Success!
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
@@ -1613,6 +1612,33 @@ define(function (require, exports, module) {
         }
     }
 
+    function _showErrorDialog(context, isFolder, error, path) {
+        var titleType = isFolder ? Strings.DIRECTORY_TITLE : Strings.FILE_TITLE,
+            entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
+            title,
+            message;
+        path = StringUtils.breakableUrl(path);
+
+        if (context === "create") {
+            title = StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, titleType);
+            message = StringUtils.format(Strings.ERROR_CREATING_FILE, entryType, path, error);
+        } else if (context === "rename") {
+            title = StringUtils.format(Strings.ERROR_RENAMING_FILE_TITLE, titleType);
+            message = StringUtils.format(Strings.ERROR_RENAMING_FILE, path, error, entryType);
+        } else if (context === "delete") {
+            title = StringUtils.format(Strings.ERROR_DELETING_FILE_TITLE, titleType);
+            message = StringUtils.format(Strings.ERROR_DELETING_FILE, path, error, entryType);
+        }
+
+        if (title && message) {
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_ERROR,
+                title,
+                message
+            );
+        }
+    }
+
     /**
      * Create a new item in the current project.
      *
@@ -1694,10 +1720,10 @@ define(function (require, exports, module) {
                     _createNode($baseDirNode, null, _entryToJSON(entry), true, true);
                 };
                 
-                var errorCallback = function (error, entry) {
-                    var titleType = isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME,
-                        entryType = isFolder ? Strings.DIRECTORY : Strings.FILE;
+                var errorCallback = function (error) {
                     if (error === FileSystemError.ALREADY_EXISTS) {
+                        var titleType = isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME;
+
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
                             StringUtils.format(Strings.INVALID_FILENAME_TITLE, titleType),
@@ -1709,12 +1735,7 @@ define(function (require, exports, module) {
                                          Strings.NO_MODIFICATION_ALLOWED_ERR :
                                          StringUtils.format(Strings.GENERIC_ERROR, error);
 
-                        Dialogs.showModalDialog(
-                            DefaultDialogs.DIALOG_ID_ERROR,
-                            StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, entryType),
-                            StringUtils.format(Strings.ERROR_CREATING_FILE, entryType,
-                                StringUtils.breakableUrl(data.rslt.name), errString)
-                        );
+                        _showErrorDialog("create", isFolder, errString, data.rslt.name);
                     }
 
                     errorCleanup();
@@ -1722,10 +1743,10 @@ define(function (require, exports, module) {
                 
                 var newItemPath = baseDirEntry.fullPath + data.rslt.name;
                 
-                FileSystem.resolve(newItemPath, function (err, item) {
+                FileSystem.resolve(newItemPath, function (err) {
                     if (!err) {
                         // Item already exists, fail with error
-                        errorCallback(FileSystemError.ALREADY_EXISTS, item);
+                        errorCallback(FileSystemError.ALREADY_EXISTS);
                     } else {
                         if (isFolder) {
                             var directory = FileSystem.getDirectoryForPath(newItemPath);
@@ -1819,24 +1840,12 @@ define(function (require, exports, module) {
                 _redraw(true);
                 result.resolve();
             } else {
-                var titleType = isFolder ? Strings.DIRECTORY_TITLE : Strings.FILE_TITLE,
-                    entryType = isFolder ? Strings.DIRECTORY : Strings.FILE;
                 // Show an error alert
-                Dialogs.showModalDialog(
-                    DefaultDialogs.DIALOG_ID_ERROR,
-                    StringUtils.format(
-                        Strings.ERROR_RENAMING_FILE_TITLE,
-                        titleType
-                    ),
-                    StringUtils.format(
-                        Strings.ERROR_RENAMING_FILE,
-                        StringUtils.breakableUrl(newName),
-                        err === FileSystemError.ALREADY_EXISTS ?
+                var errString = err === FileSystemError.ALREADY_EXISTS ?
                                 Strings.FILE_EXISTS_ERR :
-                                FileUtils.getFileErrorString(err),
-                        entryType
-                    )
-                );
+                                FileUtils.getFileErrorString(err);
+
+                _showErrorDialog("rename", isFolder, errString, newName);
                 result.reject(err);
             }
         });
@@ -2011,22 +2020,7 @@ define(function (require, exports, module) {
                 _deleteTreeNode(entry);
                 result.resolve();
             } else {
-                var titleType = entry.isDirectory ? Strings.DIRECTORY_TITLE : Strings.FILE_TITLE,
-                    entryType = entry.isDirectory ? Strings.DIRECTORY : Strings.FILE;
-                // Show an error alert
-                Dialogs.showModalDialog(
-                    Dialogs.DIALOG_ID_ERROR,
-                    StringUtils.format(
-                        Strings.ERROR_DELETING_FILE_TITLE,
-                        titleType
-                    ),
-                    StringUtils.format(
-                        Strings.ERROR_DELETING_FILE,
-                        StringUtils.breakableUrl(entry.fullPath),
-                        FileUtils.getFileErrorString(err),
-                        entryType
-                    )
-                );
+                _showErrorDialog("delete", entry.isDirectory, FileUtils.getFileErrorString(err), entry.fullPath);
     
                 result.reject(err);
             }

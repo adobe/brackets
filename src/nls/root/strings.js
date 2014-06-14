@@ -50,7 +50,7 @@ define({
     
 
     // Project error strings
-    "ERROR_LOADING_PROJECT"             : "Error loading project",
+    "ERROR_LOADING_PROJECT"             : "Error Loading Project",
     "OPEN_DIALOG_ERROR"                 : "An error occurred when showing the open file dialog. (error {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "An error occurred when trying to load the directory <span class='dialog-filename'>{0}</span>. (error {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "An error occurred when reading the contents of the directory <span class='dialog-filename'>{0}</span>. (error {1})",
@@ -185,7 +185,7 @@ define({
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Replace Errors",
     "REPLACE_IN_FILES_ERRORS"           : "The following files weren't modified because they changed after the search or couldn't be written.",
     
-    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
+    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error Getting Update Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
     
     // File exclusion filters
