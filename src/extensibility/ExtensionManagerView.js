@@ -30,12 +30,10 @@ define(function (require, exports, module) {
     
     var Strings                   = require("strings"),
         StringUtils               = require("utils/StringUtils"),
-        NativeApp                 = require("utils/NativeApp"),
         ExtensionManager          = require("extensibility/ExtensionManager"),
         registry_utils            = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
-        CommandManager            = require("command/CommandManager"),
-        Commands                  = require("command/Commands"),
+        LocalizationUtils         = require("utils/LocalizationUtils"),
         itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
     
     /**
@@ -221,29 +219,36 @@ define(function (require, exports, module) {
             var lang      = brackets.getLocale(),
                 shortLang = lang.split("-")[0];
 
-            // TODO: Unify with the exact same function in extensions/default/DebugCommands/main.js
-            // New module?
-            var getLocalizedLabel = function (locale) {
-                var key  = "LOCALE_" + locale.toUpperCase().replace("-", "_"),
-                    i18n = Strings[key];
+            // If the selected language is System Default, match both the short (2-char) language code
+            // and the long one
+            context.translatedIntoUserLang =
+                (brackets.isLocaleDefault() && info.metadata.i18n.indexOf(shortLang) > -1) ||
+                info.metadata.i18n.indexOf(lang) > -1;
+            if (context.translatedIntoUserLang) {
+                context.translatedLangs =
+                    info.metadata.i18n.map(function (value) {
+                        return { name: LocalizationUtils.getLocalizedLabel(value), locale: value };
+                    })
+                    .sort(function (lang1, lang2) {
+                        // List users language first
+                        var isUserLang,
+                            locales = [lang1.locale, lang2.locale];
+                        isUserLang = locales.indexOf(lang);
+                        if (isUserLang > -1) {
+                            return isUserLang;
+                        }
+                        isUserLang = locales.indexOf(shortLang);
+                        if (isUserLang > -1) {
+                            return isUserLang;
+                        }
 
-                return i18n === undefined ? locale : i18n;
-            };
-
-            // TODO: Simplify
-            context.langTranslated = (brackets.isLocaleDefault() && $.inArray(shortLang, info.metadata.i18n) !== -1) ||
-                $.inArray(lang, info.metadata.i18n) !== -1;
-            if (context.langTranslated) {
-                // TODO: Is there a way not to use this var?
-                var langNames = [];
-                info.metadata.i18n.forEach(function (value, key) {
-                    langNames.push(getLocalizedLabel(value));
-                });
-                langNames.sort(function (lang1, lang2) {
-                    return lang1.localeCompare(lang2);
-                });
-
-                context.translatedLangs = StringUtils.format(Strings.EXTENSION_TRANSLATED_LANGS, langNames.join(", "));
+                        return lang1.name.localeCompare(lang2.name);
+                    })
+                    .map(function (value) {
+                        return value.name;
+                    })
+                    .join(", ");
+                context.translatedLangs = StringUtils.format(Strings.EXTENSION_TRANSLATED_LANGS, context.translatedLangs);
             }
         }
 
