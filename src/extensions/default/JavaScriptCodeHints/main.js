@@ -59,6 +59,13 @@ define(function (require, exports, module) {
     // Define the defaultExclusions which are files that are known to cause Tern to run out of control.
     PreferencesManager.definePreference("jscodehints.defaultExclusions", "array", ["ionic*.min.js"]);
     
+    // Define the detectedExclusions which are files that have been detected to cause Tern to run out of control.
+    PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", []);
+    
+    // Define currentlyProcessing to store path and startTime of file Tern is currently processing.
+    PreferencesManager.definePreference("jscodehints.currentlyProcessing.path", "string", "");
+    PreferencesManager.definePreference("jscodehints.currentlyProcessing.startTime", "number", 0);
+    
     /**
      * Sets the configuration, generally for testing/debugging use.
      * Configuration keys are merged into the current configuration.

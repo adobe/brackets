@@ -63,7 +63,8 @@ define(function (require, exports, module) {
     var MAX_HINTS           = 30,  // how often to reset the tern server
         LARGE_LINE_CHANGE   = 100,
         LARGE_LINE_COUNT    = 2000,
-        OFFSET_ZERO         = {line: 0, ch: 0};
+        OFFSET_ZERO         = {line: 0, ch: 0},
+        MAX_PROCESS_TIME    = 10000;
     
     var config = {};
     
@@ -214,22 +215,31 @@ define(function (require, exports, module) {
         }
         
         var excludes = preferences.getExcludedFiles();
-        if (!excludes) {
-            return false;
-        }
-        
-        if (excludes.test(file.name)) {
+        if (excludes && excludes.test(file.name)) {
             return true;
         }
-
-        var defaultExclusions = PreferencesManager.get("jscodehints.defaultExclusions");
 
         // The defaultExclusions are the ones we ship with Brackets to filter out files that we know
         // to be troublesome with current versions of Tern. They can be overridden with a .brackets.json
         // file in your project. defaultExclusions is an array of globs.
-        return defaultExclusions &&
-            _.isArray(defaultExclusions) &&
-            _.some(defaultExclusions, _.partial(globmatch, file.fullPath));
+        var defaultExclusions = PreferencesManager.get("jscodehints.defaultExclusions");
+        if (defaultExclusions &&
+                _.isArray(defaultExclusions) &&
+                _.some(defaultExclusions, _.partial(globmatch, file.fullPath))) {
+            return true;
+        }
+
+        // The detectedExclusions are files detected to be troublesome with current versions of Tern.
+        // detectedExclusions is an array of full paths.
+        var detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions");
+        if (detectedExclusions &&
+                _.isArray(detectedExclusions) &&
+                _.some(detectedExclusions, file.fullPath)) {
+            console.log("Match found in detectedExclusions list for file " + file.fullPath);
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -851,7 +861,12 @@ define(function (require, exports, module) {
                 type        : MessageIds.TERN_PRIME_PUMP_MSG,
                 path        : path
             });
-    
+
+            // TODO - verify that path & startTime fields are empty?
+            // Remember file path and start time to detect when files hang
+            PreferencesManager.set("jscodehints.currentlyProcessing.path", path);
+            PreferencesManager.set("jscodehints.currentlyProcessing.startTime", (new Date()).getTime());
+
             return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_PRIME_PUMP_MSG);
         }
 
@@ -866,6 +881,23 @@ define(function (require, exports, module) {
             var path = response.path,
                 type = response.type,
                 $deferredHints = getPendingRequest(path, OFFSET_ZERO, type);
+
+            // If file took too long to process, then add it to detectedExclusions list
+            // TODO - only if there are $deferredHints ?
+            var prevPath  = PreferencesManager.get("jscodehints.currentlyProcessing.path"),
+                startTime = PreferencesManager.get("jscodehints.currentlyProcessing.startTime"),
+                currTime  = (new Date()).getTime();
+
+            if ((path === prevPath) && ((currTime - startTime) > MAX_PROCESS_TIME)) {
+                console.log("File added to detectedExclusions: " + path);
+                var detectedExclusions = PreferencesManager.get("jscodehints.currentlyProcessing.detectedExclusions");
+                detectedExclusions.push(path);
+                PreferencesManager.set("jscodehints.currentlyProcessing.detectedExclusions", detectedExclusions);
+            }
+
+            // clear
+            PreferencesManager.set("jscodehints.currentlyProcessing.path", "");
+            PreferencesManager.set("jscodehints.currentlyProcessing.startTime", 0);
 
             if ($deferredHints) {
                 $deferredHints.resolve();
