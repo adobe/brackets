@@ -162,7 +162,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Encoded URL
-     * @ see getBaseUrl(), setBaseUrl()
+     * @see getBaseUrl(), setBaseUrl()
      */
     var _projectBaseUrl = "";
     
@@ -1756,7 +1756,7 @@ define(function (require, exports, module) {
      * Rename a file/folder. This will update the project tree data structures
      * and send notifications about the rename.
      *
-     * @prarm {string} oldName Old item name
+     * @param {string} oldName Old item name
      * @param {string} newName New item name
      * @param {boolean} isFolder True if item is a folder; False if it is a file.
      * @return {$.Promise} A promise object that will be resolved or rejected when
