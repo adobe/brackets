@@ -211,23 +211,21 @@ define(function (require, exports, module) {
             
             it("Should show linear gradient preview for those with colon or space before", function () {
                 runs(function () {
-                    var expectedGradient1 = "linear-gradient(to bottom, black 0%, white 100%)",
-                        expectedGradient2 = "linear-gradient(to bottom, black 0%, white 100%)",
-                        expectedGradient3 = "linear-gradient(to bottom, black 0%, white 100%)";
-                    checkGradientAtPos(expectedGradient1, 169, 25);   // space colon space
-                    checkGradientAtPos(expectedGradient2, 170, 25);   // colon space
-                    checkGradientAtPos(expectedGradient3, 171, 25);   // space colon
+                    var expectedGradient = "linear-gradient(to bottom, black 0%, white 100%)";
+                    checkGradientAtPos(expectedGradient, 169, 25);   // space colon space
+                    checkGradientAtPos(expectedGradient, 170, 25);   // colon space
+                    checkGradientAtPos(expectedGradient, 171, 25);   // space colon
+                    checkGradientAtPos(expectedGradient, 172, 25);   // colon
                 });
             });
             
             it("Should show radial gradient preview for those with colon or space before", function () {
                 runs(function () {
-                    var expectedGradient1 = "radial-gradient(to bottom, black 0%, white 100%)",
-                        expectedGradient2 = "radial-gradient(to bottom, black 0%, white 100%)",
-                        expectedGradient3 = "radial-gradient(to bottom, black 0%, white 100%)";
-                    checkGradientAtPos(expectedGradient1, 175, 25);   // space colon space
-                    checkGradientAtPos(expectedGradient2, 176, 25);   // colon space
-                    checkGradientAtPos(expectedGradient3, 177, 25);   // space colon
+                    var expectedGradient = "radial-gradient(red, white 50%, blue 100%)";
+                    checkGradientAtPos(expectedGradient, 176, 25);   // space colon space
+                    checkGradientAtPos(expectedGradient, 177, 25);   // colon space
+                    checkGradientAtPos(expectedGradient, 178, 25);   // space colon
+                    checkGradientAtPos(expectedGradient, 179, 25);   // colon
                 });
             });
             
