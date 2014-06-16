@@ -199,6 +199,35 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Test if the file path is an internal exclusion.
+     *
+     * @param {string} path file path to test for exclusion.
+     * @return {boolean} true if excluded, false otherwise.
+     */
+    function isFileExcludedInternal(path) {
+        // The defaultExclusions are the ones we ship with Brackets to filter out files that we know
+        // to be troublesome with current versions of Tern. They can be overridden with a .brackets.json
+        // file in your project. defaultExclusions is an array of globs.
+        var defaultExclusions = PreferencesManager.get("jscodehints.defaultExclusions");
+        if (defaultExclusions &&
+                _.isArray(defaultExclusions) &&
+                _.some(defaultExclusions, _.partial(globmatch, path))) {
+            return true;
+        }
+
+        // The detectedExclusions are files detected to be troublesome with current versions of Tern.
+        // detectedExclusions is an array of full paths.
+        var detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions");
+        if (detectedExclusions &&
+                _.isArray(detectedExclusions) &&
+                _.some(detectedExclusions, function (de) { return (path === de); })) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Test if the file should be excluded from analysis.
      *
      * @param {!File} file - file to test for exclusion.
@@ -219,23 +248,7 @@ define(function (require, exports, module) {
             return true;
         }
 
-        // The defaultExclusions are the ones we ship with Brackets to filter out files that we know
-        // to be troublesome with current versions of Tern. They can be overridden with a .brackets.json
-        // file in your project. defaultExclusions is an array of globs.
-        var defaultExclusions = PreferencesManager.get("jscodehints.defaultExclusions");
-        if (defaultExclusions &&
-                _.isArray(defaultExclusions) &&
-                _.some(defaultExclusions, _.partial(globmatch, file.fullPath))) {
-            return true;
-        }
-
-        // The detectedExclusions are files detected to be troublesome with current versions of Tern.
-        // detectedExclusions is an array of full paths.
-        var detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions");
-        if (detectedExclusions &&
-                _.isArray(detectedExclusions) &&
-                _.some(detectedExclusions, file.fullPath)) {
-            console.log("Match found in detectedExclusions list for file " + file.fullPath);
+        if (isFileExcludedInternal(file.fullPath)) {
             return true;
         }
 
@@ -254,6 +267,11 @@ define(function (require, exports, module) {
         var requests,
             key = file + "@" + offset.line + "@" + offset.ch,
             $deferredRequest;
+
+//        if (file.indexOf("melonJS-0.9.11.js") > -1) {
+//            console.log("pending request for excluded file...");
+//        }
+        
         if (_.has(pendingTernRequests, key)) {
             requests = pendingTernRequests[key];
         } else {
@@ -862,8 +880,14 @@ define(function (require, exports, module) {
                 path        : path
             });
 
+            // TODO...
+            //if (isFileExcludedInternal(path)) {
+            //}
+
             // TODO - verify that path & startTime fields are empty?
+            // TODO - move to addPendingRequest()
             // Remember file path and start time to detect when files hang
+            // TODO - check isFileExcluded() (or just detectedExclusions list)
             PreferencesManager.set("jscodehints.currentlyProcessing.path", path);
             PreferencesManager.set("jscodehints.currentlyProcessing.startTime", (new Date()).getTime());
 
@@ -882,6 +906,7 @@ define(function (require, exports, module) {
                 type = response.type,
                 $deferredHints = getPendingRequest(path, OFFSET_ZERO, type);
 
+            // TODO - move to getPendingRequest()
             // If file took too long to process, then add it to detectedExclusions list
             // TODO - only if there are $deferredHints ?
             var prevPath  = PreferencesManager.get("jscodehints.currentlyProcessing.path"),
@@ -890,9 +915,9 @@ define(function (require, exports, module) {
 
             if ((path === prevPath) && ((currTime - startTime) > MAX_PROCESS_TIME)) {
                 console.log("File added to detectedExclusions: " + path);
-                var detectedExclusions = PreferencesManager.get("jscodehints.currentlyProcessing.detectedExclusions");
+                var detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions") || [];
                 detectedExclusions.push(path);
-                PreferencesManager.set("jscodehints.currentlyProcessing.detectedExclusions", detectedExclusions);
+                PreferencesManager.set("jscodehints.detectedExclusions", detectedExclusions);
             }
 
             // clear
