@@ -208,7 +208,27 @@ define(function (require, exports, module) {
                     checkGradientAtPos(expectedGradient4, 90, 36);   // test parameters with 2 levels of nested parens
                 });
             });
-
+            
+            it("Should show linear gradient preview for those with colon or space before", function () {
+                runs(function () {
+                    var expectedGradient = "linear-gradient(to bottom, black 0%, white 100%)";
+                    checkGradientAtPos(expectedGradient, 169, 25);   // space colon space
+                    checkGradientAtPos(expectedGradient, 170, 25);   // colon space
+                    checkGradientAtPos(expectedGradient, 171, 25);   // space colon
+                    checkGradientAtPos(expectedGradient, 172, 25);   // colon
+                });
+            });
+            
+            it("Should show radial gradient preview for those with colon or space before", function () {
+                runs(function () {
+                    var expectedGradient = "radial-gradient(red, white 50%, blue 100%)";
+                    checkGradientAtPos(expectedGradient, 176, 25);   // space colon space
+                    checkGradientAtPos(expectedGradient, 177, 25);   // colon space
+                    checkGradientAtPos(expectedGradient, 178, 25);   // space colon
+                    checkGradientAtPos(expectedGradient, 179, 25);   // colon
+                });
+            });
+            
             it("Should show linear gradient preview for those with w3c standard syntax (no prefix)", function () {
                 runs(function () {
                     checkGradientAtPos("linear-gradient(#333, #CCC)",                  99, 50);
