@@ -208,6 +208,14 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * @type {Number}
+     * Tracks the last mouseup event in the project tree to test whether an 
+     * event is a doubleclick or not.
+     */
+    var _lastMouseup;
+    
+    /**
+     * @private
      * Generates the prefixes used for sorting the files in the project tree
      * @return {boolean} true if the sort prefixes have changed
      */
@@ -641,32 +649,31 @@ define(function (require, exports, module) {
             ).bind(
                 "mousedown.jstree",
                 function (event) {
-                    var $treenode = $(event.target).closest("li");
                     // select tree node on right-click
                     if (event.which === 3 || (event.ctrlKey && event.which === 1 && brackets.platform === "mac")) {
-                        console.log('IF, not else!');
-                        if ($treenode) {
+                        var treenode = $(event.target).closest("li");
+                        if (treenode) {
                             var saveSuppressToggleOpen = suppressToggleOpen;
-                           
+                            
                             // don't toggle open folders (just select)
                             suppressToggleOpen = true;
                             _projectTree.jstree("deselect_all");
-                            _projectTree.jstree("select_node", $treenode, false);
+                            _projectTree.jstree("select_node", treenode, false);
                             suppressToggleOpen = saveSuppressToggleOpen;
                         }
                     }
-                   
                 }
-            ).bind(
-                "mouseup.jstree",
-                function (event) {
+            ).bind("mouseup.jstree", function (event) {
+                // check to see if this is a doubleclick event
+                if (event.timeStamp - _lastMouseup > 500) {
                     var $treenode = $(event.target).closest("li");
                     var isSelected = $treenode.hasClass("jstree-leaf") && $treenode.children("a").hasClass("jstree-clicked");
                     if (isSelected) {
                         CommandManager.execute(Commands.FILE_RENAME);
                     }
                 }
-            );
+                _lastMouseup = event.timeStamp;
+            });
 
         // jstree has a default event handler for dblclick that attempts to clear the
         // global window selection (presumably because it doesn't want text within the tree
