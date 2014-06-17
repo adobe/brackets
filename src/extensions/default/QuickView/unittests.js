@@ -41,7 +41,9 @@ define(function (require, exports, module) {
             Commands,
             EditorManager,
             QuickView,
-            editor;
+            editor,
+            testFile = "test.css",
+            oldFile;
 
         beforeEach(function () {
             // Create a new window that will be shared by ALL tests in this spec.
@@ -62,13 +64,16 @@ define(function (require, exports, module) {
                 runs(function () {
                     SpecRunnerUtils.loadProjectInTestWindow(testFolder);
                 });
+            }
 
+            if (testFile !== oldFile) {
                 runs(function () {
-                    waitsForDone(SpecRunnerUtils.openProjectFiles(["test.css"]), "open test file");
+                    waitsForDone(SpecRunnerUtils.openProjectFiles([testFile]), "open test file: " + testFile);
                 });
 
                 runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
+                    editor  = EditorManager.getCurrentFullEditor();
+                    oldFile = testFile;
                 });
             }
         });
@@ -191,9 +196,43 @@ define(function (require, exports, module) {
                     expectNoPreviewAtPos(75, 18);    // cursor on white in hyphenated word @bc-white
                 });
             });
+
+            describe("JavaScript file", function () {
+                runs(function () {
+                    testFile = "test.js";
+                });
+
+                it("should NOT show preview of color-named functions and object/array keys", function () {
+                    runs(function () {
+                        expectNoPreviewAtPos(2, 12);    // cursor on green()
+                        expectNoPreviewAtPos(4, 22);    // cursor on Math.tan
+                        expectNoPreviewAtPos(5, 14);    // cursor on tan()
+                        expectNoPreviewAtPos(5, 38);    // cursor on array[red]
+                    });
+                });
+                it("should show preview of literal color names", function () {
+                    runs(function () {
+                        checkColorAtPos("green",         2, 36);
+                        checkColorAtPos("green",         3, 21);
+                        checkColorAtPos("tan",           4, 11);
+                        checkColorAtPos("red",           5, 25);
+                        checkColorAtPos("darkgray",      7,  1);
+                    });
+                });
+                it("should show preview of non-literal color codes", function () {
+                    runs(function () {
+                        checkColorAtPos("#123456",          8, 7);
+                        checkColorAtPos("rgb(65, 43, 21)",  9, 8);
+                    });
+                });
+            });
         });
 
         describe("Quick view gradients", function () {
+            runs(function () {
+                testFile = "test.css";
+            });
+
             it("Should show linear gradient preview for those with vendor prefix", function () {
                 runs(function () {
                     var expectedGradient1 = "-webkit-linear-gradient(top,  #d2dfed 0%, #c8d7eb 26%, #bed0ea 51%, #a6c0e3 51%, #afc7e8 62%, #bad0ef 75%, #99b5db 88%, #799bc8 100%)",

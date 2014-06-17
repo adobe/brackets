@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         Menus               = brackets.getModule("command/Menus"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings"),
-        ViewUtils           = brackets.getModule("utils/ViewUtils");
+        ViewUtils           = brackets.getModule("utils/ViewUtils"),
+        TokenUtils          = brackets.getModule("utils/TokenUtils");
    
     var previewContainerHTML       = require("text!QuickViewTemplate.html");
     
@@ -53,6 +54,8 @@ define(function (require, exports, module) {
         POINTER_HEIGHT              = 15,   // Pointer height, used to shift popover above pointer (plus a little bit of space)
         POPOVER_HORZ_MARGIN         =  5;   // Horizontal margin
     
+    var literalLanguages = ["javascript", "php", "coffeescript"];
+
     prefs = PreferencesManager.getExtensionPrefs("quickview");
     prefs.definePreference("enabled", "boolean", true);
 
@@ -232,8 +235,10 @@ define(function (require, exports, module) {
             };
         }
 
-        function execColorMatch(line) {
-            var colorMatch;
+        function execColorMatch(editor, line, pos) {
+            var colorMatch,
+                mode            = TokenUtils.getModeAt(editor._codeMirror, pos).name,
+                literalCheck    = literalLanguages.indexOf(mode) !== -1;
 
             function hyphenOnMatchBoundary(match, line) {
                 var beforeIndex, afterIndex;
@@ -251,11 +256,26 @@ define(function (require, exports, module) {
                 
                 return false;
             }
+            function checkForLiteral(match, line) {
+                if (match && match[0] && /^[a-z]+$/i.test(match[0])) { // only for color names, not for hex-/rgb-values
+                    var beforeIndex = match.index - 1,
+                        afterIndex  = match.index + match[0].length;
+
+                    if (beforeIndex >= 0 && !/[\s"]/.test(line[beforeIndex])) { // not a literal, like Math.tan()
+                        return true;
+                    }
+                    if (afterIndex < line.length && line[afterIndex] === "(") { // function, like green()
+                        return true;
+                    }
+                }
+                return false;
+            }
 
             // Hyphens do not count as a regex word boundary (\b), so check for those here
             do {
                 colorMatch = colorRegEx.exec(line);
-            } while (colorMatch && hyphenOnMatchBoundary(colorMatch, line));
+            } while (colorMatch && (hyphenOnMatchBoundary(colorMatch, line) ||
+                                   (literalCheck && checkForLiteral(colorMatch, line))));
 
             return colorMatch;
         }
@@ -347,7 +367,7 @@ define(function (require, exports, module) {
         }
 
         var gradientMatch = execGradientMatch(line),
-            match = gradientMatch.match || execColorMatch(line),
+            match = gradientMatch.match || execColorMatch(editor, line, pos),
             cm = editor._codeMirror;
 
         while (match) {
@@ -393,7 +413,7 @@ define(function (require, exports, module) {
             if (gradientMatch.match) {
                 gradientMatch = execGradientMatch(line);
             }
-            match = gradientMatch.match || execColorMatch(line);
+            match = gradientMatch.match || execColorMatch(editor, line, pos);
         }
         
         return null;
