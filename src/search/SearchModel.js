@@ -89,6 +89,12 @@ define(function (require, exports, module) {
      */
     SearchModel.prototype.filter = null;
 
+    /** 
+     * The total number of matches in the model.
+     * @type {number}
+     */
+    SearchModel.prototype.numMatches = 0;
+    
     /**
      * Whether or not we hit the maximum number of results for the type of search we did.
      * @type {boolean}
@@ -105,6 +111,7 @@ define(function (require, exports, module) {
         this.isReplace = false;
         this.replaceText = null;
         this.scope = null;
+        this.numMatches = 0;
         this.foundMaximum = false;
     };
     
@@ -150,31 +157,39 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Adds the given result matches to the search results
+     * Adds the given result matches to the search results.
      * @param {string} fullpath Full path to the file containing the matches.
-     * @param {!Array.<Object>} matches Array of matches, in the format returned by FindInFiles._getSearchMatches()
-     * @param {!Date} timestamp The timestamp of the document at the time we searched it.
+     * @param {!{matches: Object, timestamp: Date, collapsed: boolean=}} resultInfo Info for the match to add:
+     *      matches - Array of matches, in the format returned by FindInFiles._getSearchMatches()
+     *      timestamp - The timestamp of the document at the time we searched it.
+     *      collapsed - Optional: whether the results should be collapsed in the UI (default false).
      * @return {boolean} true if at least some matches were added, false if we've hit the limit on how many can be added
      */
-    SearchModel.prototype.addResultMatches = function (fullpath, matches, timestamp) {
-        if (this.foundMaximum || !matches.length) {
+    SearchModel.prototype.addResults = function (fullpath, resultInfo) {
+        if (this.foundMaximum || !resultInfo.matches.length) {
             return false;
         }
         
-        this.results[fullpath] = {
-            matches:   matches,
-            collapsed: false,
-            timestamp: timestamp
-        };
-        
-        var curNumMatches = this.countFilesMatches().matches;
-        if (curNumMatches >= SearchModel.MAX_TOTAL_RESULTS) {
+        this.results[fullpath] = resultInfo;
+        this.numMatches += resultInfo.matches.length;
+        if (this.numMatches >= SearchModel.MAX_TOTAL_RESULTS) {
             this.foundMaximum = true;
         }
         
         return true;
     };
-
+    
+    /**
+     * Removes the given result's matches from the search results.
+     * @param {string} fullpath Full path to the file containing the matches.
+     */
+    SearchModel.prototype.removeResults = function (fullpath) {
+        if (this.results[fullpath]) {
+            this.numMatches -= this.results[fullpath].matches.length;
+            delete this.results[fullpath];
+        }
+    };
+    
     /**
      * @return {boolean} true if there are any results in this model.
      */
@@ -187,13 +202,7 @@ define(function (require, exports, module) {
      * @return {{files: number, matches: number}}
      */
     SearchModel.prototype.countFilesMatches = function () {
-        var numFiles = 0, numMatches = 0;
-        _.forEach(this.results, function (item) {
-            numFiles++;
-            numMatches += item.matches.length;
-        });
-
-        return {files: numFiles, matches: numMatches};
+        return {files: Object.keys(this.results).length, matches: this.numMatches};
     };
 
     /**

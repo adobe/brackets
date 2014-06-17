@@ -106,8 +106,16 @@ define(function (require, exports, module) {
             matches.push({
                 start:       {line: lineNum, ch: ch},
                 end:         {line: lineNum, ch: ch + matchLength},
+                
+                // Note that the following offsets from the beginning of the file are *not* updated if the search
+                // results change. These are currently only used for multi-file replacement, and we always
+                // abort the replace (by shutting the results panel) if we detect any result changes, so we don't
+                // need to keep them up to date. Eventually, we should either get rid of the need for these (by
+                // doing everything in terms of line/ch offsets, though that will require re-splitting files when
+                // doing a replace) or properly update them.
                 startOffset: match.index,
                 endOffset:   match.index + matchLength,
+                
                 line:        line,
                 result:      match,
                 isChecked:   true
@@ -133,11 +141,12 @@ define(function (require, exports, module) {
      * @param {!Date} timestamp
      * @return {boolean} True iff the matches were added to the search results
      */
-    function _addSearchMatches(fullPath, contents, queryExpr, timestamp) {
-        var matches = _getSearchMatches(contents, queryExpr);
+    function _updateSearchMatches(fullPath, contents, queryExpr, timestamp) {
+        searchModel.removeResults(fullPath);
         
+        var matches = _getSearchMatches(contents, queryExpr);
         if (matches.length) {
-            searchModel.addResultMatches(fullPath, matches, timestamp);
+            searchModel.addResults(fullPath, {matches: matches, timestamp: timestamp});
             return true;
         }
         return false;
@@ -147,13 +156,17 @@ define(function (require, exports, module) {
      * @private
      * Update the search results using the given list of changes for the given document
      * @param {Document} doc  The Document that changed, should be the current one
-     * @param {Array.<{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}>} changeList
+     * @param {Array.<{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string}>} changeList
      *      An array of changes as described in the Document constructor
      */
     function _updateResults(doc, changeList) {
         var i, diff, matches, lines, start, howMany,
             resultsChanged = false,
-            fullPath       = doc.file.fullPath;
+            fullPath       = doc.file.fullPath,
+            resultInfo     = searchModel.results[fullPath];
+        
+        // Remove the results before we make any changes, so the SearchModel can accurately update its count.
+        searchModel.removeResults(fullPath);
         
         changeList.forEach(function (change) {
             lines = [];
@@ -163,7 +176,9 @@ define(function (require, exports, module) {
             // There is no from or to positions, so the entire file changed, we must search all over again
             if (!change.from || !change.to) {
                 // TODO: add unit test exercising timestamp logic in this case
-                _addSearchMatches(fullPath, doc.getText(), searchModel.queryExpr, doc.diskTimestamp);
+                // We don't just call _updateSearchMatches() here because we want to continue iterating through changes in
+                // the list and update at the end.
+                resultInfo = {matches: _getSearchMatches(doc.getText(), searchModel.queryExpr), timestamp: doc.diskTimestamp};
                 resultsChanged = true;
 
             } else {
@@ -172,17 +187,16 @@ define(function (require, exports, module) {
                     lines.push(doc.getLine(change.from.line + i));
                 }
 
-                // We need to know how many lines changed to update the rest of the lines
-                if (change.from.line !== change.to.line) {
-                    diff = change.from.line - change.to.line;
-                } else {
-                    diff = lines.length - 1;
-                }
+                // We need to know how many newlines were inserted/deleted in order to update the rest of the line indices;
+                // this is the total number of newlines inserted (which is the length of the lines array minus
+                // 1, since the last line in the array is inserted without a newline after it) minus the
+                // number of original newlines being removed.
+                diff = lines.length - 1 - (change.to.line - change.from.line);
 
-                if (searchModel.results[fullPath]) {
+                if (resultInfo) {
                     // Search the last match before a replacement, the amount of matches deleted and update
                     // the lines values for all the matches after the change
-                    searchModel.results[fullPath].matches.forEach(function (item) {
+                    resultInfo.matches.forEach(function (item) {
                         if (item.end.line < change.from.line) {
                             start++;
                         } else if (item.end.line <= change.to.line) {
@@ -195,7 +209,7 @@ define(function (require, exports, module) {
 
                     // Delete the lines that where deleted or replaced
                     if (howMany > 0) {
-                        searchModel.results[fullPath].matches.splice(start, howMany);
+                        resultInfo.matches.splice(start, howMany);
                     }
                     resultsChanged = true;
                 }
@@ -210,12 +224,12 @@ define(function (require, exports, module) {
                     });
 
                     // If the file index exists, add the new matches to the file at the start index found before
-                    if (searchModel.results[fullPath]) {
-                        Array.prototype.splice.apply(searchModel.results[fullPath].matches, [start, 0].concat(matches));
+                    if (resultInfo) {
+                        Array.prototype.splice.apply(resultInfo.matches, [start, 0].concat(matches));
                     // If not, add the matches to a new file index
                     } else {
                         // TODO: add unit test exercising timestamp logic in self case
-                        searchModel.results[fullPath] = {
+                        resultInfo = {
                             matches:   matches,
                             collapsed: false,
                             timestamp: doc.diskTimestamp
@@ -223,15 +237,14 @@ define(function (require, exports, module) {
                     }
                     resultsChanged = true;
                 }
-
-                // All the matches where deleted, remove the file from the results
-                if (searchModel.results[fullPath] && !searchModel.results[fullPath].matches.length) {
-                    delete searchModel.results[fullPath];
-                    resultsChanged = true;
-                }
             }
         });
         
+        // Always re-add the results, even if nothing changed.
+        if (resultInfo && resultInfo.matches.length) {
+            searchModel.addResults(fullPath, resultInfo);
+        }
+
         if (resultsChanged) {
             // Debounce document changes since the user might be typing quickly.
             searchModel.fireChanged(true);
@@ -331,8 +344,8 @@ define(function (require, exports, module) {
      * Tries to update the search result on document changes
      * @param {$.Event} event
      * @param {Document} document
-     * @param {{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}} change
-     *      A linked list as described in the Document constructor
+     * @param {<{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string}>} change
+     *      A change list as described in the Document constructor
      */
     _documentChangeHandler = function (event, document, change) {
         if (_inSearchScope(document.file)) {
@@ -359,7 +372,7 @@ define(function (require, exports, module) {
             .done(function (text, timestamp) {
                 // Note that we don't fire a model change here, since this is always called by some outer batch
                 // operation that will fire it once it's done.
-                var foundMatches = _addSearchMatches(file.fullPath, text, searchModel.queryExpr, timestamp);
+                var foundMatches = _updateSearchMatches(file.fullPath, text, searchModel.queryExpr, timestamp);
                 result.resolve(foundMatches);
             })
             .fail(function () {
@@ -492,13 +505,12 @@ define(function (require, exports, module) {
         // Update the search results
         _.forEach(searchModel.results, function (item, fullPath) {
             if (fullPath.indexOf(oldName) === 0) {
-                searchModel.results[fullPath.replace(oldName, newName)] = item;
-                delete searchModel.results[fullPath];
+                searchModel.removeResults(fullPath);
+                searchModel.addResults(fullPath.replace(oldName, newName), item);
                 resultsChanged = true;
             }
         });
 
-        // Restore the results if needed
         if (resultsChanged) {
             searchModel.fireChanged();
         }
@@ -522,7 +534,7 @@ define(function (require, exports, module) {
         function _removeSearchResultsForEntry(entry) {
             Object.keys(searchModel.results).forEach(function (fullPath) {
                 if (fullPath.indexOf(entry.fullPath) === 0) {
-                    delete searchModel.results[fullPath];
+                    searchModel.removeResults(fullPath);
                     resultsChanged = true;
                 }
             });
@@ -611,4 +623,9 @@ define(function (require, exports, module) {
     exports.getCandidateFiles    = getCandidateFiles;
     exports.clearSearch          = clearSearch;
     exports.ZERO_FILES_TO_SEARCH = ZERO_FILES_TO_SEARCH;
+    
+    // For unit tests only
+    exports._documentChangeHandler = _documentChangeHandler;
+    exports._fileNameChangeHandler = _fileNameChangeHandler;
+    exports._fileSystemChangeHandler = _fileSystemChangeHandler;
 });
