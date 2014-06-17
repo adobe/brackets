@@ -14,6 +14,7 @@
     "backface-visibility":         {"values": ["hidden", "visible"]},
     "background":                  {"values": []},
     "background-attachment":       {"values": ["fixed", "local", "scroll", "inherit"]},
+    "background-blend-mode":       {"values": ["color", "color-burn", "color-dodge", "darken", "difference", "exclusion", "hard-light", "hue", "lighten", "luminosity", "normal", "multiply", "overlay", "saturation", "screen", "soft-light"]},
     "background-clip":             {"values": ["border-box", "content-box", "padding-box", "inherit"]},
     "background-color":            {"values": ["currentColor", "transparent", "inherit"]},
     "background-image":            {"values": ["image()", "linear-gradient()", "radial-gradient()", "repeating-linear-gradient()", "repeating-radial-gradient()", "url()"]},
