@@ -29,7 +29,7 @@ define(function (require, exports, module) {
         themeReady      = false,
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
         scrollbarsRegex = /(?:[^}|,]*)::-webkit-scrollbar(?:[\s\S]*?){(?:[\s\S]*?)}/mg,
-        stylesPath       = FileUtils.getNativeBracketsDirectoryPath() + "/styles/",
+        stylesPath      = FileUtils.getNativeBracketsDirectoryPath() + "/styles/",
         validExtensions = ["css", "less"];
 
     ExtensionUtils.addLinkedStyleSheet("styles/brackets_theme_settings.css");
@@ -195,8 +195,7 @@ define(function (require, exports, module) {
 
                     theme.css = styleNode;
                     return theme;
-                })
-                .promise();
+                });
         }));
     }
 
