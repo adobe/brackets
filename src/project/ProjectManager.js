@@ -209,10 +209,9 @@ define(function (require, exports, module) {
     /**
      * @private
      * @type {Number}
-     * Tracks the last mouseup event in the project tree to test whether an 
-     * event is a doubleclick or not.
+     * Tracks the timeoutID for mouseup events.
      */
-    var _lastMouseup;
+    var _mouseupTimeoutId = null;
     
     /**
      * @private
@@ -664,15 +663,18 @@ define(function (require, exports, module) {
                     }
                 }
             ).bind("mouseup.jstree", function (event) {
-                // check to see if this is a doubleclick event
-                if (event.timeStamp - _lastMouseup > 500) {
-                    var $treenode = $(event.target).closest("li");
-                    var isSelected = $treenode.hasClass("jstree-leaf") && $treenode.children("a").hasClass("jstree-clicked");
-                    if (isSelected) {
-                        CommandManager.execute(Commands.FILE_RENAME);
-                    }
+                var $treenode = $(event.target).closest("li");
+                var isSelected = $treenode.hasClass("jstree-leaf") && $treenode.children("a").hasClass("jstree-clicked");
+                
+                if (isSelected) {
+                    // wrap this in a setTimeout function so that we can check if it's a double click.
+                    _mouseupTimeoutId = window.setTimeout(function (event) {
+                        // if it's a double-click, _mouseupTimeoutId is null and this won't trigger.
+                        if (_mouseupTimeoutId) {
+                            CommandManager.execute(Commands.FILE_RENAME);
+                        }
+                    }, 500);
                 }
-                _lastMouseup = event.timeStamp;
             });
 
         // jstree has a default event handler for dblclick that attempts to clear the
@@ -735,6 +737,8 @@ define(function (require, exports, module) {
                     if (entry && entry.isFile && !_isInRename(event.target)) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
+                    window.clearTimeout(_mouseupTimeoutId);
+                    _mouseupTimeoutId = null;
                 });
 
             // fire selection changed events for sidebar-selection
