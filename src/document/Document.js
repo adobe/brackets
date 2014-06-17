@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager       = require("editor/EditorManager"),
+    var MainViewManager     = require("view/MainViewManager"),
         FileUtils           = require("file/FileUtils"),
         InMemoryFile        = require("document/InMemoryFile"),
         PerfUtils           = require("utils/PerfUtils"),
@@ -224,7 +224,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._ensureMasterEditor = function () {
         if (!this._masterEditor) {
-            EditorManager._createFullEditorForDocument(this);
+            MainViewManager.createDocumentEditor(this, MainViewManager.FOCUSED_PANE);
         }
     };
     

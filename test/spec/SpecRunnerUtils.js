@@ -403,7 +403,6 @@ define(function (require, exports, module) {
         // (".content" may not exist, but that's ok for headless tests where editor height doesn't matter)
         var $editorHolder = createMockElement().css("width", "1000px").attr("id", "mock-editor-holder");
         WorkspaceManager._setMockDOM($(".content"), $editorHolder);
-        EditorManager.setEditorHolder($editorHolder);
         
         // create Editor instance
         var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
@@ -442,7 +441,6 @@ define(function (require, exports, module) {
         EditorManager._destroyEditorIfUnneeded(doc);
 
         // Clear editor holder so EditorManager doesn't try to resize destroyed object
-        EditorManager.setEditorHolder(null);
         $("#mock-editor-holder").remove();
     }
     

@@ -212,8 +212,6 @@ define(function (require, exports, module) {
     function _onReady() {
         PerfUtils.addMeasurement("window.document Ready");
 
-        EditorManager.setEditorHolder($("#editor-holder"));
-
         // Let the user know Brackets doesn't run in a web browser yet
         if (brackets.inBrowser) {
             Dialogs.showModalDialog(

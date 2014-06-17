@@ -39,6 +39,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var _                   = require("thirdparty/lodash"),
+        AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         EditorManager       = require("editor/EditorManager"),
@@ -82,7 +83,7 @@ define(function (require, exports, module) {
      * temporary global
      * @private
      */
-    var _$container = $("#editor-holder");
+    var _$container = undefined;
     
     /**
      * Retrieves the PaneViewList for the given PaneId
@@ -568,13 +569,21 @@ define(function (require, exports, module) {
     }
     
     
+    function createDocumentEditor(document) {
+        EditorManager._createFullEditorForDocument(document, _$container);
+    }
+
     
     /**
      *
      */
     function _openDocument(event, doc) {
-        EditorManager.doOpenDocument(_$container, doc);
+        EditorManager.doOpenDocument(doc, _$container);
     }
+    
+    AppInit.htmlReady(function() {
+         _$container = $("#editor-holder");
+    });
     
     // Event handlers
     $(ProjectManager).on("projectOpen",                       _loadViewState);
@@ -596,6 +605,9 @@ define(function (require, exports, module) {
     exports.sortPaneViewList                 = sortPaneViewList;
     exports.swapPaneViewListIndexes          = swapPaneViewListIndexes;
     exports.traversePaneViewListByMRU        = traversePaneViewListByMRU;
+    
+    // Explicit stuff
+    exports.createDocumentEditor             = createDocumentEditor;
 
     // Migration helpers
     exports.notifyPathDeleted                = notifyPathDeleted;

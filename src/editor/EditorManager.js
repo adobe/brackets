@@ -64,11 +64,6 @@ define(function (require, exports, module) {
         LanguageManager     = require("language/LanguageManager"),
         DeprecationWarning  = require("utils/DeprecationWarning");
     
-    /**
-     * DOM node that contains all editors (visible and hidden alike)
-     * @type {jQueryObject}
-     */
-    var _editorHolder = null;
     
     /**
      * Currently visible full-size Editor, or null if no editors open
@@ -375,9 +370,8 @@ define(function (require, exports, module) {
      * Semi-private: should only be called within this module or by Document.
      * @param {!Document} document  Document whose main/full Editor to create
      */
-    function _createFullEditorForDocument(document) {
+    function _createFullEditorForDocument(document, container) {
         // Create editor; make it initially invisible
-        var container = _editorHolder.get(0);
         var editor = _createEditorForDocument(document, true, container);
         editor.setVisible(false);
     }
@@ -567,7 +561,7 @@ define(function (require, exports, module) {
      * visible before. Creates a new editor if none is assigned.
      * @param {!Document} document
      */
-    function _showEditor(document) {
+    function _showEditor(document, container) {
         // Hide whatever was visible before
         if (!_currentEditor) {
             $("#not-editor").css("display", "none");
@@ -589,7 +583,7 @@ define(function (require, exports, module) {
             }
             
             // Editor doesn't exist: populate a new Editor with the text
-            _createFullEditorForDocument(document);
+            _createFullEditorForDocument(document, container);
         }
         
         _doShow(document);
@@ -802,9 +796,7 @@ define(function (require, exports, module) {
     }
     
     /** Handles changes to DocumentManager.getCurrentDocument() */
-    function doOpenDocument(container, doc) {
-        var container = _editorHolder.get(0);
-        
+    function doOpenDocument(doc, container) {
         var perfTimerName = PerfUtils.markStart("EditorManager._onCurrentDocumentChange():\t" + (!doc || doc.file.fullPath));
         
         // When the document or file in view changes clean up.
@@ -812,7 +804,7 @@ define(function (require, exports, module) {
         // Update the UI to show the right editor (or nothing), and also dispose old editor if no
         // longer needed.
         if (doc) {
-            _showEditor(doc);
+            _showEditor(doc, container);
             _setCurrentlyViewedPath(doc.file.fullPath);
         } else {
             _clearCurrentlyViewedPath();
@@ -854,35 +846,6 @@ define(function (require, exports, module) {
         }
     }
 
-    
-    /**
-     * Note: there are several paths that can lead to an editor getting destroyed
-     *  - file was in working set, but not in current editor; then closed (via working set "X" button)
-     *      --> handled by _onWorkingSetRemove()
-     *  - file was in current editor, but not in working set; then navigated away from
-     *      --> handled by _onCurrentDocumentChange()
-     *  - file was in current editor, but not in working set; then closed (via File > Close) (and thus
-     *    implicitly navigated away from)
-     *      --> handled by _onCurrentDocumentChange()
-     *  - file was in current editor AND in working set; then closed (via File > Close OR working set
-     *    "X" button) (and thus implicitly navigated away from)
-     *      --> handled by _onWorkingSetRemove() currently, but could be _onCurrentDocumentChange()
-     *      just as easily (depends on the order of events coming from DocumentManager)
-     * Designates the DOM node that will contain the currently active editor instance. EditorManager
-     * will own the content of this DOM node.
-     * @param {!jQueryObject} holder
-     */
-    function setEditorHolder(holder) {
-        if (_currentEditor) {
-            console.error("Cannot change editor area after an editor has already been created!");
-            return;
-        }
-        
-        _editorHolder = holder;
-        
-        WorkspaceManager.recomputeLayout();
-    }
-    
     /**
      * Returns the currently focused inline widget, if any.
      * @return {?InlineWidget}
@@ -998,39 +961,21 @@ define(function (require, exports, module) {
      *      provider responded or the provider that responded failed.
      */
     function _doJumpToDef() {
-        var providers = _jumpToDefProviders;
-        var promise,
-            i,
-            result = new $.Deferred();
+        var result = new $.Deferred(), 
+            editor = getActiveEditor();
         
-        var editor = getActiveEditor();
         if (editor) {
-            var pos = editor.getCursorPos();
-
             PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
-            
-            // Run through providers until one responds
-            for (i = 0; i < providers.length && !promise; i++) {
-                var provider = providers[i];
-                promise = provider(editor, pos);
-            }
-
-            // Will one of them will provide a result?
-            if (promise) {
-                promise.done(function () {
-                    PerfUtils.addMeasurement(PerfUtils.JUMP_TO_DEFINITION);
-                    result.resolve();
-                }).fail(function () {
-                    // terminate timer that was started above
-                    PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
-                    result.reject();
-                });
-            } else {
-                // terminate timer that was started above
-                PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
-                result.reject();
-            }
-            
+            editor.jumpToDefinition(_jumpToDefProviders)
+               .done(function() {
+                   result.resolve();
+               })
+               .fail(function() {
+                   result.reject();
+               })
+               .always(function() {
+                   PerfUtils.addMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+               });
         } else {
             result.reject();
         }
@@ -1077,7 +1022,6 @@ define(function (require, exports, module) {
     exports.REFRESH_SKIP  = REFRESH_SKIP;
     
     // Define public API
-    exports.setEditorHolder               = setEditorHolder;
     exports.getCurrentFullEditor          = getCurrentFullEditor;
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
     exports.focusEditor                   = focusEditor;

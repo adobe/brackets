@@ -144,6 +144,12 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _duringFocus = false;
+    
+    /**
+     * Container in which this editor belongs 
+     * @type {jQueryObject}
+     */
+    var _$container = undefined;
 
     /**
      * Constant: ignore upper boundary when centering text
@@ -206,6 +212,14 @@ define(function (require, exports, module) {
         // Attach to document: add ref & handlers
         this.document = document;
         document.addRef();
+        
+        if (!container.jquery) {
+            this._$container = $(container);
+        } else {
+            this._$container = container;
+            // CodeMirror wants a DOM element, not a jQuery wrapper
+            container = container.get(0);
+        }
         
         if (range) {    // attach this first: want range updated before we process a change
             this._visibleRange = new TextRange(document, range.startLine, range.endLine);
@@ -882,12 +896,21 @@ define(function (require, exports, module) {
         PerfUtils.addMeasurement(perfTimerName);
     };
 
-    /**
+   /**
     * Gets the document associated with this editor
     */
     Editor.prototype.getDocument = function () {
         return this.document;
     };    
+    
+    /**
+     * gets the container
+     * @return {!jQueryObject} container
+     */
+    Editor.prototype.getContainer = function() {
+        return this._$container;
+    };
+    
     
     /**
      * Gets the current cursor position within the editor.
@@ -2110,7 +2133,33 @@ define(function (require, exports, module) {
         if (forceRefresh) {
             this.refreshAll(true);
         }
-    }
+    };
+    
+    Editor.prototype.jumpToDefinition = function (providers) {
+        var i, 
+            promise,
+            pos = this.getCursorPos(),
+            result = new $.Deferred();
+
+        // Run through providers until one responds
+        for (i = 0; i < providers.length && !promise; i++) {
+            var provider = providers[i];
+            promise = provider(this, pos);
+        }
+
+        // Will one of them will provide a result?
+        if (promise) {
+            promise.done(function () {
+                result.resolve();
+            }).fail(function () {
+                result.reject();
+            });
+        } else {
+            result.reject();
+        }
+        
+        return result.promise();
+    };
     
     // Global settings that affect Editor instances that share the same preference locations
 
