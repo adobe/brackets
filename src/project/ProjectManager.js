@@ -644,6 +644,7 @@ define(function (require, exports, module) {
                     var $treenode = $(event.target).closest("li");
                     // select tree node on right-click
                     if (event.which === 3 || (event.ctrlKey && event.which === 1 && brackets.platform === "mac")) {
+                        console.log('IF, not else!');
                         if ($treenode) {
                             var saveSuppressToggleOpen = suppressToggleOpen;
                            
@@ -653,14 +654,17 @@ define(function (require, exports, module) {
                             _projectTree.jstree("select_node", $treenode, false);
                             suppressToggleOpen = saveSuppressToggleOpen;
                         }
-                    } else {
-                        // if it's not a right click interaction first check to see if the item is selected
-                        var isSelected = $treenode.hasClass("jstree-leaf") && $treenode.children("a").hasClass("jstree-clicked");
-                        if (isSelected) {
-                            CommandManager.execute(Commands.FILE_RENAME);
-                        }
                     }
                    
+                }
+            ).bind(
+                "mouseup.jstree",
+                function (event) {
+                    var $treenode = $(event.target).closest("li");
+                    var isSelected = $treenode.hasClass("jstree-leaf") && $treenode.children("a").hasClass("jstree-clicked");
+                    if (isSelected) {
+                        CommandManager.execute(Commands.FILE_RENAME);
+                    }
                 }
             );
 
