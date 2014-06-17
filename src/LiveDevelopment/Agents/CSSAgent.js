@@ -73,9 +73,11 @@ define(function CSSAgent(require, exports, module) {
      * @param {frame: Frame} res
      */
     function _onFrameNavigated(event, res) {
-        // Clear maps when navigating to a new page
-        _urlToStyle = {};
-        _styleSheetIdToUrl = {};
+        // Clear maps when navigating to a new page, but not if an iframe was loaded
+        if (!res.frame.parentId) {
+            _urlToStyle = {};
+            _styleSheetIdToUrl = {};
+        }
     }
 
     /**
