@@ -256,7 +256,44 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Start processing file
+     */
+    function startProcessing(path) {
+
+        // Remember file path and start time to detect when files hang
+        // TODO - verify that path & startTime fields are empty?
+        // TODO - move to addPendingRequest()
+        PreferencesManager.set("jscodehints.currentlyProcessing.path", path);
+        PreferencesManager.set("jscodehints.currentlyProcessing.startTime", (new Date()).getTime());
+    }
+
+    /**
+     * End processing file
+     * @param {string} path - full path of file
+     */
+    function endProcessing(path) {
+        // TODO - move to getPendingRequest()
+        // If file took too long to process, then add it to detectedExclusions list
+        // TODO - only if there are $deferredHints ?
+        var prevPath  = PreferencesManager.get("jscodehints.currentlyProcessing.path"),
+            startTime = PreferencesManager.get("jscodehints.currentlyProcessing.startTime"),
+            currTime  = (new Date()).getTime();
+
+        if ((path === prevPath) && startTime && ((currTime - startTime) > MAX_PROCESS_TIME)) {
+            console.log("File added to detectedExclusions: " + path);
+            var detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions") || [];
+            detectedExclusions.push(path);
+            PreferencesManager.set("jscodehints.detectedExclusions", detectedExclusions);
+        }
+
+        // clear
+        PreferencesManager.set("jscodehints.currentlyProcessing.path", "");
+        PreferencesManager.set("jscodehints.currentlyProcessing.startTime", 0);
+    }
+
+    /**
      * Add a pending request waiting for the tern-worker to complete.
+     * If file is a detected exclusion, then reject request.
      *
      * @param {string} file - the name of the file
      * @param {{line: number, ch: number}} offset - the offset into the file the request is for
@@ -268,9 +305,12 @@ define(function (require, exports, module) {
             key = file + "@" + offset.line + "@" + offset.ch,
             $deferredRequest;
 
-//        if (file.indexOf("melonJS-0.9.11.js") > -1) {
-//            console.log("pending request for excluded file...");
-//        }
+        // Reject detected exclusions
+        if (isFileExcludedInternal(file)) {
+            // TODO: only display once per file?
+            console.log("JSCodeHints: File exceeds processing threshold time: " + file);
+            return (new $.Deferred()).reject().promise();
+        }
         
         if (_.has(pendingTernRequests, key)) {
             requests = pendingTernRequests[key];
@@ -282,7 +322,7 @@ define(function (require, exports, module) {
         if (_.has(requests, type)) {
             $deferredRequest = requests[type];
         } else {
-            requests[type] = $deferredRequest = $.Deferred();
+            requests[type] = $deferredRequest = new $.Deferred();
         }
         return $deferredRequest.promise();
     }
@@ -790,6 +830,10 @@ define(function (require, exports, module) {
         function handleTernGetFile(request) {
     
             function replyWith(name, txt) {
+                if (txt) {
+console.log("handleTernGetFile: startProcessing: " + name);
+                    startProcessing(name);
+                }
                 _postMessageByPass({
                     type: MessageIds.TERN_GET_FILE_MSG,
                     file: name,
@@ -809,7 +853,11 @@ define(function (require, exports, module) {
              */
             function getDocText(filePath) {
                 if (!FileSystem.isAbsolutePath(filePath)) {
-                    return new $.Deferred().reject();
+                    return (new $.Deferred()).reject().promise();
+                }
+                if (isFileExcludedInternal(filePath)) {
+                    console.log("JSCodeHints: File exceeds processing threshold time: " + file);
+                    return (new $.Deferred()).reject().promise();
                 }
                 
                 var file = FileSystem.getFileForPath(filePath),
@@ -880,17 +928,6 @@ define(function (require, exports, module) {
                 path        : path
             });
 
-            // TODO...
-            //if (isFileExcludedInternal(path)) {
-            //}
-
-            // TODO - verify that path & startTime fields are empty?
-            // TODO - move to addPendingRequest()
-            // Remember file path and start time to detect when files hang
-            // TODO - check isFileExcluded() (or just detectedExclusions list)
-            PreferencesManager.set("jscodehints.currentlyProcessing.path", path);
-            PreferencesManager.set("jscodehints.currentlyProcessing.startTime", (new Date()).getTime());
-
             return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_PRIME_PUMP_MSG);
         }
 
@@ -905,24 +942,6 @@ define(function (require, exports, module) {
             var path = response.path,
                 type = response.type,
                 $deferredHints = getPendingRequest(path, OFFSET_ZERO, type);
-
-            // TODO - move to getPendingRequest()
-            // If file took too long to process, then add it to detectedExclusions list
-            // TODO - only if there are $deferredHints ?
-            var prevPath  = PreferencesManager.get("jscodehints.currentlyProcessing.path"),
-                startTime = PreferencesManager.get("jscodehints.currentlyProcessing.startTime"),
-                currTime  = (new Date()).getTime();
-
-            if ((path === prevPath) && ((currTime - startTime) > MAX_PROCESS_TIME)) {
-                console.log("File added to detectedExclusions: " + path);
-                var detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions") || [];
-                detectedExclusions.push(path);
-                PreferencesManager.set("jscodehints.detectedExclusions", detectedExclusions);
-            }
-
-            // clear
-            PreferencesManager.set("jscodehints.currentlyProcessing.path", "");
-            PreferencesManager.set("jscodehints.currentlyProcessing.startTime", 0);
 
             if ($deferredHints) {
                 $deferredHints.resolve();
