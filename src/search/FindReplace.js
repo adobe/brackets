@@ -67,12 +67,6 @@ define(function (require, exports, module) {
     var FIND_HIGHLIGHT_MAX  = 2000;
 
     /**
-     * Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced
-     * @const {number}
-     */
-    var REPLACE_ALL_MAX     = 10000;
-    
-    /**
      * Instance of the currently opened document when replaceAllPanel is visible
      * @type {?Document}
      */
@@ -86,6 +80,7 @@ define(function (require, exports, module) {
     
     function SearchState() {
         this.searchStartPos = null;
+        this.parsedQuery = null;
         this.queryInfo = null;
         this.foundAny = false;
         this.marked = [];
@@ -98,9 +93,9 @@ define(function (require, exports, module) {
         return cm._searchState;
     }
 
-    function getSearchCursor(cm, query, queryInfo, pos) {
+    function getSearchCursor(cm, state, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
-        return cm.getSearchCursor(query, pos, !queryInfo.isCaseSensitive);
+        return cm.getSearchCursor(state.parsedQuery, pos, !state.queryInfo.isCaseSensitive);
     }
     
     function parseQuery(queryInfo) {
@@ -131,16 +126,16 @@ define(function (require, exports, module) {
     /**
      * @private
      * Determine the query from the given info and store it in the state.
-     * @param {SearchState} state The state to store the query in
+     * @param {SearchState} state The state to store the parsed query in
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo 
      *      The query info object as returned by FindBar.getQueryInfo()
      */
     function setQueryInfo(state, queryInfo) {
         state.queryInfo = queryInfo;
         if (!queryInfo) {
-            state.query = null;
+            state.parsedQuery = null;
         } else {
-            state.query = parseQuery(queryInfo);
+            state.parsedQuery = parseQuery(queryInfo);
         }
     }
 
@@ -160,12 +155,12 @@ define(function (require, exports, module) {
     function _getNextMatch(editor, rev, pos, wrap) {
         var cm = editor._codeMirror;
         var state = getSearchState(cm);
-        var cursor = getSearchCursor(cm, state.query, state.queryInfo, pos || editor.getCursorPos(false, rev ? "start" : "end"));
+        var cursor = getSearchCursor(cm, state, pos || editor.getCursorPos(false, rev ? "start" : "end"));
 
         state.lastMatch = cursor.find(rev);
         if (!state.lastMatch && wrap !== false) {
             // If no result found before hitting edge of file, try wrapping around
-            cursor = getSearchCursor(cm, state.query, state.queryInfo, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
+            cursor = getSearchCursor(cm, state, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
             state.lastMatch = cursor.find(rev);
         }
         if (!state.lastMatch) {
@@ -410,7 +405,7 @@ define(function (require, exports, module) {
     function clearSearch(cm) {
         cm.operation(function () {
             var state = getSearchState(cm);
-            if (!state.query || !state.queryInfo) {
+            if (!state.parsedQuery) {
                 return;
             }
             setQueryInfo(state, null);
@@ -439,14 +434,12 @@ define(function (require, exports, module) {
             state = getSearchState(cm);
         
         function indicateHasMatches(numResults) {
-            if (findBar) {
-                // Make the field red if it's not blank and it has no matches (which also covers invalid regexes)
-                findBar.showNoResults(!state.foundAny && findBar.getQueryInfo().query);
+            // Make the field red if it's not blank and it has no matches (which also covers invalid regexes)
+            findBar.showNoResults(!state.foundAny && findBar.getQueryInfo().query);
 
-                // Navigation buttons enabled if we have a query and more than one match
-                findBar.enableNavigation(state.foundAny && numResults > 1);
-                findBar.enableReplace(state.foundAny);
-            }
+            // Navigation buttons enabled if we have a query and more than one match
+            findBar.enableNavigation(state.foundAny && numResults > 1);
+            findBar.enableReplace(state.foundAny);
         }
         
         cm.operation(function () {
@@ -455,11 +448,9 @@ define(function (require, exports, module) {
                 clearHighlights(cm, state);
             }
             
-            if (!state.query || !state.queryInfo) {
+            if (!state.parsedQuery) {
                 // Search field is empty - no results
-                if (findBar) {
-                    findBar.showFindCount("");
-                }
+                findBar.showFindCount("");
                 state.foundAny = false;
                 indicateHasMatches();
                 return;
@@ -467,7 +458,7 @@ define(function (require, exports, module) {
             
             // Find *all* matches, searching from start of document
             // (Except on huge documents, where this is too expensive)
-            var cursor = getSearchCursor(cm, state.query, state.queryInfo);
+            var cursor = getSearchCursor(cm, state);
             if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
                 // FUTURE: if last query was prefix of this one, could optimize by filtering last result set
                 var resultSet = [];
@@ -490,25 +481,21 @@ define(function (require, exports, module) {
                     ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
                 }
                 
-                if (findBar) {
-                    var countInfo;
-                    if (resultSet.length === 0) {
-                        countInfo = Strings.FIND_NO_RESULTS;
-                    } else if (resultSet.length === 1) {
-                        countInfo = Strings.FIND_RESULT_COUNT_SINGLE;
-                    } else {
-                        countInfo = StringUtils.format(Strings.FIND_RESULT_COUNT, resultSet.length);
-                    }
-                    findBar.showFindCount(countInfo);
+                var countInfo;
+                if (resultSet.length === 0) {
+                    countInfo = Strings.FIND_NO_RESULTS;
+                } else if (resultSet.length === 1) {
+                    countInfo = Strings.FIND_RESULT_COUNT_SINGLE;
+                } else {
+                    countInfo = StringUtils.format(Strings.FIND_RESULT_COUNT, resultSet.length);
                 }
+                findBar.showFindCount(countInfo);
                 state.foundAny = (resultSet.length > 0);
                 indicateHasMatches(resultSet.length);
                 
             } else {
                 // On huge documents, just look for first match & then stop
-                if (findBar) {
-                    findBar.showFindCount("");
-                }
+                findBar.showFindCount("");
                 state.foundAny = cursor.findNext();
                 indicateHasMatches();
             }
@@ -516,7 +503,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Called each time the search query field changes. Updates state.query (query will be falsy if the field
+     * Called each time the search query field changes. Updates state.parsedQuery (parsedQuery will be falsy if the field
      * was blank OR contained a regexp with invalid syntax). Then calls updateResultSet(), and then jumps to
      * the first matching result, starting from the original cursor position.
      * @param {!Editor} editor The editor we're searching in.
@@ -525,10 +512,10 @@ define(function (require, exports, module) {
      *     In that case, we don't want to change the selection unnecessarily.
      */
     function handleQueryChange(editor, state, initial) {
-        setQueryInfo(state, findBar && findBar.getQueryInfo());
+        setQueryInfo(state, findBar.getQueryInfo());
         updateResultSet(editor);
         
-        if (state.query && state.queryInfo) {
+        if (state.parsedQuery) {
             // 3rd arg: prefer to avoid scrolling if result is anywhere within view, since in this case user
             // is in the middle of typing, not navigating explicitly; viewport jumping would be distracting.
             findNext(editor, false, true, state.searchStartPos);
@@ -579,7 +566,7 @@ define(function (require, exports, module) {
         
         // Create the search bar UI (closing any previous find bar in the process)
         findBar = new FindBar({
-            navigator: true,
+            multifile: false,
             replace: replace,
             initialQuery: initialQuery,
             queryPlaceholder: Strings.CMD_FIND_FIELD_PLACEHOLDER
@@ -613,7 +600,7 @@ define(function (require, exports, module) {
      */
     function doSearch(editor, rev) {
         var state = getSearchState(editor._codeMirror);
-        if (state.query && state.queryInfo) {
+        if (state.parsedQuery) {
             findNext(editor, rev);
             return;
         }
@@ -643,7 +630,7 @@ define(function (require, exports, module) {
             // Delegate to Replace in Files.
             FindInFilesUI.searchAndShowResults(state.queryInfo, editor.document.file, null, replaceText);
         } else {
-            cm.replaceSelection(typeof state.query === "string" ? replaceText : FindUtils.parseDollars(replaceText, state.lastMatch));
+            cm.replaceSelection(state.queryInfo.isRegexp ? FindUtils.parseDollars(replaceText, state.lastMatch) : replaceText);
 
             updateResultSet(editor);  // we updated the text, so result count & tickmarks must be refreshed
 
@@ -657,16 +644,20 @@ define(function (require, exports, module) {
 
     function replace(editor) {
         // If Replace bar already open, treat the shortcut as a hotkey for the Replace button
-        if (findBar && findBar.getOptions().replace) {
+        if (findBar && findBar.getOptions().replace && findBar.isReplaceEnabled()) {
             doReplace(editor, false);
             return;
         }
         
         openSearchBar(editor, true);
         
-        $(findBar).on("doReplace.FindReplace", function (e, all) {
-            doReplace(editor, all);
-        });
+        $(findBar)
+            .on("doReplace.FindReplace", function (e) {
+                doReplace(editor, false);
+            })
+            .on("doReplaceAll.FindReplace", function (e) {
+                doReplace(editor, true);
+            });
     }
 
     function _launchFind() {

@@ -276,6 +276,17 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @private
+     * Triggers the appropriate events when a change occurs: "change" on the Document instance
+     * and "documentChange" on the Document module.
+     * @param {Object} changeList Changelist in CodeMirror format
+     */
+    Document.prototype._notifyDocumentChange = function (changeList) {
+        $(this).triggerHandler("change", [this, changeList]);
+        $(exports).triggerHandler("documentChange", [this, changeList]);
+    };
+    
+    /**
      * Sets the contents of the document. Treated as reloading the document from disk: the document
      * will be marked clean with a new timestamp, the undo/redo history is cleared, and we re-check
      * the text's line-ending style. CAN be called even if there is no backing editor.
@@ -303,9 +314,7 @@ define(function (require, exports, module) {
                 // TODO: Dumb to split it here just to join it again in the change handler, but this is
                 // the CodeMirror change format. Should we document our change format to allow this to
                 // either be an array of lines or a single string?
-                var fakeChangeList = [{text: text.split(/\r?\n/)}];
-                $(this).triggerHandler("change", [this, fakeChangeList]);
-                $(exports).triggerHandler("documentChange", [this, fakeChangeList]);
+                this._notifyDocumentChange([{text: text.split(/\r?\n/)}]);
             }
         }
         this._updateTimestamp(newTimestamp);
@@ -398,6 +407,9 @@ define(function (require, exports, module) {
      * @private
      */
     Document.prototype._handleEditorChange = function (event, editor, changeList) {
+        // TODO: This needs to be kept in sync with SpecRunnerUtils.createMockActiveDocument(). In the
+        // future, we should fix things so that we either don't need mock documents or that this
+        // is factored so it will just run in both.
         if (!this._refreshInProgress) {
             // Sync isDirty from CodeMirror state
             var wasDirty = this.isDirty;
@@ -410,11 +422,7 @@ define(function (require, exports, module) {
         }
         
         // Notify that Document's text has changed
-        // TODO: This needs to be kept in sync with SpecRunnerUtils.createMockDocument(). In the
-        // future, we should fix things so that we either don't need mock documents or that this
-        // is factored so it will just run in both.
-        $(this).triggerHandler("change", [this, changeList]);
-        $(exports).triggerHandler("documentChange", [this, changeList]);
+        this._notifyDocumentChange(changeList);
     };
     
     /**

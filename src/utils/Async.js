@@ -422,8 +422,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Utility for converting a method that takes an errback to one that returns a promise; useful
-     * for using FileSystem methods in a promise-oriented workflow. For example, instead of
+     * Utility for converting a method that takes (error, callback) to one that returns a promise;
+     * useful for using FileSystem methods (or other Node-style API methods) in a promise-oriented
+     * workflow. For example, instead of
      *
      *      var deferred = new $.Deferred();
      *      file.read(function (err, contents) {

@@ -184,6 +184,21 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Creates an HTML string for a list of files to be reported on, suitable for use in a dialog.
+     * @param {Array.<string>} Array of filenames or paths to display.
+     */
+    function makeDialogFileList(paths) {
+        var result = "<ul class='dialog-list'>";
+        paths.forEach(function (path) {
+            result += "<li><span class='dialog-filename'>";
+            result += StringUtils.breakableUrl(path);
+            result += "</span></li>";
+        });
+        result += "</ul>";
+        return result;
+    }
+
+    /**
      * Convert a URI path to a native path.
      * On both platforms, this unescapes the URI
      * On windows, URI paths start with a "/", but have a drive letter ("C:"). In this
@@ -446,11 +461,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Compares two paths. Useful for sorting.
-     * @param {string} filename1
-     * @param {string} filename2
-     * @param {boolean} extFirst If true it compares the extensions first and then the file names.
-     * @return {number} The result of the local compare function
+     * Compares two paths segment-by-segment, used for sorting. Sorts folders before files,
+     * and sorts files based on `compareFilenames()`.
+     * @param {string} path1
+     * @param {string} path2
+     * @return {number} -1, 0, or 1 depending on whether path1 is less than, equal to, or greater than
+     *     path2 according to this ordering.
      */
     function comparePaths(path1, path2) {
         var entryName1, entryName2,
@@ -486,6 +502,7 @@ define(function (require, exports, module) {
     exports.translateLineEndings           = translateLineEndings;
     exports.showFileOpenError              = showFileOpenError;
     exports.getFileErrorString             = getFileErrorString;
+    exports.makeDialogFileList             = makeDialogFileList;
     exports.readAsText                     = readAsText;
     exports.writeText                      = writeText;
     exports.convertToNativePath            = convertToNativePath;

@@ -79,7 +79,7 @@ define(function (require, exports, module) {
 
     /**
      * The file/folder path representing the scope that this query was performed in.
-     * @type {string}
+     * @type {FileSystemEntry}
      */
     SearchModel.prototype.scope = null;
     
@@ -89,6 +89,12 @@ define(function (require, exports, module) {
      */
     SearchModel.prototype.filter = null;
 
+    /** 
+     * The total number of matches in the model.
+     * @type {number}
+     */
+    SearchModel.prototype.numMatches = 0;
+    
     /**
      * Whether or not we hit the maximum number of results for the type of search we did.
      * @type {boolean}
@@ -105,6 +111,7 @@ define(function (require, exports, module) {
         this.isReplace = false;
         this.replaceText = null;
         this.scope = null;
+        this.numMatches = 0;
         this.foundMaximum = false;
     };
     
@@ -121,8 +128,8 @@ define(function (require, exports, module) {
         this.queryInfo = queryInfo;
         this.queryExpr = null;
         
-        // TODO: only apparent difference between this one and the one in FindReplace is that this one returns
-        // null instead of "" for a bad query, and this always returns a regexp even for simple strings. Reconcile.
+        // TODO: only major difference between this one and the one in FindReplace is that 
+        // this always returns a regexp even for simple strings. Reconcile.
         if (!queryInfo || !queryInfo.query) {
             return {empty: true};
         }
@@ -150,32 +157,42 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Adds the given result matches to the search results
-     * @param {string} fullpath
-     * @param {Array.<Object>} matches
-     * @return true if at least some matches were added, false if we've hit the limit on how many can be added
+     * Sets the list of matches for the given path, removing the previous match info, if any, and updating
+     * the total match count. Note that for the count to remain accurate, the previous match info must not have
+     * been mutated since it was set.
+     * @param {string} fullpath Full path to the file containing the matches.
+     * @param {!{matches: Object, timestamp: Date, collapsed: boolean=}} resultInfo Info for the matches to set:
+     *      matches - Array of matches, in the format returned by FindInFiles._getSearchMatches()
+     *      timestamp - The timestamp of the document at the time we searched it.
+     *      collapsed - Optional: whether the results should be collapsed in the UI (default false).
      */
-    SearchModel.prototype.addResultMatches = function (fullpath, matches, timestamp) {
-        if (this.foundMaximum) {
-            return false;
+    SearchModel.prototype.setResults = function (fullpath, resultInfo) {
+        this.removeResults(fullpath);
+        
+        if (this.foundMaximum || !resultInfo.matches.length) {
+            return;
         }
         
-        this.results[fullpath] = {
-            matches:   matches,
-            collapsed: false,
-            timestamp: timestamp
-        };
-        
-        var curNumMatches = this.countFilesMatches().matches;
-        if (curNumMatches >= SearchModel.MAX_TOTAL_RESULTS) {
+        this.results[fullpath] = resultInfo;
+        this.numMatches += resultInfo.matches.length;
+        if (this.numMatches >= SearchModel.MAX_TOTAL_RESULTS) {
             this.foundMaximum = true;
         }
-        
-        return true;
     };
-
+    
     /**
-     * @return true if there are any results in this model.
+     * Removes the given result's matches from the search results and updates the total match count.
+     * @param {string} fullpath Full path to the file containing the matches.
+     */
+    SearchModel.prototype.removeResults = function (fullpath) {
+        if (this.results[fullpath]) {
+            this.numMatches -= this.results[fullpath].matches.length;
+            delete this.results[fullpath];
+        }
+    };
+    
+    /**
+     * @return {boolean} true if there are any results in this model.
      */
     SearchModel.prototype.hasResults = function () {
         return Object.keys(this.results).length > 0;
@@ -186,13 +203,7 @@ define(function (require, exports, module) {
      * @return {{files: number, matches: number}}
      */
     SearchModel.prototype.countFilesMatches = function () {
-        var numFiles = 0, numMatches = 0;
-        _.forEach(this.results, function (item) {
-            numFiles++;
-            numMatches += item.matches.length;
-        });
-
-        return {files: numFiles, matches: numMatches};
+        return {files: Object.keys(this.results).length, matches: this.numMatches};
     };
 
     /**
@@ -201,10 +212,7 @@ define(function (require, exports, module) {
      * @return {Array.<string>}
      */
     SearchModel.prototype.getSortedFiles = function (firstFile) {
-        var searchFiles = Object.keys(this.results),
-            self        = this;
-
-        searchFiles.sort(function (key1, key2) {
+        return Object.keys(this.results).sort(function (key1, key2) {
             if (firstFile === key1) {
                 return -1;
             } else if (firstFile === key2) {
@@ -212,8 +220,6 @@ define(function (require, exports, module) {
             }
             return FileUtils.comparePaths(key1, key2);
         });
-
-        return searchFiles;
     };
 
     /**

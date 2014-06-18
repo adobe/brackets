@@ -73,8 +73,11 @@ define(function (require, exports, module) {
     function _doReplaceInDocument(doc, matchInfo, replaceText, isRegexp) {
         // Double-check that the open document's timestamp matches the one we recorded. This
         // should normally never go out of sync, because if it did we wouldn't start the
-        // replace in the first place, but we want to double-check. This will *not* handle
-        // cases where the document has been edited in memory since the matchInfo was generated.
+        // replace in the first place (due to the fact that we immediately close the search
+        // results panel whenever we detect a filesystem change that affects the results),
+        // but we want to double-check in case we don't happen to get the change in time.
+        // This will *not* handle cases where the document has been edited in memory since 
+        // the matchInfo was generated.
         if (doc.diskTimestamp.getTime() !== matchInfo.timestamp.getTime()) {
             return new $.Deferred().reject(exports.ERROR_FILE_CHANGED).promise();
         }
@@ -171,6 +174,8 @@ define(function (require, exports, module) {
      * Checks timestamps to ensure replacements are not performed in files that have changed on disk since
      * the original search results were generated. However, does *not* check whether edits have been performed
      * in in-memory documents since the search; it's up to the caller to guarantee this hasn't happened.
+     * (When called from the standard Find in Files UI, SearchResultsView guarantees this. If called headlessly,
+     * the caller needs to track changes.)
      * 
      * Replacements in documents that are already open in memory at the start of the replacement are guaranteed to
      * happen synchronously; replacements in files on disk will return an error if the on-disk file changes between
@@ -211,6 +216,7 @@ define(function (require, exports, module) {
                     
                     if (firstPath) {
                         var newDoc = DocumentManager.getOpenDocumentForPath(firstPath);
+                        // newDoc might be null if the replacement failed.
                         if (newDoc) {
                             DocumentManager.setCurrentDocument(newDoc);
                         }

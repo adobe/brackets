@@ -25,13 +25,9 @@
 /*global define, $, window, Mustache */
 
 /*
- * Adds a "find in files" command to allow the user to find all occurrences of a string in all files in
- * the project.
- * 
- * The keyboard shortcut is Cmd(Ctrl)-Shift-F.
+ * UI and controller logic for find/replace across multiple files within the project.
  *
  * FUTURE:
- *  - Search files in working set that are *not* in the project
  *  - Handle matches that span multiple lines
  */
 define(function (require, exports, module) {
@@ -44,6 +40,7 @@ define(function (require, exports, module) {
         DefaultDialogs    = require("widgets/DefaultDialogs"),
         EditorManager     = require("editor/EditorManager"),
         FileFilters       = require("search/FileFilters"),
+        FileUtils         = require("file/FileUtils"),
         FindBar           = require("search/FindBar").FindBar,
         FindInFiles       = require("search/FindInFiles"),
         FindUtils         = require("search/FindUtils"),
@@ -76,7 +73,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
      */
     function searchAndShowResults(queryInfo, scope, filter, replaceText, candidateFilesPromise) {
-        FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
+        return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
             .done(function (zeroFilesToken) {
                 // Done searching all files: show results
                 if (FindInFiles.searchModel.hasResults()) {
@@ -150,10 +147,8 @@ define(function (require, exports, module) {
         }
 
         _findBar = new FindBar({
-            navigator: false,
+            multifile: true,
             replace: showReplace,
-            replaceAllOnly: showReplace,
-            scope: true,
             initialQuery: initialString,
             queryPlaceholder: (showReplace ? Strings.CMD_REPLACE_IN_SUBTREE : Strings.CMD_FIND_IN_SUBTREE),
             scopeLabel: FindUtils.labelForScope(scope)
@@ -175,25 +170,23 @@ define(function (require, exports, module) {
         function handleQueryChange() {
             // Check the query expression on every input event. This way the user is alerted
             // to any RegEx syntax errors immediately.
-            if (_findBar) {
-                var queryInfo = _findBar.getQueryInfo(),
-                    queryResult = FindInFiles.searchModel.setQueryInfo(queryInfo);
+            var queryInfo = _findBar.getQueryInfo(),
+                queryResult = FindInFiles.searchModel.setQueryInfo(queryInfo);
 
-                // Enable the replace button appropriately.
-                _findBar.enableReplace(queryResult.valid);
-                
-                if (queryResult.valid || queryResult.empty) {
-                    _findBar.showNoResults(false);
-                    _findBar.showError(null);
-                } else {
-                    _findBar.showNoResults(true, false);
-                    _findBar.showError(queryResult.error);
-                }
+            // Enable the replace button appropriately.
+            _findBar.enableReplace(queryResult.valid);
+
+            if (queryResult.valid || queryResult.empty) {
+                _findBar.showNoResults(false);
+                _findBar.showError(null);
+            } else {
+                _findBar.showNoResults(true, false);
+                _findBar.showError(queryResult.error);
             }
         }
         
         function startSearch(replaceText) {
-            var queryInfo = _findBar && _findBar.getQueryInfo();
+            var queryInfo = _findBar.getQueryInfo();
             if (queryInfo && queryInfo.query) {
                 _findBar.enable(false);
                 StatusBar.showBusyIndicator(true);
@@ -215,15 +208,10 @@ define(function (require, exports, module) {
         }
         
         $(_findBar)
-            .on("doFind.FindInFiles", function (e, shiftKey, replace) {
-                // If in Replace mode, just set focus to the Replace field.
-                if (replace) {
-                    startReplace();
-                } else if (showReplace) {
-                    _findBar.focusReplace();
-                } else {
-                    startSearch();
-                }
+            .on("doFind.FindInFiles", function () {
+                // Subtle issue: we can't just pass startSearch directly as the handler, because
+                // we don't want it to get the event object as an argument.
+                startSearch();
             })
             .on("queryChange.FindInFiles", handleQueryChange)
             .on("close.FindInFiles", function (e) {
@@ -232,9 +220,9 @@ define(function (require, exports, module) {
             });
         
         if (showReplace) {
-            $(_findBar).on("doReplace.FindInFiles", function (e, all) {
-                startReplace();
-            });
+            // We shouldn't get a "doReplace" in this case, since the Replace button
+            // is hidden when we set options.multifile.
+            $(_findBar).on("doReplaceAll.FindInFiles", startReplace);
         }
                 
         // Show file-exclusion UI *unless* search scope is just a single file
@@ -265,7 +253,7 @@ define(function (require, exports, module) {
         
         // Clone the search results so that they don't get updated in the middle of the replacement.
         var resultsClone = _.cloneDeep(model.results),
-            replacedFiles = _.filter(Object.keys(resultsClone), function (path) {
+            replacedFiles = Object.keys(resultsClone).filter(function (path) {
                 return FindUtils.hasCheckedMatches(resultsClone[path]);
             }),
             isRegexp = model.queryInfo.isRegexp,
@@ -275,8 +263,8 @@ define(function (require, exports, module) {
             StatusBar.showBusyIndicator(true);
             FindInFiles.doReplace(resultsClone, replaceText, { forceFilesOpen: forceFilesOpen, isRegexp: isRegexp })
                 .fail(function (errors) {
-                    var message = Strings.REPLACE_IN_FILES_ERRORS + StringUtils.makeDialogFileList(
-                            _.map(errors, function (errorInfo) {
+                    var message = Strings.REPLACE_IN_FILES_ERRORS + FileUtils.makeDialogFileList(
+                            errors.map(function (errorInfo) {
                                 return ProjectManager.makeProjectRelativeIfPossible(errorInfo.item);
                             })
                         );
@@ -372,7 +360,7 @@ define(function (require, exports, module) {
         var model = FindInFiles.searchModel;
         _resultsView = new SearchResultsView(model, "find-in-files-results", "find-in-files.results");
         $(_resultsView)
-            .on("doReplaceAll", function () {
+            .on("replaceAll", function () {
                 _finishReplaceAll(model);
             })
             .on("close", function () {
