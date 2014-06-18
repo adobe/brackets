@@ -221,7 +221,7 @@ define(function (require, exports, module) {
      * objects which contain a file entry, filter function, and an indication of
      * whether the watched root is inactive, starting up or fully active.
      * 
-     * @type{Object.<string, WatchedRoot>}
+     * @type {Object.<string, WatchedRoot>}
      */
     FileSystem.prototype._watchedRoots = null;
     
@@ -229,8 +229,8 @@ define(function (require, exports, module) {
      * Finds a parent watched root for a given path, or returns null if a parent
      * watched root does not exist.
      * 
-     * @param{string} fullPath The child path for which a parent watched root is to be found
-     * @return{?{entry: FileSystemEntry, filter: function(string) boolean}} The parent
+     * @param {string} fullPath The child path for which a parent watched root is to be found
+     * @return {?{entry: FileSystemEntry, filter: function(string) boolean}} The parent
      *      watched root, if it exists, or null.
      */
     FileSystem.prototype._findWatchedRootForPath = function (fullPath) {

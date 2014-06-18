@@ -123,7 +123,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @type{Object}
+     * @type {Object}
      * Exposes the domains registered with the server. This object will
      * have a property for each registered domain. Each of those properties
      * will be an object containing properties for all the commands in that
@@ -138,7 +138,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type{Array.<string>}
+     * @type {Array.<string>}
      * List of module pathnames that should be re-registered if there is
      * a disconnection/connection (i.e. if the server died).
      */
@@ -146,35 +146,35 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type{WebSocket}
+     * @type {WebSocket}
      * The connection to the server
      */
     NodeConnection.prototype._ws = null;
     
     /**
      * @private
-     * @type{?number}
+     * @type {?number}
      * The port the WebSocket is currently connected to
      */
     NodeConnection.prototype._port = null;
     
     /**
      * @private
-     * @type{number}
+     * @type {number}
      * Unique ID for commands
      */
     NodeConnection.prototype._commandCount = 1;
     
     /**
      * @private
-     * @type{boolean}
+     * @type {boolean}
      * Whether to attempt reconnection if connection fails
      */
     NodeConnection.prototype._autoReconnect = false;
     
     /**
      * @private
-     * @type{Array.<jQuery.Deferred>}
+     * @type {Array.<jQuery.Deferred>}
      * List of deferred objects that should be resolved pending
      * a successful refresh of the API
      */
@@ -182,7 +182,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type{Array.<jQuery.Deferred>}
+     * @type {Array.<jQuery.Deferred>}
      * Array (indexed on command ID) of deferred objects that should be
      * resolved/rejected with the response of commands.
      */
@@ -328,7 +328,7 @@ define(function (require, exports, module) {
 
     /**
      * Determines whether the NodeConnection is currently connected
-     * @return{boolean} Whether the NodeConnection is connected.
+     * @return {boolean} Whether the NodeConnection is connected.
      */
     NodeConnection.prototype.connected = function () {
         return !!(this._ws && this._ws.readyState === WebSocket.OPEN);
