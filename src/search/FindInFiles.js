@@ -354,18 +354,13 @@ define(function (require, exports, module) {
                 // Note that we don't fire a model change here, since this is always called by some outer batch
                 // operation that will fire it once it's done.
                 var matches = _getSearchMatches(text, searchModel.queryExpr);
-                if (matches.length) {
-                    searchModel.setResults(file.fullPath, {matches: matches, timestamp: timestamp});
-                    result.resolve(true);
-                } else {
-                    searchModel.removeResults(file.fullPath);
-                    result.resolve(false);
-                }
+                searchModel.setResults(file.fullPath, {matches: matches, timestamp: timestamp});
+                result.resolve(!!matches.length);
             })
             .fail(function () {
                 // Always resolve. If there is an error, this file
                 // is skipped and we move on to the next file.
-                result.resolve();
+                result.resolve(false);
             });
         
         return result.promise();
