@@ -358,6 +358,7 @@ define(function (require, exports, module) {
                     searchModel.setResults(file.fullPath, {matches: matches, timestamp: timestamp});
                     result.resolve(true);
                 } else {
+                    searchModel.removeResults(file.fullPath);
                     result.resolve(false);
                 }
             })
