@@ -407,6 +407,9 @@ define(function (require, exports, module) {
      * @private
      */
     Document.prototype._handleEditorChange = function (event, editor, changeList) {
+        // TODO: This needs to be kept in sync with SpecRunnerUtils.createMockActiveDocument(). In the
+        // future, we should fix things so that we either don't need mock documents or that this
+        // is factored so it will just run in both.
         if (!this._refreshInProgress) {
             // Sync isDirty from CodeMirror state
             var wasDirty = this.isDirty;
@@ -419,9 +422,6 @@ define(function (require, exports, module) {
         }
         
         // Notify that Document's text has changed
-        // TODO: This needs to be kept in sync with SpecRunnerUtils.createMockActiveDocument(). In the
-        // future, we should fix things so that we either don't need mock documents or that this
-        // is factored so it will just run in both.
         this._notifyDocumentChange(changeList);
     };
     

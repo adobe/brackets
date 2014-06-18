@@ -64,7 +64,8 @@ define(function (require, exports, module) {
      *-  close - when the find bar is closed
      *
      * @param {boolean=} options.multifile - true if this is a Find/Replace in Files (changes the behavior of Enter in
-     *      the fields, hides the navigator controls, and hides the Replace button, so there's only Replace All)
+     *      the fields, hides the navigator controls, shows the scope/filter controls, and if in replace mode, hides the
+     *      Replace button (so there's only Replace All)
      * @param {boolean=} options.replace - true to show the Replace controls - default false
      * @param {string=}  options.queryPlaceholder - label to show in the Find field - default empty string
      * @param {string=}  options.initialQuery - query to populate in the Find field on open - default empty string

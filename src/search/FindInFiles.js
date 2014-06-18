@@ -134,26 +134,6 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Searches and stores the match results for the given file, if there are matches
-     * @param {string} fullPath
-     * @param {string} contents
-     * @param {!RegExp} queryExpr
-     * @param {!Date} timestamp
-     * @return {boolean} True iff the matches were added to the search results
-     */
-    function _updateSearchMatches(fullPath, contents, queryExpr, timestamp) {
-        searchModel.removeResults(fullPath);
-        
-        var matches = _getSearchMatches(contents, queryExpr);
-        if (matches.length) {
-            searchModel.setResults(fullPath, {matches: matches, timestamp: timestamp});
-            return true;
-        }
-        return false;
-    }
-        
-    /**
-     * @private
      * Update the search results using the given list of changes for the given document
      * @param {Document} doc  The Document that changed, should be the current one
      * @param {Array.<{from: {line:number,ch:number}, to: {line:number,ch:number}, text: !Array.<string>}>} changeList
@@ -373,8 +353,13 @@ define(function (require, exports, module) {
             .done(function (text, timestamp) {
                 // Note that we don't fire a model change here, since this is always called by some outer batch
                 // operation that will fire it once it's done.
-                var foundMatches = _updateSearchMatches(file.fullPath, text, searchModel.queryExpr, timestamp);
-                result.resolve(foundMatches);
+                var matches = _getSearchMatches(text, searchModel.queryExpr);
+                if (matches.length) {
+                    searchModel.setResults(file.fullPath, {matches: matches, timestamp: timestamp});
+                    result.resolve(true);
+                } else {
+                    result.resolve(false);
+                }
             })
             .fail(function () {
                 // Always resolve. If there is an error, this file
