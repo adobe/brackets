@@ -664,13 +664,11 @@ define(function (require, exports, module) {
                 }
             ).bind("mouseup.jstree", function (event) {
                 var $treenode = $(event.target).closest("li");
-                var isSelected = $treenode.hasClass("jstree-leaf") && $treenode.children("a").hasClass("jstree-clicked");
-                
-                if (isSelected) {
+                if ($treenode[0] === $(_projectTree.jstree("get_selected")).closest("li")[0]) {
                     // wrap this in a setTimeout function so that we can check if it's a double click.
                     _mouseupTimeoutId = window.setTimeout(function (event) {
-                        // if it's a double-click, _mouseupTimeoutId is null and this won't trigger.
-                        if (_mouseupTimeoutId) {
+                        // if we get a double-click,_mouseupTimeoutId will have been set to lull by the double-click handler before this runs.
+                        if (_mouseupTimeoutId !== null) {
                             CommandManager.execute(Commands.FILE_RENAME);
                         }
                     }, 500);
@@ -737,7 +735,9 @@ define(function (require, exports, module) {
                     if (entry && entry.isFile && !_isInRename(event.target)) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
-                    window.clearTimeout(_mouseupTimeoutId);
+                    if (_mouseupTimeoutId !== null) {
+                        window.clearTimeout(_mouseupTimeoutId);
+                    }
                     _mouseupTimeoutId = null;
                 });
 
