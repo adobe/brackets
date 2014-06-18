@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var FileTreeView = require("project/FileTreeView"),
-        React = require("thirdparty/React"),
+        React = require("thirdparty/react"),
         RTU = React.addons.TestUtils;
 
     describe("FileTreeView", function () {
@@ -349,6 +349,43 @@ define(function (require, exports, module) {
                             "/foo/bar/subdir1/subsubdir/"
                         ]
                     ]);
+                });
+            });
+            
+            describe("getTreeDataForPath", function () {
+                var vm;
+                
+                beforeEach(function () {
+                    vm = new FileTreeView.ViewModel();
+                    vm.treeData = [
+                        {
+                            name: "subdir",
+                            children: [
+                                {
+                                    name: "subsubdir",
+                                    children: null
+                                }
+                            ]
+                        }
+                    ];
+                    vm.projectRoot = "/foo/bar/";
+                });
+                
+                it("should return undefined for an unknown directory", function () {
+                    expect(vm.getTreeDataForPath("yo/")).toBeUndefined();
+                    expect(vm.getTreeDataForPath("/foo/bar/yo/")).toBeUndefined();
+                });
+                
+                it("should return a top level path after removing the project root", function () {
+                    expect(vm.getTreeDataForPath("/foo/bar/subdir/")).toBe(vm.treeData[0]);
+                });
+                
+                it("should return a second level directory", function () {
+                    expect(vm.getTreeDataForPath("/foo/bar/subdir/subsubdir/")).toBe(vm.treeData[0].children[0]);
+                });
+                
+                it("should return null if the directory hasn't been loaded", function () {
+                    expect(vm.getTreeDataForPath("/foo/bar/subdir/subsubdir/yodeling/submarines/")).toBeNull();
                 });
             });
         });

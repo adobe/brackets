@@ -143,6 +143,37 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Removes the project root.
+     */
+    ViewModel.prototype.getTreeDataForPath = function (path) {
+        var projectRoot = this.projectRoot;
+        
+        if (path.substr(0, projectRoot.length) !== projectRoot) {
+            return undefined;
+        }
+        
+        path = path.substring(projectRoot.length);
+        var parts = path.split("/"),
+            part = parts.shift(),
+            treeData = this.treeData,
+            node;
+        
+        while (part) {
+            if (treeData === null) {
+                return null;
+            }
+            node = _.find(treeData, { name : part });
+            if (!node) {
+                return;
+            }
+            treeData = node.children;
+            part = parts.shift();
+        }
+        
+        return node;
+    };
+    
+    /**
      * @private
      * Save ProjectManager project path and tree state.
      */
@@ -150,9 +181,9 @@ define(function (require, exports, module) {
         var openNodes = [];
         
         function addNodesAtDepth(treeList, parent, depth) {
-            treeList.forEach(function (node) {
+            treeList.forEach(function (treeDataEntry) {
                 // is it a file or closed? (undefined or null)
-                if (!node.children) {
+                if (!treeDataEntry.children) {
                     return;
                 }
                 var nodeList = openNodes[depth];
@@ -160,10 +191,9 @@ define(function (require, exports, module) {
                     nodeList = openNodes[depth] = [];
                 }
                 
-                var directoryPath = parent + node.name + "/";
+                var directoryPath = parent + treeDataEntry.name + "/";
                 nodeList.push(directoryPath);
-                console.log(node, node.children);
-                addNodesAtDepth(node.children, directoryPath, depth + 1);
+                addNodesAtDepth(treeDataEntry.children, directoryPath, depth + 1);
             });
         }
         
@@ -220,7 +250,7 @@ define(function (require, exports, module) {
         }
         if (treeDataEntry.children === null) {
             treeDataEntry.children = [];
-            this.updateContents(treeDataEntry.directory, treeDataEntry.children);
+            return this.updateContents(treeDataEntry.directory, treeDataEntry.children);
         } else {
             treeDataEntry.children = null;
             $(this).trigger(CHANGE);
