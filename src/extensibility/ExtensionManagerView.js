@@ -28,10 +28,14 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Strings                   = require("strings"),
+    var Async                     = require("utils/Async"),
+        DragAndDrop               = require("utils/DragAndDrop"),
+        FileSystem                = require("filesystem/FileSystem"),
+        Strings                   = require("strings"),
         StringUtils               = require("utils/StringUtils"),
         NativeApp                 = require("utils/NativeApp"),
         ExtensionManager          = require("extensibility/ExtensionManager"),
+        FileUtils                 = require("file/FileUtils"),
         registry_utils            = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         CommandManager            = require("command/CommandManager"),
@@ -166,6 +170,26 @@ define(function (require, exports, module) {
             })
             .on("click", "button.remove", function (e) {
                 ExtensionManager.markForRemoval($(e.target).attr("data-extension-id"), true);
+            })
+            .on("dragover", function (event) {
+                var dropEffect = "none";
+                if (event.originalEvent.dataTransfer.files) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    
+                    if (DragAndDrop.isValidDrop(event.originalEvent.dataTransfer.items)) {
+                        dropEffect = "copy";
+                    }
+                    event.originalEvent.dataTransfer.dropEffect = dropEffect;
+                }
+            })
+            .on("drop", function (event) {
+                if (event.originalEvent.dataTransfer.files) {
+                    event.stopPropagation();
+                    event.preventDefault();
+
+                    self._installUsingDragAndDrop();
+                }
             });
     };
     
@@ -294,11 +318,52 @@ define(function (require, exports, module) {
             
             // TODO: this should set .done on the returned promise
             if (_isUpdate) {
-                InstallExtensionDialog.updateUsingDialog(url).done(ExtensionManager.updateFromDownload);
+                return InstallExtensionDialog.updateUsingDialog(url).done(ExtensionManager.updateFromDownload);
             } else {
-                InstallExtensionDialog.installUsingDialog(url);
+                return InstallExtensionDialog.installUsingDialog(url);
             }
         }
+
+        return new $.Deferred().reject().promise();
+    };
+    
+    /**
+     * @private
+     * Install extensions from the local file system using the install dialog.
+     */
+    ExtensionManagerView.prototype._installUsingDragAndDrop = function () {
+        var self = this;
+
+        brackets.app.getDroppedFiles(function (err, files) {
+            if (err) {
+                return;
+            }
+
+            Async.doSequentially(files, function (path) {
+                var result = new $.Deferred();
+                
+                FileSystem.resolve(path, function (err, file) {
+                    if (err) {
+                        result.reject();
+                        return;
+                    }
+                    
+                    if (file.isFile) {
+                        var extension = FileUtils.getFileExtension(path);
+
+                        if (extension !== "zip") {
+                            // Drag and drop install extension
+                            result.reject();
+                            return;
+                        }
+
+                        InstallExtensionDialog.installUsingDialog(file).then(result.resolve, result.reject);
+                    }
+                });
+                
+                return result.promise();
+            });
+        });
     };
     
     /**
@@ -308,6 +373,8 @@ define(function (require, exports, module) {
     ExtensionManagerView.prototype.filter = function (query) {
         this.model.filter(query);
     };
+
+
         
     exports.ExtensionManagerView = ExtensionManagerView;
 });

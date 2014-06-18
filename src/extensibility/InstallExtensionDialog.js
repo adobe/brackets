@@ -29,6 +29,8 @@ define(function (require, exports, module) {
     "use strict";
     
     var Dialogs                = require("widgets/Dialogs"),
+        ExtensionManager       = require("extensibility/ExtensionManager"),
+        File                   = require("filesystem/File"),
         StringUtils            = require("utils/StringUtils"),
         Strings                = require("strings"),
         Commands               = require("command/Commands"),
@@ -404,13 +406,48 @@ define(function (require, exports, module) {
     
     
     /** Mediates between this module and the Package extension-installation utils. Mockable for unit-testing. */
-    function InstallerFacade() { }
+    function InstallerFacade(isLocalFile) {
+        this._isLocalFile = isLocalFile;
+    }
+
     InstallerFacade.prototype.install = function (url) {
         if (this.pendingInstall) {
             console.error("Extension installation already pending");
             return new $.Deferred().reject("DOWNLOAD_ID_IN_USE").promise();
         }
-        this.pendingInstall = Package.installFromURL(url);
+
+        if (this._isLocalFile) {
+            var deferred = new $.Deferred();
+
+            this.pendingInstall = {
+                promise: deferred.promise(),
+                cancel: function () {
+                    // Can't cancel local zip installs
+                }
+            };
+
+            Package.validate(url).then(function (info) {
+                if (info.errors.length) {
+                    deferred.reject();
+                    return;
+                }
+
+                var extensionInfo = ExtensionManager.extensions[info.metadata.name],
+                    isUpdate = !!extensionInfo.installInfo,
+                    promise;
+
+                // TODO validate version?
+                if (isUpdate) {
+                    promise = Package.installUpdate(url).done(ExtensionManager.updateFromDownload);
+                } else {
+                    promise = Package.install(url);
+                }
+
+                promise.then(deferred.resolve, deferred.reject);
+            }, deferred.reject);
+        } else {
+            this.pendingInstall = Package.installFromURL(url);
+        }
         
         // Store now since we'll null pendingInstall immediately if the promise was resolved synchronously
         var promise = this.pendingInstall.promise;
@@ -440,14 +477,16 @@ define(function (require, exports, module) {
     /**
      * @private
      * Show the installation dialog and automatically begin installing the given URL.
-     * @param {string=} urlToInstall If specified, immediately starts installing the given file as if the user had
+     * @param {(string|File)=} urlToInstall If specified, immediately starts installing the given file as if the user had
      *     specified it.
      * @return {$.Promise} A promise object that will be resolved when the selected extension
      *     has finished installing, or rejected if the dialog is cancelled.
      */
     function installUsingDialog(urlToInstall, _isUpdate) {
-        var dlg = new InstallExtensionDialog(new InstallerFacade(), _isUpdate);
-        return dlg.show(urlToInstall);
+        var isLocalFile = (urlToInstall instanceof File),
+            dlg = new InstallExtensionDialog(new InstallerFacade(isLocalFile), _isUpdate);
+
+        return dlg.show(urlToInstall.fullPath || urlToInstall);
     }
     
     /**
