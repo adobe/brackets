@@ -482,7 +482,7 @@ define(function (require, exports, module) {
                     inlineEditor = new TWMultiRangeInlineEditor(mockRanges);
                     inlineEditor.load(hostEditor);
                 
-                    // add widget directly, bypass _openInlineWidget
+                    // add widget
                     waitsForDone(hostEditor.addInlineWidget({line: 0, ch: 0}, inlineEditor));
                 });
                 

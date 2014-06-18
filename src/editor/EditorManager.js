@@ -172,76 +172,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @private
-     * Finds an inline widget provider from the given list that can offer a widget for the current cursor
-     * position, and once the widget has been created inserts it into the editor.
-     *
-     * @param {!Editor} editor The host editor
-     * @param {Array.<{priority:number, provider:function(...)}>} providers 
-     *      prioritized list of providers
-     * @param {string=} defaultErrorMsg Default message to display if no providers return non-null
-     * @return {$.Promise} a promise that will be resolved when an InlineWidget 
-     *      is created or rejected if no inline providers have offered one.
-     */
-    function _openInlineWidget(editor, providers, defaultErrorMsg) {
-        PerfUtils.markStart(PerfUtils.INLINE_WIDGET_OPEN);
-        
-        // Run through inline-editor providers until one responds
-        var pos = editor.getCursorPos(),
-            inlinePromise,
-            i,
-            result = new $.Deferred(),
-            errorMsg,
-            providerRet;
-        
-        // Query each provider in priority order. Provider may return:
-        // 1. `null` to indicate it does not apply to current cursor position
-        // 2. promise that should resolve to an InlineWidget
-        // 3. string which indicates provider does apply to current cursor position,
-        //    but reason it could not create InlineWidget
-        //
-        // Keep looping until a provider is found. If a provider is not found,
-        // display highest priority error message that was found, otherwise display
-        // default error message
-        for (i = 0; i < providers.length && !inlinePromise; i++) {
-            var provider = providers[i].provider;
-            providerRet = provider(editor, pos);
-            if (providerRet) {
-                if (providerRet.hasOwnProperty("done")) {
-                    inlinePromise = providerRet;
-                } else if (!errorMsg && typeof (providerRet) === "string") {
-                    errorMsg = providerRet;
-                }
-            }
-        }
-
-        // Use default error message if none other provided
-        errorMsg = errorMsg || defaultErrorMsg;
-        
-        // If one of them will provide a widget, show it inline once ready
-        if (inlinePromise) {
-            inlinePromise.done(function (inlineWidget) {
-                editor.addInlineWidget(pos, inlineWidget).done(function () {
-                    PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
-                    result.resolve();
-                });
-            }).fail(function () {
-                // terminate timer that was started above
-                PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
-                editor.displayErrorMessageAtCursor(errorMsg);
-                result.reject();
-            });
-        } else {
-            // terminate timer that was started above
-            PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
-            editor.displayErrorMessageAtCursor(errorMsg);
-            result.reject();
-        }
-        
-        return result.promise();
-    }
-    
-    /**
      * Inserts a prioritized provider object into the array in sorted (descending) order.
      *
      * @param {Array.<{priority:number, provider:function(...)}>} array
@@ -851,17 +781,10 @@ define(function (require, exports, module) {
      * @return {?InlineWidget}
      */
     function getFocusedInlineWidget() {
-        var result = null;
-        
         if (_currentEditor) {
-            _currentEditor.getInlineWidgets().forEach(function (widget) {
-                if (widget.hasFocus()) {
-                    result = widget;
-                }
-            });
-        }
-        
-        return result;
+            return _currentEditor.getFocusedInlineWidget();
+        } 
+        return null;
     }
 
     /**
@@ -869,7 +792,7 @@ define(function (require, exports, module) {
      * @return {?Editor}
      */
     function _getFocusedInlineEditor() {
-        var focusedWidget = getFocusedInlineWidget();
+        var focusedWidget = _currentEditor.getFocusedInlineWidget();
         if (focusedWidget instanceof InlineTextEditor) {
             return focusedWidget.getFocusedEditor();
         }
@@ -926,33 +849,11 @@ define(function (require, exports, module) {
      *   willing to create a widget (or if no editor is open).
      */
     function _toggleInlineWidget(providers, errorMsg) {
-        var result = new $.Deferred();
-        
         if (_currentEditor) {
-            var inlineWidget = getFocusedInlineWidget();
-            
-            if (inlineWidget) {
-                // an inline widget's editor has focus, so close it
-                PerfUtils.markStart(PerfUtils.INLINE_WIDGET_CLOSE);
-                inlineWidget.close().done(function () {
-                    PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_CLOSE);
-                    // return a resolved promise to CommandManager
-                    result.resolve(false);
-                });
-            } else {
-                // main editor has focus, so create an inline editor
-                _openInlineWidget(_currentEditor, providers, errorMsg).done(function () {
-                    result.resolve(true);
-                }).fail(function () {
-                    result.reject();
-                });
-            }
-        } else {
-            // Can not open an inline editor without a host editor
-            result.reject();
+            return _currentEditor.toggleInlineWidget(providers, errorMsg);
         }
         
-        return result.promise();
+        return new $.Deferred().reject();
     }
     
     /**
@@ -961,26 +862,13 @@ define(function (require, exports, module) {
      *      provider responded or the provider that responded failed.
      */
     function _doJumpToDef() {
-        var result = new $.Deferred(), 
-            editor = getActiveEditor();
+        var editor = getActiveEditor();
         
         if (editor) {
-            PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
-            editor.jumpToDefinition(_jumpToDefProviders)
-               .done(function() {
-                   result.resolve();
-               })
-               .fail(function() {
-                   result.reject();
-               })
-               .always(function() {
-                   PerfUtils.addMeasurement(PerfUtils.JUMP_TO_DEFINITION);
-               });
-        } else {
-            result.reject();
+            return editor.jumpToDefinition(_jumpToDefProviders);
         }
-        
-        return result.promise();
+
+        return new $.Deferred().reject();
     }
     
     // File-based preferences handling
@@ -1006,7 +894,6 @@ define(function (require, exports, module) {
     $(DocumentManager).on("fileNameChange",        _onFileNameChange);
 
     // For unit tests and internal use only
-    exports._openInlineWidget             = _openInlineWidget;
     exports._createFullEditorForDocument  = _createFullEditorForDocument;
     exports._destroyEditorIfUnneeded      = _destroyEditorIfUnneeded;
     exports._getViewState                 = _getViewState;
