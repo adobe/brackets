@@ -157,17 +157,20 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Adds the given result matches to the search results.
+     * Sets the list of matches for the given path, removing the previous match info, if any, and updating
+     * the total match count. Note that for the count to remain accurate, the previous match info must not have
+     * been mutated since it was set.
      * @param {string} fullpath Full path to the file containing the matches.
-     * @param {!{matches: Object, timestamp: Date, collapsed: boolean=}} resultInfo Info for the match to add:
+     * @param {!{matches: Object, timestamp: Date, collapsed: boolean=}} resultInfo Info for the matches to set:
      *      matches - Array of matches, in the format returned by FindInFiles._getSearchMatches()
      *      timestamp - The timestamp of the document at the time we searched it.
      *      collapsed - Optional: whether the results should be collapsed in the UI (default false).
-     * @return {boolean} true if at least some matches were added, false if we've hit the limit on how many can be added
      */
-    SearchModel.prototype.addResults = function (fullpath, resultInfo) {
+    SearchModel.prototype.setResults = function (fullpath, resultInfo) {
+        this.removeResults(fullpath);
+        
         if (this.foundMaximum || !resultInfo.matches.length) {
-            return false;
+            return;
         }
         
         this.results[fullpath] = resultInfo;
@@ -175,12 +178,10 @@ define(function (require, exports, module) {
         if (this.numMatches >= SearchModel.MAX_TOTAL_RESULTS) {
             this.foundMaximum = true;
         }
-        
-        return true;
     };
     
     /**
-     * Removes the given result's matches from the search results.
+     * Removes the given result's matches from the search results and updates the total match count.
      * @param {string} fullpath Full path to the file containing the matches.
      */
     SearchModel.prototype.removeResults = function (fullpath) {

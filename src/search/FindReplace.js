@@ -566,7 +566,7 @@ define(function (require, exports, module) {
         
         // Create the search bar UI (closing any previous find bar in the process)
         findBar = new FindBar({
-            navigator: true,
+            multifile: false,
             replace: replace,
             initialQuery: initialQuery,
             queryPlaceholder: Strings.CMD_FIND_FIELD_PLACEHOLDER

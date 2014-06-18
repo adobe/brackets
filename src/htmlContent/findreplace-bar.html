@@ -3,12 +3,12 @@
         --><div class="search-input-container"><input type="text" id="find-what" placeholder="{{queryPlaceholder}}" value="{{initialQuery}}" /><div class="error"></div><span id="find-counter"></span></div><!--
         --><button id="find-case-sensitive" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_CASESENSITIVE_HINT}}"><div class="button-icon"></div></button><!--
         --><button id="find-regexp" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_REGEXP_HINT}}"><div class="button-icon"></div></button><!--
-        {{#navigator}}
+        {{^multifile}}
         --><div class="navigator"><!--
             --><button id="find-prev" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_PREV_HINT}}">{{Strings.BUTTON_PREV}}</button><!--
             --><button id="find-next" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_NEXT_HINT}}">{{Strings.BUTTON_NEXT}}</button><!--
         --></div><!--
-        {{/navigator}}
+        {{/multifile}}
     --></div>
 
     {{#replace}}
@@ -21,7 +21,7 @@
     {{/replace}}
 </div>
 
-{{#scope}}
+{{#multifile}}
 <div class="scope-group">
     <div class="no-results-message">{{Strings.FIND_NO_RESULTS}}</div>
     <div class="message">
@@ -29,4 +29,4 @@
     </div>
     <!-- For Find in Files, the filter picker will be added here programmatically. -->
 </div>
-{{/scope}}
+{{/multifile}}

@@ -146,7 +146,7 @@ define(function (require, exports, module) {
         
         var matches = _getSearchMatches(contents, queryExpr);
         if (matches.length) {
-            searchModel.addResults(fullPath, {matches: matches, timestamp: timestamp});
+            searchModel.setResults(fullPath, {matches: matches, timestamp: timestamp});
             return true;
         }
         return false;
@@ -156,7 +156,7 @@ define(function (require, exports, module) {
      * @private
      * Update the search results using the given list of changes for the given document
      * @param {Document} doc  The Document that changed, should be the current one
-     * @param {Array.<{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string}>} changeList
+     * @param {Array.<{from: {line:number,ch:number}, to: {line:number,ch:number}, text: !Array.<string>}>} changeList
      *      An array of changes as described in the Document constructor
      */
     function _updateResults(doc, changeList) {
@@ -242,11 +242,12 @@ define(function (require, exports, module) {
         
         // Always re-add the results, even if nothing changed.
         if (resultInfo && resultInfo.matches.length) {
-            searchModel.addResults(fullPath, resultInfo);
+            searchModel.setResults(fullPath, resultInfo);
         }
 
         if (resultsChanged) {
-            // Debounce document changes since the user might be typing quickly.
+            // Pass `true` for quickChange here. This will make listeners debounce the change event,
+            // avoiding lots of updates if the user types quickly.
             searchModel.fireChanged(true);
         }
     }
@@ -344,7 +345,7 @@ define(function (require, exports, module) {
      * Tries to update the search result on document changes
      * @param {$.Event} event
      * @param {Document} document
-     * @param {<{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string}>} change
+     * @param {<{from: {line:number,ch:number}, to: {line:number,ch:number}, text: !Array.<string>}>} change
      *      A change list as described in the Document constructor
      */
     _documentChangeHandler = function (event, document, change) {
@@ -506,7 +507,7 @@ define(function (require, exports, module) {
         _.forEach(searchModel.results, function (item, fullPath) {
             if (fullPath.indexOf(oldName) === 0) {
                 searchModel.removeResults(fullPath);
-                searchModel.addResults(fullPath.replace(oldName, newName), item);
+                searchModel.setResults(fullPath.replace(oldName, newName), item);
                 resultsChanged = true;
             }
         });

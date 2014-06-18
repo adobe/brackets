@@ -147,10 +147,8 @@ define(function (require, exports, module) {
         }
 
         _findBar = new FindBar({
-            navigator: false,
+            multifile: true,
             replace: showReplace,
-            multifile: showReplace,
-            scope: true,
             initialQuery: initialString,
             queryPlaceholder: (showReplace ? Strings.CMD_REPLACE_IN_SUBTREE : Strings.CMD_FIND_IN_SUBTREE),
             scopeLabel: FindUtils.labelForScope(scope)
@@ -211,6 +209,8 @@ define(function (require, exports, module) {
         
         $(_findBar)
             .on("doFind.FindInFiles", function () {
+                // Subtle issue: we can't just pass startSearch directly as the handler, because
+                // we don't want it to get the event object as an argument.
                 startSearch();
             })
             .on("queryChange.FindInFiles", handleQueryChange)

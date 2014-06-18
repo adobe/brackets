@@ -63,20 +63,17 @@ define(function (require, exports, module) {
      * - doReplaceAll - when the user chooses to initiate a Replace All. Use getReplaceText() to get the current replacement text.
      *-  close - when the find bar is closed
      *
-     * @param {boolean=} options.navigator - true to show the Find Previous/Find Next buttons - default false
-     * @param {boolean=} options.replace - true to show the Replace controls - default false
      * @param {boolean=} options.multifile - true if this is a Find/Replace in Files (changes the behavior of Enter in
-     *      the fields and hides the Replace button, so there's only Replace All)
-     * @param {boolean=} options.scope - true to show the scope filter controls - default false
+     *      the fields, hides the navigator controls, and hides the Replace button, so there's only Replace All)
+     * @param {boolean=} options.replace - true to show the Replace controls - default false
      * @param {string=}  options.queryPlaceholder - label to show in the Find field - default empty string
      * @param {string=}  options.initialQuery - query to populate in the Find field on open - default empty string
      * @param {string=}  scopeLabel - HTML label to show for the scope of the search, expected to be already escaped - default empty string
      */
     function FindBar(options) {
         var defaults = {
-            navigator: false,
-            replace: false,
             multifile: false,
+            replace: false,
             queryPlaceholder: "",
             initialQuery: "",
             scopeLabel: ""
@@ -140,7 +137,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Options passed into the FindBar.
-     * @type {!{navigator: boolean, replace: boolean, queryPlaceholder: string, initialQuery: string}}
+     * @type {!{multifile: boolean, replace: boolean, queryPlaceholder: string, initialQuery: string, scopeLabel: string}}
      */
     FindBar.prototype._options = null;
     
@@ -282,7 +279,7 @@ define(function (require, exports, module) {
                 }
             });
         
-        if (this._options.navigator) {
+        if (!this._options.multifile) {
             this._addShortcutToTooltip($("#find-next"), Commands.CMD_FIND_NEXT);
             this._addShortcutToTooltip($("#find-prev"), Commands.CMD_FIND_PREVIOUS);
             $root
