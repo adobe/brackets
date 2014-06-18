@@ -485,11 +485,9 @@ define(function LiveDevelopment(require, exports, module) {
         docPromise.done(function (doc) {
             if ((_classForDocument(doc) === CSSDocument) &&
                     (!_liveDocument || (doc !== _liveDocument.doc))) {
-                var editor = EditorManager.getActiveEditor();
-                if (!editor || editor.document !== doc) {
-                    editor = undefined;
-                }
-                var liveDoc = _createDocument(doc, editor);
+                // The doc may already have an editor (e.g. starting live preview from an css file),
+                // so pass the editor if any
+                var liveDoc = _createDocument(doc, doc._masterEditor || undefined);
                 if (liveDoc) {
                     _server.add(liveDoc);
                     _relatedDocuments[doc.url] = liveDoc;
