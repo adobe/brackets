@@ -209,6 +209,13 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * @type {Number}
+     * Tracks the timeoutID for mouseup events.
+     */
+    var _mouseupTimeoutId = null;
+    
+    /**
+     * @private
      * Generates the prefixes used for sorting the files in the project tree
      * @return {boolean} true if the sort prefixes have changed
      */
@@ -656,7 +663,18 @@ define(function (require, exports, module) {
                         }
                     }
                 }
-            );
+            ).bind("mouseup.jstree", function (event) {
+                var $treenode = $(event.target).closest("li");
+                if ($treenode.is($(_projectTree.jstree("get_selected")))) {
+                    // wrap this in a setTimeout function so that we can check if it's a double click.
+                    _mouseupTimeoutId = window.setTimeout(function (event) {
+                        // if we get a double-click,_mouseupTimeoutId will have been set to lull by the double-click handler before this runs.
+                        if (_mouseupTimeoutId !== null) {
+                            CommandManager.execute(Commands.FILE_RENAME);
+                        }
+                    }, 500);
+                }
+            });
 
         // jstree has a default event handler for dblclick that attempts to clear the
         // global window selection (presumably because it doesn't want text within the tree
@@ -718,6 +736,11 @@ define(function (require, exports, module) {
                     if (entry && entry.isFile && !_isInRename(event.target)) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
+                    if (_mouseupTimeoutId !== null) {
+                        window.clearTimeout(_mouseupTimeoutId);
+                        _mouseupTimeoutId = null;
+                    }
+                    
                 });
 
             // fire selection changed events for sidebar-selection
