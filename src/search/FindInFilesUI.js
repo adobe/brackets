@@ -308,12 +308,13 @@ define(function (require, exports, module) {
                         text      : Strings.BUTTON_REPLACE_WITHOUT_UNDO
                     }
                 ]
-            ).done(function (id) {
-                if (id === Dialogs.DIALOG_BTN_OK) {
-                    _resultsView.close();
-                    processReplace(false);
-                }
-            });
+            )
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_OK) {
+                        _resultsView.close();
+                        processReplace(false);
+                    }
+                });
         }
     }
 
