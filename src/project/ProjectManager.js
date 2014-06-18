@@ -664,7 +664,7 @@ define(function (require, exports, module) {
                 }
             ).bind("mouseup.jstree", function (event) {
                 var $treenode = $(event.target).closest("li");
-                if ($treenode[0] === $(_projectTree.jstree("get_selected")).closest("li")[0]) {
+                if ($treenode.is($(_projectTree.jstree("get_selected")))) {
                     // wrap this in a setTimeout function so that we can check if it's a double click.
                     _mouseupTimeoutId = window.setTimeout(function (event) {
                         // if we get a double-click,_mouseupTimeoutId will have been set to lull by the double-click handler before this runs.
@@ -737,8 +737,9 @@ define(function (require, exports, module) {
                     }
                     if (_mouseupTimeoutId !== null) {
                         window.clearTimeout(_mouseupTimeoutId);
+                        _mouseupTimeoutId = null;
                     }
-                    _mouseupTimeoutId = null;
+                    
                 });
 
             // fire selection changed events for sidebar-selection
