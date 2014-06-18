@@ -411,6 +411,16 @@ define(function (require, exports, module) {
         DeprecationWarning.deprecationWarning("Use WorkspaceManager.recomputeLayout() instead of EditorManager.resizeEditor().", true);
         WorkspaceManager.recomputeLayout();
     }
+
+    /**
+     * resizes all editors
+     */
+    function resizeAllToFit(refreshFlag) {
+        if (_currentEditor) {
+            _currentEditor.resizeToFit(refreshFlag !== undefined ? refreshFlag === REFRESH_FORCE : undefined);
+        }
+    }
+    
     
     /**
      * Update the current CodeMirror editor's size. Must be called any time the contents of the editor area
@@ -418,17 +428,18 @@ define(function (require, exports, module) {
      * case. WorkspaceManager calls us in the most common height-change cases (panel and/or window resize), but
      * some other cases are handled by external code calling `WorkspaceManager.recomputeLayout()` (e.g. ModalBar hide/show).
      * 
+     * @deprecated
      * @param {number} editorAreaHt
      * @param {string=} refreshFlag For internal use. Set to "force" to ensure the editor will refresh, 
      *    "skip" to ensure the editor does not refresh, or leave undefined to let `_onEditorAreaResize()`
      *    determine whether it needs to refresh.
      */
     function resize(editorAreaHt, refreshFlag) {
-        if (_currentEditor) {
-            _currentEditor.resize(editorAreaHt, refreshFlag !== undefined ? refreshFlag === REFRESH_FORCE : undefined);
-        }
+        DeprecationWarning.deprecationWarning("Use EditorManager.resizeAllToFit() instead of EditorManager.resize().", true);
+        resizeAllToFit(refreshFlag);
     }
-    
+
+        
     /** Updates _viewStateCache from the given editor's actual current state */
     function _saveEditorViewState(editor) {
         _viewStateCache[editor.document.file.fullPath] = {
@@ -930,6 +941,7 @@ define(function (require, exports, module) {
     
     // migration
     exports.resizeEditor                  = resizeEditor;
+    exports.resizeAllToFit                = resizeAllToFit;
 
     // Scaffolding
     exports.resize                        = resize;

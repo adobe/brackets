@@ -41,6 +41,7 @@ define(function (require, exports, module) {
     var _                   = require("thirdparty/lodash"),
         AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
+        Menus               = require("command/Menus"),
         Commands            = require("command/Commands"),
         EditorManager       = require("editor/EditorManager"),
         FileSystem          = require("filesystem/FileSystem"),
@@ -80,10 +81,18 @@ define(function (require, exports, module) {
     var _paneViewListAddedOrder = [];
     
     /**
-     * temporary global
+     * Container we live in
      * @private
      */
-    var _$container = undefined;
+    var _$container;
+    
+    /**
+     *
+     */
+    var _paneViews = {
+        ID_FIRST: undefined,
+        ID_SECOND: undefined
+    };
     
     /**
      * Retrieves the PaneViewList for the given PaneId
@@ -125,7 +134,7 @@ define(function (require, exports, module) {
      */
     function findInPaneViewList(paneId, fullPath) {
         // TODO paneId is no yet used, but will be when multiple panels supported
-        return _.findIndex(_paneViewList, function (file, i) {
+        return _.findIndex(_paneViewList, function (file) {
             return file.fullPath === fullPath;
         });
     }
@@ -138,7 +147,7 @@ define(function (require, exports, module) {
      */
     function findInPaneViewListAddedOrder(paneId, fullPath) {
         // TODO paneId is no yet used, but will be when multiple panels supported
-        return _.findIndex(_paneViewListAddedOrder, function (file, i) {
+        return _.findIndex(_paneViewListAddedOrder, function (file) {
             return file.fullPath === fullPath;
         });
     }
@@ -239,11 +248,10 @@ define(function (require, exports, module) {
      */
     function addListToPaneViewList(paneId, fileList) {
         // TODO paneId is no yet used, but will be when multiple panels supported
-        var currentDocument = DocumentManager.getCurrentDocument(),
-            uniqueFileList = [];
+        var uniqueFileList = [];
 
         // Process only files not already in pane view list
-        fileList.forEach(function (file, index) {
+        fileList.forEach(function (file) {
             // If doc has a custom viewer, then don't add it to the pane view list.
             // Or if doc is already in pane view list, don't add it again.
             if (_canOpenFile(file) && findInPaneViewList(paneId, file.fullPath) === -1) {
@@ -309,7 +317,7 @@ define(function (require, exports, module) {
      */
     function removeListFromPaneViewList(paneId, list) {
         // TODO paneId is no yet used, but will be when multiple panels supported
-        var fileList = [], index;
+        var fileList = [];
         
         if (!list) {
             return;
@@ -473,8 +481,7 @@ define(function (require, exports, module) {
      */
     function _loadViewState(e) {
         // file root is appended for each project
-        var projectRoot = ProjectManager.getProjectRoot(),
-            files = [],
+        var files = [],
             context = { location : { scope: "user",
                                      layer: "project" } };
         
@@ -492,7 +499,7 @@ define(function (require, exports, module) {
 
         // Add all files to the pane view list without verifying that
         // they still exist on disk (for faster project switching)
-        files.forEach(function (value, index) {
+        files.forEach(function (value) {
             filesToOpen.push(FileSystem.getFileForPath(value.file));
             if (value.active) {
                 activeFile = value.file;
@@ -537,7 +544,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        paneViewList.forEach(function (file, index) {
+        paneViewList.forEach(function (file) {
             // Do not persist untitled document paths
             if (!(file instanceof InMemoryFile)) {
                 // flag the currently active editor
@@ -565,12 +572,14 @@ define(function (require, exports, module) {
      * @param {string=} refreshFlag For internal use. see `EditorManager.refresh()`
      */
     function _updateLayout(event, editorAreaHeight, refreshHint) {
-        EditorManager.resize(editorAreaHeight, refreshHint);
+        EditorManager.resizeAllToFit(refreshHint);
     }
     
     
-    function createDocumentEditor(document) {
-        EditorManager._createFullEditorForDocument(document, _$container);
+    function createDocumentEditor(document, paneId) {
+        var $pane = _$container.find("#first-pane");
+        $pane.find(".not-editor").css({display: "none"});
+        EditorManager._createFullEditorForDocument(document, $pane);
     }
 
     
@@ -578,7 +587,9 @@ define(function (require, exports, module) {
      *
      */
     function _openDocument(event, doc) {
-        EditorManager.doOpenDocument(doc, _$container);
+        var $pane = _$container.find("#first-pane");
+        $pane.find(".not-editor").css({display: "none"});
+        EditorManager.doOpenDocument(doc, $pane);
     }
     
     AppInit.htmlReady(function() {
@@ -590,6 +601,39 @@ define(function (require, exports, module) {
     $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
     $(WorkspaceManager).on("workspaceUpdateLayout",           _updateLayout);
     $(DocumentManager).on("currentDocumentChange",            _openDocument);
+
+    
+    var CMD_SPLIT_VERTICALLY = "cmd.splitVertically";
+    var CMD_SPLIT_HORIZONTALLY = "cmd.splitHorizontally";
+    
+    function handleSplitVertically() {
+        var $firstPane = _$container.find("#first-pane"),
+            $secondPane = _$container.find("#second-pane");
+        
+        $firstPane.css({height: "100%", width: "50%", display: "block", margin: 0, float: "left", overflow: "hidden"});
+        $secondPane.css({height: "100%", width: "50%", display: "block", margin: 0, float: "right", overflow: "hidden"});
+        EditorManager.resizeAllToFit(EditorManager.REFRESH_FORCE);
+    }
+    
+    function handleSplitHorizontially () {
+        var $firstPane = _$container.find("#first-pane"),
+            $secondPane = _$container.find("#second-pane");
+        
+        $firstPane.css({height: "50%", width: "100%", display: "block", margin: 0, float: "none", overflow: "hidden"});
+        $secondPane.css({height: "50%", width: "100%", display: "block", margin: 0, float: "none", overflow: "hidden"});
+        EditorManager.resizeAllToFit(EditorManager.REFRESH_FORCE);
+    }
+    
+    AppInit.appReady(function() {
+        CommandManager.register("Split Vertically", CMD_SPLIT_VERTICALLY,   handleSplitVertically);
+        CommandManager.register("Split Horizontally", CMD_SPLIT_HORIZONTALLY, handleSplitHorizontially);
+
+        var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
+        menu.addMenuDivider();
+        menu.addMenuItem(CMD_SPLIT_VERTICALLY);    
+        menu.addMenuItem(CMD_SPLIT_HORIZONTALLY);
+    });
+
     
     // PaneView Management
     exports.addToPaneViewList                = addToPaneViewList;

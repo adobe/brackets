@@ -1673,7 +1673,6 @@ define(function (require, exports, module) {
         var arrowBelow, cursorPos, cursorCoord, popoverRect,
             top, left, clip, arrowCenter, arrowLeft,
             self = this,
-            $editorHolder = $("#editor-holder"),
             POPOVER_MARGIN = 10,
             POPOVER_ARROW_HALF_WIDTH = 10,
             POPOVER_ARROW_HALF_BASE = POPOVER_ARROW_HALF_WIDTH + 3; // 3 is border radius
@@ -1743,7 +1742,7 @@ define(function (require, exports, module) {
         };
         
         // See if popover is clipped on any side
-        clip = ViewUtils.getElementClipSize($editorHolder, popoverRect);
+        clip = ViewUtils.getElementClipSize(this._$container, popoverRect);
 
         // Prevent horizontal clipping
         if (clip.left > 0) {
@@ -2235,6 +2234,7 @@ define(function (require, exports, module) {
 
     
     Editor.prototype.resize = function(editorAreaHt, forceRefresh) {
+        // TODO: Deprecate this API
         var curRoot = this.getRootElement(),
             curWidth = $(curRoot).width();
         if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
@@ -2255,6 +2255,30 @@ define(function (require, exports, module) {
             this.refreshAll(true);
         }
     };
+    
+    Editor.prototype.resizeToFit = function(forceRefresh) {
+        var curRoot = this.getRootElement(),
+            curWidth = $(curRoot).width(),
+            editorAreaHt = this._$container.height();
+        
+        if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
+            // Call setSize() instead of $.height() to allow CodeMirror to
+            // check for options like line wrapping
+            this.setSize(null, editorAreaHt);
+            if (forceRefresh === undefined) {
+                forceRefresh = true;
+            }
+        } else if (curWidth !== this._lastEditorWidth) {
+            if (forceRefresh === undefined) {
+                forceRefresh = true;
+            }
+        }
+        this._lastEditorWidth = curWidth;
+
+        if (forceRefresh) {
+            this.refreshAll(true);
+        }
+    };    
     
     Editor.prototype.jumpToDefinition = function (providers) {
         var i, 
