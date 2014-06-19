@@ -57,15 +57,18 @@ define(function (require, exports, module) {
         ignoreChange;         // can ignore next "change" event if true;
     
     // Define the defaultExclusions which are files that are known to cause Tern to run out of control.
-    PreferencesManager.definePreference("jscodehints.defaultExclusions", "array", ["ionic*.min.js"]);
-
-    // TODO - state instead of prefs?
+    PreferencesManager.definePreference("jscodehints.defaultExclusions", "array", []);
+    
+    // TODO - make a project pref
     // Define the detectedExclusions which are files that have been detected to cause Tern to run out of control.
     PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", []);
     
-    // Define currentlyProcessing to store path and startTime of file Tern is currently processing.
-    PreferencesManager.definePreference("jscodehints.currentlyProcessing.path", "string", "");
-    PreferencesManager.definePreference("jscodehints.currentlyProcessing.startTime", "number", 0);
+//    // Define currentlyProcessing to store path and startTime of file Tern is currently processing.
+//    PreferencesManager.definePreference("jscodehints.currentlyProcessing.path", "string", "");
+//    PreferencesManager.definePreference("jscodehints.currentlyProcessing.startTime", "number", 0);
+    
+    // This preference controls when Tern will time out when trying to understand files
+    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 5000);
     
     /**
      * Sets the configuration, generally for testing/debugging use.

@@ -855,10 +855,10 @@ console.log("handleTernGetFile: startProcessing: " + name);
                 if (!FileSystem.isAbsolutePath(filePath)) {
                     return (new $.Deferred()).reject().promise();
                 }
-                if (isFileExcludedInternal(filePath)) {
-                    console.log("JSCodeHints: File exceeds processing threshold time: " + file);
-                    return (new $.Deferred()).reject().promise();
-                }
+//                if (isFileExcludedInternal(filePath)) {
+//                    console.log("JSCodeHints: File exceeds processing threshold time: " + file);
+//                    return (new $.Deferred()).reject().promise();
+//                }
                 
                 var file = FileSystem.getFileForPath(filePath),
                     promise = DocumentManager.getDocumentText(file);
@@ -1088,7 +1088,8 @@ console.log("handleTernGetFile: startProcessing: " + name);
                     type        : MessageIds.TERN_INIT_MSG,
                     dir         : dir,
                     files       : files,
-                    env         : ternEnvironment
+                    env         : ternEnvironment,
+                    timeout     : PreferencesManager.get("jscodehints.inferenceTimeout")
                 };
                 
                 if (config.debug) {
