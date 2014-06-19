@@ -667,9 +667,9 @@ define(function (require, exports, module) {
                 var $treenode = $(event.target).closest("li");
                 if ($treenode.is($(_projectTree.jstree("get_selected")))) {
                     // wrap this in a setTimeout function so that we can check if it's a double click.
-                    _mouseupTimeoutId = window.setTimeout(function (event) {
-                        // if we get a double-click,_mouseupTimeoutId will have been set to lull by the double-click handler before this runs.
-                        if (_mouseupTimeoutId !== null) {
+                    _mouseupTimeoutId = window.setTimeout(function () {
+                        // if we get a double-click,_mouseupTimeoutId will have been set to lull by the double-click handler before this runs. Also double check to make sure it only happens on left mouse clicks.
+                        if (_mouseupTimeoutId !== null && event.which === 1) {
                             CommandManager.execute(Commands.FILE_RENAME);
                         }
                     }, 500);
