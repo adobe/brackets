@@ -1403,6 +1403,23 @@ define(function (require, exports, module) {
                     });
                 });
 
+                it("should do the replacement in memory for a file that's in the working set but not yet open in an editor", function () {
+                    openTestProjectCopy(defaultSourcePath);
+
+                    runs(function () {
+                        DocumentManager.addToWorkingSet(FileSystem.getFileForPath(testPath + "/css/foo.css"));
+                    });
+
+                    doInMemoryTest({
+                        queryInfo:        {query: "foo"},
+                        numMatches:       14,
+                        replaceText:      "bar",
+                        knownGoodFolder:  "simple-case-insensitive-except-foo.css",
+                        inMemoryFiles:    ["/css/foo.css"],
+                        inMemoryKGFolder: "simple-case-insensitive"
+                    });
+                });
+
                 it("should open the document in an editor and do the replacement there if the document is open but not in an Editor", function () {
                     var doc, openFilePath;
                     openTestProjectCopy(defaultSourcePath);
