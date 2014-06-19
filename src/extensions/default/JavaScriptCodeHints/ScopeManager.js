@@ -1008,7 +1008,8 @@ define(function (require, exports, module) {
                     type        : MessageIds.TERN_INIT_MSG,
                     dir         : dir,
                     files       : files,
-                    env         : ternEnvironment
+                    env         : ternEnvironment,
+                    timeout     : PreferencesManager.get("jscodehints.inferenceTimeout")
                 };
                 
                 if (config.debug) {
