@@ -109,8 +109,8 @@ a, img {
 }
 
 #titlebar, .modal-bar {
-    border-bottom: 1px solid @tc-gray-panel-border;
-    box-shadow: @tc-small-shadow-bottom;
+    border-bottom: 1px solid @bc-gray-panel-border;
+    box-shadow: @bc-small-shadow-bottom;
 
     // Make sure the bottom box-shadow goes above the editor (position: relative needed to start a new stacking group)
     position: relative;
@@ -126,7 +126,7 @@ a, img {
     background: #fff;
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
-    color: @tc-text;
+    color: @bc-text;
     font-family: @sansFontFamily;
     font-size: 11px;
     line-height: 25px;
@@ -135,7 +135,7 @@ a, img {
 }
 
 #status-info {
-    color: @tc-text;
+    color: @bc-text;
     left: 10px;
     position: absolute;
     white-space: nowrap;
@@ -151,7 +151,7 @@ a, img {
 
 #status-indicators {
     background: #fff;
-    color: @tc-text;
+    color: @bc-text;
     position: absolute;
     right: 0;
     text-align: right;
@@ -197,7 +197,7 @@ a, img {
     height: 13px;
     line-height: 1;
     vertical-align: middle;
-    color: @tc-text;
+    color: @bc-text;
     margin: 0;
     padding: 0 3px 2px;
     position: relative;
@@ -385,27 +385,27 @@ a, img {
 }
 
 .bottom-panel {
-    background-color: @tc-gray-panel;
+    background-color: @bc-gray-panel;
     display: none;
     height: 200px;
     border-top-style: solid;
     border-width: 1px;
-    border-color: @tc-gray-panel-border;
+    border-color: @bc-gray-panel-border;
 
     .check-all {
         margin: 7px 15px 7px 7px;
     }
 
     .toolbar {
-        background-color: @tc-gray-panel-top-bar;
-        border-bottom: @tc-gray-panel-top-bar-shadow;
+        background-color: @bc-gray-panel-top-bar;
+        border-bottom: @bc-gray-panel-top-bar-shadow;
         height: auto;
         padding-top: (@base-padding / 2);
         padding-bottom: (@base-padding / 2);
         z-index: @z-index-brackets-results-panel;
-        box-shadow: @tc-gray-panel-bevel, @tc-small-shadow-top;
+        box-shadow: @bc-gray-panel-bevel, @bc-small-shadow-top;
         .title {
-            color: @tc-text;
+            color: @bc-text;
             font-size: @label-font-size;
             font-weight: @font-weight-semibold;
         }
@@ -429,7 +429,7 @@ a, img {
         }
 
         tr.selected td {
-            background-color: @tc-selected-row;
+            background-color: @bc-selected-row;
             color: @bc-black;
         }
     }
@@ -448,7 +448,7 @@ a, img {
     }
 
     .line-number {
-        color: @tc-light-weight-quiet-text;
+        color: @bc-light-weight-quiet-text;
         font-family: SourceCodePro;
         font-size: 11px;
         padding: 4px 0 0 15px;
@@ -609,17 +609,17 @@ a, img {
 }
 
 .sidebar-selection {
-    background: @tc-sidebar-selection;
-    border-top: 1px solid @tc-sidebar-selection-shadow;
-    border-bottom: 1px solid @tc-sidebar-selection-highlight;
+    background: @bc-sidebar-selection;
+    border-top: 1px solid @bc-sidebar-selection-shadow;
+    border-bottom: 1px solid @bc-sidebar-selection-highlight;
     height: 22px;
     position: absolute;
 }
 
 .sidebar-selection-triangle {
-    background: @tc-sidebar-selection;
-    border-top: 1px solid @tc-sidebar-selection-shadow;
-    border-bottom: 1px solid @tc-sidebar-selection-highlight;
+    background: @bc-sidebar-selection;
+    border-top: 1px solid @bc-sidebar-selection-shadow;
+    border-bottom: 1px solid @bc-sidebar-selection-highlight;
     width: 9px; /* quiet scrollbar width */
     height: 22px;
     position: fixed;
@@ -632,7 +632,7 @@ a, img {
 
     border-top: @sidebar-triangle-size solid transparent;
     border-bottom: (@sidebar-triangle-size - 1) solid transparent;
-    border-left: @sidebar-triangle-size solid @tc-sidebar-selection;
+    border-left: @sidebar-triangle-size solid @bc-sidebar-selection;
 
     display: block;
     position: absolute;
@@ -767,7 +767,7 @@ a, img {
     position: relative;
     overflow: hidden;
 
-    background-color: @tc-lighter-gray;
+    background-color: @bc-lighter-gray;
     min-width: 250px;
     cursor: default;
 
@@ -804,7 +804,7 @@ a, img {
 
             .dirty-indicator {
                 .unicode-icon-container;
-                color: @tc-quiet-text;
+                color: @bc-quiet-text;
                 overflow: hidden;
                 position: relative;
                 top: 1px;
@@ -840,7 +840,7 @@ a, img {
         background-color: transparent;
 
         .CodeMirror-linenumbers {
-            background-color: @tc-lighter-gray;
+            background-color: @bc-lighter-gray;
         }
     }
 
@@ -916,7 +916,7 @@ a, img {
         }
 
         li {
-            color: @tc-emphasized-text;
+            color: @bc-emphasized-text;
             margin: 0;
             overflow: hidden;
             padding: 2px 0px 2px 15px;
@@ -924,19 +924,19 @@ a, img {
             white-space: nowrap;
 
             .related-file {
-                color: @tc-input-placeholder-text;
+                color: @bc-input-placeholder-text;
             }
         }
 
         .selected {
-            color: @tc-light-weight-text;
+            color: @bc-light-weight-text;
             transition: color 0.1s ease-out .15s;
         }
     }
 }
 
 .inline-editor-message {
-    color: @tc-input-placeholder-text;
+    color: @bc-input-placeholder-text;
     font-family: @sansFontFamily;
     font-size: 12px;
     line-height: 17px;
@@ -1056,8 +1056,8 @@ a, img {
 
     font-family: @sansFontFamily;
     font-size: 14px;
-    color: @tc-text;
-    background: @tc-gray-panel;
+    color: @bc-text;
+    background: @bc-gray-panel;
     overflow: visible;  // needed for .error popup
     padding: 5px 4px 4px 14px;
 
@@ -1093,8 +1093,8 @@ a, img {
         position: relative;
         top: -3px;
         &.no-results {
-            border: 1px solid @tc-gray-component-error-border;
-            box-shadow: @tc-input-inner-shadow, @tc-input-error-glow;
+            border: 1px solid @bc-gray-component-error-border;
+            box-shadow: @bc-input-inner-shadow, @bc-input-error-glow;
         }
     }
 
@@ -1118,7 +1118,7 @@ a, img {
             font-size: 12px;
             padding: 3px 8px;
             border-radius: 0 0 3px 3px;
-            box-shadow: @tc-small-shadow-bottom;
+            box-shadow: @bc-small-shadow-bottom;
         }
 
         #find-what {
@@ -1127,7 +1127,7 @@ a, img {
         }
         #find-counter {
             position: absolute;
-            color: @tc-light-weight-quiet-text;
+            color: @bc-light-weight-quiet-text;
             top: 1px;
             right: 2px;
             font-size: 12px;
@@ -1172,7 +1172,7 @@ a, img {
         .sprite-swap(0, 72px);
     }
     #find-regexp.active, #find-case-sensitive.active {
-        background-color: @tc-highlight;
+        background-color: @bc-highlight;
     }
 
     .navigator {  // next/prev buttons
@@ -1260,7 +1260,7 @@ li:hover .filter-edit-icon {
 }
 
 .recent-filter-patterns {
-    color: @tc-light-weight-quiet-text;
+    color: @bc-light-weight-quiet-text;
     padding-right: 52px;
 }
 
@@ -1289,8 +1289,8 @@ textarea.exclusions-editor {
 .exclusions-filecount {
     margin: 12px 0 -14px 0;
     padding: 4px 8px;
-    background-color: @tc-highlight;
-    border-radius: @tc-control-border-radius;
+    background-color: @bc-highlight;
+    border-radius: @bc-control-border-radius;
 }
 
 
@@ -1301,15 +1301,15 @@ textarea.exclusions-editor {
 .CodeMirror-searching {
     // Highlight color, overlaid on top of the .find-highlighting color
     background-color: @cm-match-highlight;
-    box-shadow: @tc-small-shadow-bottom;
+    box-shadow: @bc-small-shadow-bottom;
     color: @match-text !important;
     &.searching-first {
-        border-top-left-radius: @tc-inline-border-radius;
-        border-bottom-left-radius: @tc-inline-border-radius;
+        border-top-left-radius: @bc-inline-border-radius;
+        border-bottom-left-radius: @bc-inline-border-radius;
     }
     &.searching-last {
-        border-top-right-radius: @tc-inline-border-radius;
-        border-bottom-right-radius: @tc-inline-border-radius;
+        border-top-right-radius: @bc-inline-border-radius;
+        border-bottom-right-radius: @bc-inline-border-radius;
     }
 }
 .CodeMirror.find-highlighting div.CodeMirror-selected,
@@ -1319,7 +1319,7 @@ textarea.exclusions-editor {
     // Note: the 2nd selector reflecting CM nesting is needed to override the similar rules in
     // brackets_codemirror_override.less (see the note about #324).
     background: @cm-current-match-highlight;
-    border-radius: @tc-inline-border-radius;
+    border-radius: @bc-inline-border-radius;
 }
 #find-counter {
     font-weight: @font-weight-semibold;
@@ -1351,7 +1351,7 @@ textarea.exclusions-editor {
 
 .find-dialog-label {
     background: @bc-white;
-    color: @tc-quiet-text;
+    color: @bc-quiet-text;
     position: absolute;
     right: 15px;
     text-align: right;
@@ -1361,9 +1361,9 @@ textarea.exclusions-editor {
 
 .smart_autocomplete_container {
     // the borders show up even if the container is empty, must set height to zero using JS.
-    background-color: @tc-gray-panel;
+    background-color: @bc-gray-panel;
     border-radius: 0 0 4px 4px;
-    box-shadow: @tc-normal-shadow-bottom;
+    box-shadow: @bc-normal-shadow-bottom;
     opacity: 0;
     
     // Need this for border-radius because there are no borders
@@ -1401,15 +1401,15 @@ textarea.exclusions-editor {
         padding: 6px 10px;
 
         &:nth-child(odd) {
-            background-color: @tc-lighter-gray;
+            background-color: @bc-lighter-gray;
         }
 
         &:hover {
-            background-color: @tc-hover-highlight;
+            background-color: @bc-hover-highlight;
         }
 
         &.smart_autocomplete_highlight {
-            background-color: @tc-highlight;
+            background-color: @bc-highlight;
         }
     }
 }
@@ -1585,7 +1585,7 @@ label input {
         background-color: @bc-error;
         border-radius: 3px;
         color: @bc-white;
-        box-shadow: @tc-dropdown-shadow;
+        box-shadow: @bc-dropdown-shadow;
         white-space: nowrap;
     }
     .arrowAbove {
