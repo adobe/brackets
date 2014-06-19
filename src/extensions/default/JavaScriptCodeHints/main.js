@@ -592,7 +592,6 @@ define(function (require, exports, module) {
                         }
                         ignoreChange = false;
                     });
-
                 ParameterHintManager.installListeners(editor);
             } else {
                 session = null;
@@ -622,6 +621,18 @@ define(function (require, exports, module) {
          * @param {Editor} previous - the previous editor context
          */
         function handleActiveEditorChange(event, current, previous) {
+            // Uninstall "languageChanged" event listeners on the previous editor's document
+            if (previous && previous !== current) {
+                $(previous.document)
+                    .off(HintUtils.eventName("languageChanged"));
+            }
+            if (current.document !== DocumentManager.getCurrentDocument()) {
+                $(current.document)
+                    .on(HintUtils.eventName("languageChanged"), function () {
+                        uninstallEditorListeners(current);
+                        installEditorListeners(current);
+                    });
+            }
             uninstallEditorListeners(previous);
             installEditorListeners(current, previous);
         }
@@ -792,7 +803,8 @@ define(function (require, exports, module) {
         $(DocumentManager)
             .on("currentDocumentLanguageChanged", function (e) {
                 var activeEditor = EditorManager.getActiveEditor();
-                handleActiveEditorChange(e, activeEditor, activeEditor);
+                uninstallEditorListeners(activeEditor);
+                installEditorListeners(activeEditor);
             });
         
         $(ProjectManager).on("beforeProjectClose", function () {
