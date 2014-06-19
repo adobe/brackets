@@ -626,6 +626,10 @@ define(function (require, exports, module) {
                 doOneTest("simple1Query.html", "simple1.css");
             });
             
+            it("should push changes after loading an iframe", function () {
+                doOneTest("simple1Iframe.html", "simple1.css");
+            });
+
             it("should push in memory css changes made before the session starts", function () {
                 var localText,
                     browserText;
