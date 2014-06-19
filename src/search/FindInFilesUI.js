@@ -137,9 +137,7 @@ define(function (require, exports, module) {
             // current query instead of using the passed-in selected text.
             initialString = _findBar.getQueryInfo().query;
         }
-        
-        FindInFiles.clearSearch();
-        
+
         // Close our previous find bar, if any. (The open() of the new _findBar will
         // take care of closing any other find bar instances.)
         if (_findBar) {
@@ -171,7 +169,7 @@ define(function (require, exports, module) {
             // Check the query expression on every input event. This way the user is alerted
             // to any RegEx syntax errors immediately.
             var queryInfo = _findBar.getQueryInfo(),
-                queryResult = FindInFiles.searchModel.setQueryInfo(queryInfo);
+                queryResult = FindUtils.parseQueryInfo(queryInfo);
 
             // Enable the replace button appropriately.
             _findBar.enableReplace(queryResult.valid);
