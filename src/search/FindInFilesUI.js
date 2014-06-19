@@ -138,6 +138,8 @@ define(function (require, exports, module) {
             initialString = _findBar.getQueryInfo().query;
         }
         
+        // Close the results view, so we don't have stale data showing after we've cleared the results model.
+        _resultsView.close();
         FindInFiles.clearSearch();
         
         // Close our previous find bar, if any. (The open() of the new _findBar will
