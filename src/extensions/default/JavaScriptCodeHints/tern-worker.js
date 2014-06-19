@@ -41,7 +41,8 @@ var config = {};
             Tern = tern;
             Infer = infer;
 
-            var ternServer  = null;
+            var ternServer  = null,
+                inferenceTimeout;
         
             // Save the tern callbacks for when we get the contents of the file
             var fileCallBacks = {};
@@ -180,7 +181,7 @@ var config = {};
                 query.expandWordForward = false;
                 query.lineCharPositions = true;
 
-                var request = {query: query, files: [], offset: offset, timeout: 5000};
+                var request = {query: query, files: [], offset: offset, timeout: inferenceTimeout};
                 if (fileInfo.type !== MessageIds.TERN_FILE_INFO_TYPE_EMPTY) {
                     request.files.push(fileInfo);
                 }
@@ -627,6 +628,8 @@ var config = {};
                     
                     var env     = request.env,
                         files   = request.files;
+                    inferenceTimeout = request.timeout;
+                    
                     initTernServer(env, files);
                 } else if (type === MessageIds.TERN_COMPLETIONS_MSG) {
                     offset  = request.offset;
