@@ -146,12 +146,6 @@ define(function (require, exports, module) {
     var _duringFocus = false;
     
     /**
-     * Container in which this editor belongs 
-     * @type {jQueryObject}
-     */
-    var _$container = undefined;
-
-    /**
      * Constant: ignore upper boundary when centering text
      * @type {number}
      */
@@ -214,9 +208,9 @@ define(function (require, exports, module) {
         document.addRef();
         
         if (!container.jquery) {
-            this._$container = $(container);
+            this.$editorHolder = $(container);
         } else {
-            this._$container = container;
+            this.$editorHolder = container;
             // CodeMirror wants a DOM element, not a jQuery wrapper
             container = container.get(0);
         }
@@ -908,7 +902,7 @@ define(function (require, exports, module) {
      * @return {!jQueryObject} container
      */
     Editor.prototype.getContainer = function() {
-        return this._$container;
+        return this.$editorHolder;
     };
     
     
@@ -1742,7 +1736,7 @@ define(function (require, exports, module) {
         };
         
         // See if popover is clipped on any side
-        clip = ViewUtils.getElementClipSize(this._$container, popoverRect);
+        clip = ViewUtils.getElementClipSize(this.$editorHolder, popoverRect);
 
         // Prevent horizontal clipping
         if (clip.left > 0) {
@@ -2259,7 +2253,7 @@ define(function (require, exports, module) {
     Editor.prototype.resizeToFit = function(forceRefresh) {
         var curRoot = this.getRootElement(),
             curWidth = $(curRoot).width(),
-            editorAreaHt = this._$container.height();
+            editorAreaHt = this.$editorHolder.height();
         
         if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
             // Call setSize() instead of $.height() to allow CodeMirror to
@@ -2467,7 +2461,7 @@ define(function (require, exports, module) {
      * @param {boolean} showLinePadding
      */
     Editor._toggleLinePadding = function (showLinePadding) {
-        $("#editor-holder").toggleClass("show-line-padding", showLinePadding);
+        this.$editorHolder.toggleClass("show-line-padding", showLinePadding);
     };
     
     // Set up listeners for preference changes
