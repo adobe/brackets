@@ -116,6 +116,16 @@ define(function (require, exports, module) {
     var SETTINGS_FILENAME = "." + PreferencesManager.SETTINGS_FILENAME;
 
     /**
+     * @const
+     * @private
+     * Error context to show the correct error message
+     * @type {int}
+     */
+    var ERR_TYPE_CREATE = 1,
+        ERR_TYPE_RENAME = 2,
+        ERR_TYPE_DELETE = 3;
+
+    /**
      * @private
      * Reference to the tree control container div. Initialized by
      * htmlReady handler
@@ -1612,20 +1622,20 @@ define(function (require, exports, module) {
         }
     }
 
-    function _showErrorDialog(context, isFolder, error, path) {
+    function _showErrorDialog(errType, isFolder, error, path) {
         var titleType = isFolder ? Strings.DIRECTORY_TITLE : Strings.FILE_TITLE,
             entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
             title,
             message;
         path = StringUtils.breakableUrl(path);
 
-        if (context === "create") {
+        if (errType === ERR_TYPE_CREATE) {
             title = StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, titleType);
             message = StringUtils.format(Strings.ERROR_CREATING_FILE, entryType, path, error);
-        } else if (context === "rename") {
+        } else if (errType === ERR_TYPE_RENAME) {
             title = StringUtils.format(Strings.ERROR_RENAMING_FILE_TITLE, titleType);
             message = StringUtils.format(Strings.ERROR_RENAMING_FILE, path, error, entryType);
-        } else if (context === "delete") {
+        } else if (errType === ERR_TYPE_DELETE) {
             title = StringUtils.format(Strings.ERROR_DELETING_FILE_TITLE, titleType);
             message = StringUtils.format(Strings.ERROR_DELETING_FILE, path, error, entryType);
         }
@@ -1735,7 +1745,7 @@ define(function (require, exports, module) {
                                          Strings.NO_MODIFICATION_ALLOWED_ERR :
                                          StringUtils.format(Strings.GENERIC_ERROR, error);
 
-                        _showErrorDialog("create", isFolder, errString, data.rslt.name);
+                        _showErrorDialog(ERR_TYPE_CREATE, isFolder, errString, data.rslt.name);
                     }
 
                     errorCleanup();
@@ -1845,7 +1855,7 @@ define(function (require, exports, module) {
                                 Strings.FILE_EXISTS_ERR :
                                 FileUtils.getFileErrorString(err);
 
-                _showErrorDialog("rename", isFolder, errString, newName);
+                _showErrorDialog(ERR_TYPE_RENAME, isFolder, errString, newName);
                 result.reject(err);
             }
         });
@@ -2020,7 +2030,7 @@ define(function (require, exports, module) {
                 _deleteTreeNode(entry);
                 result.resolve();
             } else {
-                _showErrorDialog("delete", entry.isDirectory, FileUtils.getFileErrorString(err), entry.fullPath);
+                _showErrorDialog(ERR_TYPE_DELETE, entry.isDirectory, FileUtils.getFileErrorString(err), entry.fullPath);
     
                 result.reject(err);
             }
