@@ -45,13 +45,13 @@ define(function (require, exports, module) {
     var _searchFields = [["metadata", "name"], ["metadata", "title"], ["metadata", "description"],
                          ["metadata", "author", "name"], ["metadata", "keywords"], ["owner"]];
     /**
-     * @constructor
      * The base model for the ExtensionManagerView. Keeps track of the extensions that are currently visible
      * and manages sorting/filtering them. Must be disposed with dispose() when done.
      * Events:
-     *     change - triggered when the data for a given extension changes. Second parameter is the extension id.
-     *     filter - triggered whenever the filtered set changes (including on initialize).
+     * - change - triggered when the data for a given extension changes. Second parameter is the extension id.
+     * - filter - triggered whenever the filtered set changes (including on initialize).
      *
+     * @constructor
      */
     function ExtensionManagerViewModel() {
         this._handleStatusChange = this._handleStatusChange.bind(this);
@@ -288,14 +288,15 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @constructor
      * The model for the ExtensionManagerView that is responsible for handling registry-based extensions. 
      * This extends ExtensionManagerViewModel.
      * Must be disposed with dispose() when done.
      *
      * Events:
-     *     change - triggered when the data for a given extension changes. Second parameter is the extension id.
-     *     filter - triggered whenever the filtered set changes (including on initialize).
+     * - change - triggered when the data for a given extension changes. Second parameter is the extension id.
+     * - filter - triggered whenever the filtered set changes (including on initialize).
+     *
+     * @constructor
      */
     function RegistryViewModel() {
         ExtensionManagerViewModel.call(this);
@@ -355,14 +356,15 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @constructor
      * The model for the ExtensionManagerView that is responsible for handling previously-installed extensions. 
      * This extends ExtensionManagerViewModel.
      * Must be disposed with dispose() when done.
      *
      * Events:
-     *     change - triggered when the data for a given extension changes. Second parameter is the extension id.
-     *     filter - triggered whenever the filtered set changes (including on initialize).
+     * - change - triggered when the data for a given extension changes. Second parameter is the extension id.
+     * - filter - triggered whenever the filtered set changes (including on initialize).
+     *
+     * @constructor
      */
     function InstalledViewModel() {
         ExtensionManagerViewModel.call(this);
@@ -439,7 +441,7 @@ define(function (require, exports, module) {
         var self = this;
         this.notifyCount = 0;
         this.sortedFullSet.forEach(function (key) {
-            if (self.extensions[key].installInfo.updateCompatible) {
+            if (self.extensions[key].installInfo.updateCompatible && !ExtensionManager.isMarkedForUpdate(key)) {
                 self.notifyCount++;
             }
         });

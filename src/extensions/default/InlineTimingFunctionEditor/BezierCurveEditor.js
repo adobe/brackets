@@ -305,7 +305,7 @@ define(function (require, exports, module) {
             bezierEditor._commitTimingFunction();
 
             bezierEditor._updateCanvas();
-            animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
+            animationRequest = window.requestAnimationFrame(mouseMoveRedraw);
         }
 
         // This is a dragging state, but left button is no longer down, so mouse
@@ -336,7 +336,7 @@ define(function (require, exports, module) {
             .concat(bezierEditor.bezierCanvas.offsetsToCoordinates(bezierEditor.P2));
 
         if (!animationRequest) {
-            animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
+            animationRequest = window.requestAnimationFrame(mouseMoveRedraw);
         }
     }
 

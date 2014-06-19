@@ -42,7 +42,7 @@ module.exports = function (grunt) {
     });
     
     // task: build-config
-    grunt.registerTask("build-config", "Update config.json with the branch and SHA being built", function () {
+    grunt.registerTask("build-config", "Update config.json with the build timestamp, branch and SHA being built", function () {
         var done = this.async(),
             distConfig = grunt.file.readJSON("src/config.json");
         
@@ -50,6 +50,7 @@ module.exports = function (grunt) {
             distConfig.version = distConfig.version.substr(0, distConfig.version.lastIndexOf("-") + 1) + gitInfo.commits;
             distConfig.repository.SHA = gitInfo.sha;
             distConfig.repository.branch = gitInfo.branch;
+            distConfig.config.build_timestamp = new Date().toString().split('(')[0].trim();
     
             common.writeJSON(grunt, "dist/config.json", distConfig);
             

@@ -21,14 +21,13 @@
  * 
  */
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global require, define, window, brackets, navigator */
+
 /**
  * The boostrapping module for brackets. This module sets up the require 
  * configuration and loads the brackets module.
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, window, brackets, navigator */
-
 require.config({
     paths: {
         "text"              : "thirdparty/text/text",
@@ -48,12 +47,14 @@ if (window.location.search.indexOf("testEnvironment") > -1) {
     });
 }
 
-// hack for r.js optimization, move locale to another config call
-
-// Use custom brackets property until CEF sets the correct navigator.language
-// NOTE: When we change to navigator.language here, we also should change to
-// navigator.language in ExtensionLoader (when making require contexts for each
-// extension).
+/**
+ * hack for r.js optimization, move locale to another config call
+ *
+ * Use custom brackets property until CEF sets the correct navigator.language
+ * NOTE: When we change to navigator.language here, we also should change to
+ * navigator.language in ExtensionLoader (when making require contexts for each
+ * extension).
+ */
 require.config({
     locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
 });

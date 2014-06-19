@@ -43,6 +43,8 @@ define(function (require, exports, module) {
         FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         CodeMirror          = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        globmatch           = brackets.getModule("thirdparty/globmatch"),
         HintUtils           = require("HintUtils"),
         MessageIds          = require("MessageIds"),
         Preferences         = require("Preferences");
@@ -212,11 +214,18 @@ define(function (require, exports, module) {
         }
         
         var excludes = preferences.getExcludedFiles();
-        if (!excludes) {
-            return false;
+        if (excludes && excludes.test(file.name)) {
+            return true;
         }
-        
-        return excludes.test(file.name);
+
+        var defaultExclusions = PreferencesManager.get("jscodehints.defaultExclusions");
+
+        // The defaultExclusions are the ones we ship with Brackets to filter out files that we know
+        // to be troublesome with current versions of Tern. They can be overridden with a .brackets.json
+        // file in your project. defaultExclusions is an array of globs.
+        return defaultExclusions &&
+            _.isArray(defaultExclusions) &&
+            _.some(defaultExclusions, _.partial(globmatch, file.fullPath));
     }
 
     /**
@@ -739,7 +748,7 @@ define(function (require, exports, module) {
 
             return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_UPDATE_FILE_MSG);
         }
-
+        
         /**
          * Handle a request from the worker for text of a file
          *

@@ -55,7 +55,7 @@ see the [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-E
 
 #### Need help?
 
-Having problems starting Brackets the first time, or not sure how to use brackets?  Please 
+Having problems starting Brackets the first time, or not sure how to use Brackets?  Please 
 review [Troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting), which helps 
 you to fix common problems and find extra help if needed.
 

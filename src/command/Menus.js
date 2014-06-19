@@ -278,9 +278,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @constructor
-     * @private
-     *
      * MenuItem represents a single menu item that executes a Command or a menu divider. MenuItems
      * may have a sub-menu. A MenuItem may correspond to an HTML-based
      * menu item or a native menu item if Brackets is running in a native application shell
@@ -292,6 +289,9 @@ define(function (require, exports, module) {
      *
      * MenuItems are views on to Command objects so modify the underlying Command to modify the
      * name, enabled, and checked state of a MenuItem. The MenuItem will update automatically
+     *
+     * @constructor
+     * @private
      *
      * @param {string} id
      * @param {string|Command} command - the Command this MenuItem will reflect.
@@ -321,9 +321,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @constructor
-     * @private
-     *
      * Menu represents a top-level menu in the menu bar. A Menu may correspond to an HTML-based
      * menu or a native menu if Brackets is running in a native application shell.
      *
@@ -332,6 +329,10 @@ define(function (require, exports, module) {
      * Clients should also not access HTML content of a menu directly and instead use
      * the Menu API to query and modify menus.
      *
+     * @constructor
+     * @private
+     *
+     * @param {string} id
      */
     function Menu(id) {
         this.id = id;
@@ -990,9 +991,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @constructor
-     * @extends {Menu}
-     *
      * Represents a context menu that can open at a specific location in the UI.
      *
      * Clients should not create this object directly and should instead use registerContextMenu()
@@ -1002,8 +1000,10 @@ define(function (require, exports, module) {
      * the HTML and should instead manipulate ContextMenus through the API.
      *
      * Events:
-     *      beforeContextMenuOpen
+     * - beforeContextMenuOpen
      *
+     * @constructor
+     * @extends {Menu}
      */
     function ContextMenu(id) {
         Menu.apply(this, arguments);

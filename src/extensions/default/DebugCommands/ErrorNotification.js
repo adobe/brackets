@@ -78,7 +78,7 @@ define(function (require, exports, module) {
     }
 
     var blink = _.debounce(function () {
-        AnimationUtils.animateUsingClass($span.parent()[0], "flash");
+        AnimationUtils.animateUsingClass($span.parent()[0], "flash", 1500);
     }, 100);
 
     function incErrorCount() {

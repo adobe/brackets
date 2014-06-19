@@ -37,36 +37,36 @@ define(function (require, exports, module) {
         _                   = require("thirdparty/lodash");
     
     /**
-     * @constructor
      * Model for the contents of a single file and its current modification state.
      * See DocumentManager documentation for important usage notes.
      *
      * Document dispatches these events:
      *
-     * change -- When the text of the editor changes (including due to undo/redo). 
+     * __change__ -- When the text of the editor changes (including due to undo/redo). 
      *
-     *        Passes ({Document}, {ChangeList}), where ChangeList is an array
-     *        of change record objects. Each change record looks like:
+     * Passes ({Document}, {ChangeList}), where ChangeList is an array
+     * of change record objects. Each change record looks like:
      *
-     *            { from: start of change, expressed as {line: <line number>, ch: <character offset>},
-     *              to: end of change, expressed as {line: <line number>, ch: <chracter offset>},
-     *              text: array of lines of text to replace existing text }
+     *     { from: start of change, expressed as {line: <line number>, ch: <character offset>},
+     *       to: end of change, expressed as {line: <line number>, ch: <chracter offset>},
+     *       text: array of lines of text to replace existing text }
      *      
-     *        The line and ch offsets are both 0-based.
+     * The line and ch offsets are both 0-based.
      *
-     *        The ch offset in "from" is inclusive, but the ch offset in "to" is exclusive. For example,
-     *        an insertion of new content (without replacing existing content) is expressed by a range
-     *        where from and to are the same.
+     * The ch offset in "from" is inclusive, but the ch offset in "to" is exclusive. For example,
+     * an insertion of new content (without replacing existing content) is expressed by a range
+     * where from and to are the same.
      *
-     *        If "from" and "to" are undefined, then this is a replacement of the entire text content.
+     * If "from" and "to" are undefined, then this is a replacement of the entire text content.
      *
-     *        IMPORTANT: If you listen for the "change" event, you MUST also addRef() the document 
-     *        (and releaseRef() it whenever you stop listening). You should also listen to the "deleted"
-     *        event.
+     * IMPORTANT: If you listen for the "change" event, you MUST also addRef() the document 
+     * (and releaseRef() it whenever you stop listening). You should also listen to the "deleted"
+     * event.
      *
-     * deleted -- When the file for this document has been deleted. All views onto the document should
-     *      be closed. The document will no longer be editable or dispatch "change" events.
+     * __deleted__ -- When the file for this document has been deleted. All views onto the document should
+     * be closed. The document will no longer be editable or dispatch "change" events.
      *
+     * @constructor
      * @param {!File} file  Need not lie within the project.
      * @param {!Date} initialTimestamp  File's timestamp when we read it off disk.
      * @param {!string} rawText  Text content of the file.
@@ -78,7 +78,7 @@ define(function (require, exports, module) {
         
         this.file = file;
         this._updateLanguage();
-        this.refreshText(rawText, initialTimestamp);
+        this.refreshText(rawText, initialTimestamp, true);
     }
     
     /**
@@ -276,13 +276,26 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @private
+     * Triggers the appropriate events when a change occurs: "change" on the Document instance
+     * and "documentChange" on the Document module.
+     * @param {Object} changeList Changelist in CodeMirror format
+     */
+    Document.prototype._notifyDocumentChange = function (changeList) {
+        $(this).triggerHandler("change", [this, changeList]);
+        $(exports).triggerHandler("documentChange", [this, changeList]);
+    };
+    
+    /**
      * Sets the contents of the document. Treated as reloading the document from disk: the document
      * will be marked clean with a new timestamp, the undo/redo history is cleared, and we re-check
      * the text's line-ending style. CAN be called even if there is no backing editor.
      * @param {!string} text The text to replace the contents of the document with.
      * @param {!Date} newTimestamp Timestamp of file at the time we read its new contents from disk.
+     * @param {boolean} initial True if this is the initial load of the document. In that case,
+     *      we don't send change events.
      */
-    Document.prototype.refreshText = function (text, newTimestamp) {
+    Document.prototype.refreshText = function (text, newTimestamp, initial) {
         var perfTimerName = PerfUtils.markStart("refreshText:\t" + (!this.file || this.file.fullPath));
 
         // If clean, don't transiently mark dirty during refresh
@@ -294,12 +307,15 @@ define(function (require, exports, module) {
             // _handleEditorChange() triggers "change" event for us
         } else {
             this._text = text;
-            // We fake a change record here that looks like CodeMirror's text change records, but
-            // omits "from" and "to", by which we mean the entire text has changed.
-            // TODO: Dumb to split it here just to join it again in the change handler, but this is
-            // the CodeMirror change format. Should we document our change format to allow this to
-            // either be an array of lines or a single string?
-            $(this).triggerHandler("change", [this, [{text: text.split(/\r?\n/)}]]);
+            
+            if (!initial) {
+                // We fake a change record here that looks like CodeMirror's text change records, but
+                // omits "from" and "to", by which we mean the entire text has changed.
+                // TODO: Dumb to split it here just to join it again in the change handler, but this is
+                // the CodeMirror change format. Should we document our change format to allow this to
+                // either be an array of lines or a single string?
+                this._notifyDocumentChange([{text: text.split(/\r?\n/)}]);
+            }
         }
         this._updateTimestamp(newTimestamp);
        
@@ -391,6 +407,9 @@ define(function (require, exports, module) {
      * @private
      */
     Document.prototype._handleEditorChange = function (event, editor, changeList) {
+        // TODO: This needs to be kept in sync with SpecRunnerUtils.createMockActiveDocument(). In the
+        // future, we should fix things so that we either don't need mock documents or that this
+        // is factored so it will just run in both.
         if (!this._refreshInProgress) {
             // Sync isDirty from CodeMirror state
             var wasDirty = this.isDirty;
@@ -403,11 +422,7 @@ define(function (require, exports, module) {
         }
         
         // Notify that Document's text has changed
-        // TODO: This needs to be kept in sync with SpecRunnerUtils.createMockDocument(). In the
-        // future, we should fix things so that we either don't need mock documents or that this
-        // is factored so it will just run in both.
-        $(this).triggerHandler("change", [this, changeList]);
-        $(exports).triggerHandler("documentChange", [this, changeList]);
+        this._notifyDocumentChange(changeList);
     };
     
     /**

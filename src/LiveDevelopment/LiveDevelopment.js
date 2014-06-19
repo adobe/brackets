@@ -27,31 +27,31 @@
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
  *
- * # STARTING
+ * __STARTING__
  *
  * To start a session call `open`. This will read the currentDocument from brackets,
  * launch the LiveBrowser (currently Chrome) with the remote debugger port open,
  * establish the Inspector connection to the remote debugger, and finally load all
  * agents.
  *
- * # STOPPING
+ * __STOPPING__
  *
  * To stop a session call `close`. This will close the active browser window,
  * disconnect the Inspector, unload all agents, and clean up.
  *
- * # STATUS
+ * __STATUS__
  *
  * Status updates are dispatched as `statusChange` jQuery events. The status
  * is passed as the first parameter and the reason for the change as the second
  * parameter. Currently only the "Inactive" status supports the reason parameter.
  * The status codes are:
  *
- * -1: Error
- *  0: Inactive
- *  1: Connecting to the remote debugger
- *  2: Loading agents
- *  3: Active
- *  4: Out of sync
+ *     -1: Error
+ *      0: Inactive
+ *      1: Connecting to the remote debugger
+ *      2: Loading agents
+ *      3: Active
+ *      4: Out of sync
  *
  * The reason codes are:
  * - null (Unknown reason)
@@ -146,13 +146,22 @@ define(function LiveDevelopment(require, exports, module) {
         "highlight" : true
     };
 
-    // store the names (matching property names in the 'agent' object) of agents that we've loaded
+    /**
+     * Store the names (matching property names in the 'agent' object) of agents that we've loaded
+     * @type {string}
+     */
     var _loadedAgentNames = [];
 
-    /** @type {HTMLDocument} */
+    /**
+     * Live Preview current Document info
+     * @type {HTMLDocument}
+     */
     var _liveDocument;
     
-    /** @type {Object.<string: {HTMLDocument|CSSDocument}>} */
+    /**
+     * Related Live Documents
+     * @type {Object.<string: (HTMLDocument|CSSDocument)>}
+     */
     var _relatedDocuments = {};
     
     /**
@@ -273,7 +282,7 @@ define(function LiveDevelopment(require, exports, module) {
      * given file is no longer associated with the HTML document that is live (e.g.
      * if the related file has been deleted on disk).
      */
-    function _handleRelatedDocumentDeleted(event, liveDoc) {
+    function _closeRelatedDocument(liveDoc) {
         if (_relatedDocuments[liveDoc.doc.url]) {
             delete _relatedDocuments[liveDoc.doc.url];
         }
@@ -284,7 +293,7 @@ define(function LiveDevelopment(require, exports, module) {
         
         _closeDocument(liveDoc);
     }
-
+    
     /**
      * Update the status. Triggers a statusChange event.
      * @param {number} status new status
@@ -367,8 +376,8 @@ define(function LiveDevelopment(require, exports, module) {
     /**
      * @private
      * Create a live version of a Brackets document
-     * @param {Document} doc
-     * @param {Editor} editor
+     * @param {Document} doc Current document
+     * @param {Editor} editor Current editor
      * @return {?(HTMLDocument|CSSDocument)}
      */
     function _createDocument(doc, editor) {
@@ -386,6 +395,18 @@ define(function LiveDevelopment(require, exports, module) {
         return liveDocument;
     }
 
+    /**
+     * @private
+     * Initialize `_liveDocument`.
+     * @param {Document} doc Current document
+     */
+    function _createLiveDocumentForFrame(doc) {
+        // create live document
+        doc._ensureMasterEditor();
+        _liveDocument = _createDocument(doc, doc._masterEditor);
+        _server.add(_liveDocument);
+    }
+    
     /** Enable an agent. Takes effect next time a connection is made. Does not affect
      *  current live development sessions.
      *
@@ -469,7 +490,9 @@ define(function LiveDevelopment(require, exports, module) {
                     _server.add(liveDoc);
                     _relatedDocuments[doc.url] = liveDoc;
 
-                    $(liveDoc).on("deleted.livedev", _handleRelatedDocumentDeleted);
+                    $(liveDoc).on("deleted.livedev", function (event, liveDoc) {
+                        _closeRelatedDocument(liveDoc);
+                    });
                 }
             }
         });
@@ -548,7 +571,7 @@ define(function LiveDevelopment(require, exports, module) {
             promises = [],
             enableAgentsPromise,
             allAgentsPromise;
-
+        
         _loadAgentsPromise = result.promise();
 
         _setStatus(STATUS_LOADING_AGENTS);
@@ -898,6 +921,15 @@ define(function LiveDevelopment(require, exports, module) {
         }
 
         unloadAgents();
+        
+        // Clear any existing related documents before we reload the agents.
+        // We need to recreate them for the reloaded document due to some
+        // desirable side-effects (see #7606). Eventually, we should simplify
+        // the way we get that behavior.
+        _.forOwn(_relatedDocuments, function (relatedDoc) {
+            _closeRelatedDocument(relatedDoc);
+        });
+
         return loadAgents();
     }
 
@@ -973,7 +1005,11 @@ define(function LiveDevelopment(require, exports, module) {
             loadAgents().then(_openDeferred.resolve, _openDeferred.reject);
 
             _getInitialDocFromCurrent().done(function (doc) {
-                if (doc && _liveDocument && doc === _liveDocument.doc) {
+                if (doc && _liveDocument) {
+                    if (doc !== _liveDocument.doc) {
+                        _createLiveDocumentForFrame(doc);
+                    }
+
                     // Navigate from interstitial to the document
                     // Fires a frameNavigated event
                     if (_server) {
@@ -1138,13 +1174,6 @@ define(function LiveDevelopment(require, exports, module) {
         });
     }
 
-    function _createLiveDocumentForFrame(doc) {
-        // create live document
-        doc._ensureMasterEditor();
-        _liveDocument = _createDocument(doc, doc._masterEditor);
-        _server.add(_liveDocument);
-    }
-    
     // helper function that actually does the launch once we are sure we have
     // a doc and the server for that doc is up and running.
     function _doLaunchAfterServerReady(initialDoc) {

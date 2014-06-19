@@ -30,12 +30,13 @@
  * the file tree.
  *
  * This module dispatches these events:
- *    - beforeProjectClose -- before _projectRoot changes, but working set files still open
- *    - projectClose       -- *just* before _projectRoot changes; working set already cleared & project root unwatched
+ *    - beforeProjectClose -- before `_projectRoot` changes, but working set files still open
+ *    - projectClose       -- *just* before `_projectRoot` changes; working set already cleared
+ *      & project root unwatched
  *    - beforeAppClose     -- before Brackets quits entirely
- *    - projectOpen        -- after _projectRoot changes and the tree is re-rendered
+ *    - projectOpen        -- after `_projectRoot` changes and the tree is re-rendered
  *    - projectRefresh     -- when project tree is re-rendered for a reason other than
- *                            a project being opened (e.g. from the Refresh command)
+ *      a project being opened (e.g. from the Refresh command)
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(ProjectManager).on("eventname", handler);
@@ -161,7 +162,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Encoded URL
-     * @ see getBaseUrl(), setBaseUrl()
+     * @see getBaseUrl(), setBaseUrl()
      */
     var _projectBaseUrl = "";
     
@@ -185,7 +186,8 @@ define(function (require, exports, module) {
      * RegEx to validate if a filename is not allowed even if the system allows it.
      * This is done to prevent cross-platform issues.
      */
-    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux)$/i;
+            
+    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux|)$|\.+$/i;
     
     var suppressToggleOpen = false;
     
@@ -204,6 +206,13 @@ define(function (require, exports, module) {
      * initialized in _generateSortPrefixes.
      */
     var _dirFirst;
+    
+    /**
+     * @private
+     * @type {Number}
+     * Tracks the timeoutID for mouseup events.
+     */
+    var _mouseupTimeoutId = null;
     
     /**
      * @private
@@ -654,7 +663,18 @@ define(function (require, exports, module) {
                         }
                     }
                 }
-            );
+            ).bind("mouseup.jstree", function (event) {
+                var $treenode = $(event.target).closest("li");
+                if ($treenode.is($(_projectTree.jstree("get_selected")))) {
+                    // wrap this in a setTimeout function so that we can check if it's a double click.
+                    _mouseupTimeoutId = window.setTimeout(function (event) {
+                        // if we get a double-click,_mouseupTimeoutId will have been set to lull by the double-click handler before this runs.
+                        if (_mouseupTimeoutId !== null) {
+                            CommandManager.execute(Commands.FILE_RENAME);
+                        }
+                    }, 500);
+                }
+            });
 
         // jstree has a default event handler for dblclick that attempts to clear the
         // global window selection (presumably because it doesn't want text within the tree
@@ -716,6 +736,11 @@ define(function (require, exports, module) {
                     if (entry && entry.isFile && !_isInRename(event.target)) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
+                    if (_mouseupTimeoutId !== null) {
+                        window.clearTimeout(_mouseupTimeoutId);
+                        _mouseupTimeoutId = null;
+                    }
+                    
                 });
 
             // fire selection changed events for sidebar-selection
@@ -746,8 +771,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
      * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
+     * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
      * @param {string} fileName
      * @return {boolean}
      */
@@ -1530,8 +1555,8 @@ define(function (require, exports, module) {
                 filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
-                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
-                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, _invalidChars)
+                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME),
+                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE,  _invalidChars)
             );
             return false;
         }
@@ -1658,15 +1683,13 @@ define(function (require, exports, module) {
                 };
                 
                 var errorCallback = function (error, entry) {
-                    var entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
-                        oppositeEntryType = isFolder ? Strings.FILE : Strings.DIRECTORY;
+                    var titleType = isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME,
+                        entryType = isFolder ? Strings.DIRECTORY : Strings.FILE;
                     if (error === FileSystemError.ALREADY_EXISTS) {
-                        var useOppositeType = (isFolder === entry.isFile);
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
-                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
-                            StringUtils.format(Strings.FILE_ALREADY_EXISTS,
-                                useOppositeType ? oppositeEntryType : entryType,
+                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, titleType),
+                            StringUtils.format(Strings.ENTRY_WITH_SAME_NAME_EXISTS,
                                 StringUtils.breakableUrl(data.rslt.name))
                         );
                     } else {
@@ -1757,7 +1780,7 @@ define(function (require, exports, module) {
      * Rename a file/folder. This will update the project tree data structures
      * and send notifications about the rename.
      *
-     * @prarm {string} oldName Old item name
+     * @param {string} oldName Old item name
      * @param {string} newName New item name
      * @param {boolean} isFolder True if item is a folder; False if it is a file.
      * @return {$.Promise} A promise object that will be resolved or rejected when

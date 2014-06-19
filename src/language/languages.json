@@ -142,13 +142,15 @@
         "name": "CoffeeScript",
         "mode": "coffeescript",
         "fileExtensions": ["coffee", "cf", "cson", "_coffee"],
-        "fileNames": ["Cakefile"]
+        "fileNames": ["Cakefile"],
+        "blockComment": ["###", "###"],
+        "lineComment": ["#"]
     },
 
     "clojure": {
         "name": "Clojure",
         "mode": "clojure",
-        "fileExtensions": ["clj"],
+        "fileExtensions": ["clj", "cljs", "cljx"],
         "lineComment": [";", ";;"]
     },
 
@@ -185,7 +187,9 @@
     "lua": {
         "name": "Lua",
         "mode": "lua",
-        "fileExtensions": ["lua"]
+        "fileExtensions": ["lua"],
+        "blockComment": ["--[[", "]]"],
+        "lineComment": ["--"]
     },
 
     "sql": {
@@ -225,7 +229,7 @@
     "bash": {
         "name": "Bash",
         "mode": ["shell", "text/x-sh"],
-        "fileExtensions": ["sh"],
+        "fileExtensions": ["sh", "command"],
         "lineComment": ["#"]
     },
   

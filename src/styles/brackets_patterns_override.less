@@ -118,6 +118,12 @@ a:focus {
         > li {
             float: left;
         }
+        .dropdown-menu {
+            //max-height: calc(~"100vh - 34px"); doesn't seem to work...
+            max-height: 90vh;
+            overflow-y: auto;
+            -webkit-animation: none;
+        }
     }
     .title {
         float: none;
@@ -459,7 +465,7 @@ a:focus {
     &.dropdown-menu {
         border: none;
         border-radius: @tc-control-border-radius;
-        padding: 0;
+        padding: 5px 0;
         position: absolute;
         display: block;
         box-shadow: @tc-dropdown-shadow;
@@ -472,6 +478,7 @@ a:focus {
     
     &.dropdown-menu li a {
         padding: 1px 15px 1px 15px;
+        color: @bc-black;
     }
     
     &.dropdown-menu .stylesheet-link {
@@ -483,9 +490,35 @@ a:focus {
         color: @bc-black !important;
     }
 
+    &.dropdown-menu a {
+        &::before {
+            position: absolute;
+            left: 10px;
+            text-align: center;
+            content: "✓";
+            display: none;
+        }
+        /* toggle checkmark visibility */
+        &.checked::before {
+            display: inline-block;
+        }
+    }
+    
+    &.dropdown-menu a:hover {
+        /* toggle checkmark visibility */
+        &.checked::before {
+            display: none;
+        }
+    }
+
     &.dropdown-menu a:not(.selected):hover {
         background: none;
     }
+
+    .divider {
+        margin: 5px 1px;
+    }
+
 }
 
 /* Status bar language picker's DropdownButton */
@@ -497,6 +530,7 @@ a:focus {
         font-style: italic;
         color: @tc-quiet-text;
     }
+
     li a .checked-language::before {
         content: "✓";
         margin-left: -11px;
@@ -720,12 +754,14 @@ a[href^="http"] {
     }
     .update-text {
         // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
-        margin: 0 10px 0 123px;
+        margin-left: 130px;
+
+        padding-top: 20px;
+        max-height: 280px;
+        overflow: auto;
 
         .update-info {
-            max-height: 200px;
-            overflow: auto;
-
+            margin-right: 10px;
             // Enable text selection
             cursor: auto;
             .user-select(text);
@@ -980,28 +1016,27 @@ a[href^="http"] {
     }
     .about-text {
         // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
-        margin: 0 10px 0 123px;
+        margin-left: 130px;
+        overflow: auto;
 
         #about-build-number {
             color: @tc-light-weight-quiet-text;
         }
         .about-info {
             max-height: 300px;
-            overflow: auto;
+            margin-right: 10px;
         }
         .about-contributors {
             min-height: 100px;
+            padding-bottom: 13px;
 
             a {
                 text-decoration: none;
             }
-        }
-        .about-contributors img {
-            opacity: 0;
-            -webkit-transition: opacity 1s;
-            -moz-transition: opacity 1s;
-            -o-transition: opacity 1s;
-            transition: opacity 1s;
+            img {
+                opacity: 0;
+                transition: opacity 1s;
+            }
         }
     }
 
@@ -1009,7 +1044,7 @@ a[href^="http"] {
         font-weight: normal;
         font-size: 25px;
         margin-bottom: -4px;
-        margin-top: 3px;
+        margin-top: 13px;
     }
     .dialog-message {
         font-size: 14px;
@@ -1143,7 +1178,13 @@ input[type="color"],
     }
 
     // Active and Disabled states
-    &.active:not([disabled]),
+    &.active:not([disabled]) {
+        background-image: none;
+        background-color: @tc-highlight;
+        box-shadow: @tc-button-down-shadow;
+        color: @tc-link;
+    }
+    
     &:active:not([disabled]) {
         background-image: none;
         background-color: @tc-button-down-background;
