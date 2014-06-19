@@ -627,7 +627,7 @@ define(function (require, exports, module) {
             });
             
             it("should push changes after loading an iframe", function () {
-                doOneTest("simple1Iframe.html", "simple1.css");
+                doOneTest("simple1iframe.html", "simple1.css");
             });
 
             it("should push in memory css changes made before the session starts", function () {
@@ -754,6 +754,10 @@ define(function (require, exports, module) {
                     // Verify that we still have modified text
                     expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
+            });
+
+            it("should push changes to the iframes' css file", function () {
+                doOneTest("simple1iframe.html", "iframe.css");
             });
         });
         
