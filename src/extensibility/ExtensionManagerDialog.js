@@ -296,9 +296,7 @@ define(function (require, exports, module) {
             // Open dialog to Installed tab if extension updates are available
             if ($("#toolbar-extension-manager").hasClass('updatesAvailable')) {
                 $dlg.find(".nav-tabs a.installed").tab("show");
-            }
-            // Otherwise show the first tab
-            else {
+            } else { // Otherwise show the first tab
                 $dlg.find(".nav-tabs a:first").tab("show");
             }
         });

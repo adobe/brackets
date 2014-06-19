@@ -287,7 +287,7 @@ define(function (require, exports, module) {
         } else if (this._state === STATE_ALREADY_INSTALLED) {
             // If we were prompting the user about overwriting a previous installation,
             // and the user cancels, we can delete the downloaded file.
-            if (this._installResult && this._installResult.localPath) {
+            if (this._installResult && this._installResult.localPath && !this._installResult.keepFile) {
                 var filename = this._installResult.localPath;
                 FileSystem.getFileForPath(filename).unlink();
             }
@@ -426,24 +426,10 @@ define(function (require, exports, module) {
                 }
             };
 
-            Package.validate(url).then(function (info) {
-                if (info.errors.length) {
-                    deferred.reject();
-                    return;
-                }
-
-                var extensionInfo = ExtensionManager.extensions[info.metadata.name],
-                    isUpdate = !!extensionInfo.installInfo,
-                    promise;
-
-                // TODO validate version?
-                if (isUpdate) {
-                    promise = Package.installUpdate(url).done(ExtensionManager.updateFromDownload);
-                } else {
-                    promise = Package.install(url);
-                }
-
-                promise.then(deferred.resolve, deferred.reject);
+            Package.installFromPath(url).then(function (installationResult) {
+                // Flag to keep zip files for local file installation
+                installationResult.keepFile = true;
+                deferred.resolve(installationResult);
             }, deferred.reject);
         } else {
             this.pendingInstall = Package.installFromURL(url);
@@ -477,16 +463,16 @@ define(function (require, exports, module) {
     /**
      * @private
      * Show the installation dialog and automatically begin installing the given URL.
-     * @param {(string|File)=} urlToInstall If specified, immediately starts installing the given file as if the user had
+     * @param {(string|File)=} urlOrFileToInstall If specified, immediately starts installing the given file as if the user had
      *     specified it.
      * @return {$.Promise} A promise object that will be resolved when the selected extension
      *     has finished installing, or rejected if the dialog is cancelled.
      */
-    function installUsingDialog(urlToInstall, _isUpdate) {
-        var isLocalFile = (urlToInstall instanceof File),
+    function installUsingDialog(urlOrFileToInstall, _isUpdate) {
+        var isLocalFile = (urlOrFileToInstall instanceof File),
             dlg = new InstallExtensionDialog(new InstallerFacade(isLocalFile), _isUpdate);
 
-        return dlg.show(urlToInstall.fullPath || urlToInstall);
+        return dlg.show(urlOrFileToInstall.fullPath || urlOrFileToInstall);
     }
     
     /**
