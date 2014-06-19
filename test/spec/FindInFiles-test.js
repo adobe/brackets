@@ -257,6 +257,8 @@ define(function (require, exports, module) {
                 openProject(defaultSourcePath);
             });
             
+            afterEach(closeSearchBar);
+
             it("should find all occurences in project", function () {
                 openSearchBar();
                 executeSearch("foo");
@@ -570,6 +572,24 @@ define(function (require, exports, module) {
                     expect($panelResults.length).toBe(panelListLen - 1);
 
                     waitsForDone(CommandManager.execute(Commands.FILE_CLOSE, { _forceClose: true }), "closing file");
+                });
+            });
+
+            it("should close the results panel as soon as the user starts another Find in Files", function () {
+                var filePath = testPath + "/foo.js",
+                    fileEntry = FileSystem.getFileForPath(filePath);
+
+                openSearchBar(fileEntry);
+                executeSearch("foo");
+
+                runs(function () {
+                    expect($("#find-in-files-results").is(":visible")).toBeTruthy();
+                });
+
+                openSearchBar(fileEntry);
+
+                runs(function () {
+                    expect($("#find-in-files-results").is(":visible")).toBeFalsy();
                 });
             });
         });
