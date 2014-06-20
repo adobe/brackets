@@ -207,7 +207,7 @@ define(function (require, exports, module) {
         // The defaultExclusions are the ones we ship with Brackets to filter out files that we know
         // to be troublesome with current versions of Tern. They can be overridden with a .brackets.json
         // file in your project. defaultExclusions is an array of globs.
-        var defaultExclusions = PreferencesManager.get("jscodehints.defaultExclusions");
+        var defaultExclusions = PreferencesManager.get("jscodehints.defaultExclusions") || [];
         if (defaultExclusions &&
                 _.isArray(defaultExclusions) &&
                 _.some(defaultExclusions, _.partial(globmatch, path))) {
@@ -216,10 +216,9 @@ define(function (require, exports, module) {
 
         // The detectedExclusions are files detected to be troublesome with current versions of Tern.
         // detectedExclusions is an array of full paths.
-        var detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions");
-        if (detectedExclusions &&
-                _.isArray(detectedExclusions) &&
-                _.some(detectedExclusions, function (de) { return (path === de); })) {
+        var detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions") || [];
+        if (detectedExclusions && detectedExclusions.indexOf(path) !== -1) {
+            console.log("JSCodeHints: Internal file exclusion: " + path);
             return true;
         }
 
@@ -270,8 +269,6 @@ define(function (require, exports, module) {
 
         // Reject detected exclusions
         if (isFileExcludedInternal(file)) {
-            // TODO: temporary
-            console.log("JavaScriptCodeHints: Skipping file in detectedExclusions array: " + file);
             return (new $.Deferred()).reject().promise();
         }
         
@@ -835,10 +832,6 @@ define(function (require, exports, module) {
                 if (!FileSystem.isAbsolutePath(filePath)) {
                     return (new $.Deferred()).reject().promise();
                 }
-                if (isFileExcludedInternal(filePath)) {
-                    console.log("JSCodeHints: Internal file exclusion: " + filePath);
-                    return (new $.Deferred()).reject().promise();
-                }
                 
                 var file = FileSystem.getFileForPath(filePath),
                     promise = DocumentManager.getDocumentText(file);
@@ -884,16 +877,18 @@ define(function (require, exports, module) {
                     }
                 });
             }
-    
-            getDocText(name).fail(function () {
-                getDocText(rootTernDir + name).fail(function () {
-                    // check relative to project root
-                    getDocText(projectRoot + name)
-                        // last look for any files that end with the right path
-                        // in the project
-                        .fail(findNameInProject);
+            
+            if (!isFileExcludedInternal(name)) {
+                getDocText(name).fail(function () {
+                    getDocText(rootTernDir + name).fail(function () {
+                        // check relative to project root
+                        getDocText(projectRoot + name)
+                            // last look for any files that end with the right path
+                            // in the project
+                            .fail(findNameInProject);
+                    });
                 });
-            });
+            }
         }
     
         /**
@@ -1073,11 +1068,17 @@ define(function (require, exports, module) {
                     env         : ternEnvironment,
                     timeout     : PreferencesManager.get("jscodehints.inferenceTimeout")
                 };
-                
-                if (config.debug) {
-                    console.debug("Sending message", msg);
+
+                if (worker) {
+                    if (config.debug) {
+                        console.debug("Sending message", msg);
+                    }
+                    worker.postMessage(msg);
+                } else {
+                    if (config.debug) {
+                        console.debug("Worker null. Cannot send message", msg);
+                    }
                 }
-                worker.postMessage(msg);
             });
             rootTernDir = dir + "/";
         }
