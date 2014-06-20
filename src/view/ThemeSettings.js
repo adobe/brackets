@@ -18,7 +18,7 @@ define(function(require, exports, module) {
         "lineHeight": '1.3em',
         "fontType": "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace",
         "customScrollbars": true,
-        "themes": ["default"]
+        "themes": ["thor-light-theme"]
     };
 
     var templates = {
@@ -91,7 +91,7 @@ define(function(require, exports, module) {
 
 
     function getValues() {
-        return _.transform(arguments, function(result, value, key) {
+        return _.transform(arguments, function(result, value) {
             result[value] = prefs.get(value);
         });
     }
@@ -115,6 +115,7 @@ define(function(require, exports, module) {
 
     // Exposed API
     exports.defaults   = defaults;
+    exports.reset      = reset;
     exports.setThemes  = setThemes;
     exports.showDialog = showDialog;
 });
