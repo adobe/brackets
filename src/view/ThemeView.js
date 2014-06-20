@@ -11,11 +11,10 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var theme, currentDocMode, currentThemes = [];
+    var currentDocMode, currentThemes = [];
 
     var _                  = require("thirdparty/lodash"),
         CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
-        ExtensionUtils     = require("utils/ExtensionUtils"),
         PreferencesManager = require("preferences/PreferencesManager"),
         prefs              = PreferencesManager.getExtensionPrefs("brackets-themes");
 
@@ -78,7 +77,7 @@ define(function (require, exports, module) {
     /**
     *  Handles updating codemirror with the current selection of themes.
     *
-    * @param <CodeMirror> cm is the CodeMirror instance currently loaded
+    * @param {CodeMirror} cm is the CodeMirror instance currently loaded
     */
     function updateThemes(cm) {
         var newThemes = (prefs.get("themes") || []).join(" "),
@@ -119,8 +118,8 @@ define(function (require, exports, module) {
     /**
     * Sets the document type in the DOM to enable styling per doc type
     *
-    * @param <CodeMirror> cm is the CodeMirror instance currently loaded
-    * @rreturn <string> current document type
+    * @param {CodeMirror} cm is the CodeMirror instance currently loaded
+    * @rreturn {string} current document type
     */
     function setDocumentMode(cm) {
         var mode = cm.getDoc().getMode();
