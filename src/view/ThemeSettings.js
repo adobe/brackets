@@ -75,11 +75,9 @@ define(function(require, exports, module) {
 
         Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
             if (id === "save") {
-                for (var i in newSettings) {
-                    if (currentSettings.hasOwnProperty(i)) {
-                        prefs.set(i, newSettings[i]);
-                    }
-                }
+                Object.keys(newSettings).forEach(function (setting) {
+                    prefs.set(setting, newSettings[setting]);
+                });
             }
         });
     }
