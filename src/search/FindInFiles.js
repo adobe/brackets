@@ -90,25 +90,25 @@ define(function (require, exports, module) {
             return [];
         }
         
-        var match, lineNum, line, ch, matchLength, matchedLines, numMatchedLines, lastLineLength,
+        var match, lineNum, line, ch, totalMatchLength, matchedLines, numMatchedLines, lastLineLength,
             lines   = StringUtils.getLines(contents),
             matches = [];
         
         while ((match = queryExpr.exec(contents)) !== null) {
-            lineNum         = StringUtils.offsetToLineNum(lines, match.index);
-            line            = lines[lineNum];
-            ch              = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
-            matchLength     = match[0].length;
-            matchedLines    = match[0].split("\n");
-            numMatchedLines = matchedLines.length;
-            lastLineLength  = matchedLines[matchedLines.length - 1].length;
+            lineNum          = StringUtils.offsetToLineNum(lines, match.index);
+            line             = lines[lineNum];
+            ch               = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
+            matchedLines     = match[0].split("\n");
+            numMatchedLines  = matchedLines.length;
+            totalMatchLength = match[0].length;
+            lastLineLength   = matchedLines[matchedLines.length - 1].length;
             
             // Don't store more than 200 chars per line
             line = line.substr(0, Math.min(200, line.length));
             
             matches.push({
                 start:       {line: lineNum, ch: ch},
-                end:         {line: lineNum + numMatchedLines - 1, ch: (numMatchedLines === 1 ? ch + lastLineLength : lastLineLength)},
+                end:         {line: lineNum + numMatchedLines - 1, ch: (numMatchedLines === 1 ? ch + totalMatchLength : lastLineLength)},
                 
                 // Note that the following offsets from the beginning of the file are *not* updated if the search
                 // results change. These are currently only used for multi-file replacement, and we always
@@ -117,7 +117,7 @@ define(function (require, exports, module) {
                 // doing everything in terms of line/ch offsets, though that will require re-splitting files when
                 // doing a replace) or properly update them.
                 startOffset: match.index,
-                endOffset:   match.index + matchLength,
+                endOffset:   match.index + totalMatchLength,
                 
                 line:        line,
                 result:      match,
