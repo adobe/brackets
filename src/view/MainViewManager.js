@@ -130,7 +130,7 @@ define(function (require, exports, module) {
             // not found
             return -1; 
         } else {
-            pane = getPaneViewList(paneId);
+            pane = _getPaneFromPaneId(paneId);
             if (pane) {
                 return pane[method].call(pane, fullPath);
             }
