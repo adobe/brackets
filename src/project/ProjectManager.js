@@ -664,11 +664,15 @@ define(function (require, exports, module) {
                     }
                 }
             ).bind("mouseup.jstree", function (event) {
+                if (event.button !== 0) { // 0 = Left mouse button
+                    return;
+                }
+
                 var $treenode = $(event.target).closest("li");
                 if ($treenode.is($(_projectTree.jstree("get_selected")))) {
                     // wrap this in a setTimeout function so that we can check if it's a double click.
-                    _mouseupTimeoutId = window.setTimeout(function (event) {
-                        // if we get a double-click,_mouseupTimeoutId will have been set to lull by the double-click handler before this runs.
+                    _mouseupTimeoutId = window.setTimeout(function () {
+                        // if we get a double-click, _mouseupTimeoutId will have been set to null by the double-click handler before this runs.
                         if (_mouseupTimeoutId !== null) {
                             CommandManager.execute(Commands.FILE_RENAME);
                         }
