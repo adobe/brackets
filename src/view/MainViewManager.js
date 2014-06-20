@@ -50,35 +50,19 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         WorkspaceManager    = require("view/WorkspaceManager"),
         InMemoryFile        = require("document/InMemoryFile"),
-        Strings             = require("strings");
+        Pane                = require("view/Pane").Pane;
+        
     
     var ALL_PANES           = "ALL_PANES",
-        FOCUSED_PANE        = "FOCUSED_PANE";
+        FOCUSED_PANE        = "FOCUSED_PANE",
+        FIRST_PANE          = "first-pane",
+        SECOND_PANE         = "second-pane",
+        VERTICAL            = "VERTICAL",
+        HORIZONTAL          = "HORIZONTAL";
     
-    /** 
-     * @private
-     */
-    var _paneList = [];
     
-    /**
-     * @private
-     * @type {Array.<File>}
-     */
-    var _paneViewList = [];
     
-    /**
-     * Contains the same set of items as _paneViewList, but ordered by how recently they were viewed
-     * @private
-     * @type {Array.<File>}
-     */
-    var _paneViewListMRUOrder = [];
-    
-    /**
-     * Contains the same set of items as _paneViewList, but ordered in the way they where added to _paneViewList (0 = last added).
-     * @private
-     * @type {Array.<File>}
-     */
-    var _paneViewListAddedOrder = [];
+    var _orientation = HORIZONTAL;
     
     /**
      * Container we live in
@@ -90,9 +74,26 @@ define(function (require, exports, module) {
      *
      */
     var _paneViews = {
-        ID_FIRST: undefined,
-        ID_SECOND: undefined
+        
     };
+    
+    function _getActivePaneId() {
+        // TODO
+        return FIRST_PANE; 
+    }
+
+    function _getPaneFromPaneId(paneId) {
+        if (paneId === FOCUSED_PANE) {
+            paneId = _getActivePaneId();
+        }
+        
+        if (_paneViews[paneId]) {
+            return _paneViews[paneId];
+        }
+        
+        return null;
+    }
+    
     
     /**
      * Retrieves the PaneViewList for the given PaneId
@@ -100,31 +101,42 @@ define(function (require, exports, module) {
      * @return {Array.<File>}
      */
     function getPaneViewList(paneId) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        return _.clone(_paneViewList);
+        if (paneId === ALL_PANES) {
+            // TODO combine all panes
+            return getPaneViewList(FIRST_PANE);
+        } else {
+            var pane = _getPaneFromPaneId(paneId);
+            if (pane) {
+                return pane.getViewList();
+            }
+        } 
+        return null;
     }
-    
-    /**
-     * Determines if a file is legal to put in the pane view list.  This will change
-     * as we allow different types of things to be added to the pane view list
-     * @private 
-     * @return true if the file can be opened
-     */
-    function _canOpenFile(file) {
-        return !EditorManager.getCustomViewerForPath(file.fullPath);
-    }
+
    
-    /**
-     * Resets all internal data for the associated paneId
-     * @private
-     * @param {!string} paneId this will identify which Pane the caller wants to reset
-     */
-    function _reset(paneId) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        _paneViewList = [];
-        _paneViewListMRUOrder = [];
-        _paneViewListAddedOrder = [];
+    function _doFindInViewList(paneId, fullPath, method) {
+        var pane, 
+            index;
+        if (paneId === ALL_PANES) {
+            for (var property in _paneViews) {
+                if (_paneViews.hasOwnProperty(property)) {
+                    pane =  _paneViews[property];
+                    index = pane[method].call(pane, fullPath);
+                    if (index >= 0) {
+                        return index;
+                    }
+                }
+            }
+            // not found
+            return -1; 
+        } else {
+            pane = getPaneViewList(paneId);
+            if (pane) {
+                return pane[method].call(pane, fullPath);
+            }
+        }
     }
+
     
     /**
      * Gets the index of the file matching fullPath in the pane view list
@@ -133,10 +145,7 @@ define(function (require, exports, module) {
      * @return {number} index, -1 if not found.
      */
     function findInPaneViewList(paneId, fullPath) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        return _.findIndex(_paneViewList, function (file) {
-            return file.fullPath === fullPath;
-        });
+        return _doFindInViewList(paneId, fullPath, "findInViewList");
     }
     
     /**
@@ -146,10 +155,7 @@ define(function (require, exports, module) {
      * @return {number} index, -1 if not found.
      */
     function findInPaneViewListAddedOrder(paneId, fullPath) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        return _.findIndex(_paneViewListAddedOrder, function (file) {
-            return file.fullPath === fullPath;
-        });
+        return _doFindInViewList(paneId, fullPath, "findInViewListAddedOrder");
     }
     
     /**
@@ -159,41 +165,9 @@ define(function (require, exports, module) {
      * @return {number} index, -1 if not found.
      */
     function findInPaneViewListMRUOrder(paneId, fullPath) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        return _.findIndex(_paneViewListMRUOrder, function (file, i) {
-            return file.fullPath === fullPath;
-        });
+        return _doFindInViewList(paneId, fullPath, "findInViewListMRUOrder");
     }
-    
-    /**
-     * Adds a file to all lists
-     * @param {!string} paneId the pane in which to add
-     * @param {!File} file the file to add
-     * @param {Object.<number, number>=} Object containing the index and indexRequested where to merge 
-     */
-    
-    function _addToPaneViewList(paneId, file, inPlace) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        if (inPlace && inPlace.indexRequested) {
-            // If specified, insert into the pane view list at this 0-based index
-            _paneViewList.splice(inPlace.index, 0, file);
-        } else {
-            // If no index is specified, just add the file to the end of the pane view list.
-            _paneViewList.push(file);
-        }
-        
-        // Add to MRU order: either first or last, depending on whether it's already the current doc or not
-        var currentDocument = DocumentManager.getCurrentDocument();
-        if (currentDocument && currentDocument.file.fullPath === file.fullPath) {
-            _paneViewListMRUOrder.unshift(file);
-        } else {
-            _paneViewListMRUOrder.push(file);
-        }
-        
-        // Add first to Added order
-        _paneViewListAddedOrder.unshift(file);
-    }
-    
+
     /**
      * Adds the given file to the end of the pane view list, if it is not already in the list
      * and it does not have a custom viewer.
@@ -204,35 +178,19 @@ define(function (require, exports, module) {
      * @param {boolean=} forceRedraw  If true, a pane view list change notification is always sent
      *    (useful if suppressRedraw was used with removeFromPaneViewList() earlier)
      */
-    function addToPaneViewList(paneId, file, index, forceRedraw) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        var indexRequested = (index !== undefined && index !== null && index >= 0);
-        
-        // If the file has a custom viewer, then don't add it to the pane view list.
-        if (!_canOpenFile(file)) {
-            return;
-        }
-            
-        // If doc is already in pane view list, don't add it again
-        var curIndex = findInPaneViewList(paneId, file.fullPath);
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        if (curIndex !== -1) {
-            // File is in pane view list, but not at the specifically requested index - only need to reorder
-            if (forceRedraw || (indexRequested && curIndex !== index)) {
-                var entry = _paneViewList.splice(curIndex, 1)[0];
-                _paneViewList.splice(index, 0, entry);
-                $(exports).triggerHandler("paneViewListSort");
-            }
-            return;
-        }
+    function addToPaneViewList(paneId, file, index, force) {
+        var pane = _getPaneFromPaneId(paneId);
 
-        _addToPaneViewList(paneId, file, {indexRequested: indexRequested, index: index});
-        
-        // Dispatch event
-        if (!indexRequested) {
-            index = _paneViewList.length - 1;
+        if (!pane || !EditorManager.canOpenFile(file.fullPath)) {
+            return;
         }
-        $(exports).triggerHandler("paneViewListAdd", [file, index]);
+        
+        if (pane.reorderItem(file, index, force)) {
+            $(exports).triggerHandler("paneViewListSort", pane.id);
+        } else {
+            index = pane.addToViewList(file, index);
+            $(exports).triggerHandler("paneViewListAdd", [file, index, pane.id]);
+        }
     }
             
     
@@ -247,46 +205,19 @@ define(function (require, exports, module) {
      * @param {!Array.<File>} fileList
      */
     function addListToPaneViewList(paneId, fileList) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        var uniqueFileList = [];
+        var uniqueFileList,
+            pane = _getPaneFromPaneId(paneId);
 
-        // Process only files not already in pane view list
-        fileList.forEach(function (file) {
-            // If doc has a custom viewer, then don't add it to the pane view list.
-            // Or if doc is already in pane view list, don't add it again.
-            if (_canOpenFile(file) && findInPaneViewList(paneId, file.fullPath) === -1) {
-                uniqueFileList.push(file);
-                _addToPaneViewList(paneId, file);
-            }
-        });
-
-        // Dispatch event
-        $(exports).triggerHandler("paneViewListAddList", [uniqueFileList]);
-    }
-    
-    /**
-     * internal function for removing a file from the pane view list
-     * @param paneId the pane in which to remove the file
-     * @param file the file to remove
-     * @return true if the file was removed, false if not
-     *
-     */
-    function _removeFromPaneViewLIst(paneId, file) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        
-        // If doc isn't in pane view list, do nothing
-        var index = findInPaneViewList(paneId, file.fullPath);
-        if (index === -1) {
-            return false;
+        if (!pane) {
+            return;
         }
         
-        // Remove
-        _paneViewList.splice(index, 1);
-        _paneViewListMRUOrder.splice(findInPaneViewListMRUOrder(paneId, file.fullPath), 1);
-        _paneViewListAddedOrder.splice(findInPaneViewListAddedOrder(paneId, file.fullPath), 1);
-        return true;
+        uniqueFileList = pane.addListToViewList(fileList);
+        
+        // Dispatch event
+        $(exports).triggerHandler("paneViewListAddList", [uniqueFileList, pane.id]);
     }
-
+    
     /**
      * Warning: low level API - use FILE_CLOSE command in most cases.
      * Removes the given file from the pane view list, if it was in the list. Does not change
@@ -296,14 +227,18 @@ define(function (require, exports, module) {
      * @param {boolean=} supporessRedraw true to suppress redraw after removal, false if not
      */
     function removeFromPaneViewList(paneId, file, suppressRedraw) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        if (!_removeFromPaneViewLIst(paneId, file)) {
-            return;
+        var pane = _getPaneFromPaneId(paneId);
+
+        if (pane && pane.removeFromViewList(file)) {
+            
+            if (pane.getViewListSize() === 0) {
+                pane.showInterstitial(true);
+            }
+            
+            // Dispatch event
+            EditorManager.notifyPathRemovedFromPaneList(pane.id, file);
+            $(exports).triggerHandler("paneViewListRemove", [file, suppressRedraw, pane.id]);
         }
-        
-        // Dispatch event
-        EditorManager.notifyPathRemovedFromPaneList(paneId, file);
-        $(exports).triggerHandler("paneViewListRemove", [file, suppressRedraw]);
     }
     
     
@@ -316,23 +251,46 @@ define(function (require, exports, module) {
      * @param {boolean=} true to suppress redraw after removal
      */
     function removeListFromPaneViewList(paneId, list) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        var fileList = [];
+        var pane = _getPaneFromPaneId(paneId),
+            fileList;
         
-        if (!list) {
+        if (!pane) {
+            return;
+        }
+        fileList = pane.removeListFromViewList(list);
+        
+        if (!fileList) {
             return;
         }
         
-        list.forEach(function (file) {
-            if (!_removeFromPaneViewLIst(paneId, file)) {
-                return;
-            }
-            fileList.push(file);
-        });
+        if (pane.getViewListSize() === 0) {
+            pane.showInterstitial(true);
+        }
         
-        EditorManager.notifyPathRemovedFromPaneList(paneId, fileList);
-        $(exports).triggerHandler("paneViewListRemoveList", [fileList]);
+        EditorManager.notifyPathRemovedFromPaneList(pane.id, fileList);
+        $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
     }
+
+
+    function _removeAllFromPaneViewList(paneId) {
+        var pane = _getPaneFromPaneId(paneId),
+            fileList;
+
+        if (!pane) {
+            return;
+        }
+
+        fileList = pane.removeAllFromViewList();
+
+        if (!fileList) {
+            return;
+        }
+        pane.showInterstitial(true);
+        EditorManager.notifyPathRemovedFromPaneList(paneId, fileList);
+        $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
+    }
+    
+    
     
     /**
      * Warning: low level API - use FILE_CLOSE_ALL command in most cases.
@@ -340,14 +298,13 @@ define(function (require, exports, module) {
      * @param {!string} paneId
      */
     function removeAllFromPaneViewList(paneId) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        var fileList = getPaneViewList(paneId);
-
-        _reset(paneId);
-        
-        // Dispatch event
-        EditorManager.notifyPathRemovedFromPaneList(paneId, fileList);
-        $(exports).triggerHandler("paneViewListRemoveList", [fileList]);
+        if (paneId === ALL_PANES) {
+            _.forEach(_paneViews, function(pane) {
+                _removeAllFromPaneViewList(pane.id);
+            });
+        } else {
+            _removeAllFromPaneViewList(paneId);
+        }
     }
     
     /**
@@ -356,11 +313,10 @@ define(function (require, exports, module) {
      * @param {!File} file to make most recent
      */
     function makePaneViewMostRecent(paneId, file) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        var index = findInPaneViewListMRUOrder(paneId, file.fullpath);
-        if (index !== -1) {
-            _paneViewListMRUOrder.splice(index, 1);
-            _paneViewListMRUOrder.unshift(file);
+        var pane = _getPaneFromPaneId(paneId);
+
+        if (pane) {
+            pane.makeViewMostRecent(file);
         }
     }
     
@@ -370,24 +326,14 @@ define(function (require, exports, module) {
      * @param {function(File, File): number} compareFn see: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
      */
     function sortPaneViewList(paneId, compareFn) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        _paneViewList.sort(compareFn);
-        $(exports).triggerHandler("paneViewListSort");
+        var pane = _getPaneFromPaneId(paneId);
+
+        if (pane) {
+            pane.sortViewList(compareFn);
+            $(exports).triggerHandler("paneViewListSort", [pane.id]);
+        }
     }
 
-    /** 
-     * Determines if the index is in range of the paneViewList array
-     * @private
-     * @param {!string} paneId this will identify which Pane with which the caller wants to traverse
-     * @param {number} index to verify
-     * @return true if the index is in range, false if not
-     */
-    function _isPaneViewListIndexInRange(paneId, index) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        var length = _paneViewList.length;
-        return index !== undefined && index !== null && index >= 0 && index < length;
-    }
-    
     /**
      * Mutually exchanges the files at the indexes passed by parameters.
      * @param {!string} paneId this will identify which Pane with which the caller wants to change
@@ -395,14 +341,12 @@ define(function (require, exports, module) {
      * @param {!number} index2 New file index
      */
     function swapPaneViewListIndexes(paneId, index1, index2) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        if (_isPaneViewListIndexInRange(paneId, index1) && _isPaneViewListIndexInRange(paneId, index2)) {
-            var temp = _paneViewList[index1];
-            _paneViewList[index1] = _paneViewList[index2];
-            _paneViewList[index2] = temp;
-            
-            $(exports).triggerHandler("paneViewListSort");
-            $(exports).triggerHandler("paneViewListDisableAutoSorting");
+        var pane = _getPaneFromPaneId(paneId);
+
+        if (pane) {
+            pane.swapViewListIndexes(index1, index2);
+            $(exports).triggerHandler("paneViewListSort", [pane.id]);
+            $(exports).triggerHandler("paneViewListDisableAutoSorting", [pane.id]);
         }
     }
     
@@ -414,30 +358,10 @@ define(function (require, exports, module) {
      * @return {?File}  null if pane view list empty
      */
     function traversePaneViewListByMRU(paneId, direction) {
-        // TODO paneId is no yet used, but will be when multiple panels supported
-        if (Math.abs(direction) !== 1) {
-            console.error("traversePaneViewList called with unsupported direction: " + direction.toString());
-            return null;
-        }
-        
-        if (EditorManager.getCurrentlyViewedPath()) {
-            var index = findInPaneViewListMRUOrder(paneId, EditorManager.getCurrentlyViewedPath());
-            if (index === -1) {
-                // If doc not in pane view list, return most recent pane view list item
-                if (_paneViewListMRUOrder.length > 0) {
-                    return _paneViewListMRUOrder[0];
-                }
-            } else {
-                // If doc is in pane view list, return next/prev item with wrap-around
-                index += direction;
-                if (index >= _paneViewListMRUOrder.length) {
-                    index = 0;
-                } else if (index < 0) {
-                    index = _paneViewListMRUOrder.length - 1;
-                }
-                
-                return _paneViewListMRUOrder[index];
-            }
+        var pane = _getPaneFromPaneId(paneId);
+
+        if (pane) {
+            return pane.traverseViewListByMRU(direction);
         }
         
         // If no doc open or pane view list empty, there is no "next" file
@@ -480,10 +404,12 @@ define(function (require, exports, module) {
      * @private
      */
     function _loadViewState(e) {
+/*        
         // file root is appended for each project
         var files = [],
             context = { location : { scope: "user",
                                      layer: "project" } };
+        
         
         files = PreferencesManager.getViewState("project.files", context);
         
@@ -523,6 +449,7 @@ define(function (require, exports, module) {
             // Add this promise to the event's promises to signal that this handler isn't done yet
             e.promises.push(promise);
         }
+*/
     }
     
     /**
@@ -530,7 +457,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _saveViewState() {
-    
+/*    
         var files           = [],
             isActive        = false,
             paneViewList    = getPaneViewList(ALL_PANES),
@@ -563,6 +490,7 @@ define(function (require, exports, module) {
 
         // Writing out pane view list files using the project layer specified in 'context'.
         PreferencesManager.setViewState("project.files", files, context);
+*/
     }
 
     /**
@@ -572,14 +500,36 @@ define(function (require, exports, module) {
      * @param {string=} refreshFlag For internal use. see `EditorManager.refresh()`
      */
     function _updateLayout(event, editorAreaHeight, refreshHint) {
+        var panes = Object.keys(_paneViews),
+            size = 100 / panes.length;
+        
+        _.forEach(_paneViews, function(pane) {
+            if (_orientation === VERTICAL) {
+                pane.$el.css({height: "100%", 
+                              width: size + "%", 
+                              float: "left"
+                             });
+            } else {
+                pane.$el.css({height: size + "%", 
+                              width: "100%", 
+                              float: "none"
+                             });
+            }
+        });
+        
         EditorManager.resizeAllToFit(refreshHint);
     }
     
     
     function createDocumentEditor(document, paneId) {
-        var $pane = _$container.find("#first-pane");
-        $pane.find(".not-editor").css({display: "none"});
-        EditorManager._createFullEditorForDocument(document, $pane);
+        var pane = _getPaneFromPaneId(paneId);
+        
+        if (!pane) {
+            return;
+        }
+        
+        pane.$el.find(".not-editor").css({display: "none"});
+        EditorManager._createFullEditorForDocument(document, pane.$el);
     }
 
     
@@ -587,13 +537,29 @@ define(function (require, exports, module) {
      *
      */
     function _openDocument(event, doc) {
-        var $pane = _$container.find("#first-pane");
-        $pane.find(".not-editor").css({display: "none"});
-        EditorManager.doOpenDocument(doc, $pane);
+        var pane = _getPaneFromPaneId(FOCUSED_PANE);
+        
+        if (!pane) {
+            return;
+        }
+
+        pane.showInterstitial(false);
+        EditorManager.doOpenDocument(doc, pane.$el);
+    }
+    
+    
+    function _createPaneIfNecessary(paneId) {
+        _$container = $("#editor-holder");
+        if (!_paneViews.hasOwnProperty(paneId)) {
+            _paneViews[paneId] = new Pane(paneId, _$container);    
+        }
+        
+    
     }
     
     AppInit.htmlReady(function() {
-         _$container = $("#editor-holder");
+        _createPaneIfNecessary(FIRST_PANE);
+        _updateLayout();
     });
     
     // Event handlers
@@ -606,22 +572,17 @@ define(function (require, exports, module) {
     var CMD_SPLIT_VERTICALLY = "cmd.splitVertically";
     var CMD_SPLIT_HORIZONTALLY = "cmd.splitHorizontally";
     
+    
     function handleSplitVertically() {
-        var $firstPane = _$container.find("#first-pane"),
-            $secondPane = _$container.find("#second-pane");
-        
-        $firstPane.css({height: "100%", width: "50%", display: "block", margin: 0, float: "left", overflow: "hidden"});
-        $secondPane.css({height: "100%", width: "50%", display: "block", margin: 0, float: "right", overflow: "hidden"});
-        EditorManager.resizeAllToFit(EditorManager.REFRESH_FORCE);
+        _orientation = VERTICAL;
+        _createPaneIfNecessary(SECOND_PANE);
+        _updateLayout();
     }
     
     function handleSplitHorizontially () {
-        var $firstPane = _$container.find("#first-pane"),
-            $secondPane = _$container.find("#second-pane");
-        
-        $firstPane.css({height: "50%", width: "100%", display: "block", margin: 0, float: "none", overflow: "hidden"});
-        $secondPane.css({height: "50%", width: "100%", display: "block", margin: 0, float: "none", overflow: "hidden"});
-        EditorManager.resizeAllToFit(EditorManager.REFRESH_FORCE);
+        _orientation = HORIZONTAL;
+        _createPaneIfNecessary(SECOND_PANE);
+        _updateLayout();
     }
     
     AppInit.appReady(function() {
@@ -629,9 +590,11 @@ define(function (require, exports, module) {
         CommandManager.register("Split Horizontally", CMD_SPLIT_HORIZONTALLY, handleSplitHorizontially);
 
         var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
-        menu.addMenuDivider();
-        menu.addMenuItem(CMD_SPLIT_VERTICALLY);    
-        menu.addMenuItem(CMD_SPLIT_HORIZONTALLY);
+        if (menu) {
+            menu.addMenuDivider();
+            menu.addMenuItem(CMD_SPLIT_VERTICALLY);    
+            menu.addMenuItem(CMD_SPLIT_HORIZONTALLY);
+        }
     });
 
     

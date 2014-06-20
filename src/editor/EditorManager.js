@@ -708,6 +708,16 @@ define(function (require, exports, module) {
     }
     
     /** 
+     * Determines if the file can be opened
+     *
+     * @param {!string} fullPath - file path to be checked for a custom viewer
+     * @return {boolean} true if the file can be opened, false if not
+     */
+    function canOpenFile(fullPath) {
+        return !getCustomViewerForPath(fullPath);
+    }       
+    
+    /** 
      * Clears custom viewer for a file with a given path and displays 
      * an alternate file or the no editor view. 
      * If no param fullpath is passed an alternate file will be opened 
@@ -913,9 +923,6 @@ define(function (require, exports, module) {
     exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;
     exports._showCustomViewer             = _showCustomViewer;
     exports._closeCustomViewer            = _closeCustomViewer;
-    
-    
-    
     exports.REFRESH_FORCE = REFRESH_FORCE;
     exports.REFRESH_SKIP  = REFRESH_SKIP;
     
@@ -938,6 +945,7 @@ define(function (require, exports, module) {
     exports.notifyPathRemovedFromPaneList = notifyPathRemovedFromPaneList;
     exports.showingCustomViewerForPath    = showingCustomViewerForPath;
     exports.doOpenDocument                = doOpenDocument;
+    exports.canOpenFile                   = canOpenFile;
     
     // migration
     exports.resizeEditor                  = resizeEditor;
