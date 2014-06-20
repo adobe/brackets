@@ -26,7 +26,6 @@ define(function(require, exports, module) {
     };
 
     var _                  = require("thirdparty/lodash"),
-        FileUtils          = require("file/FileUtils"),
         Dialogs            = require("widgets/Dialogs"),
         Strings            = require("strings"),
         PreferencesManager = require("preferences/PreferencesManager"),
