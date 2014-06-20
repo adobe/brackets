@@ -219,15 +219,7 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("paneViewListAddList", [uniqueFileList, pane.id]);
     }
     
-    /**
-     * Warning: low level API - use FILE_CLOSE command in most cases.
-     * Removes the given file from the pane view list, if it was in the list. Does not change
-     * the current editor even if it's for this file. Does not prompt for unsaved changes.
-     * @param {!string} paneId this will identify which Pane with which the caller wants to remove
-     * @param {!File} file
-     * @param {boolean=} supporessRedraw true to suppress redraw after removal, false if not
-     */
-    function removeFromPaneViewList(paneId, file, suppressRedraw) {
+    function _removeFromPaneViewList(paneId, file, suppressRedraw) {
         var pane = _getPaneFromPaneId(paneId);
 
         if (pane && pane.removeFromViewList(file)) {
@@ -242,6 +234,24 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Warning: low level API - use FILE_CLOSE command in most cases.
+     * Removes the given file from the pane view list, if it was in the list. Does not change
+     * the current editor even if it's for this file. Does not prompt for unsaved changes.
+     * @param {!string} paneId this will identify which Pane with which the caller wants to remove
+     * @param {!File} file
+     * @param {boolean=} supporessRedraw true to suppress redraw after removal, false if not
+     */
+    function removeFromPaneViewList(paneId, file, suppressRedraw) {
+        if (paneId === ALL_PANES) {
+            _.forEach(_paneViews, function(pane) {
+                _removeFromPaneViewList(pane.id, file, suppressRedraw);
+            });
+        } else {
+            _removeFromPaneViewList(paneId, file, suppressRedraw);
+        }
+    }
+    
     
     /**
      * Warning: low level API - use FILE_CLOSE command in most cases.
@@ -251,7 +261,7 @@ define(function (require, exports, module) {
      * @param {!File} file
      * @param {boolean=} true to suppress redraw after removal
      */
-    function removeListFromPaneViewList(paneId, list) {
+    function _removeListFromPaneViewList(paneId, list) {
         var pane = _getPaneFromPaneId(paneId),
             fileList;
         
@@ -272,7 +282,16 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
     }
 
-
+    function removeListFromPaneViewList(paneId, list) {
+        if (paneId === ALL_PANES) {
+            _.forEach(_paneViews, function(pane) {
+                _removeListFromPaneViewList(pane.id, list);
+            });
+        } else {
+            _removeListFromPaneViewList(paneId, list);
+        }
+    }
+        
     function _removeAllFromPaneViewList(paneId) {
         var pane = _getPaneFromPaneId(paneId),
             fileList;
