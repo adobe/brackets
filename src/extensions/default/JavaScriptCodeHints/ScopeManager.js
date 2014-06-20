@@ -256,42 +256,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Start processing file
-     */
-    function startProcessing(path) {
-
-        // Remember file path and start time to detect when files hang
-        // TODO - verify that path & startTime fields are empty?
-        // TODO - move to addPendingRequest()
-        PreferencesManager.set("jscodehints.currentlyProcessing.path", path);
-        PreferencesManager.set("jscodehints.currentlyProcessing.startTime", (new Date()).getTime());
-    }
-
-    /**
-     * End processing file
-     * @param {string} path - full path of file
-     */
-    function endProcessing(path) {
-        // TODO - move to getPendingRequest()
-        // If file took too long to process, then add it to detectedExclusions list
-        // TODO - only if there are $deferredHints ?
-        var prevPath  = PreferencesManager.get("jscodehints.currentlyProcessing.path"),
-            startTime = PreferencesManager.get("jscodehints.currentlyProcessing.startTime"),
-            currTime  = (new Date()).getTime();
-
-        if ((path === prevPath) && startTime && ((currTime - startTime) > MAX_PROCESS_TIME)) {
-            console.log("File added to detectedExclusions: " + path);
-            var detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions") || [];
-            detectedExclusions.push(path);
-            PreferencesManager.set("jscodehints.detectedExclusions", detectedExclusions);
-        }
-
-        // clear
-        PreferencesManager.set("jscodehints.currentlyProcessing.path", "");
-        PreferencesManager.set("jscodehints.currentlyProcessing.startTime", 0);
-    }
-
-    /**
      * Add a pending request waiting for the tern-worker to complete.
      * If file is a detected exclusion, then reject request.
      *
@@ -307,8 +271,8 @@ define(function (require, exports, module) {
 
         // Reject detected exclusions
         if (isFileExcludedInternal(file)) {
-            // TODO: only display once per file?
-            console.log("JSCodeHints: File exceeds processing threshold time: " + file);
+            // TODO: temporary
+            console.log("JavaScriptCodeHints: Skipping file in detectedExclusions array: " + file);
             return (new $.Deferred()).reject().promise();
         }
         
@@ -736,6 +700,27 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Handle timed out inference
+     *
+     * @param {{path:string, type: string}} response - the response from the worker
+     */
+    function handleTimedOut(response) {
+
+        var detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions") || [],
+            file               = response.file;
+
+        if (detectedExclusions.indexOf(file) === -1) {
+            detectedExclusions.push(file);
+            PreferencesManager.set("jscodehints.detectedExclusions", detectedExclusions);
+
+    // TODO: info dialog...
+
+        } else {
+            console.log("JavaScriptCodeHints.handleTimedOut: file already in detectedExclusions array timed out: " + file);
+        }
+    }
+
+    /**
      * Encapsulate all the logic to talk to the worker thread.  This will create
      * a new instance of a TernWorker, which the rest of the hinting code can use to talk
      * to the worker, without worrying about initialization, priming the pump, etc.
@@ -830,10 +815,6 @@ define(function (require, exports, module) {
         function handleTernGetFile(request) {
     
             function replyWith(name, txt) {
-                if (txt) {
-console.log("handleTernGetFile: startProcessing: " + name);
-                    startProcessing(name);
-                }
                 _postMessageByPass({
                     type: MessageIds.TERN_GET_FILE_MSG,
                     file: name,
@@ -855,10 +836,10 @@ console.log("handleTernGetFile: startProcessing: " + name);
                 if (!FileSystem.isAbsolutePath(filePath)) {
                     return (new $.Deferred()).reject().promise();
                 }
-//                if (isFileExcludedInternal(filePath)) {
-//                    console.log("JSCodeHints: File exceeds processing threshold time: " + file);
-//                    return (new $.Deferred()).reject().promise();
-//                }
+                if (isFileExcludedInternal(filePath)) {
+                    console.log("JSCodeHints: Internal file exclusion: " + filePath);
+                    return (new $.Deferred()).reject().promise();
+                }
                 
                 var file = FileSystem.getFileForPath(filePath),
                     promise = DocumentManager.getDocumentText(file);
@@ -1060,6 +1041,8 @@ console.log("handleTernGetFile: startProcessing: " + name);
                     handleGetGuesses(response);
                 } else if (type === MessageIds.TERN_UPDATE_FILE_MSG) {
                     handleUpdateFile(response);
+                } else if (type === MessageIds.TERN_INFERENCE_TIMEDOUT) {
+                    handleTimedOut(response);
                 } else if (type === MessageIds.TERN_WORKER_READY) {
                     workerDeferred.resolveWith(null, [_ternWorker]);
                 } else {
