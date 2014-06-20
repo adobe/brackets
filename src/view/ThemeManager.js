@@ -25,7 +25,8 @@ define(function (require, exports, module) {
         PreferencesManager = require("preferences/PreferencesManager"),
         prefs              = PreferencesManager.getExtensionPrefs("brackets-themes");
 
-    var _themes         = {},
+    var loadedThemes    = {},
+        defaultTheme    = "thor-light-theme",
         themeReady      = false,
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
         scrollbarsRegex = /(?:[^}|,]*)::-webkit-scrollbar(?:[\s\S]*?){(?:[\s\S]*?)}/mg,
@@ -64,7 +65,7 @@ define(function (require, exports, module) {
         name = name.substring(0, name.lastIndexOf('.')).replace(/-/g, ' ');
         var parts = name.split(" ");
 
-        $.each(parts.slice(0), function (index, part) {
+        _.each(parts.slice(0), function (index, part) {
             parts[index] = part[0].toUpperCase() + part.substring(1);
         });
 
@@ -80,7 +81,7 @@ define(function (require, exports, module) {
     *
     * @param {string} content is the css/less input string to be processed
     * @return {{content: string, scrollbar: string}} content is the new css/less content
-    * with the scrollbar rules extracted out and put in scrollbar
+    *    with the scrollbar rules extracted out and put in scrollbar
     */
     function extractScrollbars(content) {
         var scrollbar = [];
@@ -111,7 +112,7 @@ define(function (require, exports, module) {
     * @return {$.Deferred} promsie with the processed css/less as the resolved value
     */
     function lessifyTheme(content, theme) {
-        var deferred = $.Deferred();
+        var deferred = new $.Deferred();
         var parser   = new less.Parser({
             rootpath: stylesPath,
             filename: theme.file._path
@@ -130,15 +131,29 @@ define(function (require, exports, module) {
     }
 
 
+    /**
+    * @private
+    * Verifies that the file passed in is a valid theme file type.
+    *
+    * @param {File} file is object to verify if it is a valid theme file type
+    * @return {boolean} to confirm if the file is a valid theme file type
+    */
     function isFileTypeValid(file) {
         return file.isFile &&
             validExtensions.indexOf(FileUtils.getFileExtension(file.name)) !== -1;
     }
 
 
+    /**
+    * @private
+    * Will search all loaded themes for one the matches the file passed in
+    *
+    * @param {File} file is the search criteria
+    * @return {Theme} theme that matches the file
+    */
     function getThemeByFile(file) {
         var path = file._path;
-        return _.find(_themes, function(item) {
+        return _.find(loadedThemes, function(item) {
             return item.file._path === path;
         });
     }
@@ -170,10 +185,7 @@ define(function (require, exports, module) {
     *    corresponding new css/less and scrollbar information
     */
     function loadCurrentThemes() {
-        return $.when(undefined, _.map(getCurrentThemes(), function (theme) {
-            if (!theme) {
-                return $.Deferred().reject("Theme not found");
-            }
+        var pendingThemes = _.map(getCurrentThemes(), function (theme) {
 
             return FileUtils.readAsText(theme.file)
                 .then(function(content) {
@@ -196,7 +208,9 @@ define(function (require, exports, module) {
                     theme.css = styleNode;
                     return theme;
                 });
-        }));
+        });
+
+        return $.when.apply(undefined, pendingThemes);
     }
 
 
@@ -208,7 +222,7 @@ define(function (require, exports, module) {
     */
     function getCurrentThemes() {
         return _.map(prefs.get("themes").slice(0), function (item) {
-            return _themes[item];
+            return loadedThemes[item] || loadedThemes[defaultTheme];
         });
     }
 
@@ -256,8 +270,8 @@ define(function (require, exports, module) {
 
             if (exists) {
                 theme = new Theme(file, options);
-                _themes[theme.name] = theme;
-                ThemeSettings.setThemes(_themes);
+                loadedThemes[theme.name] = theme;
+                ThemeSettings.setThemes(loadedThemes);
 
                 // For themes that are loaded after ThemeManager has been loaded,
                 // we should check if it's the current theme.  It is, then we just
@@ -372,14 +386,11 @@ define(function (require, exports, module) {
     });
 
     FileSystem.on("change", function(evt, file) {
-        if ( file.isDirectory ) {
+        if (file.isDirectory) {
             return;
         }
 
-        var name = (file.name || "").substring(0, file.name.lastIndexOf('.')),
-            theme = getThemeByFile(file);
-
-        if (theme) {
+        if (getThemeByFile(file)) {
             refresh(true);
         }
     });
