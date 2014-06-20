@@ -98,9 +98,9 @@ define(function (require, exports, module) {
             lineNum         = StringUtils.offsetToLineNum(lines, match.index);
             line            = lines[lineNum];
             ch              = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
-            matchLength     = match[0].length,
-            matchedLines    = match[0].split("\n"),
-            numMatchedLines = matchedLines.length,
+            matchLength     = match[0].length;
+            matchedLines    = match[0].split("\n");
+            numMatchedLines = matchedLines.length;
             lastLineLength  = matchedLines[matchedLines.length - 1].length;
             
             // Don't store more than 200 chars per line
