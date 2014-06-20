@@ -98,7 +98,7 @@ span.cm-attribute {color: @accent-attribute;}
 span.cm-header {color: @accent-header;}
 span.cm-quote {color: @accent-quote;}
 span.cm-hr {color: @accent-hr;}
-span.cm-link {color: @accent-link;}
+span.cm-link {color: @accent-link; text-decoration: none;}
 span.cm-rangeinfo {color: @accent-rangeinfo;}
 span.cm-minus {color: @accent-minus;}
 span.cm-plus {color: @accent-plus;}
@@ -148,7 +148,6 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
         background-image: url(images/scrollbar-mac-bg.png);
     }
 }
-
 .platform-win {
     .CodeMirror-scrollbar-filler,
     .CodeMirror-gutter-filler {
@@ -159,7 +158,6 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
         width: 12px !important;
     }
 }
-
 .platform-linux {
     .CodeMirror-scrollbar-filler,
     .CodeMirror-gutter-filler {
@@ -177,7 +175,6 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
     /*font-size: 0.9em;*/  /* restore after SourceCodePro font fix? */
     padding: 0 @code-padding 0 10px;  /* left padding for project panel selection triangle */
 }
-
 .CodeMirror-focused .CodeMirror-selected {
     background: @selection-color-focused;
 }

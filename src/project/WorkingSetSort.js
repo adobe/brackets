@@ -110,8 +110,9 @@ define(function (require, exports, module) {
      */
     function setAutomatic(enable) {
         _automaticSort = enable;
-        PreferencesManager.setViewState("automaticSort", _automaticSort);
-        CommandManager.get(Commands.SORT_WORKINGSET_AUTO).setChecked(_automaticSort);
+        PreferencesManager.setViewState("automaticSort", enable);
+        CommandManager.get(Commands.SORT_WORKINGSET_AUTO).setChecked(enable);
+        _currentSort.setChecked(enable);
         
         if (enable) {
             _currentSort.sort();
@@ -146,19 +147,15 @@ define(function (require, exports, module) {
         var command;
         if (_currentSort !== newSort) {
             if (_currentSort !== null) {
-                command = CommandManager.get(_currentSort.getCommandID());
-                if (command) {
-                    command.setChecked(false);
-                }
+                _currentSort.setChecked(false);
             }
-            command = CommandManager.get(newSort.getCommandID());
-            if (command) {
-                command.setChecked(true);
+            if (_automaticSort) {
+                newSort.setChecked(true);
             }
             
             CommandManager.get(Commands.SORT_WORKINGSET_AUTO).setEnabled(!!newSort.getEvents());
+            PreferencesManager.setViewState("currentSort", newSort.getCommandID());
             _currentSort = newSort;
-            PreferencesManager.setViewState("currentSort", _currentSort.getCommandID());
         }
     }
     
@@ -201,6 +198,17 @@ define(function (require, exports, module) {
      */
     Sort.prototype.getEvents = function () {
         return this._events;
+    };
+    
+    /**
+     * Checks/Unchecks the command which will show a check in the menu
+     * @param {boolean} value
+     */
+    Sort.prototype.setChecked = function (value) {
+        var command = CommandManager.get(this._commandID);
+        if (command) {
+            command.setChecked(value);
+        }
     };
     
     /**

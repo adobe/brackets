@@ -75,10 +75,10 @@ define(function (require, exports, module) {
      */
     
     /**
-     * @constructor
      * MemoryStorage, as the name implies, stores the preferences in memory.
      * This is suitable for single session data or testing.
      * 
+     * @constructor
      * @param {?Object} data Initial data for the storage.
      */
     function MemoryStorage(data) {
@@ -123,9 +123,9 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @constructor
      * Error type for problems parsing preference files.
      * 
+     * @constructor
      * @param {string} message Error message
      */
     function ParsingError(message) {
@@ -136,9 +136,9 @@ define(function (require, exports, module) {
     ParsingError.prototype = new Error();
     
     /**
-     * @constructor
      * Loads/saves preferences from a JSON file on disk.
      * 
+     * @constructor
      * @param {string} path Path to the preferences file
      * @param {boolean} createIfNew True if the file should be created if it doesn't exist.
      *                              If this is not true, an exception will be thrown if the
@@ -254,12 +254,12 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @constructor
      * A `Scope` is a data container that is tied to a `Storage`.
      * 
      * Additionally, `Scope`s support "layers" which are additional levels of preferences
      * that are stored within a single preferences file.
      * 
+     * @constructor
      * @param {Storage} storage Storage object from which prefs are loaded/saved
      */
     function Scope(storage) {
@@ -550,11 +550,10 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @constructor
-     * 
      * Create a default project layer object that has a single property "key"
      * with "project" as its value. 
      *
+     * @constructor
      */
     function ProjectLayer() {
         this.projectPath = null;
@@ -676,10 +675,10 @@ define(function (require, exports, module) {
 //    }
     
     /**
-     * @constructor
      * There can be multiple paths and they are each checked in turn. The first that matches the
      * currently edited file wins.
      * 
+     * @constructor
      * @param {string} prefFilePath path to the preference file
      */
     function PathLayer(prefFilePath) {
@@ -838,9 +837,9 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @constructor
      * Represents a single, known Preference.
      * 
+     * @constructor
      * @param {Object} properties Information about the Preference that is stored on this object
      */
     function Preference(properties) {
@@ -870,10 +869,10 @@ define(function (require, exports, module) {
     });
     
     /**
-     * @constructor
      * Provides a subset of the PreferencesSystem functionality with preference
      * access always occurring with the given prefix.
      * 
+     * @constructor
      * @param {PreferencesSystem} base The real PreferencesSystem that is backing this one
      * @param {string} prefix Prefix that is used for preferences lookup. Any separator characters should already be added.
      */
@@ -1037,7 +1036,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @constructor
      * PreferencesSystem ties everything together to provide a simple interface for
      * managing the whole prefs system.
      * 
@@ -1049,6 +1047,7 @@ define(function (require, exports, module) {
      * The contextNormalizer is used to customize get/set contexts based on the needs of individual
      * context systems. It can be passed in at construction time or set later.
      * 
+     * @constructor
      * @param {function=} contextNormalizer function that is passed the context used for get or set to adjust for specific PreferencesSystem behavior
      */
     function PreferencesSystem(contextNormalizer) {

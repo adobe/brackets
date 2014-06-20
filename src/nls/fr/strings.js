@@ -139,7 +139,8 @@ define({
 	"FIND_RESULT_COUNT_SINGLE": "1 résultat",
 	"FIND_NO_RESULTS": "Aucun résultat",
 	"REPLACE_PLACEHOLDER": "Remplacer par\u2026",
-	"BUTTON_REPLACE_ALL": "Tout\u2026",
+	"BUTTON_REPLACE_ALL": "[7126959] !é=Batch\u2026=!",
+	"BUTTON_REPLACE_ALL_IN_FILES": "[7575917] !é=Replace\u2026=!",
 	"BUTTON_REPLACE": "Remplacer",
 	"BUTTON_NEXT": "\u25B6",
 	"BUTTON_PREV": "\u25C0",
@@ -147,6 +148,9 @@ define({
 	"BUTTON_PREV_HINT": "Résultat précédent",
 	"BUTTON_CASESENSITIVE_HINT": "Respecter la casse",
 	"BUTTON_REGEXP_HINT": "Expression régulière",
+	"REPLACE_WITHOUT_UNDO_WARNING_TITLE": "[7575930] !é=Replace Without Undo=!",
+	"REPLACE_WITHOUT_UNDO_WARNING": "[7575929] !é=Because more than {0} files need to be changed, {APP_NAME} will modify unopened files on disk.<br />You won't be able to undo replacements in those files.=!",
+	"BUTTON_REPLACE_WITHOUT_UNDO": "[7575918] !é=Replace Without Undo=!",
 
 	"OPEN_FILE": "Ouvrir le fichier",
 	"SAVE_FILE_AS": "Enregistrer le fichier",
@@ -156,15 +160,14 @@ define({
 	"NO_UPDATE_TITLE": "Vos logiciels sont à jour !",
 	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
 
-    // Replace All (in single file)
-	"FIND_REPLACE_TITLE_PART1": "Remplacer « ",
-	"FIND_REPLACE_TITLE_PART2": " » par « ",
-	"FIND_REPLACE_TITLE_PART3": " » &mdash; {2} {0} {1}",
+    // Find and Replace
+	"FIND_REPLACE_TITLE_LABEL": "Remplacer",
+	"FIND_REPLACE_TITLE_WITH": "avec",
+	"FIND_TITLE_LABEL": "[7575925] !é=Found=!",
+	"FIND_TITLE_SUMMARY": "[7575926] !é= &mdash; {0} {1} {2} in {3}=!",
 
     // Find in Files
-	"FIND_IN_FILES_TITLE_PART1": "« ",
-	"FIND_IN_FILES_TITLE_PART2": " » trouvé",
-	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} {2} dans {3} {4}",
+	"FIND_NUM_FILES": "[7575922] !é={0} {1}=!",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_NO_SCOPE": "du projet",
 	"FIND_IN_FILES_ZERO_FILES": "Le filtre exclut tous les fichiers {0}",
@@ -176,6 +179,9 @@ define({
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
 	"FIND_IN_FILES_EXPAND_COLLAPSE": "Cliquer tout en appuyant sur Ctrl/Cmd pour tout développer/tout réduire",
+	"REPLACE_IN_FILES_ERRORS_TITLE": "[7575928] !é=Replace Errors=!",
+	"REPLACE_IN_FILES_ERRORS": "[7575927] !é=The following files weren't modified because they changed after the search or couldn't be written.=!",
+    
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "Erreur de récupération des informations de mise à jour",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
     
@@ -324,6 +330,9 @@ define({
 	"CMD_FIND_IN_SELECTED": "Rechercher dans le fichier/dossier sélectionné",
 	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
 	"CMD_REPLACE": "Remplacer",
+	"CMD_REPLACE_IN_FILES": "[7575919] !é=Replace in Files=!",
+	"CMD_REPLACE_IN_SELECTED": "[7575920] !é=Replace in Selected File/Folder=!",
+	"CMD_REPLACE_IN_SUBTREE": "[7575921] !é=Replace in\u2026=!",
     
     // View menu commands
 	"VIEW_MENU": "Affichage",
@@ -386,7 +395,7 @@ define({
 	"ABOUT": "A propos",
 	"CLOSE": "Fermer",
 	"ABOUT_TEXT_LINE1": "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-	"ABOUT_TEXT_BUILD_TIMESTAMP": "[7556028] !é=build timestamp: =!",
+	"ABOUT_TEXT_BUILD_TIMESTAMP": "Horodatage de la version : ",
 	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles à l’adresse <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> et sont incluses dans le présent document à titre de référence.",
 	"ABOUT_TEXT_LINE4": "La documentation et le code source sont disponibles à l’adresse <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
 	"ABOUT_TEXT_LINE5": "Développé avec \u2764 et JavaScript par :",

@@ -181,14 +181,14 @@ define(function (require, exports, module) {
     var _instances = [];
     
     /**
-     * @constructor
-     *
      * Creates a new CodeMirror editor instance bound to the given Document. The Document need not have
      * a "master" Editor realized yet, even if makeMasterEditor is false; in that case, the first time
      * an edit occurs we will automatically ask EditorManager to create a "master" editor to render the
      * Document modifiable.
      *
      * ALWAYS call destroy() when you are done with an Editor - otherwise it will leak a Document ref.
+     *
+     * @constructor
      *
      * @param {!Document} document
      * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the (secret) "master"
@@ -1700,7 +1700,7 @@ define(function (require, exports, module) {
                 $(self).on("scroll.msgbox", _removeMessagePopover);
 
                 // Animate closed -- which includes delay to show message
-                AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose", 600)
+                AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose", 6000)
                     .done(_removeMessagePopover);
             }
         });

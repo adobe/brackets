@@ -488,10 +488,9 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_PREFERENCES, Commands.FILE_OPEN_PREFERENCES, _handleOpenPreferences);
     
     /**
-     * @deprecated Use set instead.
-     * 
      * Convenience function that sets a preference and then saves the file, mimicking the
      * old behavior a bit more closely.
+     * @deprecated Use set instead.
      * 
      * @param {string} id preference to set
      * @param {*} value new value for the preference
