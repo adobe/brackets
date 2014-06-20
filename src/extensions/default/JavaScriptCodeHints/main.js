@@ -63,10 +63,6 @@ define(function (require, exports, module) {
     // Define the detectedExclusions which are files that have been detected to cause Tern to run out of control.
     PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", []);
     
-//    // Define currentlyProcessing to store path and startTime of file Tern is currently processing.
-//    PreferencesManager.definePreference("jscodehints.currentlyProcessing.path", "string", "");
-//    PreferencesManager.definePreference("jscodehints.currentlyProcessing.startTime", "number", 0);
-    
     // This preference controls when Tern will time out when trying to understand files
     PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 5000);
     
