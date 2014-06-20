@@ -65,11 +65,16 @@ define(function(require, exports, module) {
                 newSettings[attr] = $target.val();
             })
             .on("change", function() {
+                var items;
                 var $target = $(":selected", this);
                 var attr = $target.attr("data-target");
+
                 if (attr) {
-                    var items = $target.map(function(i, item) {return $(item).val();}).toArray();
-                    prefs.set(attr, items);
+                    items = $target.map(function(i, item) {
+                        return $(item).val();
+                    });
+
+                    prefs.set(attr, items.toArray());
                 }
             });
 
