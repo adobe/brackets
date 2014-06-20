@@ -28,14 +28,14 @@
 /**
  * HTMLDocument manages a single HTML source document
  *
- * # EDITING
+ * __EDITING__
  *
  * Editing the document will cause the corresponding node to be updated
  * by calling `applyChanges` on the DOMAgent. This will only work for
  * altering text nodes and will break when attempting to change DOM elements
  * or inserting or deleting nodes.
  *
- * # HIGHLIGHTING
+ * __HIGHLIGHTING__
  *
  * HTMLDocument supports highlighting nodes from the HighlightAgent and
  * highlighting the DOMNode corresponding to the cursor position in the
@@ -56,9 +56,9 @@ define(function HTMLDocumentModule(require, exports, module) {
         _                   = require("thirdparty/lodash");
 
     /**
-     * Constructor
-     * @param {!DocumentManager.Document} doc the source document from Brackets
-     * @param {editor=} editor
+     * @constructor
+     * @param {!Document} doc The source document from Brackets
+     * @param {!Editor} editor The editor for this document
      */
     var HTMLDocument = function HTMLDocument(doc, editor) {
         var self = this;

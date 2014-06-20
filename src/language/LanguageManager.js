@@ -24,6 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $ */
+/*unittests: LanguageManager*/
 
 /**
  * LanguageManager provides access to the languages supported by Brackets
@@ -31,9 +32,11 @@
  * To find out which languages we support by default, have a look at languages.json.
  *
  * To get access to an existing language, call getLanguage():
+ *
  *     var language = LanguageManager.getLanguage("<id>");
  *
  * To define your own languages, call defineLanguage():
+ *
  *     LanguageManager.defineLanguage("haskell", {
  *         name: "Haskell",
  *         mode: "haskell",
@@ -43,11 +46,13 @@
  *     });
  *
  * To use that language and its related mode, wait for the returned promise to be resolved:
+ *
  *     LanguageManager.defineLanguage("haskell", definition).done(function (language) {
  *         console.log("Language " + language.getName() + " is now available!");
  *     });
  *
  * The extension can also contain dots:
+ *
  *     LanguageManager.defineLanguage("literatecoffeescript", {
  *         name: "Literate CoffeeScript",
  *         mode: "coffeescript",
@@ -55,14 +60,17 @@
  *     }); 
  *
  * You can also specify file names:
+ *
  *     LanguageManager.defineLanguage("makefile", {
  *         name: "Make",
  *         mode: ["null", "text/plain"],
  *         fileNames: ["Makefile"]
  *     });
+ *
  * You can combine file names and extensions, or not define them at all.
  *
  * You can also refine an existing language:
+ *
  *     var language = LanguageManager.getLanguage("haskell");
  *     language.setLineCommentSyntax(["--"]);
  *     language.setBlockCommentSyntax("{-", "-}");
@@ -72,16 +80,19 @@
  * To find existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror2/mode
  * For instance, C++, C# and Java all use the clike (C-like) mode with different settings and a different MIME name.
  * You can refine the mode definition by specifying the MIME mode as well:
+ *
  *     LanguageManager.defineLanguage("csharp", {
  *         name: "C#",
  *         mode: ["clike", "text/x-csharp"],
  *         ...
  *     });
+ *
  * Defining the base mode is still necessary to know which file to load.
  * However, language.getMode() will return just the MIME mode if one was
  * specified.
  *
  * If you need to configure a mode, you can just create a new MIME mode and use that:
+ *
  *     CodeMirror.defineMIME("text/x-brackets-html", {
  *         "name": "htmlmixed",
  *         "scriptTypes": [{"matches": /\/x-handlebars-template|\/x-mustache/i,
@@ -102,6 +113,7 @@
  * Binary files do not require mode because modes are specific to CodeMirror, which
  * only handles text based file types.
  * To register a binary language the isBinary flag must be set, i.e.
+ *
  *     LanguageManager.defineLanguage("audio", {
  *         name: "Audio",
  *         fileExtensions: ["mp3", "wav", "aif", "aiff", "ogg"],
@@ -117,17 +129,45 @@ define(function (require, exports, module) {
     var CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror"),
         Async                 = require("utils/Async"),
         FileUtils             = require("file/FileUtils"),
-        _defaultLanguagesJSON = require("text!language/languages.json");
-    
+        _defaultLanguagesJSON = require("text!language/languages.json"),
+        _                     = require("thirdparty/lodash"),
+        
+        // PreferencesManager is loaded near the end of the file
+        PreferencesManager;
     
     // State
-    var _fallbackLanguage           = null,
-        _pendingLanguages           = {},
-        _languages                  = {},
-        _fileExtensionToLanguageMap = {},
-        _fileNameToLanguageMap      = {},
-        _modeToLanguageMap          = {},
+    var _fallbackLanguage               = null,
+        _pendingLanguages               = {},
+        _languages                      = {},
+        _baseFileExtensionToLanguageMap = {},
+        _fileExtensionToLanguageMap     = Object.create(_baseFileExtensionToLanguageMap),
+        _fileNameToLanguageMap          = {},
+        _modeToLanguageMap              = {},
         _ready;
+    
+    // Constants
+    
+    var _EXTENSION_MAP_PREF = "language.fileExtensions",
+        _NAME_MAP_PREF      = "language.fileNames";
+    
+    // Tracking for changes to mappings made by preferences
+    var _prefState = {};
+    
+    _prefState[_EXTENSION_MAP_PREF] = {
+        last: {},
+        overridden: {},
+        add: "addFileExtension",
+        remove: "removeFileExtension",
+        get: "getLanguageForExtension"
+    };
+    
+    _prefState[_NAME_MAP_PREF] = {
+        last: {},
+        overridden: {},
+        add: "addFileName",
+        remove: "removeFileName",
+        get: "getLanguageForPath"
+    };
     
     // Helper functions
     
@@ -300,8 +340,8 @@ define(function (require, exports, module) {
     
 
     /**
-     * @constructor
      * Model for a language.
+     * @constructor
      */
     function Language() {
         this._fileExtensions    = [];
@@ -311,31 +351,58 @@ define(function (require, exports, module) {
     }
     
     
-    /** @type {string} Identifier for this language */
+    /**
+     * Identifier for this language
+     * @type {string}
+     */
     Language.prototype._id = null;
     
-    /** @type {string} Human-readable name of this language */
+    /**
+     * Human-readable name of this language
+     * @type {string}
+     */
     Language.prototype._name = null;
     
-    /** @type {string} CodeMirror mode for this language */
+    /**
+     * CodeMirror mode for this language
+     * @type {string}
+     */
     Language.prototype._mode = null;
     
-    /** @type {Array.<string>} File extensions that use this language */
+    /**
+     * File extensions that use this language
+     * @type {Array.<string>}
+     */
     Language.prototype._fileExtensions = null;
     
-    /** @type {Array.<string>} File names for extensionless files that use this language */
+    /**
+     * File names for extensionless files that use this language
+     * @type {Array.<string>}
+     */
     Language.prototype._fileNames = null;
     
-    /** @type {Array.<string>} Line comment syntax */
+    /**
+     * Line comment syntax
+     * @type {Array.<string>}
+     */
     Language.prototype._lineCommentSyntax = null;
     
-    /** @type {Object.<string,Language>} Which language to use for what CodeMirror mode */
+    /**
+     * Which language to use for what CodeMirror mode
+     * @type {Object.<string,Language>}
+     */
     Language.prototype._modeToLanguageMap = null;
     
-    /** @type {{ prefix: string, suffix: string }} Block comment syntax */
+    /**
+     * Block comment syntax
+     * @type {{ prefix: string, suffix: string }}
+     */
     Language.prototype._blockCommentSyntax = null;
     
-    /** @type {boolean} Whether or not the language is binary */
+    /**
+     * Whether or not the language is binary
+     * @type {boolean}
+     */
     Language.prototype._isBinary = false;
     
     /**
@@ -840,6 +907,92 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * @private
+     * 
+     * If a default file extension or name was overridden by a pref, restore it.
+     * 
+     * @param {string} name Extension or filename that should be restored
+     * @param {{overridden: string, add: string}} prefState object for the pref that is currently being updated
+     */
+    function _restoreOverriddenDefault(name, state) {
+        if (state.overridden[name]) {
+            var language = getLanguage(state.overridden[name]);
+            language[state.add](name);
+            delete state.overridden[name];
+        }
+    }
+    
+    /**
+     * @private
+     * 
+     * Updates extension and filename mappings from languages based on the current preferences values.
+     * 
+     * The preferences look like this in a prefs file:
+     * 
+     * Map *.foo to javascript, *.vm to html
+     * 
+     *     "language.fileExtensions": {
+     *         "foo": "javascript",
+     *         "vm": "html"
+     *     }
+     * 
+     * Map "Gemfile" to ruby:
+     * 
+     *     "language.fileNames": {
+     *         "Gemfile": "ruby"
+     *     }
+     */
+    function _updateFromPrefs(pref) {
+        var newMapping = PreferencesManager.get(pref) || {},
+            newNames = Object.keys(newMapping),
+            state = _prefState[pref],
+            last = state.last,
+            overridden = state.overridden;
+        
+        // Look for added and changed names (extensions or filenames)
+        newNames.forEach(function (name) {
+            var language;
+            if (newMapping[name] !== last[name]) {
+                if (last[name]) {
+                    language = getLanguage(last[name]);
+                    if (language) {
+                        language[state.remove](name);
+                        
+                        // If this name that was previously mapped was overriding a default
+                        // restore it now.
+                        _restoreOverriddenDefault(name, state);
+                    }
+                }
+                
+                language = exports[state.get](name);
+                if (language) {
+                    language[state.remove](name);
+                    
+                    // We're removing a name that was defined in Brackets or an extension,
+                    // so keep track of how it used to be mapped.
+                    if (!overridden[name]) {
+                        overridden[name] = language.getId();
+                    }
+                }
+                language = getLanguage(newMapping[name]);
+                if (language) {
+                    language[state.add](name);
+                }
+            }
+        });
+        
+        // Look for removed names (extensions or filenames)
+        _.difference(Object.keys(last), newNames).forEach(function (name) {
+            var language = getLanguage(last[name]);
+            if (language) {
+                language[state.remove](name);
+                _restoreOverriddenDefault(name, state);
+            }
+        });
+        state.last = newMapping;
+    }
+    
    
     // Prevent modes from being overwritten by extensions
     _patchCodeMirror();
@@ -881,7 +1034,27 @@ define(function (require, exports, module) {
         
         // The fallback language for unknown modes and file extensions
         _fallbackLanguage = getLanguage("unknown");
+        
+        // There is a circular dependency between FileUtils and LanguageManager which
+        // was introduced in 254b01e2f2eebea4416026d0f40d017b8ca6dbc9
+        // and may be preventing us from importing PreferencesManager (which also
+        // depends on FileUtils) here. Using the async form of require fixes this.
+        require(["preferences/PreferencesManager"], function (pm) {
+            PreferencesManager = pm;
+            _updateFromPrefs(_EXTENSION_MAP_PREF);
+            _updateFromPrefs(_NAME_MAP_PREF);
+            pm.definePreference(_EXTENSION_MAP_PREF, "object").on("change", function () {
+                _updateFromPrefs(_EXTENSION_MAP_PREF);
+            });
+            pm.definePreference(_NAME_MAP_PREF, "object").on("change", function () {
+                _updateFromPrefs(_NAME_MAP_PREF);
+            });
+        });
     });
+    
+    // Private for unit tests
+    exports._EXTENSION_MAP_PREF     = _EXTENSION_MAP_PREF;
+    exports._NAME_MAP_PREF          = _NAME_MAP_PREF;
     
     // Public methods
     exports.ready                   = _ready;

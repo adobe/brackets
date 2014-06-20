@@ -841,10 +841,11 @@ define(function (require, exports, module) {
             });
             
             it("should list matching property names", function () {
-                var start = { line: 12, ch: 10 };
+                var cursor1 = { line: 12, ch: 0 },
+                    cursor2 = { line: 12, ch: 6 };
                 
-                testDoc.replaceRange("param", start, start);
-                testEditor.setCursorPos(start);
+                testDoc.replaceRange("paramB", cursor1, cursor1);
+                testEditor.setCursorPos(cursor2);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
                     hintsPresentExact(hintObj, ["paramB1", "paramB2"]);
@@ -1409,7 +1410,8 @@ define(function (require, exports, module) {
             });
 
             // Test reading multiple files and subdirectories
-            it("should handle reading all files when modules not used", function () {
+            // Turned for per #7646
+            xit("should handle reading all files when modules not used", function () {
                 var start = { line: 8, ch: 8 };
 
                 runs(function () {

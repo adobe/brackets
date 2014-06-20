@@ -36,9 +36,7 @@
  * 
  *      $("#sidebar").on("panelCollapsed", ...);
  *      $("#sidebar").on("panelExpanded", ...);
- * 
  */
-
 define(function (require, exports, module) {
     "use strict";
     

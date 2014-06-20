@@ -30,19 +30,19 @@
  * Inspector manages the connection to Chrome/Chromium's remote debugger.
  * See inspector.html for the documentation of the remote debugger.
  *
- * # SETUP
+ * __SETUP__
  *
  * To enable remote debugging in Chrome or Chromium open either application
  * with the following parameters:
  *
- *   --enable-remote-debugger --remote-debugging-port=9222
+ *     --enable-remote-debugger --remote-debugging-port=9222
  *
  * This will open an HTTP server on the specified port, which can be used to
  * browse the available remote debugger sessions. In general, every open
  * browser tab can host an individual remote debugger session. The
  * available interfaces can be exported by requesting:
  *
- *   http://127.0.0.1:9222/json
+ *     http://127.0.0.1:9222/json
  *
  * The response is a JSON-formatted array that specifies all available remote
  * debugger sessions including the remote debugging web sockets.
@@ -52,7 +52,7 @@
  * connect to it via `connectToURL(url)`. The later returns a promise. To 
  * disconnect use `disconnect()`.
  *
- * # EVENTS
+ * __EVENTS__
  *
  * Inspector dispatches several connectivity-related events + all remote debugger
  * events (see below). Event handlers are attached via `on(event, function)` and
@@ -62,9 +62,9 @@
  *   `disconnect` Inspector did disconnect from the remote debugger
  *   `error`      Inspector encountered an error
  *   `message`    Inspector received a message from the remote debugger - this
- *                  provides a low-level entry point to remote debugger events
+ *                provides a low-level entry point to remote debugger events
  *
- * # REMOTE DEBUGGER COMMANDS
+ * __REMOTE DEBUGGER COMMANDS__
  *
  * Commands are executed by calling `{Domain}.{Command}()` with the parameters
  * specified in the order of the remote debugger documentation. These command
@@ -74,7 +74,7 @@
  * transmits the command to the remote debugger. If the last parameter of any
  * command function call is a function, it will be used as the callback.
  *
- * # REMOTE DEBUGGER EVENTS
+ * __REMOTE DEBUGGER EVENTS__
  *
  * Debugger events are dispatched as regular events using {Domain}.{Event} as
  * the event name. The handler function will be called with a single parameter
@@ -94,9 +94,10 @@ define(function Inspector(require, exports, module) {
      */
     var _messageCallbacks = {};
 
-    var _messageId = 1; // id used for remote method calls, auto-incrementing
-    var _socket; // remote debugger WebSocket
-    var _connectDeferred; // The deferred connect
+    var _messageId = 1,     // id used for remote method calls, auto-incrementing
+        _socket,            // remote debugger WebSocket
+        _connectDeferred,   // The deferred connect
+        _userAgent = "";    // user agent string
 
     /** Check a parameter value against the given signature
      * This only checks for optional parameters, not types
@@ -368,6 +369,22 @@ define(function Inspector(require, exports, module) {
         return _socket !== undefined && _socket.readyState === WebSocket.OPEN;
     }
 
+    /**
+     * Get user agent string
+     * @return {string}
+     */
+    function getUserAgent() {
+        return _userAgent;
+    }
+
+    /**
+     * Set user agent string
+     * @param {string} userAgent User agent string returned from Chrome
+     */
+    function setUserAgent(userAgent) {
+        _userAgent = userAgent;
+    }
+
     /** Initialize the Inspector
      * Read the Inspector.json configuration and define the command objects
      * -> Inspector.domain.command()
@@ -390,13 +407,15 @@ define(function Inspector(require, exports, module) {
     }
 
     // Export public functions
+    exports.connect              = connect;
+    exports.connected            = connected;
+    exports.connectToURL         = connectToURL;
+    exports.disconnect           = disconnect;
     exports.getDebuggableWindows = getDebuggableWindows;
-    exports.on = on;
-    exports.off = off;
-    exports.disconnect = disconnect;
-    exports.connect = connect;
-    exports.connectToURL = connectToURL;
-    exports.connected = connected;
-    exports.send = send;
-    exports.init = init;
+    exports.getUserAgent         = getUserAgent;
+    exports.init                 = init;
+    exports.off                  = off;
+    exports.on                   = on;
+    exports.send                 = send;
+    exports.setUserAgent         = setUserAgent;
 });

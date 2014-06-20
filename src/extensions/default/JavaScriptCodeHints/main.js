@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         StringMatch          = brackets.getModule("utils/StringMatch"),
         LanguageManager      = brackets.getModule("language/LanguageManager"),
         ProjectManager       = brackets.getModule("project/ProjectManager"),
+        PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         ParameterHintManager = require("ParameterHintManager"),
         HintUtils            = require("HintUtils"),
         ScopeManager         = require("ScopeManager"),
@@ -54,7 +55,13 @@ define(function (require, exports, module) {
         cachedToken  = null,  // the token used in the current hinting session
         matcher      = null,  // string matcher for hints
         ignoreChange;         // can ignore next "change" event if true;
-
+    
+    // Define the defaultExclusions which are files that are known to cause Tern to run out of control.
+    PreferencesManager.definePreference("jscodehints.defaultExclusions", "array", []);
+    
+    // This preference controls when Tern will time out when trying to understand files
+    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 5000);
+    
     /**
      * Sets the configuration, generally for testing/debugging use.
      * Configuration keys are merged into the current configuration.

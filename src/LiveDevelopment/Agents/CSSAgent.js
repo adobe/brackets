@@ -39,14 +39,23 @@ define(function CSSAgent(require, exports, module) {
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 
-    /** @type {Object.<string, CSS.CSSStyleSheetHeader>} */
+    /**
+     * Stylesheet urls
+     * @type {Object.<string, CSS.CSSStyleSheetHeader>}
+     */
     var _urlToStyle = {};
     
-    /** @type {Object.<string, string>} */
+    /**
+     * Map of stylesheet ids to urls
+     * @type {Object.<string, string>}
+     */
     var _styleSheetIdToUrl;
 
-    /** @type {boolean} */
-    var _getAllStyleSheetsNotFound = false;
+    /**
+     * Is getAllStyleSheets() API defined? - This is undefined until we test for API
+     * @type {boolean}
+     */
+    var _getAllStyleSheetsNotFound;
 
     /** 
      * Create a canonicalized version of the given URL, stripping off query strings and hashes.
@@ -79,8 +88,9 @@ define(function CSSAgent(require, exports, module) {
     }
 
     /**
-     * @deprecated Use styleSheetAdded and styleSheetRemoved events
-     * Get a list of all loaded stylesheet files by URL
+     * Use styleSheetAdded and styleSheetRemoved events.
+     * Get a list of all loaded stylesheet files by URL.
+     * @deprecated
      */
     function getStylesheetURLs() {
         var urls = [], url;
@@ -159,11 +169,30 @@ define(function CSSAgent(require, exports, module) {
      * @param {frameId: Network.FrameId}
      */
     function _onFrameStoppedLoading(event, res) {
+        var regexChromeUA,
+            userAgent,
+            uaMatch;
+
+        // Check for undefined so user agent string is only parsed once
+        if (_getAllStyleSheetsNotFound === undefined) {
+            regexChromeUA = /Chrome\/(\d+)\./;  // Example: "... Chrome/34.0.1847.131 ..."
+            userAgent     = Inspector.getUserAgent();
+            uaMatch       = userAgent.match(regexChromeUA);
+
+            // If we have user agent string, and Chrome is >= 34, then don't use getAllStyleSheets
+            if (uaMatch && parseInt(uaMatch[1], 10) >= 34) {
+                _getAllStyleSheetsNotFound = true;
+                $(Inspector.Page).off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
+                return;
+            }
+        }
+
         // Manually fire getAllStyleSheets since it will be removed from
         // Inspector.json in a future update
         Inspector.send("CSS", "getAllStyleSheets").done(function (res) {
             res.headers.forEach(function (header) {
                 // _styleSheetAdded will ignore duplicates
+                _getAllStyleSheetsNotFound = false;
                 _styleSheetAdded(null, { header: header });
             });
         }).fail(function (err) {

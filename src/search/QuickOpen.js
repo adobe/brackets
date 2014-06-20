@@ -54,23 +54,39 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils");
     
     
-    /** @const {RegExp} The regular expression to check the cursor position */
+    /**
+     * The regular expression to check the cursor position
+     * @const {RegExp}
+     */
     var CURSOR_POS_EXP = new RegExp(":([^,]+)?(,(.+)?)?");
     
-    /** @type Array.<QuickOpenPlugin> */
+    /**
+     * List of plugins
+     * @type {Array.<QuickOpenPlugin>}
+     */
     var plugins = [];
 
-    /** @type {QuickOpenPlugin} */
+    /**
+     * Current plugin
+     * @type {QuickOpenPlugin}
+     */
     var currentPlugin = null;
 
-    /** @type Array.<FileInfo>*/
+    /**
+     * List of files
+     * @type {Array.<FileInfo>}
+     */
     var fileList;
     
-    /** @type $.Promise */
+    /**
+     * File list promise
+     * @type {$.Promise}
+     */
     var fileListPromise;
 
     /**
      * The currently open quick open dialog.
+     * @type {Dialog}
      */
     var _curDialog;
 
@@ -857,10 +873,16 @@ define(function (require, exports, module) {
         });
 
         this.setSearchFieldValue(prefix, initialString);
+
+        // Return files that are non-binary, or binary files that have a custom viewer
+        function _filter(file) {
+            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() || EditorManager.getCustomViewerForPath(file.fullPath);
+        }
         
-        // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
-        // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
-        fileListPromise = ProjectManager.getAllFiles(true)
+        // Start fetching the file list, which will be needed the first time the user enters
+        // an un-prefixed query. If file index caches are out of date, this list might take
+        // some time to asynchronously build. See searchFileList() for how this is handled.
+        fileListPromise = ProjectManager.getAllFiles(_filter, true)
             .done(function (files) {
                 fileList = files;
                 fileListPromise = null;
