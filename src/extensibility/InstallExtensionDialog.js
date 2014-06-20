@@ -29,7 +29,6 @@ define(function (require, exports, module) {
     "use strict";
     
     var Dialogs                = require("widgets/Dialogs"),
-        ExtensionManager       = require("extensibility/ExtensionManager"),
         File                   = require("filesystem/File"),
         StringUtils            = require("utils/StringUtils"),
         Strings                = require("strings"),

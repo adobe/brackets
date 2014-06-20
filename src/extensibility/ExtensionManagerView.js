@@ -28,16 +28,12 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _                         = require("thirdparty/lodash"),
-        Async                     = require("utils/Async"),
-        DragAndDrop               = require("utils/DragAndDrop"),
-        FileSystem                = require("filesystem/FileSystem"),
+    var Async                     = require("utils/Async"),
         Strings                   = require("strings"),
         StringUtils               = require("utils/StringUtils"),
         NativeApp                 = require("utils/NativeApp"),
         ExtensionManager          = require("extensibility/ExtensionManager"),
         Package                   = require("extensibility/Package"),
-        FileUtils                 = require("file/FileUtils"),
         registry_utils            = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         CommandManager            = require("command/CommandManager"),
@@ -172,41 +168,6 @@ define(function (require, exports, module) {
             })
             .on("click", "button.remove", function (e) {
                 ExtensionManager.markForRemoval($(e.target).attr("data-extension-id"), true);
-            })
-            .on("dragover", function (event) {
-                var dropEffect = "none";
-                if (event.originalEvent.dataTransfer.files) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                    
-                    var items = event.originalEvent.dataTransfer.items,
-                        isValidDrop = false;
-
-                    isValidDrop = _.every(items, function (item) {
-                        if (item.kind === "file") {
-                            var entry = item.webkitGetAsEntry(),
-                                extension = FileUtils.getFileExtension(entry.fullPath);
-
-                            return entry.isFile && extension === "zip";
-                        }
-
-                        return false;
-                    });
-
-                    if (isValidDrop) {
-                        dropEffect = "copy";
-                    }
-
-                    event.originalEvent.dataTransfer.dropEffect = dropEffect;
-                }
-            })
-            .on("drop", function (event) {
-                if (event.originalEvent.dataTransfer.files) {
-                    event.stopPropagation();
-                    event.preventDefault();
-
-                    self._installUsingDragAndDrop();
-                }
             });
     };
     
@@ -342,74 +303,6 @@ define(function (require, exports, module) {
         }
 
         return new $.Deferred().reject().promise();
-    };
-    
-    /**
-     * @private
-     * Install extensions from the local file system using the install dialog.
-     */
-    ExtensionManagerView.prototype._installUsingDragAndDrop = function () {
-        var self = this,
-            installZips = [],
-            updateZips = [],
-            validatePromise;
-
-        brackets.app.getDroppedFiles(function (err, paths) {
-            if (err) {
-                return;
-            }
-
-            // Parse zip files and separate new installs vs. updates
-            validatePromise = Async.doSequentially(paths, function (path) {
-                var result = new $.Deferred();
-                
-                FileSystem.resolve(path, function (err, file) {
-                    var extension = FileUtils.getFileExtension(path);
-
-                    if (err || !file.isFile || (extension !== "zip")) {
-                        result.reject();
-                        return;
-                    }
-                    
-                    // Call validate() so that we open the local zip file and parse the
-                    // package.json. We need the name to detect if this zip will be a
-                    // new install or an update.
-                    Package.validate(path).then(function (info) {
-                        if (info.errors.length) {
-                            result.reject();
-                            return;
-                        }
-
-                        var extensionInfo = ExtensionManager.extensions[info.metadata.name],
-                            isUpdate = !!extensionInfo.installInfo;
-
-                        if (isUpdate) {
-                            updateZips.push(file);
-                        } else {
-                            installZips.push(file);
-                        }
-
-                        result.resolve();
-                    }, result.reject);
-                });
-                
-                return result.promise();
-            });
-
-            validatePromise.done(function () {
-                var installPromise = Async.doSequentially(installZips, function (file) {
-                    return InstallExtensionDialog.installUsingDialog(file);
-                });
-
-                installPromise.done(function () {
-                    Async.doSequentially(updateZips, function (file) {
-                        return InstallExtensionDialog.updateUsingDialog(file).done(function (result) {
-                            ExtensionManager.updateFromDownload(result);
-                        });
-                    });
-                });
-            });
-        });
     };
     
     /**

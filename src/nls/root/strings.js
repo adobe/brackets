@@ -451,7 +451,10 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Extension Manager",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Unable to access the extension registry. Please try again later.",
+    "INSTALL_EXTENSION_DRAG"               : "Drag .zip in here or",
+    "INSTALL_EXTENSION_DROP"               : "Drop .zip to install",
     "INSTALL_FROM_URL"                     : "Install from URL\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "Validating\u2026",
     "EXTENSION_AUTHOR"                     : "Author",
     "EXTENSION_DATE"                       : "Date",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "This extension requires a newer version of {APP_NAME}.",

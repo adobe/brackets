@@ -1608,3 +1608,62 @@ label input {
     font-weight: 900;
     font-size: 1.01em;
 }
+
+/* Extension Manager */
+#install-drop-zone {
+    background-color: transparent;
+    box-shadow: initial;
+    font-weight: normal;
+    border-style: dashed;
+    position: relative;
+}
+
+#install-drop-zone-mask {
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    
+    padding: 1px;
+    width: 100%;
+    height: 100%;
+    display: none;
+    
+    cursor: copy;
+}
+
+#install-drop-zone.drop #install-drop-zone-mask {
+    display: block;
+}
+
+#install-drop-zone.drop {
+    background: #288edf;
+    box-shadow: initial;
+    font-weight: normal;
+    border: 1px solid #288edf;
+    color: white;
+    text-shadow: none;
+}
+
+.install-drag-message {
+    display: none;
+}
+
+.install-drop-message {
+    display: none;
+}
+
+.install-validating-message {
+    display: none;
+}
+
+#install-drop-zone.drag .install-drag-message,{
+    display: inline;
+}
+
+#install-drop-zone.drop .install-drop-message {
+    display: inline;
+}
+
+#install-drop-zone.validating .install-validating-message {
+    display: inline;
+}

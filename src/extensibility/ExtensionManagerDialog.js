@@ -27,8 +27,11 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Dialogs                     = require("widgets/Dialogs"),
+    var _                           = require("thirdparty/lodash"),
+        Dialogs                     = require("widgets/Dialogs"),
         DefaultDialogs              = require("widgets/DefaultDialogs"),
+        FileSystem                  = require("filesystem/FileSystem"),
+        FileUtils                   = require("file/FileUtils"),
         Package                     = require("extensibility/Package"),
         Strings                     = require("strings"),
         StringUtils                 = require("utils/StringUtils"),
@@ -154,6 +157,80 @@ define(function (require, exports, module) {
                 ExtensionManager.unmarkAllForRemoval();
             }
         });
+    }
+    
+    
+    /**
+     * @private
+     * Install extensions from the local file system using the install dialog.
+     */
+    function _installUsingDragAndDrop() {
+        var installZips = [],
+            updateZips = [],
+            deferred = new $.Deferred(),
+            validatePromise;
+
+        brackets.app.getDroppedFiles(function (err, paths) {
+            if (err) {
+                deferred.reject();
+                return;
+            }
+
+            // Parse zip files and separate new installs vs. updates
+            validatePromise = Async.doSequentially(paths, function (path) {
+                var result = new $.Deferred();
+                
+                FileSystem.resolve(path, function (err, file) {
+                    var extension = FileUtils.getFileExtension(path);
+
+                    if (err || !file.isFile || (extension !== "zip")) {
+                        result.reject();
+                        return;
+                    }
+                    
+                    // Call validate() so that we open the local zip file and parse the
+                    // package.json. We need the name to detect if this zip will be a
+                    // new install or an update.
+                    Package.validate(path).then(function (info) {
+                        if (info.errors.length) {
+                            result.reject();
+                            return;
+                        }
+
+                        var extensionInfo = ExtensionManager.extensions[info.metadata.name],
+                            isUpdate = !!extensionInfo.installInfo;
+
+                        if (isUpdate) {
+                            updateZips.push(file);
+                        } else {
+                            installZips.push(file);
+                        }
+
+                        result.resolve();
+                    }, result.reject);
+                });
+                
+                return result.promise();
+            });
+
+            validatePromise.then(function () {
+                deferred.resolve();
+                
+                var installPromise = Async.doSequentially(installZips, function (file) {
+                    return InstallExtensionDialog.installUsingDialog(file);
+                });
+
+                installPromise.done(function () {
+                    Async.doSequentially(updateZips, function (file) {
+                        return InstallExtensionDialog.updateUsingDialog(file).done(function (result) {
+                            ExtensionManager.updateFromDownload(result);
+                        });
+                    });
+                });
+            }, deferred.reject);
+        });
+        
+        return deferred.promise();
     }
     
     /**
@@ -305,6 +382,67 @@ define(function (require, exports, module) {
         $(".extension-manager-dialog .install-from-url")
             .click(function () {
                 InstallExtensionDialog.showDialog().done(ExtensionManager.updateFromDownload);
+            });
+        
+        // Handle the drag/drop zone
+        var $dropzone = $("#install-drop-zone"),
+            $dropmask = $("#install-drop-zone-mask");
+        
+        $dropzone.on("dragover", function (event) {
+            if (!event.originalEvent.dataTransfer.files) {
+                return;
+            }
+            
+            event.stopPropagation();
+            event.preventDefault();
+
+            var items = event.originalEvent.dataTransfer.items,
+                isValidDrop = false;
+
+            isValidDrop = _.every(items, function (item) {
+                if (item.kind === "file") {
+                    var entry = item.webkitGetAsEntry(),
+                        extension = FileUtils.getFileExtension(entry.fullPath);
+
+                    return entry.isFile && extension === "zip";
+                }
+
+                return false;
+            });
+
+            if (isValidDrop) {
+                // Set an absolute width to stabilize the button size
+                $dropzone.width($dropzone.width());
+
+                // Show drop styling and message
+                $dropzone.removeClass("drag");
+                $dropzone.addClass("drop");
+            }
+        });
+        
+        $dropmask
+            .on("dragover", function (event) {
+                event.stopPropagation();
+                event.preventDefault();
+                event.originalEvent.dataTransfer.dropEffect = "copy";
+            })
+            .on("dragleave", function () {
+                $dropzone.removeClass("drop");
+                $dropzone.addClass("drag");
+            })
+            .on("drop", function (event) {
+                if (event.originalEvent.dataTransfer.files) {
+                    event.stopPropagation();
+                    event.preventDefault();
+
+                    _installUsingDragAndDrop().always(function () {
+                        $dropzone.removeClass("validating");
+                        $dropzone.addClass("drag");
+                    });
+                }
+
+                $dropzone.removeClass("drop");
+                $dropzone.addClass("validating");
             });
         
         return new $.Deferred().resolve(dialog).promise();
