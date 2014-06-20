@@ -33,7 +33,6 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         paneTemplate        = require("text!htmlContent/pane.html");
     
-    
     function Pane(id, $container) {
         this.$container = $container;
         this.id = id;
@@ -41,6 +40,10 @@ define(function (require, exports, module) {
         this.$el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id);
     }
 
+    Pane.prototype.ITEM_NOT_FOUND = -1;
+    Pane.prototype.ITEM_FOUND_NO_SORT = 0;
+    Pane.prototype.ITEM_FOUND_NEEDS_SORT = 1;
+    
     Pane.prototype.destroy = function () {
         this.$container.find("#" + this.id).remove();
     };
@@ -87,11 +90,12 @@ define(function (require, exports, module) {
             if (force || (indexRequested && curIndex !== index)) {
                 var entry = this._viewList.splice(curIndex, 1)[0];
                 this._viewList.splice(index, 0, entry);
-                return true;
+                return this.ITEM_FOUND_NEEDS_SORT;
             }
+            return this.ITEM_FOUND_NO_SORT;
         }
         
-        return false;
+        return this.ITEM_NOT_FOUND;
     };
     
     Pane.prototype._addToViewList = function (file, inPlace) {
@@ -246,5 +250,5 @@ define(function (require, exports, module) {
         this.$el.find(".not-editor").css("display", (show) ? "" : "none");
     };
     
-    exports.Pane = Pane;
+    exports.Pane                = Pane;
 });

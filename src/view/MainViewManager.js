@@ -185,9 +185,10 @@ define(function (require, exports, module) {
             return;
         }
         
-        if (pane.reorderItem(file, index, force)) {
+        var result = pane.reorderItem(file, index, force);
+        if (result === pane.ITEM_FOUND_NEEDS_SORT) {
             $(exports).triggerHandler("paneViewListSort", pane.id);
-        } else {
+        } else if (result === pane.ITEM_NOT_FOUND) {
             index = pane.addToViewList(file, index);
             $(exports).triggerHandler("paneViewListAdd", [file, index, pane.id]);
         }
