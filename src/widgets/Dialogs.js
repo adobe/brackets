@@ -297,7 +297,6 @@ define(function (require, exports, module) {
             promise = result.promise(),
             $dlg    = $(template)
                 .addClass("instance")
-                .prop("tabindex", "-1")
                 .appendTo(".modal-inner-wrapper:last");
 
         // Don't allow dialog to exceed viewport size
@@ -343,7 +342,7 @@ define(function (require, exports, module) {
             } else if ($otherBtn.length) {
                 $otherBtn.focus();
             } else {
-                $dlg.focus();
+                document.activeElement.blur();
             }
 
             // Push our global keydown handler onto the global stack of handlers.
