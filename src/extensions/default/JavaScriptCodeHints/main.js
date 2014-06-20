@@ -626,7 +626,7 @@ define(function (require, exports, module) {
                 $(previous.document)
                     .off(HintUtils.eventName("languageChanged"));
             }
-            if (current.document !== DocumentManager.getCurrentDocument()) {
+            if (current && current.document !== DocumentManager.getCurrentDocument()) {
                 $(current.document)
                     .on(HintUtils.eventName("languageChanged"), function () {
                         uninstallEditorListeners(current);
