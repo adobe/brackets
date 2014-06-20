@@ -28,12 +28,10 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Async                     = require("utils/Async"),
-        Strings                   = require("strings"),
+    var Strings                   = require("strings"),
         StringUtils               = require("utils/StringUtils"),
         NativeApp                 = require("utils/NativeApp"),
         ExtensionManager          = require("extensibility/ExtensionManager"),
-        Package                   = require("extensibility/Package"),
         registry_utils            = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         CommandManager            = require("command/CommandManager"),
@@ -296,13 +294,11 @@ define(function (require, exports, module) {
             
             // TODO: this should set .done on the returned promise
             if (_isUpdate) {
-                return InstallExtensionDialog.updateUsingDialog(url).done(ExtensionManager.updateFromDownload);
+                InstallExtensionDialog.updateUsingDialog(url).done(ExtensionManager.updateFromDownload);
             } else {
-                return InstallExtensionDialog.installUsingDialog(url);
+                InstallExtensionDialog.installUsingDialog(url);
             }
         }
-
-        return new $.Deferred().reject().promise();
     };
     
     /**
@@ -312,8 +308,6 @@ define(function (require, exports, module) {
     ExtensionManagerView.prototype.filter = function (query) {
         this.model.filter(query);
     };
-
-
         
     exports.ExtensionManagerView = ExtensionManagerView;
 });
