@@ -175,7 +175,7 @@ define(function (require, exports, module) {
         
         // Make sure that the optional `collapsed` property is explicitly set to either true or false,
         // to avoid logic issues later with comparing values.
-        resultInfo.collapsed = (Boolean)(resultInfo.collapsed);
+        resultInfo.collapsed = !!resultInfo.collapsed;
         
         this.results[fullpath] = resultInfo;
         this.numMatches += resultInfo.matches.length;
