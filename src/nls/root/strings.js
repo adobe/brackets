@@ -552,6 +552,8 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
     "NO_ARGUMENTS"                              : "<no parameters>",
+    "DETECTED_EXCLUSION_TITLE"                  : "JavaScript Code Hints File Excluded",
+    "DETECTED_EXCLUSION_INFO"                   : "JavaScript Code Hints Inference Timed Out for:<br><br>{0}<br><br>This file will no longer be parsed for inferences. To restore inferences for this file, remove it from <code>detectedExclusions</code> project preference.",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",

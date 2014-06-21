@@ -36,16 +36,21 @@ define(function (require, exports, module) {
 
     var _ = brackets.getModule("thirdparty/lodash");
     
-    var DocumentManager     = brackets.getModule("document/DocumentManager"),
-        LanguageManager     = brackets.getModule("language/LanguageManager"),
-        ProjectManager      = brackets.getModule("project/ProjectManager"),
+    var CodeMirror          = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
+        DefaultDialogs      = brackets.getModule("widgets/DefaultDialogs"),
+        Dialogs             = brackets.getModule("widgets/Dialogs"),
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
-        CodeMirror          = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
-        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         globmatch           = brackets.getModule("thirdparty/globmatch"),
-        HintUtils           = require("HintUtils"),
+        LanguageManager     = brackets.getModule("language/LanguageManager"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        ProjectManager      = brackets.getModule("project/ProjectManager"),
+        Strings             = brackets.getModule("strings"),
+        StringUtils         = brackets.getModule("utils/StringUtils");
+
+    var HintUtils           = require("HintUtils"),
         MessageIds          = require("MessageIds"),
         Preferences         = require("Preferences");
     
@@ -218,7 +223,7 @@ define(function (require, exports, module) {
         // detectedExclusions is an array of full paths.
         var detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions") || [];
         if (detectedExclusions && detectedExclusions.indexOf(path) !== -1) {
-            console.log("JSCodeHints: Internal file exclusion: " + path);
+            //console.log("JSCodeHints: Internal file exclusion: " + path);
             return true;
         }
 
@@ -709,7 +714,25 @@ define(function (require, exports, module) {
             detectedExclusions.push(file);
             PreferencesManager.set("jscodehints.detectedExclusions", detectedExclusions);
 
-    // TODO: info dialog...
+    // TODO: don't show dialog if this is the file currently being edited
+    //       should file not be added to detectedExclusion list?
+
+            // Show informational dialog
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_INFO,
+                Strings.DETECTED_EXCLUSION_TITLE,
+                StringUtils.format(
+                    Strings.DETECTED_EXCLUSION_INFO,
+                    StringUtils.breakableUrl(file)
+                ),
+                [
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.OK
+                    }
+                ]
+            );
 
         } else {
             console.log("JavaScriptCodeHints.handleTimedOut: file already in detectedExclusions array timed out: " + file);
