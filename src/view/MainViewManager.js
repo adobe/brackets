@@ -63,6 +63,7 @@ define(function (require, exports, module) {
     
     
     var _orientation = HORIZONTAL;
+    var _activePaneId = FIRST_PANE;
     
     /**
      * Container we live in
@@ -77,14 +78,14 @@ define(function (require, exports, module) {
         
     };
     
-    function _getActivePaneId() {
+    function getActivePaneId() {
         // TODO
-        return FIRST_PANE; 
+        return _activePaneId; 
     }
 
     function _getPaneFromPaneId(paneId) {
         if (paneId === FOCUSED_PANE) {
-            paneId = _getActivePaneId();
+            paneId = getActivePaneId();
         }
         
         if (_paneViews[paneId]) {
@@ -567,14 +568,43 @@ define(function (require, exports, module) {
         EditorManager.doOpenDocument(doc, pane.$el);
     }
     
+    function _getPaneIdFromContainer($container) {
+        for (var property in _paneViews) {
+            if (_paneViews.hasOwnProperty(property)) {
+                var pane = _paneViews[property];
+                if (pane.$el === $container) {
+                    return pane.id;
+                }
+            }
+        }        
+    }
+
+    function _setActivePaneId(newPaneId) {
+        if (_paneViews.hasOwnProperty(newPaneId) && (newPaneId !== _activePaneId)) {
+            var oldPaneId = _activePaneId;
+            _activePaneId = newPaneId;
+            $(exports).triggerHandler("activePaneChange", [newPaneId, oldPaneId]);
+        }
+    }
+    
+    function _activeEditorChange(e, current) {
+        var $container = current.getContainer(),
+            newPaneId = _getPaneIdFromContainer($container);
+
+        _setActivePaneId(newPaneId);
+    }    
     
     function _createPaneIfNecessary(paneId) {
         _$container = $("#editor-holder");
         if (!_paneViews.hasOwnProperty(paneId)) {
-            _paneViews[paneId] = new Pane(paneId, _$container);    
+            var pane = new Pane(paneId, _$container);
+            _paneViews[paneId] = pane;
+            $(exports).triggerHandler("paneCreated", pane.id);
+            
+            pane.$el.on("click", function() {
+                _setActivePaneId(pane.id);
+            });
         }
-        
-    
     }
     
     AppInit.htmlReady(function() {
@@ -587,7 +617,7 @@ define(function (require, exports, module) {
     $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
     $(WorkspaceManager).on("workspaceUpdateLayout",           _updateLayout);
     $(DocumentManager).on("currentDocumentChange",            _openDocument);
-
+    $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
     
     var CMD_SPLIT_VERTICALLY = "cmd.splitVertically";
     var CMD_SPLIT_HORIZONTALLY = "cmd.splitHorizontally";
@@ -632,6 +662,9 @@ define(function (require, exports, module) {
     exports.sortPaneViewList                 = sortPaneViewList;
     exports.swapPaneViewListIndexes          = swapPaneViewListIndexes;
     exports.traversePaneViewListByMRU        = traversePaneViewListByMRU;
+    
+    // PaneView Attributes
+    exports.getActivePaneId                  = getActivePaneId;
     
     // Explicit stuff
     exports.createDocumentEditor             = createDocumentEditor;

@@ -31,6 +31,7 @@ define(function (require, exports, module) {
         
     var _                   = require("thirdparty/lodash"),
         EditorManager       = require("editor/EditorManager"),
+        DocumentManager     = require("Document/DocumentManager"),
         paneTemplate        = require("text!htmlContent/pane.html");
     
     function Pane(id, $container) {
@@ -38,6 +39,7 @@ define(function (require, exports, module) {
         this.id = id;
         this.reset();
         this.$el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id);
+        this.currentItem = -1;
     }
 
     Pane.prototype.ITEM_NOT_FOUND = -1;
@@ -244,7 +246,7 @@ define(function (require, exports, module) {
         
         // If no doc open or view list empty, there is no "next" file
         return null;
-    };    
+    };
     
     Pane.prototype.showInterstitial = function(show) {
         this.$el.find(".not-editor").css("display", (show) ? "" : "none");
