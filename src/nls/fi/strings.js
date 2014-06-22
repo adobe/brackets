@@ -138,6 +138,7 @@ define({
     "FIND_RESULT_COUNT"                 : "{0} tulosta",
     "FIND_RESULT_COUNT_SINGLE"          : "1 tulos",
     "FIND_NO_RESULTS"                   : "Ei tuloksia",
+    "FIND_QUERY_PLACEHOLDER"            : "Etsi\u2026",
     "REPLACE_PLACEHOLDER"               : "Korvaa merkkijonolla\u2026",
     "BUTTON_REPLACE_ALL"                : "Kaikki\u2026",
     "BUTTON_REPLACE_ALL_IN_FILES"       : "Korvaa\u2026",
@@ -320,7 +321,6 @@ define({
     // Search menu commands
     "FIND_MENU"                           : "Etsi",
     "CMD_FIND"                            : "Etsi",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Etsi\u2026",
     "CMD_FIND_NEXT"                       : "Etsi seuraava",
     "CMD_FIND_PREVIOUS"                   : "Etsi edellinen",
     "CMD_FIND_ALL_AND_SELECT"             : "Etsi kaikki ja valitse",
