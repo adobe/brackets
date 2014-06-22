@@ -138,6 +138,7 @@ define({
     "FIND_RESULT_COUNT"                 : "{0} resultater",
     "FIND_RESULT_COUNT_SINGLE"          : "1 resultat",
     "FIND_NO_RESULTS"                   : "Ingen resultater",
+    "FIND_QUERY_PLACEHOLDER"            : "Søg\u2026",
     "REPLACE_PLACEHOLDER"               : "Erstat med\u2026",
     "BUTTON_REPLACE_ALL"                : "Alle\u2026",
     "BUTTON_REPLACE_ALL_IN_FILES"       : "Erstat\u2026",
@@ -320,7 +321,6 @@ define({
     // Search menu commands
     "FIND_MENU"                           : "Søg",
     "CMD_FIND"                            : "Søg",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Søg\u2026",
     "CMD_FIND_NEXT"                       : "Find næste",
     "CMD_FIND_PREVIOUS"                   : "Find forrige",
     "CMD_FIND_ALL_AND_SELECT"             : "Find alle og vælg",
@@ -566,4 +566,4 @@ define({
     "DOCS_MORE_LINK"                            : "Læs mere"
 });
 
-/* Last translated for 78296b7bc21511231ef91a80c2970a95aec0fe84 */
+/* Last translated for 3a762c3cf91d6f65a5bb19aeb2056afacd777c71 */
