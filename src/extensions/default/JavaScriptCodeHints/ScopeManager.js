@@ -710,12 +710,12 @@ define(function (require, exports, module) {
         var detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions") || [],
             file               = response.file;
 
-        if (detectedExclusions.indexOf(file) === -1) {
-            detectedExclusions.push(file);
-            PreferencesManager.set("jscodehints.detectedExclusions", detectedExclusions);
+    // TODO: don't exclude the file currently being edited
 
-    // TODO: don't show dialog if this is the file currently being edited
-    //       should file not be added to detectedExclusion list?
+        if (detectedExclusions.indexOf(file) === -1) {
+            // Save detected exclusion in project prefs so no further time is wasted on it
+            detectedExclusions.push(file);
+            PreferencesManager.set("jscodehints.detectedExclusions", detectedExclusions, { location: { scope: "project" } });
 
             // Show informational dialog
             Dialogs.showModalDialog(
