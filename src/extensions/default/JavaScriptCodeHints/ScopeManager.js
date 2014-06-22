@@ -40,6 +40,7 @@ define(function (require, exports, module) {
         DefaultDialogs      = brackets.getModule("widgets/DefaultDialogs"),
         Dialogs             = brackets.getModule("widgets/Dialogs"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
+        EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
@@ -200,6 +201,19 @@ define(function (require, exports, module) {
         testPath = FileUtils.stripTrailingSlash(testPath);
 
         return excludes.test(testPath);
+    }
+
+    /**
+     * Test if the file path is in current editor
+     *
+     * @param {string} filePath file path to test for exclusion.
+     * @return {boolean} true if in editor, false otherwise.
+     */
+    function isFileBeingEdited(filePath) {
+        var currentEditor   = EditorManager.getFocusedEditor(),
+            currentDoc      = currentEditor && currentEditor.document;
+
+        return (currentDoc && currentDoc.file.fullPath === filePath);
     }
 
     /**
@@ -707,36 +721,41 @@ define(function (require, exports, module) {
      */
     function handleTimedOut(response) {
 
-        var detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions") || [],
-            file               = response.file;
+        var detectedExclusions  = PreferencesManager.get("jscodehints.detectedExclusions") || [],
+            filePath            = response.file,
+            currentIndex        = detectedExclusions.indexOf(filePath);
 
-    // TODO: don't exclude the file currently being edited
-
-        if (detectedExclusions.indexOf(file) === -1) {
-            // Save detected exclusion in project prefs so no further time is wasted on it
-            detectedExclusions.push(file);
-            PreferencesManager.set("jscodehints.detectedExclusions", detectedExclusions, { location: { scope: "project" } });
-
-            // Show informational dialog
-            Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_INFO,
-                Strings.DETECTED_EXCLUSION_TITLE,
-                StringUtils.format(
-                    Strings.DETECTED_EXCLUSION_INFO,
-                    StringUtils.breakableUrl(file)
-                ),
-                [
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                        id        : Dialogs.DIALOG_BTN_OK,
-                        text      : Strings.OK
-                    }
-                ]
-            );
-
-        } else {
-            console.log("JavaScriptCodeHints.handleTimedOut: file already in detectedExclusions array timed out: " + file);
+        // Don't exclude the file currently being edited
+        if (isFileBeingEdited(filePath)) {
+            return;
         }
+
+        // Handle file that is already excluded
+        if (currentIndex !== -1) {
+            console.log("JavaScriptCodeHints.handleTimedOut: file already in detectedExclusions array timed out: " + filePath);
+            return;
+        }
+
+        // Save detected exclusion in project prefs so no further time is wasted on it
+        detectedExclusions.push(filePath);
+        PreferencesManager.set("jscodehints.detectedExclusions", detectedExclusions, { location: { scope: "project" } });
+
+        // Show informational dialog
+        Dialogs.showModalDialog(
+            DefaultDialogs.DIALOG_ID_INFO,
+            Strings.DETECTED_EXCLUSION_TITLE,
+            StringUtils.format(
+                Strings.DETECTED_EXCLUSION_INFO,
+                StringUtils.breakableUrl(filePath)
+            ),
+            [
+                {
+                    className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                    id        : Dialogs.DIALOG_BTN_OK,
+                    text      : Strings.OK
+                }
+            ]
+        );
     }
 
     /**
