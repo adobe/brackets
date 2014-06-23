@@ -327,14 +327,13 @@ define(function (require, exports, module) {
         var dummyFile = _getFileSystem().getFileForPath(filename);
         var docToShim = new DocumentManager.Document(dummyFile, new Date(), content);
         
-        // Prevent adding doc to working set
+        // Prevent adding doc to working set by not dispatching "dirtyFlagChange".
+        // TODO: Other functionality here needs to be kept in sync with Document._handleEditorChange(). In the
+        // future, we should fix things so that we either don't need mock documents or that this
+        // is factored so it will just run in both.
         docToShim._handleEditorChange = function (event, editor, changeList) {
             this.isDirty = !editor._codeMirror.isClean();
-                    
-            // TODO: This needs to be kept in sync with Document._handleEditorChange(). In the
-            // future, we should fix things so that we either don't need mock documents or that this
-            // is factored so it will just run in both.
-            $(this).triggerHandler("change", [this, changeList]);
+            this._notifyDocumentChange(changeList);
         };
         docToShim.notifySaved = function () {
             throw new Error("Cannot notifySaved() a unit-test dummy Document");

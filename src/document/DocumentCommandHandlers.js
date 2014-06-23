@@ -703,10 +703,13 @@ define(function (require, exports, module) {
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
      * @param {Document} doc
-     * @return {$.Promise} a Promise that's resolved when done, or rejected with a FileSystemError if the
-     *      file cannot be read (after showing an error dialog to the user).
+     * @param {boolean=} suppressError If true, then a failure to read the file will be ignored and the
+     *      resulting promise will be resolved rather than rejected.
+     * @return {$.Promise} a Promise that's resolved when done, or (if suppressError is false) 
+     *      rejected with a FileSystemError if the file cannot be read (after showing an error 
+     *      dialog to the user).
      */
-    function doRevert(doc) {
+    function doRevert(doc, suppressError) {
         var result = new $.Deferred();
         
         FileUtils.readAsText(doc.file)
@@ -715,10 +718,14 @@ define(function (require, exports, module) {
                 result.resolve();
             })
             .fail(function (error) {
+                if (suppressError) {
+                    result.resolve();
+                } else {
                 FileUtils.showFileOpenError(error, doc.file.fullPath)
                     .done(function () {
                         result.reject(error);
                     });
+                }
             });
         
         return result.promise();
@@ -1109,13 +1116,19 @@ define(function (require, exports, module) {
                         // copy of whatever's on disk.
                         doClose(file);
                         
-                        // Only reload from disk if we've executed the Close for real,
-                        // *and* if at least one other view still exists
-                        if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.fullPath)) {
-                            doRevert(doc)
-                                .then(result.resolve, result.reject);
-                        } else {
+                        // Only reload from disk if we've executed the Close for real.
+                        if (promptOnly) {
                             result.resolve();
+                        } else {
+                            // Even if there are no listeners attached to the document at this point, we want
+                            // to do the revert anyway, because clients who are listening to the global documentChange
+                            // event from the Document module (rather than attaching to the document directly),
+                            // such as the Find in Files panel, should get a change event. However, in that case,
+                            // we want to ignore errors during the revert, since we don't want a failed revert
+                            // to throw a dialog if the document isn't actually open in the UI.
+                            var suppressError = !DocumentManager.getOpenDocumentForPath(file.fullPath);
+                            doRevert(doc, suppressError)
+                                .then(result.resolve, result.reject);
                         }
                     }
                 });
@@ -1135,8 +1148,9 @@ define(function (require, exports, module) {
      * @param {!Array.<FileEntry>} list
      * @param {boolean} promptOnly
      * @param {boolean} clearCurrentDoc
+     * @param {boolean} _forceClose Whether to force all the documents to close even if they have unsaved changes. For unit testing only.
      */
-    function _closeList(list, promptOnly, clearCurrentDoc) {
+    function _closeList(list, promptOnly, clearCurrentDoc, _forceClose) {
         var result      = new $.Deferred(),
             unsavedDocs = [];
         
@@ -1147,8 +1161,8 @@ define(function (require, exports, module) {
             }
         });
         
-        if (unsavedDocs.length === 0) {
-            // No unsaved changes, so we can proceed without a prompt
+        if (unsavedDocs.length === 0 || _forceClose) {
+            // No unsaved changes or we want to ignore them, so we can proceed without a prompt
             result.resolve();
             
         } else if (unsavedDocs.length === 1) {
@@ -1164,17 +1178,7 @@ define(function (require, exports, module) {
             
         } else {
             // Multiple unsaved files: show a single bulk prompt listing all files
-            var message = Strings.SAVE_CLOSE_MULTI_MESSAGE;
-            
-            message += "<ul class='dialog-list'>";
-            unsavedDocs.forEach(function (doc) {
-                var fullPath = doc.file.fullPath;
-                
-                message += "<li><span class='dialog-filename'>";
-                message += StringUtils.breakableUrl(_shortTitleForDocument(doc));
-                message += "</span></li>";
-            });
-            message += "</ul>";
+            var message = Strings.SAVE_CLOSE_MULTI_MESSAGE + FileUtils.makeDialogFileList(_.map(unsavedDocs, _shortTitleForDocument));
             
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
@@ -1238,14 +1242,17 @@ define(function (require, exports, module) {
     /**
      * Closes all open documents; equivalent to calling handleFileClose() for each document, except
      * that unsaved changes are confirmed once, in bulk.
-     * @param {?{promptOnly: boolean}}  If true, only displays the relevant confirmation UI and does NOT
+     * @param {?{promptOnly: boolean, _forceClose: boolean}}
+     *          If promptOnly is true, only displays the relevant confirmation UI and does NOT
      *          actually close any documents. This is useful when chaining close-all together with
      *          other user prompts that may be cancelable.
+     *          If _forceClose is true, forces the files to close with no confirmation even if dirty. 
+     *          Should only be used for unit test cleanup.
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
         return _closeList(MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE),
-                                    (commandData && commandData.promptOnly), true).done(function () {
+                                    (commandData && commandData.promptOnly), true, (commandData && commandData._forceClose)).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager._closeCustomViewer();
             }
@@ -1599,7 +1606,7 @@ define(function (require, exports, module) {
 
     // Exported for unit testing only
     exports._parseDecoratedPath = _parseDecoratedPath;
-    
+
     // Set some command strings
     var quitString  = Strings.CMD_QUIT,
         showInOS    = Strings.CMD_SHOW_IN_OS;
@@ -1611,26 +1618,26 @@ define(function (require, exports, module) {
     }
 
     // Register global commands
-    CommandManager.register(Strings.CMD_FILE_OPEN,              Commands.FILE_OPEN, handleFileOpen);
+    CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
     CommandManager.register(Strings.CMD_ADD_TO_PANE_VIEW_LIST,  Commands.CMD_ADD_TO_PANE_VIEW_LIST, handleOpenDocumentInNewPane);
-    CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,      Commands.FILE_NEW_UNTITLED, handleFileNew);
-    CommandManager.register(Strings.CMD_FILE_NEW,               Commands.FILE_NEW, handleFileNewInProject);
-    CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,        Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
-    CommandManager.register(Strings.CMD_FILE_SAVE,              Commands.FILE_SAVE, handleFileSave);
-    CommandManager.register(Strings.CMD_FILE_SAVE_ALL,          Commands.FILE_SAVE_ALL, handleFileSaveAll);
-    CommandManager.register(Strings.CMD_FILE_SAVE_AS,           Commands.FILE_SAVE_AS, handleFileSaveAs);
-    CommandManager.register(Strings.CMD_FILE_RENAME,            Commands.FILE_RENAME, handleFileRename);
-    CommandManager.register(Strings.CMD_FILE_DELETE,            Commands.FILE_DELETE, handleFileDelete);
-        
-    CommandManager.register(Strings.CMD_FILE_CLOSE,             Commands.FILE_CLOSE, handleFileClose);
-    CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,         Commands.FILE_CLOSE_ALL, handleFileCloseAll);
-    CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,        Commands.FILE_CLOSE_LIST, handleFileCloseList);
-    CommandManager.register(quitString,                         Commands.FILE_QUIT, handleFileQuit);
-        
-    CommandManager.register(Strings.CMD_NEXT_DOC,               Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
-    CommandManager.register(Strings.CMD_PREV_DOC,               Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
-    CommandManager.register(Strings.CMD_SHOW_IN_TREE,           Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
-    CommandManager.register(showInOS,                           Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
+    CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,  Commands.FILE_NEW_UNTITLED, handleFileNew);
+    CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
+    CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
+    CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
+    CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
+    CommandManager.register(Strings.CMD_FILE_SAVE_AS,       Commands.FILE_SAVE_AS, handleFileSaveAs);
+    CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
+    CommandManager.register(Strings.CMD_FILE_DELETE,        Commands.FILE_DELETE, handleFileDelete);
+
+    CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,    Commands.FILE_CLOSE_LIST, handleFileCloseList);
+    CommandManager.register(quitString,                     Commands.FILE_QUIT, handleFileQuit);
+
+    CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
+    CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
+    CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
+    CommandManager.register(showInOS,                       Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
 
     // These commands have no UI representation and are only used internally
     CommandManager.registerInternal(Commands.APP_ABORT_QUIT,            handleAbortQuit);

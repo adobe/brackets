@@ -229,7 +229,7 @@
     "bash": {
         "name": "Bash",
         "mode": ["shell", "text/x-sh"],
-        "fileExtensions": ["sh"],
+        "fileExtensions": ["sh", "command"],
         "lineComment": ["#"]
     },
   

@@ -200,6 +200,8 @@ module.exports = function (grunt) {
                 'test/**/*.js',
                 '!test/perf/*-files/**/*.js',
                 '!test/spec/*-files/**/*.js',
+                '!test/spec/*-known-goods/**/*.js',
+                '!test/spec/FindReplace-test-files-*/**/*.js',
                 '!test/smokes/**',
                 '!test/temp/**',
                 '!test/thirdparty/**',
