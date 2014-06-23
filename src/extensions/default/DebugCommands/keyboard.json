@@ -19,6 +19,15 @@
     ],
     "reloadWithoutUserExts":  [
         {
+            "key": "Opt-F5"
+        },
+        {
+            "key": "Opt-Shift-R",
+            "platform": "mac"
+        }
+    ],
+    "browserForceReload":  [
+        {
             "key": "Shift-F5"
         },
         {

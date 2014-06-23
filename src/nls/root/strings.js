@@ -517,6 +517,7 @@ define({
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
     "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
+    "CMD_BROWSER_FORCE_RELOAD"                  : "Force Browser Reload",
     "CMD_NEW_BRACKETS_WINDOW"                   : "New {APP_NAME} Window",
     "CMD_SWITCH_LANGUAGE"                       : "Switch Language",
     "CMD_RUN_UNIT_TESTS"                        : "Run Tests",
