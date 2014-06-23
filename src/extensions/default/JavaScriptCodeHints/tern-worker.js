@@ -80,9 +80,6 @@ var config = {};
              */
             function _reportError(e, file) {
                 if (e instanceof Infer.TimedOut) {
-                    // TODO: remove after dialog is implemented
-                    _log("Timeout during Tern processing of " + file);
-                    
                     // Post a message back to the main thread with timedout info
                     self.postMessage({
                         type: MessageIds.TERN_INFERENCE_TIMEDOUT,

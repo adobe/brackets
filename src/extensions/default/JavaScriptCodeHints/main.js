@@ -59,7 +59,6 @@ define(function (require, exports, module) {
     // Define the defaultExclusions which are files that are known to cause Tern to run out of control.
     PreferencesManager.definePreference("jscodehints.defaultExclusions", "array", []);
     
-    // TODO - make a project pref
     // Define the detectedExclusions which are files that have been detected to cause Tern to run out of control.
     PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", []);
     

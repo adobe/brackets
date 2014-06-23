@@ -237,7 +237,6 @@ define(function (require, exports, module) {
         // detectedExclusions is an array of full paths.
         var detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions") || [];
         if (detectedExclusions && detectedExclusions.indexOf(path) !== -1) {
-            //console.log("JSCodeHints: Internal file exclusion: " + path);
             return true;
         }
 
@@ -701,7 +700,7 @@ define(function (require, exports, module) {
      * Handle the response from the tern web worker when
      * it responds to the update file message.
      *
-     * @param {{path:string, type: string}} response - the response from the worker
+     * @param {{path: string, type: string}} response - the response from the worker
      */
     function handleUpdateFile(response) {
 
@@ -717,13 +716,12 @@ define(function (require, exports, module) {
     /**
      * Handle timed out inference
      *
-     * @param {{path:string, type: string}} response - the response from the worker
+     * @param {{path: string, type: string}} response - the response from the worker
      */
     function handleTimedOut(response) {
 
         var detectedExclusions  = PreferencesManager.get("jscodehints.detectedExclusions") || [],
-            filePath            = response.file,
-            currentIndex        = detectedExclusions.indexOf(filePath);
+            filePath            = response.file;
 
         // Don't exclude the file currently being edited
         if (isFileBeingEdited(filePath)) {
@@ -731,7 +729,7 @@ define(function (require, exports, module) {
         }
 
         // Handle file that is already excluded
-        if (currentIndex !== -1) {
+        if (detectedExclusions.indexOf(filePath) !== -1) {
             console.log("JavaScriptCodeHints.handleTimedOut: file already in detectedExclusions array timed out: " + filePath);
             return;
         }
