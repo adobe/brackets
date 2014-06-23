@@ -391,6 +391,42 @@ define(function (require, exports, module) {
             return new $.Deferred().resolve().promise();
         }
         
+        // Load *subset* of the usual builtin extensions list, and don't try to find any user/dev extensions
+        if (brackets.inBrowser) {
+            var basePath = PathUtils.directory(window.location.href) + "extensions/default/",
+                defaultExtensions = [
+                    // Core extensions we want to support in the browser
+                    "CSSCodeHints",
+                    "HTMLCodeHints",
+                    "HtmlEntityCodeHints",
+                    "InlineColorEditor",
+                    "JavaScriptQuickEdit",
+                    "JSLint",
+                    "LESSSupport",
+                    "QuickOpenCSS",
+                    "QuickOpenHTML",
+                    "QuickOpenJavaScript",
+                    "QuickView",
+                    "RecentProjects",
+                    "UrlCodeHints",
+                    "WebPlatformDocs",
+
+                    // Custom extensions we want loaded by default
+                    // NOTE: Maps to a folder inside /src/extensions/default/
+                    "makedrive-sync-icon"
+
+                    // "ExampleExtension",
+                ];
+
+            return Async.doInParallel(defaultExtensions, function (item) {
+                var extConfig = {
+                    baseUrl: basePath + item
+                };
+                return loadExtension(item, extConfig, "main");
+            });
+        }
+
+        
         if (!paths) {
             params.parse();
             

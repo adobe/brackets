@@ -1,19 +1,7 @@
-Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.svg?branch=master)](https://travis-ci.org/adobe/brackets)
--------------------
+# Nimble is based on Brackets
 
 Brackets is a modern open-source code editor for HTML, CSS
 and JavaScript that's *built* in HTML, CSS and JavaScript. 
-
-What makes Brackets different from other web code editors?
-
-* **Tools shouldn't get in your way.** Instead of cluttering up your coding
-environment with lots of panels and icons, the Quick Edit UI in Brackets puts 
-context-specific code and tools inline.
-* **Brackets is in sync with your browser.** With Live Preview, Brackets
-works directly with your browser to push code edits instantly and jump
-back and forth between your real source code and the browser view.
-* **Do it yourself.** Because Brackets is open source, and built with HTML, CSS
-and JavaScript, you can [help build](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md) the best code editor for the web.
 
 Brackets is at 1.0 and we're not stopping there. We have many feature ideas on our
 [trello board](http://bit.ly/BracketsTrelloBoard) that we're anxious to add and other
@@ -24,93 +12,118 @@ You can see some
 [screenshots of Brackets](https://github.com/adobe/brackets/wiki/Brackets-Screenshots)
 on the wiki, [intro videos](http://www.youtube.com/user/CodeBrackets) on YouTube, and news on the [Brackets blog](http://blog.brackets.io/).
 
-How to install and run Brackets
--------------------------------
-#### Download
-
-Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded here](http://brackets.io/).
-
-The Linux version has most of the features of the Mac and Windows versions, but
-is still missing a few things. See the [Linux wiki page](https://github.com/adobe/brackets/wiki/Linux-Version)
-for a list of known issues and to find out how you can help.
-
-#### Usage
-
-By default, Brackets opens a folder containing some simple "Getting Started" content.
-You can choose a different folder to edit using *File > Open Folder*.
-
-Most of Brackets should be pretty self-explanatory, but for information on how
-to use its unique features, like Quick Edit and Live Preview, please read
-[How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets). 
-Also, see the [release notes](http://github.com/adobe/brackets/wiki/Release-Notes)
-for a list of new features and known issues in each build.
-
-In addition to the core features built into Brackets, there is a large and growing
-community of developers building extensions that add all sorts of useful functionality.
-See the [Brackets Extension Registry](https://brackets-registry.aboutweb.com/)
-for a list of available extensions. For installation instructions,
-see the [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions).
-
-#### Need help?
-
-Having problems starting Brackets the first time, or not sure how to use Brackets?  Please 
-review [Troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting), which helps 
-you to fix common problems and find extra help if needed.
-
-
-Helping Brackets
-----------------
-
-#### I found a bug!
-
-If you found a repeatable bug, and [troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting) 
-tips didn't help, then be sure to [search existing issues](https://github.com/adobe/brackets/issues) first.
-Include steps to consistently reproduce the problem, actual vs. expected results, screenshots, and your OS and
-Brackets version number. Disable all extensions to verify the issue is a core Brackets bug.
-[Read more guidelines for filing good bugs.](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue)
-
-
-#### I have a new suggestion, but don't know how to program!
-
-For feature requests please first check our [Trello board](http://bit.ly/BracketsBacklog) to
-see if it's already there; you can upvote it if so. If not, feel free to file it as an issue as above; we'll
-move it to the feature backlog for you.
-
-
-#### I want to help with the code!
-
-Awesome! _There are lots of ways you can help._ First read 
-[CONTRIBUTING.md](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md), 
-then learn how to [pull the repo and hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets).
-
 The text editor inside Brackets is based on 
 [CodeMirror](http://github.com/codemirror/CodeMirror)&mdash;thanks to Marijn for
 taking our pull requests, implementing feature requests and fixing bugs! See 
 [Notes on CodeMirror](https://github.com/adobe/brackets/wiki/Notes-on-CodeMirror)
 for info on how we're using CodeMirror.
 
-Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop 
-application in a thin native shell, so that it can access your local files.
-(If you just try to open the index.html file in a browser, it won't work yet.)
-The native shell for Brackets lives in a separate repo, 
-[adobe/brackets-shell](https://github.com/adobe/brackets-shell/).
+#How to setup Nimble with MakeDrive server
 
+## Setup Webmaker Login Server
 
-I want to keep track of how Brackets is doing!
-----------------------------------------------
+You need to have Webmaker Login for Authentication to connect to MakeDrive WebSocket Server.  
 
-Not sure you needed the exclamation point there, but we like your enthusiasm.
+Make sure you have forked and cloned [Webmaker Login](https://github.com/mozilla/login.webmaker.org) then run the following steps:  
 
-#### What's Brackets working on next?
+Install npm modules:
+```
+$ npm install
+```
+Use the default configuration:
+```
+$ cp env.sample .env
+```
+Run the server:
+```
+$ node app.js
+```
 
-* In our [feature backlog](http://bit.ly/BracketsBacklog), the columns to the right
-  (starting from "Development") list the features that we're currently working on.
-  "Ready" shows what we'll be working on next.
-* Watch our [GitHub activity stream](https://github.com/adobe/brackets/pulse).
+You will now have Webmaker Login server running on port `3000` you can test by visiting [http://localhost:3000/account](http://localhost:3000/account).  Also, make sure you create an account.
 
-#### Contact info
+## Setup Nimble (Brackets) in your lcoal machine
 
-* **Twitter:** [@brackets](https://twitter.com/brackets)
-* **Blog:** http://blog.brackets.io/
-* **IRC:** [#brackets on freenode](http://webchat.freenode.net/?channels=brackets)
-* **Developers mailing list:** http://groups.google.com/group/brackets-dev
+Step 01: Make sure you have forked and clone [Nimble](https://github.com/mozilla/nimble).
+
+```
+$ git clone https://github.com/[yourusername]/nimble --recursive
+```
+
+Step 02: Install its dependencies
+
+```
+$ npm install
+```
+
+```
+$ git submodule update --init
+```
+
+Step 03: Run Nimble:
+
+There are multiple ways to run Nimble.  
+You can use [Apache Webserver](http://www.apache.org/), host on [github pages](https://help.github.com/articles/what-are-github-pages) or use [Python WebServer](https://docs.python.org/2/library/simplehttpserver.html).
+
+Assuming you have Nimble running on port `8080`. Now you can visit [http://localhost:8080/src](http://localhost:8080/src).
+
+## Step up MakeDrive in your local machine
+
+Step 01: Make sure you have forked and clone [MakeDrive](https://github.com/mozilla/makedrive) repo.  
+
+```
+$ git clone git@github.com:[yourusername]/makedrive.git --recursive
+```
+```
+$ cd makedrive
+```
+
+Step 02: After you have cloned and cd MakeDrive in your local machine then you need to install all of MakeDrive dependencies
+
+First you will need `grunt-cli` to be installed globally using `npm`
+
+```
+$ sudo npm install grunt-cli -g
+```
+
+Install npm modules:
+
+```
+$ npm install
+```
+
+Install submodule's dependencies
+```
+$ grunt init
+```
+
+Step 03: Copy the environment file
+
+```
+$ cp env.dist .env
+```
+
+Step 04: configure `ALLOWED_CORS_DOMAINS` to allow Nimble to connect.
+
+Assuming you have Nimble running on `http://localhost:8080`
+
+```
+export ALLOWED_CORS_DOMAINS='["http://localhost", "http://localhost:80", "http://localhost:8080", "http://localhost:7777", "http://localhost:9090", "http://localhost:5001"]'
+```
+
+Step 05: Run MakeDrive server
+
+```
+$ npm start
+```
+
+Now you will have MakeDrive running on port 9090 [http://localhost:9090](http://localhost:9090).
+
+--------------
+
+## After installation
+
+After you have everything setup and running you can now test by running Nimble and start creating files and see it in action by visiting [http://localhost:8080/src](http://localhost:8080/src). Also, make sure you already have Webmaker Login server running and you are logged in.
+
+Watch our demo to see [Nimble in action](https://www.youtube.com/watch?v=sHn6oO0i0ak).
+
+If you have any question feel free to ask on [#nimble](irc://irc.mozilla.org/nimble) IRC channel on the [Mozilla Network](https://wiki.mozilla.org/IRC).
