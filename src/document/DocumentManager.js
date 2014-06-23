@@ -811,6 +811,7 @@ define(function (require, exports, module) {
     // Deprecated APIs   
     exports.getWorkingSet                  = getWorkingSet;
     exports.findInWorkingSet               = findInWorkingSet;
+    exports.addToWorkingSet                = addToWorkingSet;
     exports.addListToWorkingSet            = addListToWorkingSet;
     exports.removeFromWorkingSet           = removeFromWorkingSet;
     exports.removeListFromWorkingSet       = removeListFromWorkingSet;

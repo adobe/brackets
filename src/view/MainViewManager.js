@@ -588,10 +588,12 @@ define(function (require, exports, module) {
     }
     
     function _activeEditorChange(e, current) {
-        var $container = current.getContainer(),
-            newPaneId = _getPaneIdFromContainer($container);
+        if (current) {
+            var $container = current.getContainer(),
+                newPaneId = _getPaneIdFromContainer($container);
 
-        _setActivePaneId(newPaneId);
+            _setActivePaneId(newPaneId);
+        }
     }    
     
     function _createPaneIfNecessary(paneId) {

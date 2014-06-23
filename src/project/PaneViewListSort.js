@@ -26,7 +26,7 @@
 /*global define, $, window */
 
 /**
- * Manages the workingSet sort methods.
+ * Manages the paneViewList sort methods.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -404,7 +404,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Initialize items dependent on extensions/workingSet
+     * Initialize items dependent on extensions/paneViewList
      */
     AppInit.appReady(function () {
         var sortMethod = initSortMethod(),
