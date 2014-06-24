@@ -512,7 +512,7 @@ define({
     "UNIT_PIXELS"                          : "pixler",
 
     // extensions/default/DebugCommands
-    "DEBUG_MENU"                                : "Aflusning",
+    "DEBUG_MENU"                                : "Fejlsøgning",
     "ERRORS"                                    : "Fejl",
     "CMD_SHOW_DEV_TOOLS"                        : "Vis udviklerværktøjer",
     "CMD_REFRESH_WINDOW"                        : "Genstart med udvidelser",
@@ -521,7 +521,7 @@ define({
     "CMD_SWITCH_LANGUAGE"                       : "Skift sprog",
     "CMD_RUN_UNIT_TESTS"                        : "Kør enhedstest",
     "CMD_SHOW_PERF_DATA"                        : "Vis ydelsesdata",
-    "CMD_ENABLE_NODE_DEBUGGER"                  : "Slå Node-afluser til",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Slå Node-debugger til",
     "CMD_LOG_NODE_STATE"                        : "Log Node tilstand til konsol",
     "CMD_RESTART_NODE"                          : "Genstart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Vis fejl i statuslinjen",
