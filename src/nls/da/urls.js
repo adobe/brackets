@@ -26,6 +26,5 @@
 
 define({
     // Relative to the samples folder
-    "GETTING_STARTED"           : "da/Kom godt i gang",
-    "WEB_PLATFORM_DOCS_LICENSE" : "http://creativecommons.org/licenses/by/3.0/deed.da"
+    "GETTING_STARTED"           : "da/Kom godt i gang"
 });
