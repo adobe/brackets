@@ -128,7 +128,7 @@ define(function (require, exports, module) {
      * a unique name.
      *
      * @param {(string|Array.<string>)} name  Single name or an Array of names.
-     * @returns {string} timer name. Returned for convenience to store and use
+     * @return {string} timer name. Returned for convenience to store and use
      *      for calling addMeasure(). Since name is often creating via concatenating
      *      strings this return value allows clients to construct the name once.
      */
@@ -278,7 +278,7 @@ define(function (require, exports, module) {
 
     /**
       * Returns the performance data as a tab deliminted string
-      * @returns {string}
+      * @return {string}
       */
     function getDelimitedPerfData() {
         var getValue = function (entry) {

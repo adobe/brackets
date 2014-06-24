@@ -200,6 +200,8 @@ module.exports = function (grunt) {
                 'test/**/*.js',
                 '!test/perf/*-files/**/*.js',
                 '!test/spec/*-files/**/*.js',
+                '!test/spec/*-known-goods/**/*.js',
+                '!test/spec/FindReplace-test-files-*/**/*.js',
                 '!test/smokes/**',
                 '!test/temp/**',
                 '!test/thirdparty/**',
@@ -246,6 +248,7 @@ module.exports = function (grunt) {
                 specs : '<%= meta.specs %>',
                 /* Keep in sync with test/SpecRunner.html dependencies */
                 vendor : [
+                    'test/polyfills.js', /* For reference to why this polyfill is needed see Issue #7951. The need for this should go away once the version of phantomjs gets upgraded to 2.0 */
                     'src/thirdparty/jquery-2.1.0.min.js',
                     'src/thirdparty/CodeMirror2/lib/codemirror.js',
                     'src/thirdparty/CodeMirror2/lib/util/dialog.js',

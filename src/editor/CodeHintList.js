@@ -147,8 +147,8 @@ define(function (require, exports, module) {
             var $item = $(items[this.selectedIndex]);
             var $view = this.$hintMenu.find("ul.dropdown-menu");
 
-            ViewUtils.scrollElementIntoView($view, $item, false);
             $item.find("a").addClass("highlight");
+            ViewUtils.scrollElementIntoView($view, $item, false);
         }
     };
 

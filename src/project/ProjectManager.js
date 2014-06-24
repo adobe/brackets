@@ -30,12 +30,13 @@
  * the file tree.
  *
  * This module dispatches these events:
- *    - beforeProjectClose -- before _projectRoot changes, but working set files still open
- *    - projectClose       -- *just* before _projectRoot changes; working set already cleared & project root unwatched
+ *    - beforeProjectClose -- before `_projectRoot` changes, but working set files still open
+ *    - projectClose       -- *just* before `_projectRoot` changes; working set already cleared
+ *      & project root unwatched
  *    - beforeAppClose     -- before Brackets quits entirely
- *    - projectOpen        -- after _projectRoot changes and the tree is re-rendered
+ *    - projectOpen        -- after `_projectRoot` changes and the tree is re-rendered
  *    - projectRefresh     -- when project tree is re-rendered for a reason other than
- *                            a project being opened (e.g. from the Refresh command)
+ *      a project being opened (e.g. from the Refresh command)
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(ProjectManager).on("eventname", handler);
@@ -161,7 +162,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Encoded URL
-     * @ see getBaseUrl(), setBaseUrl()
+     * @see getBaseUrl(), setBaseUrl()
      */
     var _projectBaseUrl = "";
     
@@ -205,6 +206,13 @@ define(function (require, exports, module) {
      * initialized in _generateSortPrefixes.
      */
     var _dirFirst;
+    
+    /**
+     * @private
+     * @type {Number}
+     * Tracks the timeoutID for mouseup events.
+     */
+    var _mouseupTimeoutId = null;
     
     /**
      * @private
@@ -655,7 +663,24 @@ define(function (require, exports, module) {
                         }
                     }
                 }
-            );
+            ).bind("mouseup.jstree", function (event) {
+                if (event.button !== 0) { // 0 = Left mouse button
+                    return;
+                }
+
+                var $treenode = $(event.target).closest("li"),
+                    entry = $treenode.data("entry");
+                // Don't do the rename for folders, because clicking on a folder name collapses/expands it.
+                if (entry && entry.isFile && $treenode.is($(_projectTree.jstree("get_selected")))) {
+                    // wrap this in a setTimeout function so that we can check if it's a double click.
+                    _mouseupTimeoutId = window.setTimeout(function () {
+                        // if we get a double-click, _mouseupTimeoutId will have been set to null by the double-click handler before this runs.
+                        if (_mouseupTimeoutId !== null) {
+                            CommandManager.execute(Commands.FILE_RENAME);
+                        }
+                    }, 500);
+                }
+            });
 
         // jstree has a default event handler for dblclick that attempts to clear the
         // global window selection (presumably because it doesn't want text within the tree
@@ -717,6 +742,11 @@ define(function (require, exports, module) {
                     if (entry && entry.isFile && !_isInRename(event.target)) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
+                    if (_mouseupTimeoutId !== null) {
+                        window.clearTimeout(_mouseupTimeoutId);
+                        _mouseupTimeoutId = null;
+                    }
+                    
                 });
 
             // fire selection changed events for sidebar-selection
@@ -747,8 +777,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
      * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
+     * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
      * @param {string} fileName
      * @return {boolean}
      */
@@ -1755,7 +1785,7 @@ define(function (require, exports, module) {
      * Rename a file/folder. This will update the project tree data structures
      * and send notifications about the rename.
      *
-     * @prarm {string} oldName Old item name
+     * @param {string} oldName Old item name
      * @param {string} newName New item name
      * @param {boolean} isFolder True if item is a folder; False if it is a file.
      * @return {$.Promise} A promise object that will be resolved or rejected when

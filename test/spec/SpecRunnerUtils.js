@@ -327,14 +327,13 @@ define(function (require, exports, module) {
         var dummyFile = _getFileSystem().getFileForPath(filename);
         var docToShim = new DocumentManager.Document(dummyFile, new Date(), content);
         
-        // Prevent adding doc to working set
+        // Prevent adding doc to working set by not dispatching "dirtyFlagChange".
+        // TODO: Other functionality here needs to be kept in sync with Document._handleEditorChange(). In the
+        // future, we should fix things so that we either don't need mock documents or that this
+        // is factored so it will just run in both.
         docToShim._handleEditorChange = function (event, editor, changeList) {
             this.isDirty = !editor._codeMirror.isClean();
-                    
-            // TODO: This needs to be kept in sync with Document._handleEditorChange(). In the
-            // future, we should fix things so that we either don't need mock documents or that this
-            // is factored so it will just run in both.
-            $(this).triggerHandler("change", [this, changeList]);
+            this._notifyDocumentChange(changeList);
         };
         docToShim.notifySaved = function () {
             throw new Error("Cannot notifySaved() a unit-test dummy Document");
@@ -452,8 +451,9 @@ define(function (require, exports, module) {
      * outcome. Also, in cases where asynchronous tasks are performed after the dialog closes,
      * clients must also wait for any additional promises.
      * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
+     * @param {boolean=} enableFirst  If true, then enable the button before clicking.
      */
-    function clickDialogButton(buttonId) {
+    function clickDialogButton(buttonId, enableFirst) {
         // Make sure there's one and only one dialog open
         var $dlg = _testWindow.$(".modal.instance"),
             promise = $dlg.data("promise");
@@ -461,11 +461,16 @@ define(function (require, exports, module) {
         expect($dlg.length).toBe(1);
         
         // Make sure desired button exists
-        var dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
-        expect(dismissButton.length).toBe(1);
+        var $dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
+        expect($dismissButton.length).toBe(1);
+        
+        if (enableFirst) {
+            // Remove the disabled prop.
+            $dismissButton.prop("disabled", false);
+        }
         
         // Click the button
-        dismissButton.click();
+        $dismissButton.click();
 
         // Dialog should resolve/reject the promise
         waitsForDone(promise, "dismiss dialog");

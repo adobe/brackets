@@ -25,12 +25,12 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global require, define, brackets: true, $, window, navigator, Mustache */
 
+// TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
+
 /**
  * brackets is the root of the Brackets codebase. This file pulls in all other modules as
  * dependencies (or dependencies thereof), initializes the UI, and binds global menus & keyboard
  * shortcuts to their Commands.
- *
- * TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
  *
  * Unlike other modules, this one can be accessed without an explicit require() because it exposes
  * a global object, window.brackets.
@@ -124,7 +124,7 @@ define(function (require, exports, module) {
     require("editor/EditorCommandHandlers");
     require("editor/EditorOptionHandlers");
     require("help/HelpCommandHandlers");
-    require("search/FindInFiles");
+    require("search/FindInFilesUI");
     require("search/FindReplace");
     require("extensibility/InstallExtensionDialog");
     require("extensibility/ExtensionManagerDialog");
@@ -145,6 +145,9 @@ define(function (require, exports, module) {
     // read URL params
     params.parse();
     
+    /**
+     * Setup test object
+     */
     function _initTest() {
         // TODO: (issue #265) Make sure the "test" object is not included in final builds
         // All modules that need to be tested from the context of the application
@@ -161,16 +164,20 @@ define(function (require, exports, module) {
             Dialogs                 : Dialogs,
             DocumentCommandHandlers : DocumentCommandHandlers,
             DocumentManager         : DocumentManager,
+            DocumentModule          : require("document/Document"),
             DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
             DragAndDrop             : DragAndDrop,
             EditorManager           : EditorManager,
             ExtensionLoader         : ExtensionLoader,
             ExtensionUtils          : ExtensionUtils,
+            File                    : require("filesystem/File"),
             FileFilters             : require("search/FileFilters"),
             FileSyncManager         : FileSyncManager,
             FileSystem              : FileSystem,
             FileViewController      : FileViewController,
+            FileUtils               : require("file/FileUtils"),
             FindInFiles             : require("search/FindInFiles"),
+            FindInFilesUI           : require("search/FindInFilesUI"),
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
@@ -197,7 +204,10 @@ define(function (require, exports, module) {
             brackets.test.doneLoading = true;
         });
     }
-            
+
+    /**
+     * Setup Brackets
+     */
     function _onReady() {
         PerfUtils.addMeasurement("window.document Ready");
 

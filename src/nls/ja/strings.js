@@ -37,7 +37,7 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR": "対象ディレクトリは変更できません。",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
 	"CONTENTS_MODIFIED_ERR": "このファイルは {APP_NAME} 以外で変更されています。",
-	"UNSUPPORTED_ENCODING_ERR": "ファイルは UTF-8 でエンコードされたテキストではありません。",
+	"UNSUPPORTED_ENCODING_ERR": "{APP_NAME} は現在 UTF-8 でエンコードされたテキストファイルのみをサポートしています。",
 	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
 	"FILE": "ファイル",
 	"DIRECTORY": "ディレクトリ",
@@ -61,18 +61,18 @@ define({
 	"ERROR_RELOADING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を再読込する際にエラーが発生しました。{1}",
 	"ERROR_SAVING_FILE_TITLE": "ファイルを保存する際にエラーが発生しました。",
 	"ERROR_SAVING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を保存する際にエラーが発生しました。{1}",
-	"ERROR_RENAMING_FILE_TITLE": "ファイルの名前を変更する際にエラーが発生しました。",
+	"ERROR_RENAMING_FILE_TITLE": "ファイル名を変更する際にエラーが発生しました。",
 	"ERROR_RENAMING_FILE": "ファイル <span class='dialog-filename'>{0}</span> の名前を変更する際にエラーが発生しました。{1}",
-	"ERROR_DELETING_FILE_TITLE": "ファイル削除のエラー",
+	"ERROR_DELETING_FILE_TITLE": "ファイルの削除中にエラーが発生しました。",
 	"ERROR_DELETING_FILE": "ファイルを削除する際にエラーが発生しました <span class='dialog-filename'>{0}</span>。{1}",
 	"INVALID_FILENAME_TITLE": "無効な{0}",
-	"INVALID_FILENAME_MESSAGE": "{0}にはシステムのすべての予約語、末尾のピリオド (.)、および次の文字を含めることはできません : <code class='emphasized'>{1}</code>",
+	"INVALID_FILENAME_MESSAGE": "{0}にはシステムのすべての予約語、末尾のピリオド (.)、および次の文字を含めることはできません : <code class='emphasized'>{1}</code>",
 	"ENTRY_WITH_SAME_NAME_EXISTS": "<span class='dialog-filename'>{0}</span> という名前のファイルまたはディレクトリは既に存在します。",
-	"ERROR_CREATING_FILE_TITLE": "{0}を作成する際にエラーが発生しました",
+	"ERROR_CREATING_FILE_TITLE": "{0} を作成する際にエラーが発生しました。",
 	"ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span> を作成する際にエラーが発生しました。{2}",
 
     // Application preferences corrupt error strings
-	"ERROR_PREFS_CORRUPT_TITLE": "環境設定の読み込みエラー",
+	"ERROR_PREFS_CORRUPT_TITLE": "環境設定を読み込む際にエラーが発生しました。",
 	"ERROR_PREFS_CORRUPT": "環境設定ファイルが有効な JSON ではありません。ファイルが開かれます。フォーマットを修正してください。変更を反映するには、{APP_NAME} を再起動する必要があります。",
 
     // Application error strings
@@ -123,6 +123,7 @@ define({
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
     
     // Generic dialog/button labels
+	"DONE": "完了",
 	"OK": "OK",
 	"CANCEL": "キャンセル",
 	"DONT_SAVE": "保存しない",
@@ -132,13 +133,15 @@ define({
 	"DELETE": "削除",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
-        
+    
     // Find, Replace, Find in Files
 	"FIND_RESULT_COUNT": "{0} 件",
 	"FIND_RESULT_COUNT_SINGLE": "1 件",
 	"FIND_NO_RESULTS": "該当なし",
+	"FIND_QUERY_PLACEHOLDER": "検索\u2026",
 	"REPLACE_PLACEHOLDER": "\u2026 に置換",
-	"BUTTON_REPLACE_ALL": "すべて\u2026",
+	"BUTTON_REPLACE_ALL": "!能=[7126959] Batch\u2026_=!",
+	"BUTTON_REPLACE_ALL_IN_FILES": "!能=[7575917] Replace\u2026_=!",
 	"BUTTON_REPLACE": "置換",
 	"BUTTON_NEXT": "\u25B6",
 	"BUTTON_PREV": "\u25C0",
@@ -146,24 +149,26 @@ define({
 	"BUTTON_PREV_HINT": "前の候補に移動",
 	"BUTTON_CASESENSITIVE_HINT": "大文字と小文字を区別",
 	"BUTTON_REGEXP_HINT": "正規表現",
+	"REPLACE_WITHOUT_UNDO_WARNING_TITLE": "!能=[7575930] Replace Without Undo_=!",
+	"REPLACE_WITHOUT_UNDO_WARNING": "!能=[7575929] Because more than {0} files need to be changed, {APP_NAME} will modify unopened files on disk.<br />You won't be able to undo replacements in those files._=!",
+	"BUTTON_REPLACE_WITHOUT_UNDO": "!能=[7575918] Replace Without Undo_=!",
 
 	"OPEN_FILE": "ファイルを開く",
 	"SAVE_FILE_AS": "ファイルを保存",
 	"CHOOSE_FOLDER": "フォルダーを選択",
 
 	"RELEASE_NOTES": "リリースノート",
-	"NO_UPDATE_TITLE": "最新バージョンです",
+	"NO_UPDATE_TITLE": "最新バージョンです。",
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
 
-    // Replace All (in single file)
-	"FIND_REPLACE_TITLE_PART1": "「",
-	"FIND_REPLACE_TITLE_PART2": "」を「",
-	"FIND_REPLACE_TITLE_PART3": "」に置き換え &mdash; {2} {0} {1}",
+    // Find and Replace
+	"FIND_REPLACE_TITLE_LABEL": "置換",
+	"FIND_REPLACE_TITLE_WITH": "使用 :",
+	"FIND_TITLE_LABEL": "!能=[7575925] Found_=!",
+	"FIND_TITLE_SUMMARY": "!能=[7575926]  &mdash; {0} {1} {2} in {3}_=!",
 
     // Find in Files
-	"FIND_IN_FILES_TITLE_PART1": "「",
-	"FIND_IN_FILES_TITLE_PART2": "」の検索結果",
-	"FIND_IN_FILES_TITLE_PART3": "&mdash; {3}個の{4}内で {1}件{0}{2}",
+	"FIND_NUM_FILES": "!能=[7575922] {0} {1}_=!",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
 	"FIND_IN_FILES_ZERO_FILES": "フィルターは {0}の全ファイルを除外します",
@@ -175,15 +180,21 @@ define({
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
 	"FIND_IN_FILES_EXPAND_COLLAPSE": "Ctrl / Command キーをクリックしてすべて展開 / 折りたたみ",
+	"REPLACE_IN_FILES_ERRORS_TITLE": "!能=[7575928] Replace Errors_=!",
+	"REPLACE_IN_FILES_ERRORS": "!能=[7575927] The following files weren't modified because they changed after the search or couldn't be written._=!",
+    
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "更新情報を取得する際にエラーが発生しました。",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "サーバーから最新の更新情報を取得する際にエラーが発生しました。インターネット接続を確認してリトライしてください。",
     
     // File exclusion filters
-	"NO_FILE_FILTER": "ファイルを除外\u2026",
+	"NEW_FILE_FILTER": "新規除外セット\u2026",
+	"CLEAR_FILE_FILTER": "ファイルを除外しない",
+	"NO_FILE_FILTER": "除外されたファイルはありません",
+	"EXCLUDE_FILE_FILTER": "{0} を除外",
 	"EDIT_FILE_FILTER": "編集\u2026",
-	"FILE_FILTER_DIALOG": "フィルターを編集",
+	"FILE_FILTER_DIALOG": "除外セットを編集",
 	"FILE_FILTER_INSTRUCTIONS": "次の文字列やサブストリング、または<a href='{0}' title='{0}'>ワイルドカード</a>のいずれかに一致するファイルおよびフォルダーを除外します。各文字列を新しい行に入力してください。",
-	"FILE_FILTER_LIST_PREFIX": "例外",
+	"FILTER_NAME_PLACEHOLDER": "この除外セットに名前を付ける (オプション)",
 	"FILE_FILTER_CLIPPED_SUFFIX": "さらに {0} 件",
 	"FILTER_COUNTING_FILES": "ファイル数を確認中\u2026",
 	"FILTER_FILE_COUNT": "{2}の {1} ファイル中 {0} ファイルを許可",
@@ -310,7 +321,6 @@ define({
     // Search menu commands
 	"FIND_MENU": "検索",
 	"CMD_FIND": "検索",
-	"CMD_FIND_FIELD_PLACEHOLDER": "検索\u2026",
 	"CMD_FIND_NEXT": "次を検索",
 	"CMD_FIND_PREVIOUS": "前を検索",
 	"CMD_FIND_ALL_AND_SELECT": "すべて検索して選択",
@@ -320,6 +330,9 @@ define({
 	"CMD_FIND_IN_SELECTED": "選択したファイルまたはフォルダーを検索",
 	"CMD_FIND_IN_SUBTREE": "検索先\u2026",
 	"CMD_REPLACE": "置換",
+	"CMD_REPLACE_IN_FILES": "!能=[7575919] Replace in Files_=!",
+	"CMD_REPLACE_IN_SELECTED": "!能=[7575920] Replace in Selected File/Folder_=!",
+	"CMD_REPLACE_IN_SUBTREE": "!能=[7575921] Replace in\u2026_=!",
     
     // View menu commands
 	"VIEW_MENU": "表示",
@@ -382,6 +395,7 @@ define({
 	"ABOUT": "このソフトウェアについて",
 	"CLOSE": "閉じる",
 	"ABOUT_TEXT_LINE1": "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+	"ABOUT_TEXT_BUILD_TIMESTAMP": "ビルドのタイムスタンプ : ",
 	"ABOUT_TEXT_LINE3": "Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
 	"ABOUT_TEXT_LINE4": "ドキュメントとソースコードは <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a> から入手できます。",
 	"ABOUT_TEXT_LINE5": "\u2764 および JavaScript を使用して次の人によって作成されました :",

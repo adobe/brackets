@@ -7,7 +7,12 @@
         <div class="about-text">
             <h2>{{APP_NAME_ABOUT_BOX}}</h2>
             <div class="about-info">
-                <p class="dialog-message">{{Strings.ABOUT_TEXT_LINE1}} <span id="about-build-number">{{BUILD_INFO}}</span></p>
+                <p class="dialog-message">{{Strings.ABOUT_TEXT_LINE1}} <span id="about-build-number">{{BUILD_INFO}}</span>
+                  {{#BUILD_TIMESTAMP}}
+                  <br><span class="dialog-message">{{Strings.ABOUT_TEXT_BUILD_TIMESTAMP}}{{BUILD_TIMESTAMP}}</span>
+                  {{/BUILD_TIMESTAMP}}
+                </p>
+
                 <p class="dialog-message"><!-- $NON-NLS$ -->Copyright 2012 - 2014 Adobe Systems Incorporated and its licensors. All rights reserved.</p>
                 <p class="dialog-message">{{{Strings.ABOUT_TEXT_WEB_PLATFORM_DOCS}}}</p>
                 <p class="dialog-message">{{{Strings.ABOUT_TEXT_LINE3}}}</p>

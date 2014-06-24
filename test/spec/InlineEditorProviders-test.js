@@ -524,9 +524,20 @@ define(function (require, exports, module) {
                     // verify popover message is displayed with correct string
                     expectPopoverMessageWithText(Strings.ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR);
 
-                    // verify popover message is automatically dismissed after short wait
-                    // current delay is 5 sec + 0.5 sec fade-out transition
-                    waits(6000);
+                    // verify popover message is still open after 4 sec
+                    waits(4000);
+                });
+
+                runs(function () {
+                    // verify popover message
+                    var $popover = testWindow.$(".popover-message");
+                    expect($popover.length).toEqual(1);
+                });
+                
+                runs(function () {
+                    // verify popover message is automatically dismissed after 2 more seconds
+                    // total delay is 5 sec + 0.5 sec fade-out transition
+                    waits(2000);
                 });
 
                 runs(function () {

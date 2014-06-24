@@ -54,28 +54,29 @@
  * FileSystem dispatches the following events:
  * (NOTE: attach to these events via `FileSystem.on()` - not `$(FileSystem).on()`)
  * 
- *    change - Sent whenever there is a change in the file system. The handler
- *          is passed up to three arguments: the changed entry and, if that changed entry 
- *          is a Directory, a list of entries added to the directory and a list of entries 
- *          removed from the Directory. The entry argument can be:
- *          *  a File - the contents of the file have changed, and should be reloaded.
- *          *  a Directory - an immediate child of the directory has been added, removed,
- *             or renamed/moved. Not triggered for "grandchildren".
- *               - If the added & removed arguments are null, we don't know what was added/removed:
- *                 clients should assume the whole subtree may have changed.
- *               - If the added & removed arguments are 0-length, there's no net change in the set
- *                 of files but a file may have been replaced: clients should assume the contents
- *                 of any immediate child file may have changed.
- *          *  null - a 'wholesale' change happened, and you should assume everything may
- *             have changed.
- *          For changes made externally, there may be a significant delay before a "change" event
- *          is dispatched.
- *    rename - Sent whenever a File or Directory is renamed. All affected File and Directory
- *          objects have been updated to reflect the new path by the time this event is dispatched.
- *          This event should be used to trigger any UI updates that may need to occur when a path
- *          has changed. Note that these events will only be sent for rename operations that happen
- *          within the filesystem. If a file is renamed externally, a change event on the parent
- *          directory will be sent instead.
+ * __change__ - Sent whenever there is a change in the file system. The handler
+ *   is passed up to three arguments: the changed entry and, if that changed entry 
+ *   is a Directory, a list of entries added to the directory and a list of entries 
+ *   removed from the Directory. The entry argument can be:
+ *   *  a File - the contents of the file have changed, and should be reloaded.
+ *   *  a Directory - an immediate child of the directory has been added, removed,
+ *      or renamed/moved. Not triggered for "grandchildren".
+ *      - If the added & removed arguments are null, we don't know what was added/removed:
+ *        clients should assume the whole subtree may have changed.
+ *      - If the added & removed arguments are 0-length, there's no net change in the set
+ *        of files but a file may have been replaced: clients should assume the contents
+ *        of any immediate child file may have changed.
+ *   *  null - a 'wholesale' change happened, and you should assume everything may
+ *      have changed.
+ *   For changes made externally, there may be a significant delay before a "change" event
+ *   is dispatched.
+ *
+ * __rename__ - Sent whenever a File or Directory is renamed. All affected File and Directory
+ *   objects have been updated to reflect the new path by the time this event is dispatched.
+ *   This event should be used to trigger any UI updates that may need to occur when a path
+ *   has changed. Note that these events will only be sent for rename operations that happen
+ *   within the filesystem. If a file is renamed externally, a change event on the parent
+ *   directory will be sent instead.
  * 
  * FileSystem may perform caching. But it guarantees:
  *    * File contents & metadata - reads are guaranteed to be up to date (cached data is not used
@@ -98,8 +99,8 @@ define(function (require, exports, module) {
         WatchedRoot     = require("filesystem/WatchedRoot");
     
     /**
-     * @constructor
      * The FileSystem is not usable until init() signals its callback.
+     * @constructor
      */
     function FileSystem() {
         // Create a file index
@@ -220,7 +221,7 @@ define(function (require, exports, module) {
      * objects which contain a file entry, filter function, and an indication of
      * whether the watched root is inactive, starting up or fully active.
      * 
-     * @type{Object.<string, WatchedRoot>}
+     * @type {Object.<string, WatchedRoot>}
      */
     FileSystem.prototype._watchedRoots = null;
     
@@ -228,8 +229,8 @@ define(function (require, exports, module) {
      * Finds a parent watched root for a given path, or returns null if a parent
      * watched root does not exist.
      * 
-     * @param{string} fullPath The child path for which a parent watched root is to be found
-     * @return{?{entry: FileSystemEntry, filter: function(string) boolean}} The parent
+     * @param {string} fullPath The child path for which a parent watched root is to be found
+     * @return {?{entry: FileSystemEntry, filter: function(string) boolean}} The parent
      *      watched root, if it exists, or null.
      */
     FileSystem.prototype._findWatchedRootForPath = function (fullPath) {
