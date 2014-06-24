@@ -44,7 +44,7 @@ define({
     "DIRECTORY_NAMES_LEDE"              : "Mappe navne",
     "FILENAMES_LEDE"                    : "Filnavne",
     "FILENAME"                          : "filnavn",
-    "DIRECTORY_NAME"                    : "mappe navn",
+    "DIRECTORY_NAME"                    : "mappenavn",
     
 
     // Project error strings
@@ -77,11 +77,11 @@ define({
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} virker ikke i browsere endnu.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} er lavet i HTML, men lige nu fungerer det som et almindeligt computerprogram, så du kan bruge det til at redigere lokale filer. Brug venligst program-skallen fra <b>github.com/adobe/brackets-shell</b> til at køre {APP_NAME}.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} er lavet i HTML, men lige nu fungerer det som et almindeligt computerprogram, så du kan bruge det til at redigere lokale filer. Brug venligst programskallen fra <b>github.com/adobe/brackets-shell</b> til at køre {APP_NAME}.",
     
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Fejl ved indeksering af filer",
-    "ERROR_MAX_FILES"                   : "Det maksimale antal filer er blevet indekseret. Handlinger som tilgår fil-indekset fungerer måske ikke korrekt.",
+    "ERROR_MAX_FILES"                   : "Det maksimale antal filer er blevet indekseret. Handlinger som tilgår filindekset fungerer måske ikke korrekt.",
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Fejl ved start af browser",
@@ -90,13 +90,13 @@ define({
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Fejl ved Live-Forhåndsvisning",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Forbinder til browser",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "For at Live-Forhåndsvisning kan forbinde, bliver Chrome nødt til at blive genstartet med fjern-fejlsøgning slået til.<br /><br />Ønsker du at genstarte Chrome og slå fjern-fejlsøgning til?",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "For at Live-Forhåndsvisning kan forbinde, bliver Chrome nødt til at blive genstartet med fjern-fejlsøgning slået til.<br /><br />Ønsker du at genstarte Chrome med fjern-fejlsøgning slået til?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Kan ikke indlæse siden for Live-Forhåndsvisning",
-    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Åbn en HTML-fil, eller sørg for at der er en index.html-fil i dit projekt, før du starter Live-Forhåndsvisning.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "For at bruge Live-Forhåndsvisning på en server-side fil, bliver du nødt til at angive en basis URL for dette projekt.",
-    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Fejl ved opstart af HTTP serveren for Live-Forhåndsvisning. Prøv igen.",
+    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Åbn en HTML-fil, eller sørg for at der er en fil ved navn <span class='dialog-filename'>index.html</span> i dit projekt, før du starter Live-Forhåndsvisning.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "For at bruge Live-Forhåndsvisning på en server-side fil, bliver du nødt til at angive en basis-URL for dette projekt.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Fejl ved opstart af HTTP-serveren for Live-Forhåndsvisning. Prøv igen.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Velkommen til Live-Forhåndsvisning!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live-Forhåndsvisning forbinder {APP_NAME} til din browser. Der åbnes en forhåndsvisning af din HTML-fil i browseren, som opdateres samtidig med at du redigerer koden.<br /><br />I denne tidlige version af {APP_NAME}, virker Live-Forhåndsvisning kun med <strong>Google Chrome</strong> og opdaterer direkte imens du redigerer <strong>CSS- eller HTML-filer</strong>. Ændringer i JavaScript-filer bliver automatisk genindlæst når du gemmer.<br /><br />(Denne besked bliver ikke vist igen.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live-Forhåndsvisning forbinder {APP_NAME} til din browser. Der åbnes en forhåndsvisning af din HTML-fil i browseren, som opdateres samtidig med at du redigerer i koden.<br /><br />I denne tidlige version af {APP_NAME}, virker Live-Forhåndsvisning kun med <strong>Google Chrome</strong> og opdaterer direkte imens du redigerer i <strong>CSS- eller HTML-filer</strong>. Ændringer i JavaScript-filer bliver automatisk genindlæst når du gemmer.<br /><br />(Denne besked bliver ikke vist igen.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For yderligere information, se <a href='{0}' title='{0}'>Løsningsforslag til forbindelsesfejl vedrørende Live-Forhåndsvisning</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live-Forhåndsvisning",
@@ -119,8 +119,8 @@ define({
     "CONFIRM_FOLDER_DELETE"             : "Er du sikker på at du vil slette mappen <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Fil slettet",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> er blevet ændret på disken.<br /><br />Ønsker du at gemme filen og overskrive disse ændringer?",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> er blevet ændret på disken, men har også ugemte ændringer i {APP_NAME}.<br /><br />Hvilken version ønsker du at beholde?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> er blevet slettet på disken, men har ugemte ændringer i {APP_NAME}.<br /><br />Ønsker du at beholde disse ændringer?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> er blevet ændret på disken, men har også ikke-gemte ændringer i {APP_NAME}.<br /><br />Hvilken version ønsker du at beholde?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> er blevet slettet på disken, men har ikke-gemte ændringer i {APP_NAME}.<br /><br />Ønsker du at beholde disse ændringer?",
     
     // Generic dialog/button labels
     "DONE"                              : "Færdig",
@@ -179,12 +179,12 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Mere end ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
-    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd klik for at udfolde/sammenfolde alt",
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl-/Cmd-klik for at udfolde/sammenfolde alt",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Fejl ved erstatning",
-    "REPLACE_IN_FILES_ERRORS"           : "Følgende filer blev ikke behandlet da de har ændret sig siden søgningen eller ikke kunne gemmes.",
+    "REPLACE_IN_FILES_ERRORS"           : "Følgende filer blev ikke behandlet, da de har ændret sig siden søgningen eller ikke kunne gemmes.",
     
-    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fejl ved hentning af opdaterings-information",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Der opstod en fejl ved hentning af seneste opdaterings-information fra serveren. Sørg venligst for at du er forbundet til internettet og prøv igen.",
+    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fejl ved hentning af opdateringsinformation",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Der opstod en fejl ved hentning af seneste opdateringsinformationer fra serveren. Sørg venligst for at du er forbundet til internettet og prøv igen.",
     
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "Nyt udelukkelsessæt\u2026",
@@ -193,7 +193,7 @@ define({
     "EXCLUDE_FILE_FILTER"               : "Udeluk {0}",
     "EDIT_FILE_FILTER"                  : "Redigér\u2026",
     "FILE_FILTER_DIALOG"                : "Redigér udelukkelsessæt",
-    "FILE_FILTER_INSTRUCTIONS"          : "Udeluk filer og mapper der matcher en eller flere af følgende strenge / delstrenge eller <a href='{0}' title='{0}'>jokertegn</a>. Indtast hver streng på hver sin linje.",
+    "FILE_FILTER_INSTRUCTIONS"          : "Udeluk filer og mapper der matcher en eller flere af følgende (del)strenge eller <a href='{0}' title='{0}'>jokertegn</a>. Indtast hver streng på hver sin linje.",
     "FILTER_NAME_PLACEHOLDER"           : "Navngiv dette udelukkelsessæt (valgfrit)",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "og {0} flere",
     "FILTER_COUNTING_FILES"             : "Tæller filer\u2026",
@@ -201,8 +201,8 @@ define({
     "FILTER_FILE_COUNT_ALL"             : "Tillader alle {0} filer {1}",
 
     // Quick Edit
-    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Ingen Lyn-Redigering tilgængelig for denne markør-position",
-    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS-Lyn-Redigering: placér markøren på et enkelt klasse-navn",
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Ingen Lyn-Redigering tilgængelig for denne markørposition",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS-Lyn-Redigering: placér markøren på et enkelt klassenavn",
     "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS-Lyn-Redigering: ukomplet klasse-attribut",
     "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS-Lyn-Redigering: ukomplet id-attribut",
     "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS-Lyn-Redigering: placér markøren i et tag, en klasse eller et id",
@@ -210,7 +210,7 @@ define({
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS-Lyn-Redigering: placér markøren i et funktionsnavn",
 
     // Quick Docs
-    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Ingen Lyn-Dokumentation tilgængelig for denne markør-position",
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Ingen Lyn-Dokumentation tilgængelig for denne markørposition",
 
     /**
      * ProjectManager
@@ -229,7 +229,7 @@ define({
     /**
      * StatusBar strings
      */
-    "STATUSBAR_CURSOR_POSITION"             : "Linje {0}, Kolonne {1}",
+    "STATUSBAR_CURSOR_POSITION"             : "Linje {0}, kolonne {1}",
     "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 {0} kolonne markeret",
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 {0} kolonner markeret",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 {0} linje markeret",
@@ -241,17 +241,17 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Klik for at ændre bredde af tabulatorstop",
     "STATUSBAR_SPACES"                      : "Mellemrum:",
     "STATUSBAR_TAB_SIZE"                    : "Tabulatorbredde:",
-    "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Linje",
-    "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Linjer",
+    "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} linje",
+    "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} linjer",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Udvidelser slået fra",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} problemer",
-    "SINGLE_ERROR"                          : "1 {0} Problem",
-    "MULTIPLE_ERRORS"                       : "{1} {0} Problemer",
-    "NO_ERRORS"                             : "Ingen {0} problemer fundet - godt gået!",
+    "SINGLE_ERROR"                          : "1 {0}-problem",
+    "MULTIPLE_ERRORS"                       : "{1} {0}-problemer",
+    "NO_ERRORS"                             : "Ingen {0}-problemer fundet - godt gået!",
     "NO_ERRORS_MULTIPLE_PROVIDER"           : "Ingen problemer fundet - godt gået!",
     "LINT_DISABLED"                         : "Lintning er slået fra",
     "NO_LINT_AVAILABLE"                     : "Ingen linter tilgængelig for {0}",
@@ -283,12 +283,12 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Gem alle",
     "CMD_FILE_SAVE_AS"                    : "Gem som\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Forhåndsvisning",
-    "CMD_PROJECT_SETTINGS"                : "Projekt-indstillinger\u2026",
+    "CMD_PROJECT_SETTINGS"                : "Projektindstillinger\u2026",
     "CMD_FILE_RENAME"                     : "Omdøb",
     "CMD_FILE_DELETE"                     : "Slet",
     "CMD_INSTALL_EXTENSION"               : "Installér udvidelse\u2026",
-    "CMD_EXTENSION_MANAGER"               : "Udvidelses-håndtering\u2026",
-    "CMD_FILE_REFRESH"                    : "Genindlæs fil-træ",
+    "CMD_EXTENSION_MANAGER"               : "Udvidelseshåndtering\u2026",
+    "CMD_FILE_REFRESH"                    : "Genindlæs filtræ",
     "CMD_QUIT"                            : "Afslut",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Afslut",
@@ -315,8 +315,8 @@ define({
     "CMD_LINE_DOWN"                       : "Flyt linje ned",
     "CMD_OPEN_LINE_ABOVE"                 : "Åbn linjen ovenover",
     "CMD_OPEN_LINE_BELOW"                 : "Åbn linjen nedenunder",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto-luk parenteser",
-    "CMD_SHOW_CODE_HINTS"                 : "Vis kode-hjælp",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Luk parenteser automatisk",
+    "CMD_SHOW_CODE_HINTS"                 : "Vis kodehjælp",
     
     // Search menu commands
     "FIND_MENU"                           : "Søg",
@@ -324,7 +324,7 @@ define({
     "CMD_FIND_NEXT"                       : "Find næste",
     "CMD_FIND_PREVIOUS"                   : "Find forrige",
     "CMD_FIND_ALL_AND_SELECT"             : "Find alle og markér",
-    "CMD_ADD_NEXT_MATCH"                  : "Tilføj næste forekomst som markering",
+    "CMD_ADD_NEXT_MATCH"                  : "Tilføj næste forekomst til markeringer",
     "CMD_SKIP_CURRENT_MATCH"              : "Spring over og tilføj næste forekomst",
     "CMD_FIND_IN_FILES"                   : "Søg i filer",
     "CMD_FIND_IN_SELECTED"                : "Søg i valgte fil/mappe",
@@ -344,7 +344,7 @@ define({
     "CMD_SCROLL_LINE_UP"                  : "Rul en linje op",
     "CMD_SCROLL_LINE_DOWN"                : "Rul en linje ned",
     "CMD_TOGGLE_LINE_NUMBERS"             : "Linjenumre",
-    "CMD_TOGGLE_ACTIVE_LINE"              : "Fremhæv aktive linje",
+    "CMD_TOGGLE_ACTIVE_LINE"              : "Fremhæv aktiv linje",
     "CMD_TOGGLE_WORD_WRAP"                : "Tekstombrydning",
     "CMD_LIVE_HIGHLIGHT"                  : "Fremhæv i Live-Forhåndsvisning",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint filer når de gemmes",
@@ -366,7 +366,7 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Ny regel",
     "CMD_NEXT_DOC"                        : "Næste dokument",
     "CMD_PREV_DOC"                        : "Forrige dokument",
-    "CMD_SHOW_IN_TREE"                    : "Vis i fil-træ",
+    "CMD_SHOW_IN_TREE"                    : "Vis i filtræ",
     "CMD_SHOW_IN_EXPLORER"                : "Vis i Stifinder",
     "CMD_SHOW_IN_FINDER"                  : "Vis i Finder",
     "CMD_SHOW_IN_OS"                      : "Vis i OS",
@@ -379,7 +379,7 @@ define({
     "CMD_SUGGEST"                         : "Foreslå en funktion",
     "CMD_RELEASE_NOTES"                   : "Udgivelsesnoter",
     "CMD_GET_INVOLVED"                    : "Bliv involveret",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Vis udvidelses-mappe",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Vis udvidelsesmappe",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} hjemmeside",
     "CMD_TWITTER"                         : "{TWITTER_NAME} på Twitter",
     "CMD_ABOUT"                           : "Om {APP_TITLE}",
@@ -387,7 +387,7 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "eksperimentiel version",
-    "DEVELOPMENT_BUILD"                    : "udvikler-version",
+    "DEVELOPMENT_BUILD"                    : "udviklerversion",
     "RELOAD_FROM_DISK"                     : "Genindlæs fra disk",
     "KEEP_CHANGES_IN_EDITOR"               : "Behold ændringer i editor",
     "CLOSE_DONT_SAVE"                      : "Luk (uden at gemme)",
@@ -403,16 +403,16 @@ define({
     "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Dokumentationen og det grafiske logo fra Web Platform er udgivet under en Creative Commons Attribution licens, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Der ligger en ny version af {APP_NAME} klar! Klik her for at læse mere.",
     "UPDATE_AVAILABLE_TITLE"               : "Opdatering klar",
-    "UPDATE_MESSAGE"                       : "Hey, der er en ny version af {APP_NAME} tilgængelig. Her er nogen af de nye funktioner:",
+    "UPDATE_MESSAGE"                       : "Hey! Der er en ny version af {APP_NAME} tilgængelig. Her er nogen af de nye funktioner:",
     "GET_IT_NOW"                           : "Hent den nu!",
-    "PROJECT_SETTINGS_TITLE"               : "Projekt-indstillinger for: {0}",
-    "PROJECT_SETTING_BASE_URL"             : "Basis URL",
+    "PROJECT_SETTINGS_TITLE"               : "Projektindstillinger for: {0}",
+    "PROJECT_SETTING_BASE_URL"             : "Basis-URL",
     "PROJECT_SETTING_BASE_URL_HINT"        : "For at bruge en lokal server, indtast en URL såsom http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "{0}-protokollen er ikke understøttet af Live-Forhåndsvisning&mdash;Brug venligst http: eller https: .",
-    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Basis URL'en kan ikke indeholde søge-parametre såsom \"{0}\".",
-    "BASEURL_ERROR_HASH_DISALLOWED"        : "Basis URL'en kan ikke indeholde interne henvisninger såsom \"{0}\".",
+    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Basis-URL'en kan ikke indeholde søgeparametre såsom \"{0}\".",
+    "BASEURL_ERROR_HASH_DISALLOWED"        : "Basis-URL'en kan ikke indeholde interne henvisninger såsom \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Specielle tegn såsom '{0}' skal kodes med %.",
-    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Ukendt fejl ved tolkning af Basis URL",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Ukendt fejl ved tolkning af Basis-URL",
     
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Ny regel",
@@ -437,19 +437,19 @@ define({
     "INSTALL_CANCELED"                     : "Installation afbrudt.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Det modtagede indhold er ikke en gyldig zip-fil.",
-    "INVALID_PACKAGE_JSON"                 : "package.json-filen er ugyldig (fejl: {0}).",
-    "MISSING_PACKAGE_NAME"                 : "package.json-filen angiver ikke et pakkenavn.",
+    "INVALID_PACKAGE_JSON"                 : "Filen <span class='dialog-filename'>package.json</span> er ugyldig (fejl: {0}).",
+    "MISSING_PACKAGE_NAME"                 : "Filen <span class='dialog-filename'>package.json</span> angiver ikke et pakkenavn.",
     "BAD_PACKAGE_NAME"                     : "{0} er et ugyldigt pakkenavn.",
-    "MISSING_PACKAGE_VERSION"              : "package.json-filen angiver ikke en pakkeversion.",
+    "MISSING_PACKAGE_VERSION"              : "Filen <span class='dialog-filename'>package.json</span> angiver ikke en pakkeversion.",
     "INVALID_VERSION_NUMBER"               : "Pakkeversionsnummeret ({0}) er ugyldigt.",
     "INVALID_BRACKETS_VERSION"             : "Kompatibilitets-strengen for {APP_NAME} ({0}) er ugyldig.",
     "DISALLOWED_WORDS"                     : "Ordene ({1}) er ikke tilladt i {0}-feltet.",
     "API_NOT_COMPATIBLE"                   : "Udvidelsen er ikke kompatibel med denne version af {APP_NAME}. Den er installeret i mappen for deaktiverede udvidelser.",
-    "MISSING_MAIN"                         : "Pakken har ingen main.js-fil.",
+    "MISSING_MAIN"                         : "Pakken har ingen fil ved navn <span class='dialog-filename'>main.js</span>.",
     "EXTENSION_ALREADY_INSTALLED"          : "Denne pakke vil overskrive en tidligere installation. Overskriv den gamle udvidelse?",
     "EXTENSION_SAME_VERSION"               : "Denne pakke er samme version som den installerede. Overskriv den eksisterende installation?",
     "EXTENSION_OLDER_VERSION"              : "Denne pakke er version {0}, som er ældre end den nuværende installation ({1}). Overskriv den eksisterende installation?",
-    "DOWNLOAD_ID_IN_USE"                   : "Intern fejl: download ID er allerede i brug.",
+    "DOWNLOAD_ID_IN_USE"                   : "Intern fejl: download-ID er allerede i brug.",
     "NO_SERVER_RESPONSE"                   : "Kan ikke forbinde til server.",
     "BAD_HTTP_STATUS"                      : "Filen kunne ikke findes på serveren (HTTP {0}).",
     "CANNOT_WRITE_TEMP"                    : "Ikke i stand til at gemme nedhentede data til en midlertidig fil.",
@@ -458,8 +458,8 @@ define({
     "UNSUPPORTED_PROTOCOL"                 : "URL'en skal være en http- eller https-URL.",
     "UNKNOWN_ERROR"                        : "Ukendt intern fejl.",
     // For NOT_FOUND_ERR, see generic strings above
-    "EXTENSION_MANAGER_TITLE"              : "Udvidelses-håndtering",
-    "EXTENSION_MANAGER_ERROR_LOAD"         : "Ikke i stand til at tilgå udvidelses-registret. Prøv igen senere.",
+    "EXTENSION_MANAGER_TITLE"              : "Udvidelseshåndtering",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Ikke i stand til at tilgå udvidelsesregistret. Prøv igen senere.",
     "INSTALL_FROM_URL"                     : "Installér fra URL\u2026",
     "EXTENSION_AUTHOR"                     : "Forfatter",
     "EXTENSION_DATE"                       : "Dato",
@@ -475,10 +475,10 @@ define({
     "EXTENSION_UPDATE_INSTALLED"           : "Opdatering til denne udvidelse er blevet hentet og vil blive installeret efter at {APP_NAME} er genindlæst.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Søg",
     "EXTENSION_MORE_INFO_LINK"             : "Mere",
-    "BROWSE_EXTENSIONS"                    : "Gennemse Udvidelser",
-    "EXTENSION_MANAGER_REMOVE"             : "Fjern Udvidelse",
+    "BROWSE_EXTENSIONS"                    : "Gennemse udvidelser",
+    "EXTENSION_MANAGER_REMOVE"             : "Fjern udvidelse",
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Ikke i stand til at fjerne en eller flere udvidelser: {0}. {APP_NAME} vil stadig blive genindlæst.",
-    "EXTENSION_MANAGER_UPDATE"             : "Opdatér Udvidelse",
+    "EXTENSION_MANAGER_UPDATE"             : "Opdatér udvidelse",
     "EXTENSION_MANAGER_UPDATE_ERROR"       : "Ikke i stand til at opdatere en eller flere udvidelser: {0}. {APP_NAME} vil stadig blive genindlæst.",
     "MARKED_FOR_REMOVAL"                   : "Markeret til fjernelse",
     "UNDO_REMOVE"                          : "Fortryd",
@@ -491,7 +491,7 @@ define({
     "UPDATE_AND_RELOAD"                    : "Opdatér udvidelser og genindlæs",
     "PROCESSING_EXTENSIONS"                : "Behandler udvidelsesændringer\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Kunne ikke fjerne udvidelsen {0} da den ikke er installeret.",
-    "NO_EXTENSIONS"                        : "Ingen udvidelser er installeret endnu.<br>Klik på \"Udvalg\" foroven for at komme igang.",
+    "NO_EXTENSIONS"                        : "Ingen udvidelser er installeret endnu.<br>Klik på \"Udvalg\" foroven for at komme i gang.",
     "NO_EXTENSION_MATCHES"                 : "Ingen udvidelser matcher din søgning.",
     "REGISTRY_SANITY_CHECK_WARNING"        : "Vær forsigtig med at installere udvidelser fra en ukendt kilde.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installeret",
@@ -542,15 +542,15 @@ define({
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Nuværende farve",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Oprindelig farve",
-    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa format",
-    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex format",
-    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa format",
+    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa-format",
+    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex-format",
+    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa-format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Brugt {1} gang)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Brugt {1} gange)",
     
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Hop til definition",
-    "CMD_SHOW_PARAMETER_HINT"                   : "Vis parameter-hjælp",
+    "CMD_SHOW_PARAMETER_HINT"                   : "Vis parameterhjælp",
     "NO_ARGUMENTS"                              : "<ingen parametre>",
     
     // extensions/default/JSLint
