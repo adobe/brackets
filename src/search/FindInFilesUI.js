@@ -150,7 +150,7 @@ define(function (require, exports, module) {
             multifile: true,
             replace: showReplace,
             initialQuery: initialString,
-            queryPlaceholder: (showReplace ? Strings.CMD_REPLACE_IN_SUBTREE : Strings.CMD_FIND_IN_SUBTREE),
+            queryPlaceholder: Strings.FIND_QUERY_PLACEHOLDER,
             scopeLabel: FindUtils.labelForScope(scope)
         });
         _findBar.open();

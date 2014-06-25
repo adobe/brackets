@@ -150,7 +150,9 @@ define(function (require, exports, module) {
     function _doReplaceInOneFile(fullPath, matchInfo, replaceText, options) {
         var doc = DocumentManager.getOpenDocumentForPath(fullPath);
         options = options || {};
-        if (options.forceFilesOpen && !doc) {
+        // If we're forcing files open, or if the document is in the working set but not actually open
+        // yet, we want to open the file and do the replacement in memory.
+        if (!doc && (options.forceFilesOpen || DocumentManager.findInWorkingSet(fullPath) !== -1)) {
             return DocumentManager.getDocumentForPath(fullPath).then(function (newDoc) {
                 return _doReplaceInDocument(newDoc, matchInfo, replaceText, options.isRegexp);
             });
