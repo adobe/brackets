@@ -235,6 +235,25 @@ define(function (require, exports, module) {
             filterPicker = FileFilters.createFilterPicker(exclusionsContext);
             // TODO: include in FindBar? (and disable it when FindBar is disabled)
             _findBar._modalBar.getRoot().find(".scope-group").append(filterPicker);
+
+            // Appending FilterPicker can change height of modal bar, so resize editor.
+            // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
+            // height of the modal bar so the code doesn't appear to shift if possible.
+            //
+            // TODO: This is an isolated fix for #8242.
+            // 1. If we keep this code, then this is done in a couple places in ModalBar,
+            //    so this code should be a utility function
+            // 2. Another solution is to pass this info FindBar.open
+            // 3. Also could make exclusion part of dialog a fixed height
+            var fullEditor = EditorManager.getCurrentFullEditor(),
+                scrollPos;
+            if (fullEditor) {
+                scrollPos = fullEditor.getScrollPos();
+            }
+            EditorManager.resizeEditor();
+            if (fullEditor) {
+                fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + _findBar._modalBar.height());
+            }
         }
         
         handleQueryChange();
