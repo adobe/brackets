@@ -227,10 +227,11 @@ define(function (require, exports, module) {
                 
         // Show file-exclusion UI *unless* search scope is just a single file
         if (!scope || scope.isDirectory) {
-            var exclusionsContext = {
-                label: FindUtils.labelForScope(scope),
-                promise: candidateFilesPromise
-            };
+            var oldModalBarHeight = _findBar._modalBar.height(),
+                exclusionsContext = {
+                    label: FindUtils.labelForScope(scope),
+                    promise: candidateFilesPromise
+                };
 
             filterPicker = FileFilters.createFilterPicker(exclusionsContext);
             // TODO: include in FindBar? (and disable it when FindBar is disabled)
@@ -249,6 +250,7 @@ define(function (require, exports, module) {
                 scrollPos;
             if (fullEditor) {
                 scrollPos = fullEditor.getScrollPos();
+                scrollPos.y -= oldModalBarHeight;   // modalbar already showing, adjust for old height
             }
             EditorManager.resizeEditor();
             if (fullEditor) {
