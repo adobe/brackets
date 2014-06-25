@@ -48,17 +48,26 @@ define(function (require, exports, module) {
      */
     function parseDollars(replaceWith, match) {
         replaceWith = replaceWith.replace(/(\$+)(\d{1,2}|&)/g, function (whole, dollars, index) {
-            var parsedIndex = parseInt(index, 10);
-            if (dollars.length % 2 === 1) { // check if dollar signs escape themselves (for example $$1, $$$$&)
+            if (dollars.length % 2 === 1) { // make sure dollar signs don't escape themselves (like $$1, $$$$&)
                 if (index === "&") { // handle $&
+                    // slice the first dollar (but leave any others to get unescaped below) and return the
+                    // whole match
                     return dollars.substr(1) + (match[0] || "");
-                } else if (parsedIndex !== 0) { // handle $n or $nn, don't handle $0 or $00
-                    return dollars.substr(1) + (match[parsedIndex] || "");
+                } else {
+                    // now we're sure index is an integer, so we can parse it
+                    var parsedIndex = parseInt(index, 10);
+                    if (parsedIndex !== 0) { // handle $n or $nn, but don't handle $0 or $00
+                        // slice the first dollar (but leave any others to get unescaped below) and return the
+                        // the corresponding match
+                        return dollars.substr(1) + (match[parsedIndex] || "");
+                    }
                 }
             }
-            return whole;
+            // this code gets called if the dollar signs escape themselves or if $0/$00 (not handled) was present
+            return whole; // return everything to get handled below
         });
-        replaceWith = replaceWith.replace(/\$\$/g, "$"); // replace escaped dollar signs (for example $$) with single ones
+        // replace escaped dollar signs (i.e. $$, $$$$, ...) with single ones (unescaping)
+        replaceWith = replaceWith.replace(/\$\$/g, "$");
         return replaceWith;
     }
     
