@@ -150,7 +150,7 @@ define({
     "BUTTON_CASESENSITIVE_HINT"         : "Sensible a mayúsculas",
     "BUTTON_REGEXP_HINT"                : "Expresión regular",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Reemplazar sin deshacer",
-    "REPLACE_WITHOUT_UNDO_WARNING"      : "Dado que más de {0} archivos necesitan ser modificados, {APP_NAME} modificara los archivos no abiertos en el disco.<br />No sera posible deshacer los reemplazos en esos archivos.",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Dado que hay más de {0} archivos que necesitan ser modificados, {APP_NAME} modificara los archivos no abiertos en el disco.<br />Por lo tanto, no sera posible deshacer los reemplazos en esos archivos.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Reemplazar sin deshacer",
     
     "OPEN_FILE"                         : "Abrir archivo",
@@ -165,7 +165,7 @@ define({
     "FIND_REPLACE_TITLE_LABEL"          : "Reemplazar",
     "FIND_REPLACE_TITLE_WITH"           : "con",
     "FIND_TITLE_LABEL"                  : "Se encontró",
-    "FIND_TITLE_SUMMARY"                : " &mdash; {0} {1} {2} in {3}",
+    "FIND_TITLE_SUMMARY"                : " &mdash; {0} {1} {2} en {3}",
     
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} {1}",
