@@ -150,7 +150,7 @@ define({
     "BUTTON_CASESENSITIVE_HINT"         : "Sensible a mayúsculas",
     "BUTTON_REGEXP_HINT"                : "Expresión regular",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Reemplazar sin deshacer",
-    "REPLACE_WITHOUT_UNDO_WARNING"      : "Dado que hay más de {0} archivos que necesitan ser modificados, {APP_NAME} modificara los archivos no abiertos en el disco.<br />Por lo tanto, no sera posible deshacer los reemplazos en esos archivos.",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Dado que hay más de {0} archivos que necesitan ser modificados, {APP_NAME} modificará los archivos no abiertos en el disco.<br />Por lo tanto, no será posible deshacer los reemplazos en esos archivos.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Reemplazar sin deshacer",
     
     "OPEN_FILE"                         : "Abrir archivo",
