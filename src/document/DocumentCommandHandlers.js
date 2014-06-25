@@ -266,7 +266,7 @@ define(function (require, exports, module) {
                 // So we need to explicitly close the currently viewing image file whose filename is
                 // no longer valid. Calling notifyPathDeleted will close the image vieer and then select
                 // the previously opened text file or show no-editor if none exists.
-                MainViewManager.notifyPathDeleted(fullFilePath);
+                DocumentManager.notifyPathDeleted(fullFilePath);
             } else {
                 // For performance, we do lazy checking of file existence, so it may be in pane view list
                 MainViewManager.removeFromPaneViewList(MainViewManager.FOCUSED_PANE, FileSystem.getFileForPath(fullFilePath));
@@ -721,10 +721,10 @@ define(function (require, exports, module) {
                 if (suppressError) {
                     result.resolve();
                 } else {
-                FileUtils.showFileOpenError(error, doc.file.fullPath)
-                    .done(function () {
-                        result.reject(error);
-                    });
+                    FileUtils.showFileOpenError(error, doc.file.fullPath)
+                        .done(function () {
+                            result.reject(error);
+                        });
                 }
             });
         
@@ -1006,58 +1006,28 @@ define(function (require, exports, module) {
     function handleFileClose(commandData) {
         var file,
             promptOnly,
-            _forceClose;
+            _forceClose,
+            paneId = MainViewManager.FOCUSED_PANE;
         
         if (commandData) {
             file        = commandData.file;
             promptOnly  = commandData.promptOnly;
             _forceClose = commandData._forceClose;
+            paneId      = commandData.paneId || paneId;
         }
         
         // utility function for handleFileClose: closes document & removes from pane view list
         function doClose(file) {
             if (!promptOnly) {
-                // This selects a different document if the pane view list has any other options
-                DocumentManager.closeFullEditor(file);
-                
-                EditorManager.focusEditor();
+                MainViewManager.doClose(paneId, file);
             }
         }
 
         var result = new $.Deferred(), promise = result.promise();
         
-        function doCloseCustomViewer() {
-            if (!promptOnly) {
-                var nextFile = MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, 1);
-                if (nextFile) {
-                    // opening a text file will automatically close the custom viewer.
-                    // This is done in the currentDocumentChange handler in EditorManager
-                    doOpen(nextFile.fullPath).always(function () {
-                        EditorManager.focusEditor();
-                        result.resolve();
-                    });
-                } else {
-                    EditorManager._closeCustomViewer();
-                    result.resolve();
-                }
-            }
-        }
-
-        // Close custom viewer if, either
-        // - a custom viewer is currently displayed and no file specified in command data
-        // - a custom viewer is currently displayed and the file specified in command data
-        //   is the file in the custom viewer
-        if (!DocumentManager.getCurrentDocument()) {
-            if ((EditorManager.getCurrentlyViewedPath() && !file) ||
-                    (file && file.fullPath === EditorManager.getCurrentlyViewedPath())) {
-                doCloseCustomViewer();
-                return promise;
-            }
-        }
-        
         // Default to current document if doc is null
-        if (!file && DocumentManager.getCurrentDocument()) {
-            file = DocumentManager.getCurrentDocument().file;
+        if (!file) {
+            file = MainViewManager.getCurrentlyViewedFile();
         }
         
         // No-op if called when nothing is open; TODO: (issue #273) should command be grayed out instead?

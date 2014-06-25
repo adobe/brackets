@@ -367,7 +367,8 @@ define(function (require, exports, module) {
             if (!moved) {
                 // Click on close icon, or middle click anywhere - close the item without selecting it first
                 if (fromClose || event.which === MIDDLE_BUTTON) {
-                    CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
+                    CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY),
+                                                                 paneId: _getMyPaneID()});
                 } else {
                     // Normal right and left click - select the item
                     FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.PANE_VIEW_LIST_VIEW);

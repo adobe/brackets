@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
+        MainViewManager     = require("view/MainViewManager"),
         FileSystemError     = require("filesystem/FileSystemError"),
         FileSystem          = require("filesystem/FileSystem"),
         WorkspaceManager    = require("view/WorkspaceManager"),
@@ -437,7 +438,7 @@ define(function (require, exports, module) {
      */
     function destroyMockEditor(doc) {
         EditorManager._notifyActiveEditorChanged(null);
-        EditorManager._destroyEditorIfUnneeded(doc);
+        MainViewManager.destroyEditorIfNotNeeded(doc);
 
         // Clear editor holder so EditorManager doesn't try to resize destroyed object
         $("#mock-editor-holder").remove();

@@ -79,8 +79,7 @@ define(function (require, exports, module) {
     };
     
     function getActivePaneId() {
-        // TODO
-        return _activePaneId; 
+        return _activePaneId;
     }
 
     function _getPaneFromPaneId(paneId) {
@@ -93,6 +92,10 @@ define(function (require, exports, module) {
         }
         
         return null;
+    }
+    
+    function _getActivePane() {
+        return _getPaneFromPaneId(_activePaneId);
     }
     
     
@@ -110,16 +113,18 @@ define(function (require, exports, module) {
             if (pane) {
                 return pane.getViewList();
             }
-        } 
+        }
         return null;
     }
 
    
     function _doFindInViewList(paneId, fullPath, method) {
-        var pane, 
+        var property,
+            pane,
             index;
+        
         if (paneId === ALL_PANES) {
-            for (var property in _paneViews) {
+            for (property in _paneViews) {
                 if (_paneViews.hasOwnProperty(property)) {
                     pane =  _paneViews[property];
                     index = pane[method].call(pane, fullPath);
@@ -128,8 +133,8 @@ define(function (require, exports, module) {
                     }
                 }
             }
-            // not found
-            return -1; 
+            
+            return -1; // not found
         } else {
             pane = _getPaneFromPaneId(paneId);
             if (pane) {
@@ -138,6 +143,10 @@ define(function (require, exports, module) {
         }
     }
 
+    function getCurrentlyViewedFile() {
+        return _getActivePane().getCurrentlyViewedFile();
+    }
+    
     
     /**
      * Gets the index of the file matching fullPath in the pane view list
@@ -225,12 +234,7 @@ define(function (require, exports, module) {
 
         if (pane && pane.removeFromViewList(file)) {
             
-            if (pane.getViewListSize() === 0) {
-                pane.showInterstitial(true);
-            }
-            
             // Dispatch event
-            EditorManager.notifyPathRemovedFromPaneList(pane.id, file);
             $(exports).triggerHandler("paneViewListRemove", [file, suppressRedraw, pane.id]);
         }
     }
@@ -245,7 +249,7 @@ define(function (require, exports, module) {
      */
     function removeFromPaneViewList(paneId, file, suppressRedraw) {
         if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function(pane) {
+            _.forEach(_paneViews, function (pane) {
                 _removeFromPaneViewList(pane.id, file, suppressRedraw);
             });
         } else {
@@ -275,17 +279,12 @@ define(function (require, exports, module) {
             return;
         }
         
-        if (pane.getViewListSize() === 0) {
-            pane.showInterstitial(true);
-        }
-        
-        EditorManager.notifyPathRemovedFromPaneList(pane.id, fileList);
         $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
     }
 
     function removeListFromPaneViewList(paneId, list) {
         if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function(pane) {
+            _.forEach(_paneViews, function (pane) {
                 _removeListFromPaneViewList(pane.id, list);
             });
         } else {
@@ -306,8 +305,6 @@ define(function (require, exports, module) {
         if (!fileList) {
             return;
         }
-        pane.showInterstitial(true);
-        EditorManager.notifyPathRemovedFromPaneList(paneId, fileList);
         $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
     }
     
@@ -320,7 +317,7 @@ define(function (require, exports, module) {
      */
     function removeAllFromPaneViewList(paneId) {
         if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function(pane) {
+            _.forEach(_paneViews, function (pane) {
                 _removeAllFromPaneViewList(pane.id);
             });
         } else {
@@ -387,37 +384,6 @@ define(function (require, exports, module) {
         
         // If no doc open or pane view list empty, there is no "next" file
         return null;
-    }
-
-    /* 
-     * TODO: This is scaffolding for now.  
-     * There were 2 different impls of notifyPathDeleted and depending on who caught the 
-     *  operation, it called a different API
-     *
-     * I've refactored projectManager to always call DocumentManager's implementation
-     *  instead of deciding if it should call DocumentManager's or EditorManager's
-     *  Impl based on whether or not the DocumentManager has an open document. This reduces
-     *  the dependency on EditorManager and the decision on whether a document is open.
-     *
-     * The DocumentCammandCommandHandler's doOpen function has _cleanUp code that
-     *  now calls this function to remove the custom viewer and open the next document 
-     *  in the MRU list 
-     *
-     * The impl in DocumentManager  does something I'm not familiar with by calling syncOpenDocuments
-     *  I've redirected it to this function when there isn't an open document so that editorManager
-     *  can release whatever references it had to the document and tear down the editor for it.
-     *
-     * This avoids a circular dependency between EditorManager and DocumentManager (at least for this API)
-     */
-
-    /**
-     * finds the next file to move into view and notifies the editor manager
-     * of the file that's being deleted and the file to replace it with.
-     * @param {!string} fullpath path of the file that is being deleted
-     */
-    function notifyPathDeleted(fullpath) {
-        var fileToOpen = traversePaneViewListByMRU(FOCUSED_PANE, 1);
-        EditorManager.notifyPathDeleted(fullpath, fileToOpen);
     }
     
     /**
@@ -524,23 +490,50 @@ define(function (require, exports, module) {
         var panes = Object.keys(_paneViews),
             size = 100 / panes.length;
         
-        _.forEach(_paneViews, function(pane) {
+        _.forEach(_paneViews, function (pane) {
             if (_orientation === VERTICAL) {
-                pane.$el.css({height: "100%", 
-                              width: size + "%", 
+                pane.$el.css({height: "100%",
+                              width: size + "%",
                               float: "left"
                              });
             } else {
-                pane.$el.css({height: size + "%", 
-                              width: "100%", 
+                pane.$el.css({height: size + "%",
+                              width: "100%",
                               float: "none"
                              });
             }
+            
+            pane.updateLayout(refreshHint);
         });
         
-        EditorManager.resizeAllToFit(refreshHint);
+        
     }
     
+    function doClose(paneId, file) {
+        var pane = _getPaneFromPaneId(paneId),
+            dispatchEvent = pane.findInViewList(file.fullPath) !== -1;
+        
+        pane.doRemoveViewOf(file);
+        if (dispatchEvent) {
+            $(exports).triggerHandler("paneViewListRemove", [file, false, pane.id]);
+        }
+    }
+    
+    function doCloseAll(paneId, file) {
+        var fileList;
+        if (paneId === ALL_PANES) {
+            _.forEach(_paneViews, function (pane) {
+                fileList = pane.getViewList();
+                pane.doRemoveAllViews();
+                $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
+            });
+        } else {
+            var pane = _getPaneFromPaneId(paneId);
+            fileList = pane.getViewList();
+            pane.doRemoveAllViews();
+            $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
+        }
+    }
     
     function createDocumentEditor(document, paneId) {
         var pane = _getPaneFromPaneId(paneId);
@@ -549,34 +542,34 @@ define(function (require, exports, module) {
             return;
         }
         
-        pane.$el.find(".not-editor").css({display: "none"});
-        EditorManager._createFullEditorForDocument(document, pane.$el);
+        EditorManager.doOpenDocument(document, pane);
     }
 
+    function destroyEditorIfNotNeeded(document) {
+        if (document._masterEditor) {
+            _.forEach(_paneViews, function (pane) {
+                pane.destroyViewIfNotNeeded(document._masterEditor);
+            });
+        }
+    }
     
     /**
      *
      */
     function _openDocument(event, doc) {
-        var pane = _getPaneFromPaneId(FOCUSED_PANE);
-        
-        if (!pane) {
-            return;
-        }
-
-        pane.showInterstitial(false);
-        EditorManager.doOpenDocument(doc, pane.$el);
+        createDocumentEditor(doc, FOCUSED_PANE);
     }
     
     function _getPaneIdFromContainer($container) {
-        for (var property in _paneViews) {
+        var property;
+        for (property in _paneViews) {
             if (_paneViews.hasOwnProperty(property)) {
                 var pane = _paneViews[property];
                 if (pane.$el === $container) {
                     return pane.id;
                 }
             }
-        }        
+        }
     }
 
     function _setActivePaneId(newPaneId) {
@@ -594,7 +587,7 @@ define(function (require, exports, module) {
 
             _setActivePaneId(newPaneId);
         }
-    }    
+    }
     
     function _createPaneIfNecessary(paneId) {
         _$container = $("#editor-holder");
@@ -603,13 +596,13 @@ define(function (require, exports, module) {
             _paneViews[paneId] = pane;
             $(exports).triggerHandler("paneCreated", pane.id);
             
-            pane.$el.on("click", function() {
+            pane.$el.on("click", function () {
                 _setActivePaneId(pane.id);
             });
         }
     }
     
-    AppInit.htmlReady(function() {
+    AppInit.htmlReady(function () {
         _createPaneIfNecessary(FIRST_PANE);
         _updateLayout();
     });
@@ -631,20 +624,20 @@ define(function (require, exports, module) {
         _updateLayout();
     }
     
-    function handleSplitHorizontially () {
+    function handleSplitHorizontially() {
         _orientation = HORIZONTAL;
         _createPaneIfNecessary(SECOND_PANE);
         _updateLayout();
     }
     
-    AppInit.appReady(function() {
+    AppInit.appReady(function () {
         CommandManager.register("Split Vertically", CMD_SPLIT_VERTICALLY,   handleSplitVertically);
         CommandManager.register("Split Horizontally", CMD_SPLIT_HORIZONTALLY, handleSplitHorizontially);
 
         var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
         if (menu) {
             menu.addMenuDivider();
-            menu.addMenuItem(CMD_SPLIT_VERTICALLY);    
+            menu.addMenuItem(CMD_SPLIT_VERTICALLY);
             menu.addMenuItem(CMD_SPLIT_HORIZONTALLY);
         }
     });
@@ -670,10 +663,13 @@ define(function (require, exports, module) {
     
     // Explicit stuff
     exports.createDocumentEditor             = createDocumentEditor;
-
-    // Migration helpers
-    exports.notifyPathDeleted                = notifyPathDeleted;
+    exports.destroyEditorIfNotNeeded         = destroyEditorIfNotNeeded;
+    exports.doClose                          = doClose;
+    exports.doCloseAll                       = doCloseAll;
     
+    // Convenience
+    exports.getCurrentlyViewedFile           = getCurrentlyViewedFile;
+
     // Constants
     exports.ALL_PANES                        = ALL_PANES;
     exports.FOCUSED_PANE                     = FOCUSED_PANE;

@@ -174,7 +174,12 @@ define(function (require, exports, module) {
         //      even though it does not have focus (such as when clicking on another element (toolbar, menu, etc...)
         //      So we'll have to do revise this to call
         //          MainViewManager.getTargetPane().getCurrentFullEditor().getDocument()
-        return getOpenDocumentForPath(EditorManager.getCurrentlyViewedPath());
+        var file = MainViewManager.getCurrentlyViewedFile();
+        if (file) {
+            return getOpenDocumentForPath(file.fullPath);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -182,12 +187,7 @@ define(function (require, exports, module) {
      * @return {?Document}
      */
     function getCurrentDocument() {
-        // NOTE: This will eventually be deprecated and a deprecation warning will be added here
-        //          the shim _getCurrentDocument() is being used because the MainViewManager has
-        //          not been fully fleshed out to support a method for getting the current
-        //          editor. Once that has been done then the instances of getCurrentDocument in
-        //          Brackets will change to use that API and this function will emit a deprecation
-        //          warning for extensions still using DocumentManager.getCurrentDocument();
+        DeprecationWarning.deprecationWarning("Use MainViewManager.getCurrentlyViewedFile() instead of DocumentManager.getCurrentDocument()", true);
         return _getCurrentDocument();
     }
 
@@ -198,15 +198,7 @@ define(function (require, exports, module) {
      *         or close current document when there are no other documents left to open. This
      */
     function clearCurrentDocument() {
-        // Change model & dispatch event
-        var previousDocument = _getCurrentDocument();
-
-        if (!previousDocument) {
-            return;
-        }
-        
-        // (this event triggers EditorManager to actually clear the editor UI)
-        $(exports).triggerHandler("currentDocumentChange", [null, previousDocument]);
+        DeprecationWarning.deprecationWarning("DocumentManager.clearCurrentDocument()", true);
     }
     
     /**
@@ -320,6 +312,16 @@ define(function (require, exports, module) {
         MainViewManager.removeFromPaneViewList(MainViewManager.FOCUSED_PANE, file, suppressRedraw);
     }
     
+    /**
+     * @deprecated Use MainViewManager.doCloseAll() instead
+     * Equivalent to calling closeFullEditor() for all Documents.
+     * Calling this discards any unsaved changes, so the UI should confirm with the user before calling this.
+     */
+    function closeAll() {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.doCloseAll() instead of DocumentManager.closeAll()", true);
+        MainViewManager.doCloseAll(MainViewManager.ALL_PANES);
+    }
+            
 
     /**
      * Moves document to the front of the MRU list, IF it's in the working set; no-op otherwise.
@@ -364,6 +366,14 @@ define(function (require, exports, module) {
         return MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, inc);
     }
     
+    /**
+     * @deprecated use MainViewManager.doClose() instead
+     * @param {!File} file
+     */
+    function closeFullEditor(file) {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.doClose() instead of DocumentManager.closeFullEditor()", true);
+        return MainViewManager.doClose(MainViewManager.ALL_PANES, file);
+    }    
     
     /**
      * Changes currentDocument to the given Document, firing currentDocumentChange, which in turn
@@ -388,10 +398,8 @@ define(function (require, exports, module) {
         if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
             MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file);
         }
-        
-        
-        // (this event triggers EditorManager to actually switch editors in the UI)
-        $(exports).triggerHandler("currentDocumentChange", [doc, currentDocument]);
+
+        MainViewManager.createDocumentEditor(doc, MainViewManager.FOCUSED_PANE);
 
         // Adjust MRU working set ordering (except while in the middle of a Ctrl+Tab sequence)
         if (!_documentNavPending) {
@@ -400,63 +408,6 @@ define(function (require, exports, module) {
         PerfUtils.addMeasurement(perfTimerName);
     }
 
-    
-    /**
-     * Warning: low level API - use FILE_CLOSE command in most cases.
-     * Closes the full editor for the given file (if there is one), and removes it from the working
-     * set. Any other editors for this Document remain open. Discards any unsaved changes without prompting.
-     *
-     * Changes currentDocument if this file was the current document (may change to null).
-     *
-     * This is a subset of notifyFileDeleted(). Use this for the user-facing Close command.
-     *
-     * @param {!File} file
-     * @param {boolean} skipAutoSelect - if true, don't automatically open and select the next document
-     */
-    function closeFullEditor(file, skipAutoSelect) {
-        // If this was the current document shown in the editor UI, we're going to switch to a
-        // different document (or none if working set has no other options)
-        var currentDocument = _getCurrentDocument();
-        if (currentDocument && currentDocument.file.fullPath === file.fullPath) {
-            // Get next most recent doc in the MRU order
-            var nextFile = MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, 1);
-            if (nextFile && nextFile.fullPath === currentDocument.file.fullPath) {
-                // getNextPrevFile() might return the file we're about to close if it's the only one open (due to wraparound)
-                nextFile = null;
-            }
-            
-            // Switch editor to next document (or blank it out)
-            if (nextFile && !skipAutoSelect) {
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath })
-                    .fail(function () {
-                        // File chosen to be switched to could not be opened, and the original file
-                        // is still in editor. Close it again so code will try to open the next file,
-                        // or empty the editor if there are no other files.
-                        closeFullEditor(file);
-                    });
-            } else {
-                clearCurrentDocument();
-            }
-        }
-        
-        // Remove closed doc from working set, if it was in there
-        // This happens regardless of whether the document being closed was the current one or not
-        MainViewManager.removeFromPaneViewList(MainViewManager.FOCUSED_PANE, file);
-        
-        // Note: EditorManager will dispose the closed document's now-unneeded editor either in
-        // response to the editor-swap call above, or the removeFromWorkingSet() call, depending on
-        // circumstances. See notes in EditorManager for more.
-    }
-
-    /**
-     * Equivalent to calling closeFullEditor() for all Documents. Same caveat: this discards any
-     * unsaved changes, so the UI should confirm with the user before calling this.
-     */
-    function closeAll() {
-        clearCurrentDocument();
-        MainViewManager.removeAllFromPaneViewList(MainViewManager.ALL_PANES);
-    }
-        
     
     
     /**
@@ -470,7 +421,7 @@ define(function (require, exports, module) {
             // Is the only ref to this document its own master Editor?
             if (doc._refCount === 1 && doc._masterEditor) {
                 // Destroy the Editor if it's not being kept alive by the UI
-                EditorManager._destroyEditorIfUnneeded(doc);
+                MainViewManager.destroyEditorIfNotNeeded(doc);
             }
         });
     }
@@ -636,9 +587,6 @@ define(function (require, exports, module) {
      * @param {boolean} skipAutoSelect - if true, don't automatically open/select the next document
      */
     function notifyFileDeleted(file, skipAutoSelect) {
-        // First ensure it's not currentDocument, and remove from working set
-        closeFullEditor(file, skipAutoSelect);
-        
         // Notify all other editors to close as well
         var doc = getOpenDocumentForPath(file.fullPath);
         if (doc) {
@@ -649,6 +597,23 @@ define(function (require, exports, module) {
         if (doc && doc._refCount > 0) {
             console.log("WARNING: deleted Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
         }
+
+        $(exports).triggerHandler("pathDeleted", file.fullPath);
+    }
+    
+    /**
+     * Called after a file or folder has been deleted. This function is responsible
+     * for updating underlying model data and notifying all views of the change.
+     *
+     * @param {string} path The path of the file/folder that has been deleted
+     */
+    function notifyPathDeleted(path) {
+        /* FileSyncManager.syncOpenDocuments() does all the work of closing files
+           in the working set and notifying the user of any unsaved changes. */
+        FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
+
+        // Send a "pathDeleted" event. This will trigger the views to update.
+        $(exports).triggerHandler("pathDeleted", path);
     }
     
     /**
@@ -672,32 +637,7 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("fileNameChange", [oldName, newName]);
     }
     
-    /**
-     * Called after a file or folder has been deleted. This function is responsible
-     * for updating underlying model data and notifying all views of the change.
-     *
-     * @param {string} path The path of the file/folder that has been deleted
-     */
-    function notifyPathDeleted(path) {
-        /*
-         * This code was migrated from Project Manager to start condensing the 
-         *  functionality into MainViewManager and reduce dependencies. Unfortunately, 
-         *  the case of deleting the current document still needs to go through the 
-         *  syncOpenDocuments API and dispatch the pathDeleted event. This will be
-         *  refactored soon.
-         */
-        if (getCurrentDocument()) {
-            /* FileSyncManager.syncOpenDocuments() does all the work of closing files
-               in the working set and notifying the user of any unsaved changes. */
-            FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
 
-            // Send a "pathDeleted" event. This will trigger the views to update.
-            $(exports).triggerHandler("pathDeleted", path);
-        } else {
-            MainViewManager.notifyPathDeleted(path);
-        }
-    }
-    
     /**
      * @private
      * Update document

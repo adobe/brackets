@@ -895,13 +895,24 @@ define(function (require, exports, module) {
     */
     Editor.prototype.getDocument = function () {
         return this.document;
-    };    
+    };
+    
+   /**
+    * Gets the document associated with this editor
+    */
+    Editor.prototype.getFullPath = function () {
+        return this.document.file.fullPath;
+    };
+    
+    Editor.prototype.getFile = function () {
+        return this.document.file;
+    };
     
     /**
      * gets the container
      * @return {!jQueryObject} container
      */
-    Editor.prototype.getContainer = function() {
+    Editor.prototype.getContainer = function () {
         return this.$editorHolder;
     };
     
@@ -1630,7 +1641,7 @@ define(function (require, exports, module) {
         }
         
         return result.promise();
-    };    
+    };
 
     /**
      * Returns a list of all inline widgets currently open in this editor. Each entry contains the
@@ -1809,7 +1820,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that will be resolved when an InlineWidget 
      *      is created or rejected if no inline providers have offered one.
      */
-    Editor.prototype.openInlineWidget = function(providers, defaultErrorMsg) {
+    Editor.prototype.openInlineWidget = function (providers, defaultErrorMsg) {
         // Run through inline-editor providers until one responds
         var pos = this.getCursorPos(),
             inlinePromise,
@@ -2227,7 +2238,7 @@ define(function (require, exports, module) {
     };
 
     
-    Editor.prototype.resize = function(editorAreaHt, forceRefresh) {
+    Editor.prototype.resize = function (editorAreaHt, forceRefresh) {
         // TODO: Deprecate this API
         var curRoot = this.getRootElement(),
             curWidth = $(curRoot).width();
@@ -2250,7 +2261,7 @@ define(function (require, exports, module) {
         }
     };
     
-    Editor.prototype.resizeToFit = function(forceRefresh) {
+    Editor.prototype.resizeToFit = function (forceRefresh) {
         var curRoot = this.getRootElement(),
             curWidth = $(curRoot).width(),
             editorAreaHt = this.$editorHolder.height();
@@ -2272,15 +2283,15 @@ define(function (require, exports, module) {
         if (forceRefresh) {
             this.refreshAll(true);
         }
-    };    
+    };
     
     Editor.prototype.jumpToDefinition = function (providers) {
-        var i, 
+        var i,
             promise,
             pos = this.getCursorPos(),
             result = new $.Deferred();
 
-       PerfUtils.addMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+        PerfUtils.addMeasurement(PerfUtils.JUMP_TO_DEFINITION);
         
         // Run through providers until one responds
         for (i = 0; i < providers.length && !promise; i++) {
@@ -2294,7 +2305,7 @@ define(function (require, exports, module) {
                 PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
                 result.resolve();
             }).fail(function () {
-                    PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
+                PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
                 result.reject();
             });
         } else {
