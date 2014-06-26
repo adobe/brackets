@@ -249,17 +249,40 @@ define(function (require, exports, module) {
                         });
                     });
                     self._$table.find(".check-one").prop("checked", isChecked);
+                    self._$table.find(".check-one-file").prop("checked", isChecked);
                     self._allChecked = isChecked;
+                })
+                .on("click.searchResults", ".check-one-file", function (e) {
+                    var isChecked = $(this).is(":checked"),
+                        $row = $(e.target).closest("tr"),
+                        item = self._searchList[$row.data("file-index")],
+                        $matchRows = $row.nextUntil(".file-section");
+                    
+                    if (item) {
+                        self._model.results[item.fullPath].matches.forEach(function (match) {
+                            match.isChecked = isChecked;
+                        });
+                    }
+                    $matchRows.find(".check-one").prop("checked", isChecked);
+                    e.stopPropagation();
                 })
                 .on("click.searchResults", ".check-one", function (e) {
                     var $row = $(e.target).closest("tr"),
+                        $firstMatch = ($row.data("item-index") === 0) ? $row : $row.prevUntil(".file-section").last(),
+                        $fileRow = $firstMatch.prev(),
+                        $fileCheckbox = $fileRow.find(".check-one-file"),
                         item = self._searchList[$row.data("file-index")],
                         match = self._model.results[item.fullPath].matches[$row.data("match-index")],
                         $checkAll = self._panel.$panel.find(".check-all");
 
                     match.isChecked = $(this).is(":checked");
-                    if (!match.isChecked && $checkAll.is(":checked")) {
-                        $checkAll.prop("checked", false);
+                    if (!match.isChecked) {
+                        if ($checkAll.is(":checked")) {
+                            $checkAll.prop("checked", false);
+                        }
+                        if ($fileCheckbox.is(":checked")) {
+                            $fileCheckbox.prop("checked", false);
+                        }
                     }
                     e.stopPropagation();
                 })
@@ -318,12 +341,13 @@ define(function (require, exports, module) {
      */
     SearchResultsView.prototype._render = function () {
         var searchItems, match, i, item, multiLine,
-            count          = this._model.countFilesMatches(),
-            searchFiles    = this._model.getSortedFiles(this._initialFilePath),
-            lastIndex      = this._getLastIndex(count.matches),
-            matchesCounter = 0,
-            showMatches    = false,
-            self           = this;
+            count            = this._model.countFilesMatches(),
+            searchFiles      = this._model.getSortedFiles(this._initialFilePath),
+            lastIndex        = this._getLastIndex(count.matches),
+            matchesCounter   = 0,
+            showMatches      = false,
+            allInFileChecked = true,
+            self             = this;
         
         this._showSummary();
         this._searchList   = [];
@@ -361,6 +385,7 @@ define(function (require, exports, module) {
                 // Add a row for each match in the file
                 searchItems = [];
 
+                allInFileChecked = true;
                 // Add matches until we get to the last match of this item, or filling the page
                 while (i < item.matches.length && matchesCounter < lastIndex) {
                     match     = item.matches[i];
@@ -378,6 +403,9 @@ define(function (require, exports, module) {
                         end:        match.end,
                         isChecked:  match.isChecked
                     });
+                    if (!match.isChecked) {
+                        allInFileChecked = false;
+                    }
                     matchesCounter++;
                     i++;
                 }
@@ -396,6 +424,7 @@ define(function (require, exports, module) {
                     fileIndex: self._searchList.length,
                     filename:  displayFileName,
                     fullPath:  fullPath,
+                    isChecked: allInFileChecked,
                     items:     searchItems
                 });
             }
