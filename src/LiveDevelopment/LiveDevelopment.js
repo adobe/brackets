@@ -487,7 +487,7 @@ define(function LiveDevelopment(require, exports, module) {
                     (!_liveDocument || (doc !== _liveDocument.doc))) {
                 // The doc may already have an editor (e.g. starting live preview from an css file),
                 // so pass the editor if any
-                var liveDoc = _createDocument(doc, doc._masterEditor || undefined);
+                var liveDoc = _createDocument(doc, doc._masterEditor);
                 if (liveDoc) {
                     _server.add(liveDoc);
                     _relatedDocuments[doc.url] = liveDoc;
