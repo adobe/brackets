@@ -57,7 +57,10 @@ define(function (require, exports, module) {
         ignoreChange;         // can ignore next "change" event if true;
     
     // Define the defaultExclusions which are files that are known to cause Tern to run out of control.
-    PreferencesManager.definePreference("jscodehints.defaultExclusions", "array", ["ionic*.min.js"]);
+    PreferencesManager.definePreference("jscodehints.defaultExclusions", "array", []);
+    
+    // This preference controls when Tern will time out when trying to understand files
+    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 5000);
     
     /**
      * Sets the configuration, generally for testing/debugging use.

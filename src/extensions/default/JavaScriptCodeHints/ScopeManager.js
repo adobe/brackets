@@ -214,11 +214,7 @@ define(function (require, exports, module) {
         }
         
         var excludes = preferences.getExcludedFiles();
-        if (!excludes) {
-            return false;
-        }
-        
-        if (excludes.test(file.name)) {
+        if (excludes && excludes.test(file.name)) {
             return true;
         }
 
@@ -1012,7 +1008,8 @@ define(function (require, exports, module) {
                     type        : MessageIds.TERN_INIT_MSG,
                     dir         : dir,
                     files       : files,
-                    env         : ternEnvironment
+                    env         : ternEnvironment,
+                    timeout     : PreferencesManager.get("jscodehints.inferenceTimeout")
                 };
                 
                 if (config.debug) {
