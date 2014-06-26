@@ -130,8 +130,9 @@ define(function (require, exports, module) {
     var handleFileSaveAs;
 
     function updateTitle() {
-        var currentDoc = DocumentManager.getCurrentDocument(),
-            currentlyViewedPath = EditorManager.getCurrentlyViewedPath(),
+        var currentlyViewedFile = MainViewManager.getCurrentlyViewedFile(),
+            currentlyViewedPath = currentlyViewedFile ? currentlyViewedFile.fullPath : null,
+            currentDoc = DocumentManager.getOpenDocumentForPath(currentlyViewedPath),
             windowTitle = brackets.config.app_title;
 
         if (!brackets.nativeMenus) {
@@ -203,28 +204,22 @@ define(function (require, exports, module) {
     }
 
     function updateDocumentTitle() {
-        var newDocument = DocumentManager.getCurrentDocument();
-
-        // TODO: This timer is causing a "Recursive tests with the same name are not supported"
-        // exception. This code should be removed (if not needed), or updated with a unique
-        // timer name (if needed).
-        // var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
+        var newFile = MainViewManager.getCurrentlyViewedFile();
         
-        if (newDocument) {
-            _currentTitlePath = _shortTitleForDocument(newDocument);
-        } else {
-            var currentlyViewedFilePath = EditorManager.getCurrentlyViewedPath();
-            if (currentlyViewedFilePath) {
-                _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(currentlyViewedFilePath);
+        if (newFile) {
+            var newDocument = DocumentManager.getOpenDocumentForPath(newFile.fullPath);
+
+            if (newDocument) {
+                _currentTitlePath = _shortTitleForDocument(newDocument);
             } else {
-                _currentTitlePath = null;
+                _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(newFile.fullPath);
             }
+        } else {
+            _currentTitlePath = null;
         }
         
         // Update title text & "dirty dot" display
         updateTitle();
-
-        // PerfUtils.addMeasurement(perfTimerName);
     }
 
     function handleDirtyChange(event, changedDoc) {
@@ -252,7 +247,7 @@ define(function (require, exports, module) {
         // TODO should be removed once bug is closed.
         // if we are already displaying a file do nothing but resolve immediately.
         // this fixes timing issues in test cases.
-        if (EditorManager.getCurrentlyViewedPath() === fullPath) {
+        if (MainViewManager.getCurrentlyViewedPath() === fullPath) {
             result.resolve(DocumentManager.getCurrentDocument());
             return result.promise();
         }
@@ -293,30 +288,14 @@ define(function (require, exports, module) {
                 PerfUtils.addMeasurement(perfTimerName);
             });
 
-            var viewProvider = EditorManager.getCustomViewerForPath(fullPath);
-            if (viewProvider) {
-                var file = FileSystem.getFileForPath(fullPath);
-                file.exists(function (fileError, fileExists) {
-                    if (fileExists) {
-                        EditorManager._showCustomViewer(viewProvider, fullPath);
-                        result.resolve();
-                    } else {
-                        fileError = fileError || FileSystemError.NOT_FOUND;
-                        _showErrorAndCleanUp(fileError);
-                    }
+            var file = FileSystem.getFileForPath(fullPath);
+            MainViewManager.doOpen(MainViewManager.FOCUSED_PANE, file)
+                .done(function () {
+                    result.resolve();
+                })
+                .fail(function (fileError) {
+                    _showErrorAndCleanUp(fileError, fullPath);
                 });
-                
-            } else {
-                // Load the file if it was never open before, and then switch to it in the UI
-                DocumentManager.getDocumentForPath(fullPath)
-                    .done(function (doc) {
-                        DocumentManager.setCurrentDocument(doc);
-                        result.resolve(doc);
-                    })
-                    .fail(function (fileError) {
-                        _showErrorAndCleanUp(fileError, fullPath);
-                    });
-            }
         }
 
         return result.promise();
@@ -558,8 +537,7 @@ define(function (require, exports, module) {
         var defaultExtension = "";  // disable preference setting for now
         
         var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, defaultExtension);
-        DocumentManager.setCurrentDocument(doc);
-        EditorManager.focusEditor();
+        MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, doc);
         
         return new $.Deferred().resolve(doc).promise();
     }
@@ -838,7 +816,11 @@ define(function (require, exports, module) {
                 // (Issue #4489) if we're saving an untitled document, go ahead and switch to this document
                 //   in the editor, so that if we're, for example, saving several files (ie. Save All),
                 //   then the user can visually tell which document we're currently prompting them to save.
-                DocumentManager.setCurrentDocument(doc);
+                var info = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, origPath);
+                
+                if (info !== -1) {
+                    MainViewManager.doOpen(info.paneId, doc.file);
+                }
 
                 // If the document is untitled, default to project root.
                 saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
@@ -1007,7 +989,7 @@ define(function (require, exports, module) {
         var file,
             promptOnly,
             _forceClose,
-            paneId = MainViewManager.FOCUSED_PANE;
+            paneId = MainViewManager.ALL_PANES;
         
         if (commandData) {
             file        = commandData.file;
@@ -1196,13 +1178,7 @@ define(function (require, exports, module) {
         result.done(function (listAfterSave) {
             listAfterSave = listAfterSave || list;
             if (!promptOnly) {
-                // Call clear current document here because we need the editor
-                //  to close the current document and this is the only way to 
-                //  do that at the moment.
-                if (clearCurrentDoc) {
-                    DocumentManager.clearCurrentDocument();
-                }
-                MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, listAfterSave);
+                MainViewManager.doCloseList(MainViewManager.ALL_PANES, listAfterSave);
             }
         });
         
@@ -1221,20 +1197,12 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
-        return _closeList(MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE),
-                                    (commandData && commandData.promptOnly), true, (commandData && commandData._forceClose)).done(function () {
-            if (!DocumentManager.getCurrentDocument()) {
-                EditorManager._closeCustomViewer();
-            }
-        });
+        return _closeList(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES),
+                                    (commandData && commandData.promptOnly), (commandData && commandData._forceClose));
     }
 
     function handleFileCloseList(commandData) {
-        return _closeList(commandData.fileList, false, false).done(function () {
-            if (!DocumentManager.getCurrentDocument()) {
-                EditorManager._closeCustomViewer();
-            }
-        });
+        return _closeList(commandData.fileList, false);
     }
 
     /**
@@ -1378,7 +1346,7 @@ define(function (require, exports, module) {
     }
 
     function handleShowInTree() {
-        ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
+        ProjectManager.showInTree(MainViewManager.getCurrentlyViewedFile());
     }
 
     function handleFileDelete() {
@@ -1619,7 +1587,7 @@ define(function (require, exports, module) {
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
     $(DocumentManager).on("fileNameChange", updateDocumentTitle);
-    $(EditorManager).on("currentlyViewedFileChange", updateDocumentTitle);
+    $(MainViewManager).on("currentFileChanged", updateDocumentTitle);
 
     // Reset the untitled document counter before changing projects
     $(ProjectManager).on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });

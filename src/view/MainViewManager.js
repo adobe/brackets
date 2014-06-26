@@ -106,8 +106,14 @@ define(function (require, exports, module) {
      */
     function getPaneViewList(paneId) {
         if (paneId === ALL_PANES) {
-            // TODO combine all panes
-            return getPaneViewList(FIRST_PANE);
+            var result = [];
+            
+            _.forEach(_paneViews, function (pane) {
+                var viewList = pane.getViewList();
+                result = _.union(result, viewList);
+            });
+            
+            return result;
         } else {
             var pane = _getPaneFromPaneId(paneId);
             if (pane) {
@@ -119,24 +125,22 @@ define(function (require, exports, module) {
 
    
     function _doFindInViewList(paneId, fullPath, method) {
-        var property,
-            pane,
-            index;
         
         if (paneId === ALL_PANES) {
-            for (property in _paneViews) {
-                if (_paneViews.hasOwnProperty(property)) {
-                    pane =  _paneViews[property];
-                    index = pane[method].call(pane, fullPath);
-                    if (index >= 0) {
-                        return index;
-                    }
-                }
-            }
+            var index,
+                result = -1;
             
-            return -1; // not found
+            _.forEach(_paneViews, function (pane) {
+                index = pane[method].call(pane, fullPath);
+                if (index >= 0) {
+                    result = {paneId: pane.id, index: index};
+                    return false;
+                }
+            });
+            
+            return result;
         } else {
-            pane = _getPaneFromPaneId(paneId);
+            var pane = _getPaneFromPaneId(paneId);
             if (pane) {
                 return pane[method].call(pane, fullPath);
             }
@@ -147,6 +151,10 @@ define(function (require, exports, module) {
         return _getActivePane().getCurrentlyViewedFile();
     }
     
+    function getCurrentlyViewedPath() {
+        var file = _getActivePane().getCurrentlyViewedFile();
+        return file ? file.fullPath : null;
+    }
     
     /**
      * Gets the index of the file matching fullPath in the pane view list
@@ -509,17 +517,86 @@ define(function (require, exports, module) {
         
     }
     
+    
+    function doEdit(paneId, doc) {
+        var pane = _getPaneFromPaneId(paneId);
+        
+        if (!pane) {
+            return;
+        }
+
+        // If file is untitled or otherwise not within project tree, add it to
+        // working set right now (don't wait for it to become dirty)
+        if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
+            addToPaneViewList(paneId, doc.file);
+        }
+        
+        EditorManager.doOpenDocument(doc, pane);
+        
+        if (pane.id === _activePaneId) {
+            $(exports).triggerHandler("currentFileChanged", [doc.file]);
+        }
+
+        makePaneViewMostRecent(paneId, doc.file);
+    }
+    
+    function doOpen(paneId, file) {
+        var result = new $.Deferred();
+        
+        if (!file) {
+            return result.reject("bad argument");
+        }
+        
+        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+
+        // TODO: If the file open and there is a view, then 
+        //          just switch to it
+        //       If the file is in the working set but not yet 
+        //          open then we need to create the document editor for it
+        //       If the pane where the file doesn't agree then
+        //          we either have to move it per this request or 
+        //          disregard the input and just use the pane where it was
+        //          originally opened
+        
+        if (doc) {
+            doEdit(paneId, doc);
+            result.resolve(doc);
+        } else if (EditorManager.canOpenFile(file.fullPath)) {
+            DocumentManager.getDocumentForPath(file.fullPath)
+                .done(function (doc) {
+                    doEdit(paneId, doc);
+                    result.resolve(doc);
+                })
+                .fail(function (fileError) {
+                    result.reject(fileError);
+                });
+        } else {
+            result.reject("custom viewers not yet implemented with split view. check back later.");
+        }
+        
+        return result;
+    }
+
     function doClose(paneId, file) {
+        if (paneId === ALL_PANES) {
+            var info = findInPaneViewList(ALL_PANES, file.fullPath);
+            if (info === -1) {
+                return;
+            }
+            paneId = info.paneId;
+        }
+
+        
         var pane = _getPaneFromPaneId(paneId),
             dispatchEvent = pane.findInViewList(file.fullPath) !== -1;
         
-        pane.doRemoveViewOf(file);
+        pane.doRemoveView(file);
         if (dispatchEvent) {
             $(exports).triggerHandler("paneViewListRemove", [file, false, pane.id]);
         }
     }
     
-    function doCloseAll(paneId, file) {
+    function doCloseAll(paneId) {
         var fileList;
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
@@ -534,17 +611,21 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
         }
     }
-    
-    function createDocumentEditor(document, paneId) {
-        var pane = _getPaneFromPaneId(paneId);
-        
-        if (!pane) {
-            return;
-        }
-        
-        EditorManager.doOpenDocument(document, pane);
-    }
 
+    function doCloseList(paneId, fileList) {
+        var closedList;
+        if (paneId === ALL_PANES) {
+            _.forEach(_paneViews, function (pane) {
+                closedList = pane.doRemoveViews(fileList);
+                $(exports).triggerHandler("paneViewListRemoveList", [closedList, pane.id]);
+            });
+        } else {
+            var pane = _getPaneFromPaneId(paneId);
+            closedList = pane.doRemoveViews(fileList);
+            $(exports).triggerHandler("paneViewListRemoveList", [closedList, pane.id]);
+        }
+    }
+    
     function destroyEditorIfNotNeeded(document) {
         if (document._masterEditor) {
             _.forEach(_paneViews, function (pane) {
@@ -556,10 +637,6 @@ define(function (require, exports, module) {
     /**
      *
      */
-    function _openDocument(event, doc) {
-        createDocumentEditor(doc, FOCUSED_PANE);
-    }
-    
     function _getPaneIdFromContainer($container) {
         var property;
         for (property in _paneViews) {
@@ -577,6 +654,7 @@ define(function (require, exports, module) {
             var oldPaneId = _activePaneId;
             _activePaneId = newPaneId;
             $(exports).triggerHandler("activePaneChange", [newPaneId, oldPaneId]);
+            $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile()]);
         }
     }
     
@@ -585,15 +663,23 @@ define(function (require, exports, module) {
             var $container = current.getContainer(),
                 newPaneId = _getPaneIdFromContainer($container);
 
-            _setActivePaneId(newPaneId);
+            if (newPaneId !== _activePaneId) {
+                _setActivePaneId(newPaneId);
+            } else {
+                $(exports).triggerHandler("currentFileChanged", [current.getFile()]);
+            }
         }
     }
     
     function _createPaneIfNecessary(paneId) {
+        var pane;
+        
         _$container = $("#editor-holder");
+        
         if (!_paneViews.hasOwnProperty(paneId)) {
-            var pane = new Pane(paneId, _$container);
+            pane = new Pane(paneId, _$container);
             _paneViews[paneId] = pane;
+            
             $(exports).triggerHandler("paneCreated", pane.id);
             
             pane.$el.on("click", function () {
@@ -611,7 +697,6 @@ define(function (require, exports, module) {
     $(ProjectManager).on("projectOpen",                       _loadViewState);
     $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
     $(WorkspaceManager).on("workspaceUpdateLayout",           _updateLayout);
-    $(DocumentManager).on("currentDocumentChange",            _openDocument);
     $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
     
     var CMD_SPLIT_VERTICALLY = "cmd.splitVertically";
@@ -662,13 +747,16 @@ define(function (require, exports, module) {
     exports.getActivePaneId                  = getActivePaneId;
     
     // Explicit stuff
-    exports.createDocumentEditor             = createDocumentEditor;
     exports.destroyEditorIfNotNeeded         = destroyEditorIfNotNeeded;
+    exports.doEdit                           = doEdit;
+    exports.doOpen                           = doOpen;
     exports.doClose                          = doClose;
     exports.doCloseAll                       = doCloseAll;
+    exports.doCloseList                      = doCloseList;
     
     // Convenience
     exports.getCurrentlyViewedFile           = getCurrentlyViewedFile;
+    exports.getCurrentlyViewedPath           = getCurrentlyViewedPath;
 
     // Constants
     exports.ALL_PANES                        = ALL_PANES;

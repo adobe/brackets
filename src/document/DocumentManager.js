@@ -163,13 +163,12 @@ define(function (require, exports, module) {
         return null;
     }
  
-    
     /**
-     * [shim] Returns a document open for the currently focused pane's editor
+     * Returns the Document that is currently open in the editor UI. May be null.
      * @return {?Document}
      */
-    function _getCurrentDocument() {
-        // using getCurrentFullEditor() will return the editor whether it has focus or not
+    function getCurrentDocument() {
+      // using getCurrentFullEditor() will return the editor whether it has focus or not
         //      this doesn't work in scenarios where you want the active editor's document
         //      even though it does not have focus (such as when clicking on another element (toolbar, menu, etc...)
         //      So we'll have to do revise this to call
@@ -180,15 +179,6 @@ define(function (require, exports, module) {
         } else {
             return null;
         }
-    }
-
-    /**
-     * Returns the Document that is currently open in the editor UI. May be null.
-     * @return {?Document}
-     */
-    function getCurrentDocument() {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.getCurrentlyViewedFile() instead of DocumentManager.getCurrentDocument()", true);
-        return _getCurrentDocument();
     }
 
     
@@ -350,7 +340,7 @@ define(function (require, exports, module) {
         if (_documentNavPending) {
             _documentNavPending = false;
             
-            _makeMostRecent(_getCurrentDocument());
+            _makeMostRecent(getCurrentDocument());
         }
     }
     
@@ -373,9 +363,10 @@ define(function (require, exports, module) {
     function closeFullEditor(file) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.doClose() instead of DocumentManager.closeFullEditor()", true);
         return MainViewManager.doClose(MainViewManager.ALL_PANES, file);
-    }    
+    }
     
     /**
+     * @deprecated use MainViewManger.doOpen() instead
      * Changes currentDocument to the given Document, firing currentDocumentChange, which in turn
      * causes this Document's main editor UI to be shown in the editor pane, updates the selection
      * in the file tree / working set UI, etc. This call may also add the item to the working set.
@@ -384,28 +375,8 @@ define(function (require, exports, module) {
      *      working set.
      */
     function setCurrentDocument(doc) {
-        var currentDocument = _getCurrentDocument();
-        
-        // If this doc is already current, do nothing
-        if (currentDocument === doc) {
-            return;
-        }
-
-        var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + doc.file.fullPath);
-        
-        // If file is untitled or otherwise not within project tree, add it to
-        // working set right now (don't wait for it to become dirty)
-        if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
-            MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file);
-        }
-
-        MainViewManager.createDocumentEditor(doc, MainViewManager.FOCUSED_PANE);
-
-        // Adjust MRU working set ordering (except while in the middle of a Ctrl+Tab sequence)
-        if (!_documentNavPending) {
-            _makeMostRecent(doc);
-        }
-        PerfUtils.addMeasurement(perfTimerName);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.doOpen() instead of DocumentManager.setCurrentDocument() ", true);
+        MainViewManager.doOpen(doc.file);
     }
 
     
@@ -746,6 +717,19 @@ define(function (require, exports, module) {
     // Handle file saves that may affect preferences
     $(exports).on("documentSaved", function (e, doc) {
         PreferencesManager.fileChanged(doc.file.fullPath);
+    });
+    
+    $(MainViewManager).on("currentFileChanged", function (e, file) {
+        if (file) {
+            var doc = getDocumentForPath(file.fullPath);
+            if (doc) {
+                var listeners = $._data(exports, "events");
+                if (listeners && listeners.currentDocumentChange && listeners.currentDocumentChange.length > 0) {
+                    DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChanged' instead.", true);
+                }
+                $(exports).triggerHandler("currentDocumentChange", [doc, null]);
+            }
+        }
     });
     
     // Deprecated APIs   

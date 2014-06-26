@@ -344,7 +344,7 @@ define(function (require, exports, module) {
         }
     };
     
-    Pane.prototype.doRemoveViewOf = function (file) {
+    Pane.prototype.doRemoveView = function (file) {
         var nextFile = this.traverseViewListByMRU(1, file.fullPath);
         if (nextFile) {
             if (this.views.hasOwnProperty(nextFile)) {
@@ -391,6 +391,26 @@ define(function (require, exports, module) {
             delete this.views[view.getFullPath()];
             view.destroy();
         });
+    };
+    
+    Pane.prototype.doRemoveViews = function (fileList) {
+        var result = this.removeListFromViewList(fileList);
+        
+        var viewNeedsClosing = function (fullPath) {
+            return _.findIndex(this._viewListAddedOrder, function (file) {
+                return file.fullPath === fullPath;
+            });
+        };
+        
+        _.forEach(this._views, function (view) {
+            var viewPath = view.getFullPath();
+            if (viewNeedsClosing(viewPath)) {
+                delete this.views[viewPath];
+                view.destroy();
+            }
+        });
+        
+        return result;
     };
     
     exports.Pane = Pane;
