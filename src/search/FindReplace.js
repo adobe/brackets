@@ -569,7 +569,7 @@ define(function (require, exports, module) {
             multifile: false,
             replace: replace,
             initialQuery: initialQuery,
-            queryPlaceholder: Strings.CMD_FIND_FIELD_PLACEHOLDER
+            queryPlaceholder: Strings.FIND_QUERY_PLACEHOLDER
         });
         findBar.open();
 

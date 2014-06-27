@@ -133,11 +133,12 @@ define({
 	"DELETE": "Supprimer",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
-        
+    
     // Find, Replace, Find in Files
 	"FIND_RESULT_COUNT": "{0} résultats",
 	"FIND_RESULT_COUNT_SINGLE": "1 résultat",
 	"FIND_NO_RESULTS": "Aucun résultat",
+	"FIND_QUERY_PLACEHOLDER": "Rechercher\u2026",
 	"REPLACE_PLACEHOLDER": "Remplacer par\u2026",
 	"BUTTON_REPLACE_ALL": "[7126959] !é=Batch\u2026=!",
 	"BUTTON_REPLACE_ALL_IN_FILES": "[7575917] !é=Replace\u2026=!",
@@ -320,7 +321,6 @@ define({
     // Search menu commands
 	"FIND_MENU": "Rechercher",
 	"CMD_FIND": "Rechercher",
-	"CMD_FIND_FIELD_PLACEHOLDER": "Rechercher\u2026",
 	"CMD_FIND_NEXT": "Rechercher suivant",
 	"CMD_FIND_PREVIOUS": "Rechercher précédent",
 	"CMD_FIND_ALL_AND_SELECT": "Rechercher et sélectionner tout",

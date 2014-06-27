@@ -668,8 +668,10 @@ define(function (require, exports, module) {
                     return;
                 }
 
-                var $treenode = $(event.target).closest("li");
-                if ($treenode.is($(_projectTree.jstree("get_selected")))) {
+                var $treenode = $(event.target).closest("li"),
+                    entry = $treenode.data("entry");
+                // Don't do the rename for folders, because clicking on a folder name collapses/expands it.
+                if (entry && entry.isFile && $treenode.is($(_projectTree.jstree("get_selected")))) {
                     // wrap this in a setTimeout function so that we can check if it's a double click.
                     _mouseupTimeoutId = window.setTimeout(function () {
                         // if we get a double-click, _mouseupTimeoutId will have been set to null by the double-click handler before this runs.

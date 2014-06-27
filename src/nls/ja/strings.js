@@ -133,11 +133,12 @@ define({
 	"DELETE": "削除",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
-        
+    
     // Find, Replace, Find in Files
 	"FIND_RESULT_COUNT": "{0} 件",
 	"FIND_RESULT_COUNT_SINGLE": "1 件",
 	"FIND_NO_RESULTS": "該当なし",
+	"FIND_QUERY_PLACEHOLDER": "検索\u2026",
 	"REPLACE_PLACEHOLDER": "\u2026 に置換",
 	"BUTTON_REPLACE_ALL": "!能=[7126959] Batch\u2026_=!",
 	"BUTTON_REPLACE_ALL_IN_FILES": "!能=[7575917] Replace\u2026_=!",
@@ -320,7 +321,6 @@ define({
     // Search menu commands
 	"FIND_MENU": "検索",
 	"CMD_FIND": "検索",
-	"CMD_FIND_FIELD_PLACEHOLDER": "検索\u2026",
 	"CMD_FIND_NEXT": "次を検索",
 	"CMD_FIND_PREVIOUS": "前を検索",
 	"CMD_FIND_ALL_AND_SELECT": "すべて検索して選択",
