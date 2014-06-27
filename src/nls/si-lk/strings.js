@@ -35,7 +35,7 @@ define({
     "NOT_FOUND_ERR"                     : "ගොනුව සොයා ගත නොහැක.",
     "NOT_READABLE_ERR"                  : "ගොනුව සොයා කියවිය නොහැක.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "ඉලක්ක කර ඇති ඩිරෙක්ටරිය වෙනස් කළ නොහැක.",
-    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "වෙනස් කිරිමට අවසර ප්‍රමණවත් නොමැත.",
+    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "වෙනස් කිරිමට අවසර දෙන්නේ නැත.",
     "CONTENTS_MODIFIED_ERR"             : "ගොනුව {APP_NAME} වලින් පිටත වෙනස් කර ඇත.",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} වර්තමානයේ සහය දක්වන්නේ UTF-8 කේතනය කළ අකුරු ගොනු පමණි.",
     "FILE_EXISTS_ERR"                   : "ගොනුව හෝ ඩිරෙක්ටරිය දැනටමත් පවති.",
