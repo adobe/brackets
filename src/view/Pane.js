@@ -48,10 +48,38 @@ define(function (require, exports, module) {
         $(DocumentManager).on("fileNameChange",  this._handleFileNameChange);
         $(DocumentManager).on("pathDeleted", this._handleFileDeleted);
     }
-
+    
     Pane.prototype.ITEM_NOT_FOUND = -1;
     Pane.prototype.ITEM_FOUND_NO_SORT = 0;
     Pane.prototype.ITEM_FOUND_NEEDS_SORT = 1;
+
+    Pane.prototype.mergeWith = function (other) {
+        this.viewList = _.union(this.viewList, other.viewList);
+        this.viewListMRUOrder = _.union(this.viewListMRUOrder, other.viewListMRUOrder);
+        this.viewListAddedOrder = _.union(this.viewListAddedOrder, other.viewListAddedOrder);
+
+        other.showInterstitial(true);
+        
+        var self = this,
+            viewsToDestroy = [];
+        
+        _.forEach(other.views, function (view) {
+            if (other.isViewNeeded(view)) {
+                view.switchContainers(self.$el);
+            } else {
+                viewsToDestroy.push(view);
+            }
+        });
+        
+        _.forEach(viewsToDestroy, function (view) {
+            view.destroy();
+        });
+        
+        other.views = {};
+        other.viewList = [];
+        other.viewListMRUOrder = [];
+        other.viewListAddedOrder = [];
+    };
     
     Pane.prototype.destroy = function () {
         $(DocumentManager).off("fileNameChange",  this._handleFileNameChange);
@@ -293,6 +321,10 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype.showInterstitial = function (show) {
+        if (this.currentView) {
+            this.currentView.setVisible(false);
+            this.currentView = null;
+        }
         this.$el.find(".not-editor").css("display", (show) ? "" : "none");
     };
     
@@ -340,7 +372,7 @@ define(function (require, exports, module) {
         if (oldPath) {
             // Destroy any view that was currently shown
             //  that is not in the view pane list 
-            if (!this.findInViewList(oldPath)) {
+            if (this.findInViewList(oldPath) === -1) {
                 delete this.views[oldPath];
                 oldView.destroy();
             }
@@ -366,9 +398,12 @@ define(function (require, exports, module) {
         }
     };
     
-    Pane.prototype.isViewNeeded = function (file) {
-        return ((this.currentView && this.currentView.getFullPath === file.fullPath) ||
-                this.findInViewList(file.fullPath));
+    Pane.prototype.isViewNeeded = function (view) {
+        if (!view) {
+            return false;
+        }
+        var path = view.getFullPath();
+        return ((this.currentView && this.currentView.getFullPath() === path) || (this.findInViewList(path) !== -1));
     };
     
     Pane.prototype.getCurrentlyViewedFile = function () {
@@ -376,9 +411,8 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype.destroyViewIfNotNeeded = function (view) {
-        var path = view.getFullPath();
-        if (!this.isViewNeeded(path)) {
-            delete this.views[path];
+        if (view && !this.isViewNeeded(view)) {
+            delete this.views[view.getFullPath()];
             view.destroy();
         }
     };

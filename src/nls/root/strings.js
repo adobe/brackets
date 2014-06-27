@@ -220,6 +220,14 @@ define({
     "OPEN_PANES"        : "Working Files",
 
     /**
+     * MainViewManager
+     */
+    "TOP"               : "Top",
+    "BOTTOM"            : "Bottom",
+    "LEFT"              : "Left",
+    "RIGHT"             : "Right",
+    
+    /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",

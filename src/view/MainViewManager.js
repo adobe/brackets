@@ -39,6 +39,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var _                   = require("thirdparty/lodash"),
+        Strings             = require("strings"),
         AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
         Menus               = require("command/Menus"),
@@ -60,9 +61,12 @@ define(function (require, exports, module) {
         VERTICAL            = "VERTICAL",
         HORIZONTAL          = "HORIZONTAL";
     
+    var _paneTitles  = {
+    };
     
     
-    var _orientation = HORIZONTAL;
+    var _orientation = null;
+    
     var _activePaneId = FIRST_PANE;
     
     /**
@@ -102,7 +106,6 @@ define(function (require, exports, module) {
         return _getPaneFromPaneId(_activePaneId);
     }
     
-    
     /**
      * Retrieves the PaneViewList for the given PaneId
      * @param {!string} paneId this will identify which Pane the caller wants a View List
@@ -127,7 +130,7 @@ define(function (require, exports, module) {
         return null;
     }
     
-    function getPaneList() {
+    function getPaneIdList() {
         return Object.keys(_paneViews);
     }
     
@@ -144,6 +147,14 @@ define(function (require, exports, module) {
             }
         }
         return result;
+    }
+    
+    function getPaneTitle(paneId) {
+        return _paneTitles[paneId][_orientation];
+    }
+    
+    function getPaneCount() {
+        return Object.keys(_paneViews).length;
     }
     
     function _doFindInViewList(paneId, fullPath, method) {
@@ -267,7 +278,6 @@ define(function (require, exports, module) {
         
         uniqueFileList = pane.addListToViewList(fileList);
         
-        // Dispatch event
         $(exports).triggerHandler("paneViewListAddList", [uniqueFileList, pane.id]);
     }
     
@@ -275,8 +285,6 @@ define(function (require, exports, module) {
         var pane = _getPaneFromPaneId(paneId);
 
         if (pane && pane.removeFromViewList(file)) {
-            
-            // Dispatch event
             $(exports).triggerHandler("paneViewListRemove", [file, suppressRedraw, pane.id]);
         }
     }
@@ -660,13 +668,7 @@ define(function (require, exports, module) {
         }
     }
     
-    function destroyEditorIfNotNeeded(document) {
-        if (document._masterEditor) {
-            _.forEach(_paneViews, function (pane) {
-                pane.destroyViewIfNotNeeded(document._masterEditor);
-            });
-        }
-    }
+
     
     /**
      *
@@ -683,6 +685,17 @@ define(function (require, exports, module) {
         return paneId;
     }
 
+    function destroyEditorIfNotNeeded(document) {
+        if (document._masterEditor) {
+            var paneId = _getPaneIdFromContainer(document._masterEditor.getContainer()),
+                pane = _paneViews[paneId];
+            
+            if (pane) {
+                pane.destroyViewIfNotNeeded(document._masterEditor);
+            }
+        }
+    }
+    
     function forceFocusToActivePaneView() {
         _getActivePane().focus();
     }
@@ -729,6 +742,7 @@ define(function (require, exports, module) {
             });
         }
     }
+
     
     AppInit.htmlReady(function () {
         _createPaneIfNecessary(FIRST_PANE);
@@ -749,18 +763,53 @@ define(function (require, exports, module) {
         CommandManager.get(CMD_SPLIT_HORIZONTALLY).setChecked(_orientation === HORIZONTAL);
     }
     
-    function _handleSplitVertically() {
-        _orientation = VERTICAL;
+    function _doUnsplit() {
+        if (_paneViews.hasOwnProperty(SECOND_PANE)) {
+            var firstPane = _paneViews[FIRST_PANE],
+                secondPane = _paneViews[SECOND_PANE],
+                fileList = secondPane.getViewList();
+            
+            firstPane.mergeWith(secondPane);
+        
+            $(exports).triggerHandler("paneViewListRemoveList", [fileList, secondPane.id]);
+
+            _activePaneId = firstPane.id;
+            
+            secondPane.destroy();
+            delete _paneViews[SECOND_PANE];
+            $(exports).triggerHandler("paneDestroyed", secondPane.id);
+            $(exports).triggerHandler("paneViewListAddList", [fileList, firstPane.id]);
+
+            _orientation = null;
+            _updateLayout();
+            _updateCommandState();
+            $(exports).triggerHandler("paneLayoutChange", _orientation);
+        }
+    }
+
+    function _doSplit(orientation) {
         _createPaneIfNecessary(SECOND_PANE);
+        _orientation = orientation;
         _updateLayout();
         _updateCommandState();
+        $(exports).triggerHandler("paneLayoutChange", _orientation);
+        
+    }
+    
+    function _handleSplitVertically() {
+        if (_orientation === VERTICAL) {
+            _doUnsplit();
+        } else {
+            _doSplit(VERTICAL);
+        }
     }
     
     function _handleSplitHorizontially() {
-        _orientation = HORIZONTAL;
-        _createPaneIfNecessary(SECOND_PANE);
-        _updateLayout();
-        _updateCommandState();
+        if (_orientation === HORIZONTAL) {
+            _doUnsplit();
+        } else {
+            _doSplit(HORIZONTAL);
+        }
     }
     
     AppInit.appReady(function () {
@@ -775,6 +824,14 @@ define(function (require, exports, module) {
         }
     });
 
+    // Init
+    _paneTitles[FIRST_PANE] = {};
+    _paneTitles[SECOND_PANE] = {};
+    _paneTitles[FIRST_PANE][VERTICAL] = Strings.LEFT;
+    _paneTitles[FIRST_PANE][HORIZONTAL] = Strings.TOP;
+    _paneTitles[SECOND_PANE][VERTICAL] = Strings.RIGHT;
+    _paneTitles[SECOND_PANE][HORIZONTAL] = Strings.BOTTOM;
+    
     
     // PaneView Management
     exports.addToPaneViewList                = addToPaneViewList;
@@ -796,7 +853,9 @@ define(function (require, exports, module) {
     // PaneView Attributes
     exports.getActivePaneId                  = getActivePaneId;
     exports.setActivePaneId                  = setActivePaneId;
-    exports.getPaneList                      = getPaneList;
+    exports.getPaneIdList                    = getPaneIdList;
+    exports.getPaneTitle                     = getPaneTitle;
+    exports.getPaneCount                     = getPaneCount;
     
     // Explicit stuff
     exports.destroyEditorIfNotNeeded         = destroyEditorIfNotNeeded;

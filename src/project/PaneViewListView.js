@@ -106,6 +106,17 @@ define(function (require, exports, module) {
         this.init();
     }
 
+    PaneViewListView.prototype._handlePaneLayoutChange = function (e) {
+        var $titleEl = this.$el.find(".pane-view-header-title"),
+            title = Strings.OPEN_PANES;
+        
+        if (MainViewManager.getPaneCount() > 1) {
+            title = MainViewManager.getPaneTitle(this.paneId);
+        }
+        
+        $titleEl.text(title);
+    };
+    
     PaneViewListView.prototype._findListItemFromPath = function (fullPath) {
         var result = null;
 
@@ -611,7 +622,13 @@ define(function (require, exports, module) {
     /** 
      * @private
      */
-    PaneViewListView.prototype._handleFileAdded = function (e, file, fileAdded, paneId) {
+    PaneViewListView.prototype._handleFileAdded = function (e, fileAdded, index, paneId) {
+        if (paneId === this.paneId) {
+            this._rebuildViewList(true);
+        }
+    };
+    
+    PaneViewListView.prototype._handleFileListAdded = function (e, fileList, paneId) {
         if (paneId === this.paneId) {
             this._rebuildViewList(true);
         }
@@ -621,8 +638,9 @@ define(function (require, exports, module) {
      * @private
      */
     PaneViewListView.prototype._handleFileListAdded = function (e, files) {
+        var self = this;
         files.forEach(function (file) {
-            this._createNewListItem(file);
+            self._createNewListItem(file);
         });
         this._redraw();
     };
@@ -652,9 +670,10 @@ define(function (require, exports, module) {
     };
 
     PaneViewListView.prototype._handleRemoveList = function (e, removedFiles, paneId) {
+        var self = this;
         if (paneId === this.paneId) {
             removedFiles.forEach(function (file) {
-                var $listItem = this._findListItemFromFile(file);
+                var $listItem = self._findListItemFromFile(file);
                 if ($listItem) {
                     $listItem.remove();
                 }
@@ -711,11 +730,12 @@ define(function (require, exports, module) {
         
         // Register listeners
         $(MainViewManager).on(this._makeEventName("paneViewListAdd"), _.bind(this._handleFileAdded, this));
-        $(MainViewManager).on(this._makeEventName("paneViewListAddList"), _.bind(this._handleFileAdded, this));
+        $(MainViewManager).on(this._makeEventName("paneViewListAddList"), _.bind(this._handleFileListAdded, this));
         $(MainViewManager).on(this._makeEventName("paneViewListRemove"), _.bind(this._handleFileRemoved, this));
         $(MainViewManager).on(this._makeEventName("paneViewListRemoveList"), _.bind(this._handleRemoveList, this));
         $(MainViewManager).on(this._makeEventName("paneViewListSort"), _.bind(this._handlePaneViewListSort, this));
         $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
+        $(MainViewManager).on(this._makeEventName("paneLayoutChange"), _.bind(this._handlePaneLayoutChange, this));
 
         $(DocumentManager).on(this._makeEventName("dirtyFlagChange"), _.bind(this._handleDirtyFlagChanged, this));
         $(DocumentManager).on(this._makeEventName("fileNameChange"), _.bind(this._handleFileNameChanged, this));
@@ -773,7 +793,13 @@ define(function (require, exports, module) {
     };
     
     exports.cratePaneViewListViewForPane = function ($container, paneId) {
-        _views.push(new PaneViewListView($container, paneId));
+        var index = _.findIndex(_views, function (paneViewListView) {
+            return paneViewListView.paneId === paneId;
+        });
+
+        if (index === -1) {
+            _views.push(new PaneViewListView($container, paneId));
+        }
     };
 
     $(MainViewManager).on("paneDestroyed", function (paneId) {

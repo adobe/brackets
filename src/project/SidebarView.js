@@ -171,7 +171,7 @@ define(function (require, exports, module) {
         });
         
         // craeate PaneViewListViews for each pane already created
-        _.forEach(MainViewManager.getPaneList(), function (paneId) {
+        _.forEach(MainViewManager.getPaneIdList(), function (paneId) {
             PaneViewListView.cratePaneViewListViewForPane($paneViewListContainer, paneId);
         });
     });

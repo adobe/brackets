@@ -916,6 +916,11 @@ define(function (require, exports, module) {
         return this.$editorHolder;
     };
     
+    Editor.prototype.switchContainers = function ($newContainer) {
+        var wrapper = this._codeMirror.getWrapperElement();
+        this.$editorHolder = $newContainer;
+        $(wrapper).detach().appendTo($newContainer);
+    };
     
     /**
      * Gets the current cursor position within the editor.
