@@ -32,19 +32,19 @@ define({
 
     // General file io error strings
     "GENERIC_ERROR"                     : "({0} දෝෂයක්)",
-    "NOT_FOUND_ERR"                     : "The file could not be found.",
-    "NOT_READABLE_ERR"                  : "The file could not be read.",
-    "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
-    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
-    "CONTENTS_MODIFIED_ERR"             : "The file has been modified outside of {APP_NAME}.",
-    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} currently only supports UTF-8 encoded text files.",
-    "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
-    "FILE"                              : "file",
-    "DIRECTORY"                         : "directory",
-    "DIRECTORY_NAMES_LEDE"              : "Directory names",
-    "FILENAMES_LEDE"                    : "Filenames",
-    "FILENAME"                          : "filename",
-    "DIRECTORY_NAME"                    : "directory name",
+    "NOT_FOUND_ERR"                     : "ගොනුව සොයා ගත නොහැක.",
+    "NOT_READABLE_ERR"                  : "ගොනුව සොයා කියවිය නොහැක.",
+    "NO_MODIFICATION_ALLOWED_ERR"       : "ඉලක්ක කර ඇති ඩිරෙක්ටරිය වෙනස් කළ නොහැක.",
+    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "වෙනස් කිරිමට අවසර ප්‍රමණවත් නොමැත.",
+    "CONTENTS_MODIFIED_ERR"             : "ගොනුව {APP_NAME} වලින් පිටත වෙනස් කර ඇත.",
+    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} වර්තමානයේ සහය දක්වන්නේ UTF-8 කේතනය කළ අකුරු ගොනු පමණි.",
+    "FILE_EXISTS_ERR"                   : "ගොනුව හෝ ඩිරෙක්ටරිය දැනටමත් පවති.",
+    "FILE"                              : "ගොනුව",
+    "DIRECTORY"                         : "ඩිරෙක්ටරිය",
+    "DIRECTORY_NAMES_LEDE"              : "ඩිරෙක්ටරි නම්",
+    "FILENAMES_LEDE"                    : "ගොනු නම්",
+    "FILENAME"                          : "ගොනුවේ නම",
+    "DIRECTORY_NAME"                    : "ඩිරෙක්ටරියේ නම",
     
 
     // Project error strings
