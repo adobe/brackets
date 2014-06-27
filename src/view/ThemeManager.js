@@ -353,7 +353,7 @@ define(function (require, exports, module) {
         }
 
         FileSystem.getDirectoryForPath(path).getContents(readContent);
-        return result.then(loadThemesFiles).promise();
+        return result.then(loadThemesFiles);
     }
 
 
