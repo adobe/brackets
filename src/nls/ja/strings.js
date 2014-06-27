@@ -283,6 +283,7 @@ define({
 	"CMD_FILE_SAVE_ALL": "すべて保存",
 	"CMD_FILE_SAVE_AS": "名前を付けて保存\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "ライブプレビュー",
+	"CMD_RELOAD_LIVE_PREVIEW": "Force Reload Live Preview",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
 	"CMD_FILE_DELETE": "削除",

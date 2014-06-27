@@ -61,6 +61,7 @@ The following languages have been contributed by the Brackets community:
 * Spanish (es)
 * Persian-Farsi (fa-ir)
 * Finnish (fi)
+* Galician (gl)
 * Croatian (hr)
 * Hungarian (hu)
 * Italian (it)
