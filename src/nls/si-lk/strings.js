@@ -54,7 +54,7 @@ define({
     "READ_DIRECTORY_ENTRIES_ERROR"      : "An error occurred when reading the contents of the directory <span class='dialog-filename'>{0}</span>. (error {1})",
 
     // File open/save error string
-    "ERROR_OPENING_FILE_TITLE"          : "Error Opening File",
+    "ERROR_OPENING_FILE_TITLE"          : "ගොනුව විවෘත කිරිමේ දෝශයක්",
     "ERROR_OPENING_FILE"                : "An error occurred when trying to open the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_OPENING_FILES"               : "An error occurred when trying to open the following files:",
     "ERROR_RELOADING_FILE_TITLE"        : "Error Reloading Changes From Disk",
