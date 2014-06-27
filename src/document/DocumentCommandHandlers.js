@@ -248,7 +248,7 @@ define(function (require, exports, module) {
         // if we are already displaying a file do nothing but resolve immediately.
         // this fixes timing issues in test cases.
         if (MainViewManager.getCurrentlyViewedPath() === fullPath) {
-            result.resolve(DocumentManager.getCurrentDocument());
+            result.resolve(MainViewManager.getCurrentlyViewedFile());
             return result.promise();
         }
         

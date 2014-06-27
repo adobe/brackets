@@ -802,14 +802,16 @@ define(function (require, exports, module) {
         }
     };
 
-    $(MainViewManager).on("paneDestroyed", function (paneId) {
+    $(MainViewManager).on("paneDestroyed", function (e, paneId) {
         var index = _.findIndex(_views, function (paneViewListView) {
             return paneViewListView.paneId === paneId;
         });
         
         if (index >= 0) {
-            var view = _views.splice(index, 1);
-            view.destroy();
+            var views = _views.splice(index, 1);
+            _.forEach(views, function (view) {
+                view.destroy();
+            });
         }
     });
     
