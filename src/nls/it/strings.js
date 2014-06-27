@@ -172,7 +172,7 @@ define({
     "ERROR_CSSQUICKEDIT_IDNOTFOUND"     : "CSS Quick Edit: attributo id incompleto",
     "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: posiziona il cursore su etichetta, classe, oppure id",
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: posiziona il cursore su nome della funziona",
-    "EDIT_FILE_FILTER"  : "Modifica\u2026",
+    "EDIT_FILE_FILTER"                      : "Modifica\u2026",
     "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Quick Docs non disponibile per posizione attuale del cursore",
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Quick Edit non disponibile per posizione attuale del cursore",
     "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Funzione CSS Timing Quick Edit:  sintassi invalida",
@@ -184,11 +184,8 @@ define({
     "CLEAR_FILE_FILTER"                 : "Non escludere file",
     "NO_FILE_FILTER"                    : "Nessun file escluso",
     "EXCLUDE_FILE_FILTER"               : "Escludere {0}",
-    "EDIT_FILE_FILTER"                  : "Modifica\u2026",
     "FILE_FILTER_DIALOG"                : "Modifica regole di esclusione",
-    "FILE_FILTER_INSTRUCTIONS"          : "Escludere file e cartelle corrispondenti qualsiasi delle seguenti stringhe / sottostringhe o <a href='{0}' title='{0}'>wildcards</a>. Immettere ogni stringa su una nuova linea.",
     "FILTER_NAME_PLACEHOLDER"           : "Nome delle regole di esclusione (facoltativo)",
-    "FILE_FILTER_CLIPPED_SUFFIX"        : "e {0} più",
     "FILTER_COUNTING_FILES"             : "Contando i file\u2026",
     "FILTER_FILE_COUNT"                 : "Consentire {0} di {1} file {2}",
     "FILTER_FILE_COUNT_ALL"             : "Consentire tutti {0} file {1}",
@@ -287,8 +284,6 @@ define({
     "CMD_DELETE_LINES"                  : "Elimina linea",
     "CMD_COMMENT"                       : "Commenta/De-commenta linee",
     "CMD_BLOCK_COMMENT"                 : "Commenta/De-commenta blocco",
-    "CMD_ADD_NEXT_MATCH"                : "Aggiungi la prossima correspondenza alla selezione",
-    "CMD_SKIP_CURRENT_MATCH"            : "Salta e aggiungi prossima correspondenza",
     "CMD_LINE_UP"                       : "Sposta la riga in alto",
     "CMD_LINE_DOWN"                     : "Sposta la riga in basso",
     "CMD_OPEN_LINE_ABOVE"               : "Apri linea sopra",
@@ -303,7 +298,7 @@ define({
     "CMD_FIND_PREVIOUS"                   : "Cerca il precedente",
     "CMD_FIND_ALL_AND_SELECT"             : "Trova tutto e seleziona",
     "CMD_ADD_NEXT_MATCH"                  : "Aggiungi la prossima corrispondenza alla selezione",
-    "CMD_SKIP_CURRENT_MATCH"              : "Salta e aggiungi alla prossima corrispondenza",
+    "CMD_SKIP_CURRENT_MATCH"              : "Salta e aggiungi prossima correspondenza",
     "CMD_FIND_IN_FILES"                   : "Cerca nei file",
     "CMD_FIND_IN_SELECTED"                : "Cerca nel file/cartella selezionata",
     "CMD_FIND_IN_SUBTREE"                 : "Cerca in\u2026",
@@ -332,7 +327,6 @@ define({
     "CMD_SORT_WORKINGSET_AUTO"          : "Ordinamento automatico",
 
     // Navigate menu Commands
-    "FIND_MENU"                         : "Trova",
     "NAVIGATE_MENU"                     : "Naviga",
     "CMD_QUICK_OPEN"                    : "Apri velocemente",
     "CMD_GOTO_LINE"                     : "Vai alla linea",
@@ -482,6 +476,9 @@ define({
     "INLINE_EDITOR_NO_MATCHES"             : "Nessuna corrispondenza disponibile.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Non ci sono regole CSS esistenti che corrispondano alla tua selezione.<br />Clicca \"Nuova Regola\" per crearne una.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Non ci sono fogli di stile nel tuo progetto.<br />Creane uno per aggiungere regole CSS.",
+    
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "il più grande",
     
     /**
      * Unit names
