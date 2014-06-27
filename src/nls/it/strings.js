@@ -257,6 +257,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Salva tutto",
     "CMD_FILE_SAVE_AS"                    : "Salva come\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Anteprima Live",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Forza ricarica Anteprima Live",
     "CMD_PROJECT_SETTINGS"                : "Impostazioni del progetto\u2026",
     "CMD_FILE_RENAME"                     : "Rinomina",
     "CMD_FILE_DELETE"                     : "Elimina",
