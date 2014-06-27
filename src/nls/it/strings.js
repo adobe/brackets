@@ -113,6 +113,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> è stato eliminato sul disco ma ha delle modifiche non ancora salvate in {APP_NAME}.<br /><br />Vuoi mantenere le tue modifiche?",
 
     // Generic dialog/button labels
+    "DONE"                              : "Fatto",
     "OK"                                : "OK",
     "CANCEL"                            : "Annulla",
     "DONT_SAVE"                         : "Non salvare",
@@ -278,14 +279,8 @@ define({
     "CMD_PASTE"                         : "Incolla",
     "CMD_SELECT_ALL"                    : "Seleziona tutto",
     "CMD_SELECT_LINE"                   : "Seleziona riga",
-    "CMD_FIND"                          : "Cerca",
+    
     "CMD_FIND_FIELD_PLACEHOLDER"        : "Trova\u2026",
-    "CMD_FIND_IN_FILES"                 : "Cerca nei file",
-    "CMD_FIND_IN_SELECTED"              : "Cerca nel file/cartella selezionata",
-    "CMD_FIND_IN_SUBTREE"               : "Cerca in\u2026",
-    "CMD_FIND_NEXT"                     : "Cerca il successivo",
-    "CMD_FIND_PREVIOUS"                 : "Cerca il precedente",
-    "CMD_REPLACE"                       : "Sostituisci",
     "CMD_INDENT"                        : "Aumenta indentazione",
     "CMD_UNINDENT"                      : "Riduci indentazione",
     "CMD_DUPLICATE"                     : "Duplica",
@@ -300,6 +295,22 @@ define({
     "CMD_OPEN_LINE_BELOW"               : "Apri linea sotto",
     "CMD_TOGGLE_CLOSE_BRACKETS"         : "Chiudi le parentesi automaticamente",
     "CMD_SHOW_CODE_HINTS"               : "Mostra suggerimenti",
+    
+     // Search menu commands
+    "FIND_MENU"                           : "Cerca",
+    "CMD_FIND"                            : "Cerca",
+    "CMD_FIND_NEXT"                       : "Cerca il successivo",
+    "CMD_FIND_PREVIOUS"                   : "Cerca il precedente",
+    "CMD_FIND_ALL_AND_SELECT"             : "Trova tutto e seleziona",
+    "CMD_ADD_NEXT_MATCH"                  : "Aggiungi la prossima corrispondenza alla selezione",
+    "CMD_SKIP_CURRENT_MATCH"              : "Salta e aggiungi alla prossima corrispondenza",
+    "CMD_FIND_IN_FILES"                   : "Cerca nei file",
+    "CMD_FIND_IN_SELECTED"                : "Cerca nel file/cartella selezionata",
+    "CMD_FIND_IN_SUBTREE"                 : "Cerca in\u2026",
+    "CMD_REPLACE"                         : "Sostituisci",
+    "CMD_REPLACE_IN_FILES"                : "Sustituisci nei file",
+    "CMD_REPLACE_IN_SELECTED"             : "Sostituisci nei selezionati file/cartelle",
+    "CMD_REPLACE_IN_SUBTREE"              : "Sostituisci in\u2026",
     
     // View menu commands
     "VIEW_MENU"                         : "Vista",
@@ -345,6 +356,7 @@ define({
     "CMD_RELEASE_NOTES"                 : "Note del lancio",
     "CMD_REPORT_AN_ISSUE"               : "Segnala un problema",
     "CMD_SHOW_EXTENSIONS_FOLDER"        : "Mostra cartella estensioni",
+    "CMD_HOMEPAGE"                        : "{APP_TITLE} sito WEB",
     "CMD_TWITTER"                       : "{TWITTER_NAME} su Twitter",
     "CMD_ABOUT"                         : "Informazioni su {APP_TITLE}",
     "CMD_SHOW_IN_EXPLORER"              : "Mostra in Explorer",
@@ -532,5 +544,5 @@ define({
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
 
-/* Last translation of: 0565e3daa00e27f02ce0975be779a583971b016f */
+/* Last translation of:  */
 
