@@ -82,8 +82,12 @@ define(function (require, exports, module) {
         return _activePaneId;
     }
 
+    function getSplitOrientation() {
+        return _orientation;
+    }
+    
     function _getPaneFromPaneId(paneId) {
-        if (paneId === FOCUSED_PANE) {
+        if (!paneId || paneId === FOCUSED_PANE) {
             paneId = getActivePaneId();
         }
         
@@ -122,8 +126,26 @@ define(function (require, exports, module) {
         }
         return null;
     }
-
-   
+    
+    function getPaneList() {
+        return Object.keys(_paneViews);
+    }
+    
+    function getPaneViewListSize(paneId) {
+        var result = 0;
+        if (paneId === ALL_PANES) {
+            _.forEach(_paneViews, function (pane) {
+                result += pane.getViewListSize();
+            });
+        } else {
+            var pane = _getPaneFromPaneId(paneId);
+            if (pane) {
+                result += pane.getViewListSize();
+            }
+        }
+        return result;
+    }
+    
     function _doFindInViewList(paneId, fullPath, method) {
         
         if (paneId === ALL_PANES) {
@@ -147,12 +169,24 @@ define(function (require, exports, module) {
         }
     }
 
+    function getCurrentlyViewedFileForPane(paneId) {
+        var pane = _getPaneFromPaneId(paneId);
+        if (pane) {
+            return pane.getCurrentlyViewedFile();
+        }
+    }
+ 
+    function getCurrentlyViewedPathForPane(paneId) {
+        var file = getCurrentlyViewedFileForPane(paneId);
+        return file ? file.fullPath : null;
+    }
+    
     function getCurrentlyViewedFile() {
         return _getActivePane().getCurrentlyViewedFile();
     }
     
     function getCurrentlyViewedPath() {
-        var file = _getActivePane().getCurrentlyViewedFile();
+        var file = getCurrentlyViewedFile();
         return file ? file.fullPath : null;
     }
     
@@ -534,7 +568,7 @@ define(function (require, exports, module) {
         EditorManager.doOpenDocument(doc, pane);
         
         if (pane.id === _activePaneId) {
-            $(exports).triggerHandler("currentFileChanged", [doc.file]);
+            $(exports).triggerHandler("currentFileChanged", [doc.file, pane.id]);
         }
 
         makePaneViewMostRecent(paneId, doc.file);
@@ -638,24 +672,31 @@ define(function (require, exports, module) {
      *
      */
     function _getPaneIdFromContainer($container) {
-        var property;
-        for (property in _paneViews) {
-            if (_paneViews.hasOwnProperty(property)) {
-                var pane = _paneViews[property];
-                if (pane.$el === $container) {
-                    return pane.id;
-                }
+        var paneId;
+        _.forEach(_paneViews, function (pane) {
+            if (pane.$el === $container) {
+                paneId = pane.id;
+                return false;
             }
-        }
+        });
+        
+        return paneId;
     }
 
-    function _setActivePaneId(newPaneId) {
+    function forceFocusToActivePaneView() {
+        _getActivePane().focus();
+    }
+    
+    function setActivePaneId(newPaneId) {
         if (_paneViews.hasOwnProperty(newPaneId) && (newPaneId !== _activePaneId)) {
             var oldPaneId = _activePaneId;
             _activePaneId = newPaneId;
+            
             $(exports).triggerHandler("activePaneChange", [newPaneId, oldPaneId]);
-            $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile()]);
+            $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), newPaneId]);
         }
+        
+        forceFocusToActivePaneView();
     }
     
     function _activeEditorChange(e, current) {
@@ -664,9 +705,10 @@ define(function (require, exports, module) {
                 newPaneId = _getPaneIdFromContainer($container);
 
             if (newPaneId !== _activePaneId) {
-                _setActivePaneId(newPaneId);
+                setActivePaneId(newPaneId);
             } else {
-                $(exports).triggerHandler("currentFileChanged", [current.getFile()]);
+                $(exports).triggerHandler("currentFileChanged", [current.getFile(), _activePaneId]);
+                forceFocusToActivePaneView();
             }
         }
     }
@@ -683,7 +725,7 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("paneCreated", pane.id);
             
             pane.$el.on("click", function () {
-                _setActivePaneId(pane.id);
+                setActivePaneId(pane.id);
             });
         }
     }
@@ -702,22 +744,28 @@ define(function (require, exports, module) {
     var CMD_SPLIT_VERTICALLY = "cmd.splitVertically";
     var CMD_SPLIT_HORIZONTALLY = "cmd.splitHorizontally";
     
+    function _updateCommandState() {
+        CommandManager.get(CMD_SPLIT_VERTICALLY).setChecked(_orientation === VERTICAL);
+        CommandManager.get(CMD_SPLIT_HORIZONTALLY).setChecked(_orientation === HORIZONTAL);
+    }
     
-    function handleSplitVertically() {
+    function _handleSplitVertically() {
         _orientation = VERTICAL;
         _createPaneIfNecessary(SECOND_PANE);
         _updateLayout();
+        _updateCommandState();
     }
     
-    function handleSplitHorizontially() {
+    function _handleSplitHorizontially() {
         _orientation = HORIZONTAL;
         _createPaneIfNecessary(SECOND_PANE);
         _updateLayout();
+        _updateCommandState();
     }
     
     AppInit.appReady(function () {
-        CommandManager.register("Split Vertically", CMD_SPLIT_VERTICALLY,   handleSplitVertically);
-        CommandManager.register("Split Horizontally", CMD_SPLIT_HORIZONTALLY, handleSplitHorizontially);
+        CommandManager.register("Split Vertically", CMD_SPLIT_VERTICALLY,   _handleSplitVertically);
+        CommandManager.register("Split Horizontally", CMD_SPLIT_HORIZONTALLY, _handleSplitHorizontially);
 
         var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
         if (menu) {
@@ -734,6 +782,7 @@ define(function (require, exports, module) {
     exports.findInPaneViewList               = findInPaneViewList;
     exports.findInPaneViewListAddedOrder     = findInPaneViewListAddedOrder;
     exports.findInPaneViewListMRUOrder       = findInPaneViewListMRUOrder;
+    exports.getPaneViewListSize              = getPaneViewListSize;
     exports.getPaneViewList                  = getPaneViewList;
     exports.makePaneViewMostRecent           = makePaneViewMostRecent;
     exports.removeAllFromPaneViewList        = removeAllFromPaneViewList;
@@ -742,9 +791,12 @@ define(function (require, exports, module) {
     exports.sortPaneViewList                 = sortPaneViewList;
     exports.swapPaneViewListIndexes          = swapPaneViewListIndexes;
     exports.traversePaneViewListByMRU        = traversePaneViewListByMRU;
+    exports.forceFocusToActivePaneView       = forceFocusToActivePaneView;
     
     // PaneView Attributes
     exports.getActivePaneId                  = getActivePaneId;
+    exports.setActivePaneId                  = setActivePaneId;
+    exports.getPaneList                      = getPaneList;
     
     // Explicit stuff
     exports.destroyEditorIfNotNeeded         = destroyEditorIfNotNeeded;
@@ -757,8 +809,12 @@ define(function (require, exports, module) {
     // Convenience
     exports.getCurrentlyViewedFile           = getCurrentlyViewedFile;
     exports.getCurrentlyViewedPath           = getCurrentlyViewedPath;
-
+    exports.getCurrentlyViewedFileForPane      = getCurrentlyViewedFileForPane;
+    exports.getCurrentlyViewedPathForPane    = getCurrentlyViewedPathForPane;
+    
     // Constants
     exports.ALL_PANES                        = ALL_PANES;
     exports.FOCUSED_PANE                     = FOCUSED_PANE;
+    exports.VERTICAL                         = VERTICAL;
+    exports.HORIZONTAL                       = HORIZONTAL;
 });

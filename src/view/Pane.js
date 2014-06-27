@@ -38,13 +38,12 @@ define(function (require, exports, module) {
     function Pane(id, $container) {
         this.$container = $container;
         this.id = id;
-        this._viewList = [];
-        this._viewListMRUOrder = [];
-        this._viewListAddedOrder = [];
-        this._currentView = null;
+        this.viewList = [];
+        this.viewListMRUOrder = [];
+        this.viewListAddedOrder = [];
+        this.currentView = null;
         this.$el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id);
-        this.views = {
-        };
+        this.views = {};
         
         $(DocumentManager).on("fileNameChange",  this._handleFileNameChange);
         $(DocumentManager).on("pathDeleted", this._handleFileDeleted);
@@ -60,27 +59,27 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype.getViewList = function () {
-        return _.clone(this._viewList);
+        return _.clone(this.viewList);
     };
     
     Pane.prototype.getViewListSize = function () {
-        return this._viewList.length;
+        return this.viewList.length;
     };
     
     Pane.prototype.findInViewList = function (fullPath) {
-        return _.findIndex(this._viewList, function (file) {
+        return _.findIndex(this.viewList, function (file) {
             return file.fullPath === fullPath;
         });
     };
     
     Pane.prototype.findInViewListAddedOrder = function (fullPath) {
-        return _.findIndex(this._viewListAddedOrder, function (file) {
+        return _.findIndex(this.viewListAddedOrder, function (file) {
             return file.fullPath === fullPath;
         });
     };
     
     Pane.prototype.findInViewListMRUOrder = function (fullPath) {
-        return _.findIndex(this._viewListMRUOrder, function (file) {
+        return _.findIndex(this.viewListMRUOrder, function (file) {
             return file.fullPath === fullPath;
         });
     };
@@ -92,8 +91,8 @@ define(function (require, exports, module) {
         if (curIndex !== -1) {
             // File is in view list, but not at the specifically requested index - only need to reorder
             if (force || (indexRequested && curIndex !== index)) {
-                var entry = this._viewList.splice(curIndex, 1)[0];
-                this._viewList.splice(index, 0, entry);
+                var entry = this.viewList.splice(curIndex, 1)[0];
+                this.viewList.splice(index, 0, entry);
                 return this.ITEM_FOUND_NEEDS_SORT;
             }
             return this.ITEM_FOUND_NO_SORT;
@@ -105,22 +104,22 @@ define(function (require, exports, module) {
     Pane.prototype._addToViewList = function (file, inPlace) {
         if (inPlace && inPlace.indexRequested) {
             // If specified, insert into the pane view list at this 0-based index
-            this._viewList.splice(inPlace.index, 0, file);
+            this.viewList.splice(inPlace.index, 0, file);
         } else {
             // If no index is specified, just add the file to the end of the pane view list.
-            this._viewList.push(file);
+            this.viewList.push(file);
         }
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
         var currentPath = EditorManager.getCurrentlyViewedPath();
         if (currentPath && currentPath === file.fullPath) {
-            this._viewListMRUOrder.unshift(file);
+            this.viewListMRUOrder.unshift(file);
         } else {
-            this._viewListMRUOrder.push(file);
+            this.viewListMRUOrder.push(file);
         }
         
         // Add first to Added order
-        this._viewListAddedOrder.unshift(file);
+        this.viewListAddedOrder.unshift(file);
     };
     
     Pane.prototype.addToViewList = function (file, index) {
@@ -129,7 +128,7 @@ define(function (require, exports, module) {
         this._addToViewList(file, {indexRequested: indexRequested, index: index});
         
         if (!indexRequested) {
-            index = this._viewList.length - 1;
+            index = this.viewList.length - 1;
         }
         
         return index;
@@ -159,16 +158,16 @@ define(function (require, exports, module) {
         }
         
         // Remove
-        this._viewList.splice(index, 1);
-        this._viewListMRUOrder.splice(this.findInViewListMRUOrder(file.fullPath), 1);
-        this._viewListAddedOrder.splice(this.findInViewListAddedOrder(file.fullPath), 1);
+        this.viewList.splice(index, 1);
+        this.viewListMRUOrder.splice(this.findInViewListMRUOrder(file.fullPath), 1);
+        this.viewListAddedOrder.splice(this.findInViewListAddedOrder(file.fullPath), 1);
 
         // Destroy the view
         var view = this.views[file.fullPath];
 
         if (view) {
-            if (this._currentView === view) {
-                this._currentView = null;
+            if (this.currentView === view) {
+                this.currentView = null;
             }
             delete this.views[file.fullPath];
             view.destroy();
@@ -212,25 +211,25 @@ define(function (require, exports, module) {
     Pane.prototype.makeViewMostRecent = function (file) {
         var index = this.findInViewListMRUOrder(file.fullPath);
         if (index !== -1) {
-            this._viewListMRUOrder.splice(index, 1);
-            this._viewListMRUOrder.unshift(file);
+            this.viewListMRUOrder.splice(index, 1);
+            this.viewListMRUOrder.unshift(file);
         }
     };
     
     Pane.prototype.sortViewList = function (compareFn) {
-        this._viewList.sort(compareFn);
+        this.viewList.sort(compareFn);
     };
 
     Pane.prototype._isViewListIndexInRange = function (index) {
-        var length = this._viewList.length;
+        var length = this.viewList.length;
         return index !== undefined && index !== null && index >= 0 && index < length;
     };
     
     Pane.prototype.swapViewListIndexes = function (index1, index2) {
         if (this._isViewListIndexInRange(index1) && this._isViewListIndexInRange(index2)) {
-            var temp = this._viewList[index1];
-            this._viewList[index1] = this._viewList[index2];
-            this._viewList[index2] = temp;
+            var temp = this.viewList[index1];
+            this.viewList[index1] = this.viewList[index2];
+            this.viewList[index2] = temp;
             return true;
         }
         return false;
@@ -242,26 +241,26 @@ define(function (require, exports, module) {
             return null;
         }
 
-        if (!current) {
-            current = this.getPathForView(this._currentView);
+        if (!current && this.currentView) {
+            current = this.getPathForView(this.currentView);
         }
         
         var index = this.findInViewListMRUOrder(current);
         if (index === -1) {
             // If doc not in view list, return most recent view list item
-            if (this._viewListMRUOrder.length > 0) {
-                return this._viewListMRUOrder[0];
+            if (this.viewListMRUOrder.length > 0) {
+                return this.viewListMRUOrder[0];
             }
-        } else if (this._viewListMRUOrder.length > 1) {
+        } else if (this.viewListMRUOrder.length > 1) {
             // If doc is in view list, return next/prev item with wrap-around
             index += direction;
-            if (index >= this._viewListMRUOrder.length) {
+            if (index >= this.viewListMRUOrder.length) {
                 index = 0;
             } else if (index < 0) {
-                index = this._viewListMRUOrder.length - 1;
+                index = this.viewListMRUOrder.length - 1;
             }
 
-            return this._viewListMRUOrder[index];
+            return this.viewListMRUOrder[index];
         }
         
         // If no doc open or view list empty, there is no "next" file
@@ -284,9 +283,9 @@ define(function (require, exports, module) {
             delete this.views[oldname];
         }
 
-        updateList(this._viewList);
-        updateList(this._viewListMRUOrder);
-        updateList(this._viewListAddedOrder);
+        updateList(this.viewList);
+        updateList(this.viewListMRUOrder);
+        updateList(this.viewListAddedOrder);
     };
 
     Pane.prototype._handleFileDeleted = function (e, file) {
@@ -320,17 +319,21 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype.showView = function (view) {
-        var oldView = this._currentView,
+        if (!view) {
+            return;
+        }
+        
+        var oldView = this.currentView,
             oldPath = oldView ? oldView.getFullPath() : undefined;
         
-        if (this._currentView) {
-            this._currentView.setVisible(false);
+        if (this.currentView) {
+            this.currentView.setVisible(false);
         } else {
             this.showInterstitial(false);
         }
         
-        this._currentView = view;
-        this._currentView.setVisible(true);
+        this.currentView = view;
+        this.currentView.setVisible(true);
         
         this.updateLayout();
         
@@ -358,18 +361,18 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype.updateLayout = function (hint) {
-        if (this._currentView) {
-            this._currentView.resizeToFit(hint);
+        if (this.currentView) {
+            this.currentView.resizeToFit(hint);
         }
     };
     
     Pane.prototype.isViewNeeded = function (file) {
-        return (this._currentView.getFullPath === file.fullPath ||
+        return ((this.currentView && this.currentView.getFullPath === file.fullPath) ||
                 this.findInViewList(file.fullPath));
     };
     
     Pane.prototype.getCurrentlyViewedFile = function () {
-        return this._currentView ? this._currentView.getFile() : null;
+        return this.currentView ? this.currentView.getFile() : null;
     };
     
     Pane.prototype.destroyViewIfNotNeeded = function (view) {
@@ -381,11 +384,11 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype.doRemoveAllViews = function () {
-        this._viewList = [];
-        this._viewListMRUOrder = [];
-        this._viewListAddedOrder = [];
+        this.viewList = [];
+        this.viewListMRUOrder = [];
+        this.viewListAddedOrder = [];
         this.showInterstitial(true);
-        this._currentView = null;
+        this.currentView = null;
         
         _.forEach(this._views, function (view) {
             delete this.views[view.getFullPath()];
@@ -397,7 +400,7 @@ define(function (require, exports, module) {
         var result = this.removeListFromViewList(fileList);
         
         var viewNeedsClosing = function (fullPath) {
-            return _.findIndex(this._viewListAddedOrder, function (file) {
+            return _.findIndex(this.viewListAddedOrder, function (file) {
                 return file.fullPath === fullPath;
             });
         };
@@ -411,6 +414,14 @@ define(function (require, exports, module) {
         });
         
         return result;
+    };
+    
+    Pane.prototype.focus = function () {
+        if (this.currentView) {
+            this.currentView.focus();
+        } else {
+            this.$el.focus();
+        }
     };
     
     exports.Pane = Pane;

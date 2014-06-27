@@ -65,6 +65,8 @@ html, body {
     backface-visibility: hidden;
 }
 
+
+
 .resizing-container {
     position: absolute;
     top: 0;
@@ -115,6 +117,10 @@ a, img {
     // Make sure the bottom box-shadow goes above the editor (position: relative needed to start a new stacking group)
     position: relative;
     z-index: @z-index-brackets-toolbar;
+}
+
+.forced-hidden {
+    display: none !important;
 }
 
 .busyCursor {
@@ -517,7 +523,7 @@ a, img {
 
 /* Project panel */
 
-#working-set-header {
+.pane-view-header {
     position: relative;
     height: 19px;
     padding: 10px 0 9px 12px;
@@ -527,7 +533,7 @@ a, img {
     overflow: hidden;
 }
 
-#working-set-option-btn {
+.pane-view-option-btn {
     position: absolute;
     right: 4px;
     top: 7px;
@@ -563,7 +569,7 @@ a, img {
     overflow: hidden;
 }
 
-#open-files-container {
+.open-files-container {
     .box-flex(0);
     background: #3C3F41;
     padding: 0px;
@@ -582,14 +588,6 @@ a, img {
         padding: 0 0 0 8px;
         min-height: 18px;
         vertical-align: baseline;
-
-        &.selected a {
-            color: @open-working-file-name-highlight;
-        }
-
-        &.selected .extension {
-            color: @open-working-file-ext-highlight;
-        }
     }
 
     a {
@@ -613,6 +611,19 @@ a, img {
 
     .extension, .directory {
         color: @project-panel-text-2;
+    }
+}
+
+.open-files-container.active {
+
+    li {
+        &.selected a {
+            color: @open-working-file-name-highlight;
+        }
+
+        &.selected .extension {
+            color: @open-working-file-ext-highlight;
+        }
     }
 }
 
@@ -653,7 +664,7 @@ a, img {
 }
 
 //Initially start with the open files hidden, they will get show as files are added
-#open-files-container {
+.open-files-container {
     display:none;
 }
 

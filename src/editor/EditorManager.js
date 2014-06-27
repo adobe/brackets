@@ -475,11 +475,6 @@ define(function (require, exports, module) {
         return file ? file.fullPath : null;
     }
     
-    function _clearCurrentlyViewedPath() {
-        // DEPRECATE This event
-        $(exports).triggerHandler("currentlyViewedFileChange");
-    }
-    
     /** Remove existing custom view if present */
     function _removeCustomViewer() {
         

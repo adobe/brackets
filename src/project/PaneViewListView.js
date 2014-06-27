@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, brackets  */
+/*global define, $, window, brackets, Mustache  */
 
 /**
  * PaneViewListView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
@@ -33,17 +33,21 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("thirdparty/lodash");
-
     // Load dependent modules
     var DocumentManager       = require("document/DocumentManager"),
         MainViewManager       = require("view/MainViewManager"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
         Menus                 = require("command/Menus"),
+        DefaultMenus          = require("command/DefaultMenus"),
         FileViewController    = require("project/FileViewController"),
-        ViewUtils             = require("utils/ViewUtils");
+        ViewUtils             = require("utils/ViewUtils"),
+        paneListTemplate      = require("text!htmlContent/pane-list.html"),
+        Strings               = require("strings"),
+        _                     = require("thirdparty/lodash");
     
+    
+    var _views = [];
     
     /**
      * Constants for event.which values
@@ -55,18 +59,73 @@ define(function (require, exports, module) {
     /** Each list item in the working set stores a references to the related document in the list item's data.  
      *  Use listItem.data(_FILE_KEY) to get the document reference
      */
-    var _FILE_KEY = "file",
-        $workingSetHeader,
-        $openFilesContainer,
-        $openFilesList;
+    var _FILE_KEY = "file";
     
-    /**
-     * @private
-     * Internal flag to suppress redrawing the Working Set after a paneViewListSort event.
-     * @type {boolean}
-     */
-    var _suppressSortRedraw = false;
+    var pane_view_list_cmenu;
+    var pane_view_list_configuration_menu;
     
+    function areContextMenusRegistered() {
+        return pane_view_list_cmenu && pane_view_list_configuration_menu;
+    }
+    
+    function registerContextMenus() {
+        if (areContextMenusRegistered()) {
+            return;
+        }
+        
+        pane_view_list_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.PANE_VIEW_LIST_CONTEXT_MENU);
+        pane_view_list_cmenu.addMenuItem(Commands.FILE_SAVE);
+        pane_view_list_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
+        pane_view_list_cmenu.addMenuItem(Commands.FILE_RENAME);
+        pane_view_list_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
+        pane_view_list_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
+        pane_view_list_cmenu.addMenuDivider();
+        pane_view_list_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
+        pane_view_list_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
+        pane_view_list_cmenu.addMenuDivider();
+        pane_view_list_cmenu.addMenuItem(Commands.FILE_CLOSE);
+        
+        pane_view_list_configuration_menu = Menus.registerContextMenu(Menus.ContextMenuIds.PANE_VIEW_LIST_CONFIG_MENU);
+        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED);
+        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME);
+        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE);
+        pane_view_list_configuration_menu.addMenuDivider();
+        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_TOGGLE_AUTO_SORT);
+    }
+
+    function PaneViewListView($container, paneId) {
+        var id = "pane-view-list-" + paneId;
+        
+        this.$header = null;
+        this.$openFilesList = null;
+        this.$container = $container;
+        this.$el = $container.append(Mustache.render(paneListTemplate, _.extend({id: id}, Strings))).find("#" + id);
+        this.suppressSortRedraw = false;
+        this.paneId = paneId;
+        
+        this.init();
+    }
+
+    PaneViewListView.prototype._findListItemFromPath = function (fullPath) {
+        var result = null;
+
+        if (fullPath) {
+            var items = this.$openFilesContainer.find("ul").children();
+            items.each(function () {
+                var $listItem = $(this);
+                if ($listItem.data(_FILE_KEY).fullPath === fullPath) {
+                    result = $listItem;
+                    return false; // breaks each
+                }
+            });
+        }
+
+        return result;
+    };
+    
+    PaneViewListView.prototype._makeEventName = function (name) {
+        return name + ".paneList" + this.paneId;
+    };
     
     /**
      * Finds the listItem item assocated with the file. Returns null if not found.
@@ -74,79 +133,66 @@ define(function (require, exports, module) {
      * @param {!File} file
      * @return {HTMLLIItem}
      */
-    function _findListItemFromFile(file) {
-        var result = null;
-
+    PaneViewListView.prototype._findListItemFromFile = function (file) {
         if (file) {
-            var items = $openFilesContainer.find("ul").children();
-            items.each(function () {
-                var $listItem = $(this);
-                if ($listItem.data(_FILE_KEY).fullPath === file.fullPath) {
-                    result = $listItem;
-                    return false;
-                    // breaks each
-                }
-            });
+            return this._findListItemFromPath(file.fullPath);
         }
-
-        return result;
-    }
+    };
 
     /**
      * @private
      */
-    function _scrollSelectedDocIntoView() {
+    PaneViewListView.prototype._scrollSelectedFileIntoView = function () {
         if (FileViewController.getFileSelectionFocus() !== FileViewController.PANE_VIEW_LIST_VIEW) {
             return;
         }
 
-        var doc = DocumentManager.getCurrentDocument();
-        if (!doc) {
+        var file = MainViewManager.getCurrentlyViewedFileForPane(this.paneId);
+
+        var $selectedFile = this._findListItemFromFile(file);
+        if (!$selectedFile) {
             return;
         }
 
-        var $selectedDoc = _findListItemFromFile(doc.file);
-        if (!$selectedDoc) {
-            return;
-        }
-
-        ViewUtils.scrollElementIntoView($openFilesContainer, $selectedDoc, false);
-    }
+        ViewUtils.scrollElementIntoView(this.$openFilesContainer, $selectedFile, false);
+    };
 
     /**
      * @private
      * Redraw selection when list size changes or DocumentManager currentDocument changes.
      */
-    function _fireSelectionChanged() {
-        _scrollSelectedDocIntoView();
+    PaneViewListView.prototype._fireSelectionChanged = function () {
+        this._scrollSelectedFileIntoView();
 
-        // redraw selection
-        $openFilesList.trigger("selectionChanged");
-
+        if (this.$el.hasClass("active")) {
+            this.$openFilesList.trigger("selectionChanged");
+        } else {
+            this.$openFilesList.trigger("selectionHide");
+        }
         // in-lieu of resize events, manually trigger contentChanged to update scroll shadows
-        $openFilesContainer.triggerHandler("contentChanged");
-    }
+        this.$openFilesContainer.triggerHandler("contentChanged");
+    };
 
     /**
      * @private
      * adds the style 'vertical-scroll' if a vertical scroll bar is present
      */
-    function _adjustForScrollbars() {
-        if ($openFilesContainer[0].scrollHeight > $openFilesContainer[0].clientHeight) {
-            if (!$openFilesContainer.hasClass("vertical-scroll")) {
-                $openFilesContainer.addClass("vertical-scroll");
+    PaneViewListView.prototype._adjustForScrollbars = function () {
+        if (this.$openFilesContainer[0].scrollHeight > this.$openFilesContainer[0].clientHeight) {
+            if (!this.$openFilesContainer.hasClass("vertical-scroll")) {
+                this.$openFilesContainer.addClass("vertical-scroll");
             }
         } else {
-            $openFilesContainer.removeClass("vertical-scroll");
+            this.$openFilesContainer.removeClass("vertical-scroll");
         }
-    }
+    };
     
     /**
      * @private
      * Adds directory names to elements representing passed files in working tree
      * @param {Array.<File>} filesList - list of Files with the same filename
      */
-    function _addDirectoryNamesToWorkingTreeFiles(filesList) {
+    PaneViewListView.prototype._addDirectoryNamesToWorkingTreeFiles = function (filesList) {
         // filesList must have at least two files in it for this to make sense
         if (filesList.length <= 1) {
             return;
@@ -155,7 +201,7 @@ define(function (require, exports, module) {
         var displayPaths = ViewUtils.getDirNamesForDuplicateFiles(filesList);
 
         // Go through open files and add directories to appropriate entries
-        $openFilesContainer.find("ul > li").each(function () {
+        this.$openFilesContainer.find("ul > li").each(function () {
             var $li = $(this);
             var io = filesList.indexOf($li.data(_FILE_KEY));
             if (io !== -1) {
@@ -168,23 +214,20 @@ define(function (require, exports, module) {
                 $li.children("a").append($dir);
             }
         });
-    }
+    };
 
-    function _getMyPaneID() {
-        return MainViewManager.FOCUSED_PANE;
-    }
-    
     /**
      * @private
      * Looks for files with the same name in the working set
      * and adds a parent directory name to them
      */
-    function _checkForDuplicatesInWorkingTree() {
-        var map = {},
-            fileList = MainViewManager.getPaneViewList(_getMyPaneID());
+    PaneViewListView.prototype._checkForDuplicatesInWorkingTree = function () {
+        var self = this,
+            map = {},
+            fileList = MainViewManager.getPaneViewList(this.paneId);
 
         // We need to always clear current directories as files could be removed from working tree.
-        $openFilesContainer.find("ul > li > a > span.directory").remove();
+        this.$openFilesContainer.find("ul > li > a > span.directory").remove();
 
         // Go through files and fill map with arrays of files.
         fileList.forEach(function (file) {
@@ -200,29 +243,40 @@ define(function (require, exports, module) {
         // Go through the map and solve the arrays with length over 1. Ignore the rest.
         _.forEach(map, function (value) {
             if (value.length > 1) {
-                _addDirectoryNamesToWorkingTreeFiles(value);
+                self._addDirectoryNamesToWorkingTreeFiles(value);
             }
         });
-    }
+    };
 
     /**
      * @private
      * Shows/Hides open files list based on working set content.
      */
-    function _redraw() {
-        var fileList = MainViewManager.getPaneViewList(_getMyPaneID());
+    PaneViewListView.prototype._redraw = function () {
+        var fileList = MainViewManager.getPaneViewList(this.paneId),
+            paneId = MainViewManager.getActivePaneId();
+        
+        if (paneId === this.paneId) {
+            this.$el.addClass("active");
+        } else {
+            this.$el.removeClass("active");
+        }
         
         if (!fileList || fileList.length === 0) {
-            $openFilesContainer.hide();
-            $workingSetHeader.hide();
+            this.$openFilesContainer.hide();
+            this.$paneViewListViewHeader.hide();
         } else {
-            $openFilesContainer.show();
-            $workingSetHeader.show();
-            _checkForDuplicatesInWorkingTree();
+            this.$openFilesContainer.show();
+            this.$paneViewListViewHeader.show();
+            this._checkForDuplicatesInWorkingTree();
         }
-        _adjustForScrollbars();
-        _fireSelectionChanged();
-    }
+        this._adjustForScrollbars();
+        this._fireSelectionChanged();
+    };
+    
+    PaneViewListView.prototype._handleActivePaneChange = function (e, paneId) {
+        this._redraw();
+    };
     
     /**
      * Starts the drag and drop working set view reorder.
@@ -231,8 +285,9 @@ define(function (require, exports, module) {
      * @param {!HTMLLIElement} $listItem - jQuery element
      * @param {?bool} fromClose - true if reorder was called from the close icon
      */
-    function _reorderListItem(event, $listItem, fromClose) {
-        var $prevListItem   = $listItem.prev(),
+    PaneViewListView.prototype._reorderListItem = function (event, $listItem, fromClose) {
+        var self            = this,
+            $prevListItem   = $listItem.prev(),
             $nextListItem   = $listItem.next(),
             selected        = $listItem.hasClass("selected"),
             prevSelected    = $prevListItem.hasClass("selected"),
@@ -242,8 +297,8 @@ define(function (require, exports, module) {
             startPageY      = event.pageY,
             listItemTop     = startPageY - $listItem.offset().top,
             listItemBottom  = $listItem.offset().top + height - startPageY,
-            offsetTop       = $openFilesContainer.offset().top,
-            scrollElement   = $openFilesContainer.get(0),
+            offsetTop       = this.$openFilesContainer.offset().top,
+            scrollElement   = this.$openFilesContainer.get(0),
             containerHeight = scrollElement.clientHeight,
             maxScroll       = scrollElement.scrollHeight - containerHeight,
             hasScroll       = scrollElement.scrollHeight > containerHeight,
@@ -265,18 +320,18 @@ define(function (require, exports, module) {
                         $prevListItem.insertAfter($listItem);
                         startPageY -= height;
                         top = top + height;
-                        MainViewManager.swapPaneViewListIndexes(MainViewManager.FOCUSED_PANE, index, --index);
+                        MainViewManager.swapPaneViewListIndexes(self.paneId, index, --index);
                     // If moving down, place the next item before the moving item
                     } else {
                         $nextListItem.insertBefore($listItem);
                         startPageY += height;
                         top = top - height;
-                        MainViewManager.swapPaneViewListIndexes(MainViewManager.FOCUSED_PANE, index, ++index);
+                        MainViewManager.swapPaneViewListIndexes(self.paneId, index, ++index);
                     }
                     
                     // Update the selection when the previows or next element were selected
                     if (!selected && ((top > 0 && prevSelected) || (top < 0 && nextSelected))) {
-                        _fireSelectionChanged();
+                        self._fireSelectionChanged();
                     }
                     
                     // Update the previows and next items
@@ -289,8 +344,8 @@ define(function (require, exports, module) {
                     // the it will show a bottom shadow even if it shouldnt because of the way the scrollHeight is 
                     // handle with relative position. This will remove that shadow and add it on drop. 
                     if (!addBottomShadow && !hasBottomShadow && !$nextListItem.length && prevSelected) {
-                        ViewUtils.removeScrollerShadow($openFilesContainer[0], null);
-                        ViewUtils.addScrollerShadow($openFilesContainer[0], null, false);
+                        ViewUtils.removeScrollerShadow(self.$openFilesContainer[0], null);
+                        ViewUtils.addScrollerShadow(self.$openFilesContainer[0], null, false);
                         addBottomShadow = true;
                     }
                 }
@@ -304,7 +359,7 @@ define(function (require, exports, module) {
             
             // Update the selection position
             if (selected) {
-                _fireSelectionChanged();
+                self._fireSelectionChanged();
             }
             
             // Once the movement is greater than 3 pixels, it is assumed that the user wantes to reorder files and not open
@@ -313,7 +368,7 @@ define(function (require, exports, module) {
                 moved = true;
                 
                 // Don't redraw the working set for the next events
-                _suppressSortRedraw = true;
+                self.suppressSortRedraw = true;
             }
         }
         
@@ -335,13 +390,13 @@ define(function (require, exports, module) {
             if (dir && !interval) {
                 // Scroll view if the mouse is over the first or last pixels of the container
                 interval = window.setInterval(function () {
-                    var scrollTop = $openFilesContainer.scrollTop();
+                    var scrollTop = self.$openFilesContainer.scrollTop();
                     // End scroll if there isn't more to scroll
                     if ((dir === -1 && scrollTop <= 0) || (dir === 1 && scrollTop >= maxScroll)) {
                         endScroll();
                     // Scroll and drag list item
                     } else {
-                        $openFilesContainer.scrollTop(scrollTop + 7 * dir);
+                        self.$openFilesContainer.scrollTop(scrollTop + 7 * dir);
                         startPageY -= 7 * dir;
                         drag(e);
                     }
@@ -368,26 +423,28 @@ define(function (require, exports, module) {
                 // Click on close icon, or middle click anywhere - close the item without selecting it first
                 if (fromClose || event.which === MIDDLE_BUTTON) {
                     CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY),
-                                                                 paneId: _getMyPaneID()});
+                                                                 paneId: self.paneId});
                 } else {
                     // Normal right and left click - select the item
-                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.PANE_VIEW_LIST_VIEW);
+                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath,
+                                                             FileViewController.PANE_VIEW_LIST_VIEW,
+                                                             self.paneId);
                 }
             
             } else {
                 // Update the file selection
                 if (selected) {
-                    _fireSelectionChanged();
-                    ViewUtils.scrollElementIntoView($openFilesContainer, $listItem, false);
+                    self._fireSelectionChanged();
+                    ViewUtils.scrollElementIntoView(self.$openFilesContainer, $listItem, false);
                 }
                 
                 // Restore the shadow
                 if (addBottomShadow) {
-                    ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
+                    ViewUtils.addScrollerShadow(self.$openFilesContainer[0], null, true);
                 }
                 
                 // The drag is done, so set back to the default
-                _suppressSortRedraw = false;
+                self.suppressSortRedraw = false;
             }
         }
         
@@ -406,19 +463,19 @@ define(function (require, exports, module) {
         
         // Style the element
         $listItem.css("position", "relative").css("z-index", 1);
-                
+        
         // Envent Handlers
-        $openFilesContainer.on("mousemove.workingSet", function (e) {
+        this.$openFilesContainer.on(self._makeEventName("mousemove"), function (e) {
             if (hasScroll) {
                 scroll(e);
             }
             drag(e);
         });
-        $openFilesContainer.on("mouseup.workingSet mouseleave.workingSet", function (e) {
-            $openFilesContainer.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
+        this.$openFilesContainer.on(self._makeEventName("mouseup") + " " + self._makeEventName("mouseleave"), function (e) {
+            self.$openFilesContainer.off(self._makeEventName(""));
             drop();
         });
-    }
+    };
     
     /** 
      * Updates the appearance of the list element based on the parameters provided
@@ -427,9 +484,10 @@ define(function (require, exports, module) {
      * @param {bool} isDirty 
      * @param {bool} canClose
      */
-    function _updateFileStatusIcon(listElement, isDirty, canClose) {
-        var $fileStatusIcon = listElement.find(".file-status-icon");
-        var showIcon = isDirty || canClose;
+    PaneViewListView.prototype._updateFileStatusIcon = function (listElement, isDirty, canClose) {
+        var self = this,
+            $fileStatusIcon = listElement.find(".file-status-icon"),
+            showIcon = isDirty || canClose;
 
         // remove icon if its not needed
         if (!showIcon && $fileStatusIcon.length !== 0) {
@@ -444,7 +502,7 @@ define(function (require, exports, module) {
                 .mousedown(function (e) {
                     // Try to drag if that is what is wanted if not it will be the equivalent to File > Close;
                     // it doesn't merely remove a file from the working set
-                    _reorderListItem(e, $(this).parent(), true);
+                    self._reorderListItem(e, $(this).parent(), true);
                     
                     // stopPropagation of mousedown for fileStatusIcon so the parent <LI> item, which
                     // selects documents on mousedown, doesn't select the document in the case 
@@ -458,21 +516,21 @@ define(function (require, exports, module) {
             ViewUtils.toggleClass($fileStatusIcon, "dirty", isDirty);
             ViewUtils.toggleClass($fileStatusIcon, "can-close", canClose);
         }
-    }
+    };
     
     /** 
      * Updates the appearance of the list element based on the parameters provided.
      * @private
      * @param {!HTMLLIElement} listElement
-     * @param {?Document} selectedDoc
+     * @param {?File} selectedFile
      */
-    function _updateListItemSelection(listItem, selectedDoc) {
-        var shouldBeSelected = (selectedDoc && $(listItem).data(_FILE_KEY).fullPath === selectedDoc.file.fullPath);
+    function _updateListItemSelection(listItem, selectedFile) {
+        var shouldBeSelected = (selectedFile && $(listItem).data(_FILE_KEY).fullPath === selectedFile.fullPath);
         
         ViewUtils.toggleClass($(listItem), "selected", shouldBeSelected);
     }
 
-    function isOpenAndDirty(file) {
+    function _isOpenAndDirty(file) {
         // working set item might never have been opened; if so, then it's definitely not dirty
         var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
         return (docIfOpen && docIfOpen.isDirty);
@@ -484,8 +542,9 @@ define(function (require, exports, module) {
      * @param {File} file
      * @return {HTMLLIElement} newListItem
      */
-    function _createNewListItem(file) {
-        var curDoc = DocumentManager.getCurrentDocument();
+    PaneViewListView.prototype._createNewListItem = function (file) {
+        var self = this,
+            selectedFile = MainViewManager.getCurrentlyViewedFileForPane(this.paneId);
 
         // Create new list item with a link
         var $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(file));
@@ -493,213 +552,239 @@ define(function (require, exports, module) {
             .append($link)
             .data(_FILE_KEY, file);
 
-        $openFilesContainer.find("ul").append($newItem);
+        this.$openFilesContainer.find("ul").append($newItem);
         
         // Update the listItem's apperance
-        _updateFileStatusIcon($newItem, isOpenAndDirty(file), false);
-        _updateListItemSelection($newItem, curDoc);
+        this._updateFileStatusIcon($newItem, _isOpenAndDirty(file), false);
+        _updateListItemSelection($newItem, selectedFile);
 
         $newItem.mousedown(function (e) {
-            _reorderListItem(e, $(this));
+            self._reorderListItem(e, $(this));
             e.preventDefault();
         });
         
         $newItem.hover(
             function () {
-                _updateFileStatusIcon($(this), isOpenAndDirty(file), true);
+                self._updateFileStatusIcon($(this), _isOpenAndDirty(file), true);
             },
             function () {
-                _updateFileStatusIcon($(this), isOpenAndDirty(file), false);
+                self._updateFileStatusIcon($(this), _isOpenAndDirty(file), false);
             }
         );
-    }
+    };
     
     /** 
      * Deletes all the list items in the view and rebuilds them from the working set model
      * @private
      */
-    function _rebuildWorkingSet(forceRedraw) {
-        var fileList = MainViewManager.getPaneViewList(_getMyPaneID());
+    PaneViewListView.prototype._rebuildViewList = function (forceRedraw) {
+        var self = this,
+            fileList = MainViewManager.getPaneViewList(this.paneId);
 
-        $openFilesContainer.find("ul").empty();
+        this.$openFilesContainer.find("ul").empty();
         
         fileList.forEach(function (file) {
-            _createNewListItem(file);
+            self._createNewListItem(file);
         });
 
         if (forceRedraw) {
-            _redraw();
+            self._redraw();
         }
-    }
+    };
 
     /** 
      * @private
      */
-    function _updateListSelection() {
-        var doc;
-        if (FileViewController.getFileSelectionFocus() === FileViewController.PANE_VIEW_LIST_VIEW) {
-            doc = DocumentManager.getCurrentDocument();
-        } else {
-            doc = null;
-        }
+    PaneViewListView.prototype._updateListSelection = function () {
+        var file = MainViewManager.getCurrentlyViewedFileForPane(this.paneId);
             
         // Iterate through working set list and update the selection on each
-        var items = $openFilesContainer.find("ul").children().each(function () {
-            _updateListItemSelection(this, doc);
+        var items = this.$openFilesContainer.find("ul").children().each(function () {
+            _updateListItemSelection(this, file);
         });
 
         // Make sure selection is in view
-        _scrollSelectedDocIntoView();
-
-        _fireSelectionChanged();
-    }
+        this._scrollSelectedFileIntoView();
+        this._fireSelectionChanged();
+    };
 
     /** 
      * @private
      */
-    function _handleFileAdded(file, index) {
-        var fileList = MainViewManager.getPaneViewList(_getMyPaneID());
-        
-        if (fileList && index === fileList.length - 1) {
-            // Simple case: append item to list
-            _createNewListItem(file);
-            _redraw();
-        } else {
-            // Insertion mid-list: just rebuild whole list UI
-            _rebuildWorkingSet(true);
+    PaneViewListView.prototype._handleFileAdded = function (e, file, fileAdded, paneId) {
+        if (paneId === this.paneId) {
+            this._rebuildViewList(true);
         }
-    }
+    };
 
     /**
      * @private
      */
-    function _handleFileListAdded(files) {
+    PaneViewListView.prototype._handleFileListAdded = function (e, files) {
         files.forEach(function (file) {
-            _createNewListItem(file);
+            this._createNewListItem(file);
         });
-        _redraw();
-    }
+        this._redraw();
+    };
 
     /** 
      * @private
      * @param {File} file
      * @param {boolean=} suppressRedraw If true, suppress redraw
      */
-    function _handleFileRemoved(file, suppressRedraw) {
-        if (!suppressRedraw) {
-            var $listItem = _findListItemFromFile(file);
+    PaneViewListView.prototype._handleFileRemoved = function (e, file, suppressRedraw, paneId) {
+        if (paneId === this.paneId && !suppressRedraw) {
+            var $listItem = this._findListItemFromFile(file);
             if ($listItem) {
                 // Make the next file in the list show the close icon, 
                 // without having to move the mouse, if there is a next file.
                 var $nextListItem = $listItem.next();
                 if ($nextListItem && $nextListItem.length > 0) {
                     var canClose = ($listItem.find(".can-close").length === 1);
-                    var isDirty = isOpenAndDirty($nextListItem.data(_FILE_KEY));
-                    _updateFileStatusIcon($nextListItem, isDirty, canClose);
+                    var isDirty = _isOpenAndDirty($nextListItem.data(_FILE_KEY));
+                    this._updateFileStatusIcon($nextListItem, isDirty, canClose);
                 }
                 $listItem.remove();
             }
             
-            _redraw();
+            this._redraw();
         }
-    }
+    };
 
-    function _handleRemoveList(removedFiles) {
-        removedFiles.forEach(function (file) {
-            var $listItem = _findListItemFromFile(file);
-            if ($listItem) {
-                $listItem.remove();
-            }
-        });
+    PaneViewListView.prototype._handleRemoveList = function (e, removedFiles, paneId) {
+        if (paneId === this.paneId) {
+            removedFiles.forEach(function (file) {
+                var $listItem = this._findListItemFromFile(file);
+                if ($listItem) {
+                    $listItem.remove();
+                }
+            });
 
-        _redraw();
-    }
+            this._redraw();
+        }
+    };
     
     /**
      * @private
      */
-    function _handlePaneViewListSort() {
-        if (!_suppressSortRedraw) {
-            _rebuildWorkingSet(true);
+    PaneViewListView.prototype._handlePaneViewListSort = function (e, paneId) {
+        if (!this.suppressSortRedraw && paneId === this.paneId) {
+            this._rebuildViewList(true);
         }
-    }
+    };
 
     /** 
      * @private
      * @param {Document} doc 
      */
-    function _handleDirtyFlagChanged(doc) {
-        var listItem = _findListItemFromFile(doc.file);
+    PaneViewListView.prototype._handleDirtyFlagChanged = function (e, doc) {
+        var listItem = this._findListItemFromFile(doc.file);
         if (listItem) {
             var canClose = $(listItem).find(".can-close").length === 1;
-            _updateFileStatusIcon(listItem, doc.isDirty, canClose);
+            this._updateFileStatusIcon(listItem, doc.isDirty, canClose);
         }
-
-    }
-
+    };
+    
     /**
      * @private
      * @param {string} oldName
      * @param {string} newName
      */
-    function _handleFileNameChanged(oldName, newName) {
-        // Rebuild the working set if any file or folder name changed.
-        // We could be smarter about this and only update the
-        // nodes that changed, if needed...
-        _rebuildWorkingSet(true);
-    }
+    PaneViewListView.prototype._handleFileNameChanged = function (e, oldName, newName) {
+        if (this._findListItemFromPath(oldName)) {
+            // Rebuild the working set if any file or folder name changed.
+            // We could be smarter about this and only update the
+            // nodes that changed, if needed...
+            this._rebuildViewList(true);
+        }
+    };
     
-    function refresh() {
-        _redraw();
-    }
-    
-    function create(element) {
+    PaneViewListView.prototype.init = function () {
         // Init DOM element
-        $openFilesContainer = element;
-        $workingSetHeader = $("#working-set-header");
-        $openFilesList = $openFilesContainer.find("ul");
+        var self = this;
+        
+        this.$openFilesContainer = this.$el.find(".open-files-container");
+        this.$paneViewListViewHeader = this.$el.find(".pane-view-header");
+        this.$gearMenu = this.$el.find(".pane-view-option-btn");
+        
+        this.$openFilesList = this.$el.find("ul");
         
         // Register listeners
-        $(MainViewManager).on("paneViewListAdd", function (event, addedFile) {
-            _handleFileAdded(addedFile);
-        });
+        $(MainViewManager).on(this._makeEventName("paneViewListAdd"), _.bind(this._handleFileAdded, this));
+        $(MainViewManager).on(this._makeEventName("paneViewListAddList"), _.bind(this._handleFileAdded, this));
+        $(MainViewManager).on(this._makeEventName("paneViewListRemove"), _.bind(this._handleFileRemoved, this));
+        $(MainViewManager).on(this._makeEventName("paneViewListRemoveList"), _.bind(this._handleRemoveList, this));
+        $(MainViewManager).on(this._makeEventName("paneViewListSort"), _.bind(this._handlePaneViewListSort, this));
+        $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
 
-        $(MainViewManager).on("paneViewListAddList", function (event, addedFiles) {
-            _handleFileListAdded(addedFiles);
-        });
-
-        $(MainViewManager).on("paneViewListRemove", function (event, removedFile, suppressRedraw) {
-            _handleFileRemoved(removedFile, suppressRedraw);
-        });
-
-        $(MainViewManager).on("paneViewListRemoveList", function (event, removedFiles) {
-            _handleRemoveList(removedFiles);
-        });
+        $(DocumentManager).on(this._makeEventName("dirtyFlagChange"), _.bind(this._handleDirtyFlagChanged, this));
+        $(DocumentManager).on(this._makeEventName("fileNameChange"), _.bind(this._handleFileNameChanged, this));
         
-        $(MainViewManager).on("paneViewListSort", function (event) {
-            _handlePaneViewListSort();
-        });
-
-        $(DocumentManager).on("dirtyFlagChange", function (event, doc) {
-            _handleDirtyFlagChanged(doc);
-        });
-    
-        $(DocumentManager).on("fileNameChange", function (event, oldName, newName) {
-            _handleFileNameChanged(oldName, newName);
-        });
-        
-        $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _updateListSelection);
+        $(FileViewController).on(this._makeEventName("documentSelectionFocusChange") + " " + this._makeEventName("fileViewFocusChange"), _.bind(this._updateListSelection, this));
         
         // Show scroller shadows when open-files-container scrolls
-        ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
-        ViewUtils.sidebarList($openFilesContainer);
+        ViewUtils.addScrollerShadow(this.$openFilesContainer[0], null, true);
+        ViewUtils.sidebarList(this.$openFilesContainer);
         
         // Disable horizontal scrolling until WebKit bug #99379 is fixed
-        $openFilesContainer.css("overflow-x", "hidden");
+        this.$openFilesContainer.css("overflow-x", "hidden");
+
+        this.installMenuHandlers();
         
-        _redraw();
-    }
+        this._redraw();
+    };
+
+    PaneViewListView.prototype.installMenuHandlers = function () {
+        var self = this;
+        
+        this.$openFilesContainer.on("contextmenu", function (e) {
+            registerContextMenus();
+            pane_view_list_cmenu.open(e);
+        });
+
+        this.$gearMenu.on("click", function (e) {
+            var buttonOffset,
+                buttonHeight;
+
+            e.stopPropagation();
+            registerContextMenus();
+
+            MainViewManager.setActivePaneId(self.paneId);
+            
+            if (pane_view_list_configuration_menu.isOpen()) {
+                pane_view_list_configuration_menu.close();
+            } else {
+                buttonOffset = $(this).offset();
+                buttonHeight = $(this).outerHeight();
+                pane_view_list_configuration_menu.open({
+                    pageX: buttonOffset.left,
+                    pageY: buttonOffset.top + buttonHeight
+                });
+            }
+        });
+            
+    };
     
-    exports.create  = create;
-    exports.refresh = refresh;
+    PaneViewListView.prototype.destroy = function () {
+        this.$el.remove();
+        $(MainViewManager).off(this._makeEventName(""));
+        $(DocumentManager).off(this._makeEventName(""));
+        $(FileViewController).off(this._makeEventName(""));
+    };
+    
+    exports.cratePaneViewListViewForPane = function ($container, paneId) {
+        _views.push(new PaneViewListView($container, paneId));
+    };
+
+    $(MainViewManager).on("paneDestroyed", function (paneId) {
+        var index = _.findIndex(_views, function (paneViewListView) {
+            return paneViewListView.paneId === paneId;
+        });
+        
+        if (index >= 0) {
+            var view = _views.splice(index, 1);
+            view.destroy();
+        }
+    });
+    
 });

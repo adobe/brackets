@@ -232,6 +232,11 @@ define(function (require, exports, module) {
             }
         };
         
+        var hideSelectionMarker = function (event) {
+            $selectionTriangle.addClass("forced-hidden");
+            $selectionMarker.addClass("forced-hidden");
+        };
+        
         var updateSelectionMarker = function (event, reveal) {
             // find the selected list item
             var $listItem = $listElement.find(selectedClassName).closest("li");
@@ -239,6 +244,9 @@ define(function (require, exports, module) {
             if (leafClassName) {
                 showTriangle = $listItem.hasClass(leafClassName);
             }
+
+            $selectionTriangle.removeClass("forced-hidden");
+            $selectionMarker.removeClass("forced-hidden");
             
             // always hide selection visuals first to force layout (issue #719)
             $selectionTriangle.hide();
@@ -279,6 +287,7 @@ define(function (require, exports, module) {
         $listElement.on("selectionChanged", updateSelectionMarker);
         $scrollerElement.on("scroll", updateSelectionTriangle);
         $scrollerElement.on("selectionRedraw", updateSelectionTriangle);
+        $scrollerElement.on("selectionHide", hideSelectionMarker);
         
         // update immediately
         updateSelectionMarker();

@@ -240,7 +240,7 @@ define(function (require, exports, module) {
      * - be resolved without document, i.e. when an image is displayed or
      * - be rejected if the file can not be read.
      */
-    function doOpen(fullPath, silent) {
+    function doOpen(fullPath, silent, paneId) {
         var result = new $.Deferred();
         
         // workaround for https://github.com/adobe/brackets/issues/6001
@@ -289,7 +289,7 @@ define(function (require, exports, module) {
             });
 
             var file = FileSystem.getFileForPath(fullPath);
-            MainViewManager.doOpen(MainViewManager.FOCUSED_PANE, file)
+            MainViewManager.doOpen(paneId, file)
                 .done(function () {
                     result.resolve();
                 })
@@ -313,12 +313,14 @@ define(function (require, exports, module) {
      * If no path is specified, a file prompt is provided for input.
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @param {boolean=} silent - If true, don't show error message
+     * @param {string=} paneId - the pane in which to open the file
      * @return {$.Promise} a jQuery promise that will be resolved with a new
      * document for the specified file path or be resolved without document, i.e. when an image is displayed,
      * or rejected if the file can not be read.
      */
-    function _doOpenWithOptionalPath(fullPath, silent) {
+    function _doOpenWithOptionalPath(fullPath, silent, paneId) {
         var result;
+        paneId = paneId || MainViewManager.FOCUSED_PANE;
         if (!fullPath) {
             // Create placeholder deferred
             result = new $.Deferred();
@@ -339,16 +341,16 @@ define(function (require, exports, module) {
                         filteredPaths.forEach(function (file) {
                             filesToOpen.push(FileSystem.getFileForPath(file));
                         });
-                        MainViewManager.addListToPaneViewList(MainViewManager.FOCUSED_PANE, filesToOpen);
+                        MainViewManager.addListToPaneViewList(paneId, filesToOpen);
                         
-                        doOpen(filteredPaths[filteredPaths.length - 1], silent)
+                        doOpen(filteredPaths[filteredPaths.length - 1], silent, paneId)
                             .done(function (doc) {
                                 //  doc may be null, i.e. if an image has been opened.
                                 // Then we do not add the opened file to the pane view list.
                                 if (doc) {
-                                    MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file);
+                                    MainViewManager.addToPaneViewList(paneId, doc.file);
                                 }
-                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(EditorManager.getCurrentlyViewedPath());
+                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(MainViewManager.getCurrentlyViewedPathForPane(paneId));
                             })
                             // Send the resulting document that was opened
                             .then(result.resolve, result.reject);
@@ -359,7 +361,7 @@ define(function (require, exports, module) {
                 }
             });
         } else {
-            result = doOpen(fullPath, silent);
+            result = doOpen(fullPath, silent, paneId);
         }
         
         return result.promise();
@@ -398,8 +400,9 @@ define(function (require, exports, module) {
      */
     function handleFileOpen(commandData) {
         var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
-            silent = commandData ? commandData.silent : false;
-        return _doOpenWithOptionalPath(fileInfo.path, silent)
+            silent = commandData ? commandData.silent : false,
+            paneId = commandData ? commandData.paneId : MainViewManager.FOCUSED_PANE;
+        return _doOpenWithOptionalPath(fileInfo.path, silent, paneId || MainViewManager.FOCUSED_PANE)
             .always(function () {
                 // If a line and column number were given, position the editor accordingly.
                 if (fileInfo.line !== null) {
@@ -410,8 +413,7 @@ define(function (require, exports, module) {
                     EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1, fileInfo.column - 1, true);
                 }
                 
-                // Give the editor focus
-                EditorManager.focusEditor();
+                MainViewManager.setActivePaneId(paneId);
             });
         // Testing notes: here are some recommended manual tests for handleFileOpen, on macintosh.
         // Do all tests with brackets already running, and also with brackets not already running.
@@ -438,7 +440,8 @@ define(function (require, exports, module) {
             // When opening a file with a custom viewer, we get a null doc.
             // So check it before we add it to the pane view list.
             if (doc) {
-                MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file, commandData.index, commandData.forceRedraw);
+                var paneId = commandData ? commandData.paneId : MainViewManager.FOCUSED_PANE;
+                MainViewManager.addToPaneViewList(paneId || MainViewManager.FOCUSED_PANE, doc.file, commandData.index, commandData.forceRedraw);
             }
         });
     }

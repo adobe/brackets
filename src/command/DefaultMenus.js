@@ -215,26 +215,6 @@ define(function (require, exports, module) {
         project_cmenu.addMenuDivider();
         project_cmenu.addMenuItem(Commands.FILE_REFRESH);
 
-        var pane_view_list_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.PANE_VIEW_LIST_CONTEXT_MENU);
-        pane_view_list_cmenu.addMenuItem(Commands.FILE_SAVE);
-        pane_view_list_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
-        pane_view_list_cmenu.addMenuItem(Commands.FILE_RENAME);
-        pane_view_list_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
-        pane_view_list_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
-        pane_view_list_cmenu.addMenuDivider();
-        pane_view_list_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
-        pane_view_list_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
-        pane_view_list_cmenu.addMenuDivider();
-        pane_view_list_cmenu.addMenuItem(Commands.FILE_CLOSE);
-        
-        
-        var pane_view_list_configuration_menu = Menus.registerContextMenu(Menus.ContextMenuIds.PANE_VIEW_LIST_CONFIG_MENU);
-        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED);
-        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME);
-        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE);
-        pane_view_list_configuration_menu.addMenuDivider();
-        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_TOGGLE_AUTO_SORT);
-
         var editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
         // editor_cmenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
@@ -295,14 +275,6 @@ define(function (require, exports, module) {
             project_cmenu.open(e);
         });
 
-        $("#open-files-container").on("contextmenu", function (e) {
-            pane_view_list_cmenu.open(e);
-        });
-
-        /**
-         * Dropdown menu for workspace sorting
-         */
-        Menus.ContextMenu.assignContextMenuToSelector("#working-set-option-btn", pane_view_list_configuration_menu);
 
         // Prevent the browser context menu since Brackets creates a custom context menu
         $(window).contextmenu(function (e) {
