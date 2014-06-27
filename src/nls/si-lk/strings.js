@@ -31,7 +31,7 @@ define({
      */
 
     // General file io error strings
-    "GENERIC_ERROR"                     : "(error {0})",
+    "GENERIC_ERROR"                     : "({0} දෝෂයක්)",
     "NOT_FOUND_ERR"                     : "The file could not be found.",
     "NOT_READABLE_ERR"                  : "The file could not be read.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
