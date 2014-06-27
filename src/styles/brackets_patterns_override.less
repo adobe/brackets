@@ -310,7 +310,7 @@ a:focus {
 
         background-color: @bc-white;
         .border-radius(0 0 3px 3px);
-        box-shadow: @bc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-dropdown-shadow;
         border: none;
 
         // Menu items
@@ -382,7 +382,7 @@ a:focus {
 
     .dropdown-menu {
         .border-radius(3px);
-        box-shadow: @bc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-dropdown-shadow;
     }
 
     .menu-shortcut {
@@ -393,7 +393,7 @@ a:focus {
 .codehint-menu {
     opacity: 0;
     .dropdown-menu {
-        box-shadow: @bc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-dropdown-shadow;
         max-height: 160px;
         overflow-y: auto;
         padding: 0;
@@ -449,7 +449,7 @@ a:focus {
     top: 11px;
 
     /* dropdown triangle */
-    border-top: 4px solid @bc-gray-component-triangle;
+    border-top: 4px solid @bc-button-triangle;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
 }
@@ -468,7 +468,7 @@ a:focus {
         padding: 5px 0;
         position: absolute;
         display: block;
-        box-shadow: @bc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-dropdown-shadow;
         max-height: 160px;
         overflow-y: auto;
         max-width: none;
@@ -559,7 +559,7 @@ a:focus {
 }
 
 .modal {
-    background-color: @bc-gray-panel;
+    background-color: @bc-panel-bg;
     border: 1px solid rgba(0, 0, 0, 0.1);
     min-width: 200px;
     position: relative;
@@ -574,13 +574,13 @@ a:focus {
 }
 
 .modal-header {
-    background: @bc-gray-panel-top-bar;
+    background: @bc-panel-head;
     border-radius: 4px 4px 0 0;
-    border-bottom: 1px solid @bc-gray-panel-separator;
+    border-bottom: 1px solid @bc-panel-separator;
 }
 
 .modal-body {
-    background-color: @bc-gray-panel;
+    background-color: @bc-panel-bg;
 }
 
 .modal-body.no-padding {
@@ -606,8 +606,8 @@ a:focus {
 
 .modal-footer {
     text-align: right;
-    background-color: @bc-gray-panel;
-    border-top: 1px solid @bc-gray-panel-separator;
+    background-color: @bc-panel-bg;
+    border-top: 1px solid @bc-panel-separator;
     box-shadow: none;
     padding: 10px 15px 12px;
     white-space: nowrap;
@@ -901,7 +901,7 @@ a[href^="http"] {
     .modal-body {
         height: 400px;
         overflow-y: scroll;
-        background-color: @bc-gray-panel;
+        background-color: @bc-panel-bg;
         padding: 0;
         
         .empty-message {
@@ -913,7 +913,7 @@ a[href^="http"] {
         }
 
         .info-message {
-            background-color: @bc-gray-panel;
+            background-color: @bc-panel-bg;
             padding: 1em;
         }
 
@@ -1075,7 +1075,7 @@ input[type="color"],
         outline: 0;
         background-color: @bc-input-background;
         text-shadow: none;
-        border: 1px solid @bc-gray-component-focused-border;
+        border: 1px solid @bc-button-border-focused;
         box-shadow: @bc-input-inner-shadow, @bc-input-glow;
     }
 
@@ -1092,7 +1092,7 @@ input[type="color"],
 }
 
 .tooltip-inner {
-    box-shadow: @bc-dropdown-shadow;
+    box-shadow: 0 3px 9px @bc-dropdown-shadow;
     color: @bc-text;
     max-width: 220px;
     text-align: left;
@@ -1121,7 +1121,7 @@ input[type="color"],
 .btn:focus,
 .btn.disabled,
 .btn[disabled] {
-    background-color: @bc-button-background;
+    background-color: @bc-button-bg;
 }
 
 .btn.primary:hover,
@@ -1135,26 +1135,26 @@ input[type="color"],
     // Button Base
     background-image: none;
 
-    background-color: @bc-button-background;
+    background-color: @bc-button-bg;
     color: @bc-text;
     cursor: default;
     font-size: (@baseFontSize + 1);
     font-weight: @font-weight-semibold;
     line-height: normal;
-    border: 1px solid @bc-gray-component-border;
+    border: 1px solid @bc-button-border;
     .border-radius(@bc-control-border-radius);
-    box-shadow: @bc-button-highlight;
+    box-shadow: inset 0 1px 0 @bc-button-highlight;
     -webkit-font-smoothing: antialiased;
 
     &:hover {
-        background-color: @bc-button-background;
+        background-color: @bc-button-bg;
         color: @bc-text;
     }
 
     // Focus state for keyboard and accessibility
     &:focus {
-        border: 1px solid @bc-gray-component-focused-border;
-        box-shadow: @bc-button-highlight, @bc-input-glow;
+        border: 1px solid @bc-button-border-focused;
+        box-shadow: inset 0 1px 0 @bc-button-highlight, @bc-input-glow;
         color: @bc-text;
         outline: none;
     }
@@ -1233,12 +1233,12 @@ input[type="color"],
     border-radius: @bc-control-border-radius;
     text-decoration: none;
     &:hover {
-        border: 1px solid @bc-alt-component-border;
-        box-shadow: @bc-button-alt-highlight;
+        border: 1px solid @bc-button-border-alt;
+        box-shadow: inset 0 1px 0 @bc-button-highlight;
     }
     &:active {
         background: @bc-button-alt-down-background;
-        border: 1px solid @bc-alt-component-border;
+        border: 1px solid @bc-button-border-alt;
         box-shadow: @bc-call-to-action-down-shadow;
     }
 }
@@ -1249,8 +1249,8 @@ input[type="color"],
     font-weight: normal;
     line-height: 14px;
     &:focus {
-        border: 1px solid @bc-gray-component-focused-border;
-        box-shadow: @bc-button-highlight, @bc-input-glow;
+        border: 1px solid @bc-button-border-focused;
+        box-shadow: inset 0 1px 0 @bc-button-highlight, @bc-input-glow;
         outline: none;
     }
 }
@@ -1280,7 +1280,7 @@ input[type="color"],
     }
     tr:nth-child(even) td,
     tr:nth-child(even) th {
-        background-color: @bc-gray-panel; // turn off bootstrap hover highlight
+        background-color: @bc-panel-bg; // turn off bootstrap hover highlight
     }
 }
 .row-highlight tbody {
@@ -1352,11 +1352,11 @@ input[type="checkbox"] {
     height: 13px;
     width: 13px;
     vertical-align: middle;
-    border: 1px solid @bc-gray-component-border;
+    border: 1px solid @bc-button-border;
     border-radius: 3px;
-    background-color: @bc-button-background;
+    background-color: @bc-button-bg;
     -webkit-appearance: none;
-    box-shadow: @bc-button-highlight;
+    box-shadow: inset 0 1px 0 @bc-button-highlight;
 }
 
 input[type="checkbox"]:active:not(:disabled) {
@@ -1366,7 +1366,7 @@ input[type="checkbox"]:active:not(:disabled) {
 
 input[type="checkbox"]:focus {
     outline:none;
-    border: 1px solid @bc-gray-component-focused-border;
+    border: 1px solid @bc-button-border-focused;
     box-shadow: @bc-input-glow;
 }
 
