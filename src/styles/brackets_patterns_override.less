@@ -52,7 +52,7 @@ a:focus {
     color: @bc-link;
     outline: 0;
     border-radius: 3px;
-    box-shadow: @bc-input-glow;
+    box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
     text-decoration: none;
 }
 
@@ -240,7 +240,7 @@ a:focus {
     .animation(dropdown, 90ms, cubic-bezier(0, .97, .2, .99), 0, 1);
     -webkit-transform-origin: 0 0;
     border: none;
-    border-radius: @bc-control-border-radius;
+    border-radius: @bc-btn-border-radius;
 }
 
 @-webkit-keyframes dropdown {
@@ -449,7 +449,7 @@ a:focus {
     top: 11px;
 
     /* dropdown triangle */
-    border-top: 4px solid @bc-button-triangle;
+    border-top: 4px solid @bc-btn-triangle;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
 }
@@ -464,7 +464,7 @@ a:focus {
     
     &.dropdown-menu {
         border: none;
-        border-radius: @bc-control-border-radius;
+        border-radius: @bc-btn-border-radius;
         padding: 5px 0;
         position: absolute;
         display: block;
@@ -486,7 +486,7 @@ a:focus {
     }
     
     &.dropdown-menu a.selected {
-        background: @bc-highlight;
+        background: @bc-bg-highlight;
         color: @bc-black !important;
     }
 
@@ -537,7 +537,7 @@ a:focus {
     }
     
     .stylesheet-dir {
-        color: @bc-quiet-text;
+        color: @bc-text-quiet;
     }
 }
 
@@ -670,7 +670,7 @@ a:focus {
 
 
 .dialog-title {
-    color: @bc-light-weight-text;
+    color: @bc-text-thin;
     margin-bottom: 0;
     margin-top: 0;
     font-size: 22px;
@@ -688,7 +688,7 @@ a:focus {
 
 .dialog-message li {
     line-height: 20px;
-    color: @bc-light-weight-text;
+    color: @bc-text-thin;
     padding: 0 0 5px;
 }
 
@@ -949,10 +949,10 @@ a[href^="http"] {
                 cursor: text;
             }
             .ext-keywords {
-                color: @bc-input-placeholder-text;
+                color: @bc-input-text-placeholder;
             }
             .muted {
-                color: @bc-input-placeholder-text;
+                color: @bc-input-text-placeholder;
             }
             .alert {
                 font-size: 11px;
@@ -960,7 +960,7 @@ a[href^="http"] {
             }
             .error {
                 font-weight: @font-weight-semibold;
-                color: @bc-error-text;
+                color: @bc-error;
             }
             .ext-version,
             .ext-date,
@@ -1002,7 +1002,7 @@ a[href^="http"] {
         overflow: auto;
 
         #about-build-number {
-            color: @bc-light-weight-quiet-text;
+            color: @bc-text-thin-quiet;
         }
         .about-info {
             max-height: 300px;
@@ -1055,28 +1055,28 @@ input[type="search"],
 input[type="tel"],
 input[type="color"],
 .uneditable-input {
-    background-color: @bc-input-background;
+    background-color: @bc-input-bg;
     border: 1px solid @bc-input-border;
-    color: @bc-light-weight-text;
+    color: @bc-text-thin;
     font-size: (@baseFontSize + 1px);
     font-weight: normal;
     -webkit-font-smoothing: antialiased;
-    .border-radius(@bc-control-border-radius);
-    .box-shadow(@bc-input-inner-shadow);
+    .border-radius(@bc-btn-border-radius);
+    .box-shadow(inset 0 1px 0 @bc-input-inner-shadow);
     .transition(~"border linear 180ms, box-shadow linear 180ms");
 
     &::-webkit-input-placeholder {
-        color: @bc-input-placeholder-text;
+        color: @bc-input-text-placeholder;
         font-weight: normal;
         -webkit-font-smoothing: antialiased;
     }
 
     &:focus {
         outline: 0;
-        background-color: @bc-input-background;
+        background-color: @bc-input-bg;
         text-shadow: none;
-        border: 1px solid @bc-button-border-focused;
-        box-shadow: @bc-input-inner-shadow, @bc-input-glow;
+        border: 1px solid @bc-btn-border-focused;
+        box-shadow: inset 0 1px 0 @bc-input-inner-shadow, 0 0 0 1px @bc-btn-border-focused-glow;
     }
 
     &:disabled {
@@ -1121,40 +1121,41 @@ input[type="color"],
 .btn:focus,
 .btn.disabled,
 .btn[disabled] {
-    background-color: @bc-button-bg;
+    background-color: @bc-btn-bg;
 }
 
 .btn.primary:hover,
 .btn.primary:focus,
 .btn.primary.disabled,
 .btn.primary[disabled] {
-    background-color: @bc-call-to-action;
+    background-color: @bc-primary-btn;
 }
 
 .btn {
     // Button Base
     background-image: none;
 
-    background-color: @bc-button-bg;
+    background-color: @bc-btn-bg;
     color: @bc-text;
     cursor: default;
     font-size: (@baseFontSize + 1);
     font-weight: @font-weight-semibold;
     line-height: normal;
-    border: 1px solid @bc-button-border;
-    .border-radius(@bc-control-border-radius);
-    box-shadow: inset 0 1px 0 @bc-button-highlight;
+    border: 1px solid @bc-btn-border;
+    .border-radius(@bc-btn-border-radius);
+    box-shadow: inset 0 1px 0 @bc-btn-highlight;
     -webkit-font-smoothing: antialiased;
+    text-shadow: none;
 
     &:hover {
-        background-color: @bc-button-bg;
+        background-color: @bc-btn-bg;
         color: @bc-text;
     }
 
     // Focus state for keyboard and accessibility
     &:focus {
-        border: 1px solid @bc-button-border-focused;
-        box-shadow: inset 0 1px 0 @bc-button-highlight, @bc-input-glow;
+        border: 1px solid @bc-btn-border-focused;
+        box-shadow: inset 0 1px 0 @bc-btn-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
         color: @bc-text;
         outline: none;
     }
@@ -1162,15 +1163,15 @@ input[type="color"],
     // Active and Disabled states
     &.active:not([disabled]) {
         background-image: none;
-        background-color: @bc-highlight;
-        box-shadow: @bc-button-down-shadow;
+        background-color: @bc-bg-highlight;
+        box-shadow: inset 0 1px 0 @bc-btn-down-shadow;
         color: @bc-link;
     }
     
     &:active:not([disabled]) {
         background-image: none;
-        background-color: @bc-button-down-background;
-        box-shadow: @bc-button-down-shadow;
+        background-color: @bc-btn-bg-down;
+        box-shadow: inset 0 1px 0 @bc-btn-down-shadow;
         color: @bc-text;
     }
 
@@ -1181,22 +1182,22 @@ input[type="color"],
     // Primary Button Type
     &.primary {
         background-image: none;
-        background-color: @bc-call-to-action;
-        border: 1px solid  @bc-call-to-action-border;
-        box-shadow: @bc-call-to-action-highlight;
-        color: @bc-call-to-action-text;
+        background-color: @bc-primary-btn;
+        border: 1px solid  @bc-primary-btn-border;
+        box-shadow: inset 0 1px 0 @bc-primary-btn-highlight;
+        color: @bc-primary-btn-text;
         text-shadow: none;
         &.active,
         &:active {
             background-image: none;
-            background-color: @bc-call-to-action-down;
-            box-shadow: @bc-call-to-action-down-shadow;
-            color: @bc-call-to-action-text;
+            background-color: @bc-primary-btn-down;
+            box-shadow: inset 0 1px 0 @bc-primary-btn-down-shadow;
+            color: @bc-primary-btn-text;
         }
 
         &:focus {
-            border: 1px solid @bc-call-to-action-border;
-            box-shadow: @bc-call-to-action-highlight, @bc-input-glow;
+            border: 1px solid @bc-primary-btn-border;
+            box-shadow: inset 0 1px 0 @bc-primary-btn-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
             outline: none;
         }
     }
@@ -1221,7 +1222,7 @@ input[type="color"],
     // Button Sizes
     &.large {
         font-size: (@baseFontSize + 1px);
-        .border-radius(@bc-control-border-radius);
+        .border-radius(@bc-btn-border-radius);
     }
     &.small {
         font-size: (@baseFontSize - 1px);
@@ -1230,16 +1231,16 @@ input[type="color"],
 
 .btn-alt-quiet {
     border: 1px solid transparent;
-    border-radius: @bc-control-border-radius;
+    border-radius: @bc-btn-border-radius;
     text-decoration: none;
     &:hover {
-        border: 1px solid @bc-button-border-alt;
-        box-shadow: inset 0 1px 0 @bc-button-highlight;
+        border: 1px solid @bc-btn-border-alt;
+        box-shadow: inset 0 1px 0 @bc-btn-highlight;
     }
     &:active {
-        background: @bc-button-alt-down-background;
-        border: 1px solid @bc-button-border-alt;
-        box-shadow: @bc-call-to-action-down-shadow;
+        background: @bc-btn-bg-down-alt;
+        border: 1px solid @bc-btn-border-alt;
+        box-shadow: inset 0 1px 0 @bc-primary-btn-down-shadow;
     }
 }
 
@@ -1249,8 +1250,8 @@ input[type="color"],
     font-weight: normal;
     line-height: 14px;
     &:focus {
-        border: 1px solid @bc-button-border-focused;
-        box-shadow: inset 0 1px 0 @bc-button-highlight, @bc-input-glow;
+        border: 1px solid @bc-btn-border-focused;
+        box-shadow: inset 0 1px 0 @bc-btn-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
         outline: none;
     }
 }
@@ -1276,7 +1277,7 @@ input[type="color"],
 .table-striped tbody {
     tr:nth-child(odd) td,
     tr:nth-child(odd) th {
-        background-color: @bc-lighter-gray; // TopCoat palette
+        background-color: @bc-panel-bg-alt; // TopCoat palette
     }
     tr:nth-child(even) td,
     tr:nth-child(even) th {
@@ -1286,7 +1287,7 @@ input[type="color"],
 .row-highlight tbody {
     tr:hover td,
     tr:hover th {
-        background-color: @bc-highlight; // TopCoat palette
+        background-color: @bc-bg-highlight; // TopCoat palette
     }
 }
 
@@ -1334,13 +1335,13 @@ dt,
 
 .alert {
     text-shadow: none;
-    background-color: @bc-warning-background;
+    background-color: @bc-bg-warning;
     border: none;
 }
 .alert,
 .alert h4 {
     // Specified for the h4 to prevent conflicts of changing @headingsColor
-    color: @bc-warning-text;
+    color: @bc-text-warning;
 }
 
 input[type="radio"],
@@ -1352,22 +1353,22 @@ input[type="checkbox"] {
     height: 13px;
     width: 13px;
     vertical-align: middle;
-    border: 1px solid @bc-button-border;
+    border: 1px solid @bc-btn-border;
     border-radius: 3px;
-    background-color: @bc-button-bg;
+    background-color: @bc-btn-bg;
     -webkit-appearance: none;
-    box-shadow: inset 0 1px 0 @bc-button-highlight;
+    box-shadow: inset 0 1px 0 @bc-btn-highlight;
 }
 
 input[type="checkbox"]:active:not(:disabled) {
-    background-color: @bc-button-down-background;
-    box-shadow: @bc-button-down-shadow;
+    background-color: @bc-btn-bg-down;
+    box-shadow: inset 0 1px 0 @bc-btn-down-shadow;
 }
 
 input[type="checkbox"]:focus {
     outline:none;
-    border: 1px solid @bc-button-border-focused;
-    box-shadow: @bc-input-glow;
+    border: 1px solid @bc-btn-border-focused;
+    box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
 }
 
 input[type="checkbox"]:checked:before {

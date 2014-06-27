@@ -110,7 +110,7 @@ a, img {
 
 #titlebar, .modal-bar {
     border-bottom: 1px solid @bc-panel-border;
-    box-shadow: @bc-small-shadow-bottom;
+    box-shadow: 0 1px 3px @bc-panel-shadow-small;
 
     // Make sure the bottom box-shadow goes above the editor (position: relative needed to start a new stacking group)
     position: relative;
@@ -398,11 +398,12 @@ a, img {
 
     .toolbar {
         background-color: @bc-panel-head;
+        border-bottom: 1px solid @bc-panel-separator;
         height: auto;
         padding-top: (@base-padding / 2);
         padding-bottom: (@base-padding / 2);
         z-index: @z-index-brackets-results-panel;
-        box-shadow: inset 0 1px 0 @bc-panel-highlight, @bc-small-shadow-top;
+        box-shadow: inset 0 1px 0 @bc-panel-highlight, 0 -1px 3px @bc-panel-shadow-small;
         .title {
             color: @bc-text;
             font-size: @label-font-size;
@@ -428,7 +429,7 @@ a, img {
         }
 
         tr.selected td {
-            background-color: @bc-selected-row;
+            background-color: @bc-bg-selected;
             color: @bc-black;
         }
     }
@@ -447,7 +448,7 @@ a, img {
     }
 
     .line-number {
-        color: @bc-light-weight-quiet-text;
+        color: @bc-text-thin-quiet;
         font-family: SourceCodePro;
         font-size: 11px;
         padding: 4px 0 0 15px;
@@ -766,7 +767,7 @@ a, img {
     position: relative;
     overflow: hidden;
 
-    background-color: @bc-lighter-gray;
+    background-color: @bc-panel-bg-alt;
     min-width: 250px;
     cursor: default;
 
@@ -803,7 +804,7 @@ a, img {
 
             .dirty-indicator {
                 .unicode-icon-container;
-                color: @bc-quiet-text;
+                color: @bc-text-quiet;
                 overflow: hidden;
                 position: relative;
                 top: 1px;
@@ -839,7 +840,7 @@ a, img {
         background-color: transparent;
 
         .CodeMirror-linenumbers {
-            background-color: @bc-lighter-gray;
+            background-color: @bc-panel-bg-alt;
         }
     }
 
@@ -915,7 +916,7 @@ a, img {
         }
 
         li {
-            color: @bc-emphasized-text;
+            color: @bc-text-emphasized;
             margin: 0;
             overflow: hidden;
             padding: 2px 0px 2px 15px;
@@ -923,19 +924,19 @@ a, img {
             white-space: nowrap;
 
             .related-file {
-                color: @bc-input-placeholder-text;
+                color: @bc-input-text-placeholder;
             }
         }
 
         .selected {
-            color: @bc-light-weight-text;
+            color: @bc-text-thin;
             transition: color 0.1s ease-out .15s;
         }
     }
 }
 
 .inline-editor-message {
-    color: @bc-input-placeholder-text;
+    color: @bc-input-text-placeholder;
     font-family: @sansFontFamily;
     font-size: 12px;
     line-height: 17px;
@@ -1092,8 +1093,8 @@ a, img {
         position: relative;
         top: -3px;
         &.no-results {
-            border: 1px solid @bc-button-border-error;
-            box-shadow: @bc-input-inner-shadow, @bc-input-error-glow;
+            border: 1px solid @bc-btn-border-error;
+            box-shadow: inset 0 1px 0 @bc-input-inner-shadow, 0 0 0 1px @bc-btn-border-error-glow;
         }
     }
 
@@ -1117,7 +1118,7 @@ a, img {
             font-size: 12px;
             padding: 3px 8px;
             border-radius: 0 0 3px 3px;
-            box-shadow: @bc-small-shadow-bottom;
+            box-shadow: 0 1px 3px @bc-panel-shadow-small;
         }
 
         #find-what {
@@ -1126,7 +1127,7 @@ a, img {
         }
         #find-counter {
             position: absolute;
-            color: @bc-light-weight-quiet-text;
+            color: @bc-text-thin-quiet;
             top: 1px;
             right: 2px;
             font-size: 12px;
@@ -1171,7 +1172,7 @@ a, img {
         .sprite-swap(0, 72px);
     }
     #find-regexp.active, #find-case-sensitive.active {
-        background-color: @bc-highlight;
+        background-color: @bc-bg-highlight;
     }
 
     .navigator {  // next/prev buttons
@@ -1259,7 +1260,7 @@ li:hover .filter-edit-icon {
 }
 
 .recent-filter-patterns {
-    color: @bc-light-weight-quiet-text;
+    color: @bc-text-thin-quiet;
     padding-right: 52px;
 }
 
@@ -1288,8 +1289,8 @@ textarea.exclusions-editor {
 .exclusions-filecount {
     margin: 12px 0 -14px 0;
     padding: 4px 8px;
-    background-color: @bc-highlight;
-    border-radius: @bc-control-border-radius;
+    background-color: @bc-bg-highlight;
+    border-radius: @bc-btn-border-radius;
 }
 
 
@@ -1300,7 +1301,7 @@ textarea.exclusions-editor {
 .CodeMirror-searching {
     // Highlight color, overlaid on top of the .find-highlighting color
     background-color: @cm-match-highlight;
-    box-shadow: @bc-small-shadow-bottom;
+    box-shadow: 0 1px 3px @bc-panel-shadow-small;
     color: @match-text !important;
     &.searching-first {
         border-top-left-radius: @bc-inline-border-radius;
@@ -1350,7 +1351,7 @@ textarea.exclusions-editor {
 
 .find-dialog-label {
     background: @bc-white;
-    color: @bc-quiet-text;
+    color: @bc-text-quiet;
     position: absolute;
     right: 15px;
     text-align: right;
@@ -1362,7 +1363,7 @@ textarea.exclusions-editor {
     // the borders show up even if the container is empty, must set height to zero using JS.
     background-color: @bc-panel-bg;
     border-radius: 0 0 4px 4px;
-    box-shadow: @bc-normal-shadow-bottom;
+    box-shadow: 0 5px 10px @bc-panel-shadow;
     opacity: 0;
     
     // Need this for border-radius because there are no borders
@@ -1400,15 +1401,15 @@ textarea.exclusions-editor {
         padding: 6px 10px;
 
         &:nth-child(odd) {
-            background-color: @bc-lighter-gray;
+            background-color: @bc-panel-bg-alt;
         }
 
         &:hover {
-            background-color: @bc-hover-highlight;
+            background-color: @bc-bg-hover;
         }
 
         &.smart_autocomplete_highlight {
-            background-color: @bc-highlight;
+            background-color: @bc-bg-highlight;
         }
     }
 }
