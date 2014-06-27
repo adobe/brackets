@@ -133,14 +133,15 @@ define({
 	"DELETE": "Supprimer",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
-        
+    
     // Find, Replace, Find in Files
 	"FIND_RESULT_COUNT": "{0} résultats",
 	"FIND_RESULT_COUNT_SINGLE": "1 résultat",
 	"FIND_NO_RESULTS": "Aucun résultat",
+	"FIND_QUERY_PLACEHOLDER": "Rechercher\u2026",
 	"REPLACE_PLACEHOLDER": "Remplacer par\u2026",
-	"BUTTON_REPLACE_ALL": "[7126959] !é=Batch\u2026=!",
-	"BUTTON_REPLACE_ALL_IN_FILES": "[7575917] !é=Replace\u2026=!",
+	"BUTTON_REPLACE_ALL": "Traiter par lots\u2026",
+	"BUTTON_REPLACE_ALL_IN_FILES": "Remplacer\u2026",
 	"BUTTON_REPLACE": "Remplacer",
 	"BUTTON_NEXT": "\u25B6",
 	"BUTTON_PREV": "\u25C0",
@@ -148,9 +149,9 @@ define({
 	"BUTTON_PREV_HINT": "Résultat précédent",
 	"BUTTON_CASESENSITIVE_HINT": "Respecter la casse",
 	"BUTTON_REGEXP_HINT": "Expression régulière",
-	"REPLACE_WITHOUT_UNDO_WARNING_TITLE": "[7575930] !é=Replace Without Undo=!",
-	"REPLACE_WITHOUT_UNDO_WARNING": "[7575929] !é=Because more than {0} files need to be changed, {APP_NAME} will modify unopened files on disk.<br />You won't be able to undo replacements in those files.=!",
-	"BUTTON_REPLACE_WITHOUT_UNDO": "[7575918] !é=Replace Without Undo=!",
+	"REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Remplacer sans annuler",
+	"REPLACE_WITHOUT_UNDO_WARNING": "Dans la mesure où le nombre de fichiers à modifier excède {0}, {APP_NAME} va modifier des fichiers non ouverts sur le disque.<br />Vous ne pourrez pas annuler les remplacements effectués dans ces fichiers.",
+	"BUTTON_REPLACE_WITHOUT_UNDO": "Remplacer sans annuler",
 
 	"OPEN_FILE": "Ouvrir le fichier",
 	"SAVE_FILE_AS": "Enregistrer le fichier",
@@ -162,12 +163,12 @@ define({
 
     // Find and Replace
 	"FIND_REPLACE_TITLE_LABEL": "Remplacer",
-	"FIND_REPLACE_TITLE_WITH": "avec",
-	"FIND_TITLE_LABEL": "[7575925] !é=Found=!",
-	"FIND_TITLE_SUMMARY": "[7575926] !é= &mdash; {0} {1} {2} in {3}=!",
+	"FIND_REPLACE_TITLE_WITH": "par",
+	"FIND_TITLE_LABEL": "Occurrence(s) trouvée(s)",
+	"FIND_TITLE_SUMMARY": " &mdash; {0} {1} {2} dans {3}",
 
     // Find in Files
-	"FIND_NUM_FILES": "[7575922] !é={0} {1}=!",
+	"FIND_NUM_FILES": "{0} {1}",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_NO_SCOPE": "du projet",
 	"FIND_IN_FILES_ZERO_FILES": "Le filtre exclut tous les fichiers {0}",
@@ -179,8 +180,8 @@ define({
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
 	"FIND_IN_FILES_EXPAND_COLLAPSE": "Cliquer tout en appuyant sur Ctrl/Cmd pour tout développer/tout réduire",
-	"REPLACE_IN_FILES_ERRORS_TITLE": "[7575928] !é=Replace Errors=!",
-	"REPLACE_IN_FILES_ERRORS": "[7575927] !é=The following files weren't modified because they changed after the search or couldn't be written.=!",
+	"REPLACE_IN_FILES_ERRORS_TITLE": "Erreurs de remplacement",
+	"REPLACE_IN_FILES_ERRORS": "Les fichiers suivants n’ont pas été traités car ils ont été modifiés après l’opération de recherche ou ne sont pas accessibles en écriture.",
     
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "Erreur de récupération des informations de mise à jour",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
@@ -320,7 +321,6 @@ define({
     // Search menu commands
 	"FIND_MENU": "Rechercher",
 	"CMD_FIND": "Rechercher",
-	"CMD_FIND_FIELD_PLACEHOLDER": "Rechercher\u2026",
 	"CMD_FIND_NEXT": "Rechercher suivant",
 	"CMD_FIND_PREVIOUS": "Rechercher précédent",
 	"CMD_FIND_ALL_AND_SELECT": "Rechercher et sélectionner tout",
@@ -330,9 +330,9 @@ define({
 	"CMD_FIND_IN_SELECTED": "Rechercher dans le fichier/dossier sélectionné",
 	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
 	"CMD_REPLACE": "Remplacer",
-	"CMD_REPLACE_IN_FILES": "[7575919] !é=Replace in Files=!",
-	"CMD_REPLACE_IN_SELECTED": "[7575920] !é=Replace in Selected File/Folder=!",
-	"CMD_REPLACE_IN_SUBTREE": "[7575921] !é=Replace in\u2026=!",
+	"CMD_REPLACE_IN_FILES": "Remplacer dans les fichiers",
+	"CMD_REPLACE_IN_SELECTED": "Remplacer dans le fichier/dossier sélectionné",
+	"CMD_REPLACE_IN_SUBTREE": "Remplacer dans\u2026",
     
     // View menu commands
 	"VIEW_MENU": "Affichage",

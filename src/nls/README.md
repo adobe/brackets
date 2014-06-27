@@ -55,6 +55,7 @@ process. Please contribute changes one of these ways:
 The following languages have been contributed by the Brackets community:
 
 * Czech (cs)
+* Danish (da)
 * German (de)
 * Greek (el)
 * Spanish (es)
