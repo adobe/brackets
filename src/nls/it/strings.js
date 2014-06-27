@@ -352,15 +352,15 @@ define({
     "HELP_MENU"                         : "Aiuto",
     "CMD_CHECK_FOR_UPDATE"              : "Controlla aggiornamenti",
     "CMD_HOW_TO_USE_BRACKETS"           : "Come usare {APP_NAME}",
-    "CMD_FORUM"                         : "Forum di{APP_NAME}",
+    "CMD_FORUM"                         : "Forum di {APP_NAME}",
     "CMD_RELEASE_NOTES"                 : "Note del lancio",
     "CMD_REPORT_AN_ISSUE"               : "Segnala un problema",
     "CMD_SHOW_EXTENSIONS_FOLDER"        : "Mostra cartella estensioni",
-    "CMD_HOMEPAGE"                        : "{APP_TITLE} sito WEB",
+    "CMD_HOMEPAGE"                      : "Sito WEB di {APP_TITLE}",
     "CMD_TWITTER"                       : "{TWITTER_NAME} su Twitter",
     "CMD_ABOUT"                         : "Informazioni su {APP_TITLE}",
     "CMD_SHOW_IN_EXPLORER"              : "Mostra in Explorer",
-    "CMD_SHOW_IN_FINDER"                : "Mostra nel finder",
+    "CMD_SHOW_IN_FINDER"                : "Mostra nel Finder",
 
     "CMD_OPEN_PREFERENCES"              : "Apri il file delle preferenze",
 
