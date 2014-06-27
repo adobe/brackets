@@ -43,8 +43,9 @@
  * The opposite is true for a dark background -- background-color-3 should be
  * the darkest, -2 should be lighter, and -1 should be lighter still.
  */
-@background-color-1: darken(@bc-white, @bc-color-step-size*2);
-@background-color-2: darken(@bc-white, @bc-color-step-size);
+@background-color-0: #fff;
+@background-color-1: darken(@background-color-0, @bc-color-step-size*2);
+@background-color-2: darken(@background-color-0, @bc-color-step-size);
 @background-color-3: #f8f8f8;
 
 /*
@@ -55,8 +56,8 @@
  * than @content-color (i.e. less contrasty).
  */
 @content-color: #535353;
-@content-color-stronger: @bc-black;
-@content-color-weaker: lighten(@bc-black, @bc-color-step-size*6);
+@content-color-stronger: #000;
+@content-color-weaker: lighten(#000, @bc-color-step-size*6);
 
 /* Code Styling */
 
@@ -101,7 +102,7 @@
 
 @inline-color-1: #a1a3a4;
 @inline-color-2: #8a8a8a;
-@inline-color-3: @bc-black;
+@inline-color-3: #000;
 
 /* sidebar/toolbar colors */
 @project-panel-base-color: #3C3F41;
@@ -118,8 +119,9 @@
 @selection-color-unfocused: #d5dee3;
 
 /* background color of the line that has the cursor */
-@activeline-bgcolor: #ebefef;
-@activeline-number-bgcolor: #dde4e5;
+@activeline-bg: #ebefef;
+@activeline-number: #000;
+@activeline-number-bg: #dde4e5;
 
 /* custom scrollbar colors */
 @win-scrollbar-track: rgb(240, 240, 240);
@@ -132,7 +134,7 @@
 
 /* live preview */
 @live-preview-sync-error-background: #ff5d99;
-@live-preview-sync-error-color: @bc-white;
+@live-preview-sync-error-color: #fff;
 
 /* Code font formatting
  *

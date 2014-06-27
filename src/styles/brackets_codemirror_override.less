@@ -51,11 +51,11 @@
 }
 
 .CodeMirror-focused .CodeMirror-activeline-background {
-    background: @activeline-bgcolor;
+    background: @activeline-bg;
 }
 
 .show-line-padding .CodeMirror-focused .CodeMirror-activeline-background {
-    box-shadow: inset @code-padding 0 0 0 @activeline-number-bgcolor;
+    box-shadow: inset @code-padding 0 0 0 @activeline-number-bg;
 }
 
 .CodeMirror-focused .CodeMirror-activeline {
@@ -63,8 +63,8 @@
         height: 100%;
     }
     .CodeMirror-gutter-elt {
-        background: @activeline-number-bgcolor;
-        color: @bc-black;
+        background: @activeline-number-bg;
+        color: @activeline-number;
     }
     .inline-widget .CodeMirror-gutter-elt {
         color: @accent-comment;    
@@ -253,7 +253,7 @@
     }
     
     .CodeMirror-focused .CodeMirror-activeline-background {
-        background: @activeline-bgcolor;
+        background: @activeline-bg;
     }
     
     .show-line-padding & .CodeMirror-focused .CodeMirror-activeline-background {
@@ -263,7 +263,7 @@
     .CodeMirror-focused .CodeMirror-activeline {
         .CodeMirror-gutter-elt {
             background: @bc-panel-head;
-            color: @bc-black;
+            color: @activeline-number;
         }
     }
 

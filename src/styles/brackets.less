@@ -424,13 +424,13 @@ a, img {
         overflow: auto;
 
         .highlight {
-            background: @bc-white;
+            background: @bc-text-highlight-bg;
             border-radius: 2px;
         }
 
         tr.selected td {
             background-color: @bc-bg-selected;
-            color: @bc-black;
+            color: @bc-text-thin;
         }
     }
 }
@@ -796,7 +796,7 @@ a, img {
             vertical-align: middle;
             font-family: @sansFontFamily;
             font-size: 13px;
-            color: @bc-black;
+            color: @bc-text-thin;
 
             // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
             // default; but the hand cursor is shut off by Bootstrap's reset stylesheet)
@@ -1114,7 +1114,7 @@ a, img {
             z-index: 1; // to appear above any controls that wrap below
 
             background-color: @bc-error;
-            color: @bc-white;
+            color: @bc-text-alt;
             font-size: 12px;
             padding: 3px 8px;
             border-radius: 0 0 3px 3px;
@@ -1350,7 +1350,7 @@ textarea.exclusions-editor {
 /* Quick Open search bar & dropdown */
 
 .find-dialog-label {
-    background: @bc-white;
+    background: @bc-input-bg;
     color: @bc-text-quiet;
     position: absolute;
     right: 15px;
@@ -1584,7 +1584,7 @@ label input {
         padding: 5px 10px;
         background-color: @bc-error;
         border-radius: 3px;
-        color: @bc-white;
+        color: @bc-text-alt;
         box-shadow: 0 3px 9px @bc-dropdown-shadow;
         white-space: nowrap;
     }

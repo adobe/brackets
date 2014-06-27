@@ -192,8 +192,8 @@ a:focus {
 .toolbar {
     font-size: @label-font-size;
     padding: 4px 8px;
-    background-color: @bc-white;
-    color: @bc-black;
+    background-color: @background-color-0;
+    color: @bc-text;
 
     position: relative;  // needed for abs-positioned elements in toolbar (e.g. right-aligned "X")
 
@@ -265,7 +265,7 @@ a:focus {
 
     // General item appearance
     a {
-        color: @bc-black;
+        color: @bc-text-menu;
         text-shadow: none;
         cursor: default;
     }
@@ -274,18 +274,18 @@ a:focus {
     .dropdown-toggle {
         padding: @menubar-top-padding @menubar-h-padding @menubar-bottom-padding;
         border: 1px solid rgba(0, 0, 0, 0); // transparent border just to hold the layout so it doesn't shift on hover
-        color: fadeout(@bc-black, 25%);
+        color: fadeout(@bc-text-menu, 25%);
         font-weight: @font-weight-light;
     }
     .dropdown-toggle:focus {
-        background-color: @bc-white;
+        background-color: @bc-bg-menu;
         outline: 0;
     }
     .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
         /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
            color rules we need to override (and Bootstrap has several selectors because the colors really differ
            in their defaults). */
-        color: @bc-black;
+        color: @bc-text-menu;
         background: @item-highlight-color;
         border-color: #dbeaf4;
     }
@@ -308,7 +308,7 @@ a:focus {
         width: -webkit-max-content;
         width: -moz-max-content;
 
-        background-color: @bc-white;
+        background-color: @bc-bg-menu;
         .border-radius(0 0 3px 3px);
         box-shadow: 0 3px 9px @bc-dropdown-shadow;
         border: none;
@@ -323,7 +323,7 @@ a:focus {
                 // More padding on top than bottom to center font within its bg highlight better.
                 padding: 2px 10px 0px 6px;
 
-                color: @bc-black;
+                color: @bc-text-menu;
                 text-shadow: none;
                 white-space: nowrap;
                 .box-shadow(none);
@@ -333,15 +333,15 @@ a:focus {
                 }
 
                 &:hover, &.highlight {
-                    color: @bc-black;
+                    color: @bc-text-menu;
                     background: @item-highlight-color;
                 }
 
                 &.disabled {
-                    color: @bc-gray;
+                    color: @bc-text-thin-quiet;
 
                     &:hover {
-                        background: @bc-white;
+                        background: @bc-bg-menu;
                     }
                 }
 
@@ -406,13 +406,13 @@ a:focus {
 
                 // Don't show highlighting on hover for code hints...
                 &:hover {
-                    color: @bc-black;
-                    background-color: @bc-white;
+                    color: @bc-text-menu;
+                    background-color: @bc-bg-menu;
                 }
 
                 // ...except for selected item
                 &.highlight:hover {
-                    color: @bc-black;
+                    color: @bc-text-menu;
                     background-color: @item-highlight-color;
                 }
             }
@@ -478,7 +478,7 @@ a:focus {
     
     &.dropdown-menu li a {
         padding: 1px 15px 1px 15px;
-        color: @bc-black;
+        color: @bc-text-menu;
     }
     
     &.dropdown-menu .stylesheet-link {
@@ -487,7 +487,7 @@ a:focus {
     
     &.dropdown-menu a.selected {
         background: @bc-bg-highlight;
-        color: @bc-black !important;
+        color: @bc-text-menu !important;
     }
 
     &.dropdown-menu a {
@@ -1300,7 +1300,7 @@ strong {
 /* Type */
 
 code {
-    color: @bc-black;
+    color: @bc-text;
     background-color: transparent;
 }
 
