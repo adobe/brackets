@@ -138,8 +138,10 @@ define({
     "FIND_RESULT_COUNT"                 : "{0} resultados",
     "FIND_RESULT_COUNT_SINGLE"          : "1 resultado",
     "FIND_NO_RESULTS"                   : "No hay resultados",
+    "FIND_QUERY_PLACEHOLDER"            : "Buscar\u2026",
     "REPLACE_PLACEHOLDER"               : "Reemplazar con\u2026",
     "BUTTON_REPLACE_ALL"                : "Todo\u2026",
+    "BUTTON_REPLACE_ALL_IN_FILES"       : "Reemplazar\u2026",
     "BUTTON_REPLACE"                    : "Reemplazar",
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
@@ -147,6 +149,9 @@ define({
     "BUTTON_PREV_HINT"                  : "Anterior coincidencia",
     "BUTTON_CASESENSITIVE_HINT"         : "Sensible a mayúsculas",
     "BUTTON_REGEXP_HINT"                : "Expresión regular",
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Reemplazar sin deshacer",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Dado que hay más de {0} archivos que necesitan ser modificados, {APP_NAME} modificará los archivos no abiertos en el disco.<br />Por lo tanto, no será posible deshacer los reemplazos en esos archivos.",
+    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Reemplazar sin deshacer",
     
     "OPEN_FILE"                         : "Abrir archivo",
     "SAVE_FILE_AS"                      : "Guardar archivo",
@@ -156,15 +161,14 @@ define({
     "NO_UPDATE_TITLE"                   : "¡Estás actualizado!",
     "NO_UPDATE_MESSAGE"                 : "Estás utilizando la última versión de {APP_NAME}.",
     
-    // Replace All (in single file)
-    "FIND_REPLACE_TITLE_PART1"          : "Reemplazar \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" con \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+    // Find and Replace 
+    "FIND_REPLACE_TITLE_LABEL"          : "Reemplazar",
+    "FIND_REPLACE_TITLE_WITH"           : "con",
+    "FIND_TITLE_LABEL"                  : "Se encontró",
+    "FIND_TITLE_SUMMARY"                : " &mdash; {0} {1} {2} en {3}",
     
     // Find in Files
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" encontrado",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} en {3} {4}",
+    "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "en <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "en el proyecto",
     "FIND_IN_FILES_ZERO_FILES"          : "El filtro excluye todos los archivos {0}",
@@ -176,6 +180,9 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click para expandir/colapsar todo",
+    "REPLACE_IN_FILES_ERRORS_TITLE"     : "Errores al reemplazar",
+    "REPLACE_IN_FILES_ERRORS"           : "Los siguientes archivos no fueron modificados porque cambiaron después de realizar la búsqueda o no pueden ser escritos.",
+    
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error obteniendo información sobre actualizaciones",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a internet y vuelve a intentarlo.",
     
@@ -314,7 +321,6 @@ define({
     // Search menu commands
     "FIND_MENU"                           : "Buscar",
     "CMD_FIND"                            : "Buscar",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Buscar\u2026",
     "CMD_FIND_NEXT"                       : "Buscar siguiente",
     "CMD_FIND_PREVIOUS"                   : "Buscar anterior",
     "CMD_FIND_ALL_AND_SELECT"             : "Buscar todo y seleccionar",
@@ -324,6 +330,9 @@ define({
     "CMD_FIND_IN_SELECTED"                : "Buscar en el archivo/directorio seleccionado",
     "CMD_FIND_IN_SUBTREE"                 : "Buscar en\u2026",
     "CMD_REPLACE"                         : "Reemplazar",
+    "CMD_REPLACE_IN_FILES"                : "Reemplazar en archivos",
+    "CMD_REPLACE_IN_SELECTED"             : "Reemplazar en el archivo/directorio seleccionado",
+    "CMD_REPLACE_IN_SUBTREE"              : "Reemplazar en\u2026",
     
     // View menu commands
     "VIEW_MENU"                           : "Ver",
@@ -386,6 +395,7 @@ define({
     "ABOUT"                                : "Acerca de\u2026",
     "CLOSE"                                : "Cerrar",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_BUILD_TIMESTAMP"           : "construido el: ",
     "ABOUT_TEXT_LINE3"                     : "Los avisos, términos y condiciones pertenecientes a software de terceros se encuentran en <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> y se incluyen aquí como referencia.",
     "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Hecho con \u2764 y JavaScript por:",
@@ -556,4 +566,4 @@ define({
     "DOCS_MORE_LINK"                            : "Más"
 });
 
-/* Last translated for 49d489f351be42cbbca90be29454bd8e246e5d7a */
+/* Last translated for 3a762c3cf91d6f65a5bb19aeb2056afacd777c71 */
