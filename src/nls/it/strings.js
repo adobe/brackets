@@ -308,7 +308,7 @@ define({
     "CMD_FIND_IN_SELECTED"                : "Cerca nel file/cartella selezionata",
     "CMD_FIND_IN_SUBTREE"                 : "Cerca in\u2026",
     "CMD_REPLACE"                         : "Sostituisci",
-    "CMD_REPLACE_IN_FILES"                : "Sustituisci nei file",
+    "CMD_REPLACE_IN_FILES"                : "Sostituisci nei file",
     "CMD_REPLACE_IN_SELECTED"             : "Sostituisci nei selezionati file/cartelle",
     "CMD_REPLACE_IN_SUBTREE"              : "Sostituisci in\u2026",
     
@@ -544,5 +544,5 @@ define({
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
 
-/* Last translation of:  */
+/* Last translation of: 46de60683124768aa7f074aa3168f99d23f6c016*/
 
