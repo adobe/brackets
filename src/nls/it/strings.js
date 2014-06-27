@@ -178,6 +178,21 @@ define({
     "FILE_FILTER_CLIPPED_SUFFIX"        : "e {0} in più ",
     "FILE_FILTER_INSTRUCTIONS"          : "Esclude i file e cartelle che sono uguali a qualsiasi delle seguente stringhe / sottostringhe o <a href='{0}' title='{0}'>caratteri jolly</a>.  Digita ciascun stringa su una nuova riga.",
  
+    // File exclusion filters
+    "NEW_FILE_FILTER"                   : "Nuova regola di esclusione\u2026",
+    "CLEAR_FILE_FILTER"                 : "Non escludere file",
+    "NO_FILE_FILTER"                    : "Nessun file escluso",
+    "EXCLUDE_FILE_FILTER"               : "Escludere {0}",
+    "EDIT_FILE_FILTER"                  : "Modifica\u2026",
+    "FILE_FILTER_DIALOG"                : "Modifica regole di esclusione",
+    "FILE_FILTER_INSTRUCTIONS"          : "Escludere file e cartelle corrispondenti qualsiasi delle seguenti stringhe / sottostringhe o <a href='{0}' title='{0}'>wildcards</a>. Immettere ogni stringa su una nuova linea.",
+    "FILTER_NAME_PLACEHOLDER"           : "Nome delle regole di esclusione (facoltativo)",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "e {0} più",
+    "FILTER_COUNTING_FILES"             : "Contando i file\u2026",
+    "FILTER_FILE_COUNT"                 : "Consentire {0} di {1} file {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Consentire tutti {0} file {1}",
+     
+      
     /**
      * ProjectManager
      */
