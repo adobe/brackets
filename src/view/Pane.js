@@ -64,7 +64,8 @@ define(function (require, exports, module) {
             viewsToDestroy = [];
         
         _.forEach(other.views, function (view) {
-            if (other.isViewNeeded(view)) {
+            // We don't copy temporary views
+            if (other.findInViewList(view.getFullPath()) !== -1) {
                 view.switchContainers(self.$el);
             } else {
                 viewsToDestroy.push(view);

@@ -291,7 +291,7 @@ define(function (require, exports, module) {
             var file = FileSystem.getFileForPath(fullPath);
             MainViewManager.doOpen(paneId, file)
                 .done(function () {
-                    result.resolve();
+                    result.resolve(file);
                 })
                 .fail(function (fileError) {
                     _showErrorAndCleanUp(fileError, fullPath);
@@ -344,11 +344,11 @@ define(function (require, exports, module) {
                         MainViewManager.addListToPaneViewList(paneId, filesToOpen);
                         
                         doOpen(filteredPaths[filteredPaths.length - 1], silent, paneId)
-                            .done(function (doc) {
+                            .done(function (file) {
                                 //  doc may be null, i.e. if an image has been opened.
                                 // Then we do not add the opened file to the pane view list.
-                                if (doc) {
-                                    MainViewManager.addToPaneViewList(paneId, doc.file);
+                                if (file) {
+                                    MainViewManager.addToPaneViewList(paneId, file);
                                 }
                                 _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(MainViewManager.getCurrentlyViewedPathForPane(paneId));
                             })
@@ -435,13 +435,13 @@ define(function (require, exports, module) {
      *   pane view list list (defaults to last); optional flag to force pane view list redraw
      */
     function handleOpenDocumentInNewPane(commandData) {
-        return handleFileOpen(commandData).done(function (doc) {
+        return handleFileOpen(commandData).done(function (file) {
             // addToPaneViewList is synchronous
             // When opening a file with a custom viewer, we get a null doc.
             // So check it before we add it to the pane view list.
-            if (doc) {
+            if (file) {
                 var paneId = commandData ? commandData.paneId : MainViewManager.FOCUSED_PANE;
-                MainViewManager.addToPaneViewList(paneId || MainViewManager.FOCUSED_PANE, doc.file, commandData.index, commandData.forceRedraw);
+                MainViewManager.addToPaneViewList(paneId || MainViewManager.FOCUSED_PANE, file, commandData.index, commandData.forceRedraw);
             }
         });
     }
@@ -756,13 +756,13 @@ define(function (require, exports, module) {
                         .openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
                 } else {
                     // If selection is in pane view list, replace orig item in place with the new file
-                    var index = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, doc.file.fullPath);
+                    var info = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, doc.file.fullPath);
                     
                     // Remove old file from pane view list; no redraw yet since there's a pause before the new file is opened
-                    MainViewManager.removeFromPaneViewList(MainViewManager.ALL_PANES, doc.file, true);
+                    MainViewManager.removeFromPaneViewList(info.paneId, doc.file, true);
                     
                     // Add new file to pane view list, and ensure we now redraw (even if index hasn't changed)
-                    fileOpenPromise = handleOpenDocumentInNewPane({fullPath: path, index: index, forceRedraw: true});
+                    fileOpenPromise = handleOpenDocumentInNewPane({fullPath: path, paneId: info.paneId, index: info.index, forceRedraw: true});
                 }
 
                 // always configure editor after file is opened

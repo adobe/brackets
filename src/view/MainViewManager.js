@@ -79,7 +79,6 @@ define(function (require, exports, module) {
      *
      */
     var _paneViews = {
-        
     };
     
     function getActivePaneId() {
@@ -773,7 +772,7 @@ define(function (require, exports, module) {
         
             $(exports).triggerHandler("paneViewListRemoveList", [fileList, secondPane.id]);
 
-            _activePaneId = firstPane.id;
+            setActivePaneId(firstPane.id);
             
             secondPane.destroy();
             delete _paneViews[SECOND_PANE];
@@ -781,8 +780,10 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("paneViewListAddList", [fileList, firstPane.id]);
 
             _orientation = null;
+            
             _updateLayout();
             _updateCommandState();
+            
             $(exports).triggerHandler("paneLayoutChange", _orientation);
         }
     }
