@@ -49,6 +49,10 @@ define(function (require, exports, module) {
     
     var _views = [];
     
+    var _pane_view_list_cmenu;
+    
+    var _pane_view_list_configuration_menu;
+    
     /**
      * Constants for event.which values
      * @enum {number}
@@ -60,39 +64,18 @@ define(function (require, exports, module) {
      *  Use listItem.data(_FILE_KEY) to get the document reference
      */
     var _FILE_KEY = "file";
-    
-    var pane_view_list_cmenu;
-    var pane_view_list_configuration_menu;
-    
+
     function areContextMenusRegistered() {
-        return pane_view_list_cmenu && pane_view_list_configuration_menu;
+        return _pane_view_list_cmenu && _pane_view_list_configuration_menu;
     }
     
     function registerContextMenus() {
-        if (areContextMenusRegistered()) {
-            return;
+        if (!areContextMenusRegistered()) {
+            _pane_view_list_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.PANE_VIEW_LIST_CONTEXT_MENU);
+            _pane_view_list_configuration_menu = Menus.getContextMenu(Menus.ContextMenuIds.PANE_VIEW_LIST_CONFIG_MENU);
         }
-        
-        pane_view_list_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.PANE_VIEW_LIST_CONTEXT_MENU);
-        pane_view_list_cmenu.addMenuItem(Commands.FILE_SAVE);
-        pane_view_list_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
-        pane_view_list_cmenu.addMenuItem(Commands.FILE_RENAME);
-        pane_view_list_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
-        pane_view_list_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
-        pane_view_list_cmenu.addMenuDivider();
-        pane_view_list_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
-        pane_view_list_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
-        pane_view_list_cmenu.addMenuDivider();
-        pane_view_list_cmenu.addMenuItem(Commands.FILE_CLOSE);
-        
-        pane_view_list_configuration_menu = Menus.registerContextMenu(Menus.ContextMenuIds.PANE_VIEW_LIST_CONFIG_MENU);
-        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED);
-        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME);
-        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE);
-        pane_view_list_configuration_menu.addMenuDivider();
-        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_TOGGLE_AUTO_SORT);
     }
-
+    
     function PaneViewListView($container, paneId) {
         var id = "pane-view-list-" + paneId;
         
@@ -105,7 +88,7 @@ define(function (require, exports, module) {
         
         this.init();
     }
-
+    
     PaneViewListView.prototype._handlePaneLayoutChange = function (e) {
         var $titleEl = this.$el.find(".pane-view-header-title"),
             title = Strings.OPEN_PANES;
@@ -759,7 +742,7 @@ define(function (require, exports, module) {
         
         this.$openFilesContainer.on("contextmenu", function (e) {
             registerContextMenus();
-            pane_view_list_cmenu.open(e);
+            _pane_view_list_cmenu.open(e);
         });
 
         this.$gearMenu.on("click", function (e) {
@@ -767,16 +750,16 @@ define(function (require, exports, module) {
                 buttonHeight;
 
             e.stopPropagation();
-            registerContextMenus();
 
             MainViewManager.setActivePaneId(self.paneId);
+            registerContextMenus();
             
-            if (pane_view_list_configuration_menu.isOpen()) {
-                pane_view_list_configuration_menu.close();
+            if (_pane_view_list_configuration_menu.isOpen()) {
+                _pane_view_list_configuration_menu.close();
             } else {
                 buttonOffset = $(this).offset();
                 buttonHeight = $(this).outerHeight();
-                pane_view_list_configuration_menu.open({
+                _pane_view_list_configuration_menu.open({
                     pageX: buttonOffset.left,
                     pageY: buttonOffset.top + buttonHeight
                 });

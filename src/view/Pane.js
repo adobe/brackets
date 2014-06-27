@@ -329,10 +329,6 @@ define(function (require, exports, module) {
         this.$el.find(".not-editor").css("display", (show) ? "" : "none");
     };
     
-    Pane.prototype.removeCustomViewer = function () {
-        // TODO
-    };
-    
     Pane.prototype.getViewForPath = function (path) {
         return this.views[path];
     };

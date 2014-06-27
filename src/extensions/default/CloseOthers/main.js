@@ -55,20 +55,17 @@ define(function (require, exports, module) {
      * @param {string} mode
      */
     function handleClose(mode) {
-        var targetIndex = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, DocumentManager.getCurrentDocument().file.fullPath),
-            paneViewList  = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).slice(0),
-            start       = (mode === closeBelow) ? (targetIndex + 1) : 0,
-            end         = (mode === closeAbove) ? (targetIndex) : (paneViewList.length),
-            files       = [],
+        var targetIndex  = MainViewManager.findInPaneViewList(MainViewManager.FOCUSED_PANE, MainViewManager.getCurrentlyViewedPath()),
+            paneViewList = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE),
+            start        = (mode === closeBelow) ? (targetIndex + 1) : 0,
+            end          = (mode === closeAbove) ? (targetIndex) : (paneViewList.length),
+            files        = [],
             i;
-        
-        if (mode === closeOthers) {
-            end--;
-            paneViewList.splice(targetIndex, 1);
-        }
-        
+
         for (i = start; i < end; i++) {
-            files.push(paneViewList[i]);
+            if ((mode === closeOthers && i !== targetIndex) || (mode !== closeOthers)) {
+                files.push(paneViewList[i]);
+            }
         }
         
         CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: files});
@@ -78,25 +75,25 @@ define(function (require, exports, module) {
      * Enable/Disable the menu items depending on which document is selected in the working set
      */
     function contextMenuOpenHandler() {
-        var doc = DocumentManager.getCurrentDocument();
+        var file = MainViewManager.getCurrentlyViewedFile();
         
-        if (doc) {
-            var docIndex   = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, doc.file.fullPath),
-                paneViewList = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).slice(0);
+        if (file) {
+            var targetIndex  = MainViewManager.findInPaneViewList(MainViewManager.FOCUSED_PANE, file.fullPath),
+                paneViewListSize = MainViewManager.getPaneViewListSize(MainViewManager.FOCUSED_PANE);
             
-            if (docIndex === paneViewList.length - 1) { // hide "Close Others Below" if the last file in Working Files is selected
+            if (targetIndex === paneViewListSize - 1) { // hide "Close Others Below" if the last file in Working Files is selected
                 CommandManager.get(closeBelow).setEnabled(false);
             } else {
                 CommandManager.get(closeBelow).setEnabled(true);
             }
             
-            if (paneViewList.length === 1) { // hide "Close Others" if there is only one file in Working Files
+            if (paneViewListSize === 1) { // hide "Close Others" if there is only one file in Working Files
                 CommandManager.get(closeOthers).setEnabled(false);
             } else {
                 CommandManager.get(closeOthers).setEnabled(true);
             }
             
-            if (docIndex === 0) { // hide "Close Others Above" if the first file in Working Files is selected
+            if (targetIndex === 0) { // hide "Close Others Above" if the first file in Working Files is selected
                 CommandManager.get(closeAbove).setEnabled(false);
             } else {
                 CommandManager.get(closeAbove).setEnabled(true);
