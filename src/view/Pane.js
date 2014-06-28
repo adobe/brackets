@@ -30,6 +30,7 @@ define(function (require, exports, module) {
         
     var _                   = require("thirdparty/lodash"),
         EditorManager       = require("editor/EditorManager"),
+        MainViewManager     = require("view/MainViewManager"),
         DocumentManager     = require("Document/DocumentManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
@@ -169,7 +170,7 @@ define(function (require, exports, module) {
 
         // Process only files not already in view list
         fileList.forEach(function (file) {
-            if (EditorManager.canOpenFile(file.fullPath) && this.findInViewList(file.fullPath) === -1) {
+            if (EditorManager.canOpenFile(file.fullPath) && this.findInViewList(file.fullPath) === -1 && !MainViewManager.getPaneIdForPath(file.fullPath)) {
                 self._addToViewList(file);
                 uniqueFileList.push(file);
             }

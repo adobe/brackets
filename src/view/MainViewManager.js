@@ -105,6 +105,36 @@ define(function (require, exports, module) {
         return _getPaneFromPaneId(_activePaneId);
     }
     
+    function forceFocusToActivePaneView() {
+        _getActivePane().focus();
+    }
+    
+    function setActivePaneId(newPaneId) {
+        if (_paneViews.hasOwnProperty(newPaneId) && (newPaneId !== _activePaneId)) {
+            var oldPaneId = _activePaneId;
+            _activePaneId = newPaneId;
+            
+            $(exports).triggerHandler("activePaneChange", [newPaneId, oldPaneId]);
+            $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), newPaneId]);
+        }
+        
+        forceFocusToActivePaneView();
+    }
+    
+    function _activeEditorChange(e, current) {
+        if (current) {
+            var $container = current.getContainer(),
+                newPaneId = _getPaneIdFromContainer($container);
+
+            if (newPaneId !== _activePaneId) {
+                setActivePaneId(newPaneId);
+            } else {
+                $(exports).triggerHandler("currentFileChanged", [current.getFile(), _activePaneId]);
+                forceFocusToActivePaneView();
+            }
+        }
+    }    
+    
     /**
      * Retrieves the PaneViewList for the given PaneId
      * @param {!string} paneId this will identify which Pane the caller wants a View List
@@ -230,6 +260,17 @@ define(function (require, exports, module) {
         return _doFindInViewList(paneId, fullPath, "findInViewListMRUOrder");
     }
 
+    
+    function getPaneIdForPath(fullPath) {
+        var info = findInPaneViewList(ALL_PANES, fullPath);
+        
+        if (info !== -1) {
+            return info.paneId;
+        } else {
+            return null;
+        }
+    }
+    
     /**
      * Adds the given file to the end of the pane view list, if it is not already in the list
      * and it does not have a custom viewer.
@@ -243,7 +284,7 @@ define(function (require, exports, module) {
     function addToPaneViewList(paneId, file, index, force) {
         var pane = _getPaneFromPaneId(paneId);
 
-        if (!pane || !EditorManager.canOpenFile(file.fullPath)) {
+        if (!pane || !EditorManager.canOpenFile(file.fullPath) || getPaneIdForPath(file.fullPath)) {
             return;
         }
         
@@ -558,8 +599,14 @@ define(function (require, exports, module) {
         
     }
     
-    
     function doEdit(paneId, doc) {
+        var currentPaneId = getPaneIdForPath(doc.file.fullPath);
+
+        if (currentPaneId) {
+            paneId = currentPaneId;
+            setActivePaneId(paneId);
+        }
+        
         var pane = _getPaneFromPaneId(paneId);
         
         if (!pane) {
@@ -573,7 +620,7 @@ define(function (require, exports, module) {
         }
         
         EditorManager.doOpenDocument(doc, pane);
-        
+
         if (pane.id === _activePaneId) {
             $(exports).triggerHandler("currentFileChanged", [doc.file, pane.id]);
         }
@@ -587,8 +634,15 @@ define(function (require, exports, module) {
         if (!file) {
             return result.reject("bad argument");
         }
+
+        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath),
+            currentPaneId = getPaneIdForPath(file.fullPath);
+
+        if (currentPaneId) {
+            paneId = currentPaneId;
+            setActivePaneId(paneId);
+        }
         
-        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
 
         // TODO: If the file open and there is a view, then 
         //          just switch to it
@@ -691,36 +745,6 @@ define(function (require, exports, module) {
             
             if (pane) {
                 pane.destroyViewIfNotNeeded(document._masterEditor);
-            }
-        }
-    }
-    
-    function forceFocusToActivePaneView() {
-        _getActivePane().focus();
-    }
-    
-    function setActivePaneId(newPaneId) {
-        if (_paneViews.hasOwnProperty(newPaneId) && (newPaneId !== _activePaneId)) {
-            var oldPaneId = _activePaneId;
-            _activePaneId = newPaneId;
-            
-            $(exports).triggerHandler("activePaneChange", [newPaneId, oldPaneId]);
-            $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), newPaneId]);
-        }
-        
-        forceFocusToActivePaneView();
-    }
-    
-    function _activeEditorChange(e, current) {
-        if (current) {
-            var $container = current.getContainer(),
-                newPaneId = _getPaneIdFromContainer($container);
-
-            if (newPaneId !== _activePaneId) {
-                setActivePaneId(newPaneId);
-            } else {
-                $(exports).triggerHandler("currentFileChanged", [current.getFile(), _activePaneId]);
-                forceFocusToActivePaneView();
             }
         }
     }
@@ -857,6 +881,7 @@ define(function (require, exports, module) {
     exports.getPaneIdList                    = getPaneIdList;
     exports.getPaneTitle                     = getPaneTitle;
     exports.getPaneCount                     = getPaneCount;
+    exports.getPaneIdForPath                 = getPaneIdForPath;
     
     // Explicit stuff
     exports.destroyEditorIfNotNeeded         = destroyEditorIfNotNeeded;
