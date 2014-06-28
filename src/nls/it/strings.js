@@ -127,8 +127,10 @@ define({
     "FIND_RESULT_COUNT"                 : "{0} risultati",
     "FIND_RESULT_COUNT_SINGLE"          : "1 risultato",
     "FIND_NO_RESULTS"                   : "Nessun risultato",
+    "FIND_QUERY_PLACEHOLDER"            : "Trova\u2026"
     "REPLACE_PLACEHOLDER"               : "Sostituisci con\u2026",
     "BUTTON_REPLACE_ALL"                : "Tutti\u2026",
+    "BUTTON_REPLACE_ALL_IN_FILES"       : "Sostituisci\u2026",
     "BUTTON_REPLACE"                    : "Sostituisci",
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
@@ -136,7 +138,10 @@ define({
     "BUTTON_PREV_HINT"                  : "Corrispondenza precedente",
     "BUTTON_CASESENSITIVE_HINT"         : "Rispetta maiuscole/minuscole",
     "BUTTON_REGEXP_HINT"                : "Espressione regolare",
-
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Sostituire senza annullare",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Perché più {0} file necessitano di modifiche, {APP_NAME} modificherà i file aperti sul disco.<br />Non sarà in grado di annullare le sostituzioni in quei file.",
+    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Sostituire senza annullare",
+    
     "OPEN_FILE"                         : "Apri File",
     "SAVE_FILE_AS"                      : "Salva File",
     "CHOOSE_FOLDER"                     : "Scegli una cartella",
@@ -350,6 +355,7 @@ define({
     "ABOUT"                             : "Informazioni",
     "CLOSE"                             : "Chiudi",
     "ABOUT_TEXT_LINE1"                  : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_BUILD_TIMESTAMP"        : "compilata il: ",
     "ABOUT_TEXT_LINE3"                  : "Avvisi, termini e condizioni circa i software di terze parti raggiungibili all’indirizzo <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> incorporati come riferimento.",
     "ABOUT_TEXT_LINE4"                  : "Documentazione e codice sorgente sono disponibili all’indirizzo <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Fatto con \u2764 e JavaScript da:",
