@@ -153,9 +153,9 @@ define({
     "REPLACE_WITHOUT_UNDO_WARNING"      : "Because more than {0} files need to be changed, {APP_NAME} will modify unopened files on disk.<br />You won't be able to undo replacements in those files.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Replace Without Undo",
 
-    "OPEN_FILE"                         : "Open File",
-    "SAVE_FILE_AS"                      : "Save File",
-    "CHOOSE_FOLDER"                     : "Choose a folder",
+    "OPEN_FILE"                         : "ගොනුවක් විවෘත කරන්න",
+    "SAVE_FILE_AS"                      : "ගොනුව සුරකින්න",
+    "CHOOSE_FOLDER"                     : "ෆොල්ඩරයක් තොරන්න",
 
     "RELEASE_NOTES"                     : "Release Notes",
     "NO_UPDATE_TITLE"                   : "You're Up to Date!",
