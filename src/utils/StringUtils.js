@@ -198,6 +198,27 @@ define(function (require, exports, module) {
         return returnVal;
     }
     
+    /**
+     * Truncate strings to specified length.
+     * @param {string} str Text to be truncated.
+     * @param {number} len Length to which text should be limited.
+     * @return {string} Returns truncated text only if it was changed.
+     */
+    function truncate(str, len) {
+        // Truncate the description if it is too long
+        if (str.length > len) {
+            str = str.substr(0, len);
+
+            // To prevent awkward addition of ellipsis, try to truncate
+            // at the end of the last whole word
+            var lastSpaceChar = str.lastIndexOf(" ");
+            if (lastSpaceChar < len && lastSpaceChar > -1) {
+                str = str.substr(0, lastSpaceChar);
+            }
+            return str;
+        }
+    }
+
     // Define public API
     exports.format              = format;
     exports.htmlEscape          = htmlEscape;
@@ -209,4 +230,5 @@ define(function (require, exports, module) {
     exports.breakableUrl        = breakableUrl;
     exports.endsWith            = endsWith;
     exports.prettyPrintBytes    = prettyPrintBytes;
+    exports.truncate            = truncate;
 });

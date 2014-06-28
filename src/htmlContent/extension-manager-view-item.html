@@ -26,21 +26,25 @@
                 {{/isCompatibleLatest}}
             {{/isCompatible}}
         {{/showInstallButton}}
-        {{metadata.description}}
-        {{^metadata.description}}
-            <p class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></p>
-        {{/metadata.description}}
+        <span class="ext-full-description">
+            {{#hasShortDescription}}
+                {{metadata.shortdescription}}
+            {{/hasShortDescription}}
+            {{^hasShortDescription}}
+                {{#metadata.description}}
+                    {{metadata.description}}
+                {{/metadata.description}}
+                {{^metadata.description}}
+                    <p class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></p>
+                {{/metadata.description}}
+            {{/hasShortDescription}}
+        </span>
+        {{#hasShortDescription}}
+        <a data-extension-id="{{metadata.name}}" data-toggle-desc="expand-desc" title="{{Strings.VIEW_COMPLETE_DESCRIPTION}}" href="#">...</a>
+        {{/hasShortDescription}}
         {{#metadata.homepage}}
             <p><a title="{{metadata.homepage}}" href="{{metadata.homepage}}">{{Strings.EXTENSION_MORE_INFO}}</a></p>
         {{/metadata.homepage}}
-        {{#metadata.keywords.length}}
-            <br/>
-            <span class="ext-keywords">{{Strings.EXTENSION_KEYWORDS}}:
-            {{#metadata.keywords}}
-                {{.}}
-            {{/metadata.keywords}}
-            </span>
-        {{/metadata.keywords.length}}
     </td>
     <td class="ext-action">
         {{#showInstallButton}}

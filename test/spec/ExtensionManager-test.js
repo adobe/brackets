@@ -772,8 +772,7 @@ define(function (require, exports, module) {
                             
                             // Simple fields
                             [item.metadata.version,
-                                item.metadata.author && item.metadata.author.name,
-                                item.metadata.description]
+                                item.metadata.author && item.metadata.author.name]
                                 .forEach(function (value) {
                                     if (value) {
                                         expect(view).toHaveText(value);
@@ -784,13 +783,40 @@ define(function (require, exports, module) {
                             }
                             
                             // Array-valued fields
-                            [item.metadata.keywords, item.metadata.categories].forEach(function (arr) {
+                            [item.metadata.categories].forEach(function (arr) {
                                 if (arr) {
                                     arr.forEach(function (value) {
                                         expect(view).toHaveText(value);
                                     });
                                 }
                             });
+                        });
+                    });
+                });
+                
+                it("should display original description", function () {
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                    runs(function () {
+                        _.forEach(mockRegistry, function (item) {
+                            if (item.metadata.description) {
+                                if (StringUtils.truncate(item.metadata.description, 140) === undefined) {
+                                    expect(view).toHaveText(item.metadata.description);
+                                }
+                            }
+                        });
+                    });
+                });
+                
+                it("should display shortened description", function () {
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                    runs(function () {
+                        _.forEach(mockRegistry, function (item) {
+                            if (item.metadata.description) {
+                                var shortDescription = StringUtils.truncate(item.metadata.description, 140);
+                                if (shortDescription !== undefined) {
+                                    expect(view).toHaveText(shortDescription);
+                                }
+                            }
                         });
                     });
                 });

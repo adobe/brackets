@@ -575,6 +575,31 @@ define(function (require, exports, module) {
         }, []);
     }
 
+    /**
+     * Toggles between truncated and full length extension descriptions
+     * @param {string} id The id of the extension clicked
+     * @param {JQueryElement} $element The DOM element of the extension clicked
+     * @param {boolean} showFull true if full length description should be shown, false for shorten version.
+     */
+    function toggleDescription(id, $element, showFull) {
+        var description, linkTitle,
+            entry = extensions[id];
+
+        // Toggle between appropriate descriptions and link title,
+        // depending on if extension is installed or not
+        if (showFull) {
+            description = entry.installInfo ? entry.installInfo.metadata.description : entry.registryInfo.metadata.description;
+            linkTitle = Strings.VIEW_TRUNCATED_DESCRIPTION;
+        } else {
+            description = entry.installInfo ? entry.installInfo.metadata.shortdescription : entry.registryInfo.metadata.shortdescription;
+            linkTitle = Strings.VIEW_COMPLETE_DESCRIPTION;
+        }
+
+        $element.attr("data-toggle-desc", showFull ? "trunc-desc" : "expand-desc")
+                .attr("title", linkTitle)
+                .prev(".ext-full-description").html(description);
+    }
+
     // Listen to extension load and loadFailed events
     $(ExtensionLoader)
         .on("load", _handleExtensionLoad)
@@ -600,6 +625,7 @@ define(function (require, exports, module) {
     exports.updateExtensions        = updateExtensions;
     exports.getAvailableUpdates     = getAvailableUpdates;
     exports.cleanAvailableUpdates   = cleanAvailableUpdates;
+    exports.toggleDescription       = toggleDescription;
     
     exports.ENABLED       = ENABLED;
     exports.START_FAILED  = START_FAILED;
