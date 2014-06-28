@@ -480,3 +480,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK": "상세정보"
 });
+
+/* Last translated for 46de60683124768aa7f074aa3168f99d23f6c016 */
