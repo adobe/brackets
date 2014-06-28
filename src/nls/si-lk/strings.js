@@ -527,8 +527,8 @@ define({
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     
-    "LANGUAGE_TITLE"                            : "Switch Language",
-    "LANGUAGE_MESSAGE"                          : "Language:",
+    "LANGUAGE_TITLE"                            : "භාෂාව මාරු කරන්න",
+    "LANGUAGE_MESSAGE"                          : "භාෂාව:",
     "LANGUAGE_SUBMIT"                           : "Reload {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Cancel",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
@@ -564,7 +564,7 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Recent Projects",
     
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Read more"
+    "DOCS_MORE_LINK"                            : "තව කියවන්න"
 });
 
 /* Last translated for 46de60683124768aa7f074aa3168f99d23f6c016 */
