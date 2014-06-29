@@ -140,8 +140,8 @@ define({
 	"FIND_NO_RESULTS": "該当なし",
 	"FIND_QUERY_PLACEHOLDER": "検索\u2026",
 	"REPLACE_PLACEHOLDER": "\u2026 に置換",
-	"BUTTON_REPLACE_ALL": "!能=[7126959] Batch\u2026_=!",
-	"BUTTON_REPLACE_ALL_IN_FILES": "!能=[7575917] Replace\u2026_=!",
+	"BUTTON_REPLACE_ALL": "バッチ\u2026",
+	"BUTTON_REPLACE_ALL_IN_FILES": "置換\u2026",
 	"BUTTON_REPLACE": "置換",
 	"BUTTON_NEXT": "\u25B6",
 	"BUTTON_PREV": "\u25C0",
@@ -149,9 +149,9 @@ define({
 	"BUTTON_PREV_HINT": "前の候補に移動",
 	"BUTTON_CASESENSITIVE_HINT": "大文字と小文字を区別",
 	"BUTTON_REGEXP_HINT": "正規表現",
-	"REPLACE_WITHOUT_UNDO_WARNING_TITLE": "!能=[7575930] Replace Without Undo_=!",
-	"REPLACE_WITHOUT_UNDO_WARNING": "!能=[7575929] Because more than {0} files need to be changed, {APP_NAME} will modify unopened files on disk.<br />You won't be able to undo replacements in those files._=!",
-	"BUTTON_REPLACE_WITHOUT_UNDO": "!能=[7575918] Replace Without Undo_=!",
+	"REPLACE_WITHOUT_UNDO_WARNING_TITLE": "取り消し情報を保存せずに置換",
+	"REPLACE_WITHOUT_UNDO_WARNING": "{0} 個を超えるファイルを変更する必要があるため、{APP_NAME} によってディスク上の開かれていないファイルが変更されます。<br />これらのファイルで行った置換は取り消しできません。",
+	"BUTTON_REPLACE_WITHOUT_UNDO": "取り消し情報を保存せずに置換",
 
 	"OPEN_FILE": "ファイルを開く",
 	"SAVE_FILE_AS": "ファイルを保存",
@@ -163,12 +163,12 @@ define({
 
     // Find and Replace
 	"FIND_REPLACE_TITLE_LABEL": "置換",
-	"FIND_REPLACE_TITLE_WITH": "使用 :",
-	"FIND_TITLE_LABEL": "!能=[7575925] Found_=!",
-	"FIND_TITLE_SUMMARY": "!能=[7575926]  &mdash; {0} {1} {2} in {3}_=!",
+	"FIND_REPLACE_TITLE_WITH": "置換後の文字列",
+	"FIND_TITLE_LABEL": "見つかりました",
+	"FIND_TITLE_SUMMARY": " &mdash; {0} {1} {2} ({3})",
 
     // Find in Files
-	"FIND_NUM_FILES": "!能=[7575922] {0} {1}_=!",
+	"FIND_NUM_FILES": "{0} {1}",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
 	"FIND_IN_FILES_ZERO_FILES": "フィルターは {0}の全ファイルを除外します",
@@ -180,8 +180,8 @@ define({
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
 	"FIND_IN_FILES_EXPAND_COLLAPSE": "Ctrl / Command キーをクリックしてすべて展開 / 折りたたみ",
-	"REPLACE_IN_FILES_ERRORS_TITLE": "!能=[7575928] Replace Errors_=!",
-	"REPLACE_IN_FILES_ERRORS": "!能=[7575927] The following files weren't modified because they changed after the search or couldn't be written._=!",
+	"REPLACE_IN_FILES_ERRORS_TITLE": "置換エラー",
+	"REPLACE_IN_FILES_ERRORS": "次のファイルは検索の後で変更されているか、書き込むことができないため、変更されていません。",
     
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "更新情報を取得する際にエラーが発生しました。",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "サーバーから最新の更新情報を取得する際にエラーが発生しました。インターネット接続を確認してリトライしてください。",
@@ -283,6 +283,7 @@ define({
 	"CMD_FILE_SAVE_ALL": "すべて保存",
 	"CMD_FILE_SAVE_AS": "名前を付けて保存\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "ライブプレビュー",
+	"CMD_RELOAD_LIVE_PREVIEW": "Force Reload Live Preview",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
 	"CMD_FILE_DELETE": "削除",
@@ -330,9 +331,9 @@ define({
 	"CMD_FIND_IN_SELECTED": "選択したファイルまたはフォルダーを検索",
 	"CMD_FIND_IN_SUBTREE": "検索先\u2026",
 	"CMD_REPLACE": "置換",
-	"CMD_REPLACE_IN_FILES": "!能=[7575919] Replace in Files_=!",
-	"CMD_REPLACE_IN_SELECTED": "!能=[7575920] Replace in Selected File/Folder_=!",
-	"CMD_REPLACE_IN_SUBTREE": "!能=[7575921] Replace in\u2026_=!",
+	"CMD_REPLACE_IN_FILES": "ファイルを横断して置換",
+	"CMD_REPLACE_IN_SELECTED": "選択したファイルまたはフォルダーで置換",
+	"CMD_REPLACE_IN_SUBTREE": "置換対象\u2026",
     
     // View menu commands
 	"VIEW_MENU": "表示",
