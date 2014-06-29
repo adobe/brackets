@@ -168,17 +168,13 @@ define(function (require, exports, module) {
      * @return {?Document}
      */
     function getCurrentDocument() {
-      // using getCurrentFullEditor() will return the editor whether it has focus or not
-        //      this doesn't work in scenarios where you want the active editor's document
-        //      even though it does not have focus (such as when clicking on another element (toolbar, menu, etc...)
-        //      So we'll have to do revise this to call
-        //          MainViewManager.getTargetPane().getCurrentFullEditor().getDocument()
         var file = MainViewManager.getCurrentlyViewedFile();
+        
         if (file) {
             return getOpenDocumentForPath(file.fullPath);
-        } else {
-            return null;
         }
+        
+        return null;
     }
 
     
@@ -188,7 +184,7 @@ define(function (require, exports, module) {
      *         or close current document when there are no other documents left to open. This
      */
     function clearCurrentDocument() {
-        DeprecationWarning.deprecationWarning("DocumentManager.clearCurrentDocument()", true);
+        DeprecationWarning.deprecationWarning("DocumentManager.clearCurrentDocument() has been deprecated. Use MainViewManager.doClose()", true);
     }
     
     /**

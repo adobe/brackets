@@ -345,6 +345,8 @@ define(function (require, exports, module) {
      * a read-only string-backed mode.
      */
     Editor.prototype.destroy = function () {
+        $(this).triggerHandler("destroy", [this]);
+
         // CodeMirror docs for getWrapperElement() say all you have to do is "Remove this from your
         // tree to delete an editor instance."
         $(this.getRootElement()).remove();
@@ -1974,6 +1976,10 @@ define(function (require, exports, module) {
         return this._focused;
     };
     
+    Editor.prototype.childHasFocus = function () {
+        return (this.getFocusedInlineWidget() !== null);
+    };
+    
     /**
      * Re-renders the editor UI
      * @param {boolean=} handleResize true if this is in response to resizing the editor. Default false.
@@ -2477,7 +2483,16 @@ define(function (require, exports, module) {
      * @param {boolean} showLinePadding
      */
     Editor._toggleLinePadding = function (showLinePadding) {
-        this.$editorHolder.toggleClass("show-line-padding", showLinePadding);
+        var $holders = [];
+        _instances.forEach(function (editor) {
+            if ($holders.indexOf(editor.$editorHolder) === -1) {
+                $holders.push(editor.$editorHolder);
+            }
+        });
+        
+        _.each($holders, function ($holder) {
+            $holder.toggleClass("show-line-padding", showLinePadding);
+        });
     };
     
     // Set up listeners for preference changes

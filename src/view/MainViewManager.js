@@ -121,19 +121,58 @@ define(function (require, exports, module) {
         forceFocusToActivePaneView();
     }
     
+    function _getPaneIdFromContainer($container) {
+        var paneId;
+        _.forEach(_paneViews, function (pane) {
+            if (pane.$el === $container) {
+                paneId = pane.id;
+                return false;
+            }
+        });
+        
+        return paneId;
+    }
+    
+    function getCurrentlyViewedFileForPane(paneId) {
+        var pane = _getPaneFromPaneId(paneId);
+        if (pane) {
+            return pane.getCurrentlyViewedFile();
+        }
+    }
+ 
+    function getCurrentlyViewedPathForPane(paneId) {
+        var file = getCurrentlyViewedFileForPane(paneId);
+        return file ? file.fullPath : null;
+    }
+    
+    function getCurrentlyViewedFile() {
+        return _getActivePane().getCurrentlyViewedFile();
+    }
+    
+    function getCurrentlyViewedPath() {
+        var file = getCurrentlyViewedFile();
+        return file ? file.fullPath : null;
+    }
+    
     function _activeEditorChange(e, current) {
         if (current) {
             var $container = current.getContainer(),
                 newPaneId = _getPaneIdFromContainer($container);
 
-            if (newPaneId !== _activePaneId) {
-                setActivePaneId(newPaneId);
-            } else {
-                $(exports).triggerHandler("currentFileChanged", [current.getFile(), _activePaneId]);
-                forceFocusToActivePaneView();
+            // Ignore active editor changes for inline editors
+            if (newPaneId) {
+                if (newPaneId !== _activePaneId) {
+                    setActivePaneId(newPaneId);
+                } else {
+                    var currentFile = getCurrentlyViewedFile();
+                    if (currentFile !== current.getFile()) {
+                        $(exports).triggerHandler("currentFileChanged", [current.getFile(), _activePaneId]);
+                        forceFocusToActivePaneView();
+                    }
+                }
             }
         }
-    }    
+    }
     
     /**
      * Retrieves the PaneViewList for the given PaneId
@@ -209,27 +248,6 @@ define(function (require, exports, module) {
         }
     }
 
-    function getCurrentlyViewedFileForPane(paneId) {
-        var pane = _getPaneFromPaneId(paneId);
-        if (pane) {
-            return pane.getCurrentlyViewedFile();
-        }
-    }
- 
-    function getCurrentlyViewedPathForPane(paneId) {
-        var file = getCurrentlyViewedFileForPane(paneId);
-        return file ? file.fullPath : null;
-    }
-    
-    function getCurrentlyViewedFile() {
-        return _getActivePane().getCurrentlyViewedFile();
-    }
-    
-    function getCurrentlyViewedPath() {
-        var file = getCurrentlyViewedFile();
-        return file ? file.fullPath : null;
-    }
-    
     /**
      * Gets the index of the file matching fullPath in the pane view list
      * @param {!string} paneId this will identify which Pane the caller wants to search
@@ -726,17 +744,6 @@ define(function (require, exports, module) {
     /**
      *
      */
-    function _getPaneIdFromContainer($container) {
-        var paneId;
-        _.forEach(_paneViews, function (pane) {
-            if (pane.$el === $container) {
-                paneId = pane.id;
-                return false;
-            }
-        });
-        
-        return paneId;
-    }
 
     function destroyEditorIfNotNeeded(document) {
         if (document._masterEditor) {

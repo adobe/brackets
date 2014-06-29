@@ -51,7 +51,8 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var Commands            = require("command/Commands"),
+    var AppInit             = require("utils/AppInit"),
+        Commands            = require("command/Commands"),
         WorkspaceManager    = require("view/WorkspaceManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         CommandManager      = require("command/CommandManager"),
@@ -65,36 +66,6 @@ define(function (require, exports, module) {
         DeprecationWarning  = require("utils/DeprecationWarning");
     
     
-    /**
-     * Currently visible full-size Editor, or null if no editors open
-     * @type {?Editor}
-     */
-    var _currentEditor = null;
-
-    /**
-     * Document in current editor
-     * @type {?Document}
-     */
-    var _currentEditorsDocument = null;
-
-    /**
-     * full path to file
-     * @type {?string}
-     */
-    var _currentlyViewedPath = null;
-
-    /**
-     * DOM node representing UI of custom view  
-     * @type {?JQuery}
-     */
-    var _$currentCustomViewer = null;
-
-    /**
-     * view provider
-     * @type {?Object}
-     */
-    var _currentViewProvider = null;
-
     /**
      * view provider registry
      * @type {?Object}
@@ -135,13 +106,62 @@ define(function (require, exports, module) {
     var _jumpToDefProviders = [];
     
     
+    /**
+     *
+     */
+    var _$hiddenEditorsContainer;
+    
    
     /** Returns the visible full-size Editor corresponding to DocumentManager.getCurrentDocument() */
     function getCurrentFullEditor() {
-        // This *should* always be equivalent to DocumentManager.getCurrentDocument()._masterEditor
-        return _currentEditor;
+        var doc = DocumentManager.getCurrentDocument();
+        
+        if (doc) {
+            return doc._masterEditor;
+        }
+        
+        return null;
+    }
+
+    
+
+    /** Updates _viewStateCache from the given editor's actual current state */
+    function _saveEditorViewState(editor) {
+        _viewStateCache[editor.document.file.fullPath] = {
+            selections: editor.getSelections(),
+            scrollPos: editor.getScrollPos()
+        };
     }
     
+    /** Updates the given editor's actual state from _viewStateCache, if any state stored */
+    function _restoreEditorViewState(editor) {
+        // We want to ignore the current state of the editor, so don't call _getViewState()
+        var viewState = _viewStateCache[editor.document.file.fullPath];
+        if (viewState) {
+            if (viewState.selection) {
+                // We no longer write out single-selection, but there might be some view state
+                // from an older version.
+                editor.setSelection(viewState.selection.start, viewState.selection.end);
+            }
+            if (viewState.selections) {
+                editor.setSelections(viewState.selections);
+            }
+            if (viewState.scrollPos) {
+                editor.setScrollPos(viewState.scrollPos.x, viewState.scrollPos.y);
+            }
+        }
+    }
+    
+    /** Returns up-to-date view state for the given file, or null if file not open and no state cached */
+    function _getViewState(fullPath) {
+        return _viewStateCache[fullPath];
+    }
+    
+    /** Removes all cached view state info and replaces it with the given mapping */
+    function _resetViewStates(viewStates) {
+        _viewStateCache = viewStates;
+    }
+            
     
 	/**
      * @private
@@ -177,6 +197,10 @@ define(function (require, exports, module) {
             _notifyActiveEditorChanged(this);
         });
         
+        $(editor).on("destroy", function () {
+            _saveEditorViewState(editor);
+        });
+        
         return editor;
     }
     
@@ -201,6 +225,11 @@ define(function (require, exports, module) {
         }
         
         array.splice(index, 0, prioritizedProvider);
+    }
+        
+    function createUnattachedMasterEditor(doc) {
+        var editor = _createEditorForDocument(doc, true, _$hiddenEditorsContainer);
+        editor.setVisible(false);
     }
     
     /**
@@ -393,46 +422,6 @@ define(function (require, exports, module) {
         WorkspaceManager.recomputeLayout();
     }
 
-    /** Updates _viewStateCache from the given editor's actual current state */
-    function _saveEditorViewState(editor) {
-        _viewStateCache[editor.document.file.fullPath] = {
-            selections: editor.getSelections(),
-            scrollPos: editor.getScrollPos()
-        };
-    }
-    
-    /** Updates the given editor's actual state from _viewStateCache, if any state stored */
-    function _restoreEditorViewState(editor) {
-        // We want to ignore the current state of the editor, so don't call _getViewState()
-        var viewState = _viewStateCache[editor.document.file.fullPath];
-        if (viewState) {
-            if (viewState.selection) {
-                // We no longer write out single-selection, but there might be some view state
-                // from an older version.
-                editor.setSelection(viewState.selection.start, viewState.selection.end);
-            }
-            if (viewState.selections) {
-                editor.setSelections(viewState.selections);
-            }
-            if (viewState.scrollPos) {
-                editor.setScrollPos(viewState.scrollPos.x, viewState.scrollPos.y);
-            }
-        }
-    }
-    
-    /** Returns up-to-date view state for the given file, or null if file not open and no state cached */
-    function _getViewState(fullPath) {
-        if (_currentEditorsDocument && _currentEditorsDocument.file.fullPath === fullPath) {
-            _saveEditorViewState(_currentEditor);
-        }
-        return _viewStateCache[fullPath];
-    }
-    
-    /** Removes all cached view state info and replaces it with the given mapping */
-    function _resetViewStates(viewStates) {
-        _viewStateCache = viewStates;
-    }
-
     /**
      * @private
      */
@@ -444,8 +433,10 @@ define(function (require, exports, module) {
      */
     function _showEditor(document, pane) {
         // Ensure a main editor exists for this document to show in the UI
-        var createdNewEditor = false;
-        if (!document._masterEditor) {
+        var createdNewEditor = false,
+            editor = document._masterEditor;
+        
+        if (!editor) {
             createdNewEditor = true;
 
             // Performance (see #4757) Chrome wastes time messing with selection
@@ -456,6 +447,8 @@ define(function (require, exports, module) {
             
             // Editor doesn't exist: populate a new Editor with the text
             _createFullEditorForDocument(document, pane);
+        } else if (editor.getContainer() !== pane.$el) {
+            editor.switchContainers(pane.$el);
         }
         
         pane.showView(document._masterEditor);
@@ -579,8 +572,9 @@ define(function (require, exports, module) {
      * @return {?InlineWidget}
      */
     function getFocusedInlineWidget() {
-        if (_currentEditor) {
-            return _currentEditor.getFocusedInlineWidget();
+        var currentEditor = getCurrentFullEditor();
+        if (currentEditor) {
+            return currentEditor.getFocusedInlineWidget();
         }
         return null;
     }
@@ -590,9 +584,12 @@ define(function (require, exports, module) {
      * @return {?Editor}
      */
     function _getFocusedInlineEditor() {
-        var focusedWidget = _currentEditor.getFocusedInlineWidget();
-        if (focusedWidget instanceof InlineTextEditor) {
-            return focusedWidget.getFocusedEditor();
+        var currentEditor = getCurrentFullEditor();
+        if (currentEditor) {
+            var focusedWidget = currentEditor.getFocusedInlineWidget();
+            if (focusedWidget instanceof InlineTextEditor) {
+                return focusedWidget.getFocusedEditor();
+            }
         }
         return null;
     }
@@ -607,7 +604,8 @@ define(function (require, exports, module) {
      * @return {?Editor}
      */
     function getFocusedEditor() {
-        if (_currentEditor) {
+        var currentEditor = getCurrentFullEditor();
+        if (currentEditor) {
             
             // See if any inlines have focus
             var focusedInline = _getFocusedInlineEditor();
@@ -616,8 +614,8 @@ define(function (require, exports, module) {
             }
 
             // otherwise, see if full-sized editor has focus
-            if (_currentEditor.hasFocus()) {
-                return _currentEditor;
+            if (currentEditor.hasFocus()) {
+                return currentEditor;
             }
         }
         
@@ -647,8 +645,9 @@ define(function (require, exports, module) {
      *   willing to create a widget (or if no editor is open).
      */
     function _toggleInlineWidget(providers, errorMsg) {
-        if (_currentEditor) {
-            return _currentEditor.toggleInlineWidget(providers, errorMsg);
+        var currentEditor = getCurrentFullEditor();
+        if (currentEditor) {
+            return currentEditor.toggleInlineWidget(providers, errorMsg);
         }
         
         return new $.Deferred().reject();
@@ -688,6 +687,11 @@ define(function (require, exports, module) {
     // Create PerfUtils measurement
     PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
 
+    // Initialize hiddenEditorsContainer
+    AppInit.htmlReady(function () {
+        _$hiddenEditorsContainer = $("#hidden-editors");
+    });
+
     // For unit tests and internal use only
     exports._createFullEditorForDocument  = _createFullEditorForDocument;
     exports._getViewState                 = _getViewState;
@@ -704,6 +708,7 @@ define(function (require, exports, module) {
     exports.getInlineEditors              = getInlineEditors;
     exports.closeInlineWidget             = closeInlineWidget;
     exports.doOpenDocument                = doOpenDocument;
+    exports.createUnattachedMasterEditor  = createUnattachedMasterEditor;
     exports.canOpenFile                   = canOpenFile;
     
     // CUSTOM VIEWER API (Will be deprecated)

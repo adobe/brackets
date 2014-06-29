@@ -449,7 +449,7 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype.focus = function () {
-        if (this.currentView) {
+        if (this.currentView && (!this.currentView.hasFocus() && !this.currentView.childHasFocus())) {
             this.currentView.focus();
         } else {
             this.$el.focus();
