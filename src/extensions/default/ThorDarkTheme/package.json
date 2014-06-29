@@ -1,0 +1,12 @@
+{
+    "title": "Thor Dark",
+    "name": "thor-dark-theme",
+    "description": "Awesome dark theme for Brackets",
+    "version": "0.0.1",
+    "author": "Miguel Castillo <mahchagnu@gmail.com>",
+    "engines": {
+        "brackets": ">=0.39.0"
+    },
+    "theme": "main.less",
+    "screenshot": "screenshot.png"
+}
