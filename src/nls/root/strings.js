@@ -245,7 +245,9 @@ define({
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensions Disabled",
     "STATUSBAR_INSERT"                      : "INS",
+    "STATUSBAR_INSERT_TOOLTIP"              : "Click to switch cursor mode to insert",
     "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_OVERWRITE_TOOLTIP"           : "Click to switch cursor mode to overwrite",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",

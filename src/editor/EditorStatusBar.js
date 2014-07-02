@@ -202,6 +202,7 @@ define(function (require, exports, module) {
         }
 
         $statusOverwrite.text(newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT);
+        $statusOverwrite.attr("title", newstate ? Strings.STATUSBAR_INSERT_TOOLTIP : Strings.STATUSBAR_OVERWRITE_TOOLTIP);
 
         if (!doNotAnimate) {
             AnimationUtils.animateUsingClass($statusOverwrite[0], "flash", 1500);
@@ -227,6 +228,7 @@ define(function (require, exports, module) {
      */
     function _initOverwriteMode(currentEditor) {
         currentEditor.toggleOverwrite($statusOverwrite.text() === Strings.STATUSBAR_OVERWRITE);
+        $statusOverwrite.attr("title", currentEditor ? Strings.STATUSBAR_OVERWRITE_TOOLTIP : Strings.STATUSBAR_INSERT_TOOLTIP);
     }
     
     /**
