@@ -83,7 +83,7 @@ define(function (require, exports, module) {
     /**
      * @const
      * @private
-     * The default font size used only to convert the old fontSizeAdjustment view state to the new fontSizeStyle
+     * The default font size used only to convert the old fontSizeAdjustment view state to the new fontSize
      * @type {number}
      */
     var DEFAULT_FONT_SIZE = 12;
@@ -140,10 +140,10 @@ define(function (require, exports, module) {
     /**
      * @private
      * Add the styles used to update the font size
-     * @param {string} fontSizeStyle  A string with the font size and the size unit
+     * @param {string} fontSize  A string with the font size and the size unit
      */
-    function _addDynamicFontSize(fontSizeStyle) {
-        _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, "font-size", fontSizeStyle, true);
+    function _addDynamicFontSize(fontSize) {
+        _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, "font-size", fontSize, true);
     }
 
     /**
@@ -183,21 +183,21 @@ define(function (require, exports, module) {
     /**
      * @private
      * Sets the font size and restores the scroll position as best as possible.
-     * @param {string=} fontSizeStyle  A string with the font size and the size unit
+     * @param {string=} fontSize  A string with the font size and the size unit
      */
-    function _setSizeAndRestoreScroll(fontSizeStyle) {
+    function _setSizeAndRestoreScroll(fontSize) {
         var editor      = EditorManager.getCurrentFullEditor(),
             oldWidth    = editor._codeMirror.defaultCharWidth(),
-            oldFontSize = prefs.get("fontSizeStyle"),
-            newFontSize = fontSizeStyle,
+            oldFontSize = prefs.get("fontSize"),
+            newFontSize = fontSize,
             delta       = 0,
             adjustment  = 0,
             scrollPos   = editor.getScrollPos(),
             line        = editor._codeMirror.lineAtHeight(scrollPos.y, "local");
         
         _removeDynamicFontSize();
-        if (fontSizeStyle) {
-            _addDynamicFontSize(fontSizeStyle);
+        if (fontSize) {
+            _addDynamicFontSize(fontSize);
         }
         editor.refreshAll();
         
@@ -224,7 +224,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if adjustment occurred, false if it did not occur 
      */
     function _adjustFontSize(adjustment) {
-        var fsStyle   = prefs.get("fontSizeStyle"),
+        var fsStyle   = prefs.get("fontSize"),
             validFont = /^[\d\.]+(px|em)$/;
         
         // Make sure that the font size is expressed in terms we can handle (px or em). If not, simply bail.
@@ -246,7 +246,7 @@ define(function (require, exports, module) {
         }
         
         _setSizeAndRestoreScroll(fsStr);
-        prefs.set("fontSizeStyle", fsStr);
+        prefs.set("fontSize", fsStr);
 
         return true;
     }
@@ -264,7 +264,7 @@ define(function (require, exports, module) {
     /** Restores the font size to the original size */
     function _handleRestoreFontSize() {
         _setSizeAndRestoreScroll();
-        prefs.set("fontSizeStyle", DEFAULT_FONT_SIZE + "px");
+        prefs.set("fontSize", DEFAULT_FONT_SIZE + "px");
     }
     
     
@@ -289,16 +289,16 @@ define(function (require, exports, module) {
         }
 
         setFontFamily(prefs.get("fontFamily"));
-        setFontSize(prefs.get("fontSizeStyle"));
+        setFontSize(prefs.get("fontSize"));
         setLineHeight(prefs.get("lineHeight"));
     }
     
     /**
      * Restores the font size using the saved style and migrates the old fontSizeAdjustment
-     * view state to the new fontSizeStyle, when required
+     * view state to the new fontSize, when required
      */
     function restoreFontSize() {
-        var fsStyle      = prefs.get("fontSizeStyle"),
+        var fsStyle      = prefs.get("fontSize"),
             fsAdjustment = PreferencesManager.getViewState("fontSizeAdjustment");
 
         if (fsAdjustment) {
@@ -308,7 +308,7 @@ define(function (require, exports, module) {
             if (!fsStyle) {
                 // Migrate the old view state to the new one.
                 fsStyle = (DEFAULT_FONT_SIZE + fsAdjustment) + "px";
-                prefs.set("fontSizeStyle", fsStyle);
+                prefs.set("fontSize", fsStyle);
             }
         }
 
@@ -423,7 +423,7 @@ define(function (require, exports, module) {
     function setFontSize(fontSize) {
         var editor = EditorManager.getCurrentFullEditor();
         _setSizeAndRestoreScroll(fontSize);
-        prefs.set("fontSizeStyle", fontSize);
+        prefs.set("fontSize", fontSize);
         editor.refreshAll();
     }
 
@@ -432,7 +432,7 @@ define(function (require, exports, module) {
      * @return {string} Font size with size unit as 'px' or 'em'
      */
     function getFontSize() {
-        return prefs.get("fontSizeStyle");
+        return prefs.get("fontSize");
     }
 
 
@@ -514,7 +514,7 @@ define(function (require, exports, module) {
     //PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewState);
 
 
-    prefs.definePreference("fontSizeStyle", "string", DEFAULT_FONT_SIZE + "px");
+    prefs.definePreference("fontSize", "string", DEFAULT_FONT_SIZE + "px");
     prefs.definePreference("lineHeight", "string", DEFAULT_LINE_HEIGHT + "em");
     prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);
 
