@@ -11,8 +11,21 @@
 define(function(require, exports, module) {
     "use strict";
 
-    var _themes = {};
+    var _                  = require("thirdparty/lodash"),
+        Dialogs            = require("widgets/Dialogs"),
+        Strings            = require("strings"),
+        PreferencesManager = require("preferences/PreferencesManager");
 
+    var prefs = PreferencesManager.getExtensionPrefs("brackets-themes");
+
+    /**
+     * Currently loaded themes that are available to choose from.
+     */
+    var loadedThemes = {};
+
+    /**
+     * Object with all default values that can be configure via the settings UI
+     */
     var defaults = {
         "fontSize": 12,
         "lineHeight": '1.3em',
@@ -25,20 +38,18 @@ define(function(require, exports, module) {
         "settings": require("text!htmlContent/themes-settings.html")
     };
 
-    var _                  = require("thirdparty/lodash"),
-        Dialogs            = require("widgets/Dialogs"),
-        Strings            = require("strings"),
-        PreferencesManager = require("preferences/PreferencesManager"),
-        prefs              = PreferencesManager.getExtensionPrefs("brackets-themes");
-
-
-    // Setup all the templates so that we can easily render them with Mustache
+    /**
+     * Cached html settings jQuery object for easier processing when opening the settings dialog
+     */
     var $settings = $(templates.settings).addClass("themeSettings");
 
+    /**
+     * Opens the settings dialog
+     */
     function showDialog() {
         var currentSettings = getValues();
         var newSettings     = {};
-        var themes          = _.map(_themes, function(theme) {return theme;});
+        var themes          = _.map(loadedThemes, function(theme) {return theme;});
         var template        = $("<div>").append($settings).html();
         var $template       = $(Mustache.render(template, {"settings": currentSettings, "themes": themes, "Strings": Strings}));
 
@@ -87,24 +98,32 @@ define(function(require, exports, module) {
         });
     }
 
-
+    /**
+     * Interface to set the themes that are available to chose from in the setting dialog
+     * @param {ThemeManager.Theme} themes is a collection of themes created by the ThemeManager
+     */
     function setThemes(themes) {
-        _themes = themes;
+        loadedThemes = themes;
     }
 
-
+    /**
+     * @private
+     * Gets all the configurable settings that need to be loaded in the settings dialog
+     */
     function getValues() {
         return _.transform(defaults, function(result, value, key) {
             result[key] = prefs.get(key);
         });
     }
 
-
-    function reset() {
-        prefs.set("themes",           defaults.themes);
-        prefs.set("fontSize",         defaults.fontSize + "px");
-        prefs.set("lineHeight",       defaults.lineHeight);
-        prefs.set("fontType",         defaults.fontType);
+    /**
+     * Restores themes to factory settings.
+     */
+    function restore() {
+        prefs.set("themes", defaults.themes);
+        prefs.set("fontSize", defaults.fontSize + "px");
+        prefs.set("lineHeight", defaults.lineHeight);
+        prefs.set("fontType", defaults.fontType);
         prefs.set("customScrollbars", defaults.customScrollbars);
     }
 
@@ -116,9 +135,8 @@ define(function(require, exports, module) {
     prefs.definePreference("customScrollbars", "boolean", defaults.customScrollbars);
 
 
-    // Exposed API
     exports.defaults   = defaults;
-    exports.reset      = reset;
+    exports.restore    = restore;
     exports.setThemes  = setThemes;
     exports.showDialog = showDialog;
 });
