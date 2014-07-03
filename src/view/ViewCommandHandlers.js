@@ -94,7 +94,7 @@ define(function (require, exports, module) {
      * The default line height
      * @type {number}
      */
-    var DEFAULT_LINE_HEIGHT = 1.3;
+    var DEFAULT_LINE_HEIGHT = 1.4;
 
     /**
      * @const
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
      * @param {string} lineHeight  A string with the line height with size unit
      */
     function _addDynamicLineHeight(lineHeight) {
-        _addDynamicProperty(DYNAMIC_LINE_HEIGHT_ID, "line-height", lineHeight, true);
+        _addDynamicProperty(DYNAMIC_LINE_HEIGHT_ID, "line-height", lineHeight + "em", true);
     }
 
 
@@ -326,7 +326,7 @@ define(function (require, exports, module) {
     function restoreFonts() {
         setFontFamily(DEFAULT_FONT_FAMILY);
         setFontSize(DEFAULT_FONT_SIZE + "px");
-        setLineHeight(DEFAULT_LINE_HEIGHT + "em");
+        setLineHeight(DEFAULT_LINE_HEIGHT);
     }
 
 
@@ -464,10 +464,13 @@ define(function (require, exports, module) {
 
     /**
      * Line height setter to set the line height of the document editor
-     * @param {string} lineHeight The line height with size unit as 'em' to be set.
+     * @param {string} lineHeight The line height. The value is in 'em'.
      */
     function setLineHeight(lineHeight) {
         var editor = EditorManager.getCurrentFullEditor();
+
+        // Make sure the incoming value is a number...  Strip off any size units
+        lineHeight = parseFloat(lineHeight);
 
         _removeDynamicLineHeight();
         if (lineHeight) {
@@ -515,8 +518,20 @@ define(function (require, exports, module) {
 
 
     prefs.definePreference("fontSize", "string", DEFAULT_FONT_SIZE + "px");
-    prefs.definePreference("lineHeight", "string", DEFAULT_LINE_HEIGHT + "em");
+    prefs.definePreference("lineHeight", "number", DEFAULT_LINE_HEIGHT);
     prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);
+
+    prefs.on("change", "fontSize", function() {
+        setFontSize(prefs.get("fontSize"));
+    });
+
+    prefs.on("change", "fontFamily", function() {
+        setFontFamily(prefs.get("fontFamily"));
+    });
+
+    prefs.on("change", "lineHeight", function() {
+        setLineHeight(prefs.get("lineHeight"));
+    });
 
     // Update UI when opening or closing a document
     $(DocumentManager).on("currentDocumentChange", _updateUI);
