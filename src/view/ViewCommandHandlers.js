@@ -38,18 +38,31 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         KeyBindingManager   = require("command/KeyBindingManager"),
         Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
         ProjectManager      = require("project/ProjectManager"),
         EditorManager       = require("editor/EditorManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
         AppInit             = require("utils/AppInit");
-    
-    
+
+    var prefs = PreferencesManager.getExtensionPrefs("brackets-fonts");
     /**
      * @const
      * @type {string}
      */
     var DYNAMIC_FONT_STYLE_ID = "codemirror-dynamic-fonts";
+
+    /**
+     * @const
+     * @type {string}
+     */
+    var DYNAMIC_FONT_FAMILY_ID = "codemirror-dynamic-font-family";
+
+    /**
+     * @const
+     * @type {string}
+     */
+    var DYNAMIC_LINE_HEIGHT_ID = "codemirror-dynamic-line-height";
 
     /**
      * @const
@@ -74,14 +87,54 @@ define(function (require, exports, module) {
      * @type {number}
      */
     var DEFAULT_FONT_SIZE = 12;
-    
-    
+
+    /**
+     * @const
+     * @private
+     * The default line height
+     * @type {number}
+     */
+    var DEFAULT_LINE_HEIGHT = 1.3;
+
+    /**
+     * @const
+     * @private
+     * The default font family
+     * @type {string}
+     */
+    var DEFAULT_FONT_FAMILY = "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace";
+
+
+    /**
+     * @private
+     * Removes style property from the DOM
+     * @param {string} propertyID is the id of the property to be removed
+     */
+    function _removeDynamicProperty(propertyID) {
+        $("#" + propertyID).remove();
+    }
+
+    /**
+     * @private
+     * Add the style property to the DOM
+     * @param {string} propertyID Is the property ID to be added
+     * @param {string} name Is the name of the style property
+     * @param {string} value Is the value of the style
+     * @param {boolean} important Is a flag to make the style property !important
+     */
+    function _addDynamicProperty(propertyID, name, value, important) {
+        var $style    = $("<style type='text/css'></style>").attr("id", propertyID);
+        var styleStr = StringUtils.format("{0}: {1}{2}", name, value, important ? " !important" : "");
+        $style.html(".CodeMirror { " + styleStr + " }");
+        $("head").append($style);
+    }
+
     /**
      * @private
      * Removes the styles used to update the font size
      */
     function _removeDynamicFontSize() {
-        $("#" + DYNAMIC_FONT_STYLE_ID).remove();
+        _removeDynamicProperty(DYNAMIC_FONT_STYLE_ID);
     }
     
     /**
@@ -90,11 +143,43 @@ define(function (require, exports, module) {
      * @param {string} fontSizeStyle  A string with the font size and the size unit
      */
     function _addDynamicFontSize(fontSizeStyle) {
-        var style = $("<style type='text/css'></style>").attr("id", DYNAMIC_FONT_STYLE_ID);
-        style.html(".CodeMirror { font-size: " + fontSizeStyle   + " !important; }");
-        $("head").append(style);
+        _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, "font-size", fontSizeStyle, true);
     }
-    
+
+    /**
+     * @private
+     * Removes the styles used to update the font family
+     */
+    function _removeDynamicFontFamily() {
+        _removeDynamicProperty(DYNAMIC_FONT_FAMILY_ID);
+    }
+    /**
+     * @private
+     * Add the styles used to update the font family
+     * @param {string} fontFamily  A string with the font family
+     */
+    function _addDynamicFontFamily(fontFamily) {
+        _addDynamicProperty(DYNAMIC_FONT_FAMILY_ID, "font-family", fontFamily);
+    }
+
+    /**
+     * @private
+     * Removes the styles used to update the font family
+     */
+    function _removeDynamicLineHeight() {
+        _removeDynamicProperty(DYNAMIC_LINE_HEIGHT_ID);
+    }
+
+    /**
+     * @private
+     * Add the styles used to update the line height
+     * @param {string} lineHeight  A string with the line height with size unit
+     */
+    function _addDynamicLineHeight(lineHeight) {
+        _addDynamicProperty(DYNAMIC_LINE_HEIGHT_ID, "line-height", lineHeight, true);
+    }
+
+
     /**
      * @private
      * Sets the font size and restores the scroll position as best as possible.
@@ -103,8 +188,8 @@ define(function (require, exports, module) {
     function _setSizeAndRestoreScroll(fontSizeStyle) {
         var editor      = EditorManager.getCurrentFullEditor(),
             oldWidth    = editor._codeMirror.defaultCharWidth(),
-            oldFontSize = $(".CodeMirror").css("font-size"),
-            newFontSize = "",
+            oldFontSize = prefs.get("fontSizeStyle"),
+            newFontSize = fontSizeStyle,
             delta       = 0,
             adjustment  = 0,
             scrollPos   = editor.getScrollPos(),
@@ -117,7 +202,6 @@ define(function (require, exports, module) {
         editor.refreshAll();
         
         delta = /em$/.test(oldFontSize) ? 10 : 1;
-        newFontSize = $(".CodeMirror").css("font-size");
         adjustment = parseInt((parseFloat(newFontSize) - parseFloat(oldFontSize)) * delta, 10);
         
         if (adjustment) {
@@ -140,7 +224,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if adjustment occurred, false if it did not occur 
      */
     function _adjustFontSize(adjustment) {
-        var fsStyle   = $(".CodeMirror").css("font-size"),
+        var fsStyle   = prefs.get("fontSizeStyle"),
             validFont = /^[\d\.]+(px|em)$/;
         
         // Make sure that the font size is expressed in terms we can handle (px or em). If not, simply bail.
@@ -162,8 +246,8 @@ define(function (require, exports, module) {
         }
         
         _setSizeAndRestoreScroll(fsStr);
-        PreferencesManager.setViewState("fontSizeStyle", fsStr);
-        
+        prefs.set("fontSizeStyle", fsStr);
+
         return true;
     }
     
@@ -180,7 +264,7 @@ define(function (require, exports, module) {
     /** Restores the font size to the original size */
     function _handleRestoreFontSize() {
         _setSizeAndRestoreScroll();
-        PreferencesManager.setViewState("fontSizeStyle");
+        prefs.set("fontSizeStyle", DEFAULT_FONT_SIZE + "px");
     }
     
     
@@ -203,6 +287,10 @@ define(function (require, exports, module) {
             CommandManager.get(Commands.VIEW_DECREASE_FONT_SIZE).setEnabled(false);
             CommandManager.get(Commands.VIEW_RESTORE_FONT_SIZE).setEnabled(false);
         }
+
+        setFontFamily(prefs.get("fontFamily"));
+        setFontSize(prefs.get("fontSizeStyle"));
+        setLineHeight(prefs.get("lineHeight"));
     }
     
     /**
@@ -210,7 +298,7 @@ define(function (require, exports, module) {
      * view state to the new fontSizeStyle, when required
      */
     function restoreFontSize() {
-        var fsStyle      = PreferencesManager.getViewState("fontSizeStyle"),
+        var fsStyle      = prefs.get("fontSizeStyle"),
             fsAdjustment = PreferencesManager.getViewState("fontSizeAdjustment");
 
         if (fsAdjustment) {
@@ -220,7 +308,7 @@ define(function (require, exports, module) {
             if (!fsStyle) {
                 // Migrate the old view state to the new one.
                 fsStyle = (DEFAULT_FONT_SIZE + fsAdjustment) + "px";
-                PreferencesManager.setViewState("fontSizeStyle", fsStyle);
+                prefs.set("fontSizeStyle", fsStyle);
             }
         }
 
@@ -232,6 +320,16 @@ define(function (require, exports, module) {
     
     
     
+    /**
+     * Restores the font size, font family, and line height back to factory settings.
+     */
+    function restoreFonts() {
+        setFontFamily(DEFAULT_FONT_FAMILY);
+        setFontSize(DEFAULT_FONT_SIZE + "px");
+        setLineHeight(DEFAULT_LINE_HEIGHT + "em");
+    }
+
+
     /**
      * @private
      * Calculates the first and last visible lines of the focused editor
@@ -317,7 +415,80 @@ define(function (require, exports, module) {
     function _handleScrollLineDown() {
         _scrollLine(1);
     }
-    
+
+    /**
+     * Font size setter to set the font size for the document editor
+     * @param {string} fontSize The font size with size unit as 'px' or 'em'
+     */
+    function setFontSize(fontSize) {
+        var editor = EditorManager.getCurrentFullEditor();
+        _setSizeAndRestoreScroll(fontSize);
+        prefs.set("fontSizeStyle", fontSize);
+        editor.refreshAll();
+    }
+
+    /**
+     * Font size getter to get the current font size for the document editor
+     * @return {string} Font size with size unit as 'px' or 'em'
+     */
+    function getFontSize() {
+        return prefs.get("fontSizeStyle");
+    }
+
+
+    /**
+     * Font family setter to set the font family for the document editor
+     * @param {string} fontFamily The font family to be set.  It can be a string with multiple comma separated fonts
+     */
+    function setFontFamily(fontFamily) {
+        var editor = EditorManager.getCurrentFullEditor();
+
+        _removeDynamicFontFamily();
+        if (fontFamily) {
+            _addDynamicFontFamily(fontFamily);
+            $(exports).triggerHandler("fontFamilyChange", [fontFamily, prefs.get("fontFamily")]);
+        }
+
+        prefs.set("fontFamily", fontFamily);
+        editor.refreshAll();
+    }
+
+    /**
+     * Font family getter to get the currently configured font family for the document editor
+     * @return {string} The font family for the document editor
+     */
+    function getFontFamily() {
+        return prefs.get("fontFamily");
+    }
+
+
+    /**
+     * Line height setter to set the line height of the document editor
+     * @param {string} lineHeight The line height with size unit as 'em' to be set.
+     */
+    function setLineHeight(lineHeight) {
+        var editor = EditorManager.getCurrentFullEditor();
+
+        _removeDynamicLineHeight();
+        if (lineHeight) {
+            _addDynamicLineHeight(lineHeight);
+            $(exports).triggerHandler("lineHeightChange", [lineHeight, prefs.get("lineHeight")]);
+        }
+
+        prefs.set("lineHeight", lineHeight);
+        editor.refreshAll();
+    }
+
+    /**
+     * Line height getter to get the line height for the document editor
+     * @return {string} The line height with size unit as 'em' for the document editor
+     */
+    function getLineHeight() {
+        return prefs.get("lineHeight");
+    }
+
+
+    // TODO: remove
     /**
      * @private
      * Convert the old "fontSizeAdjustment" preference to the new view state.
@@ -328,10 +499,10 @@ define(function (require, exports, module) {
      * @return {Object} JSON object for the new view state equivalent to
      *      the old "fontSizeAdjustment" preference.
      */
-    function _convertToNewViewState(key, value) {
-        return { "fontSizeStyle": (DEFAULT_FONT_SIZE + value) + "px" };
-    }
-    
+    //function _convertToNewViewState(key, value) {
+    //  return { "fontSizeStyle": (DEFAULT_FONT_SIZE + value) + "px" };
+    //}
+
     // Register command handlers
     CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
     CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
@@ -339,7 +510,13 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
     CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
 
-    PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewState);
+    // TODO: remove
+    //PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewState);
+
+
+    prefs.definePreference("fontSizeStyle", "string", DEFAULT_FONT_SIZE + "px");
+    prefs.definePreference("lineHeight", "string", DEFAULT_LINE_HEIGHT + "em");
+    prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);
 
     // Update UI when opening or closing a document
     $(DocumentManager).on("currentDocumentChange", _updateUI);
@@ -348,4 +525,11 @@ define(function (require, exports, module) {
     AppInit.appReady(_updateUI);
     
     exports.restoreFontSize = restoreFontSize;
+    exports.restoreFonts    = restoreFonts;
+    exports.getFontSize     = getFontSize;
+    exports.setFontSize     = setFontSize;
+    exports.getFontFamily   = getFontFamily;
+    exports.setFontFamily   = setFontFamily;
+    exports.getLineHeight   = getLineHeight;
+    exports.setLineHeight   = setLineHeight;
 });
