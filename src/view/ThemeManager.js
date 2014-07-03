@@ -380,9 +380,9 @@ define(function (require, exports, module) {
         ThemeView.updateLineHeight();
     });
 
-    prefs.on("change", "fontType", function() {
+    prefs.on("change", "fontFamily", function() {
         refresh();
-        ThemeView.updateFontType();
+        ThemeView.updateFontFamily();
     });
 
     FileSystem.on("change", function(evt, file) {

@@ -29,7 +29,7 @@ define(function(require, exports, module) {
     var defaults = {
         "fontSize": 12,
         "lineHeight": '1.3em',
-        "fontType": "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace",
+        "fontFamily": "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace",
         "customScrollbars": true,
         "themes": ["thor-light-theme"]
     };
@@ -123,7 +123,7 @@ define(function(require, exports, module) {
         prefs.set("themes", defaults.themes);
         prefs.set("fontSize", defaults.fontSize + "px");
         prefs.set("lineHeight", defaults.lineHeight);
-        prefs.set("fontType", defaults.fontType);
+        prefs.set("fontFamily", defaults.fontFamily);
         prefs.set("customScrollbars", defaults.customScrollbars);
     }
 
@@ -131,7 +131,7 @@ define(function(require, exports, module) {
     prefs.definePreference("themes", "array", defaults.themes);
     prefs.definePreference("fontSize", "string", defaults.fontSize + "px");
     prefs.definePreference("lineHeight", "string", defaults.lineHeight);
-    prefs.definePreference("fontType", "string", defaults.fontType);
+    prefs.definePreference("fontFamily", "string", defaults.fontFamily);
     prefs.definePreference("customScrollbars", "boolean", defaults.customScrollbars);
 
 

@@ -22,7 +22,7 @@ define(function (require, exports, module) {
     var templates = {
         $lineHeight: $("<style type='text/css' id='lineHeight'>").appendTo("head"),
         $fontSize: $("<style type='text/css' id='fontSize'>").appendTo("head"),
-        $fontType: $("<style type='text/css' id='fontType'>").appendTo("head"),
+        $fontFamily: $("<style type='text/css' id='fontFamily'>").appendTo("head"),
         $scrollbars: $("<style id='scrollbars'>").appendTo("head")
     };
 
@@ -41,10 +41,10 @@ define(function (require, exports, module) {
     }
 
 
-    function updateFontType() {
+    function updateFontFamily() {
         clearFonts();
-        var value = prefs.get("fontType");
-        templates.$fontType.text(".CodeMirror{" + "font-family: " + value + " !important; }");
+        var value = prefs.get("fontFamily");
+        templates.$fontFamily.text(".CodeMirror{" + "font-family: " + value + " !important; }");
     }
 
 
@@ -58,7 +58,7 @@ define(function (require, exports, module) {
         clearFonts();
         updateLineHeight();
         updateFontSize();
-        updateFontType();
+        updateFontFamily();
     }
 
 
@@ -136,7 +136,7 @@ define(function (require, exports, module) {
     exports.updateFonts      = updateFonts;
     exports.updateLineHeight = updateLineHeight;
     exports.updateFontSize   = updateFontSize;
-    exports.updateFontType   = updateFontType;
+    exports.updateFontFamily = updateFontFamily;
     exports.updateScrollbars = updateScrollbars;
     exports.updateThemes     = updateThemes;
     exports.setDocumentMode  = setDocumentMode;
