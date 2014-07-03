@@ -129,11 +129,17 @@
          */
         pointer-events: none;
     }
-    
-    .CodeMirror-searching {
+
+    /**
+    * These classes are set to inline-block because they are spans and they need block dimension properties when
+    * when calculation height and width.
+    */
+    .CodeMirror-searching,
+    .CodeMirror-matchingtag,
+    .CodeMirror-matchingbracket {
         display: inline-block;
     }
-    
+
     .CodeMirror-linewidget {
         /* Re-enable pointer events for line widget. Pointer events are disabled for "CodeMirror-lines", which is the
          * parent of line widgets, so they need to be explicitly re-enabled here in order for selection to work. */
