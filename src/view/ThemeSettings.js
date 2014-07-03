@@ -36,7 +36,7 @@ define(function(require, exports, module) {
     var $settings = $(templates.settings).addClass("themeSettings");
 
     function showDialog() {
-        var currentSettings = getValues("themes", "fontSize", "fontType", "lineHeight", "customScrollbars");
+        var currentSettings = getValues();
         var newSettings     = {};
         var themes          = _.map(_themes, function(theme) {return theme;});
         var template        = $("<div>").append($settings).html();
@@ -94,8 +94,8 @@ define(function(require, exports, module) {
 
 
     function getValues() {
-        return _.transform(arguments, function(result, value) {
-            result[value] = prefs.get(value);
+        return _.transform(defaults, function(result, value, key) {
+            result[key] = prefs.get(key);
         });
     }
 
