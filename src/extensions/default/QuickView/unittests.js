@@ -210,13 +210,13 @@ define(function (require, exports, module) {
                         expectNoPreviewAtPos(5, 38);    // cursor on array[red]
                     });
                 });
-                it("should show preview of literal color names", function () {
+                it("should not show preview of literal color names", function () {
                     runs(function () {
-                        checkColorAtPos("green",         2, 36);
-                        checkColorAtPos("green",         3, 21);
-                        checkColorAtPos("tan",           4, 11);
-                        checkColorAtPos("red",           5, 25);
-                        checkColorAtPos("darkgray",      7,  1);
+                        expectNoPreviewAtPos(2, 36);  // green
+                        expectNoPreviewAtPos(3, 21);  // green
+                        expectNoPreviewAtPos(4, 11);  // tan
+                        expectNoPreviewAtPos(5, 25);  // red
+                        expectNoPreviewAtPos(7,  1);  // darkgray
                     });
                 });
                 it("should show preview of non-literal color codes", function () {
