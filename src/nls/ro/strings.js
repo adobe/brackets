@@ -164,8 +164,8 @@ define({
     // Find and Replace
     "FIND_REPLACE_TITLE_LABEL"          : "Înlocuiește",
     "FIND_REPLACE_TITLE_WITH"           : "cu",
-    "FIND_TITLE_LABEL"                  : "Găsit",
-    "FIND_TITLE_SUMMARY"                : " &mdash; {0} {1} {2} în {3}",
+    "FIND_TITLE_LABEL"                  : "S-a găsit",
+    "FIND_TITLE_SUMMARY"                : " : {0} {1} {2} în {3}",
 
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} {1}",
@@ -303,7 +303,7 @@ define({
     "CMD_PASTE"                           : "Lipește",
     "CMD_SELECT_ALL"                      : "Selectează tot",
     "CMD_SELECT_LINE"                     : "Selectează rând",
-    "CMD_SPLIT_SEL_INTO_LINES"            : "Împarte seleccția în linii",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Împarte selecția în linii",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "Adaugă cursor la linia următoare",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "Adaugă cursor la linia precedentă",
     "CMD_INDENT"                          : "Indentează",
@@ -504,7 +504,7 @@ define({
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Proiectul nu conține nicio foaie de stiluri.<br>Creați una pentru a adăuga reguli CSS.",
 
     // Custom Viewers
-    "IMAGE_VIEWER_LARGEST_ICON"            : "maximum",
+    "IMAGE_VIEWER_LARGEST_ICON"            : "maxim",
 
     /**
      * Unit names
@@ -525,7 +525,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Activează opțiunea de depanare pentru Node",
     "CMD_LOG_NODE_STATE"                        : "Înregistrează statutul Node în consolă",
     "CMD_RESTART_NODE"                          : "Repornește Node",
-    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Arată erorile în bara de statut",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Arată erorile în bara de stare",
 
     "LANGUAGE_TITLE"                            : "Modificare Limbă",
     "LANGUAGE_MESSAGE"                          : "Limba:",
