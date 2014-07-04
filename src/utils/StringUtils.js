@@ -197,8 +197,7 @@ define(function (require, exports, module) {
         
         return returnVal;
     }
-
-
+    
     // Define public API
     exports.format              = format;
     exports.htmlEscape          = htmlEscape;

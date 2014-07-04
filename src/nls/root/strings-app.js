@@ -30,6 +30,7 @@ define({
 
     // Self locales (used by Debug > Switch Language)
     "LOCALE_CS"                                 : "čeština",
+    "LOCALE_DA"                                 : "Dansk",
     "LOCALE_DE"                                 : "Deutsch",
     "LOCALE_EL"                                 : "Ελληνικά",
     "LOCALE_EN"                                 : "English (US)",
@@ -38,6 +39,7 @@ define({
     "LOCALE_FA_IR"                              : "فارسی",
     "LOCALE_FI"                                 : "suomi",
     "LOCALE_FR"                                 : "français",
+    "LOCALE_GL"                                 : "galego",
     "LOCALE_HR"                                 : "hrvatski",
     "LOCALE_HU"                                 : "magyar",
     "LOCALE_ID"                                 : "Bahasa Indonesia",

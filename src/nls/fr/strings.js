@@ -133,13 +133,15 @@ define({
 	"DELETE": "Supprimer",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
-        
+    
     // Find, Replace, Find in Files
 	"FIND_RESULT_COUNT": "{0} résultats",
 	"FIND_RESULT_COUNT_SINGLE": "1 résultat",
 	"FIND_NO_RESULTS": "Aucun résultat",
+	"FIND_QUERY_PLACEHOLDER": "Rechercher\u2026",
 	"REPLACE_PLACEHOLDER": "Remplacer par\u2026",
-	"BUTTON_REPLACE_ALL": "Tout\u2026",
+	"BUTTON_REPLACE_ALL": "Traiter par lots\u2026",
+	"BUTTON_REPLACE_ALL_IN_FILES": "Remplacer\u2026",
 	"BUTTON_REPLACE": "Remplacer",
 	"BUTTON_NEXT": "\u25B6",
 	"BUTTON_PREV": "\u25C0",
@@ -147,6 +149,9 @@ define({
 	"BUTTON_PREV_HINT": "Résultat précédent",
 	"BUTTON_CASESENSITIVE_HINT": "Respecter la casse",
 	"BUTTON_REGEXP_HINT": "Expression régulière",
+	"REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Remplacer sans annuler",
+	"REPLACE_WITHOUT_UNDO_WARNING": "Dans la mesure où le nombre de fichiers à modifier excède {0}, {APP_NAME} va modifier des fichiers non ouverts sur le disque.<br />Vous ne pourrez pas annuler les remplacements effectués dans ces fichiers.",
+	"BUTTON_REPLACE_WITHOUT_UNDO": "Remplacer sans annuler",
 
 	"OPEN_FILE": "Ouvrir le fichier",
 	"SAVE_FILE_AS": "Enregistrer le fichier",
@@ -156,15 +161,14 @@ define({
 	"NO_UPDATE_TITLE": "Vos logiciels sont à jour !",
 	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
 
-    // Replace All (in single file)
-	"FIND_REPLACE_TITLE_PART1": "Remplacer « ",
-	"FIND_REPLACE_TITLE_PART2": " » par « ",
-	"FIND_REPLACE_TITLE_PART3": " » &mdash; {2} {0} {1}",
+    // Find and Replace
+	"FIND_REPLACE_TITLE_LABEL": "Remplacer",
+	"FIND_REPLACE_TITLE_WITH": "par",
+	"FIND_TITLE_LABEL": "Occurrence(s) trouvée(s)",
+	"FIND_TITLE_SUMMARY": " &mdash; {0} {1} {2} dans {3}",
 
     // Find in Files
-	"FIND_IN_FILES_TITLE_PART1": "« ",
-	"FIND_IN_FILES_TITLE_PART2": " » trouvé",
-	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} {2} dans {3} {4}",
+	"FIND_NUM_FILES": "{0} {1}",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_NO_SCOPE": "du projet",
 	"FIND_IN_FILES_ZERO_FILES": "Le filtre exclut tous les fichiers {0}",
@@ -176,6 +180,9 @@ define({
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
 	"FIND_IN_FILES_EXPAND_COLLAPSE": "Cliquer tout en appuyant sur Ctrl/Cmd pour tout développer/tout réduire",
+	"REPLACE_IN_FILES_ERRORS_TITLE": "Erreurs de remplacement",
+	"REPLACE_IN_FILES_ERRORS": "Les fichiers suivants n’ont pas été traités car ils ont été modifiés après l’opération de recherche ou ne sont pas accessibles en écriture.",
+    
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "Erreur de récupération des informations de mise à jour",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
     
@@ -276,6 +283,7 @@ define({
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
 	"CMD_FILE_SAVE_AS": "Enregistrer sous\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "Aperçu en direct",
+	"CMD_RELOAD_LIVE_PREVIEW": "Force Reload Live Preview",
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_FILE_DELETE": "Supprimer",
@@ -314,7 +322,6 @@ define({
     // Search menu commands
 	"FIND_MENU": "Rechercher",
 	"CMD_FIND": "Rechercher",
-	"CMD_FIND_FIELD_PLACEHOLDER": "Rechercher\u2026",
 	"CMD_FIND_NEXT": "Rechercher suivant",
 	"CMD_FIND_PREVIOUS": "Rechercher précédent",
 	"CMD_FIND_ALL_AND_SELECT": "Rechercher et sélectionner tout",
@@ -324,6 +331,9 @@ define({
 	"CMD_FIND_IN_SELECTED": "Rechercher dans le fichier/dossier sélectionné",
 	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
 	"CMD_REPLACE": "Remplacer",
+	"CMD_REPLACE_IN_FILES": "Remplacer dans les fichiers",
+	"CMD_REPLACE_IN_SELECTED": "Remplacer dans le fichier/dossier sélectionné",
+	"CMD_REPLACE_IN_SUBTREE": "Remplacer dans\u2026",
     
     // View menu commands
 	"VIEW_MENU": "Affichage",
