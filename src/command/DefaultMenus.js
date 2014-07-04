@@ -111,6 +111,8 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.CMD_FIND_IN_SELECTED);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.CMD_REPLACE);
+        menu.addMenuItem(Commands.CMD_REPLACE_IN_FILES);
+        menu.addMenuItem(Commands.CMD_REPLACE_IN_SELECTED);
         
         /*
          * View menu
@@ -209,6 +211,7 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         project_cmenu.addMenuDivider();
         project_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
+        project_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
         project_cmenu.addMenuDivider();
         project_cmenu.addMenuItem(Commands.FILE_REFRESH);
 
@@ -220,6 +223,7 @@ define(function (require, exports, module) {
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         working_set_cmenu.addMenuDivider();
         working_set_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
+        working_set_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
         working_set_cmenu.addMenuDivider();
         working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         
