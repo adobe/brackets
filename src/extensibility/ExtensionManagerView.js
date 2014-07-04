@@ -219,37 +219,37 @@ define(function (require, exports, module) {
             var lang      = brackets.getLocale(),
                 shortLang = lang.split("-")[0];
 
+            context.translated = true;
+            context.translatedLangs =
+                info.metadata.i18n.map(function (value) {
+                    return { name: LocalizationUtils.getLocalizedLabel(value), locale: value };
+                })
+                .sort(function (lang1, lang2) {
+                    // List users language first
+                    var locales         = [lang1.locale, lang2.locale],
+                        userLangIndex   = locales.indexOf(lang);
+                    if (userLangIndex > -1) {
+                        return userLangIndex;
+                    }
+                    userLangIndex = locales.indexOf(shortLang);
+                    if (userLangIndex > -1) {
+                        return userLangIndex;
+                    }
+
+                    return lang1.name.localeCompare(lang2.name);
+                })
+                .map(function (value) {
+                    return value.name;
+                })
+                .join(", ");
+            context.translatedLangs = StringUtils.format(Strings.EXTENSION_TRANSLATED_LANGS, context.translatedLangs);
+
             // If the selected language is System Default, match both the short (2-char) language code
             // and the long one
-            context.translatedIntoUserLang =
+            var translatedIntoUserLang =
                 (brackets.isLocaleDefault() && info.metadata.i18n.indexOf(shortLang) > -1) ||
                 info.metadata.i18n.indexOf(lang) > -1;
-            if (context.translatedIntoUserLang) {
-                context.translatedLangs =
-                    info.metadata.i18n.map(function (value) {
-                        return { name: LocalizationUtils.getLocalizedLabel(value), locale: value };
-                    })
-                    .sort(function (lang1, lang2) {
-                        // List users language first
-                        var isUserLang,
-                            locales = [lang1.locale, lang2.locale];
-                        isUserLang = locales.indexOf(lang);
-                        if (isUserLang > -1) {
-                            return isUserLang;
-                        }
-                        isUserLang = locales.indexOf(shortLang);
-                        if (isUserLang > -1) {
-                            return isUserLang;
-                        }
-
-                        return lang1.name.localeCompare(lang2.name);
-                    })
-                    .map(function (value) {
-                        return value.name;
-                    })
-                    .join(", ");
-                context.translatedLangs = StringUtils.format(Strings.EXTENSION_TRANSLATED_LANGS, context.translatedLangs);
-            }
+            context.extensionTranslated = translatedIntoUserLang ? Strings.EXTENSION_TRANSLATED_USER_LANG : Strings.EXTENSION_TRANSLATED_GENERAL;
         }
 
         var isInstalledInUserFolder = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);

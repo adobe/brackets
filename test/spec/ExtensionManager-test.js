@@ -1327,7 +1327,7 @@ define(function (require, exports, module) {
                 });
 
                 // i18n info
-                it("should show correct i18n info", function () {
+                it("should show correct i18n info if the extension is translated in user's lang", function () {
                     var mockInstallInfo = { "mock-extension-4": { installInfo: mockRegistry["mock-extension-4"] } };
                     mockInstallInfo["mock-extension-4"].installInfo.metadata.i18n = ["zh-cn", "foo", "en"];
                     ExtensionManager._setExtensions(mockInstallInfo);
@@ -1336,17 +1336,32 @@ define(function (require, exports, module) {
                         var $extTranslated  = $(".ext-translated", view.$el),
                             languages       = [LocalizationUtils.getLocalizedLabel("en"), "foo",  LocalizationUtils.getLocalizedLabel("zh-cn")];
                         expect($extTranslated.length).toBe(1);
+                        expect($extTranslated.text()).toBe(Strings.EXTENSION_TRANSLATED_USER_LANG);
                         expect($extTranslated.attr("title")).toBe(StringUtils.format(Strings.EXTENSION_TRANSLATED_LANGS, languages.join(", ")));
                     });
                 });
-                it("should not show i18n info if the extension isn't translated into user's language", function () {
+                it("should show correct i18n info if the extension is translated in some other languages", function () {
                     var mockInstallInfo = { "mock-extension-4": { installInfo: mockRegistry["mock-extension-4"] } };
                     mockInstallInfo["mock-extension-4"].installInfo.metadata.i18n = ["zh-cn"];
                     ExtensionManager._setExtensions(mockInstallInfo);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
+                        var $extTranslated  = $(".ext-translated", view.$el),
+                            languages       = [LocalizationUtils.getLocalizedLabel("zh-cn")];
+                        expect($extTranslated.length).toBe(1);
+                        expect($extTranslated.text()).toBe(Strings.EXTENSION_TRANSLATED_GENERAL);
+                        expect($extTranslated.attr("title")).toBe(StringUtils.format(Strings.EXTENSION_TRANSLATED_LANGS, languages.join(", ")));
+                    });
+                });
+                it("should not show i18n info if the extension isn't translated", function () {
+                    var mockInstallInfo = { "mock-extension-4": { installInfo: mockRegistry["mock-extension-4"] } };
+                    mockInstallInfo["mock-extension-4"].installInfo.metadata.i18n = [];
+                    ExtensionManager._setExtensions(mockInstallInfo);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    runs(function () {
                         var $extTranslated  = $(".ext-translated", view.$el);
                         expect($extTranslated.length).toBe(0);
+                        expect($extTranslated.attr("title")).toBe(undefined);
                     });
                 });
 
