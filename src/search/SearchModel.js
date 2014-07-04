@@ -149,6 +149,8 @@ define(function (require, exports, module) {
             } catch (e) {
                 return {valid: false, error: e.message};
             }
+        } else if (queryInfo.isWholeWord) {
+            this.queryExpr = new RegExp("\\b" + StringUtils.regexEscape(queryInfo.query) + "\\b", flags);
         } else {
             // Query is a plain string. Turn it into a regexp
             this.queryExpr = new RegExp(StringUtils.regexEscape(queryInfo.query), flags);
