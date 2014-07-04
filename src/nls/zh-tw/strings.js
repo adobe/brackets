@@ -165,7 +165,7 @@ define({
     "FIND_REPLACE_TITLE_LABEL"          : "將",
     "FIND_REPLACE_TITLE_WITH"           : "取代成",
     "FIND_TITLE_LABEL"                  : "找到",
-    "FIND_TITLE_SUMMARY"                : " &mdash; {3}中共有{0} {1} 筆{2}",
+    "FIND_TITLE_SUMMARY"                : "&mdash; {3}中共有{0} {1} 筆{2}",
 
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} 個{1}",

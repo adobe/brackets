@@ -165,7 +165,7 @@ define({
     "FIND_REPLACE_TITLE_LABEL"          : "Înlocuiește",
     "FIND_REPLACE_TITLE_WITH"           : "cu",
     "FIND_TITLE_LABEL"                  : "S-a găsit",
-    "FIND_TITLE_SUMMARY"                : " : {0} {1} {2} în {3}",
+    "FIND_TITLE_SUMMARY"                : ": {0} {1} {2} în {3}",
 
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} {1}",

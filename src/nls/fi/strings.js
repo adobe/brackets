@@ -165,7 +165,7 @@ define({
     "FIND_REPLACE_TITLE_LABEL"          : "Korvaa",
     "FIND_REPLACE_TITLE_WITH"           : "merkkijonolla",
     "FIND_TITLE_LABEL"                  : "löytyi",
-    "FIND_TITLE_SUMMARY"                : " &mdash; {0} {1} {2} kohteessa {3}",
+    "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} kohteessa {3}",
 
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} {1}",
