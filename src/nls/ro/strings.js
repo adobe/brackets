@@ -326,7 +326,7 @@ define({
     "CMD_FIND_PREVIOUS"                   : "Caută precedentul",
     "CMD_FIND_ALL_AND_SELECT"             : "Caută tot și selectează",
     "CMD_ADD_NEXT_MATCH"                  : "Adaugă următoarea potrivire la selecție",
-    "CMD_SKIP_CURRENT_MATCH"              : "Omite și adaugă următoarea potrivire",",
+    "CMD_SKIP_CURRENT_MATCH"              : "Omite și adaugă următoarea potrivire",
     "CMD_FIND_IN_FILES"                   : "Caută în fișiere",
     "CMD_FIND_IN_SELECTED"                : "Caută în fișierul/directoriul selectat",
     "CMD_FIND_IN_SUBTREE"                 : "Caută în\u2026",
