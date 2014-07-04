@@ -46,6 +46,7 @@ define(function (require, exports, module) {
         AppInit             = require("utils/AppInit");
 
     var prefs = PreferencesManager.getExtensionPrefs("brackets-fonts");
+
     /**
      * @const
      * @type {string}
@@ -153,6 +154,7 @@ define(function (require, exports, module) {
     function _removeDynamicFontFamily() {
         _removeDynamicProperty(DYNAMIC_FONT_FAMILY_ID);
     }
+
     /**
      * @private
      * Add the styles used to update the font family
@@ -178,7 +180,6 @@ define(function (require, exports, module) {
     function _addDynamicLineHeight(lineHeight) {
         _addDynamicProperty(DYNAMIC_LINE_HEIGHT_ID, "line-height", lineHeight + "em", true);
     }
-
 
     /**
      * @private
@@ -312,9 +313,7 @@ define(function (require, exports, module) {
             _addDynamicFontSize(fsStyle);
         }
     }
-    
-    
-    
+
     /**
      * Restores the font size, font family, and line height back to factory settings.
      */
