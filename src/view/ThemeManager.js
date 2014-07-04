@@ -27,7 +27,6 @@ define(function (require, exports, module) {
 
     var loadedThemes    = {},
         defaultTheme    = "thor-light-theme",
-        themeReady      = false,
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
         scrollbarsRegex = /(?:[^}|,]*)::-webkit-scrollbar(?:[\s\S]*?){(?:[\s\S]*?)}/mg,
         stylesPath      = FileUtils.getNativeBracketsDirectoryPath() + "/styles/",
@@ -233,10 +232,6 @@ define(function (require, exports, module) {
     * @param <boolean> force is to force reload the current themes
     */
     function refresh(force) {
-        if (!themeReady) {
-            return;
-        }
-
         $.when(force && loadCurrentThemes()).done(function() {
             var editor = EditorManager.getActiveEditor();
             if (!editor || !editor._codeMirror) {
@@ -357,62 +352,57 @@ define(function (require, exports, module) {
     }
 
 
-    prefs.on("change", "themes", function() {
-        refresh(true);
-        ThemeView.updateScrollbars(getCurrentThemes()[0]);
-
-        // Expose event for theme changes
-        $(exports).trigger("themeChange", getCurrentThemes());
-    });
-
-    prefs.on("change", "customScrollbars", function() {
-        refresh();
-        ThemeView.updateScrollbars(getCurrentThemes()[0]);
-    });
-
-    prefs.on("change", "fontSize", function() {
-        refresh();
-        ThemeView.updateFontSize();
-    });
-
-    prefs.on("change", "lineHeight", function() {
-        refresh();
-        ThemeView.updateLineHeight();
-    });
-
-    prefs.on("change", "fontFamily", function() {
-        refresh();
-        ThemeView.updateFontFamily();
-    });
-
-    FileSystem.on("change", function(evt, file) {
-        if (file.isDirectory) {
-            return;
-        }
-
-        if (getThemeByFile(file)) {
+    function init() {
+        prefs.on("change", "themes", function() {
             refresh(true);
-        }
-    });
+            ThemeView.updateScrollbars(getCurrentThemes()[0]);
 
-    $(EditorManager).on("activeEditorChange", function() {
-        refresh();
-    });
+            // Expose event for theme changes
+            $(exports).trigger("themeChange", getCurrentThemes());
+        });
+
+        prefs.on("change", "customScrollbars", function() {
+            refresh();
+            ThemeView.updateScrollbars(getCurrentThemes()[0]);
+        });
+
+        prefs.on("change", "fontSize", function() {
+            refresh();
+            ThemeView.updateFontSize();
+        });
+
+        prefs.on("change", "lineHeight", function() {
+            refresh();
+            ThemeView.updateLineHeight();
+        });
+
+        prefs.on("change", "fontFamily", function() {
+            refresh();
+            ThemeView.updateFontFamily();
+        });
+
+        FileSystem.on("change", function(evt, file) {
+            if (file.isDirectory) {
+                return;
+            }
+
+            if (getThemeByFile(file)) {
+                refresh(true);
+            }
+        });
+
+        $(EditorManager).on("activeEditorChange", function() {
+            refresh();
+        });
+
+        refresh(true);
+        ThemeView.updateFonts();
+        ThemeView.updateScrollbars();
+    }
 
     // When the app is ready, we need to try to load whatever theme needs to be processed
-    AppInit.appReady(function() {
-        loadCurrentThemes()
-            .always(function() {
-                themeReady = true;
-            })
-            .done(function(){
-                refresh();
-            });
-    });
+    AppInit.appReady(init);
 
-    //
-    // Exposed API
-    //
     exports.refresh          = refresh;
     exports.loadFile         = loadFile;
     exports.loadPackage      = loadPackage;
