@@ -185,7 +185,7 @@ define(function (require, exports, module) {
      * Sets the font size and restores the scroll position as best as possible.
      * @param {string=} fontSize  A string with the font size and the size unit
      */
-    function _setSizeAndRestoreScroll(fontSize) {
+    function _updateScroll(fontSize) {
         var editor      = EditorManager.getCurrentFullEditor(),
             oldWidth    = editor._codeMirror.defaultCharWidth(),
             oldFontSize = prefs.get("fontSize"),
@@ -195,26 +195,23 @@ define(function (require, exports, module) {
             scrollPos   = editor.getScrollPos(),
             line        = editor._codeMirror.lineAtHeight(scrollPos.y, "local");
         
-        _removeDynamicFontSize();
-        if (fontSize) {
-            _addDynamicFontSize(fontSize);
-        }
-        editor.refreshAll();
-        
         delta = /em$/.test(oldFontSize) ? 10 : 1;
         adjustment = parseInt((parseFloat(newFontSize) - parseFloat(oldFontSize)) * delta, 10);
-        
+
+        // Only adjust the scroll position if there was any adjustments to the font size.
+        // Otherwise there will be unintended scrolling.
+        //
         if (adjustment) {
-            $(exports).triggerHandler("fontSizeChange", [adjustment, newFontSize]);
+            editor.refreshAll();
+
+            // Calculate the new scroll based on the old font sizes and scroll position
+            var newWidth   = editor._codeMirror.defaultCharWidth(),
+                deltaX     = scrollPos.x / oldWidth,
+                scrollPosX = scrollPos.x + Math.round(deltaX * (newWidth  - oldWidth)),
+                scrollPosY = editor._codeMirror.heightAtLine(line, "local");
+
+            editor.setScrollPos(scrollPosX, scrollPosY);
         }
-        
-        // Calculate the new scroll based on the old font sizes and scroll position
-        var newWidth   = editor._codeMirror.defaultCharWidth(),
-            deltaX     = scrollPos.x / oldWidth,
-            scrollPosX = scrollPos.x + Math.round(deltaX * (newWidth  - oldWidth)),
-            scrollPosY = editor._codeMirror.heightAtLine(line, "local");
-        
-        editor.setScrollPos(scrollPosX, scrollPosY);
     }
     
     /**
@@ -244,10 +241,8 @@ define(function (require, exports, module) {
         if (fsNew < MIN_FONT_SIZE * delta || fsNew > MAX_FONT_SIZE * delta) {
             return false;
         }
-        
-        _setSizeAndRestoreScroll(fsStr);
-        prefs.set("fontSize", fsStr);
 
+        setFontSize(fsStr);
         return true;
     }
     
@@ -263,8 +258,7 @@ define(function (require, exports, module) {
     
     /** Restores the font size to the original size */
     function _handleRestoreFontSize() {
-        _setSizeAndRestoreScroll();
-        prefs.set("fontSize", DEFAULT_FONT_SIZE + "px");
+        setFontSize(DEFAULT_FONT_SIZE);
     }
     
     
@@ -281,16 +275,17 @@ define(function (require, exports, module) {
                 CommandManager.get(Commands.VIEW_DECREASE_FONT_SIZE).setEnabled(true);
                 CommandManager.get(Commands.VIEW_RESTORE_FONT_SIZE).setEnabled(true);
             }
+
+            setFontFamily(prefs.get("fontFamily"));
+            setFontSize(prefs.get("fontSize"));
+            setLineHeight(prefs.get("lineHeight"));
+
         } else {
             // No current document so disable all of the Font Size commands
             CommandManager.get(Commands.VIEW_INCREASE_FONT_SIZE).setEnabled(false);
             CommandManager.get(Commands.VIEW_DECREASE_FONT_SIZE).setEnabled(false);
             CommandManager.get(Commands.VIEW_RESTORE_FONT_SIZE).setEnabled(false);
         }
-
-        setFontFamily(prefs.get("fontFamily"));
-        setFontSize(prefs.get("fontSize"));
-        setLineHeight(prefs.get("lineHeight"));
     }
     
     /**
@@ -421,10 +416,23 @@ define(function (require, exports, module) {
      * @param {string} fontSize The font size with size unit as 'px' or 'em'
      */
     function setFontSize(fontSize) {
-        var editor = EditorManager.getCurrentFullEditor();
-        _setSizeAndRestoreScroll(fontSize);
+        var oldValue = prefs.get("fontSize");
+        
+        if (oldValue === fontSize) {
+            return;
+        }
+        
+        _removeDynamicFontSize();
+        if (fontSize) {
+            _addDynamicFontSize(fontSize);
+        }
+
+        if (EditorManager.getCurrentFullEditor()) {
+            _updateScroll(fontSize);
+        }
+
+        $(exports).triggerHandler("fontSizeChange", [fontSize, oldValue]);
         prefs.set("fontSize", fontSize);
-        editor.refreshAll();
     }
 
     /**
@@ -441,16 +449,24 @@ define(function (require, exports, module) {
      * @param {string} fontFamily The font family to be set.  It can be a string with multiple comma separated fonts
      */
     function setFontFamily(fontFamily) {
-        var editor = EditorManager.getCurrentFullEditor();
+        var editor = EditorManager.getCurrentFullEditor(),
+            oldValue = prefs.get("fontFamily");
+        
+        if (oldValue === fontFamily) {
+            return;
+        }
 
         _removeDynamicFontFamily();
         if (fontFamily) {
             _addDynamicFontFamily(fontFamily);
-            $(exports).triggerHandler("fontFamilyChange", [fontFamily, prefs.get("fontFamily")]);
         }
 
+        $(exports).triggerHandler("fontFamilyChange", [fontFamily, oldValue]);
         prefs.set("fontFamily", fontFamily);
-        editor.refreshAll();
+
+        if (editor) {
+            editor.refreshAll();
+        }
     }
 
     /**
@@ -467,19 +483,27 @@ define(function (require, exports, module) {
      * @param {string} lineHeight The line height. The value is in 'em'.
      */
     function setLineHeight(lineHeight) {
-        var editor = EditorManager.getCurrentFullEditor();
+        var editor = EditorManager.getCurrentFullEditor(),
+            oldValue = prefs.get("lineHeight");
 
         // Make sure the incoming value is a number...  Strip off any size units
         lineHeight = parseFloat(lineHeight);
 
+        if (oldValue === lineHeight) {
+            return;
+        }
+
         _removeDynamicLineHeight();
         if (lineHeight) {
             _addDynamicLineHeight(lineHeight);
-            $(exports).triggerHandler("lineHeightChange", [lineHeight, prefs.get("lineHeight")]);
         }
 
+        $(exports).triggerHandler("lineHeightChange", [lineHeight, oldValue]);
         prefs.set("lineHeight", lineHeight);
-        editor.refreshAll();
+
+        if (editor) {
+            editor.refreshAll();
+        }
     }
 
     /**
