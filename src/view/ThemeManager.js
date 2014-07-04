@@ -64,7 +64,7 @@ define(function (require, exports, module) {
         name = name.substring(0, name.lastIndexOf('.')).replace(/-/g, ' ');
         var parts = name.split(" ");
 
-        _.each(parts.slice(0), function (index, part) {
+        _.each(parts.slice(0), function (part, index) {
             parts[index] = part[0].toUpperCase() + part.substring(1);
         });
 
