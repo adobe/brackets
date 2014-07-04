@@ -544,18 +544,6 @@ define(function (require, exports, module) {
     prefs.definePreference("lineHeight", "number", DEFAULT_LINE_HEIGHT);
     prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);
 
-    prefs.on("change", "fontSize", function() {
-        setFontSize(prefs.get("fontSize"));
-    });
-
-    prefs.on("change", "fontFamily", function() {
-        setFontFamily(prefs.get("fontFamily"));
-    });
-
-    prefs.on("change", "lineHeight", function() {
-        setLineHeight(prefs.get("lineHeight"));
-    });
-
     // Update UI when opening or closing a document
     $(DocumentManager).on("currentDocumentChange", _updateUI);
 
