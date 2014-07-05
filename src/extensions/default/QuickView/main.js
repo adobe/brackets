@@ -237,8 +237,7 @@ define(function (require, exports, module) {
 
         function execColorMatch(editor, line, pos) {
             var colorMatch,
-                mode            = TokenUtils.getModeAt(editor._codeMirror, pos).name,
-                literalCheck    = styleLanguages.indexOf(mode) === -1;
+                literalCheck;
 
             function hyphenOnMatchBoundary(match, line) {
                 var beforeIndex, afterIndex;
@@ -265,8 +264,15 @@ define(function (require, exports, module) {
             // Hyphens do not count as a regex word boundary (\b), so check for those here
             do {
                 colorMatch = colorRegEx.exec(line);
-            } while (colorMatch && (hyphenOnMatchBoundary(colorMatch, line) ||
-                                   (literalCheck && checkForLiteral(colorMatch))));
+                if (!colorMatch) {
+                    break;
+                }
+                if (literalCheck === undefined) {
+                    var mode = TokenUtils.getModeAt(editor._codeMirror, pos).name;
+                    literalCheck = styleLanguages.indexOf(mode) === -1;
+                }
+            } while (hyphenOnMatchBoundary(colorMatch, line) ||
+                    (literalCheck && checkForLiteral(colorMatch)));
 
             return colorMatch;
         }
