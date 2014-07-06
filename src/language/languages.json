@@ -36,7 +36,7 @@
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
-        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "asp", "master","cshtml","vbhtml"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "ascx", "asp", "master", "cshtml", "vbhtml"],
         "blockComment": ["<!--", "-->"]
     },
     
@@ -57,7 +57,7 @@
     "javascript": {
         "name": "JavaScript",
         "mode": "javascript",
-        "fileExtensions": ["js", "jsx", "js.erb", "jsm"],
+        "fileExtensions": ["js", "jsx", "js.erb", "jsm", "_js"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -80,20 +80,22 @@
         "name": "JSON",
         "mode": ["javascript", "application/json"],
         "fileExtensions": ["json"],
-        "lineComment": ["//"]
+        "fileNames": [".jshintrc", ".bowerrc"]
     },
 
     "xml": {
         "name": "XML",
         "mode": "xml",
-        "fileExtensions": ["svg", "xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xul", "xbl", "mathml", "config"],
+        "fileExtensions": ["svg", "xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xsl", "xul", "xbl", "mathml", "config", "plist"],
         "blockComment": ["<!--", "-->"]
     },
 
     "php": {
         "name": "PHP",
         "mode": "php",
-        "fileExtensions": ["php", "php3", "php4", "php5", "phtm", "phtml", "ctp"]
+        "fileExtensions": ["php", "php3", "php4", "php5", "phtm", "phtml", "ctp"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//", "#"]
     },
 
     "c": {
@@ -120,68 +122,74 @@
         "lineComment": ["//"]
     },
 
-    "clike": {
-        "name": "clike",
-        "mode": "clike",
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//", "#"]
-    },
-
     "java": {
         "name": "Java",
         "mode": ["clike", "text/x-java"],
-        "fileExtensions": ["java"]
+        "fileExtensions": ["java"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
     },
 
     "scala": {
         "name": "Scala",
         "mode": ["clike", "text/x-scala"],
-        "fileExtensions": ["scala", "sbt"]
+        "fileExtensions": ["scala", "sbt"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
     },
 
     "coffeescript": {
         "name": "CoffeeScript",
         "mode": "coffeescript",
-        "fileExtensions": ["coffee", "cf", "cson"],
-        "fileNames": ["Cakefile"]
+        "fileExtensions": ["coffee", "cf", "cson", "_coffee"],
+        "fileNames": ["Cakefile"],
+        "blockComment": ["###", "###"],
+        "lineComment": ["#"]
     },
 
     "clojure": {
         "name": "Clojure",
         "mode": "clojure",
-        "fileExtensions": ["clj"],
+        "fileExtensions": ["clj", "cljs", "cljx"],
         "lineComment": [";", ";;"]
     },
 
     "perl": {
         "name": "Perl",
         "mode": "perl",
-        "fileExtensions": ["pl", "pm"]
+        "fileExtensions": ["pl", "pm"],
+        "lineComment": ["#"]
     },
 
     "ruby": {
         "name": "Ruby",
         "mode": "ruby",
         "fileExtensions": ["rb", "ru", "gemspec", "rake"],
-        "fileNames": ["Gemfile", "Rakefile"]
+        "fileNames": ["Gemfile", "Rakefile", "Guardfile"],
+        "lineComment": ["#"]
     },
 
     "python": {
         "name": "Python",
         "mode": "python",
-        "fileExtensions": ["py", "pyw", "wsgi"]
+        "fileExtensions": ["py", "pyw", "wsgi"],
+        "lineComment": ["#"]
     },
 
     "sass": {
         "name": "SASS",
         "mode": "sass",
-        "fileExtensions": ["sass"]
+        "fileExtensions": ["sass"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
     },
 
     "lua": {
         "name": "Lua",
         "mode": "lua",
-        "fileExtensions": ["lua"]
+        "fileExtensions": ["lua"],
+        "blockComment": ["--[[", "]]"],
+        "lineComment": ["--"]
     },
 
     "sql": {
@@ -199,37 +207,55 @@
     "markdown": {
         "name": "Markdown",
         "mode": "markdown",
-        "fileExtensions": ["md", "markdown"]
+        "fileExtensions": ["md", "markdown"],
+        "blockComment": ["<!--", "-->"]
     },
 
     "yaml": {
         "name": "YAML",
         "mode": "yaml",
-        "fileExtensions": ["yaml", "yml"]
+        "fileExtensions": ["yaml", "yml"],
+        "lineComment": ["#"]
     },
 
     "hx": {
         "name": "Haxe",
         "mode": "haxe",
-        "fileExtensions": ["hx"]
+        "fileExtensions": ["hx"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
     },
 
     "bash": {
         "name": "Bash",
         "mode": ["shell", "text/x-sh"],
-        "fileExtensions": ["sh"],
+        "fileExtensions": ["sh", "command"],
         "lineComment": ["#"]
     },
   
     "image": {
         "name": "Image",
-        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg"],
+        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico", "bmp"],
         "isBinary": true
     },
     
     "audio": {
         "name": "Audio",
         "fileExtensions": ["mp3", "wav", "aif", "aiff", "ogg"],
+        "isBinary": true
+    },
+    
+    "binary": {
+        "name": "Other Binary",
+        "fileExtensions": [
+            "a", "ai", "avi", "bin", "cab", "com", "db", "dll", "dmg",
+            "doc", "docx", "dot", "dotx", "dsym", "dylib", "egg", "epub", "eot",
+            "exe", "flv", "gz", "gzip", "htmz", "htmlz", "ipch", "iso", "jar",
+            "jsz", "lib", "mpeg", "mpg", "mp4", "msi", "node", "o", "obj", "odc",
+            "odb", "odf", "odg", "odp", "ods", "odt", "otf", "pak", "pdb", "pdf",
+            "pdi", "ppt", "pptx", "psd", "rar", "sdf", "so", "sqlite", "suo", "svgz",
+            "swf", "tar", "tif", "tiff", "ttf", "woff", "xls", "xlsx", "zip"
+        ],
         "isBinary": true
     }
 }

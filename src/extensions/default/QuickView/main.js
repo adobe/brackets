@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window, PathUtils, CodeMirror */
+/*global define, brackets, $, window, PathUtils */
 
 define(function (require, exports, module) {
     "use strict";
@@ -162,7 +162,7 @@ define(function (require, exports, module) {
 
         // Check for gradient. -webkit-gradient() can have parens in parameters
         // nested 2 levels. Other gradients can only nest 1 level.
-        var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|\s)((repeating-)?linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-|\s)((repeating-)?radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
+        var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
             colorRegEx = new RegExp(ColorUtils.COLOR_REGEX);
 
         function areParensBalanced(str) {

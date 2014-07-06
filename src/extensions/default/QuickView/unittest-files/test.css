@@ -165,3 +165,17 @@ background: -ms-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3
     background-image: repeating-linear-gradient(red, blue 20px, red 40px);
     background-image: repeating-radial-gradient(red, blue 20px, red 40px);    
 }
+
+.whitespaceCheck_linear_gradient { 
+    background : linear-gradient(to bottom, black 0%, white 100%); 
+    background: linear-gradient(to bottom, black 0%, white 100%);
+    background :linear-gradient(to bottom, black 0%, white 100%);
+    background:linear-gradient(to bottom, black 0%, white 100%);
+}
+
+.whitespaceCheck_radial_gradient {
+    background : radial-gradient(red, white 50%, blue 100%);
+    background: radial-gradient(red, white 50%, blue 100%);
+    background :radial-gradient(red, white 50%, blue 100%);
+    background:radial-gradient(red, white 50%, blue 100%);
+}

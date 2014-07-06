@@ -53,8 +53,8 @@ define(function (require, exports, module) {
         STATE_NEEDS_UPDATE        = 11;
     
     /** 
-     * @constructor
      * Creates a new extension installer dialog.
+     * @constructor
      * @param {{install: function(url), cancel: function()}} installer The installer backend to use.
      */
     function InstallExtensionDialog(installer, _isUpdate) {
@@ -68,39 +68,72 @@ define(function (require, exports, module) {
         this._cancelTimeout = 10 * 1000;
     }
     
-    /** @type {jQuery} The dialog root. */
+    /**
+     * The dialog root.
+     * @type {jQuery}
+     */
     InstallExtensionDialog.prototype.$dlg = null;
     
-    /** @type {jQuery} The url input field. */
+    /**
+     * The url input field.
+     * @type {jQuery}
+     */
     InstallExtensionDialog.prototype.$url = null;
     
-    /** @type {jQuery} The ok button. */
+    /**
+     * The ok button.
+     * @type {jQuery}
+     */
     InstallExtensionDialog.prototype.$okButton = null;
     
-    /** @type {jQuery} The cancel button. */
+    /**
+     * The cancel button.
+     * @type {jQuery}
+     */
     InstallExtensionDialog.prototype.$cancelButton = null;
     
-    /** @type {jQuery} The area containing the url input label and field. */
+    /**
+     * The area containing the url input label and field.
+     * @type {jQuery}
+     */
     InstallExtensionDialog.prototype.$inputArea = null;
     
-    /** @type {jQuery} The area containing the installation message and spinner. */
+    /**
+     * The area containing the installation message and spinner.
+     * @type {jQuery}
+     */
     InstallExtensionDialog.prototype.$msgArea = null;
     
-    /** @type {jQuery} The span containing the installation message. */
+    /**
+     * The span containing the installation message.
+     * @type {jQuery}
+     */
     InstallExtensionDialog.prototype.$msg = null;
     
-    /** @type {jQuery} The "Browse Extensions" button. */
+    /**
+     * The "Browse Extensions" button.
+     * @type {jQuery}
+     */
     InstallExtensionDialog.prototype.$browseExtensionsButton = null;
     
-    /** @type {$.Deferred} A deferred that's resolved/rejected when the dialog is closed and
-        something has/hasn't been installed successfully. */
+    /**
+     * A deferred that's resolved/rejected when the dialog is closed and
+     * something has/hasn't been installed successfully.
+     * @type {$.Deferred}
+     */
     InstallExtensionDialog.prototype._dialogDeferred = null;
     
     
-    /** @type {{install: function(url), cancel: function()}} installer The installer backend for this dialog. */
+    /**
+     * installer The installer backend for this dialog.
+     * @type {{install: function(url), cancel: function()}}
+     */
     InstallExtensionDialog.prototype._installer = null;
     
-    /** @type {number} The current state of the dialog; one of the STATE_* constants above. */
+    /**
+     * The current state of the dialog; one of the STATE_* constants above.
+     * @type {number}
+     */
     InstallExtensionDialog.prototype._state = null;
     
     /**
@@ -134,11 +167,11 @@ define(function (require, exports, module) {
             break;
             
         case STATE_INSTALLING:
-            url = this.$url.val();
+            url = this.$url.val().trim();
             this.$inputArea.hide();
             this.$browseExtensionsButton.hide();
             this.$msg.text(StringUtils.format(Strings.INSTALLING_FROM, url))
-                .append("<span class='spinner spin'/>");
+                .append("<span class='spinner inline spin'/>");
             this.$msgArea.show();
             this.$okButton.prop("disabled", true);
             this._installer.install(url)
@@ -297,9 +330,9 @@ define(function (require, exports, module) {
      * @private
      * Handle typing in the URL field.
      */
-    InstallExtensionDialog.prototype._handleUrlInput = function () {
-        var url = this.$url.val(),
-            valid = (url !== "");
+    InstallExtensionDialog.prototype._handleUrlInput = function (e) {
+        var url     = this.$url.val().trim(),
+            valid   = (url !== "");
         if (!valid && this._state === STATE_VALID_URL) {
             this._enterState(STATE_START);
         } else if (valid && this._state === STATE_START) {
@@ -332,7 +365,8 @@ define(function (require, exports, module) {
 
         var context = {
             Strings: Strings,
-            isUpdate: this._isUpdate
+            isUpdate: this._isUpdate,
+            includeBrowseExtensions: !!brackets.config.extension_listing_url
         };
         
         // We ignore the promise returned by showModalDialogUsingTemplate, since we're managing the 
@@ -352,7 +386,7 @@ define(function (require, exports, module) {
         this.$cancelButton.on("click", this._handleCancel.bind(this));
         this.$url.on("input", this._handleUrlInput.bind(this));
         this.$browseExtensionsButton.on("click", function () {
-            NativeApp.openURLInDefaultBrowser(brackets.config.extension_wiki_url);
+            NativeApp.openURLInDefaultBrowser(brackets.config.extension_listing_url);
         });
         $(document.body).on("keyup.installDialog", this._handleKeyUp.bind(this));
         

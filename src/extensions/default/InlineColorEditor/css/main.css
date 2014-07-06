@@ -80,7 +80,7 @@
 }
 .color-editor aside ul.swatches li:focus {
     outline: none;
-    box-shadow: 0 0 0 2px #6fb5f1;
+    box-shadow: 0 0 0 1px #94ceff;
     border-radius: 2px;
 }
 .color-editor aside ul.swatches li .swatch-bg {
@@ -148,7 +148,7 @@
 }
 .color-editor section .color-selection-field .selector-base:focus {
     outline: none;
-    box-shadow: 0 0 0 5px #6fb5f1;
+    box-shadow: 0 0 0 5px #94ceff;
     border-radius: 10px;
 }
 .color-editor section .color-selection-field .selector {
@@ -181,7 +181,7 @@
 }
 .color-editor section .slider .selector-base:focus {
     outline: none;
-    box-shadow: 0 0 0 5px #6fb5f1;
+    box-shadow: 0 0 0 5px #94ceff;
     border-radius: 1px;
 }
 .color-editor section .slider .selector {
@@ -210,7 +210,7 @@
     width: 118px;
     height: 23px;
     margin-right: 5px;
-    border-color: #aaa;
+    border-color: #b2b5b5;
     box-sizing: border-box;
     display: inline-block;
     color: #222;
@@ -219,8 +219,8 @@
     display: inline-block;
     height: 23px;
     padding: 0 0 0 4px;
-    border: 1px solid #9c9e9e;
-    box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12);
+    border: 1px solid #b2b5b5;
+    box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
     background: #fff;
     font-family: "SourceSansPro";
     font-size: 12px;
@@ -232,8 +232,8 @@
 .color-editor section footer input:focus {
     background: #fff;
     outline: none;
-    box-shadow: 0 0 0 2px #6fb5f1;
-    border: 1px solid #0940fd;
+    box-shadow: 0 0 0 1px #94ceff;
+    border: 1px solid #2893ef;
     z-index: 911;
 }
 @media all and (-webkit-min-device-pixel-ratio : 2), (min-device-pixel-ratio : 2) {
@@ -284,21 +284,21 @@
     padding: 2px 4px 4px;
     height: 15px;
     font-size: 12px;
-    text-shadow: 0 1px #fff;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.76);
     background-color: #e5e9e9;
-    border: 1px solid #9c9e9e;
+    border: 1px solid #b2b5b5;
     border-right: 1px solid transparent;
     margin-left: -3px;
     
-    box-shadow: inset 0 1px 0 #fff;
+    box-shadow: inset 0 1px 0 #f3f3f3;
 }
 
 .color-editor .button-bar a:focus, .color-editor .button-bar li.selected a:focus{
     outline: none;
     position: relative;
-    border: 1px solid #0940fd;
-    border-right: 1px solid #063dfa !important; /* we need this !important, sorry! */
-    box-shadow: 0 0 0 2px #65aeed;
+    border: 1px solid #2893ef;
+    border-right: 1px solid #2893ef !important; /* we need this !important, sorry! */
+    box-shadow: 0 0 0 1px #94ceff;
     z-index: 999;
 }
 .color-editor .button-bar li:first-child {
@@ -310,13 +310,13 @@
     border-bottom-left-radius: 3px;
 }
 .color-editor .button-bar li:last-child a {
-    border-right: 1px solid #9c9e9e;
+    border-right: 1px solid #b2b5b5;
     border-top-right-radius: 3px;
     border-bottom-right-radius: 3px;
 }
 .color-editor .button-bar li.selected a {
     background-color: #d3d7d7;
-    box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12);
+    box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
     background-image: none;
 }
 .color-editor .button-bar li.disabled a {

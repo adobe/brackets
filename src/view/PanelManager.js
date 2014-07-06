@@ -32,9 +32,9 @@
  * 
  * Events:
  *    - editorAreaResize -- When editor-holder's size changes for any reason (including panel show/hide
- *              panel resize, or the window resize).
- *              The 2nd arg is the new editor-holder height.
- *              The 3rd arg is a refreshHint flag for internal EditorManager use.
+ *      panel resize, or the window resize).
+ *      The 2nd arg is the new editor-holder height.
+ *      The 3rd arg is a refreshHint flag for internal EditorManager use.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -43,14 +43,23 @@ define(function (require, exports, module) {
         Resizer                 = require("utils/Resizer");
     
     
-    /** @type {jQueryObject} The ".content" vertical stack (editor + all header/footer panels) */
+    /**
+     * The ".content" vertical stack (editor + all header/footer panels)
+     * @type {jQueryObject}
+     */
     var $windowContent;
     
-    /** @type {jQueryObject} The "#editor-holder": has only one visible child, the current CodeMirror
-        instance (or the no-editor placeholder) */
+    /**
+     * The "#editor-holder": has only one visible child, the current CodeMirror
+     * instance (or the no-editor placeholder)
+     * @type {jQueryObject}
+     */
     var $editorHolder;
     
-    /** @type {boolean} Have we already started listening for the end of the ongoing window resize? */
+    /**
+     * Have we already started listening for the end of the ongoing window resize?
+     * @type {boolean}
+     */
     var windowResizing = false;
     
 
@@ -159,7 +168,10 @@ define(function (require, exports, module) {
         listenToResize($panel);
     }
     
-    /** @type {jQueryObject} */
+    /**
+     * Panel instance
+     * @type {jQueryObject}
+     */
     Panel.prototype.$panel = null;
     
     Panel.prototype.isVisible = function () {
@@ -183,10 +195,12 @@ define(function (require, exports, module) {
     
     
     /**
-     * Creates a new panel beneath the editor area and above the status bar footer. Panel is initially invisible.
+     * Creates a new resizable panel beneath the editor area and above the status bar footer. Panel is initially invisible.
+     * The panel's size & visibility are automatically saved & restored as a view-state preference.
      * 
      * @param {!string} id  Unique id for this panel. Use package-style naming, e.g. "myextension.feature.panelname"
-     * @param {!jQueryObject} $panel  DOM content to use as the panel. Need not be in the document yet.
+     * @param {!jQueryObject} $panel  DOM content to use as the panel. Need not be in the document yet. Must have an id
+     *      attribute, for use as a preferences key.
      * @param {number=} minSize  Minimum height of panel in px.
      * @return {!Panel}
      */

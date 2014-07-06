@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     var PreferenceStorage       = require("preferences/PreferenceStorage").PreferenceStorage,
         SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         testPath                = SpecRunnerUtils.getTestPath("/spec/PreferencesBase-test-files"),
+        nonProjectFile          = SpecRunnerUtils.getTestPath("/spec/PreferencesBase-test.js"),
         PreferencesManager,
         testWindow;
 
@@ -128,16 +129,20 @@ define(function (require, exports, module) {
         });
 
         it("should find preferences in the project", function () {
-            var projectWithoutSettings = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files");
+            var projectWithoutSettings = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files"),
+                FileViewController = testWindow.brackets.test.FileViewController;
             waitsForDone(SpecRunnerUtils.openProjectFiles(".brackets.json"));
-            function projectPrefsAreSet() {
-                // The test project file, the Brackets repo file, 
-                // user and defaults should be the scopes
-                return Object.keys(PreferencesManager._manager._scopes).length > 3;
-            }
-            waitsFor(projectPrefsAreSet, "prefs appear to be loaded");
+            
             runs(function () {
-                expect(PreferencesManager.get("spaceUnits")).toBe(92);
+                expect(PreferencesManager.get("spaceUnits")).toBe(9);
+                waitsForDone(FileViewController.openAndSelectDocument(nonProjectFile,
+                             FileViewController.WORKING_SET_VIEW));
+            
+            });
+            
+            runs(function () {
+                expect(PreferencesManager.get("spaceUnits")).not.toBe(9);
+                
                 // Changing projects will force a change in the project scope.
                 SpecRunnerUtils.loadProjectInTestWindow(projectWithoutSettings);
             });
@@ -145,7 +150,7 @@ define(function (require, exports, module) {
                 waitsForDone(SpecRunnerUtils.openProjectFiles("file_one.js"));
             });
             runs(function () {
-                expect(PreferencesManager.get("spaceUnits")).not.toBe(92);
+                expect(PreferencesManager.get("spaceUnits")).not.toBe(9);
             });
         });
         

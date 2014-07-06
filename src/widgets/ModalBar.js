@@ -37,16 +37,16 @@ define(function (require, exports, module) {
         AnimationUtils = require("utils/AnimationUtils");
 
     /**
-     * @constructor
-     *
      * Creates a modal bar whose contents are the given template.
      * 
      * Dispatches one event:
-     *  close - When the bar is closed, either via close() or via autoClose. After this event, the
-     *          bar may remain visible and in the DOM while its closing animation is playing. However,
-     *          by the time "close" is fired, the bar has been "popped out" of the layout and the
-     *          editor scroll position has already been restored.
+     * - close - When the bar is closed, either via close() or via autoClose. After this event, the
+     *     bar may remain visible and in the DOM while its closing animation is playing. However,
+     *     by the time "close" is fired, the bar has been "popped out" of the layout and the
+     *     editor scroll position has already been restored.
      * 
+     * @constructor
+     *
      * @param {string} template The HTML contents of the modal bar.
      * @param {boolean} autoClose If true, then close the dialog if the user hits Esc
      *      or if the bar loses focus.
@@ -120,6 +120,14 @@ define(function (require, exports, module) {
     ModalBar.prototype._autoClose = false;
     
     /**
+     * Allows client code to block autoClose from closing the ModalBar: if set, this function is called whenever
+     * autoClose would normally close the ModalBar. Returning true prevents the close from occurring. Programmatically
+     * calling close() will still close the bar, however.
+     * @type {?function():boolean}
+     */
+    ModalBar.prototype.isLockedOpen = null;
+    
+    /**
      * @return {number} Height of the modal bar in pixels, if open.
      */
     ModalBar.prototype.height = function () {
@@ -144,6 +152,13 @@ define(function (require, exports, module) {
         }
         
         this._$root.addClass("popout");
+        
+        // Since the modal bar has now an absolute position relative to the editor holder,
+        // when there are html menus we need to adjust the top position
+        if (!brackets.nativeMenus) {
+            var top = $("#titlebar").outerHeight();
+            this._$root.css("top", top + "px");
+        }
         
         // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
         // height of the modal bar so the code doesn't appear to shift if possible.
@@ -226,10 +241,17 @@ define(function (require, exports, module) {
     
     /**
      * If autoClose is set, detects when something other than the modal bar is getting focus and
-     * dismisses the modal bar.
+     * dismisses the modal bar. DOM nodes with "attached-to" jQuery metadata referencing an element
+     * within the ModalBar are allowed to take focus without closing it.
      */
     ModalBar.prototype._handleFocusChange = function (e) {
-        if (!$.contains(this._$root.get(0), e.target)) {
+        if (this.isLockedOpen && this.isLockedOpen()) {
+            return;
+        }
+        
+        var effectiveElem = $(e.target).data("attached-to") || e.target;
+        
+        if (!$.contains(this._$root.get(0), effectiveElem)) {
             this.close();
         }
     };

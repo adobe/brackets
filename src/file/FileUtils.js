@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     require("utils/Global");
     
     var FileSystemError     = require("filesystem/FileSystemError"),
+        LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
@@ -98,10 +99,12 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-    /** @const */
-    var LINE_ENDINGS_CRLF = "CRLF";
-    /** @const */
-    var LINE_ENDINGS_LF = "LF";
+    /**
+     * Line endings
+     * @enum {string}
+     */
+    var LINE_ENDINGS_CRLF = "CRLF",
+        LINE_ENDINGS_LF   = "LF";
     
     /**
      * Returns the standard line endings for the current platform
@@ -159,6 +162,8 @@ define(function (require, exports, module) {
             result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
         } else if (name === FileSystemError.CONTENTS_MODIFIED) {
             result = Strings.CONTENTS_MODIFIED_ERR;
+        } else if (name === FileSystemError.UNSUPPORTED_ENCODING) {
+            result = Strings.UNSUPPORTED_ENCODING_ERR;
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
         }
@@ -176,6 +181,21 @@ define(function (require, exports, module) {
                 getFileErrorString(name)
             )
         );
+    }
+
+    /**
+     * Creates an HTML string for a list of files to be reported on, suitable for use in a dialog.
+     * @param {Array.<string>} Array of filenames or paths to display.
+     */
+    function makeDialogFileList(paths) {
+        var result = "<ul class='dialog-list'>";
+        paths.forEach(function (path) {
+            result += "<li><span class='dialog-filename'>";
+            result += StringUtils.breakableUrl(path);
+            result += "</span></li>";
+        });
+        result += "</ul>";
+        return result;
     }
 
     /**
@@ -308,8 +328,65 @@ define(function (require, exports, module) {
 
         return baseName.substr(idx + 1);
     }
+    
+    /**
+     * Get the file extension (excluding ".") given a path OR a bare filename.
+     * Returns "" for names with no extension.
+     * If the only `.` in the file is the first character,
+     * returns "" as this is not considered an extension.
+     * This method considers known extensions which include `.` in them.
+     *
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the extension of a filename or empty string if
+     * the argument is a directory or a filename with no extension
+     */
+    function getSmartFileExtension(fullPath) {
+        var baseName = getBaseName(fullPath),
+            parts = baseName.split(".");
 
-    /** @const - hard-coded for now, but may want to make these preferences */
+        // get rid of file name
+        parts.shift();
+        if (baseName[0] === ".") {
+            // if starts with a `.`, then still consider it as file name
+            parts.shift();
+        }
+
+        var extension = [parts.pop()], // last part is always an extension
+            i = parts.length;
+        while (i--) {
+            if (LanguageManager.getLanguageForExtension(parts[i])) {
+                extension.unshift(parts[i]);
+            } else {
+                break;
+            }
+        }
+        return extension.join(".");
+    }
+
+    /**
+     * Computes filename as relative to the basePath. For example:
+     * basePath: /foo/bar/, filename: /foo/bar/baz.txt
+     * returns: baz.txt
+     * 
+     * The net effect is that the common prefix is stripped away. If basePath is not
+     * a prefix of filename, then undefined is returned.
+     * 
+     * @param {string} basePath Path against which we're computing the relative path
+     * @param {string} filename Full path to the file for which we are computing a relative path
+     * @return {string} relative path
+     */
+    function getRelativeFilename(basePath, filename) {
+        if (!filename || filename.substr(0, basePath.length) !== basePath) {
+            return;
+        }
+        
+        return filename.substr(basePath.length);
+    }
+
+    /**
+     * File extensions - hard-coded for now, but may want to make these preferences
+     * @const {Array.<string>}
+     */
     var _staticHtmlFileExts = ["htm", "html"],
         _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
 
@@ -382,7 +459,40 @@ define(function (require, exports, module) {
         
         return extFirst ? (cmpExt || cmpNames) : (cmpNames || cmpExt);
     }
+    
+    /**
+     * Compares two paths segment-by-segment, used for sorting. Sorts folders before files,
+     * and sorts files based on `compareFilenames()`.
+     * @param {string} path1
+     * @param {string} path2
+     * @return {number} -1, 0, or 1 depending on whether path1 is less than, equal to, or greater than
+     *     path2 according to this ordering.
+     */
+    function comparePaths(path1, path2) {
+        var entryName1, entryName2,
+            pathParts1 = path1.split("/"),
+            pathParts2 = path2.split("/"),
+            length     = Math.min(pathParts1.length, pathParts2.length),
+            folders1   = pathParts1.length - 1,
+            folders2   = pathParts2.length - 1,
+            index      = 0;
 
+        while (index < length) {
+            entryName1 = pathParts1[index];
+            entryName2 = pathParts2[index];
+
+            if (entryName1 !== entryName2) {
+                if (index < folders1 && index < folders2) {
+                    return entryName1.toLocaleLowerCase().localeCompare(entryName2.toLocaleLowerCase());
+                } else if (index >= folders1 && index >= folders2) {
+                    return compareFilenames(entryName1, entryName2);
+                }
+                return (index >= folders1 && index < folders2) ? 1 : -1;
+            }
+            index++;
+        }
+        return 0;
+    }
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -392,6 +502,7 @@ define(function (require, exports, module) {
     exports.translateLineEndings           = translateLineEndings;
     exports.showFileOpenError              = showFileOpenError;
     exports.getFileErrorString             = getFileErrorString;
+    exports.makeDialogFileList             = makeDialogFileList;
     exports.readAsText                     = readAsText;
     exports.writeText                      = writeText;
     exports.convertToNativePath            = convertToNativePath;
@@ -404,6 +515,9 @@ define(function (require, exports, module) {
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getBaseName                    = getBaseName;
+    exports.getRelativeFilename            = getRelativeFilename;
     exports.getFileExtension               = getFileExtension;
+    exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;
+    exports.comparePaths                   = comparePaths;
 });

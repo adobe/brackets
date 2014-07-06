@@ -37,9 +37,15 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
     "CONTENTS_MODIFIED_ERR"             : "The file has been modified outside of {APP_NAME}.",
+    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} currently only supports UTF-8 encoded text files.",
     "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
     "FILE"                              : "file",
     "DIRECTORY"                         : "directory",
+    "DIRECTORY_NAMES_LEDE"              : "Directory names",
+    "FILENAMES_LEDE"                    : "Filenames",
+    "FILENAME"                          : "filename",
+    "DIRECTORY_NAME"                    : "directory name",
+    
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error loading project",
@@ -48,46 +54,50 @@ define({
     "READ_DIRECTORY_ENTRIES_ERROR"      : "An error occurred when reading the contents of the directory <span class='dialog-filename'>{0}</span>. (error {1})",
 
     // File open/save error string
-    "ERROR_OPENING_FILE_TITLE"          : "Error opening file",
+    "ERROR_OPENING_FILE_TITLE"          : "Error Opening File",
     "ERROR_OPENING_FILE"                : "An error occurred when trying to open the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_OPENING_FILES"               : "An error occurred when trying to open the following files:",
-    "ERROR_RELOADING_FILE_TITLE"        : "Error reloading changes from disk",
+    "ERROR_RELOADING_FILE_TITLE"        : "Error Reloading Changes From Disk",
     "ERROR_RELOADING_FILE"              : "An error occurred when trying to reload the file <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_SAVING_FILE_TITLE"           : "Error saving file",
+    "ERROR_SAVING_FILE_TITLE"           : "Error Saving File",
     "ERROR_SAVING_FILE"                 : "An error occurred when trying to save the file <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "Error renaming file",
+    "ERROR_RENAMING_FILE_TITLE"         : "Error Renaming File",
     "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_DELETING_FILE_TITLE"         : "Error deleting file",
+    "ERROR_DELETING_FILE_TITLE"         : "Error Deleting File",
     "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}",
-    "INVALID_FILENAME_TITLE"            : "Invalid {0} name",
-    "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: {0} or use any system reserved words.",
-    "FILE_ALREADY_EXISTS"               : "The {0} <span class='dialog-filename'>{1}</span> already exists.",
-    "ERROR_CREATING_FILE_TITLE"         : "Error creating {0}",
+    "INVALID_FILENAME_TITLE"            : "Invalid {0}",
+    "INVALID_FILENAME_MESSAGE"          : "{0} cannot use any system reserved words, end with dots (.) or use any of the following characters: <code class='emphasized'>{1}</code>",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "A file or directory with the name <span class='dialog-filename'>{0}</span> already exists.",
+    "ERROR_CREATING_FILE_TITLE"         : "Error Creating {0}",
     "ERROR_CREATING_FILE"               : "An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}",
 
+    // Application preferences corrupt error strings
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Error Reading Preferences",
+    "ERROR_PREFS_CORRUPT"               : "Your preferences file is not valid JSON. The file will be opened so that you can correct the format. You will need to restart {APP_NAME} for the changes to take effect.",
+
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",
+    "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} Doesn't Run in Browsers Yet.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-shell</b> repo to run {APP_NAME}.",
     
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",
     "ERROR_MAX_FILES"                   : "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.",
 
-    // Live Development error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error launching browser",
+    // Live Preview error strings
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error Launching Browser",
     "ERROR_CANT_FIND_CHROME"            : "The Google Chrome browser could not be found. Please make sure it is installed.",
     "ERROR_LAUNCHING_BROWSER"           : "An error occurred when launching the browser. (error {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Live Preview Error",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connecting to Browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Unable to load Live Development page",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Unable to load Live Preview page",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file or make sure there is an index.html file in your project in order to launch live preview.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
-    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error starting up the HTTP server for live development files. Please try again.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error starting up the HTTP server for live preview files. Please try again.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Welcome to Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works with <strong>Google Chrome</strong> and updates live as you edit <strong>CSS or HTML files</strong>. Changes to JavaScript files are automatically reloaded when you save.<br /><br />(You'll only see this message once.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a href='{0}' title='{0}'>Troubleshooting Live Preview connection errors</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting\u2026",
@@ -113,6 +123,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
     
     // Generic dialog/button labels
+    "DONE"                              : "Done",
     "OK"                                : "OK",
     "CANCEL"                            : "Cancel",
     "DONT_SAVE"                         : "Don't Save",
@@ -122,13 +133,15 @@ define({
     "DELETE"                            : "Delete",
     "BUTTON_YES"                        : "Yes",
     "BUTTON_NO"                         : "No",
-        
+    
     // Find, Replace, Find in Files
     "FIND_RESULT_COUNT"                 : "{0} results",
     "FIND_RESULT_COUNT_SINGLE"          : "1 result",
     "FIND_NO_RESULTS"                   : "No results",
+    "FIND_QUERY_PLACEHOLDER"            : "Find\u2026",
     "REPLACE_PLACEHOLDER"               : "Replace with\u2026",
-    "BUTTON_REPLACE_ALL"                : "All\u2026",
+    "BUTTON_REPLACE_ALL"                : "Batch\u2026",
+    "BUTTON_REPLACE_ALL_IN_FILES"       : "Replace\u2026",
     "BUTTON_REPLACE"                    : "Replace",
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
@@ -136,36 +149,68 @@ define({
     "BUTTON_PREV_HINT"                  : "Previous Match",
     "BUTTON_CASESENSITIVE_HINT"         : "Match Case",
     "BUTTON_REGEXP_HINT"                : "Regular Expression",
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Replace Without Undo",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Because more than {0} files need to be changed, {APP_NAME} will modify unopened files on disk.<br />You won't be able to undo replacements in those files.",
+    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Replace Without Undo",
 
     "OPEN_FILE"                         : "Open File",
     "SAVE_FILE_AS"                      : "Save File",
     "CHOOSE_FOLDER"                     : "Choose a folder",
 
     "RELEASE_NOTES"                     : "Release Notes",
-    "NO_UPDATE_TITLE"                   : "You're up to date!",
+    "NO_UPDATE_TITLE"                   : "You're Up to Date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
 
-    // Replace All (in single file)
-    "FIND_REPLACE_TITLE_PART1"          : "Replace \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" with \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+    // Find and Replace
+    "FIND_REPLACE_TITLE_LABEL"          : "Replace",
+    "FIND_REPLACE_TITLE_WITH"           : "with",
+    "FIND_TITLE_LABEL"                  : "Found",
+    "FIND_TITLE_SUMMARY"                : " &mdash; {0} {1} {2} in {3}",
 
     // Find in Files
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" found",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
+    "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
+    "FIND_IN_FILES_ZERO_FILES"          : "Filter excludes all files {0}",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
     "FIND_IN_FILES_MATCHES"             : "matches",
     "FIND_IN_FILES_MORE_THAN"           : "Over ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
+    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click to expand/collapse all",
+    "REPLACE_IN_FILES_ERRORS_TITLE"     : "Replace Errors",
+    "REPLACE_IN_FILES_ERRORS"           : "The following files weren't modified because they changed after the search or couldn't be written.",
+    
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
+    
+    // File exclusion filters
+    "NEW_FILE_FILTER"                   : "New Exclusion Set\u2026",
+    "CLEAR_FILE_FILTER"                 : "Don't Exclude Files",
+    "NO_FILE_FILTER"                    : "No Files Excluded",
+    "EXCLUDE_FILE_FILTER"               : "Exclude {0}",
+    "EDIT_FILE_FILTER"                  : "Edit\u2026",
+    "FILE_FILTER_DIALOG"                : "Edit Exclusion Set",
+    "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>wildcards</a>. Enter each string on a new line.",
+    "FILTER_NAME_PLACEHOLDER"           : "Name this exclusion set (optional)",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "and {0} more",
+    "FILTER_COUNTING_FILES"             : "Counting files\u2026",
+    "FILTER_FILE_COUNT"                 : "Allows {0} of {1} files {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Allows all {0} files {1}",
+
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "No Quick Edit available for current cursor position",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Quick Edit: place cursor on a single class name",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Quick Edit: incomplete class attribute",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Quick Edit: incomplete id attribute",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: place cursor in tag, class, or id",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS Timing Function Quick Edit: invalid syntax",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: place cursor in function name",
+
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "No Quick Docs available for current cursor position",
 
     /**
      * ProjectManager
@@ -189,6 +234,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selected {0} columns",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Selected {0} line",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selected {0} lines",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} selections",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Click to switch indentation to spaces",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Click to switch indentation to tabs",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",
@@ -198,6 +244,8 @@ define({
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Line",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensions Disabled",
+    "STATUSBAR_INSERT"                      : "INS",
+    "STATUSBAR_OVERWRITE"                   : "OVR",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",
@@ -208,6 +256,8 @@ define({
     "LINT_DISABLED"                         : "Linting is disabled",
     "NO_LINT_AVAILABLE"                     : "No linter available for {0}",
     "NOTHING_TO_LINT"                       : "Nothing to lint",
+    "LINTER_TIMED_OUT"                      : "{0} has timed out after waiting for {1} ms",
+    "LINTER_FAILED"                         : "{0} terminated with error: {1}",
     
     
     /**
@@ -233,6 +283,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_FILE_SAVE_AS"                    : "Save As\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Force Reload Live Preview",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_FILE_DELETE"                     : "Delete",
@@ -252,13 +303,9 @@ define({
     "CMD_PASTE"                           : "Paste",
     "CMD_SELECT_ALL"                      : "Select All",
     "CMD_SELECT_LINE"                     : "Select Line",
-    "CMD_FIND"                            : "Find",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Find\u2026",
-    "CMD_FIND_IN_FILES"                   : "Find in Files",
-    "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
-    "CMD_FIND_NEXT"                       : "Find Next",
-    "CMD_FIND_PREVIOUS"                   : "Find Previous",
-    "CMD_REPLACE"                         : "Replace",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Split Selection into Lines",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Add Cursor to Next Line",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Add Cursor to Previous Line",
     "CMD_INDENT"                          : "Indent",
     "CMD_UNINDENT"                        : "Unindent",
     "CMD_DUPLICATE"                       : "Duplicate",
@@ -271,6 +318,22 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Open Line Below",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
     "CMD_SHOW_CODE_HINTS"                 : "Show Code Hints",
+    
+    // Search menu commands
+    "FIND_MENU"                           : "Find",
+    "CMD_FIND"                            : "Find",
+    "CMD_FIND_NEXT"                       : "Find Next",
+    "CMD_FIND_PREVIOUS"                   : "Find Previous",
+    "CMD_FIND_ALL_AND_SELECT"             : "Find All and Select",
+    "CMD_ADD_NEXT_MATCH"                  : "Add Next Match to Selection",
+    "CMD_SKIP_CURRENT_MATCH"              : "Skip and Add Next Match",
+    "CMD_FIND_IN_FILES"                   : "Find in Files",
+    "CMD_FIND_IN_SELECTED"                : "Find in Selected File/Folder",
+    "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
+    "CMD_REPLACE"                         : "Replace",
+    "CMD_REPLACE_IN_FILES"                : "Replace in Files",
+    "CMD_REPLACE_IN_SELECTED"             : "Replace in Selected File/Folder",
+    "CMD_REPLACE_IN_SUBTREE"              : "Replace in\u2026",
     
     // View menu commands
     "VIEW_MENU"                           : "View",
@@ -305,16 +368,20 @@ define({
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
     "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
+    "CMD_SHOW_IN_EXPLORER"                : "Show in Explorer",
+    "CMD_SHOW_IN_FINDER"                  : "Show in Finder",
     "CMD_SHOW_IN_OS"                      : "Show in OS",
     
     // Help menu commands
     "HELP_MENU"                           : "Help",
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
     "CMD_HOW_TO_USE_BRACKETS"             : "How to Use {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME} Forum",
+    "CMD_SUPPORT"                         : "{APP_NAME} Support",
+    "CMD_SUGGEST"                         : "Suggest a Feature",
     "CMD_RELEASE_NOTES"                   : "Release Notes",
-    "CMD_REPORT_AN_ISSUE"                 : "Report an Issue",
+    "CMD_GET_INVOLVED"                    : "Get Involved",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
+    "CMD_HOMEPAGE"                        : "{APP_TITLE} Homepage",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Open Preferences File",
@@ -329,6 +396,7 @@ define({
     "ABOUT"                                : "About",
     "CLOSE"                                : "Close",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_BUILD_TIMESTAMP"           : "build timestamp: ",
     "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Made with \u2764 and JavaScript by:",
@@ -434,6 +502,9 @@ define({
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project.<br>Create one to add CSS rules.",
+
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "largest",
     
     /**
      * Unit names
@@ -443,6 +514,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
+    "ERRORS"                                    : "Errors",
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
     "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
@@ -453,6 +525,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Enable Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
     "CMD_RESTART_NODE"                          : "Restart Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",
@@ -460,37 +533,12 @@ define({
     "LANGUAGE_CANCEL"                           : "Cancel",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
     
-    // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "Czech",
-    "LOCALE_DE"                                 : "German",
-    "LOCALE_EL"                                 : "Greek",
-    "LOCALE_EN"                                 : "English",
-    "LOCALE_ES"                                 : "Spanish",
-    "LOCALE_FI"                                 : "Finnish",
-    "LOCALE_FR"                                 : "French",
-    "LOCALE_IT"                                 : "Italian",
-    "LOCALE_JA"                                 : "Japanese",
-    "LOCALE_NB"                                 : "Norwegian",
-    "LOCALE_NL"                                 : "Dutch",
-    "LOCALE_FA_IR"                              : "Persian-Farsi",
-    "LOCALE_PL"                                 : "Polish",
-    "LOCALE_PT_BR"                              : "Portuguese, Brazil",
-    "LOCALE_PT_PT"                              : "Portuguese",
-    "LOCALE_RO"                                 : "Romanian",
-    "LOCALE_RU"                                 : "Russian",
-    "LOCALE_SK"                                 : "Slovak",
-    "LOCALE_SR"                                 : "Serbian",
-    "LOCALE_SV"                                 : "Swedish",
-    "LOCALE_TR"                                 : "Turkish",
-    "LOCALE_ZH_CN"                              : "Chinese, simplified",
-    "LOCALE_HU"                                 : "Hungarian",
-    "LOCALE_KO"                                 : "Korean",
-    
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Time",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units<br><kbd class='text'>Tab</kbd> Switch points",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'",
+    "INLINE_TIMING_EDITOR_INVALID"              : "The old value <code>{0}</code> is not valid, so the displayed function was changed to <code>{1}</code>. The document will be updated with the first edit.",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",

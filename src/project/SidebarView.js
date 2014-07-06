@@ -36,9 +36,7 @@
  * 
  *      $("#sidebar").on("panelCollapsed", ...);
  *      $("#sidebar").on("panelExpanded", ...);
- * 
  */
-
 define(function (require, exports, module) {
     "use strict";
     
@@ -51,7 +49,7 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         Global              = require("utils/Global"),
         Resizer             = require("utils/Resizer"),
-        _                   = require("thirdparty/lodash");        
+        _                   = require("thirdparty/lodash");
 
     // These vars are initialized by the htmlReady handler
     // below since they refer to DOM elements

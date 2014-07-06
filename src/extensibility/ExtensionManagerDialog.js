@@ -96,7 +96,7 @@ define(function (require, exports, module) {
                 $dlg.find(".close").hide();
                 $dlg.find(".dialog-message")
                     .text(Strings.PROCESSING_EXTENSIONS)
-                    .append("<span class='spinner spin'/>");
+                    .append("<span class='spinner inline spin'/>");
                 
                 ExtensionManager.removeMarkedExtensions()
                     .done(function () {
@@ -210,6 +210,7 @@ define(function (require, exports, module) {
                 models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
                 $(this).tab("show");
                 $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
+                $searchClear.click();
             });
         
         // Update & hide/show the notification overlay on a tab's icon, based on its model's notifyCount
@@ -255,7 +256,7 @@ define(function (require, exports, module) {
             });
             
             // Update search UI before new tab is shown
-            $("a[data-toggle='tab']").each(function (index, tabElement) {
+            $("a[data-toggle='tab']", $dlg).each(function (index, tabElement) {
                 $(tabElement).on("show", function (event) {
                     _activeTabIndex = index;
                     
@@ -292,11 +293,17 @@ define(function (require, exports, module) {
                 });
             });
             
-            // Show the first tab
-            $dlg.find(".nav-tabs a:first").tab("show");
+            // Open dialog to Installed tab if extension updates are available
+            if ($("#toolbar-extension-manager").hasClass('updatesAvailable')) {
+                $dlg.find(".nav-tabs a.installed").tab("show");
+            }
+            // Otherwise show the first tab
+            else {
+                $dlg.find(".nav-tabs a:first").tab("show");
+            }
         });
     
-        // Handle the install button.                
+        // Handle the install button.
         $(".extension-manager-dialog .install-from-url")
             .click(function () {
                 InstallExtensionDialog.showDialog().done(ExtensionManager.updateFromDownload);

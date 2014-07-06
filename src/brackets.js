@@ -25,12 +25,12 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global require, define, brackets: true, $, window, navigator, Mustache */
 
+// TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
+
 /**
  * brackets is the root of the Brackets codebase. This file pulls in all other modules as
  * dependencies (or dependencies thereof), initializes the UI, and binds global menus & keyboard
  * shortcuts to their Commands.
- *
- * TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
  *
  * Unlike other modules, this one can be accessed without an explicit require() because it exposes
  * a global object, window.brackets.
@@ -44,6 +44,20 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-twipsy-mod");
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete-local/jquery.smart_autocomplete");
+
+    // Load CodeMirror add-ons--these attach themselves to the CodeMirror module    
+    require("thirdparty/CodeMirror2/addon/fold/xml-fold");
+    require("thirdparty/CodeMirror2/addon/edit/matchtags");
+    require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
+    require("thirdparty/CodeMirror2/addon/edit/closebrackets");
+    require("thirdparty/CodeMirror2/addon/edit/closetag");
+    require("thirdparty/CodeMirror2/addon/scroll/scrollpastend");
+    require("thirdparty/CodeMirror2/addon/selection/active-line");
+    require("thirdparty/CodeMirror2/addon/mode/multiplex");
+    require("thirdparty/CodeMirror2/addon/mode/overlay");
+    require("thirdparty/CodeMirror2/addon/search/match-highlighter");
+    require("thirdparty/CodeMirror2/addon/search/searchcursor");
+    require("thirdparty/CodeMirror2/keymap/sublime");
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
@@ -87,17 +101,30 @@ define(function (require, exports, module) {
         ColorUtils              = require("utils/ColorUtils"),
         CodeInspection          = require("language/CodeInspection"),
         NativeApp               = require("utils/NativeApp"),
+        DeprecationWarning      = require("utils/DeprecationWarning"),
+        ViewCommandHandlers     = require("view/ViewCommandHandlers"),
         _                       = require("thirdparty/lodash");
-        
+    
+    // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
+    // expose our required CodeMirror globally so as to avoid breaking extensions in the
+    // interim.
+    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror");
+
+    Object.defineProperty(window, "CodeMirror", {
+        get: function () {
+            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/CodeMirror2/lib/codemirror") instead of global CodeMirror.', true);
+            return CodeMirror;
+        }
+    });
+    
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
     require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
     require("editor/EditorOptionHandlers");
-    require("view/ViewCommandHandlers");
     require("help/HelpCommandHandlers");
-    require("search/FindInFiles");
+    require("search/FindInFilesUI");
     require("search/FindReplace");
     require("extensibility/InstallExtensionDialog");
     require("extensibility/ExtensionManagerDialog");
@@ -118,6 +145,9 @@ define(function (require, exports, module) {
     // read URL params
     params.parse();
     
+    /**
+     * Setup test object
+     */
     function _initTest() {
         // TODO: (issue #265) Make sure the "test" object is not included in final builds
         // All modules that need to be tested from the context of the application
@@ -125,40 +155,48 @@ define(function (require, exports, module) {
         // in the modules since they would run in context of the unit test window,
         // and would not have access to the app html/css.
         brackets.test = {
-            PreferencesManager      : PreferencesManager,
-            ProjectManager          : ProjectManager,
-            DocumentCommandHandlers : DocumentCommandHandlers,
-            FileViewController      : FileViewController,
-            DocumentManager         : DocumentManager,
-            EditorManager           : EditorManager,
-            Commands                : Commands,
-            WorkingSetView          : WorkingSetView,
-            PerfUtils               : PerfUtils,
-            JSUtils                 : JSUtils,
-            CommandManager          : CommandManager,
-            FileSyncManager         : FileSyncManager,
-            FileSystem              : FileSystem,
-            Menus                   : Menus,
-            KeyBindingManager       : KeyBindingManager,
             CodeHintManager         : CodeHintManager,
-            Dialogs                 : Dialogs,
-            DefaultDialogs          : DefaultDialogs,
-            DragAndDrop             : DragAndDrop,
             CodeInspection          : CodeInspection,
+            CommandManager          : CommandManager,
+            Commands                : Commands,
             CSSUtils                : require("language/CSSUtils"),
-            LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
-            LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
+            DefaultDialogs          : DefaultDialogs,
+            Dialogs                 : Dialogs,
+            DocumentCommandHandlers : DocumentCommandHandlers,
+            DocumentManager         : DocumentManager,
+            DocumentModule          : require("document/Document"),
             DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
-            Inspector               : require("LiveDevelopment/Inspector/Inspector"),
-            NativeApp               : NativeApp,
+            DragAndDrop             : DragAndDrop,
+            EditorManager           : EditorManager,
             ExtensionLoader         : ExtensionLoader,
             ExtensionUtils          : ExtensionUtils,
-            UpdateNotification      : require("utils/UpdateNotification"),
-            InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
-            RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
+            File                    : require("filesystem/File"),
+            FileFilters             : require("search/FileFilters"),
+            FileSyncManager         : FileSyncManager,
+            FileSystem              : FileSystem,
+            FileViewController      : FileViewController,
+            FileUtils               : require("file/FileUtils"),
+            FindInFiles             : require("search/FindInFiles"),
+            FindInFilesUI           : require("search/FindInFilesUI"),
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),
-            MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
+            Inspector               : require("LiveDevelopment/Inspector/Inspector"),
+            InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
+            JSUtils                 : JSUtils,
+            KeyBindingManager       : KeyBindingManager,
             LanguageManager         : LanguageManager,
+            LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+            LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
+            Menus                   : Menus,
+            MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
+            NativeApp               : NativeApp,
+            PerfUtils               : PerfUtils,
+            PreferencesManager      : PreferencesManager,
+            ProjectManager          : ProjectManager,
+            RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
+            ScrollTrackMarkers      : require("search/ScrollTrackMarkers"),
+            UpdateNotification      : require("utils/UpdateNotification"),
+            WorkingSetView          : WorkingSetView,
+
             doneLoading             : false
         };
 
@@ -166,7 +204,10 @@ define(function (require, exports, module) {
             brackets.test.doneLoading = true;
         });
     }
-            
+
+    /**
+     * Setup Brackets
+     */
     function _onReady() {
         PerfUtils.addMeasurement("window.document Ready");
 
@@ -196,8 +237,8 @@ define(function (require, exports, module) {
             $testDiv.remove();
         }
 
-        // Load default languages
-        LanguageManager.ready.always(function () {
+        // Load default languages and preferences
+        Async.waitForAll([LanguageManager.ready, PreferencesManager.ready]).always(function () {
             // Load all extensions. This promise will complete even if one or more
             // extensions fail to load.
             var extensionPathOverride = params.get("extensions");  // used by unit tests
@@ -206,6 +247,7 @@ define(function (require, exports, module) {
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
                 // Finish UI initialization
+                ViewCommandHandlers.restoreFontSize();
                 var initialProjectPath = ProjectManager.getInitialProjectPath();
                 ProjectManager.openProject(initialProjectPath).always(function () {
                     _initTest();
@@ -214,11 +256,10 @@ define(function (require, exports, module) {
                     // the samples folder on first launch), open it automatically. (We explicitly check for the
                     // samples folder in case this is the first time we're launching Brackets after upgrading from
                     // an old version that might not have set the "afterFirstLaunch" pref.)
-                    var prefs = PreferencesManager.getPreferenceStorage(module),
-                        deferred = new $.Deferred();
+                    var deferred = new $.Deferred();
                     
-                    if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
-                        prefs.setValue("afterFirstLaunch", "true");
+                    if (!params.get("skipSampleProjectLoad") && !PreferencesManager.getViewState("afterFirstLaunch")) {
+                        PreferencesManager.setViewState("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
                             FileSystem.resolve(initialProjectPath + "index.html", function (err, file) {
                                 if (!err) {
@@ -240,6 +281,18 @@ define(function (require, exports, module) {
                         AppInit._dispatchReady(AppInit.APP_READY);
                         
                         PerfUtils.addMeasurement("Application Startup");
+                        
+                        if (PreferencesManager._isUserScopeCorrupt()) {
+                            Dialogs.showModalDialog(
+                                DefaultDialogs.DIALOG_ID_ERROR,
+                                Strings.ERROR_PREFS_CORRUPT_TITLE,
+                                Strings.ERROR_PREFS_CORRUPT
+                            )
+                                .done(function () {
+                                    CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
+                                });
+                        }
+                        
                     });
                     
                     // See if any startup files were passed to the application
@@ -254,13 +307,9 @@ define(function (require, exports, module) {
         
         // Check for updates
         if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
-            // check once a day, plus 2 minutes, 
-            // as the check will skip if the last check was not -24h ago
-            window.setInterval(UpdateNotification.checkForUpdate, 86520000);
-            
-            // Check for updates on App Ready
             AppInit.appReady(function () {
-                UpdateNotification.checkForUpdate();
+                // launches periodic checks for updates cca every 24 hours
+                UpdateNotification.launchAutomaticUpdate();
             });
         }
     }
@@ -383,9 +432,14 @@ define(function (require, exports, module) {
             }
         }, true);
     }
-
-    // Dispatch htmlReady event
-    _beforeHTMLReady();
-    AppInit._dispatchReady(AppInit.HTML_READY);
-    $(window.document).ready(_onReady);
+    
+    // Wait for view state to load.
+    var viewStateTimer = PerfUtils.markStart("User viewstate loading");
+    PreferencesManager._smUserScopeLoading.always(function () {
+        PerfUtils.addMeasurement(viewStateTimer);
+        // Dispatch htmlReady event
+        _beforeHTMLReady();
+        AppInit._dispatchReady(AppInit.HTML_READY);
+        $(window.document).ready(_onReady);
+    });
 });
