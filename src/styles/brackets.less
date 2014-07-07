@@ -110,7 +110,7 @@ a, img {
 
 #titlebar, .modal-bar {
     border-bottom: 1px solid @bc-panel-border;
-    box-shadow: 0 1px 3px @bc-panel-shadow-small;
+    box-shadow: 0 1px 3px @bc-shadow-small;
 
     // Make sure the bottom box-shadow goes above the editor (position: relative needed to start a new stacking group)
     position: relative;
@@ -388,22 +388,20 @@ a, img {
     background-color: @bc-panel-bg;
     display: none;
     height: 200px;
-    border-top-style: solid;
-    border-width: 1px;
-    border-color: @bc-panel-border;
-
+    border: 1px solid @bc-panel-border;
+    
     .check-all {
         margin: 7px 15px 7px 7px;
     }
 
     .toolbar {
-        background-color: @bc-panel-head;
+        background-color: @bc-panel-bg-header;
         border-bottom: 1px solid @bc-panel-separator;
         height: auto;
         padding-top: (@base-padding / 2);
         padding-bottom: (@base-padding / 2);
         z-index: @z-index-brackets-results-panel;
-        box-shadow: inset 0 1px 0 @bc-panel-highlight, 0 -1px 3px @bc-panel-shadow-small;
+        box-shadow: inset 0 1px 0 @bc-highlight, 0 -1px 3px @bc-shadow-small;
         .title {
             color: @bc-text;
             font-size: @label-font-size;
@@ -424,12 +422,12 @@ a, img {
         overflow: auto;
 
         .highlight {
-            background: @bc-text-highlight-bg;
+            background: @bc-panel-bg-text-highlight;
             border-radius: 2px;
         }
 
         tr.selected td {
-            background-color: @bc-bg-selected;
+            background-color: @bc-panel-bg-selected;
             color: @bc-text-thin;
         }
     }
@@ -610,16 +608,16 @@ a, img {
 
 .sidebar-selection {
     background: @bc-sidebar-selection;
-    border-top: 1px solid @bc-sidebar-selection-shadow;
-    border-bottom: 1px solid @bc-sidebar-selection-highlight;
+    border-top: 1px solid @bc-shadow-small;
+    border-bottom: 1px solid @bc-highlight;
     height: 22px;
     position: absolute;
 }
 
 .sidebar-selection-triangle {
     background: @bc-sidebar-selection;
-    border-top: 1px solid @bc-sidebar-selection-shadow;
-    border-bottom: 1px solid @bc-sidebar-selection-highlight;
+    border-top: 1px solid @bc-shadow-small;
+    border-bottom: 1px solid @bc-highlight;
     width: 9px; /* quiet scrollbar width */
     height: 22px;
     position: fixed;
@@ -924,7 +922,7 @@ a, img {
             white-space: nowrap;
 
             .related-file {
-                color: @bc-input-text-placeholder;
+                color: @bc-text-thin-quiet;
             }
         }
 
@@ -936,7 +934,7 @@ a, img {
 }
 
 .inline-editor-message {
-    color: @bc-input-text-placeholder;
+    color: @bc-text-thin-quiet;
     font-family: @sansFontFamily;
     font-size: 12px;
     line-height: 17px;
@@ -1094,7 +1092,7 @@ a, img {
         top: -3px;
         &.no-results {
             border: 1px solid @bc-btn-border-error;
-            box-shadow: inset 0 1px 0 @bc-input-inner-shadow, 0 0 0 1px @bc-btn-border-error-glow;
+            box-shadow: inset 0 1px 0 @bc-shadow-small, 0 0 0 1px @bc-btn-border-error-glow;
         }
     }
 
@@ -1118,7 +1116,7 @@ a, img {
             font-size: 12px;
             padding: 3px 8px;
             border-radius: 0 0 3px 3px;
-            box-shadow: 0 1px 3px @bc-panel-shadow-small;
+            box-shadow: 0 1px 3px @bc-shadow-small;
         }
 
         #find-what {
@@ -1290,7 +1288,7 @@ textarea.exclusions-editor {
     margin: 12px 0 -14px 0;
     padding: 4px 8px;
     background-color: @bc-bg-highlight;
-    border-radius: @bc-btn-border-radius;
+    border-radius: @bc-border-radius;
 }
 
 
@@ -1301,15 +1299,15 @@ textarea.exclusions-editor {
 .CodeMirror-searching {
     // Highlight color, overlaid on top of the .find-highlighting color
     background-color: @cm-match-highlight;
-    box-shadow: 0 1px 3px @bc-panel-shadow-small;
+    box-shadow: 0 1px 3px @bc-shadow-small;
     color: @match-text !important;
     &.searching-first {
-        border-top-left-radius: @bc-inline-border-radius;
-        border-bottom-left-radius: @bc-inline-border-radius;
+        border-top-left-radius: @bc-border-radius-small;
+        border-bottom-left-radius: @bc-border-radius-small;
     }
     &.searching-last {
-        border-top-right-radius: @bc-inline-border-radius;
-        border-bottom-right-radius: @bc-inline-border-radius;
+        border-top-right-radius: @bc-border-radius-small;
+        border-bottom-right-radius: @bc-border-radius-small;
     }
 }
 .CodeMirror.find-highlighting div.CodeMirror-selected,
@@ -1319,7 +1317,7 @@ textarea.exclusions-editor {
     // Note: the 2nd selector reflecting CM nesting is needed to override the similar rules in
     // brackets_codemirror_override.less (see the note about #324).
     background: @cm-current-match-highlight;
-    border-radius: @bc-inline-border-radius;
+    border-radius: @bc-border-radius-small;
 }
 #find-counter {
     font-weight: @font-weight-semibold;
@@ -1363,7 +1361,7 @@ textarea.exclusions-editor {
     // the borders show up even if the container is empty, must set height to zero using JS.
     background-color: @bc-panel-bg;
     border-radius: 0 0 4px 4px;
-    box-shadow: 0 5px 10px @bc-panel-shadow;
+    box-shadow: 0 5px 10px @bc-shadow;
     opacity: 0;
     
     // Need this for border-radius because there are no borders
@@ -1405,7 +1403,7 @@ textarea.exclusions-editor {
         }
 
         &:hover {
-            background-color: @bc-bg-hover;
+            background-color: @bc-panel-bg-hover;
         }
 
         &.smart_autocomplete_highlight {
@@ -1585,7 +1583,7 @@ label input {
         background-color: @bc-error;
         border-radius: 3px;
         color: @bc-text-alt;
-        box-shadow: 0 3px 9px @bc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-shadow;
         white-space: nowrap;
     }
     .arrowAbove {

@@ -39,17 +39,17 @@
 /* Links */
 
 a {
-    color: @bc-link;
+    color: @bc-text-link;
     text-decoration: none;
 }
 
 a:hover {
-    color: @bc-link;
+    color: @bc-text-link;
     text-decoration: underline;
 }
 
 a:focus {
-    color: @bc-link;
+    color: @bc-text-link;
     outline: 0;
     border-radius: 3px;
     box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
@@ -240,7 +240,7 @@ a:focus {
     .animation(dropdown, 90ms, cubic-bezier(0, .97, .2, .99), 0, 1);
     -webkit-transform-origin: 0 0;
     border: none;
-    border-radius: @bc-btn-border-radius;
+    border-radius: @bc-border-radius;
 }
 
 @-webkit-keyframes dropdown {
@@ -265,7 +265,7 @@ a:focus {
 
     // General item appearance
     a {
-        color: @bc-text-menu;
+        color: @bc-menu-text;
         text-shadow: none;
         cursor: default;
     }
@@ -274,18 +274,18 @@ a:focus {
     .dropdown-toggle {
         padding: @menubar-top-padding @menubar-h-padding @menubar-bottom-padding;
         border: 1px solid rgba(0, 0, 0, 0); // transparent border just to hold the layout so it doesn't shift on hover
-        color: fadeout(@bc-text-menu, 25%);
+        color: fadeout(@bc-menu-text, 25%);
         font-weight: @font-weight-light;
     }
     .dropdown-toggle:focus {
-        background-color: @bc-bg-menu;
+        background-color: @bc-menu-bg;
         outline: 0;
     }
     .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
         /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
            color rules we need to override (and Bootstrap has several selectors because the colors really differ
            in their defaults). */
-        color: @bc-text-menu;
+        color: @bc-menu-text;
         background: @item-highlight-color;
         border-color: #dbeaf4;
     }
@@ -308,9 +308,9 @@ a:focus {
         width: -webkit-max-content;
         width: -moz-max-content;
 
-        background-color: @bc-bg-menu;
+        background-color: @bc-menu-bg;
         .border-radius(0 0 3px 3px);
-        box-shadow: 0 3px 9px @bc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-shadow;
         border: none;
 
         // Menu items
@@ -323,7 +323,7 @@ a:focus {
                 // More padding on top than bottom to center font within its bg highlight better.
                 padding: 2px 10px 0px 6px;
 
-                color: @bc-text-menu;
+                color: @bc-menu-text;
                 text-shadow: none;
                 white-space: nowrap;
                 .box-shadow(none);
@@ -333,7 +333,7 @@ a:focus {
                 }
 
                 &:hover, &.highlight {
-                    color: @bc-text-menu;
+                    color: @bc-menu-text;
                     background: @item-highlight-color;
                 }
 
@@ -341,7 +341,7 @@ a:focus {
                     color: @bc-text-thin-quiet;
 
                     &:hover {
-                        background: @bc-bg-menu;
+                        background: @bc-menu-bg;
                     }
                 }
 
@@ -382,7 +382,7 @@ a:focus {
 
     .dropdown-menu {
         .border-radius(3px);
-        box-shadow: 0 3px 9px @bc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-shadow;
     }
 
     .menu-shortcut {
@@ -393,7 +393,7 @@ a:focus {
 .codehint-menu {
     opacity: 0;
     .dropdown-menu {
-        box-shadow: 0 3px 9px @bc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-shadow;
         max-height: 160px;
         overflow-y: auto;
         padding: 0;
@@ -406,13 +406,13 @@ a:focus {
 
                 // Don't show highlighting on hover for code hints...
                 &:hover {
-                    color: @bc-text-menu;
-                    background-color: @bc-bg-menu;
+                    color: @bc-menu-text;
+                    background-color: @bc-menu-bg;
                 }
 
                 // ...except for selected item
                 &.highlight:hover {
-                    color: @bc-text-menu;
+                    color: @bc-menu-text;
                     background-color: @item-highlight-color;
                 }
             }
@@ -464,11 +464,11 @@ a:focus {
     
     &.dropdown-menu {
         border: none;
-        border-radius: @bc-btn-border-radius;
+        border-radius: @bc-border-radius;
         padding: 5px 0;
         position: absolute;
         display: block;
-        box-shadow: 0 3px 9px @bc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-shadow;
         max-height: 160px;
         overflow-y: auto;
         max-width: none;
@@ -478,7 +478,7 @@ a:focus {
     
     &.dropdown-menu li a {
         padding: 1px 15px 1px 15px;
-        color: @bc-text-menu;
+        color: @bc-menu-text;
     }
     
     &.dropdown-menu .stylesheet-link {
@@ -487,7 +487,7 @@ a:focus {
     
     &.dropdown-menu a.selected {
         background: @bc-bg-highlight;
-        color: @bc-text-menu !important;
+        color: @bc-menu-text !important;
     }
 
     &.dropdown-menu a {
@@ -574,7 +574,7 @@ a:focus {
 }
 
 .modal-header {
-    background: @bc-panel-head;
+    background: @bc-panel-bg-header;
     border-radius: 4px 4px 0 0;
     border-bottom: 1px solid @bc-panel-separator;
 }
@@ -707,7 +707,7 @@ a:focus {
 
 .dialog-list > li:before {
     content: "•  ";
-    color: @bc-input-border;
+    color: @bc-btn-border;
     font-size: 1.5em;
     position: relative;
     top: 1px;
@@ -949,10 +949,10 @@ a[href^="http"] {
                 cursor: text;
             }
             .ext-keywords {
-                color: @bc-input-text-placeholder;
+                color: @bc-text-thin-quiet;
             }
             .muted {
-                color: @bc-input-text-placeholder;
+                color: @bc-text-thin-quiet;
             }
             .alert {
                 font-size: 11px;
@@ -1056,17 +1056,17 @@ input[type="tel"],
 input[type="color"],
 .uneditable-input {
     background-color: @bc-input-bg;
-    border: 1px solid @bc-input-border;
+    border: 1px solid @bc-btn-border;
     color: @bc-text-thin;
     font-size: (@baseFontSize + 1px);
     font-weight: normal;
     -webkit-font-smoothing: antialiased;
-    .border-radius(@bc-btn-border-radius);
-    .box-shadow(inset 0 1px 0 @bc-input-inner-shadow);
+    .border-radius(@bc-border-radius);
+    .box-shadow(inset 0 1px 0 @bc-shadow-small);
     .transition(~"border linear 180ms, box-shadow linear 180ms");
 
     &::-webkit-input-placeholder {
-        color: @bc-input-text-placeholder;
+        color: @bc-text-thin-quiet;
         font-weight: normal;
         -webkit-font-smoothing: antialiased;
     }
@@ -1076,7 +1076,7 @@ input[type="color"],
         background-color: @bc-input-bg;
         text-shadow: none;
         border: 1px solid @bc-btn-border-focused;
-        box-shadow: inset 0 1px 0 @bc-input-inner-shadow, 0 0 0 1px @bc-btn-border-focused-glow;
+        box-shadow: inset 0 1px 0 @bc-shadow-small, 0 0 0 1px @bc-btn-border-focused-glow;
     }
 
     &:disabled {
@@ -1092,7 +1092,7 @@ input[type="color"],
 }
 
 .tooltip-inner {
-    box-shadow: 0 3px 9px @bc-dropdown-shadow;
+    box-shadow: 0 3px 9px @bc-shadow;
     color: @bc-text;
     max-width: 220px;
     text-align: left;
@@ -1142,8 +1142,8 @@ input[type="color"],
     font-weight: @font-weight-semibold;
     line-height: normal;
     border: 1px solid @bc-btn-border;
-    .border-radius(@bc-btn-border-radius);
-    box-shadow: inset 0 1px 0 @bc-btn-highlight;
+    .border-radius(@bc-border-radius);
+    box-shadow: inset 0 1px 0 @bc-highlight;
     -webkit-font-smoothing: antialiased;
     text-shadow: none;
 
@@ -1155,7 +1155,7 @@ input[type="color"],
     // Focus state for keyboard and accessibility
     &:focus {
         border: 1px solid @bc-btn-border-focused;
-        box-shadow: inset 0 1px 0 @bc-btn-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
+        box-shadow: inset 0 1px 0 @bc-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
         color: @bc-text;
         outline: none;
     }
@@ -1164,14 +1164,14 @@ input[type="color"],
     &.active:not([disabled]) {
         background-image: none;
         background-color: @bc-bg-highlight;
-        box-shadow: inset 0 1px 0 @bc-btn-down-shadow;
-        color: @bc-link;
+        box-shadow: inset 0 1px 0 @bc-shadow-small;
+        color: @bc-text-link;
     }
     
     &:active:not([disabled]) {
         background-image: none;
         background-color: @bc-btn-bg-down;
-        box-shadow: inset 0 1px 0 @bc-btn-down-shadow;
+        box-shadow: inset 0 1px 0 @bc-shadow-small;
         color: @bc-text;
     }
 
@@ -1184,20 +1184,20 @@ input[type="color"],
         background-image: none;
         background-color: @bc-primary-btn;
         border: 1px solid  @bc-primary-btn-border;
-        box-shadow: inset 0 1px 0 @bc-primary-btn-highlight;
+        box-shadow: inset 0 1px 0 @bc-highlight;
         color: @bc-primary-btn-text;
         text-shadow: none;
         &.active,
         &:active {
             background-image: none;
             background-color: @bc-primary-btn-down;
-            box-shadow: inset 0 1px 0 @bc-primary-btn-down-shadow;
+            box-shadow: inset 0 1px 0 @bc-shadow-small;
             color: @bc-primary-btn-text;
         }
 
         &:focus {
             border: 1px solid @bc-primary-btn-border;
-            box-shadow: inset 0 1px 0 @bc-primary-btn-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
+            box-shadow: inset 0 1px 0 @bc-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
             outline: none;
         }
     }
@@ -1222,7 +1222,7 @@ input[type="color"],
     // Button Sizes
     &.large {
         font-size: (@baseFontSize + 1px);
-        .border-radius(@bc-btn-border-radius);
+        .border-radius(@bc-border-radius);
     }
     &.small {
         font-size: (@baseFontSize - 1px);
@@ -1231,16 +1231,16 @@ input[type="color"],
 
 .btn-alt-quiet {
     border: 1px solid transparent;
-    border-radius: @bc-btn-border-radius;
+    border-radius: @bc-border-radius;
     text-decoration: none;
     &:hover {
-        border: 1px solid @bc-btn-border-alt;
-        box-shadow: inset 0 1px 0 @bc-btn-highlight;
+        border: 1px solid @bc-btn-border;
+        box-shadow: inset 0 1px 0 @bc-highlight;
     }
     &:active {
         background: @bc-btn-bg-down-alt;
-        border: 1px solid @bc-btn-border-alt;
-        box-shadow: inset 0 1px 0 @bc-primary-btn-down-shadow;
+        border: 1px solid @bc-btn-border;
+        box-shadow: inset 0 1px 0 @bc-shadow-small;
     }
 }
 
@@ -1251,11 +1251,32 @@ input[type="color"],
     line-height: 14px;
     &:focus {
         border: 1px solid @bc-btn-border-focused;
-        box-shadow: inset 0 1px 0 @bc-btn-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
+        box-shadow: inset 0 1px 0 @bc-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
         outline: none;
     }
 }
 
+.btn-group > .btn:first-child {
+    border-top-left-radius: @bc-border-radius;
+    border-bottom-left-radius: @bc-border-radius;
+}
+
+.btn-group > .btn:last-child,
+.btn-group > .dropdown-toggle {
+    border-top-right-radius: @bc-border-radius;
+    border-bottom-right-radius: @bc-border-radius;
+}
+
+.btn-group > .btn.large:first-child {
+    border-top-left-radius: @bc-border-radius;
+    border-bottom-left-radius: @bc-border-radius;
+}
+
+.btn-group > .btn.large:last-child,
+.btn-group > .large.dropdown-toggle {
+    border-top-right-radius: @bc-border-radius;
+    border-bottom-right-radius: @bc-border-radius;
+}
 
 /* Tables */
 
@@ -1335,13 +1356,13 @@ dt,
 
 .alert {
     text-shadow: none;
-    background-color: @bc-bg-warning;
+    background-color: @bc-warning-bg;
     border: none;
 }
 .alert,
 .alert h4 {
     // Specified for the h4 to prevent conflicts of changing @headingsColor
-    color: @bc-text-warning;
+    color: @bc-warning-text;
 }
 
 input[type="radio"],
@@ -1357,12 +1378,12 @@ input[type="checkbox"] {
     border-radius: 3px;
     background-color: @bc-btn-bg;
     -webkit-appearance: none;
-    box-shadow: inset 0 1px 0 @bc-btn-highlight;
+    box-shadow: inset 0 1px 0 @bc-highlight;
 }
 
 input[type="checkbox"]:active:not(:disabled) {
     background-color: @bc-btn-bg-down;
-    box-shadow: inset 0 1px 0 @bc-btn-down-shadow;
+    box-shadow: inset 0 1px 0 @bc-shadow-small;
 }
 
 input[type="checkbox"]:focus {
