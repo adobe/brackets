@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         InMemoryFile        = require("document/InMemoryFile"),
         EditorManager       = require("editor/EditorManager"),
         MainViewManager     = require("view/MainViewManager"),
-        DocumentManager     = require("Document/DocumentManager"),
+        DocumentManager     = require("document/DocumentManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         paneTemplate        = require("text!htmlContent/pane.html");
@@ -49,14 +49,18 @@ define(function (require, exports, module) {
         this.$el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id);
         this.views = {};
         
-        $(DocumentManager).on("fileNameChange",  this._handleFileNameChange);
-        $(DocumentManager).on("pathDeleted", this._handleFileDeleted);
+        $(DocumentManager).on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
+        $(DocumentManager).on(this._makeEventName("pathDeleted"), _.bind(this._handleFileDeleted, this));
     }
     
     Pane.prototype.ITEM_NOT_FOUND = -1;
     Pane.prototype.ITEM_FOUND_NO_SORT = 0;
     Pane.prototype.ITEM_FOUND_NEEDS_SORT = 1;
 
+    Pane.prototype._makeEventName = function (name) {
+        return name + ".pane" + this.paneId;
+    };    
+    
     Pane.prototype.mergeWith = function (other) {
         this.viewList = _.union(this.viewList, other.viewList);
         this.viewListMRUOrder = _.union(this.viewListMRUOrder, other.viewListMRUOrder);
@@ -87,7 +91,7 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype.destroy = function () {
-        $(DocumentManager).off("fileNameChange",  this._handleFileNameChange);
+        $(DocumentManager).off(this._makeEventName(""));
         this.$container.find("#" + this.id).remove();
     };
     
