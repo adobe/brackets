@@ -134,9 +134,8 @@ define(function(require, exports, module) {
     prefs.definePreference("fontFamily", "string", defaults.fontFamily);
     prefs.definePreference("customScrollbars", "boolean", defaults.customScrollbars);
 
-
-    exports.defaults   = defaults;
+    exports._setThemes = setThemes;
+    exports._defaults  = defaults;
     exports.restore    = restore;
-    exports.setThemes  = setThemes;
     exports.showDialog = showDialog;
 });

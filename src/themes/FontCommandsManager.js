@@ -23,7 +23,7 @@ define(function (require, exports, module) {
     function updateBracketsFontSize() {
         var fontSize        = prefs.get("fontSize"),
             fontSizeNumeric = Number(fontSize.replace(/px|em/, "")),
-            fontSizeOffset  = fontSizeNumeric - ThemeSettings.defaults.fontSize;
+            fontSizeOffset  = fontSizeNumeric - ThemeSettings._defaults.fontSize;
 
         if (!isNaN(fontSizeOffset)) {
             PreferencesManager.setViewState("fontSizeAdjustment", fontSizeOffset);

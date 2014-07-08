@@ -266,7 +266,7 @@ define(function (require, exports, module) {
             if (exists) {
                 theme = new Theme(file, options);
                 loadedThemes[theme.name] = theme;
-                ThemeSettings.setThemes(loadedThemes);
+                ThemeSettings._setThemes(loadedThemes);
 
                 // For themes that are loaded after ThemeManager has been loaded,
                 // we should check if it's the current theme.  It is, then we just
