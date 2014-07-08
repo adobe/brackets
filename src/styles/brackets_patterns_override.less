@@ -33,7 +33,7 @@
 
 /* Variable Overrides */
 
-@tooltipBackground: #fff;
+@tooltipBackground: @bc-text-alt;
 @tooltipArrowColor: @tooltipBackground;
 
 /* Links */
@@ -64,9 +64,9 @@ a:focus {
     margin: 0;
 
     background: @project-panel-base-color url("images/propertiespanel_back.png") repeat-x 0 0;
-    color: #bbb;
+    color: @bc-text-panel;
     letter-spacing: .01em;
-    text-shadow: 0px 1px 2px rgba(0,0,0,.5);
+    text-shadow: 0px 1px 2px @bc-shadow-large;
 }
 
 
@@ -171,11 +171,11 @@ a:focus {
         }
 
         > a:hover {
-            background-color: rgba(0, 0, 0, 0.24) !important;
+            background-color: @bc-shadow !important;
         }
 
         > a:active {
-            background-color: rgba(0, 0, 0, 0.66) !important;
+            background-color: @bc-shadow-large !important;
         }
     }
 
@@ -233,7 +233,6 @@ a:focus {
 @menubar-top-padding: 8px;
 @menubar-bottom-padding: 6px;
 @menubar-h-padding: 9px;
-@item-highlight-color: #e0f0fa;
 
 // Dropdown Menu Animation
 .dropdown-menu {
@@ -286,8 +285,8 @@ a:focus {
            color rules we need to override (and Bootstrap has several selectors because the colors really differ
            in their defaults). */
         color: @bc-menu-text;
-        background: @item-highlight-color;
-        border-color: #dbeaf4;
+        background: @bc-bg-highlight;
+        border-color: @bc-bg-highlight;
     }
 
     // no triangle icon after menu items
@@ -334,7 +333,7 @@ a:focus {
 
                 &:hover, &.highlight {
                     color: @bc-menu-text;
-                    background: @item-highlight-color;
+                    background: @bc-bg-highlight;
                 }
 
                 &.disabled {
@@ -358,7 +357,7 @@ a:focus {
         }
 
         .divider {
-            background-color: #eaeaea;
+            background-color: @bc-menu-separator;
             border: 0;
             margin: 5px 1px;
         }
@@ -413,7 +412,7 @@ a:focus {
                 // ...except for selected item
                 &.highlight:hover {
                     color: @bc-menu-text;
-                    background-color: @item-highlight-color;
+                    background-color: @bc-bg-highlight;
                 }
             }
         }
@@ -560,7 +559,7 @@ a:focus {
 
 .modal {
     background-color: @bc-panel-bg;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid @bc-panel-border;
     min-width: 200px;
     position: relative;
     top: 0;
@@ -791,7 +790,7 @@ a[href^="http"] {
 
 /* Extension Manager dialog */
 .extension-manager-dialog {
-    background-color: #d4d7d7;
+    background-color: @bc-panel-bg-header;
     width: 760px;
     
     .modal-header {
@@ -800,7 +799,7 @@ a[href^="http"] {
         
         .nav-tabs {
             margin: 0;
-            border-color: #c3c6c5;
+            border-color: @bc-panel-separator;
 
             /* Tab styling */
             > li > a {
@@ -820,8 +819,8 @@ a[href^="http"] {
                 text-align: center;
 
                 &:hover {
-                    background-color: rgba(0, 0, 0, 0.04);
-                    border-color: rgba(0, 0, 0, 0.04);
+                    background-color: @bc-panel-bg-hover-alt;
+                    border-color: @bc-panel-bg-hover-alt;
                 }
 
                 > img {
@@ -838,15 +837,15 @@ a[href^="http"] {
             /* Colors for the active tab, remove bottom border */
             > .active > a,
             > .active > a:hover {
-                background-color: #dfe2e2;
-                border-color: #b4b7b7 #b4b7b7 transparent #b4b7b7;
+                background-color: @bc-panel-bg;
+                border-color: @bc-btn-border @bc-btn-border transparent @bc-btn-border;
             }
             
             > li {
                 position: relative;  // for positioning .notification icon
                 .notification {
                     display: none;  // hidden by default
-                    background-color: #91CC41;
+                    background-color: @bc-secondary-btn;
                     color: white;
                     border-radius: 16px;
                     padding: 0 5px;
@@ -864,7 +863,7 @@ a[href^="http"] {
             right: 15px;
         }
         .search {
-            background: #fff url("images/topcoat-search-20.svg") 3px 4px no-repeat;
+            background: @bc-input-bg url("images/topcoat-search-20.svg") 3px 4px no-repeat;
             float: right;
             margin: 0;
             padding-left: 27px;
@@ -1185,14 +1184,14 @@ input[type="color"],
         background-color: @bc-primary-btn;
         border: 1px solid  @bc-primary-btn-border;
         box-shadow: inset 0 1px 0 @bc-highlight;
-        color: @bc-primary-btn-text;
+        color: @bc-text-alt;
         text-shadow: none;
         &.active,
         &:active {
             background-image: none;
             background-color: @bc-primary-btn-down;
             box-shadow: inset 0 1px 0 @bc-shadow-small;
-            color: @bc-primary-btn-text;
+            color: @bc-text-alt;
         }
 
         &:focus {
@@ -1204,18 +1203,18 @@ input[type="color"],
     
     // Update Button Type
     &.update {
-        background-color: #91cc41;
-        border-color: #65a015;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.27);
-        color: #fff;
+        background-color: @bc-secondary-btn;
+        border-color: @bc-secondary-btn-border;
+        box-shadow: inset 0 1px 0 @bc-highlight;
+        color: @bc-text-alt;
         font-weight: @font-weight-semibold;
-        text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.24);
+        text-shadow: 0 -1px 0 @bc-shadow-small;
         
         &:active {
-            background-color: #82b839;
-            border-color: #5b8028;
-            box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
-            color: #fff;
+            background-color: @bc-secondary-btn-down;
+            border-color: @bc-secondary-btn-border;
+            box-shadow: inset 0 1px 0 @bc-shadow-small;
+            color: @bc-text-alt;
         }
     }
 
