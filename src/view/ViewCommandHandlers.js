@@ -123,10 +123,11 @@ define(function (require, exports, module) {
      * @param {string} value Is the value of the style
      * @param {boolean} important Is a flag to make the style property !important
      */
-    function _addDynamicProperty(propertyID, name, value, important) {
+    function _addDynamicProperty(propertyID, name, value, important, cssRule) {
+        cssRule = cssRule || ".CodeMirror";
         var $style   = $("<style type='text/css'></style>").attr("id", propertyID);
         var styleStr = StringUtils.format("{0}: {1}{2}", name, value, important ? " !important" : "");
-        $style.html(".CodeMirror { " + styleStr + " }");
+        $style.html(cssRule + "{ " + styleStr + " }");
         
         // Let's make sure we remove the already existing item from the DOM.
         _removeDynamicProperty(propertyID);        
@@ -181,7 +182,7 @@ define(function (require, exports, module) {
      * @param {string} lineHeight  A string with the line height with size unit
      */
     function _addDynamicLineHeight(lineHeight) {
-        _addDynamicProperty(DYNAMIC_LINE_HEIGHT_ID, "line-height", lineHeight + "em", true);
+        _addDynamicProperty(DYNAMIC_LINE_HEIGHT_ID, "line-height", lineHeight + "em", true, ".CodeMirror-lines > div");
     }
 
     /**
