@@ -51,7 +51,8 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var AppInit             = require("utils/AppInit"),
+    var _                   = require("thirdparty/lodash"),
+        AppInit             = require("utils/AppInit"),
         Commands            = require("command/Commands"),
         WorkspaceManager    = require("view/WorkspaceManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
@@ -153,15 +154,19 @@ define(function (require, exports, module) {
     }
     
     /** Returns up-to-date view state for the given file, or null if file not open and no state cached */
-    function _getViewState(fullPath) {
+    function getViewState(fullPath) {
         return _viewStateCache[fullPath];
     }
     
     /** Removes all cached view state info and replaces it with the given mapping */
-    function _resetViewStates(viewStates) {
-        _viewStateCache = viewStates;
+    function resetViewStates(viewStates) {
+        _viewStateCache = viewStates || {};
     }
-            
+
+    function addViewStates(viewStates) {
+        _viewStateCache = _.extend(_viewStateCache, viewStates);
+    }
+    
     
 	/**
      * @private
@@ -694,13 +699,16 @@ define(function (require, exports, module) {
 
     // For unit tests and internal use only
     exports._createFullEditorForDocument  = _createFullEditorForDocument;
-    exports._getViewState                 = _getViewState;
-    exports._resetViewStates              = _resetViewStates;
     exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;
 
     // TODO: Move this
     exports.REFRESH_FORCE = REFRESH_FORCE;
     exports.REFRESH_SKIP  = REFRESH_SKIP;
+
+    // View State Cache Access
+    exports.getViewState                 = getViewState;
+    exports.resetViewStates              = resetViewStates;
+    exports.addViewStates                = addViewStates;
     
     // Define public API
     exports.createInlineEditorForDocument = createInlineEditorForDocument;

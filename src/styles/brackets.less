@@ -253,8 +253,15 @@ a, img {
         overflow: hidden;
         height: 100%;
         width: 100%;
+        border: solid rgba(9, 9, 9, .05) 2px;
+        box-sizing: border-box;
     }
 
+    .active-pane {
+        border: solid rgba(0,0,255, .2) 2px;
+        box-sizing: border-box;
+    }  
+    
     /* Image Preview */
     #image-holder {
         overflow: hidden;
@@ -1649,3 +1656,4 @@ label input {
 #hidden-editors {
     display: none;
 }
+

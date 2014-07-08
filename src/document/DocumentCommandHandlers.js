@@ -135,51 +135,59 @@ define(function (require, exports, module) {
             currentDoc = DocumentManager.getOpenDocumentForPath(currentlyViewedPath),
             windowTitle = brackets.config.app_title;
 
-        if (!brackets.nativeMenus) {
-            if (currentlyViewedPath) {
-                _$title.text(_currentTitlePath);
-                _$title.attr("title", currentlyViewedPath);
-                if (currentDoc) {
-                    // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
-                    _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
+        if (_$title && _$dirtydot && !_$titleWrapper) {
+        
+            if (!brackets.nativeMenus) {
+                if (currentlyViewedPath) {
+                    _$title.text(_currentTitlePath);
+                    _$title.attr("title", currentlyViewedPath);
+                    if (currentDoc) {
+                        // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
+                        _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
+                    } else {
+                        // hide dirty dot if there is no document
+                        _$dirtydot.css("visibility", "hidden");
+                    }
                 } else {
-                    // hide dirty dot if there is no document
+                    _$title.text("");
+                    _$title.attr("title", "");
                     _$dirtydot.css("visibility", "hidden");
                 }
+
+                // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
+                // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
+                // fixed width set on it (see the "#titlebar" CSS rule for details).
+                _$titleWrapper.css("width", "");
+                var newWidth = _$title.width();
+                _$titleWrapper.css("width", newWidth);
+
+                // Changing the width of the title may cause the toolbar layout to change height, which needs to resize the
+                // editor beneath it (toolbar changing height due to window resize is already caught by EditorManager).
+                var newToolbarHeight = _$titleContainerToolbar.height();
+                if (_lastToolbarHeight !== newToolbarHeight) {
+                    _lastToolbarHeight = newToolbarHeight;
+                    WorkspaceManager.recomputeLayout();
+                }
+            }
+
+            // build shell/browser window title, e.g. "• file.html — Brackets"
+            if (currentlyViewedPath) {
+                windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, windowTitle);
+            }
+
+            if (currentDoc) {
+                windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
             } else {
-                _$title.text("");
-                _$title.attr("title", "");
+                // hide dirty dot if there is no document
                 _$dirtydot.css("visibility", "hidden");
             }
-        
-            // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
-            // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
-            // fixed width set on it (see the "#titlebar" CSS rule for details).
-            _$titleWrapper.css("width", "");
-            var newWidth = _$title.width();
-            _$titleWrapper.css("width", newWidth);
-            
-            // Changing the width of the title may cause the toolbar layout to change height, which needs to resize the
-            // editor beneath it (toolbar changing height due to window resize is already caught by EditorManager).
-            var newToolbarHeight = _$titleContainerToolbar.height();
-            if (_lastToolbarHeight !== newToolbarHeight) {
-                _lastToolbarHeight = newToolbarHeight;
-                WorkspaceManager.recomputeLayout();
+        } else if (currentlyViewedPath) {
+            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, windowTitle);
+            if (currentDoc) {
+                windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
             }
         }
-
-        // build shell/browser window title, e.g. "• file.html — Brackets"
-        if (currentlyViewedPath) {
-            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, windowTitle);
-        }
         
-        if (currentDoc) {
-            windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
-        } else {
-            // hide dirty dot if there is no document
-            _$dirtydot.css("visibility", "hidden");
-        }
-
         // update shell/browser window title
         window.document.title = windowTitle;
     }

@@ -51,6 +51,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         WorkspaceManager    = require("view/WorkspaceManager"),
         InMemoryFile        = require("document/InMemoryFile"),
+        AsyncUtils          = require("utils/Async"),
         Pane                = require("view/Pane").Pane;
         
     
@@ -67,7 +68,7 @@ define(function (require, exports, module) {
     
     var _orientation = null;
     
-    var _activePaneId = FIRST_PANE;
+    var _activePaneId = null;
     
     /**
      * Container we live in
@@ -111,11 +112,17 @@ define(function (require, exports, module) {
     
     function setActivePaneId(newPaneId) {
         if (_paneViews.hasOwnProperty(newPaneId) && (newPaneId !== _activePaneId)) {
-            var oldPaneId = _activePaneId;
+            var oldPaneId = _activePaneId,
+                oldPane = _getActivePane(),
+                newPane = _getPaneFromPaneId(newPaneId);
+            
             _activePaneId = newPaneId;
             
             $(exports).triggerHandler("activePaneChange", [newPaneId, oldPaneId]);
             $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), newPaneId]);
+            
+            oldPane.onSetActive(false);
+            newPane.onSetActive(true);
         }
         
         forceFocusToActivePaneView();
@@ -493,100 +500,6 @@ define(function (require, exports, module) {
         // If no doc open or pane view list empty, there is no "next" file
         return null;
     }
-    
-    /**
-     * Loads the pane view list state
-     * @private
-     */
-    function _loadViewState(e) {
-/*        
-        // file root is appended for each project
-        var files = [],
-            context = { location : { scope: "user",
-                                     layer: "project" } };
-        
-        
-        files = PreferencesManager.getViewState("project.files", context);
-        
-        console.assert(_paneViewList.length === 0);
-
-        if (!files) {
-            return;
-        }
-
-        var filesToOpen = [],
-            viewStates = {},
-            activeFile;
-
-        // Add all files to the pane view list without verifying that
-        // they still exist on disk (for faster project switching)
-        files.forEach(function (value) {
-            filesToOpen.push(FileSystem.getFileForPath(value.file));
-            if (value.active) {
-                activeFile = value.file;
-            }
-            if (value.viewState) {
-                viewStates[value.file] = value.viewState;
-            }
-        });
-        
-        addListToPaneViewList(FOCUSED_PANE, filesToOpen);
-        
-        // Allow for restoring saved editor UI state
-        EditorManager._resetViewStates(viewStates);
-
-        if (!activeFile && _paneViewList.length > 0) {
-            activeFile = _paneViewList[0].fullPath;
-        }
-        
-        if (activeFile) {
-            var promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeFile });
-            // Add this promise to the event's promises to signal that this handler isn't done yet
-            e.promises.push(promise);
-        }
-*/
-    }
-    
-    /**
-     * Saves the pane view list state
-     * @private
-     */
-    function _saveViewState() {
-/*    
-        var files           = [],
-            isActive        = false,
-            paneViewList    = getPaneViewList(ALL_PANES),
-            currentDoc      = DocumentManager.getCurrentDocument(),
-            projectRoot     = ProjectManager.getProjectRoot(),
-            context         = { location : { scope: "user",
-                                             layer: "project",
-                                             layerID: projectRoot.fullPath } };
-
-        if (!projectRoot) {
-            return;
-        }
-
-        paneViewList.forEach(function (file) {
-            // Do not persist untitled document paths
-            if (!(file instanceof InMemoryFile)) {
-                // flag the currently active editor
-                isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
-                
-                // save editor UI state for just the pane view list
-                var viewState = EditorManager._getViewState(file.fullPath);
-                
-                files.push({
-                    file: file.fullPath,
-                    active: isActive,
-                    viewState: viewState
-                });
-            }
-        });
-
-        // Writing out pane view list files using the project layer specified in 'context'.
-        PreferencesManager.setViewState("project.files", files, context);
-*/
-    }
 
     /**
      * Event handler for "workspaceUpdateLayout" to update the layout
@@ -614,6 +527,67 @@ define(function (require, exports, module) {
             pane.updateLayout(refreshHint);
         });
         
+        
+    }
+    
+    var CMD_SPLIT_VERTICALLY = "cmd.splitVertically";
+    var CMD_SPLIT_HORIZONTALLY = "cmd.splitHorizontally";
+    
+    function _updateCommandState() {
+        CommandManager.get(CMD_SPLIT_VERTICALLY).setChecked(_orientation === VERTICAL);
+        CommandManager.get(CMD_SPLIT_HORIZONTALLY).setChecked(_orientation === HORIZONTAL);
+    }
+    
+    function _doUnsplit() {
+        if (_paneViews.hasOwnProperty(SECOND_PANE)) {
+            var firstPane = _paneViews[FIRST_PANE],
+                secondPane = _paneViews[SECOND_PANE],
+                fileList = secondPane.getViewList();
+            
+            firstPane.mergeWith(secondPane);
+        
+            $(exports).triggerHandler("paneViewListRemoveList", [fileList, secondPane.id]);
+
+            setActivePaneId(firstPane.id);
+            
+            secondPane.destroy();
+            delete _paneViews[SECOND_PANE];
+            $(exports).triggerHandler("paneDestroyed", secondPane.id);
+            $(exports).triggerHandler("paneViewListAddList", [fileList, firstPane.id]);
+
+            _orientation = null;
+            _updateLayout();
+            _updateCommandState();
+            $(exports).triggerHandler("paneLayoutChange", _orientation);
+        }
+    }
+
+    
+    function _createPaneIfNecessary(paneId) {
+        var pane;
+        
+        _$container = $("#editor-holder");
+        
+        if (!_paneViews.hasOwnProperty(paneId)) {
+            pane = new Pane(paneId, _$container);
+            _paneViews[paneId] = pane;
+            
+            $(exports).triggerHandler("paneCreated", pane.id);
+            
+            pane.$el.on("click", function () {
+                setActivePaneId(pane.id);
+            });
+        }
+        
+        return _paneViews[paneId];
+    }
+    
+    function _doSplit(orientation) {
+        _createPaneIfNecessary(SECOND_PANE);
+        _orientation = orientation;
+        _updateLayout();
+        _updateCommandState();
+        $(exports).triggerHandler("paneLayoutChange", _orientation);
         
     }
     
@@ -662,14 +636,8 @@ define(function (require, exports, module) {
         }
         
 
-        // TODO: If the file open and there is a view, then 
-        //          just switch to it
-        //       If the file is in the working set but not yet 
+        // TODO: If the file is in the working set but not yet 
         //          open then we need to create the document editor for it
-        //       If the pane where the file doesn't agree then
-        //          we either have to move it per this request or 
-        //          disregard the input and just use the pane where it was
-        //          originally opened
         
         if (doc) {
             doEdit(paneId, doc);
@@ -693,21 +661,49 @@ define(function (require, exports, module) {
     function doClose(paneId, file) {
         if (paneId === ALL_PANES) {
             var info = findInPaneViewList(ALL_PANES, file.fullPath);
+
             if (info === -1) {
                 return;
             }
             paneId = info.paneId;
         }
 
-        
         var pane = _getPaneFromPaneId(paneId),
             dispatchEvent = pane.findInViewList(file.fullPath) !== -1;
         
         pane.doRemoveView(file);
         if (dispatchEvent) {
             $(exports).triggerHandler("paneViewListRemove", [file, false, pane.id]);
+        
+            if (paneId === _activePaneId) {
+                $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), paneId]);
+            }
         }
     }
+
+
+    function doCloseList(paneId, fileList) {
+        var closedList,
+            currentFile = _getActivePane().getCurrentlyViewedFile(),
+            currentFileClosed = currentFile ? (fileList.indexOf(currentFile) !== -1) : false;
+
+        
+        if (paneId === ALL_PANES) {
+            _.forEach(_paneViews, function (pane) {
+                closedList = pane.doRemoveViews(fileList);
+                $(exports).triggerHandler("paneViewListRemoveList", [closedList, pane.id]);
+            });
+        } else {
+            var pane = _getPaneFromPaneId(paneId);
+            closedList = pane.doRemoveViews(fileList);
+            $(exports).triggerHandler("paneViewListRemoveList", [closedList, pane.id]);
+        }
+        
+        if (currentFileClosed) {
+            $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), _activePaneId]);
+        }
+    }
+    
     
     function doCloseAll(paneId) {
         var fileList;
@@ -723,22 +719,13 @@ define(function (require, exports, module) {
             pane.doRemoveAllViews();
             $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
         }
-    }
-
-    function doCloseList(paneId, fileList) {
-        var closedList;
-        if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
-                closedList = pane.doRemoveViews(fileList);
-                $(exports).triggerHandler("paneViewListRemoveList", [closedList, pane.id]);
-            });
-        } else {
-            var pane = _getPaneFromPaneId(paneId);
-            closedList = pane.doRemoveViews(fileList);
-            $(exports).triggerHandler("paneViewListRemoveList", [closedList, pane.id]);
+        
+        if (paneId === _activePaneId || paneId === FOCUSED_PANE || paneId === ALL_PANES) {
+            $(exports).triggerHandler("currentFileChanged", [null, _activePaneId]);
         }
+        
+        _doUnsplit();
     }
-    
 
     
     /**
@@ -756,26 +743,109 @@ define(function (require, exports, module) {
         }
     }
     
-    function _createPaneIfNecessary(paneId) {
-        var pane;
+    function _convertViewState() {
+        var files = [],
+            context = { location : { scope: "user",
+                                     layer: "project" } };
         
-        _$container = $("#editor-holder");
+        files = PreferencesManager.getViewState("project.files", context);
         
-        if (!_paneViews.hasOwnProperty(paneId)) {
-            pane = new Pane(paneId, _$container);
-            _paneViews[paneId] = pane;
-            
-            $(exports).triggerHandler("paneCreated", pane.id);
-            
-            pane.$el.on("click", function () {
-                setActivePaneId(pane.id);
+        if (!files) {
+            return;
+        }
+
+        var result = {
+            orientation: null,
+            activePaneId: FIRST_PANE,
+            panes: {
+                "first-pane": []
+            }
+        };
+        
+        // Add all files to the pane view list without verifying that
+        // they still exist on disk (for faster project switching)
+        files.forEach(function (value) {
+            result.panes[FIRST_PANE].push(value);
+        });
+
+        return result;
+    }
+    
+    /**
+     * Loads the pane view list state
+     * @private
+     */
+    function _loadViewState(e) {
+        // file root is appended for each project
+        var panes,
+            filesToOpen,
+            viewStates,
+            activeFile,
+            promises = [],
+            context = { location : { scope: "user",
+                                     layer: "project" } },
+            state = PreferencesManager.getViewState("mainView.state", context);
+
+        if (!state) {
+            // not converted yet
+            state = _convertViewState();
+        }
+
+        // reset
+        _doUnsplit();
+        EditorManager.resetViewStates();
+        
+        if (state) {
+
+            panes = Object.keys(state.panes);
+            _orientation = (panes.length > 1) ? state.orientation : null;
+
+            _.forEach(state.panes, function (paneState, paneId) {
+                var pane = _createPaneIfNecessary(paneId);
+                promises.push(pane.loadState(paneState));
+                $(exports).triggerHandler("paneViewListAddList", [pane.getViewList(), pane.id]);
+            });
+        
+            AsyncUtils.waitForAll(promises).then(function () {
+                setActivePaneId(state.activePaneId);
+                _updateLayout();
+                _updateCommandState();
             });
         }
     }
+    
+    /**
+     * Saves the pane view list state
+     * @private
+     */
+    function _saveViewState() {
+        var projectRoot     = ProjectManager.getProjectRoot(),
+            context         = { location : { scope: "user",
+                                         layer: "project",
+                                         layerID: projectRoot.fullPath } },
+            state = {
+                orientation: _orientation,
+                activePaneId: getActivePaneId(),
+                panes: {
+                }
+            };
+        
 
+        if (!projectRoot) {
+            return;
+        }
+        
+        _.forEach(_paneViews, function (pane) {
+            state.panes[pane.id] = pane.saveState();
+        });
+
+        PreferencesManager.setViewState("mainView.state", state, context);
+    }
     
     AppInit.htmlReady(function () {
         _createPaneIfNecessary(FIRST_PANE);
+        _activePaneId = FIRST_PANE;
+        _paneViews[FIRST_PANE].onSetActive(true);
         _updateLayout();
     });
     
@@ -785,48 +855,7 @@ define(function (require, exports, module) {
     $(WorkspaceManager).on("workspaceUpdateLayout",           _updateLayout);
     $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
     
-    var CMD_SPLIT_VERTICALLY = "cmd.splitVertically";
-    var CMD_SPLIT_HORIZONTALLY = "cmd.splitHorizontally";
-    
-    function _updateCommandState() {
-        CommandManager.get(CMD_SPLIT_VERTICALLY).setChecked(_orientation === VERTICAL);
-        CommandManager.get(CMD_SPLIT_HORIZONTALLY).setChecked(_orientation === HORIZONTAL);
-    }
-    
-    function _doUnsplit() {
-        if (_paneViews.hasOwnProperty(SECOND_PANE)) {
-            var firstPane = _paneViews[FIRST_PANE],
-                secondPane = _paneViews[SECOND_PANE],
-                fileList = secondPane.getViewList();
-            
-            firstPane.mergeWith(secondPane);
-        
-            $(exports).triggerHandler("paneViewListRemoveList", [fileList, secondPane.id]);
 
-            setActivePaneId(firstPane.id);
-            
-            secondPane.destroy();
-            delete _paneViews[SECOND_PANE];
-            $(exports).triggerHandler("paneDestroyed", secondPane.id);
-            $(exports).triggerHandler("paneViewListAddList", [fileList, firstPane.id]);
-
-            _orientation = null;
-            
-            _updateLayout();
-            _updateCommandState();
-            
-            $(exports).triggerHandler("paneLayoutChange", _orientation);
-        }
-    }
-
-    function _doSplit(orientation) {
-        _createPaneIfNecessary(SECOND_PANE);
-        _orientation = orientation;
-        _updateLayout();
-        _updateCommandState();
-        $(exports).triggerHandler("paneLayoutChange", _orientation);
-        
-    }
     
     function _handleSplitVertically() {
         if (_orientation === VERTICAL) {

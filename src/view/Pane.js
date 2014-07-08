@@ -29,6 +29,9 @@ define(function (require, exports, module) {
     "use strict";
         
     var _                   = require("thirdparty/lodash"),
+        FileSystem          = require("filesystem/FileSystem"),
+        File                = require("filesystem/File"),
+        InMemoryFile        = require("document/InMemoryFile"),
         EditorManager       = require("editor/EditorManager"),
         MainViewManager     = require("view/MainViewManager"),
         DocumentManager     = require("Document/DocumentManager"),
@@ -114,6 +117,10 @@ define(function (require, exports, module) {
         });
     };
     
+    Pane.prototype.getInitialViewFilePath = function () {
+        return (this.viewList.length > 0) ? this.viewList[0].fullPath : null;
+    };
+    
     Pane.prototype.reorderItem = function (file, index, force) {
         var indexRequested = (index !== undefined && index !== null && index >= 0),
             curIndex = this.findInViewList(file.fullPath);
@@ -132,6 +139,10 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype._addToViewList = function (file, inPlace) {
+        if (!((file instanceof File) || (file instanceof InMemoryFile))) {
+            return;
+        }
+        
         if (inPlace && inPlace.indexRequested) {
             // If specified, insert into the pane view list at this 0-based index
             this.viewList.splice(inPlace.index, 0, file);
@@ -141,7 +152,7 @@ define(function (require, exports, module) {
         }
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
-        var currentPath = EditorManager.getCurrentlyViewedPath();
+        var currentPath = this.getCurrentlyViewedPath();
         if (currentPath && currentPath === file.fullPath) {
             this.viewListMRUOrder.unshift(file);
         } else {
@@ -170,7 +181,7 @@ define(function (require, exports, module) {
 
         // Process only files not already in view list
         fileList.forEach(function (file) {
-            if (EditorManager.canOpenFile(file.fullPath) && this.findInViewList(file.fullPath) === -1 && !MainViewManager.getPaneIdForPath(file.fullPath)) {
+            if (EditorManager.canOpenFile(file.fullPath) && self.findInViewList(file.fullPath) === -1 && !MainViewManager.getPaneIdForPath(file.fullPath)) {
                 self._addToViewList(file);
                 uniqueFileList.push(file);
             }
@@ -335,11 +346,8 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype.getPathForView = function (view) {
-        return this.views[_.findKey(this.views, function (val) {
-            return val === view;
-        })];
+        return view.getFile().fullPath;
     };
-    
     
     Pane.prototype.addView = function (path, view, show) {
         this.views[path] = view;
@@ -408,6 +416,11 @@ define(function (require, exports, module) {
         return this.currentView ? this.currentView.getFile() : null;
     };
     
+    Pane.prototype.getCurrentlyViewedPath = function () {
+        var file = this.getCurrentlyViewedFile();
+        return file ? file.fullPath : null;
+    };
+    
     Pane.prototype.destroyViewIfNotNeeded = function (view) {
         if (view && !this.isViewNeeded(view)) {
             delete this.views[view.getFullPath()];
@@ -454,6 +467,63 @@ define(function (require, exports, module) {
         } else {
             this.$el.focus();
         }
+    };
+    
+    Pane.prototype.onSetActive = function (active) {
+        this.$el.toggleClass("active-pane", !!active);
+    };
+    
+    Pane.prototype.loadState = function (state) {
+        var filesToAdd = [],
+            viewStates = {},
+            activeFile;
+        
+        _.forEach(state, function (entry) {
+            filesToAdd.push(FileSystem.getFileForPath(entry.file));
+            if (entry.active) {
+                activeFile = entry.file;
+            }
+            if (entry.viewState) {
+                viewStates[entry.file] = entry.viewState;
+            }
+        });
+        
+        this.addListToViewList(filesToAdd);
+        
+        // TODO: Do we want EditorManager to manage the view state
+        //          for files that it doesn't actually manage?
+        EditorManager.addViewStates(viewStates);
+        
+        activeFile = activeFile || this.getInitialViewFilePath();
+        
+        if (activeFile) {
+            return CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeFile,
+                                                         paneId: this.id});
+        }
+        
+        return new $.Deferred().resolve();
+    };
+    
+    Pane.prototype.saveState = function () {
+        var view,
+            result = [],
+            self = this;
+        
+        this.viewList.forEach(function (file) {
+            // Do not persist untitled document paths
+            if (!(file instanceof InMemoryFile)) {
+                // flag the currently active editor
+                view = self.getViewForPath(file.fullPath);
+                
+                result.push({
+                    file: file.fullPath,
+                    active: (file === self.getCurrentlyViewedFile()),
+                    viewState:  EditorManager.getViewState(file.fullPath)
+                });
+            }
+        });
+        
+        return result;
     };
     
     exports.Pane = Pane;

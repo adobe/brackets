@@ -64,6 +64,9 @@ define(function (require, exports, module) {
      * @param {!jQuery} $popUp
      */
     function removePopUp($popUp) {
+        if (!$popUp) {
+            return;
+        }
         // check visible first to help protect against recursive calls
         // via removeHandler
         if ($popUp.find(":visible").length > 0) {

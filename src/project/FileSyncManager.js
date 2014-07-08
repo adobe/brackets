@@ -182,7 +182,7 @@ define(function (require, exports, module) {
      */
     function syncUnopenWorkingSet() {
         // We only care about working set entries that have never been open (have no Document).
-        var unopenWorkingSetFiles = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).filter(function (wsFile) {
+        var unopenWorkingSetFiles = MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).filter(function (wsFile) {
             return !DocumentManager.getOpenDocumentForPath(wsFile.fullPath);
         });
         
