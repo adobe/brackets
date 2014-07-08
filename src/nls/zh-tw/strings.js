@@ -171,7 +171,7 @@ define({
     "FIND_NUM_FILES"                    : "{0} 個{1}",
     "FIND_IN_FILES_SCOPED"              : "在 <span class='dialog-filename'>{0}</span> 中",
     "FIND_IN_FILES_NO_SCOPE"            : "在專案中",
-    "FIND_IN_FILES_ZERO_FILES"          : "Filter excludes all files {0}",
+    "FIND_IN_FILES_ZERO_FILES"          : "篩選條件排除了{0}的所有檔案",
     "FIND_IN_FILES_FILE"                : "檔案",
     "FIND_IN_FILES_FILES"               : "檔案",
     "FIND_IN_FILES_MATCH"               : "符合",
@@ -184,21 +184,21 @@ define({
     "REPLACE_IN_FILES_ERRORS"           : "下列檔案沒有被修改，可能是搜尋後又被變更，或是無法寫入。",
     
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "無法取得更新資訊",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "由伺服器取得最新的更版資訊時發生問題。請確定您有連線到 Internet，再重試一次。",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "由伺服器取得最新的更版資訊時發生問題。請確定您已連線到 Internet 後再重試一次。",
     
     // File exclusion filters
-    "NEW_FILE_FILTER"                   : "新增排外集合\u2026",
+    "NEW_FILE_FILTER"                   : "新增排除集\u2026",
     "CLEAR_FILE_FILTER"                 : "不要排除檔案",
     "NO_FILE_FILTER"                    : "沒有檔案被排除",
     "EXCLUDE_FILE_FILTER"               : "排除 {0}",
     "EDIT_FILE_FILTER"                  : "編輯\u2026",
-    "FILE_FILTER_DIALOG"                : "編輯排外集合",
-    "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>wildcards</a>. Enter each string on a new line.",
-    "FILTER_NAME_PLACEHOLDER"           : "Name this exclusion set (optional)",
-    "FILE_FILTER_CLIPPED_SUFFIX"        : "and {0} more",
+    "FILE_FILTER_DIALOG"                : "編輯排除集",
+    "FILE_FILTER_INSTRUCTIONS"          : "排除名稱完全或部分下列字串的檔案或資料夾，也可以使用<a href='{0}' title='{0}'>萬用字元</a>。 多組條件請分行輸入，一行一個。",
+    "FILTER_NAME_PLACEHOLDER"           : "這組排除集的名稱 (選填)",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "及其他 {0} 個",
     "FILTER_COUNTING_FILES"             : "計算檔案數目中\u2026",
-    "FILTER_FILE_COUNT"                 : "Allows {0} of {1} files {2}",
-    "FILTER_FILE_COUNT_ALL"             : "Allows all {0} files {1}",
+    "FILTER_FILE_COUNT"                 : "包含{2}全部 {1} 個檔案中的 {0} 個",
+    "FILTER_FILE_COUNT_ALL"             : "包含{1}的全部 {0} 個檔案",
 
     // Quick Edit
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "目前游標位置沒有相關的快速編輯功能",
@@ -206,7 +206,7 @@ define({
     "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS 快速編輯: class 屬性不完整",
     "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS 快速編輯: id 屬性不完整",
     "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS 快速編輯: 將游標放在標籤名稱、class 或 id 上",
-    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS Timing Function Quick Edit: 語法無效",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS 計時函式快速編輯: 語法無效",
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS 快速編輯: 將游標放在函式名稱上",
 
     // Quick Docs
@@ -522,8 +522,8 @@ define({
     "CMD_SWITCH_LANGUAGE"                       : "切換語言",
     "CMD_RUN_UNIT_TESTS"                        : "執行測試",
     "CMD_SHOW_PERF_DATA"                        : "顯示效能資料",
-    "CMD_ENABLE_NODE_DEBUGGER"                  : "Enable Node Debugger",
-    "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "啟用 Node 偵錯工具",
+    "CMD_LOG_NODE_STATE"                        : "將 Node 狀態寫到 Console",
     "CMD_RESTART_NODE"                          : "重新啟動 Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "在狀態列顯示錯誤訊息",
     
@@ -535,14 +535,14 @@ define({
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "時間",
-    "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
-    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units<br><kbd class='text'>Tab</kbd> Switch points",
-    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'",
-    "INLINE_TIMING_EDITOR_INVALID"              : "The old value <code>{0}</code> is not valid, so the displayed function was changed to <code>{1}</code>. The document will be updated with the first edit.",
+    "INLINE_TIMING_EDITOR_PROGRESSION"          : "進度",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 移動選取的控制點<br><kbd class='text'>Shift</kbd> 移動 10 個單位<br><kbd class='text'>Tab</kbd> 切換控制點",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> 增加或減少 Step 數<br><kbd>←</kbd><kbd>→</kbd> 'Start' 或 'End'",
+    "INLINE_TIMING_EDITOR_INVALID"              : "原始值 <code>{0}</code> 是無效的，因此改以 <code>{1}</code> 函式顯示。 檔案在第一次編輯後將被更新。",
     
     // extensions/default/InlineColorEditor
-    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "目前色彩",
-    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "原始色彩",
+    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "目前的色彩",
+    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "原來的色彩",
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa 格式",
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "16 進位格式",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa 格式",
@@ -558,7 +558,7 @@ define({
     "JSLINT_NAME"                               : "JSLint",
     
     // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                     : "Quick View on Hover",
+    "CMD_ENABLE_QUICK_VIEW"                     : "游標停留時快速檢視",
     
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "最近開啟的專案",
