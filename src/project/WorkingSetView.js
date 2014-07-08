@@ -397,15 +397,15 @@ define(function (require, exports, module) {
         $listItem.css("position", "relative").css("z-index", 1);
         
         // Envent Handlers
-        var $holder = $openFilesContainer.parent();
+        var $holder = $(window);
         $holder.on("mousemove.workingSet", function (e) {
             if (hasScroll) {
                 scroll(e);
             }
             drag(e);
         });
-        $holder.on("mouseup.workingSet mouseleave.workingSet", function (e) {
-            $holder.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
+        $holder.on("mouseup.workingSet", function (e) {
+            $holder.off(".workingSet");
             drop();
         });
     }
