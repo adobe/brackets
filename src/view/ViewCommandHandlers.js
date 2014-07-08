@@ -287,11 +287,6 @@ define(function (require, exports, module) {
                 CommandManager.get(Commands.VIEW_DECREASE_FONT_SIZE).setEnabled(true);
                 CommandManager.get(Commands.VIEW_RESTORE_FONT_SIZE).setEnabled(true);
             }
-
-            setFontFamily(prefs.get("fontFamily"));
-            setFontSize(prefs.get("fontSize"));
-            setLineHeight(prefs.get("lineHeight"));
-
         } else {
             // No current document so disable all of the Font Size commands
             CommandManager.get(Commands.VIEW_INCREASE_FONT_SIZE).setEnabled(false);
