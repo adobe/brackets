@@ -589,6 +589,9 @@ define(function (require, exports, module) {
 
             setActivePaneId(firstPane.id);
             
+            secondPane.$el.off(".mainview");
+            $(secondPane).off(".mainview");
+
             secondPane.destroy();
             delete _paneViews[SECOND_PANE];
             $(exports).triggerHandler("paneDestroyed", secondPane.id);
@@ -613,8 +616,11 @@ define(function (require, exports, module) {
             
             $(exports).triggerHandler("paneCreated", pane.id);
             
-            pane.$el.on("click", function () {
+            pane.$el.on("click.mainview", function () {
                 setActivePaneId(pane.id);
+            });
+            $(pane).on("viewListChanged.mainview", function () {
+                $(exports).triggerHandler("paneViewListUpdated", pane.id);
             });
         }
         
@@ -978,7 +984,7 @@ define(function (require, exports, module) {
     // Convenience
     exports.getCurrentlyViewedFile           = getCurrentlyViewedFile;
     exports.getCurrentlyViewedPath           = getCurrentlyViewedPath;
-    exports.getCurrentlyViewedFileForPane      = getCurrentlyViewedFileForPane;
+    exports.getCurrentlyViewedFileForPane    = getCurrentlyViewedFileForPane;
     exports.getCurrentlyViewedPathForPane    = getCurrentlyViewedPathForPane;
     
     // Constants

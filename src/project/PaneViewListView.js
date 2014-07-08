@@ -694,11 +694,8 @@ define(function (require, exports, module) {
      * @param {string} oldName
      * @param {string} newName
      */
-    PaneViewListView.prototype._handleFileNameChanged = function (e, oldName, newName) {
-        if (this._findListItemFromPath(oldName)) {
-            // Rebuild the working set if any file or folder name changed.
-            // We could be smarter about this and only update the
-            // nodes that changed, if needed...
+    PaneViewListView.prototype._handlePaneViewListUpdated = function (e, paneId) {
+        if (this.paneId === paneId) {
             this._rebuildViewList(true);
         }
     };
@@ -721,10 +718,10 @@ define(function (require, exports, module) {
         $(MainViewManager).on(this._makeEventName("paneViewListSort"), _.bind(this._handlePaneViewListSort, this));
         $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
         $(MainViewManager).on(this._makeEventName("paneLayoutChange"), _.bind(this._handlePaneLayoutChange, this));
+        $(MainViewManager).on(this._makeEventName("paneViewListUpdated"), _.bind(this._handlePaneViewListUpdated, this));
 
         $(DocumentManager).on(this._makeEventName("dirtyFlagChange"), _.bind(this._handleDirtyFlagChanged, this));
-        $(DocumentManager).on(this._makeEventName("fileNameChange"), _.bind(this._handleFileNameChanged, this));
-        
+
         $(FileViewController).on(this._makeEventName("documentSelectionFocusChange") + " " + this._makeEventName("fileViewFocusChange"), _.bind(this._updateListSelection, this));
         
         // Show scroller shadows when open-files-container scrolls

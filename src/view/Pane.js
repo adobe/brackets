@@ -59,7 +59,7 @@ define(function (require, exports, module) {
 
     Pane.prototype._makeEventName = function (name) {
         return name + ".pane" + this.paneId;
-    };    
+    };
     
     Pane.prototype.mergeWith = function (other) {
         this.viewList = _.union(this.viewList, other.viewList);
@@ -212,15 +212,10 @@ define(function (require, exports, module) {
 
         if (view) {
             if (this.currentView === view) {
-                this.currentView = null;
+                this.showInterstitial(true);
             }
             delete this.views[file.fullPath];
             view.destroy();
-        }
-        
-        // No views to display?
-        if (Object.keys(this.views).length === 0) {
-            this.showInterstitial(true);
         }
         
         return true;
@@ -313,28 +308,22 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype._handleFileNameChange = function (e, oldname, newname) {
-        var updateList = function (list) {
-            var index = _.indexOf(list, oldname);
+        if (this.findInViewList(newname) >= 0) {
+            if (this.views.hasOwnProperty(oldname)) {
+                var view = this.views[oldname];
 
-            if (index >= 0) {
-                list[index] = newname;
+                this.views[newname] = view;
+                delete this.views[oldname];
             }
-        };
-
-        if (this.views.hasOwnProperty(oldname)) {
-            var view = this.views[oldname];
-            
-            this.views[newname] = view;
-            delete this.views[oldname];
+            $(this).triggerHandler("viewListChanged");
         }
-
-        updateList(this.viewList);
-        updateList(this.viewListMRUOrder);
-        updateList(this.viewListAddedOrder);
     };
 
-    Pane.prototype._handleFileDeleted = function (e, file) {
-        this.doRemoveFile(file);
+    Pane.prototype._handleFileDeleted = function (e, fullPath) {
+        if (this.findInViewList(fullPath) >= 0) {
+            this.doRemoveView({fullPath: fullPath});
+            $(this).triggerHandler("viewListChanged");
+        }
     };
     
     Pane.prototype.showInterstitial = function (show) {
@@ -387,19 +376,6 @@ define(function (require, exports, module) {
                 oldView.destroy();
             }
         }
-    };
-    
-    Pane.prototype.doRemoveView = function (file) {
-        var nextFile = this.traverseViewListByMRU(1, file.fullPath);
-        if (nextFile) {
-            if (this.views.hasOwnProperty(nextFile)) {
-                this.showView(this.views[nextFile]);
-            } else {
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath,
-                                                             paneId: this.id});
-            }
-        }
-        this._removeFromViewList(file);
     };
     
     Pane.prototype.updateLayout = function (hint) {
@@ -463,6 +439,19 @@ define(function (require, exports, module) {
         });
         
         return result;
+    };
+    
+    Pane.prototype.doRemoveView = function (file) {
+        var nextFile = this.traverseViewListByMRU(1, file.fullPath);
+        if (nextFile) {
+            if (this.views.hasOwnProperty(nextFile)) {
+                this.showView(this.views[nextFile]);
+            } else {
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath,
+                                                             paneId: this.id});
+            }
+        }
+        this._removeFromViewList(file);
     };
     
     Pane.prototype.focus = function () {
