@@ -620,12 +620,14 @@ define(function (require, exports, module) {
     /**
      * @private
      */
-    PaneViewListView.prototype._handleFileListAdded = function (e, files) {
+    PaneViewListView.prototype._handleFileListAdded = function (e, files, paneId) {
         var self = this;
-        files.forEach(function (file) {
-            self._createNewListItem(file);
-        });
-        this._redraw();
+        if (paneId === this.paneId) {
+            files.forEach(function (file) {
+                self._createNewListItem(file);
+            });
+            this._redraw();
+        }
     };
 
     /** 

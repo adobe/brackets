@@ -54,6 +54,15 @@ define(function (require, exports, module) {
         AsyncUtils          = require("utils/Async"),
         Pane                = require("view/Pane").Pane;
         
+
+    var CMD_ID_SPLIT_VERTICALLY = "cmd.splitVertically",
+        CMD_ID_SPLIT_HORIZONTALLY = "cmd.splitHorizontally";
+    
+    var _cmdSplitVertically,
+        _cmdSplitHorizontally;
+    
+    var PREFS_NAME          = "mainView.state",
+        OLD_PREFS_NAME      = "project.files";
     
     var ALL_PANES           = "ALL_PANES",
         FOCUSED_PANE        = "FOCUSED_PANE",
@@ -530,12 +539,11 @@ define(function (require, exports, module) {
         
     }
     
-    var CMD_SPLIT_VERTICALLY = "cmd.splitVertically";
-    var CMD_SPLIT_HORIZONTALLY = "cmd.splitHorizontally";
-    
     function _updateCommandState() {
-        CommandManager.get(CMD_SPLIT_VERTICALLY).setChecked(_orientation === VERTICAL);
-        CommandManager.get(CMD_SPLIT_HORIZONTALLY).setChecked(_orientation === HORIZONTAL);
+        if (_cmdSplitVertically && _cmdSplitHorizontally) {
+            _cmdSplitVertically.setChecked(_orientation === VERTICAL);
+            _cmdSplitHorizontally.setChecked(_orientation === HORIZONTAL);
+        }
     }
     
     function _doUnsplit() {
@@ -748,7 +756,7 @@ define(function (require, exports, module) {
             context = { location : { scope: "user",
                                      layer: "project" } };
         
-        files = PreferencesManager.getViewState("project.files", context);
+        files = PreferencesManager.getViewState(OLD_PREFS_NAME, context);
         
         if (!files) {
             return;
@@ -784,7 +792,7 @@ define(function (require, exports, module) {
             promises = [],
             context = { location : { scope: "user",
                                      layer: "project" } },
-            state = PreferencesManager.getViewState("mainView.state", context);
+            state = PreferencesManager.getViewState(PREFS_NAME, context);
 
         if (!state) {
             // not converted yet
@@ -810,6 +818,9 @@ define(function (require, exports, module) {
                 setActivePaneId(state.activePaneId);
                 _updateLayout();
                 _updateCommandState();
+                if (_orientation) {
+                    $(exports).triggerHandler("paneLayoutChange", _orientation);
+                }
             });
         }
     }
@@ -839,7 +850,7 @@ define(function (require, exports, module) {
             state.panes[pane.id] = pane.saveState();
         });
 
-        PreferencesManager.setViewState("mainView.state", state, context);
+        PreferencesManager.setViewState(PREFS_NAME, state, context);
     }
     
     AppInit.htmlReady(function () {
@@ -874,15 +885,17 @@ define(function (require, exports, module) {
     }
     
     AppInit.appReady(function () {
-        CommandManager.register("Split Vertically", CMD_SPLIT_VERTICALLY,   _handleSplitVertically);
-        CommandManager.register("Split Horizontally", CMD_SPLIT_HORIZONTALLY, _handleSplitHorizontially);
+        _cmdSplitVertically = CommandManager.register("Split Vertically", CMD_ID_SPLIT_VERTICALLY,   _handleSplitVertically);
+        _cmdSplitHorizontally = CommandManager.register("Split Horizontally", CMD_ID_SPLIT_HORIZONTALLY, _handleSplitHorizontially);
 
         var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
         if (menu) {
             menu.addMenuDivider();
-            menu.addMenuItem(CMD_SPLIT_VERTICALLY);
-            menu.addMenuItem(CMD_SPLIT_HORIZONTALLY);
+            menu.addMenuItem(CMD_ID_SPLIT_VERTICALLY);
+            menu.addMenuItem(CMD_ID_SPLIT_HORIZONTALLY);
         }
+        
+        _updateCommandState();
     });
 
     // Init
