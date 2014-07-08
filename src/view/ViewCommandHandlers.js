@@ -124,9 +124,12 @@ define(function (require, exports, module) {
      * @param {boolean} important Is a flag to make the style property !important
      */
     function _addDynamicProperty(propertyID, name, value, important) {
-        var $style    = $("<style type='text/css'></style>").attr("id", propertyID);
+        var $style   = $("<style type='text/css'></style>").attr("id", propertyID);
         var styleStr = StringUtils.format("{0}: {1}{2}", name, value, important ? " !important" : "");
         $style.html(".CodeMirror { " + styleStr + " }");
+        
+        // Let's make sure we remove the already existing item from the DOM.
+        _removeDynamicProperty(propertyID);        
         $("head").append($style);
     }
 
@@ -262,6 +265,15 @@ define(function (require, exports, module) {
         setFontSize(DEFAULT_FONT_SIZE);
     }
     
+    /**
+     * Initializes the different settings that need to loaded
+     */
+    function init() {
+        _addDynamicFontFamily(prefs.get("fontFamily"));
+        _addDynamicFontSize(prefs.get("fontSize"));
+        _addDynamicLineHeight(prefs.get("lineHeight"));
+        _updateUI();
+    }
     
     /**
      * @private
@@ -548,7 +560,7 @@ define(function (require, exports, module) {
     $(DocumentManager).on("currentDocumentChange", _updateUI);
 
     // Update UI when Brackets finishes loading
-    AppInit.appReady(_updateUI);
+    AppInit.appReady(init);
     
     exports.restoreFontSize = restoreFontSize;
     exports.restoreFonts    = restoreFonts;
