@@ -91,6 +91,12 @@ define(function (require, exports, module) {
     var _paneViews = {
     };
     
+    /**
+     *
+     */
+    var _traversingFileList = false;
+    
+    
     function getActivePaneId() {
         return _activePaneId;
     }
@@ -457,7 +463,7 @@ define(function (require, exports, module) {
     function makePaneViewMostRecent(paneId, file) {
         var pane = _getPaneFromPaneId(paneId);
 
-        if (pane) {
+        if (pane && !_traversingFileList) {
             pane.makeViewMostRecent(file);
         }
     }
@@ -510,6 +516,31 @@ define(function (require, exports, module) {
         return null;
     }
 
+    
+    /**
+     * Indicate that changes to currentDocument are temporary for now, and should not update the MRU
+     * ordering of the working set. Useful for next/previous keyboard navigation (until Ctrl is released)
+     * or for incremental-search style document preview like Quick Open will eventually have.
+     * Can be called any number of times, and ended by a single finalizeDocumentNavigation() call.
+     */
+    function beginTraversal() {
+        _traversingFileList = true;
+    }
+    
+    /**
+     * Un-freezes the MRU list after one or more beginDocumentNavigation() calls. Whatever document is
+     * current is bumped to the front of the MRU list.
+     */
+    function endTraversal() {
+        var pane = _getActivePane();
+        
+        if (_traversingFileList) {
+            _traversingFileList = false;
+            
+            makePaneViewMostRecent(pane.id, pane.getCurrentlyViewedFile());
+        }
+    }
+    
     /**
      * Event handler for "workspaceUpdateLayout" to update the layout
      * @param {Event} event 
@@ -923,6 +954,10 @@ define(function (require, exports, module) {
     exports.swapPaneViewListIndexes          = swapPaneViewListIndexes;
     exports.traversePaneViewListByMRU        = traversePaneViewListByMRU;
     exports.forceFocusToActivePaneView       = forceFocusToActivePaneView;
+    
+    // Traversal
+    exports.beginTraversal                   = beginTraversal;
+    exports.endTraversal                     = endTraversal;
     
     // PaneView Attributes
     exports.getActivePaneId                  = getActivePaneId;

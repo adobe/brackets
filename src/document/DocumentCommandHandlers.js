@@ -1327,8 +1327,7 @@ define(function (require, exports, module) {
      */
     function detectDocumentNavEnd(event) {
         if (event.keyCode === KeyEvent.DOM_VK_CONTROL) {  // Ctrl key
-            DocumentManager.finalizeDocumentNavigation();
-            
+            MainViewManager.endTraversal();
             _addedNavKeyHandler = false;
             $(window.document.body).off("keyup", detectDocumentNavEnd);
         }
@@ -1338,7 +1337,7 @@ define(function (require, exports, module) {
     function goNextPrevDoc(inc) {
         var file = MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, inc);
         if (file) {
-            DocumentManager.beginDocumentNavigation();
+            MainViewManager.beginTraversal();
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
             
             // Listen for ending of Ctrl+Tab sequence

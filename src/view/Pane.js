@@ -507,17 +507,14 @@ define(function (require, exports, module) {
     Pane.prototype.saveState = function () {
         var view,
             result = [],
-            self = this;
+            currentlyViewedPath = this.getCurrentlyViewedPath();
         
         this.viewList.forEach(function (file) {
             // Do not persist untitled document paths
             if (!(file instanceof InMemoryFile)) {
-                // flag the currently active editor
-                view = self.getViewForPath(file.fullPath);
-                
                 result.push({
                     file: file.fullPath,
-                    active: (file === self.getCurrentlyViewedFile()),
+                    active: (file.fullPath === currentlyViewedPath),
                     viewState:  EditorManager.getViewState(file.fullPath)
                 });
             }

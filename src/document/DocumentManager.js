@@ -308,50 +308,6 @@ define(function (require, exports, module) {
         MainViewManager.doCloseAll(MainViewManager.ALL_PANES);
     }
             
-
-    /**
-     * Moves document to the front of the MRU list, IF it's in the working set; no-op otherwise.
-     * @param {!Document}
-     */
-    function _makeMostRecent(doc) {
-        MainViewManager.makePaneViewMostRecent(MainViewManager.FOCUSED_PANE, doc.file);
-    }
-
-    
-    /**
-     * Indicate that changes to currentDocument are temporary for now, and should not update the MRU
-     * ordering of the working set. Useful for next/previous keyboard navigation (until Ctrl is released)
-     * or for incremental-search style document preview like Quick Open will eventually have.
-     * Can be called any number of times, and ended by a single finalizeDocumentNavigation() call.
-     */
-    function beginDocumentNavigation() {
-        _documentNavPending = true;
-    }
-    
-    /**
-     * Un-freezes the MRU list after one or more beginDocumentNavigation() calls. Whatever document is
-     * current is bumped to the front of the MRU list.
-     */
-    function finalizeDocumentNavigation() {
-        if (_documentNavPending) {
-            _documentNavPending = false;
-            
-            _makeMostRecent(getCurrentDocument());
-        }
-    }
-    
-    
-    /**
-     * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
-     * return currentDocument itself if working set is length 1.
-     * @param {number} inc  -1 for previous, +1 for next; no other values allowed
-     * @return {?File}  null if working set empty
-     */
-    function getNextPrevFile(inc) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.traversePaneViewListByMRU() instead of DocumentManager.getNextPrevFile()", true);
-        return MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, inc);
-    }
-    
     /**
      * @deprecated use MainViewManager.doClose() instead
      * @param {!File} file
@@ -371,10 +327,20 @@ define(function (require, exports, module) {
      *      working set.
      */
     function setCurrentDocument(doc) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.doOpen() instead of DocumentManager.setCurrentDocument() ", true);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.doOpen() instead of DocumentManager.setCurrentDocument()", true);
         MainViewManager.doOpen(doc.file);
     }
 
+    
+    function beginDocumentNavigation() {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.beginTraversal() instead of DocumentManager.beginDocumentNavigation()", true);
+        MainViewManager.beginTraversal();
+    }
+    
+    function finalizeDocumentNavigation() {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.endTraversal() instead of DocumentManager.finalizeDocumentNavigation()", true);
+        MainViewManager.endTraversal();
+    }
     
     
     /**
@@ -735,9 +701,9 @@ define(function (require, exports, module) {
     exports.addListToWorkingSet            = addListToWorkingSet;
     exports.removeFromWorkingSet           = removeFromWorkingSet;
     exports.removeListFromWorkingSet       = removeListFromWorkingSet;
-    exports.getNextPrevFile                = getNextPrevFile;
     exports.getCurrentDocument             = getCurrentDocument;
-       
+    exports.beginDocumentNavigation        = beginDocumentNavigation;
+    exports.finalizeDocumentNavigation     = finalizeDocumentNavigation;
    
     // Define public API   
     exports.Document                       = DocumentModule.Document;
@@ -748,8 +714,6 @@ define(function (require, exports, module) {
     exports.getAllOpenDocuments            = getAllOpenDocuments;
     exports.setCurrentDocument             = setCurrentDocument;
     exports.clearCurrentDocument           = clearCurrentDocument;
-    exports.beginDocumentNavigation        = beginDocumentNavigation;
-    exports.finalizeDocumentNavigation     = finalizeDocumentNavigation;
     exports.closeFullEditor                = closeFullEditor;
     exports.closeAll                       = closeAll;
     exports.notifyFileDeleted              = notifyFileDeleted;
