@@ -123,8 +123,8 @@ a, img {
 
 #status-bar {
     position: relative;
-    background: #fff;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    background: @bc-bg-status-bar;
+    border-top: 1px solid @bc-panel-border;
     box-sizing: border-box;
     color: @bc-text;
     font-family: @sansFontFamily;
@@ -146,11 +146,11 @@ a, img {
 }
 
 #status-file {
-    color: #999;
+    color: @bc-text-quiet;
 }
 
 #status-indicators {
-    background: #fff;
+    background: @bc-bg-status-bar;
     color: @bc-text;
     position: absolute;
     right: 0;
@@ -159,7 +159,7 @@ a, img {
 
     > div {
         &:not(.spinner) {
-            border-left: 1px solid rgba(0, 0, 0, 0.1);
+            border-left: 1px solid @bc-panel-border;
         }
         float: right;
         padding: 0 10px;
@@ -170,7 +170,7 @@ a, img {
     }
 
     #status-language {
-        border-right: 1px solid rgba(0, 0, 0, 0.1);
+        border-right: 1px solid @bc-panel-border;
     }
 }
 
@@ -219,7 +219,7 @@ a, img {
 #status-overwrite {
     transition: background-color 3s;
     background-color: rgba(120, 178, 242, 0);
-    color: rgb(69, 69, 69);
+    color: @bc-text;
     cursor: pointer;
 }
 
@@ -273,7 +273,7 @@ a, img {
 
     #img-preview {
         background: url(images/preview_bg.png);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.36);
+        box-shadow: 0 1px 3px @bc-shadow;
         max-height: 90%;
     }
 
@@ -316,9 +316,9 @@ a, img {
         width: 40px;
         text-align: center;
         background-color: rgba(0, 0, 0, 0.8);
-        color: #fff;
+        color: @bc-text-alt;
         border-radius: 3px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 1px 3px @bc-shadow;
     }
 
     #img-tip {
@@ -327,13 +327,13 @@ a, img {
         text-align: left;
         white-space: nowrap;
         padding: 6px 9px;
-        color: #fff;
+        color: @bc-text-alt;
         background-color: rgba(0, 0, 0, 0.8);
         font-size: 11px;
         font-family: SourceCodePro;
         line-height: 13px;
         border-radius: 3px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.24);
+        box-shadow: 0 1px 3px @bc-shadow;
     }
 
     #x-value,
@@ -388,14 +388,14 @@ a, img {
     background-color: @bc-panel-bg;
     display: none;
     height: 200px;
-    border: 1px solid @bc-panel-border;
+    border-top: 1px solid @bc-panel-border;
     
     .check-all {
         margin: 7px 15px 7px 7px;
     }
 
     .toolbar {
-        background-color: @bc-panel-bg-header;
+        background-color: @bc-panel-bg-promoted;
         border-bottom: 1px solid @bc-panel-separator;
         height: auto;
         padding-top: (@base-padding / 2);
@@ -511,9 +511,9 @@ a, img {
     position: relative;
     height: 19px;
     padding: 10px 0 9px 12px;
-    background: #3C3F41;
+    background: @bc-sidebar-bg;
     color: @project-panel-text-2;
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+    text-shadow: 0 -1px 0 @bc-shadow-large;
     overflow: hidden;
 }
 
@@ -555,7 +555,7 @@ a, img {
 
 #open-files-container {
     .box-flex(0);
-    background: #3C3F41;
+    background: @bc-sidebar-bg;
     padding: 0px;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
@@ -583,7 +583,7 @@ a, img {
     }
 
     a {
-        color: #fff;
+        color: @bc-text-alt;
 
         font-size: 13px;
         text-decoration: none;
@@ -703,14 +703,14 @@ a, img {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0) rotate(90deg);
     -webkit-transition: -webkit-transform 190ms cubic-bezier(.01, .91, 0, .99);
-    -webkit-filter: drop-shadow(1px 0 1px rgba(0, 0, 0, 0.36));
+    -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
 }
 
 .jstree-brackets .jstree-no-dots .jstree-closed > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0); /* Need this to make sure that the svg isn't blurry on retina. */
     -webkit-transition: -webkit-transform 90ms cubic-bezier(.01, .91, 0, .99);
-    -webkit-filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.36));
+    -webkit-filter: drop-shadow(0 1px 1px @bc-shadow);
 }
 
 /** Unicode Icon container
@@ -871,7 +871,7 @@ a, img {
 
     .selection {
         width: 100%;
-        background: #d0d5d5;
+        background: @bc-panel-bg-promoted;
         position: absolute;
         border-top: 1px solid darken(@inline-background-color-3, @bc-color-step-size);
         border-bottom: 1px solid lighten(@inline-background-color-3, @bc-color-step-size);
@@ -990,7 +990,7 @@ a, img {
         background-color: rgba(255, 255, 255, 0.3);
     }
     .pagination-col > span:active {
-        background-color: rgba(0, 0, 0, 0.12);
+        background-color: @bc-shadow;
     } 
     .replace-col {
         .flex-item(1, 0);
@@ -1385,14 +1385,14 @@ textarea.exclusions-editor {
     margin: 9px 0 0;
 
     .quick-open-path {
-        color: #666;
+        color: @bc-text-thin-quiet;
         font-size: 11px;
         letter-spacing: 0.04em;
         line-height: 11px;
     }
 
     li {
-        color: #222;
+        color: @bc-text-emphasized;
         line-height: 15px;
         list-style: none;
         cursor: default;
@@ -1427,7 +1427,7 @@ textarea.exclusions-editor {
 }
 
 .quicksearch-pathmatch {
-    color: #555;
+    color: @bc-text;
 }
 
 
