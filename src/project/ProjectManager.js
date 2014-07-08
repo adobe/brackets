@@ -222,8 +222,8 @@ define(function (require, exports, module) {
     function _generateSortPrefixes() {
         var previousDirFirst  = _dirFirst;
         _dirFirst             = PreferencesManager.get("sortDirectoriesFirst");
-        _sortPrefixDir        = _dirFirst ? "0" : "";
-        _sortPrefixFile       = _dirFirst ? "1" : "";
+        _sortPrefixDir        = _dirFirst ? "a" : "";
+        _sortPrefixFile       = _dirFirst ? "b" : "";
         
         return previousDirFirst !== _dirFirst;
     }
