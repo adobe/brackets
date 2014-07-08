@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $ */
+/*global define, $ */
 
 /**
  * The ViewCommandHandlers object dispatches the following event(s):
@@ -36,10 +36,8 @@ define(function (require, exports, module) {
     
     var Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
-        KeyBindingManager   = require("command/KeyBindingManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
-        ProjectManager      = require("project/ProjectManager"),
         EditorManager       = require("editor/EditorManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
