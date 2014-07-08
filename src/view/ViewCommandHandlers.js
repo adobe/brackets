@@ -180,7 +180,7 @@ define(function (require, exports, module) {
      * @param {string} lineHeight  A string with the line height with size unit
      */
     function _addDynamicLineHeight(lineHeight) {
-        _addDynamicProperty(DYNAMIC_LINE_HEIGHT_ID, "line-height", lineHeight + "em", true, ".CodeMirror-lines > div");
+        _addDynamicProperty(DYNAMIC_LINE_HEIGHT_ID, "line-height", lineHeight, true, ".CodeMirror-lines > div");
     }
 
     /**
