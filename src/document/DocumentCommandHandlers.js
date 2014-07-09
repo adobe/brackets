@@ -273,7 +273,7 @@ define(function (require, exports, module) {
             } else {
                 // For performance, we do lazy checking of file existence, so it may be in pane view list
                 MainViewManager.removeFromPaneViewList(MainViewManager.FOCUSED_PANE, FileSystem.getFileForPath(fullFilePath));
-                EditorManager.focusEditor();
+                MainViewManager.forceFocusToActivePaneView();
             }
             result.reject();
         }
@@ -683,7 +683,7 @@ define(function (require, exports, module) {
             result.resolve(file);
         }
         result.always(function () {
-            EditorManager.focusEditor();
+            MainViewManager.forceFocusToActivePaneView();
         });
         return result.promise();
     }
@@ -1096,12 +1096,12 @@ define(function (require, exports, module) {
                     }
                 });
             result.always(function () {
-                EditorManager.focusEditor();
+                MainViewManager.forceFocusToActivePaneView();
             });
         } else {
             // File is not open, or IS open but Document not dirty: close immediately
             doClose(file);
-            EditorManager.focusEditor();
+            MainViewManager.forceFocusToActivePaneView();
             result.resolve();
         }
         return promise;

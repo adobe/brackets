@@ -269,7 +269,7 @@ define(function (require, exports, module) {
     Sort.prototype.sort = function () {
         if (_currentSort === this) {
             _removeListeners();
-            MainViewManager.sortPaneViewList(MainViewManager.FOCUSED_PANE, this._compareFn);
+            MainViewManager.sortPaneViewList(MainViewManager.ALL_PANES, this._compareFn);
             _addListeners();
         }
     };

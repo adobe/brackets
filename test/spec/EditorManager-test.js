@@ -30,13 +30,16 @@ define(function (require, exports, module) {
     
     var EditorManager    = require("editor/EditorManager"),
         WorkspaceManager = require("view/WorkspaceManager"),
+        MainViewManager  = require("view/MainViewManager"),
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 
     // TODO -- This is a workspace layout thing now so we need to repurpose this 
     describe("EditorManager", function () {
 
+        MainViewManager._initialize();
+        
         describe("resizeEditor() flag options", function () {
-            var testEditor, testDoc, $root, $fakeContentDiv;
+            var pane, testEditor, testDoc, $root, $fakeContentDiv, $fakeHolder;
             
             beforeEach(function () {
                 // Normally the editor holder would be created inside a "content" div, which is
@@ -46,20 +49,13 @@ define(function (require, exports, module) {
                     .css("height", "200px")
                     .appendTo(document.body);
                 
-                // createMockEditor() creates the mock-editor-holder, and links EditorManager/WorkspaceManager
-                // to it (and links WorkspaceManager to our content div)
-                var mock = SpecRunnerUtils.createMockEditor("");
-                
-                // move newly created mock-editor-holder into the content div we created above
-                $("#mock-editor-holder")
-                    .appendTo($fakeContentDiv);
-                
-                testEditor = mock.editor;
-                testDoc = mock.doc;
-                $root = $(testEditor.getRootElement());
-                
-                testDoc._masterEditor = testEditor;
-                EditorManager._doShow(testDoc);
+                $fakeHolder = SpecRunnerUtils.createMockElement()
+                                            .css("width", "1000px")
+                                            .attr("id", "mock-editor-holder")
+                                            .appendTo($fakeContentDiv);
+
+                pane = SpecRunnerUtils.createMockPane($fakeHolder);
+                testDoc = SpecRunnerUtils.createMockDocument("");
             });
             
             afterEach(function () {
@@ -69,9 +65,27 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.destroyMockEditor(testDoc);
                 testEditor = null;
                 testDoc = null;
+                pane = null;
                 $root = null;
             });
             
+            it("should create a new editor for a document and add it to a pane", function () {
+                spyOn(pane, "addView");
+                EditorManager.doOpenDocument(testDoc, pane);
+                expect(pane.addView).toHaveBeenCalled();
+            });
+            
+            it("should use an existing editor for a document and show the editor", function () {
+                spyOn(pane, "addView");
+                spyOn(pane, "showView");
+                var editor = SpecRunnerUtils.createEditorInstance(testDoc, $fakeHolder);
+                EditorManager.doOpenDocument(testDoc, pane);
+                expect(pane.showView).toHaveBeenCalled();
+                expect(pane.addView).not.toHaveBeenCalled();
+            });
+            
+/**
+No longer an editor-manager test since editor-manager doesn't handle the event anymore
             // force cases
             it("should refresh if force is specified even if no width or height change", function () {
                 $root.height(200); // same as content div, so shouldn't be detected as a change
@@ -82,7 +96,6 @@ define(function (require, exports, module) {
                 WorkspaceManager.recomputeLayout(EditorManager.REFRESH_FORCE);
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
-
             it("should refresh if force is specified when width changed but height hasn't", function () {
                 $root.height(200); // same as content div, so shouldn't be detected as a change
                 $root.width(200);
@@ -206,6 +219,8 @@ define(function (require, exports, module) {
                 WorkspaceManager.recomputeLayout();
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
+**/
         });
+        
     });
 });

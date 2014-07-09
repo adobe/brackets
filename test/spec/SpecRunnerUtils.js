@@ -387,6 +387,16 @@ define(function (require, exports, module) {
             .appendTo($("body"));
     }
 
+    function createEditorInstance(doc, $editorHolder, visibleRange) {
+        var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
+        
+        Editor.setUseTabChar(EDITOR_USE_TABS);
+        Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
+        EditorManager._notifyActiveEditorChanged(editor);
+        
+        return editor;
+    }
+    
     /**
      * Returns an Editor tied to the given Document, but suitable for use in isolation
      * (without being placed inside the surrounding Brackets UI). The Editor *will* be
@@ -405,12 +415,7 @@ define(function (require, exports, module) {
         WorkspaceManager._setMockDOM($(".content"), $editorHolder);
         
         // create Editor instance
-        var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
-        Editor.setUseTabChar(EDITOR_USE_TABS);
-        Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
-        EditorManager._notifyActiveEditorChanged(editor);
-        
-        return editor;
+        return createEditorInstance(doc, $editorHolder, visibleRange);
     }
     
     /**
@@ -430,6 +435,16 @@ define(function (require, exports, module) {
         // create dummy Document, then Editor tied to it
         var doc = createMockDocument(initialContent, languageId);
         return { doc: doc, editor: createMockEditorForDocument(doc, visibleRange) };
+    }
+    
+    function createMockPane($el) {
+        return {
+            $el: $el,
+            addView: function (path, editor) {
+            },
+            showView: function (editor) {
+            }
+        };
     }
     
     /**
@@ -1316,11 +1331,13 @@ define(function (require, exports, module) {
     exports.getBracketsSourceRoot           = getBracketsSourceRoot;
     exports.makeAbsolute                    = makeAbsolute;
     exports.resolveNativeFileSystemPath     = resolveNativeFileSystemPath;
+    exports.createEditorInstance            = createEditorInstance;
     exports.createMockDocument              = createMockDocument;
     exports.createMockActiveDocument        = createMockActiveDocument;
     exports.createMockElement               = createMockElement;
     exports.createMockEditorForDocument     = createMockEditorForDocument;
     exports.createMockEditor                = createMockEditor;
+    exports.createMockPane                  = createMockPane;
     exports.createTestWindowAndRun          = createTestWindowAndRun;
     exports.closeTestWindow                 = closeTestWindow;
     exports.clickDialogButton               = clickDialogButton;

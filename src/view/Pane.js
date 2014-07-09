@@ -75,6 +75,7 @@ define(function (require, exports, module) {
             // We don't copy temporary views
             if (other.findInViewList(view.getFullPath()) !== -1) {
                 view.switchContainers(self.$el);
+                self.views[view.getFile().fullPath] = view;
             } else {
                 viewsToDestroy.push(view);
             }
@@ -354,7 +355,8 @@ define(function (require, exports, module) {
             return;
         }
         
-        var oldView = this.currentView,
+        var newPath = view.getFullPath(),
+            oldView = this.currentView,
             oldPath = oldView ? oldView.getFullPath() : undefined;
         
         if (this.currentView) {
@@ -375,6 +377,10 @@ define(function (require, exports, module) {
                 delete this.views[oldPath];
                 oldView.destroy();
             }
+        }
+        
+        if ((this.findInViewList(newPath) !== -1) && (!this.views.hasOwnProperty(newPath))) {
+            console.error(newPath + "found in pane working set but pane.addView() has not been called for the view created for it");
         }
     };
     
@@ -455,8 +461,10 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype.focus = function () {
-        if (this.currentView && (!this.currentView.hasFocus() && !this.currentView.childHasFocus())) {
-            this.currentView.focus();
+        if (this.currentView) {
+            if (!this.currentView.hasFocus() && !this.currentView.childHasFocus()) {
+                this.currentView.focus();
+            }
         } else {
             this.$el.focus();
         }

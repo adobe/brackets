@@ -65,15 +65,16 @@ define(function (require, exports, module) {
         OLD_PREFS_NAME      = "project.files";
     
     var ALL_PANES           = "ALL_PANES",
-        FOCUSED_PANE        = "FOCUSED_PANE",
-        FIRST_PANE          = "first-pane",
-        SECOND_PANE         = "second-pane",
-        VERTICAL            = "VERTICAL",
+        FOCUSED_PANE        = "FOCUSED_PANE";
+        
+    var FIRST_PANE          = "first-pane",
+        SECOND_PANE         = "second-pane";
+    
+    var VERTICAL            = "VERTICAL",
         HORIZONTAL          = "HORIZONTAL";
     
     var _paneTitles  = {
     };
-    
     
     var _orientation = null;
     
@@ -95,7 +96,6 @@ define(function (require, exports, module) {
      *
      */
     var _traversingFileList = false;
-    
     
     function getActivePaneId() {
         return _activePaneId;
@@ -151,7 +151,6 @@ define(function (require, exports, module) {
                 return false;
             }
         });
-        
         return paneId;
     }
     
@@ -248,7 +247,6 @@ define(function (require, exports, module) {
     }
     
     function _doFindInViewList(paneId, fullPath, method) {
-        
         if (paneId === ALL_PANES) {
             var index,
                 result = -1;
@@ -303,7 +301,6 @@ define(function (require, exports, module) {
     
     function getPaneIdForPath(fullPath) {
         var info = findInPaneViewList(ALL_PANES, fullPath);
-        
         if (info !== -1) {
             return info.paneId;
         } else {
@@ -474,11 +471,19 @@ define(function (require, exports, module) {
      * @param {function(File, File): number} compareFn see: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
      */
     function sortPaneViewList(paneId, compareFn) {
-        var pane = _getPaneFromPaneId(paneId);
-
-        if (pane) {
-            pane.sortViewList(compareFn);
-            $(exports).triggerHandler("paneViewListSort", [pane.id]);
+        var doSort = function (pane) {
+            if (pane) {
+                pane.sortViewList(compareFn);
+                $(exports).triggerHandler("paneViewListSort", [pane.id]);
+            }
+        };
+        
+        if (paneId === ALL_PANES) {
+            _.forEach(_paneViews, function (pane) {
+                doSort(pane);
+            });
+        } else {
+            doSort(_getPaneFromPaneId(paneId));
         }
     }
 
@@ -890,11 +895,15 @@ define(function (require, exports, module) {
         PreferencesManager.setViewState(PREFS_NAME, state, context);
     }
     
-    AppInit.htmlReady(function () {
+    function _initialize() {
         _createPaneIfNecessary(FIRST_PANE);
         _activePaneId = FIRST_PANE;
         _paneViews[FIRST_PANE].onSetActive(true);
         _updateLayout();
+    }
+    
+    AppInit.htmlReady(function () {
+        _initialize();
     });
     
     // Event handlers
@@ -902,8 +911,6 @@ define(function (require, exports, module) {
     $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
     $(WorkspaceManager).on("workspaceUpdateLayout",           _updateLayout);
     $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
-    
-
     
     function _handleSplitVertically() {
         if (_orientation === VERTICAL) {
@@ -942,6 +949,9 @@ define(function (require, exports, module) {
     _paneTitles[FIRST_PANE][HORIZONTAL] = Strings.TOP;
     _paneTitles[SECOND_PANE][VERTICAL] = Strings.RIGHT;
     _paneTitles[SECOND_PANE][HORIZONTAL] = Strings.BOTTOM;
+    
+    // Unit Test Helpers
+    exports._initialize                     = _initialize;
     
     
     // PaneView Management

@@ -42,6 +42,7 @@ define(function (require, exports, module) {
     
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        MainViewManager     = require("view/MainViewManager"),
         CommandManager      = require("command/CommandManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
@@ -372,7 +373,7 @@ define(function (require, exports, module) {
 
         if (doClose) {
             this.close();
-            EditorManager.focusEditor();
+            MainViewManager.forceFocusToActivePaneView();
         }
     };
 

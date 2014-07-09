@@ -47,6 +47,7 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
+        MainViewManager         = require("view/MainViewManager"),
         FileUtils               = require("file/FileUtils"),
         LanguageManager         = require("language/LanguageManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
@@ -607,7 +608,7 @@ define(function (require, exports, module) {
     
                         var editor = EditorManager.getCurrentFullEditor();
                         editor.setCursorPos(line, character, true);
-                        EditorManager.focusEditor();
+                        MainViewManager.forceFocusToActivePaneView();
                     }
                 }
             });

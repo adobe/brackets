@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var EditorManager    = require("editor/EditorManager"),
+        MainViewManager  = require("view/MainViewManager"),
         KeyEvent         = require("utils/KeyEvent"),
         AnimationUtils   = require("utils/AnimationUtils"),
         WorkspaceManager = require("view/WorkspaceManager");
@@ -78,9 +79,7 @@ define(function (require, exports, module) {
         // to the editor here, before opening up the new modal bar. This ensures that the old
         // focused item has time to react and close before the new modal bar is opened.
         // See bugs #4287 and #3424
-        if (!EditorManager.getFocusedEditor()) {
-            EditorManager.focusEditor();
-        }
+        MainViewManager.forceFocusToActivePaneView();
         
         if (autoClose) {
             this._autoClose = true;
@@ -224,7 +223,7 @@ define(function (require, exports, module) {
             doRemove();
         }
         
-        EditorManager.focusEditor();
+        MainViewManager.forceFocusToActivePaneView();
 
         return result.promise();
     };

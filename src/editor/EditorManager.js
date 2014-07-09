@@ -115,7 +115,8 @@ define(function (require, exports, module) {
    
     /** Returns the visible full-size Editor corresponding to DocumentManager.getCurrentDocument() */
     function getCurrentFullEditor() {
-        var doc = DocumentManager.getCurrentDocument();
+        var currentPath = MainViewManager.getCurrentlyViewedPath(),
+            doc = DocumentManager.getOpenDocumentForPath(currentPath);
         
         if (doc) {
             return doc._masterEditor;
@@ -184,6 +185,11 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("activeEditorChange", [current, previous]);
     }
 	
+    function _handleCurrentFileChanged(e, file) {
+        var doc = file ? DocumentManager.getOpenDocumentForPath(file.fullPath) : null;
+        _notifyActiveEditorChanged(doc ? doc._masterEditor : null);
+    }
+    
     /**
      * Creates a new Editor bound to the given Document.
      * The editor is appended to the given container as a visible child.
@@ -381,9 +387,8 @@ define(function (require, exports, module) {
      * removed. For example, after a dialog with editable text is closed.
      */
     function focusEditor() {
-        if (_lastFocusedEditor) {
-            _lastFocusedEditor.focus();
-        }
+        DeprecationWarning.deprecationWarning("Use MainViewManager.forceFocusToActivePaneView() instead of EditorManager.focusEditor().", true);
+        MainViewManager.forceFocusToActivePaneView();
     }
     
     
@@ -697,6 +702,9 @@ define(function (require, exports, module) {
         _$hiddenEditorsContainer = $("#hidden-editors");
     });
 
+    $(MainViewManager).on("currentFileChanged", _handleCurrentFileChanged);
+        
+    
     // For unit tests and internal use only
     exports._createFullEditorForDocument  = _createFullEditorForDocument;
     exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;

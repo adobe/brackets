@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     var AppInit             = require("utils/AppInit"),
         AnimationUtils      = require("utils/AnimationUtils"),
         EditorManager       = require("editor/EditorManager"),
+        MainViewManager     = require("view/MainViewManager"),
         Editor              = require("editor/Editor").Editor,
         KeyEvent            = require("utils/KeyEvent"),
         StatusBar           = require("widgets/StatusBar"),
@@ -168,7 +169,7 @@ define(function (require, exports, module) {
         $indentWidthInput.off("blur keyup");
         
         // restore focus to the editor
-        EditorManager.focusEditor();
+        MainViewManager.forceFocusToActivePaneView();
         
         var valInt = parseInt(value, 10);
         if (Editor.getUseTabChar(fullPath)) {
