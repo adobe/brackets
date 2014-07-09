@@ -249,8 +249,8 @@ define(function (require, exports, module) {
     * Loads a theme from a file.
     *
     * @param {string} fileName is the full path to the file to be opened
-    * @param {!srting} displayName is an optional parameter to specify the display
-    *    name for the theme
+    * @param {object} options is an optional parameter to specify metadata
+    *    for the theme.
     * @return {$.Promise} promise object resolved with the theme to be loaded from fileName
     */
     function loadFile(fileName, options) {
