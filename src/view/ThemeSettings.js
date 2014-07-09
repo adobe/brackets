@@ -14,7 +14,8 @@ define(function(require, exports, module) {
     var _                  = require("thirdparty/lodash"),
         Dialogs            = require("widgets/Dialogs"),
         Strings            = require("strings"),
-        PreferencesManager = require("preferences/PreferencesManager");
+        PreferencesManager = require("preferences/PreferencesManager"),
+        settingsTemplate   = require("text!htmlContent/themes-settings.html");
 
     var prefs = PreferencesManager.getExtensionPrefs("brackets-themes");
 
@@ -34,14 +35,11 @@ define(function(require, exports, module) {
         "themes": ["thor-light-theme"]
     };
 
-    var templates = {
-        "settings": require("text!htmlContent/themes-settings.html")
-    };
 
     /**
      * Cached html settings jQuery object for easier processing when opening the settings dialog
      */
-    var $settings = $(templates.settings).addClass("themeSettings");
+    var $settings = $(settingsTemplate).addClass("themeSettings");
 
     /**
      * Opens the settings dialog
