@@ -102,7 +102,7 @@ define(function (require, exports, module) {
                 var promise = ThemeManager.loadFile(testFilePath + "/scrollbars.css").done(function (theme) {
                     expect(theme.name).toEqual("scrollbars-css");
                     expect(theme.displayName).toEqual("Scrollbars");
-                    expect(theme.className).toEqual("theme-scrollbars");
+                    expect(theme.className).toEqual("theme-scrollbars-css");
                 });
 
                 waitsForDone(promise, "theme file", 5000);
