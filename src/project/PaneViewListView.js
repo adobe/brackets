@@ -158,7 +158,7 @@ define(function (require, exports, module) {
     PaneViewListView.prototype._fireSelectionChanged = function () {
         this._scrollSelectedFileIntoView();
 
-        if (this.$el.hasClass("active")) {
+        if (FileViewController.getFileSelectionFocus() === FileViewController.PANE_VIEW_LIST_VIEW && this.$el.hasClass("active")) {
             this.$openFilesList.trigger("selectionChanged");
         } else {
             this.$openFilesList.trigger("selectionHide");
