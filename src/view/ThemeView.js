@@ -70,7 +70,7 @@ define(function (require, exports, module) {
     function updateLineHeight() {
         clearFonts();
         var value = prefs.get("lineHeight");
-        templates.$lineHeight.text(".CodeMirror{" + "line-height: " + value + "; }");
+        templates.$lineHeight.text(".CodeMirror-lines > div {" + "line-height: " + value + "; }");
     }
 
 
