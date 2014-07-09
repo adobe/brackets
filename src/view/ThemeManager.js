@@ -107,7 +107,7 @@ define(function (require, exports, module) {
     *
     * @param {string} content is the css/less string to be processed
     * @param {Theme} theme is the object the css/less corresponds to
-    * @return {$.Deferred} promsie with the processed css/less as the resolved value
+    * @return {$.Promise} promsie with the processed css/less as the resolved value
     */
     function lessifyTheme(content, theme) {
         var deferred = new $.Deferred();
@@ -179,7 +179,7 @@ define(function (require, exports, module) {
     * @private
     * Loads all current themes
     *
-    * @return {$.Deferred} promise object resolved with the theme object and all
+    * @return {$.Promise} promise object resolved with the theme object and all
     *    corresponding new css/less and scrollbar information
     */
     function loadCurrentThemes() {
@@ -251,7 +251,7 @@ define(function (require, exports, module) {
     * @param {string} fileName is the full path to the file to be opened
     * @param {!srting} displayName is an optional parameter to specify the display
     *    name for the theme
-    * @return {$.Deferred} promise object resolved with the theme to be loaded from fileName
+    * @return {$.Promise} promise object resolved with the theme to be loaded from fileName
     */
     function loadFile(fileName, options) {
         options = options || {};
@@ -289,7 +289,7 @@ define(function (require, exports, module) {
     * Loads a theme from an extension package.
     *
     * @param {package} themePackage is a package for the theme to be loaded.
-    * @return {$.Deferred} promise object resolved with the theme to be loaded from the pacakge
+    * @return {$.Promise} promise object resolved with the theme to be loaded from the pacakge
     */
     function loadPackage(themePackage) {
         var fileName = themePackage.path + "/" + themePackage.metadata.theme;
@@ -301,7 +301,7 @@ define(function (require, exports, module) {
     * Load css/less files from a directory to be treated as themes
     *
     * @param {string} path where theme files are to be loaded from
-    * @return {$.Deferred} promise object resolved with the themes to be loaded from the directory
+    * @return {$.Promise} promise object resolved with the themes to be loaded from the directory
     */
     function loadDirectory(path) {
         var result = new $.Deferred();
