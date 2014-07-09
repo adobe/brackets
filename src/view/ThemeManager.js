@@ -205,7 +205,7 @@ define(function (require, exports, module) {
      * @return {array} collection of all available themes
      */
     function getAllThemes() {
-        return _.map(loadedThemes, function(item) {
+        return _.map(loadedThemes, function (item) {
             return item;
         });
     }
