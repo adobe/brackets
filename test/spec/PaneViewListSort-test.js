@@ -120,7 +120,7 @@ define(function (require, exports, module) {
             CommandManager.execute(Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME);
 
             // confirm files sorted correctly
-            var $listItems = testWindow.$("#open-files-container > ul").children();
+            var $listItems = testWindow.$(".open-files-container > ul").children();
             expect($listItems.length).toBe(paneViewListItemCount);
             expect($listItems.find("a").get(0).text === "file_four.html").toBeTruthy();
             expect($listItems.find("a").get(1).text === "file_two.js").toBeTruthy();
@@ -133,7 +133,7 @@ define(function (require, exports, module) {
             CommandManager.execute(Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED);
 
             // confirm files sorted correctly
-            var $listItems = testWindow.$("#open-files-container > ul").children();
+            var $listItems = testWindow.$(".open-files-container > ul").children();
             expect($listItems.length).toBe(paneViewListItemCount);
             expect($listItems.find("a").get(0).text === "file_two.js").toBeTruthy();
             expect($listItems.find("a").get(1).text === "file_zero.css").toBeTruthy();
@@ -146,7 +146,7 @@ define(function (require, exports, module) {
             CommandManager.execute(Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE);
 
             // confirm files sorted correctly
-            var $listItems = testWindow.$("#open-files-container > ul").children();
+            var $listItems = testWindow.$(".open-files-container > ul").children();
             expect($listItems.length).toBe(paneViewListItemCount);
             expect($listItems.find("a").get(0).text === "file_zero.css").toBeTruthy();
             expect($listItems.find("a").get(1).text === "file_four.html").toBeTruthy();
@@ -165,7 +165,7 @@ define(function (require, exports, module) {
             
             runs(function () {
                 // confirm files sorted correctly
-                var $listItems = testWindow.$("#open-files-container > ul").children();
+                var $listItems = testWindow.$(".open-files-container > ul").children();
                 expect($listItems.length).toBe(paneViewListItemCount);
                 expect($listItems.find("a").get(0).text === "file_zero.css").toBeTruthy();
                 expect($listItems.find("a").get(1).text === "file_four.html").toBeTruthy();
@@ -186,7 +186,7 @@ define(function (require, exports, module) {
             
             runs(function () {
                 // confirm files sorted correctly
-                var $listItems = testWindow.$("#open-files-container > ul").children();
+                var $listItems = testWindow.$(".open-files-container > ul").children();
                 expect($listItems.length).toBe(paneViewListItemCount);
                 expect($listItems.find("a").get(0).text === "file_zero.css").toBeTruthy();
                 expect($listItems.find("a").get(1).text === "file_four.html").toBeTruthy();

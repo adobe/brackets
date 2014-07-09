@@ -258,7 +258,7 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype.sortViewList = function (compareFn) {
-        this.viewList.sort(compareFn);
+        this.viewList.sort(_.partial(compareFn, this.id));
     };
 
     Pane.prototype._isViewListIndexInRange = function (index) {

@@ -346,9 +346,9 @@ define(function (require, exports, module) {
      */
     register(
         Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED,
-        function (file1, file2) {
-            var index1 = MainViewManager.findInPaneViewListAddedOrder(MainViewManager.ALL_PANES, file1.fullPath),
-                index2 = MainViewManager.findInPaneViewListAddedOrder(MainViewManager.ALL_PANES, file2.fullPath);
+        function (paneId, file1, file2) {
+            var index1 = MainViewManager.findInPaneViewListAddedOrder(paneId, file1.fullPath),
+                index2 = MainViewManager.findInPaneViewListAddedOrder(paneId, file2.fullPath);
             
             return index1 - index2;
         },
@@ -356,14 +356,14 @@ define(function (require, exports, module) {
     );
     register(
         Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME,
-        function (file1, file2) {
+        function (paneId, file1, file2) {
             return FileUtils.compareFilenames(file1.name, file2.name, false);
         },
         _SORT_EVENT_NAMES
     );
     register(
         Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,
-        function (file1, file2) {
+        function (paneId, file1, file2) {
             return FileUtils.compareFilenames(file1.name, file2.name, true);
         },
         _SORT_EVENT_NAMES
