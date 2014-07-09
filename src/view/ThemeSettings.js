@@ -45,7 +45,7 @@ define(function (require, exports, module) {
      */
     var defaults = {
         "fontSize": 12,
-        "lineHeight": '1.3em',
+        "lineHeight": 1.4,
         "fontFamily": "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace",
         "customScrollbars": true,
         "themes": ["thor-light-theme"]
@@ -146,7 +146,7 @@ define(function (require, exports, module) {
 
     prefs.definePreference("themes", "array", defaults.themes);
     prefs.definePreference("fontSize", "string", defaults.fontSize + "px");
-    prefs.definePreference("lineHeight", "string", defaults.lineHeight);
+    prefs.definePreference("lineHeight", "number", defaults.lineHeight);
     prefs.definePreference("fontFamily", "string", defaults.fontFamily);
     prefs.definePreference("customScrollbars", "boolean", defaults.customScrollbars);
 
