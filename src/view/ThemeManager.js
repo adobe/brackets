@@ -32,8 +32,6 @@ define(function (require, exports, module) {
         stylesPath      = FileUtils.getNativeBracketsDirectoryPath() + "/styles/",
         validExtensions = ["css", "less"];
 
-    ExtensionUtils.addLinkedStyleSheet("styles/brackets_theme_settings.css");
-
 
     /**
     * @constructor
