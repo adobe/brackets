@@ -249,7 +249,10 @@ define(function (require, exports, module) {
             var translatedIntoUserLang =
                 (brackets.isLocaleDefault() && info.metadata.i18n.indexOf(shortLang) > -1) ||
                 info.metadata.i18n.indexOf(lang) > -1;
-            context.extensionTranslated = translatedIntoUserLang ? Strings.EXTENSION_TRANSLATED_USER_LANG : Strings.EXTENSION_TRANSLATED_GENERAL;
+            context.extensionTranslated = StringUtils.format(
+                translatedIntoUserLang ? Strings.EXTENSION_TRANSLATED_USER_LANG : Strings.EXTENSION_TRANSLATED_GENERAL,
+                info.metadata.i18n.length
+            );
         }
 
         var isInstalledInUserFolder = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
