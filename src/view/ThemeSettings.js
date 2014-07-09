@@ -60,6 +60,8 @@ define(function (require, exports, module) {
     /**
      * @private
      * Gets all the configurable settings that need to be loaded in the settings dialog
+     *
+     * @return {array} a collection with all the settings
      */
     function getValues() {
         return _.transform(defaults, function (result, value, key) {
