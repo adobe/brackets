@@ -1,0 +1,7 @@
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-thumb:window-inactive{
+    background: white;
+}

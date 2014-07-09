@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     var loadedThemes    = {},
         defaultTheme    = "thor-light-theme",
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
-        scrollbarsRegex = /(?:[^}|,]*)::-webkit-scrollbar(?:[\s\S]*?){(?:[\s\S]*?)}/mg,
+        scrollbarsRegex = /(?:[^}|,]*)::-webkit-scrollbar(?:[\s\S]*?)\{(?:[\s\S]*?)\}/mg,
         stylesPath      = FileUtils.getNativeBracketsDirectoryPath() + "/styles/",
         validExtensions = ["css", "less"];
 
@@ -404,7 +404,7 @@ define(function (require, exports, module) {
     exports.loadPackage      = loadPackage;
     exports.loadDirectory    = loadDirectory;
     exports.getCurrentThemes = getCurrentThemes;
-    
+
     // Exposed for testing purposes
     exports._toDisplayName     = toDisplayName;
     exports._extractScrollbars = extractScrollbars;
