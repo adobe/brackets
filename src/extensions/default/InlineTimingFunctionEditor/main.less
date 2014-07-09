@@ -1,6 +1,24 @@
 /**
  * All BezierCurveEditor selectors descend from .bezier-curve-editor to constrain styles to this extension
  */
+@bc-highlight-hard:             rgba(255, 255, 255, 0.7);
+@bc-highlight:                  rgba(255, 255, 255, 0.12);
+@bc-shadow:                     rgba(0, 0, 0, 0.24);
+@bc-shadow-large:               rgba(0, 0, 0, 0.5);
+@bc-shadow-small:               rgba(0, 0, 0, 0.06);
+
+@bc-text:                       #333;
+
+@bc-panel-border:               rgba(0, 0, 0, 0.09);
+
+@bc-btn-bg:                     #e5e9e9;
+@bc-btn-bg-down:                #d3d7d7;
+@bc-btn-border:                 #b2b5b5;
+@bc-btn-border-focused:         #2893ef;
+@bc-btn-border-focused-glow:    #94ceff;
+@bc-input-bg:                   #fff;
+
+
 .bezier-curve-editor * {
     margin: 0;
 }
@@ -17,8 +35,8 @@
 
 .bezier-curve-editor .cubic-bezier {
     background: url(grid.png) 0px -75px repeat-x;
-    border-left: 1px solid #bbb;
-    border-right: 1px solid #bbb;
+    border-left: 1px solid @bc-panel-border;
+    border-right: 1px solid @bc-panel-border;
     background-size: 15px 450px;
     height: 300px;
     width: 149px;
@@ -63,7 +81,7 @@
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     
-    color: #454545;
+    color: @bc-text;
     font-size: 11px;
     line-height: 1;
 }
@@ -89,12 +107,12 @@
 }
 
 .bezier-curve-editor .control-point {
-    background: -webkit-linear-gradient(270deg, rgb(249, 249, 249) 50%, rgb(237, 237, 237) 50%);
+    background: @bc-btn-bg;
     position: absolute;
     z-index: 2;
     height: 16px;
     width: 16px;
-    border: 1px solid #9c9e9e;
+    border: 1px solid @bc-btn-border;
     margin: -8px 0 0 -8px;
     outline: none;
     padding: 0 !important;
@@ -103,12 +121,12 @@
 }
 
 .bezier-curve-editor .control-point:focus {
-    border: 1px solid #0940fd !important;
-    box-shadow: 0 0 0 2px #6fb5f1;
+    border: 1px solid @bc-btn-border-focused !important;
+    box-shadow: 0 0 0 2px @bc-btn-border-focused-glow;
 }
 
 .bezier-curve-editor .P0, .bezier-curve-editor .P3 {
-    background: #1461FC;
+    background: @bc-btn-border-focused;
     border-radius: 0;
     border: none;
     height: 12px;
@@ -215,7 +233,7 @@
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     
-    color: #454545;
+    color: @bc-text;
     font-size: 11px;
     line-height: 1;
 }
@@ -267,9 +285,9 @@
 .step-editor kbd {
     font-size: 15px;
     font-weight: bold;
-    color: #454545;
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: @bc-text;
+    background: @bc-shadow-small;
+    border: 1px solid @bc-shadow-small;
     display: inline-block;
     margin: 0 2px 2px 0;
     padding: 0 3px 2px;

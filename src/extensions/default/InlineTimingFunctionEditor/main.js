@@ -155,7 +155,7 @@ define(function (require, exports, module) {
      */
     function init() {
         // Load our stylesheet
-        ExtensionUtils.loadStyleSheet(module, "main.css");
+        ExtensionUtils.loadStyleSheet(module, "main.less");
         ExtensionUtils.addEmbeddedStyleSheet(Mustache.render(Localized, Strings));
     
         EditorManager.registerInlineEditProvider(inlineTimingFunctionEditorProvider);

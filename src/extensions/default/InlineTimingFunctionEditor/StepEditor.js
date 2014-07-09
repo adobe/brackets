@@ -172,7 +172,7 @@ define(function (require, exports, module) {
             var defaultSettings = {
                 bgColor:        "#fff",
                 borderColor:    "#bbb",
-                stepColor:      "#1461fc",
+                stepColor:      "#2893ef",
                 dashColor:      "#b8b8b8",
                 borderWidth:    0.00667,
                 stepLineWidth:  0.02,
