@@ -38,7 +38,7 @@ define(function (require, exports, module) {
 
         MainViewManager._initialize();
         
-        describe("resizeEditor() flag options", function () {
+        describe("Create Editors", function () {
             var pane, testEditor, testDoc, $root, $fakeContentDiv, $fakeHolder;
             
             beforeEach(function () {
@@ -67,6 +67,7 @@ define(function (require, exports, module) {
                 testDoc = null;
                 pane = null;
                 $root = null;
+                EditorManager.resetViewStates();
             });
             
             it("should create a new editor for a document and add it to a pane", function () {
@@ -78,12 +79,66 @@ define(function (require, exports, module) {
             it("should use an existing editor for a document and show the editor", function () {
                 spyOn(pane, "addView");
                 spyOn(pane, "showView");
-                var editor = SpecRunnerUtils.createEditorInstance(testDoc, $fakeHolder);
+                var editor = SpecRunnerUtils.createEditorInstance(testDoc, pane.$el);
                 EditorManager.doOpenDocument(testDoc, pane);
                 expect(pane.showView).toHaveBeenCalled();
-                expect(pane.addView).not.toHaveBeenCalled();
+                expect(pane.addView).toHaveBeenCalled();
+                expect(pane.addView.calls[0].args[1]).toEqual(editor);
             });
             
+            
+//            this is an integration test
+//            it("should report the existing editor as the current full editor", function () {
+//                var editor = SpecRunnerUtils.createEditorInstance(testDoc, pane.$el);
+//                EditorManager.doOpenDocument(testDoc, pane);
+//                expect(EditorManager.getCurrentFullEditor()).toEqual(editor);
+//            });
+//
+//            this is an integration test
+//            it("should notify when active editor changes", function () {
+//                var called = false,
+//                    other;
+//
+//                spyOn(pane, "addView");
+//                function callback(newEditor) {
+//                    called = true;
+//                    other = newEditor;
+//                }
+//                
+//                $(EditorManager).on("activeEditorChange", callback);
+//                EditorManager.doOpenDocument(testDoc, pane);
+//                expect(called).toBe(true);
+//                expect(pane.addView.calls[0].args[1]).toEqual(other);
+//            });
+            
+            it("should remember a file's view state", function () {
+                EditorManager.addViewStates({ a: "1234" });
+                expect(EditorManager.getViewState("a")).toEqual("1234");
+            });
+
+            it("should extend the view state cache", function () {
+                EditorManager.addViewStates({ a: "1234" });
+                EditorManager.addViewStates({ b: "5678" });
+                expect(EditorManager.getViewState("a")).toEqual("1234");
+                expect(EditorManager.getViewState("b")).toEqual("5678");
+            });
+            
+            it("should reset the view state cache", function () {
+                EditorManager.addViewStates({ a: "1234" });
+                EditorManager.addViewStates({ b: "5678" });
+                EditorManager.resetViewStates();
+                expect(EditorManager.getViewState("a")).toBeUndefined();
+                expect(EditorManager.getViewState("b")).toBeUndefined();
+            });
+            
+//this is an integration test
+//it(
+//    "should report the existing editor as the current full editor", function () {
+//    var editor = SpecRunnerUtils.createEditorInstance(testDoc, pane.$el);
+//    EditorManager.doOpenDocument(testDoc, pane);
+//    expect(EditorManager.getCurrentFullEditor()).toEqual(editor);
+//});            
+                        
 /**
 No longer an editor-manager test since editor-manager doesn't handle the event anymore
             // force cases

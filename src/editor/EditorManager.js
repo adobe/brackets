@@ -391,21 +391,6 @@ define(function (require, exports, module) {
         MainViewManager.forceFocusToActivePaneView();
     }
     
-    
-    /**
-     * Flag for `_onEditorAreaResize()` to always force refresh.
-     * @const
-     * @type {string}
-     */
-    var REFRESH_FORCE = "force";
-    
-    /**
-     * Flag for `_onEditorAreaResize()` to never refresh.
-     * @const
-     * @type {string}
-     */
-    var REFRESH_SKIP = "skip";
-
     /**
      * @deprecated
      * resizes the editor
@@ -458,6 +443,7 @@ define(function (require, exports, module) {
             // Editor doesn't exist: populate a new Editor with the text
             _createFullEditorForDocument(document, pane);
         } else if (editor.getContainer() !== pane.$el) {
+            pane.addView(document.file.fullPath, editor);
             editor.switchContainers(pane.$el);
         }
         
@@ -708,10 +694,6 @@ define(function (require, exports, module) {
     // For unit tests and internal use only
     exports._createFullEditorForDocument  = _createFullEditorForDocument;
     exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;
-
-    // TODO: Move this
-    exports.REFRESH_FORCE = REFRESH_FORCE;
-    exports.REFRESH_SKIP  = REFRESH_SKIP;
 
     // View State Cache Access
     exports.getViewState                 = getViewState;
