@@ -100,7 +100,7 @@ define(function (require, exports, module) {
         describe("Load themes", function () {
             runs(function () {
                 var promise = ThemeManager.loadFile(testFilePath + "/scrollbars.css").done(function (theme) {
-                    expect(theme.name).toEqual("scrollbars");
+                    expect(theme.name).toEqual("scrollbars-css");
                     expect(theme.displayName).toEqual("Scrollbars");
                     expect(theme.className).toEqual("theme-scrollbars");
                 });
@@ -111,7 +111,9 @@ define(function (require, exports, module) {
             runs(function () {
                 var promise = ThemeManager.loadDirectory(testFilePath).done(function () {
                     var themes = Array.prototype.slice.call(arguments);
+                    var allThemes = ThemeManager.getAllThemes();
                     expect(themes.length).toEqual(4);
+                    expect(allThemes.length).toEqual(4);
                 });
 
                 waitsForDone(promise, "theme directory - skips invalid extensions", 5000);

@@ -79,8 +79,8 @@ define(function (require, exports, module) {
 
         this.file        = file;
         this.displayName = options.title     || toDisplayName(fileName);
-        this.name        = options.name      || fileName.substring(0, fileName.lastIndexOf('.'));
-        this.className   = options.className || "theme-" + this.name;
+        this.name        = options.name      || fileName.replace('.', '-');
+        this.className   = options.className || "theme-" + fileName.substring(0, fileName.lastIndexOf('.'));
     }
 
 
@@ -191,11 +191,22 @@ define(function (require, exports, module) {
     * @private
     * Get all current theme objects
     *
-    * @return {_.map} collection of the current theme instances
+    * @return {array} collection of the current theme instances
     */
     function getCurrentThemes() {
         return _.map(prefs.get("themes").slice(0), function (item) {
             return loadedThemes[item] || loadedThemes[defaultTheme];
+        });
+    }
+    
+    
+    /**
+     * Provides quick access to all available themes
+     * @return {array} collection of all available themes
+     */
+    function getAllThemes() {
+        return _.map(loadedThemes, function(item) {
+            return item;
         });
     }
 
@@ -417,6 +428,7 @@ define(function (require, exports, module) {
     exports.loadPackage      = loadPackage;
     exports.loadDirectory    = loadDirectory;
     exports.getCurrentThemes = getCurrentThemes;
+    exports.getAllThemes     = getAllThemes;
 
     // Exposed for testing purposes
     exports._toDisplayName     = toDisplayName;
