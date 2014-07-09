@@ -8,7 +8,7 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global $, define, require, Mustache */
 
-define(function(require, exports, module) {
+define(function (require, exports, module) {
     "use strict";
 
     var _                  = require("thirdparty/lodash"),
@@ -42,17 +42,27 @@ define(function(require, exports, module) {
     var $settings = $(settingsTemplate).addClass("themeSettings");
 
     /**
+     * @private
+     * Gets all the configurable settings that need to be loaded in the settings dialog
+     */
+    function getValues() {
+        return _.transform(defaults, function (result, value, key) {
+            result[key] = prefs.get(key);
+        });
+    }
+
+    /**
      * Opens the settings dialog
      */
     function showDialog() {
         var currentSettings = getValues();
         var newSettings     = {};
-        var themes          = _.map(loadedThemes, function(theme) {return theme;});
+        var themes          = _.map(loadedThemes, function (theme) { return theme; });
         var template        = $("<div>").append($settings).html();
         var $template       = $(Mustache.render(template, {"settings": currentSettings, "themes": themes, "Strings": Strings}));
 
         // Select the correct theme.
-        _.each(currentSettings.themes, function(item) {
+        _.each(currentSettings.themes, function (item) {
             $template
                 .find("[value='" + item + "']")
                 .attr("selected", "selected");
@@ -63,23 +73,23 @@ define(function(require, exports, module) {
             .tab("show");
 
         $template
-            .on("change", "[data-target]:checkbox", function() {
+            .on("change", "[data-target]:checkbox", function () {
                 var $target = $(this);
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.is(":checked");
             })
-            .on("change", "[data-target]:text", function() {
+            .on("change", "[data-target]:text", function () {
                 var $target = $(this);
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.val();
             })
-            .on("change", function() {
+            .on("change", function () {
                 var items;
                 var $target = $(":selected", this);
                 var attr = $target.attr("data-target");
 
                 if (attr) {
-                    items = $target.map(function(i, item) {
+                    items = $target.map(function (i, item) {
                         return $(item).val();
                     });
 
@@ -102,16 +112,6 @@ define(function(require, exports, module) {
      */
     function setThemes(themes) {
         loadedThemes = themes;
-    }
-
-    /**
-     * @private
-     * Gets all the configurable settings that need to be loaded in the settings dialog
-     */
-    function getValues() {
-        return _.transform(defaults, function(result, value, key) {
-            result[key] = prefs.get(key);
-        });
     }
 
     /**

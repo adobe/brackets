@@ -28,9 +28,27 @@ define(function (require, exports, module) {
     var loadedThemes    = {},
         defaultTheme    = "thor-light-theme",
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
-        scrollbarsRegex = /(?:[^}|,]*)::-webkit-scrollbar(?:[\s\S]*?)\{(?:[\s\S]*?)\}/mg,
+        scrollbarsRegex = /::-webkit-scrollbar(?:[\s\S]*?)\{(?:[\s\S]*?)\}/mg,
         stylesPath      = FileUtils.getNativeBracketsDirectoryPath() + "/styles/",
         validExtensions = ["css", "less"];
+
+
+    /**
+    * @private
+    * Takes all dashes and converts them to white spaces. Then takes all first letters
+    * and capitalizes them.
+    *
+    * @param {string} name is what needs to be procseed to generate a display name
+    * @return {string} theme name properly formatted for display
+    */
+    function toDisplayName(name) {
+        var extIndex = name.lastIndexOf('.');
+        name = name.substring(0, extIndex !== -1 ? extIndex : undefined).replace(/-/g, ' ');
+
+        return name.split(" ").map(function (part) {
+            return part[0].toUpperCase() + part.substring(1);
+        }).join(" ");
+    }
 
 
     /**
@@ -52,24 +70,6 @@ define(function (require, exports, module) {
 
     /**
     * @private
-    * Takes all dashes and converts them to white spaces. Then takes all first letters
-    * and capitalizes them.
-    *
-    * @param {string} name is what needs to be procseed to generate a display name
-    * @return {string} theme name properly formatted for display
-    */
-    function toDisplayName (name) {
-        var extIndex = name.lastIndexOf('.');
-        name = name.substring(0, extIndex !== -1 ? extIndex : undefined).replace(/-/g, ' ');
-
-        return name.split(" ").map(function (part) {
-            return part[0].toUpperCase() + part.substring(1);
-        }).join(" ");
-    }
-
-
-    /**
-    * @private
     * Extracts the scrollbar text from the css/less content so that it can be treated
     * as a separate styling component that can be anabled/disabled independently from
     * the theme.
@@ -85,7 +85,7 @@ define(function (require, exports, module) {
         // enable/disable via settings.
         content = content
             .replace(commentRegex, "")
-            .replace(scrollbarsRegex, function(match) {
+            .replace(scrollbarsRegex, function (match) {
                 scrollbar.push(match);
                 return "";
             });
@@ -116,8 +116,7 @@ define(function (require, exports, module) {
         parser.parse("." + theme.className + "{" + content + "}", function (err, tree) {
             if (err) {
                 deferred.reject(err);
-            }
-            else {
+            } else {
                 deferred.resolve(tree.toCSS());
             }
         });
@@ -148,7 +147,7 @@ define(function (require, exports, module) {
     */
     function getThemeByFile(file) {
         var path = file._path;
-        return _.find(loadedThemes, function(item) {
+        return _.find(loadedThemes, function (item) {
             return item.file._path === path;
         });
     }
@@ -165,47 +164,10 @@ define(function (require, exports, module) {
         // Really dislike timing issues with CodeMirror.  I have to refresh
         // the editor after a little bit of time to make sure that themes
         // are properly applied to quick edit widgets
-        setTimeout(function(){
+        setTimeout(function () {
             cm.refresh();
             EditorManager.resizeEditor();
         }, 100);
-    }
-
-
-    /**
-    * @private
-    * Loads all current themes
-    *
-    * @return {$.Promise} promise object resolved with the theme object and all
-    *    corresponding new css/less and scrollbar information
-    */
-    function loadCurrentThemes() {
-        var pendingThemes = _.map(getCurrentThemes(), function (theme) {
-
-            return theme && FileUtils.readAsText(theme.file)
-                .then(function(content) {
-                    var result = extractScrollbars(content);
-                    theme.scrollbar = result.scrollbar;
-                    return result.content;
-                })
-                .then(function(content) {
-                    return lessifyTheme(content, theme);
-                })
-                .then(function(style) {
-                    return ExtensionUtils.addEmbeddedStyleSheet(style);
-                })
-                .then(function(styleNode) {
-                    // Remove after the style has been applied to avoid weird flashes
-                    if (theme.css) {
-                        $(theme.css).remove();
-                    }
-
-                    theme.css = styleNode;
-                    return theme;
-                });
-        });
-
-        return $.when.apply(undefined, pendingThemes);
     }
 
 
@@ -223,12 +185,49 @@ define(function (require, exports, module) {
 
 
     /**
+    * @private
+    * Loads all current themes
+    *
+    * @return {$.Promise} promise object resolved with the theme object and all
+    *    corresponding new css/less and scrollbar information
+    */
+    function loadCurrentThemes() {
+        var pendingThemes = _.map(getCurrentThemes(), function (theme) {
+
+            return theme && FileUtils.readAsText(theme.file)
+                .then(function (content) {
+                    var result = extractScrollbars(content);
+                    theme.scrollbar = result.scrollbar;
+                    return result.content;
+                })
+                .then(function (content) {
+                    return lessifyTheme(content, theme);
+                })
+                .then(function (style) {
+                    return ExtensionUtils.addEmbeddedStyleSheet(style);
+                })
+                .then(function (styleNode) {
+                    // Remove after the style has been applied to avoid weird flashes
+                    if (theme.css) {
+                        $(theme.css).remove();
+                    }
+
+                    theme.css = styleNode;
+                    return theme;
+                });
+        });
+
+        return $.when.apply(undefined, pendingThemes);
+    }
+
+
+    /**
     * Refresh currently loaded themes
     *
     * @param <boolean> force is to force reload the current themes
     */
     function refresh(force) {
-        $.when(force && loadCurrentThemes()).done(function() {
+        $.when(force && loadCurrentThemes()).done(function () {
             var editor = EditorManager.getActiveEditor();
             if (!editor || !editor._codeMirror) {
                 return;
@@ -256,7 +255,7 @@ define(function (require, exports, module) {
             file          = FileSystem.getFileForPath(fileName),
             currentThemes = (prefs.get("themes") || []);
 
-        file.exists(function(err, exists) {
+        file.exists(function (err, exists) {
             var theme;
 
             if (exists) {
@@ -272,8 +271,7 @@ define(function (require, exports, module) {
                 }
 
                 deferred.resolve(theme);
-            }
-            else if (err) {
+            } else if (err) {
                 deferred.reject(err);
             }
         });
@@ -325,8 +323,7 @@ define(function (require, exports, module) {
                     path: path,
                     error: err
                 });
-            }
-            else {
+            } else {
                 result.resolve({
                     files: files,
                     path: path
@@ -349,7 +346,7 @@ define(function (require, exports, module) {
 
 
     function init() {
-        prefs.on("change", "themes", function() {
+        prefs.on("change", "themes", function () {
             refresh(true);
             ThemeView.updateScrollbars(getCurrentThemes()[0]);
 
@@ -357,27 +354,27 @@ define(function (require, exports, module) {
             $(exports).trigger("themeChange", getCurrentThemes());
         });
 
-        prefs.on("change", "customScrollbars", function() {
+        prefs.on("change", "customScrollbars", function () {
             refresh();
             ThemeView.updateScrollbars(getCurrentThemes()[0]);
         });
 
-        prefs.on("change", "fontSize", function() {
+        prefs.on("change", "fontSize", function () {
             refresh();
             ThemeView.updateFontSize();
         });
 
-        prefs.on("change", "lineHeight", function() {
+        prefs.on("change", "lineHeight", function () {
             refresh();
             ThemeView.updateLineHeight();
         });
 
-        prefs.on("change", "fontFamily", function() {
+        prefs.on("change", "fontFamily", function () {
             refresh();
             ThemeView.updateFontFamily();
         });
 
-        FileSystem.on("change", function(evt, file) {
+        FileSystem.on("change", function (evt, file) {
             if (file.isDirectory) {
                 return;
             }
@@ -387,7 +384,7 @@ define(function (require, exports, module) {
             }
         });
 
-        $(EditorManager).on("activeEditorChange", function() {
+        $(EditorManager).on("activeEditorChange", function () {
             refresh();
         });
 

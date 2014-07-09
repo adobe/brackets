@@ -27,6 +27,30 @@ define(function (require, exports, module) {
     };
 
 
+    function clearFonts() {
+        // Remove this tag that is intefering with font settings set in this module
+        $("#codemirror-dynamic-fonts").remove();
+    }
+
+
+    /**
+    * Add theme class to the document to add proper theme styling scoping.
+    * New class is added, old class is removed.  This basically allows
+    * themeSettings to get nicely cleaned up from the DOM.
+    */
+    function setDocumentTheme() {
+        var newThemes = (prefs.get("themes") || []);
+        var oldThemes = (currentThemes || []).slice(0);
+        currentThemes = newThemes.slice(0);
+
+        // We gotta prefix theme names with "theme" because themes that start with a number
+        // will not render correctly.  Class names that start with a number are invalid
+        newThemes = _.map(newThemes, function (theme) { return "theme-" + theme; }).join(" ");
+        oldThemes = _.map(oldThemes, function (theme) { return "theme-" + theme; }).join(" ");
+        $("html").removeClass(oldThemes).addClass(newThemes);
+    }
+
+
     function updateLineHeight() {
         clearFonts();
         var value = prefs.get("lineHeight");
@@ -48,12 +72,6 @@ define(function (require, exports, module) {
     }
 
 
-    function clearFonts() {
-        // Remove this tag that is intefering with font settings set in this module
-        $("#codemirror-dynamic-fonts").remove();
-    }
-
-
     function updateFonts() {
         clearFonts();
         updateLineHeight();
@@ -67,8 +85,7 @@ define(function (require, exports, module) {
         if (prefs.get("customScrollbars")) {
             var scrollbar = (theme.scrollbar || []).join(" ");
             templates.$scrollbars.text(scrollbar || "");
-        }
-        else {
+        } else {
             templates.$scrollbars.text("");
         }
     }
@@ -94,24 +111,6 @@ define(function (require, exports, module) {
 
         // Make sure to update the document theme if a new theme is being set.
         setDocumentTheme();
-    }
-
-
-    /**
-    * Add theme class to the document to add proper theme styling scoping.
-    * New class is added, old class is removed.  This basically allows
-    * themeSettings to get nicely cleaned up from the DOM.
-    */
-    function setDocumentTheme() {
-        var newThemes = (prefs.get("themes") || []);
-        var oldThemes = (currentThemes || []).slice(0);
-        currentThemes = newThemes.slice(0);
-
-        // We gotta prefix theme names with "theme" because themes that start with a number
-        // will not render correctly.  Class names that start with a number are invalid
-        newThemes = _.map(newThemes, function(theme){ return "theme-" + theme; }).join(" ");
-        oldThemes = _.map(oldThemes, function(theme){ return "theme-" + theme; }).join(" ");
-        $("html").removeClass(oldThemes).addClass(newThemes);
     }
 
 
