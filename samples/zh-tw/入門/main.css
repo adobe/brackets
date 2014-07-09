@@ -50,6 +50,11 @@ img {
     max-width: 95%;
 }
 
+em {
+    font-style: normal;
+    font-weight: bold;
+}
+
 @-webkit-keyframes colorize {
     0% {
         -webkit-filter: grayscale(100%);
