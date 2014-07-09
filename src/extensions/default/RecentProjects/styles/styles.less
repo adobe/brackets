@@ -1,3 +1,27 @@
+@bc-bg-highlight:               #e0f0fa;
+
+@bc-highlight-hard:             rgba(255, 255, 255, 0.7);
+@bc-highlight:                  rgba(255, 255, 255, 0.12);
+@bc-shadow:                     rgba(0, 0, 0, 0.24);
+@bc-shadow-large:               rgba(0, 0, 0, 0.5);
+@bc-shadow-small:               rgba(0, 0, 0, 0.06);
+
+@bc-text:                       #333;
+@bc-text-quiet:                 #aaa;
+@bc-text-thin-quiet:            #777;
+@bc-text-thin:                  #000;
+
+@bc-panel-bg:                   #dfe2e2;
+@bc-panel-bg-promoted:          #d4d7d7;
+@bc-panel-border:               rgba(0, 0, 0, 0.09);
+
+@bc-btn-bg:                     #e5e9e9;
+@bc-btn-bg-down:                #d3d7d7;
+@bc-btn-border:                 #b2b5b5;
+@bc-btn-border-focused:         #2893ef;
+@bc-btn-border-focused-glow:    #94ceff;
+@bc-input-bg:                   #fff;
+
 .dropdown-arrow {
     display: inline-block;
     width: 7px;
@@ -15,13 +39,13 @@
     width: 16px;
     height: 16px;
     font-size: 20px;
-    color: rgba(0, 0, 0, 0.5);
+    color: @bc-text-thin-quiet;
     line-height: 15px;
     text-align: center;
 }
 
 .trash-icon:hover {
-    color: rgba(0, 0, 0, 1);
+    color: @bc-text-thin;
 }
 
 #project-dropdown-toggle {
@@ -78,15 +102,15 @@
 }
 
 .recent-folder, #open-folder-link {
-    color: #454545;
+    color: @bc-text;
 }
 
 .recent-folder-path {
-    color: #aaa;
+    color: @bc-text-quiet;
 }
 
 #project-dropdown.dropdown-menu a.selected {
-     background: #E0F0FA;
+     background: @bc-bg-highlight;
 }
 #project-dropdown.dropdown-menu a:not(.selected):hover {
      background: none;
