@@ -76,8 +76,8 @@ define(function (require, exports, module) {
                 var themeFile = FileSystem.getFileForPath(testFilePath + "/simple-scrollbars.css");
                 var promise = FileUtils.readAsText(themeFile).done(function(content) {
                     var themeScrollbars = ThemeManager._extractScrollbars(content);
-                    expect(themeScrollbars.scrollbar.length).toEqual(2);
-                    expect(superTrim(themeScrollbars.scrollbar.join(""))).toEqual("::-webkit-scrollbar{width:12px;}::-webkit-scrollbar-thumb:window-inactive{background:white;}");
+                    expect(themeScrollbars.scrollbar.length).toEqual(3);
+                    expect(superTrim(themeScrollbars.scrollbar.join(""))).toEqual("::-webkit-scrollbar{width:12px;}::-webkit-scrollbar-thumb:window-inactive{background:white;}::-webkit-scrollbar-thumb{background:white;}");
                     expect(superTrim(themeScrollbars.content)).toEqual("");
                 });
 

@@ -1,7 +1,10 @@
 ::-webkit-scrollbar {
     width: 12px;
+}::-webkit-scrollbar-thumb:window-inactive{
+    background: white;
 }
 
-::-webkit-scrollbar-thumb:window-inactive{
+::-webkit-scrollbar-thumb
+    {
     background: white;
 }
