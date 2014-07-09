@@ -59,7 +59,8 @@ define(function (require, exports, module) {
     * @return {string} theme name properly formatted for display
     */
     function toDisplayName (name) {
-        name = name.substring(0, name.lastIndexOf('.')).replace(/-/g, ' ');
+        var extIndex = name.lastIndexOf('.');
+        name = name.substring(0, extIndex !== -1 ? extIndex : undefined).replace(/-/g, ' ');
         var parts = name.split(" ");
 
         _.each(parts.slice(0), function (part, index) {
@@ -184,7 +185,7 @@ define(function (require, exports, module) {
     function loadCurrentThemes() {
         var pendingThemes = _.map(getCurrentThemes(), function (theme) {
 
-            return FileUtils.readAsText(theme.file)
+            return theme && FileUtils.readAsText(theme.file)
                 .then(function(content) {
                     var result = extractScrollbars(content);
                     theme.scrollbar = result.scrollbar;
@@ -406,4 +407,8 @@ define(function (require, exports, module) {
     exports.loadPackage      = loadPackage;
     exports.loadDirectory    = loadDirectory;
     exports.getCurrentThemes = getCurrentThemes;
+    
+    // Exposed for testing purposes
+    exports._toDisplayName     = toDisplayName;
+    exports._extractScrollbars = extractScrollbars;
 });
