@@ -61,13 +61,10 @@ define(function (require, exports, module) {
     function toDisplayName (name) {
         var extIndex = name.lastIndexOf('.');
         name = name.substring(0, extIndex !== -1 ? extIndex : undefined).replace(/-/g, ' ');
-        var parts = name.split(" ");
 
-        _.each(parts.slice(0), function (part, index) {
-            parts[index] = part[0].toUpperCase() + part.substring(1);
-        });
-
-        return parts.join(" ");
+        return name.split(" ").map(function (part) {
+            return part[0].toUpperCase() + part.substring(1);
+        }).join(" ");
     }
 
 
