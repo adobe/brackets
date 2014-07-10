@@ -329,7 +329,7 @@ define(function (require, exports, module) {
      */
     function setCurrentDocument(doc) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.doOpen() instead of DocumentManager.setCurrentDocument()", true);
-        MainViewManager.doOpen(doc.file);
+        MainViewManager.doOpen(MainViewManager.FOCUSED_PANE, doc.file);
     }
 
     

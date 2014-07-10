@@ -420,20 +420,23 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype.doRemoveAllViews = function () {
+        var self = this;
+        
         this.viewList = [];
         this.viewListMRUOrder = [];
         this.viewListAddedOrder = [];
         this.showInterstitial(true);
         this.currentView = null;
         
-        _.forEach(this._views, function (view) {
-            delete this.views[view.getFullPath()];
+        _.forEach(this.views, function (view) {
+            delete self.views[view.getFullPath()];
             view.destroy();
         });
     };
     
     Pane.prototype.doRemoveViews = function (fileList) {
-        var result = this.removeListFromViewList(fileList);
+        var self = this,
+            result = this.removeListFromViewList(fileList);
         
         var viewNeedsClosing = function (fullPath) {
             return _.findIndex(this.viewListAddedOrder, function (file) {
@@ -441,10 +444,10 @@ define(function (require, exports, module) {
             });
         };
         
-        _.forEach(this._views, function (view) {
+        _.forEach(this.views, function (view) {
             var viewPath = view.getFullPath();
             if (viewNeedsClosing(viewPath)) {
-                delete this.views[viewPath];
+                delete self.views[viewPath];
                 view.destroy();
             }
         });
