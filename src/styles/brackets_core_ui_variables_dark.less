@@ -46,7 +46,7 @@
 @bc-color-step-size: 10%;
 
 // General
-@bc-bg-highlight:               #3c3c3c;
+@bc-bg-highlight:               #288edf;
 @bc-bg-status-bar:              #1c1c1e;
 @bc-disabled-opacity:           0.3;
 @bc-error:                      #f74687;
@@ -75,7 +75,7 @@
 // Text
 @bc-text:                       #ccc;
 @bc-text-alt:                   #fff;
-@bc-text-emphasized:            #111;
+@bc-text-emphasized:            #fff;
 @bc-text-link:                  #6bbeff;
 @bc-text-quiet:                 #aaa;
 @bc-text-thin:                  #fff;
@@ -98,11 +98,11 @@
 @bc-btn-bg-down-alt:            #404141;
 @bc-btn-border:                 #202020;
 @bc-btn-border-error:           #fa689d;
-@bc-btn-border-error-glow:      #ffb0cd;
+@bc-btn-border-error-glow:      transparent; //#ffb0cd
 @bc-btn-border-focused:         #2893ef;
-@bc-btn-border-focused-glow:    #94ceff;
-@bc-btn-triangle:               #878787;
-@bc-input-bg:                   #666;
+@bc-btn-border-focused-glow:    transparent; //#94ceff
+@bc-btn-triangle:               #aaa;
+@bc-input-bg:                   #555;
 
 // Primary Button
 @bc-primary-btn-bg:             #288edf;
@@ -118,6 +118,11 @@
 @bc-sidebar-bg:                 #3C3F41;
 @bc-sidebar-selection:          #2D2E30;
 
+// These needs to be cleaned up later
 body {
     color: #ccc;
+}
+
+.button-icon {  // icons must be nested inside button so we can apply padding w/o tiling icon
+    background-image: url("images/find-replace-sprites-dark.svg") !important;
 }
