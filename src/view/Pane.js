@@ -435,24 +435,7 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype.doRemoveViews = function (fileList) {
-        var self = this,
-            result = this.removeListFromViewList(fileList);
-        
-        var viewNeedsClosing = function (fullPath) {
-            return _.findIndex(this.viewListAddedOrder, function (file) {
-                return file.fullPath === fullPath;
-            });
-        };
-        
-        _.forEach(this.views, function (view) {
-            var viewPath = view.getFullPath();
-            if (viewNeedsClosing(viewPath)) {
-                delete self.views[viewPath];
-                view.destroy();
-            }
-        });
-        
-        return result;
+        return this.removeListFromViewList(fileList);
     };
     
     Pane.prototype.doRemoveView = function (file) {
