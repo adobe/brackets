@@ -21,6 +21,8 @@ h1, h2, h3, h4, h5, h6 {
     color: #222;
     font-weight: 600;
     line-height: 1.3em;
+    font-family: "Droid Sans Fallback", "LiHei Pro", "Microsoft JhengHei Bold", "Arial Unicode MS", sans-serif;
+    font-weight: 500;
 }
 
 h2 {
