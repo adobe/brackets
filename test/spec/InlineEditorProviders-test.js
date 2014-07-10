@@ -1546,6 +1546,7 @@ define(function (require, exports, module) {
         describe("InlineEditor provider prioritization", function () {
             var testWindow,
                 testEditorManager,
+                testMainViewManager,
                 testDoc;
             
             function getPositiveProviderCallback(widget) {
@@ -1565,8 +1566,9 @@ define(function (require, exports, module) {
                     testWindow          = w;
                     Commands            = testWindow.brackets.test.Commands;
                     testEditorManager   = testWindow.brackets.test.EditorManager;
+                    testMainViewManager = testWindow.brackets.test.MainViewManager;
                     testDoc             = mock.doc;
-                    testEditorManager._doShow(testDoc);
+                    testMainViewManager.doEdit(testMainViewManager.FOCUSED_PANE, testDoc);
                 });
             });
             
@@ -1577,6 +1579,7 @@ define(function (require, exports, module) {
                 Commands            = null;
                 testEditorManager   = null;
                 testDoc             = null;
+                testMainViewManager = null;
             });
             
             

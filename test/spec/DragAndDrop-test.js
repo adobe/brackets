@@ -82,6 +82,9 @@ define(function (require, exports, module) {
         });
         
         describe("Testing openDroppedFiles function", function () {
+            /*
+            
+            TODO: Revist this once images are fully supported...
             
             it("should NOT open any image file when a text file is in the dropped file list", function () {
                 var jsFilePath = testPath + "/test.js";
@@ -126,7 +129,7 @@ define(function (require, exports, module) {
                     expect(EditorManager.getCurrentlyViewedPath()).toEqual(lastImagePath);
                 });
             });
-            
+            */
         });
     });
 });
