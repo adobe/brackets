@@ -331,9 +331,13 @@ define(function (require, exports, module) {
      *    (useful if suppressRedraw was used with removeFromPaneViewList() earlier)
      */
     function addToPaneViewList(paneId, file, index, force) {
+        if (!file) {
+            return;
+        }
+        
         var pane = _getPaneFromPaneId(paneId);
 
-        if (!pane || !EditorManager.canOpenFile(file.fullPath) || getPaneIdForPath(file.fullPath)) {
+        if (!pane || !EditorManager.canOpenFile(file.fullPath) || (findInPaneViewList(ALL_PANES, file.fullPath) !== -1)) {
             return;
         }
         
