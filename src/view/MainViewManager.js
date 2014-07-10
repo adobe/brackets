@@ -649,7 +649,8 @@ define(function (require, exports, module) {
         if (_paneViews.hasOwnProperty(SECOND_PANE)) {
             var firstPane = _paneViews[FIRST_PANE],
                 secondPane = _paneViews[SECOND_PANE],
-                fileList = secondPane.getViewList();
+                fileList = secondPane.getViewList(),
+                lastViewed = getCurrentlyViewedFile();
             
             firstPane.mergeWith(secondPane);
         
@@ -669,6 +670,10 @@ define(function (require, exports, module) {
             _updateLayout();
             _updateCommandState();
             $(exports).triggerHandler("paneLayoutChange", _orientation);
+
+            if (getCurrentlyViewedFile() !== lastViewed) {
+                exports.doOpen(firstPane.id, lastViewed);
+            }
         }
     }
 
