@@ -1421,6 +1421,10 @@ define(function (require, exports, module) {
         return { x: scrollInfo.left, y: scrollInfo.top };
     };
     
+    Editor.prototype.adjustScrollPos = function (scrollPos, heightDelta) {
+        this._codeMirror.scrollTo(scrollPos.x, scrollPos.y + heightDelta);
+    };
+    
     /**
      * Sets the current scroll position of the editor.
      * @param {number} x scrollLeft position in pixels

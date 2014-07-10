@@ -98,15 +98,9 @@ define(function (require, exports, module) {
         
         // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
         // height of the modal bar so the code doesn't appear to shift if possible.
-        var fullEditor = EditorManager.getCurrentFullEditor(),
-            scrollPos;
-        if (fullEditor) {
-            scrollPos = fullEditor.getScrollPos();
-        }
+        MainViewManager.savePaneScrollState(MainViewManager.ALL_PANES);
         WorkspaceManager.recomputeLayout();  // changes available ht for editor area
-        if (fullEditor) {
-            fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + this.height());
-        }
+        MainViewManager.adjustPaneScrollState(MainViewManager.ALL_PANES, this.height());
     }
     
     /**
@@ -162,17 +156,10 @@ define(function (require, exports, module) {
         
         // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
         // height of the modal bar so the code doesn't appear to shift if possible.
-        var fullEditor = EditorManager.getCurrentFullEditor(),
-            barHeight,
-            scrollPos;
-        if (restoreScrollPos && fullEditor) {
-            barHeight = this.height();
-            scrollPos = fullEditor.getScrollPos();
-        }
-        WorkspaceManager.recomputeLayout();
-        if (restoreScrollPos && fullEditor) {
-            fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y - barHeight);
-        }
+        var barHeight = this.height();
+        MainViewManager.savePaneScrollState(MainViewManager.ALL_PANES);
+        WorkspaceManager.recomputeLayout();  // changes available ht for editor area
+        MainViewManager.adjustPaneScrollState(MainViewManager.ALL_PANES, -barHeight);
     };
     
     /**

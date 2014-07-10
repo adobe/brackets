@@ -92,6 +92,10 @@ define(function (require, exports, module) {
     var _paneViews = {
     };
     
+    
+    var _paneStates = {
+    };
+    
     /**
      *
      */
@@ -124,6 +128,7 @@ define(function (require, exports, module) {
     function forceFocusToActivePaneView() {
         _getActivePane().focus();
     }
+    
     
     function setActivePaneId(newPaneId) {
         if (_paneViews.hasOwnProperty(newPaneId) && (newPaneId !== _activePaneId)) {
@@ -194,6 +199,37 @@ define(function (require, exports, module) {
             }
         }
     }
+    
+    function savePaneScrollState(paneId) {
+        if (paneId === ALL_PANES) {
+            _.forEach(_paneViews, function (pane) {
+                _paneStates[pane.id] = pane.getPaneScrollState();
+            });
+        } else {
+            var pane = _getPaneFromPaneId(paneId);
+            if (pane) {
+                _paneStates[pane.id] = pane.getPaneScrollState();
+            }
+        }
+    }
+    
+    function adjustPaneScrollState(paneId, heightDelta) {
+        if (paneId === ALL_PANES) {
+            _.forEach(_paneViews, function (pane) {
+                if (_paneStates.hasOwnProperty(pane.id)) {
+                    pane.adjustPaneScrollState(_paneStates[pane.id], heightDelta);
+                }
+            });
+            _paneStates = {};
+        } else {
+            var pane = _getPaneFromPaneId(paneId);
+            if (pane && _paneStates.hasOwnProperty(pane.id)) {
+                pane.adjustPaneScrollState(_paneStates[pane.id], heightDelta);
+                delete _paneStates[pane.id];
+            }
+        }
+    }
+        
     
     /**
      * Retrieves the PaneViewList for the given PaneId
@@ -994,6 +1030,10 @@ define(function (require, exports, module) {
     exports.swapPaneViewListIndexes          = swapPaneViewListIndexes;
     exports.traversePaneViewListByMRU        = traversePaneViewListByMRU;
     exports.forceFocusToActivePaneView       = forceFocusToActivePaneView;
+    
+    // Pane state
+    exports.savePaneScrollState              = savePaneScrollState;
+    exports.adjustPaneScrollState            = adjustPaneScrollState;
     
     // Traversal
     exports.beginTraversal                   = beginTraversal;

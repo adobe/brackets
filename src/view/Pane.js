@@ -57,6 +57,7 @@ define(function (require, exports, module) {
     Pane.prototype.ITEM_FOUND_NO_SORT = 0;
     Pane.prototype.ITEM_FOUND_NEEDS_SORT = 1;
 
+    
     Pane.prototype._makeEventName = function (name) {
         return name + ".pane" + this.paneId;
     };
@@ -526,6 +527,18 @@ define(function (require, exports, module) {
         });
         
         return result;
+    };
+    
+    Pane.prototype.getPaneScrollState = function () {
+        if (this.currentView) {
+            return {scrollPos: this.currentView.getScrollPos()};
+        }
+    };
+    
+    Pane.prototype.adjustPaneScrollState = function (state, heightDelta) {
+        if (this.currentView && state && state.scrollPos) {
+            this.currentView.adjustScrollPos(state.scrollPos, heightDelta);
+        }
     };
     
     exports.Pane = Pane;
