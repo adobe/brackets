@@ -300,12 +300,24 @@ define(function (require, exports, module) {
 
     
     function getPaneIdForPath(fullPath) {
+        // Search all working sets
         var info = findInPaneViewList(ALL_PANES, fullPath);
-        if (info !== -1) {
-            return info.paneId;
-        } else {
+
+        // Look for a view that has not been added to a working set
+        if (info === -1) {
+            _.forEach(_paneViews, function (pane) {
+                if (pane.getCurrentlyViewedPath() === fullPath) {
+                    info = {paneId: pane.id};
+                    return false;
+                }
+            });
+        }
+
+        if (info === -1) {
             return null;
         }
+
+        return info.paneId;
     }
     
     /**
@@ -709,35 +721,31 @@ define(function (require, exports, module) {
     }
 
     function doClose(paneId, file) {
+        if (!file) {
+            return;
+        }
+        
         if (paneId === ALL_PANES) {
-            var info = findInPaneViewList(ALL_PANES, file.fullPath);
-
-            if (info === -1) {
-                return;
-            }
-            paneId = info.paneId;
+            // search in the list of files in each pane's workingset list
+            paneId = getPaneIdForPath(file.fullPath);
         }
 
-        var pane = _getPaneFromPaneId(paneId),
-            dispatchEvent = pane.findInViewList(file.fullPath) !== -1;
+        var pane = _getPaneFromPaneId(paneId);
         
-        pane.doRemoveView(file);
-        if (dispatchEvent) {
+        if (pane.doRemoveView(file)) {
             $(exports).triggerHandler("paneViewListRemove", [file, false, pane.id]);
         
-            if (paneId === _activePaneId) {
+            if (pane.id === _activePaneId) {
                 $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), paneId]);
             }
         }
     }
-
 
     function doCloseList(paneId, fileList) {
         var closedList,
             currentFile = _getActivePane().getCurrentlyViewedFile(),
             currentFileClosed = currentFile ? (fileList.indexOf(currentFile) !== -1) : false;
 
-        
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
                 closedList = pane.doRemoveViews(fileList);

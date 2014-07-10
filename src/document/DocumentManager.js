@@ -185,6 +185,7 @@ define(function (require, exports, module) {
      */
     function clearCurrentDocument() {
         DeprecationWarning.deprecationWarning("DocumentManager.clearCurrentDocument() has been deprecated. Use MainViewManager.doClose()", true);
+        MainViewManager.doClose(MainViewManager.FOCUSED_PANE, MainViewManager.getCurrentlyViewedFile());
     }
     
     /**
@@ -682,16 +683,15 @@ define(function (require, exports, module) {
     });
     
     $(MainViewManager).on("currentFileChanged", function (e, file) {
+        var doc = null;
         if (file) {
-            var doc = getDocumentForPath(file.fullPath);
-            if (doc) {
-                var listeners = $._data(exports, "events");
-                if (listeners && listeners.currentDocumentChange && listeners.currentDocumentChange.length > 0) {
-                    DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChanged' instead.", true);
-                }
-                $(exports).triggerHandler("currentDocumentChange", [doc, null]);
-            }
+            doc = getDocumentForPath(file.fullPath);
         }
+        var listeners = $._data(exports, "events");
+        if (listeners && listeners.currentDocumentChange && listeners.currentDocumentChange.length > 0) {
+            DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChanged' instead.", true);
+        }
+        $(exports).triggerHandler("currentDocumentChange", [doc, null]);
     });
     
     // Deprecated APIs   

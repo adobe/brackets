@@ -199,15 +199,13 @@ define(function (require, exports, module) {
         // If doc isn't in view list, do nothing
         var index = this.findInViewList(file.fullPath);
         
-        if (index === -1) {
-            return false;
+        if (index > -1) {
+            // Remove
+            this.viewList.splice(index, 1);
+            this.viewListMRUOrder.splice(this.findInViewListMRUOrder(file.fullPath), 1);
+            this.viewListAddedOrder.splice(this.findInViewListAddedOrder(file.fullPath), 1);
         }
         
-        // Remove
-        this.viewList.splice(index, 1);
-        this.viewListMRUOrder.splice(this.findInViewListMRUOrder(file.fullPath), 1);
-        this.viewListAddedOrder.splice(this.findInViewListAddedOrder(file.fullPath), 1);
-
         // Destroy the view
         var view = this.views[file.fullPath];
 
@@ -219,7 +217,7 @@ define(function (require, exports, module) {
             view.destroy();
         }
         
-        return true;
+        return ((index > -1) || !!view);
     };
 
     Pane.prototype.removeFromViewList = function (file) {
@@ -355,6 +353,12 @@ define(function (require, exports, module) {
             return;
         }
         
+        if (this.currentView && this.currentView === view) {
+            this.currentView.setVisible(true);
+            this.updateLayout();
+            return;
+        }
+        
         var newPath = view.getFullPath(),
             oldView = this.currentView,
             oldPath = oldView ? oldView.getFullPath() : undefined;
@@ -457,7 +461,7 @@ define(function (require, exports, module) {
                                                              paneId: this.id});
             }
         }
-        this._removeFromViewList(file);
+        return this._removeFromViewList(file);
     };
     
     Pane.prototype.focus = function () {
