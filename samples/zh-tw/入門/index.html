@@ -43,21 +43,20 @@
         -->
         <h3>CSS 及 JavaScript 快速編輯</h3>
         <p>
-            不用再一直切換檔案而不斷失焦了。編輯 HTML 時，按下 <kbd>Cmd/Ctrl + E</kbd>
-            快捷鍵能就地開啟編輯器，編輯所有相關的 CSS 設定。
+            不用因為要不斷切換檔案而一直失焦了。編輯 HTML 時，按下 <kbd>Cmd/Ctrl + E</kbd>
+            快速鍵能就地開啟編輯器，編輯所有相關的 CSS 設定。
             調好 CSS 後再按 <kbd>ESC</kbd> 馬上就能繼續寫 HTML。
             此外，也可以就讓那些 CSS 規則一直開著，成為 HTML 編輯器的一部分。
             如果您在快速編輯器的範圍外按下 <kbd>ESC</kbd> 鍵，所有快速編輯器都會收合起來。
         </p>
         
         <samp>
-            Want to see it in action? Place your cursor on the <!-- <samp> --> tag above and press
-            <kbd>Cmd/Ctrl + E</kbd>. You should see a CSS quick editor appear above, showing the CSS rule that
-            applies to it. Quick Edit works in class and id attributes as well.
+            想親身體驗嗎? 把游標移到上面的 <!-- <samp> --> 標籤中，按下 <kbd>Cmd/Ctrl + E</kbd>。
+            您應該就會看到 CSS 快速編輯器出現在上方，馬上就能看到並修改套用在該標籤上的 CSS 規則。
+            快速編輯功能也支援 class 及 id 屬性喔!
             
-            You can create new rules the same way. Click in one of the <!-- <p> --> tags above and press
-            <kbd>Cmd/Ctrl + E</kbd>. There are no rules for it right now, but you can click the New Rule
-            button to add a new rule for <!-- <p> -->.
+            您也可以透過這個方式新增規則。在上方隨便一個 <!-- <p> --> 標籤上點一下，按 <kbd>Cmd/Ctrl + E</kbd>。
+            可以看到它身上並沒有任何的 CSS　規則，但您可以按一下「新增規則」按鈕，就會新增 <!-- <p> --> 規則。
         </samp>
         
         <a href="screenshots/quick-edit.png">
@@ -65,10 +64,8 @@
         </a>
         
         <p>
-            You can use the same shortcut to edit other things as well--like functions in JavaScript,
-            colors, and animation timing functions--and we're adding more and more all the time.
-            For now inline editors cannot be nested, so you can only use Quick Edit while the cursor
-            is in a "full size" editor.
+            您也能使用相同的快速鍵編輯其他東西，例如 JavaScript 函式、CSS 色彩、動畫計時函式等，還持續在新增中。
+            目前還不能在快速編輯器中巢狀開啟其他快速編輯器，只有游標在主編輯器時您才能使用快速編輯功能。
         </p>
         
         <!--
@@ -76,69 +73,62 @@
         -->
         <h3>在瀏覽器裡即時預覽 HTML 及 CSS 變更</h3>
         <p>
-            You know that "save/reload dance" we've been doing for years? The one where you make changes in
-            your editor, hit save, switch to the browser and then refresh to finally see the result?
-            With Brackets, you don't have to do that dance.
+            有一種舞叫做「存檔再重新載入探戈」，我們跳了好多年，您聽過嗎?
+            就是編輯器裡改一改東西，按儲存，馬上再切換到瀏覽器，按了「重新整理」後才能真正的看到結果這鳥事?
+            用 Brackets，您永遠不必再這麼「跳」。
         </p>
         <p>
-            Brackets will open a <em>live connection</em> to your local browser and push HTML and CSS updates as you
-            type! You might already be doing something like this today with browser-based tools, but with Brackets
-            there is no need to copy and paste the final code back into the editor. Your code runs in the
-            browser, but lives in your editor!
+            Brackets 會跟您本機的瀏覽器<em>即時連線</em>，在您輸入的將 HTML 及 CSS 同步更新過去!
+            說不定身在 21 世紀的您已經用瀏覽器提供的工具裡做過類似的事了，但透過 Brackets
+            您不用再把最後終於會動的程式複製再貼回編輯器。
+            您的程式雖然身在瀏覽器上，但靈魂可還一直活在編輯器裡啊!
         </p>
         
         <h3>即時強調顯示 HTML 元素及 CSS 規則</h3>
         <p>
-            Brackets makes it easy to see how your changes in HTML and CSS will affect the page. When your cursor
-            is on a CSS rule, Brackets will highlight all affected elements in the browser. Similarly, when editing
-            an HTML file, Brackets will highlight the corresponding HTML elements in the browser.
+            Brackets 讓您更容易看到 HTML 及 CSS 的修改會對頁面造成什麼影響。
+            當游標停在 CSS 規則上時，Brackets 會在瀏覽器裡強調顯示所有會受影響的元素。
+            編輯 HTML 檔案時，Brackets 也會在瀏覽器中強調顯示對應的 HTML 元素。
         </p>
         
         <samp>
-            If you have Google Chrome installed, you can try this out yourself. Click on the lightning bolt 
-            icon in the top right corner of your Brackets window or hit <kbd>Cmd/Ctrl + Alt + P</kbd>. When
-            Live Preview is enabled on an HTML document, all linked CSS documents can be edited in real-time.
-            The icon will change from gray to gold when Brackets establishes a connection to your browser.
+            如果您安裝了 Google Chrome，馬上就可以嘗試看看。
+            按一下 Brackets 視窗右上角的閃電圖示，或是按 <kbd>Cmd/Ctrl + Alt + P</kbd>。
+            當即時預覽功能在 HTML 檔案上啟用後，所有連結到的 CSS 檔案都可以即時編輯。
+            Brackets 與您的瀏覽器建立連線時，圖示會由灰轉金。
             
-            Now, place your cursor on the <!-- <img> --> tag above. Notice the blue highlight that appears
-            around the image in Chrome. Next, use <kbd>Cmd/Ctrl + E</kbd> to open up the defined CSS rules.
-            Try changing the size of the border from 10px to 20px or change the background
-            color from "transparent" to "hotpink". If you have Brackets and your browser running side-by-side, you
-            will see your changes instantly reflected in your browser. Cool, right?
+            就是現在，把游標移到上面的 <!-- <img> --> 標籤。注意看 Chrome 在圖片上顯示的藍色框。
+            接下來，按 <kbd>Cmd/Ctrl + E</kbd> 開啟相關的 CSS 規則定義。
+            試著將框線 (border) 由 10px 改成 20px，或將背景色由透明 "transparent" 改成 "hotpink"。
+            如果您把 Brackets 跟瀏覽器並排放好，就能看到所有異動都馬上反應到瀏覽器上了。酷吧?
         </samp>
                 
         <p class="note">
-            Today, Brackets only supports Live Preview for HTML and CSS. However, in the current version, changes to
-            JavaScript files are automatically reloaded when you save. We are currently working on Live Preview
-            support for JavaScript. Live previews are also only possible with Google Chrome, but we hope
-            to bring this functionality to all major browsers in the future.
+            目前 Brackets 只能即時預覽 HTML 及 CSS。不過，修改 JavaScript 檔案時，一按儲存就會自動重新載入頁面。
+            我們正在努力讓即時預覽功能支援 JavaScript。
+            此外，即時預覽現在只能在 Google Chrome 上執行，我們希望將來能支援所有主流的瀏覽器。
         </p>
                 
         <h3>快速檢視</h3>
         <p>
-            For those of us who haven't yet memorized the color equivalents for HEX or RGB values, Brackets makes
-            it quick and easy to see exactly what color is being used. In either CSS or HTML, simply hover over any
-            color value or gradient and Brackets will display a preview of that color/gradient automatically. The
-            same goes for images: simply hover over the image link in the Brackets editor and it will display a
-            thumbnail preview of that image.
+            為了那些還記不得色彩十六進位值或是 RGB 值的人，Brackets 能快速又簡單的讓您看見用到的色彩。
+            不管在 CSS 或 HTML 中，只要將滑鼠游標移到任何色彩值或是漸變色上，Brackets 會自動預覽該色彩或漸變色。
+            對圖片也同樣有用，在 Brackets 裡將滑鼠游標移到圖片連結上，就會自動顯示預覽縮圖。
         </p>
         
         <samp>
-            To try out Quick View for yourself, place your cursor on the <!-- <body> --> tag at the top of this
-            document and press <kbd>Cmd/Ctrl + E</kbd> to open a CSS quick editor. Now simply hover over any of the
-            color values within the CSS. You can also see it in action on gradients by opening a CSS quick editor
-            on the <!-- <html> --> tag and hovering over any of the background image values. To try out the image
-            preview, place your cursor over the screenshot image included earlier in this document.
+            自已試試快速檢視，只要將游標移到這件文件最上方的 <!-- <body> --> 標籤上，按下
+            <kbd>Cmd/Ctrl + E</kbd> 開啟 CSS 快速編輯器，將滑鼠游標移到 CSS 上的任何一個色彩值上就能看到。
+            想要預覽漸變色，您也可以在 <!-- <html> --> 標籤上開啟 CSS 快速編輯器，移到隨便一個背景圖片 (background-image) 值就能看到。
+            圖片預覽則是將游標移到這份文件前幾段提到的畫面擷圖上就能看到。
         </samp>
         
         <h3>還欠什麼嗎? 安裝擴充功能吧!</h3>
         <p>
-            In addition to all the goodness that's built into Brackets, our large and growing community of
-            extension developers has built over a hundred extensions that add useful functionality. If there's
-            something you need that Brackets doesn't offer, more than likely someone has built an extension for
-            it. To browse or search the list of available extensions, choose <strong>File &gt; Extension
-            Manager</strong> and click on the "Available" tab. When you find an extension you want, just click
-            the "Install" button next to it.
+            除了 Brackets 內建的那些好東西外，我們那已具規模，且日益狀大的開發者社群已經寫了上百種擴充功能。
+            如果您覺得 Brackets 少了什麼，說不定已經有人寫出那項擴充功能了。
+            點一下 <strong>檔案 &gt; 擴充功能管理員</strong>，再點一下「可使用」頁籤，就能瀏覽或搜尋擴充功能清單。
+            一旦找到想要的擴充功能，按一下後面的「安裝」按鈕就可以了。
         </p>
         
         <!--
