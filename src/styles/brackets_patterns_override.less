@@ -804,7 +804,7 @@ a[href^="http"] {
             > li > a {
                 min-width: 80px;
                 min-height: 60px;
-                color: black;
+                color: @bc-text-thin;
                 cursor: default;
                 font-size: 12px;
 
@@ -844,7 +844,7 @@ a[href^="http"] {
                 position: relative;  // for positioning .notification icon
                 .notification {
                     display: none;  // hidden by default
-                    background-color: @bc-secondary-btn;
+                    background-color: @bc-secondary-btn-bg;
                     color: white;
                     border-radius: 16px;
                     padding: 0 5px;
@@ -1126,7 +1126,7 @@ input[type="color"],
 .btn.primary:focus,
 .btn.primary.disabled,
 .btn.primary[disabled] {
-    background-color: @bc-primary-btn;
+    background-color: @bc-primary-btn-bg;
 }
 
 .btn {
@@ -1180,7 +1180,7 @@ input[type="color"],
     // Primary Button Type
     &.primary {
         background-image: none;
-        background-color: @bc-primary-btn;
+        background-color: @bc-primary-btn-bg;
         border: 1px solid  @bc-primary-btn-border;
         box-shadow: inset 0 1px 0 @bc-highlight;
         color: @bc-text-alt;
@@ -1188,7 +1188,7 @@ input[type="color"],
         &.active,
         &:active {
             background-image: none;
-            background-color: @bc-primary-btn-down;
+            background-color: @bc-primary-btn-bg-down;
             box-shadow: inset 0 1px 0 @bc-shadow-small;
             color: @bc-text-alt;
         }
@@ -1202,7 +1202,7 @@ input[type="color"],
     
     // Update Button Type
     &.update {
-        background-color: @bc-secondary-btn;
+        background-color: @bc-secondary-btn-bg;
         border-color: @bc-secondary-btn-border;
         box-shadow: inset 0 1px 0 @bc-highlight;
         color: @bc-text-alt;
@@ -1210,7 +1210,7 @@ input[type="color"],
         text-shadow: 0 -1px 0 @bc-shadow-small;
         
         &:active {
-            background-color: @bc-secondary-btn-down;
+            background-color: @bc-secondary-btn-bg-down;
             border-color: @bc-secondary-btn-border;
             box-shadow: inset 0 1px 0 @bc-shadow-small;
             color: @bc-text-alt;
