@@ -944,7 +944,7 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function saveAll() {
-        return _saveFileList(MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE));
+        return _saveFileList(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES));
     }
 
     /**
@@ -1113,7 +1113,7 @@ define(function (require, exports, module) {
      * @param {boolean} clearCurrentDoc
      * @param {boolean} _forceClose Whether to force all the documents to close even if they have unsaved changes. For unit testing only.
      */
-    function _closeList(list, promptOnly, clearCurrentDoc, _forceClose) {
+    function _closeList(list, promptOnly, _forceClose) {
         var result      = new $.Deferred(),
             unsavedDocs = [];
         
@@ -1208,12 +1208,12 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
-        return _closeList(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES),
+        return _closeList(MainViewManager.getAllOpenFiles(),
                                     (commandData && commandData.promptOnly), (commandData && commandData._forceClose));
     }
 
     function handleFileCloseList(commandData) {
-        return _closeList(commandData.fileList, false);
+        return _closeList(commandData.fileList);
     }
 
     /**

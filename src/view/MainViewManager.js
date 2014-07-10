@@ -219,6 +219,17 @@ define(function (require, exports, module) {
         return null;
     }
     
+    function getAllOpenFiles() {
+        var result = getPaneViewList(ALL_PANES);
+        _.forEach(_paneViews, function (pane) {
+            var file = pane.getCurrentlyViewedFile();
+            if (file) {
+                result = _.union(result, [file]);
+            }
+        });
+        return result;
+    }
+    
     function getPaneIdList() {
         return Object.keys(_paneViews);
     }
@@ -974,6 +985,7 @@ define(function (require, exports, module) {
     exports.findInPaneViewListMRUOrder       = findInPaneViewListMRUOrder;
     exports.getPaneViewListSize              = getPaneViewListSize;
     exports.getPaneViewList                  = getPaneViewList;
+    exports.getAllOpenFiles                  = getAllOpenFiles;
     exports.makePaneViewMostRecent           = makePaneViewMostRecent;
     exports.removeAllFromPaneViewList        = removeAllFromPaneViewList;
     exports.removeFromPaneViewList           = removeFromPaneViewList;
