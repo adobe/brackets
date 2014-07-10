@@ -152,7 +152,7 @@ define(function (require, exports, module) {
     function _unregisterAll() {
         _providers = {};
     }
-
+    
     /**
      * Returns a list of provider for given file path, if available.
      * Decision is made depending on the file extension.
@@ -474,7 +474,7 @@ define(function (require, exports, module) {
         if (_enabled) {
             // register our event listeners
             $(DocumentManager)
-                .on("currentDocumentChange.codeInspection", function () {
+                .on("currentDocumentChange.codeInspection currentDocumentLanguageChanged.codeInspection", function () {
                     run();
                 })
                 .on("documentSaved.codeInspection documentRefreshed.codeInspection", function (event, document) {

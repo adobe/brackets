@@ -228,7 +228,8 @@ define(function (require, exports, module) {
         Menus.closeAll();
         
         var $dropdown = $("<ul class='dropdown-menu dropdownbutton-popup' tabindex='-1'>")
-            .addClass(this.dropdownExtraClasses);  // (no-op if unspecified)
+            .addClass(this.dropdownExtraClasses)  // (no-op if unspecified)
+            .css("min-width", this.$button.outerWidth());  // do this before the clipping calcs below
         
         this.$dropdown = $dropdown;
         this._renderList(this.$dropdown)
@@ -259,8 +260,7 @@ define(function (require, exports, module) {
 
         $dropdown.css({
             left: posLeft,
-            top: posTop,
-            minWidth: this.$button.outerWidth()
+            top: posTop
         });
 
         // Attach event handlers

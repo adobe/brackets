@@ -171,7 +171,33 @@ a, img {
 
     #status-language {
         border-right: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 0px;
+        margin: 0px;
     }
+    
+    /* dropdown button styling */
+    .btn-status-bar {
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        font: inherit;
+        height: inherit;
+        line-height: inherit;
+        margin: 0;
+        padding: 0 20px 0 10px;
+        vertical-align: top;
+        width: auto;
+        cursor: pointer;
+        &:focus {
+            outline: 0;
+        }
+        &[disabled] {
+            cursor: inherit;
+            background: none;
+            text-decoration: none;
+        }
+    }
+    
 }
 
 #status-indent > * {
