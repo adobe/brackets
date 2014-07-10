@@ -37,19 +37,15 @@ define(function CSSAgent(require, exports, module) {
 
     require("thirdparty/path-utils/path-utils.min");
 
+    var _ = require("thirdparty/lodash");
+
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 
     /**
-     * Stylesheet urls
+     * Stylesheet details
      * @type {Object.<string, CSS.CSSStyleSheetHeader>}
      */
-    var _urlToStyle = {};
-    
-    /**
-     * Map of stylesheet ids to urls
-     * @type {Object.<string, string>}
-     */
-    var _styleSheetIdToUrl;
+    var _styleSheetDetails = {};
 
     /**
      * Is getAllStyleSheets() API defined? - This is undefined until we test for API
@@ -75,18 +71,24 @@ define(function CSSAgent(require, exports, module) {
     function _onFrameNavigated(event, res) {
         // Clear maps when navigating to a new page, but not if an iframe was loaded
         if (!res.frame.parentId) {
-            _urlToStyle = {};
-            _styleSheetIdToUrl = {};
+            _styleSheetDetails = {};
         }
     }
 
     /**
      * Get a style sheet for a url
      * @param {string} url
-     * @return {CSS.CSSStyleSheetHeader}
+     * @return {Array} Array of CSSStyleSheetHeaders
      */
     function styleForURL(url) {
-        return _urlToStyle[_canonicalize(url)];
+        var styleSheetId, styles = {};
+        url = _canonicalize(url);
+        for (styleSheetId in _styleSheetDetails) {
+            if (_styleSheetDetails[styleSheetId].sourceURL === url) {
+                styles[styleSheetId] = _styleSheetDetails[styleSheetId];
+            }
+        }
+        return styles;
     }
 
     /**
@@ -95,13 +97,11 @@ define(function CSSAgent(require, exports, module) {
      * @deprecated
      */
     function getStylesheetURLs() {
-        var urls = [], url;
-        for (url in _urlToStyle) {
-            if (_urlToStyle.hasOwnProperty(url)) {
-                urls.push(url);
-            }
+        var styleSheetId, urls = [];
+        for (styleSheetId in _styleSheetDetails) {
+            urls[_styleSheetDetails[styleSheetId].sourceURL] = true;
         }
-        return urls;
+        return _.keys(urls);
     }
 
     /**
@@ -110,9 +110,15 @@ define(function CSSAgent(require, exports, module) {
      * @return {jQuery.Promise}
      */
     function reloadCSSForDocument(doc) {
-        var style = styleForURL(doc.url);
-        console.assert(style, "Style Sheet for document not loaded: " + doc.url);
-        return Inspector.CSS.setStyleSheetText(style.styleSheetId, doc.getText());
+        var styles = styleForURL(doc.url),
+            styleSheetId,
+            deferreds = [];
+        console.assert(styles, "Style Sheet for document not loaded: " + doc.url);
+        for (styleSheetId in styles) {
+            deferreds.push(Inspector.CSS.setStyleSheetText(styles[styleSheetId].styleSheetId, doc.getText()));
+        }
+        // return master deferred
+        return $.when.apply($, deferreds);
     }
 
     /**
@@ -121,9 +127,15 @@ define(function CSSAgent(require, exports, module) {
      * @return {jQuery.Promise}
      */
     function clearCSSForDocument(doc) {
-        var style = styleForURL(doc.url);
-        console.assert(style, "Style Sheet for document not loaded: " + doc.url);
-        return Inspector.CSS.setStyleSheetText(style.styleSheetId, "");
+        var styles = styleForURL(doc.url),
+            styleSheetId,
+            deferreds = [];
+        console.assert(styles, "Style Sheet for document not loaded: " + doc.url);
+        for (styleSheetId in styles) {
+            deferreds.push(Inspector.CSS.setStyleSheetText(styles[styleSheetId].styleSheetId, ""));
+        }
+        // return master deferred
+        return $.when.apply($, deferreds);
     }
     
     /**
@@ -133,15 +145,17 @@ define(function CSSAgent(require, exports, module) {
      */
     function _styleSheetAdded(event, res) {
         var url = _canonicalize(res.header.sourceURL),
-            existing = _urlToStyle[url];
+            existing = styleForURL(res.header.sourceURL);
         
         // detect duplicates
-        if (existing && existing.styleSheetId === res.header.styleSheetId) {
+        existing = _.some(existing, function (styleSheet) {
+            return styleSheet && styleSheet.styleSheetId === res.header.styleSheetId;
+        });
+        if (existing) {
             return;
         }
         
-        _urlToStyle[url] = res.header;
-        _styleSheetIdToUrl[res.header.styleSheetId] = url;
+        _styleSheetDetails[res.header.styleSheetId] = res.header;
         
         $(exports).triggerHandler("styleSheetAdded", [url, res.header]);
     }
@@ -152,16 +166,11 @@ define(function CSSAgent(require, exports, module) {
      * @param {styleSheetId: StyleSheetId}
      */
     function _styleSheetRemoved(event, res) {
-        var url = _styleSheetIdToUrl[res.styleSheetId],
-            header = url && _urlToStyle[url];
+        var header = _styleSheetDetails[res.styleSheetId];
         
-        if (url) {
-            delete _urlToStyle[url];
-        }
+        delete _styleSheetDetails[res.styleSheetId];
         
-        delete _styleSheetIdToUrl[res.styleSheetId];
-        
-        $(exports).triggerHandler("styleSheetRemoved", [url, header]);
+        $(exports).triggerHandler("styleSheetRemoved", [header.sourceURL, header]);
     }
     
     /**

@@ -286,7 +286,7 @@ define(function (require, exports, module) {
                 HighlightAgentModule.load();
                 
                 // module spies
-                spyOn(CSSAgentModule, "styleForURL").andReturn("");
+                spyOn(CSSAgentModule, "styleForURL").andReturn([]);
                 spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return new $.Deferred().resolve(); });
                 spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
                 spyOn(HighlightAgentModule, "rule").andCallFake(function () {});

@@ -109,7 +109,7 @@ define(function CSSDocumentModule(require, exports, module) {
      */
     CSSDocument.prototype.getSourceFromBrowser = function getSourceFromBrowser() {
         var deferred = new $.Deferred(),
-            styleSheetId = this._getStyleSheetHeader().styleSheetId,
+            styleSheetId = this._getStyleSheetHeader()[0].styleSheetId,
             inspectorPromise = Inspector.CSS.getStyleSheetText(styleSheetId);
         
         inspectorPromise.then(function (res) {
@@ -252,12 +252,12 @@ define(function CSSDocumentModule(require, exports, module) {
         Inspector.CSS.getMatchedStylesForNode(node.nodeId, function onGetMatchesStyles(res) {
             // res = {matchedCSSRules, pseudoElements, inherited}
             var codeMirror = this.editor._codeMirror,
-                styleSheetId = this._getStyleSheetHeader().styleSheetId;
+                styleSheetIds = this._getStyleSheetHeader();
 
             var i, rule, from, to;
             for (i in res.matchedCSSRules) {
                 rule = res.matchedCSSRules[i];
-                if (rule.ruleId && rule.ruleId.styleSheetId === styleSheetId) {
+                if (rule.ruleId && styleSheetIds && styleSheetIds[rule.ruleId.styleSheetId]) {
                     from = codeMirror.posFromIndex(rule.selectorRange.start);
                     to = codeMirror.posFromIndex(rule.style.range.end);
                     this._highlight.push(codeMirror.markText(from, to, { className: "highlight" }));
