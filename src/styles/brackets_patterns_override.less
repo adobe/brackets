@@ -1120,6 +1120,7 @@ input[type="color"],
 .btn.disabled,
 .btn[disabled] {
     background-color: @bc-btn-bg;
+    color: @bc-text;
 }
 
 .btn.primary:hover,
@@ -1194,7 +1195,7 @@ input[type="color"],
         }
 
         &:focus {
-            border: 1px solid @bc-primary-btn-border;
+            border: 1px solid @bc-btn-border-focused;
             box-shadow: inset 0 1px 0 @bc-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
             outline: none;
         }
@@ -1403,4 +1404,17 @@ input[type="checkbox"]:checked:before {
 
 code {
     border: none;
+}
+
+.close {
+    color: @bc-text;
+    text-shadow: none;
+    opacity: 0.7;
+    filter: alpha(opacity=70);
+}
+
+.close:hover {
+    color: @bc-text;
+    opacity: 1;
+    filter: alpha(opacity=100);
 }
