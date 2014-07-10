@@ -86,8 +86,14 @@ define(function (require, exports, module) {
         this.suppressSortRedraw = false;
         this.paneId = paneId;
         
+        this.updateOptionsButton();
         this.init();
     }
+
+    PaneViewListView.prototype.updateOptionsButton = function () {
+        var visible = (MainViewManager.getActivePaneId() === this.paneId);
+        this.$el.find(".pane-view-option-btn").toggle(visible);
+    };
     
     PaneViewListView.prototype._handlePaneLayoutChange = function (e) {
         var $titleEl = this.$el.find(".pane-view-header-title"),
@@ -98,6 +104,7 @@ define(function (require, exports, module) {
         }
         
         $titleEl.text(title);
+        this.updateOptionsButton();
     };
     
     PaneViewListView.prototype._findListItemFromPath = function (fullPath) {
@@ -266,6 +273,7 @@ define(function (require, exports, module) {
         }
         this._adjustForScrollbars();
         this._fireSelectionChanged();
+        this.updateOptionsButton();
     };
     
     PaneViewListView.prototype._handleActivePaneChange = function (e, paneId) {

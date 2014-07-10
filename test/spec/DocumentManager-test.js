@@ -40,6 +40,7 @@ define(function (require, exports, module) {
         this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
+            testFile = testPath + "/test.js",
             testWindow,
             _$,
             promise;
@@ -83,11 +84,12 @@ define(function (require, exports, module) {
                 testWindow.brackets.test.DocumentManager.closeAll();
             });
         });
-        
+
+/*        Deprecated --
+          TODO: re-work this to check the new stuff
         describe("clearCurrentDocument ", function () {
             it("should fire currentDocumentChange", function () {
                 var docChangeListener = jasmine.createSpy();
-
 
                 runs(function () {
                     _$(DocumentManager).on("currentDocumentChange", docChangeListener);
@@ -123,5 +125,44 @@ define(function (require, exports, module) {
 
             });
         });
+*/
+        describe("openDocument ", function () {
+            it("Should report document in open documents list", function () {
+
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testFile });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                
+                runs(function () {
+                    expect(DocumentManager.getOpenDocumentForPath(testFile)).toBeTruthy();
+                    expect(DocumentManager.getAllOpenDocuments().length).toEqual(1);
+                    expect(DocumentManager.getCurrentDocument().file.fullPath).toEqual(testFile);
+                });
+                   
+                runs(function () {
+                    promise = DocumentManager.getDocumentText({ fullPath: testFile });
+                    waitsForDone(promise, "DocumentManager.getDocumentText");
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
+                    waitsForDone(promise, Commands.FILE_CLOSE_ALL);
+                });
+                
+                runs(function () {
+                    expect(DocumentManager.getAllOpenDocuments().length).toEqual(0);
+                    expect(DocumentManager.getCurrentDocument()).toBeFalsy();
+                });
+            });
+            
+            it("Should create a new untitled document", function () {
+                runs(function () {
+                    var doc = DocumentManager.createUntitledDocument(1, ".txt");
+                    expect(doc).toBeTruthy();
+                });
+            });
+        });
+
     });
 });
