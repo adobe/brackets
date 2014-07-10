@@ -1135,7 +1135,65 @@ define(function (require, exports, module) {
                         knownGoodFolder: "regexp-case-insensitive"
                     });
                 });
+                
+                it("should replace all instances of a regexp that spans multiple lines in a project on disk", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    
+                    // This query should find each rule in the CSS file (but not in the JS file since there's more than one line
+                    // between each pair of braces).
+                    doBasicTest({
+                        queryInfo:       {query: "\\{\\n[^\\n]*\\n\\}", isRegexp: true},
+                        numMatches:      4,
+                        replaceText:     "CHANGED",
+                        knownGoodFolder: "regexp-replace-multiline"
+                    });
+                });
 
+                it("should replace all instances of a regexp that spans multiple lines in a project in memory", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    
+                    // This query should find each rule in the CSS file (but not in the JS file since there's more than one line
+                    // between each pair of braces).
+                    doInMemoryTest({
+                        queryInfo:        {query: "\\{\\n[^\\n]*\\n\\}", isRegexp: true},
+                        numMatches:       4,
+                        replaceText:      "CHANGED",
+                        knownGoodFolder:  "unchanged",
+                        forceFilesOpen:   true,
+                        inMemoryFiles:    ["/css/foo.css"],
+                        inMemoryKGFolder: "regexp-replace-multiline"
+                    });
+                });
+                
+                it("should replace all instances of a regexp that spans multiple lines in a project on disk when the last line is a partial match", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    
+                    // This query should match from the open brace through to (and including) the first colon of each rule in the
+                    // CSS file.
+                    doBasicTest({
+                        queryInfo:       {query: "\\{\\n[^:]+:", isRegexp: true},
+                        numMatches:      4,
+                        replaceText:     "CHANGED",
+                        knownGoodFolder: "regexp-replace-multiline-partial"
+                    });
+                });
+
+                it("should replace all instances of a regexp that spans multiple lines in a project in memory when the last line is a partial match", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    
+                    // This query should match from the open brace through to (and including) the first colon of each rule in the
+                    // CSS file.
+                    doInMemoryTest({
+                        queryInfo:        {query: "\\{\\n[^:]+:", isRegexp: true},
+                        numMatches:       4,
+                        replaceText:      "CHANGED",
+                        knownGoodFolder:  "unchanged",
+                        forceFilesOpen:   true,
+                        inMemoryFiles:    ["/css/foo.css"],
+                        inMemoryKGFolder: "regexp-replace-multiline-partial"
+                    });
+                });
+                
                 it("should replace all instances of a regexp in a project on disk case-sensitively with a simple replace string", function () {
                     openTestProjectCopy(defaultSourcePath);
                     doBasicTest({
@@ -1391,6 +1449,23 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         waitsForDone(CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/css/foo.css"}), "open file");
+                    });
+
+                    doInMemoryTest({
+                        queryInfo:        {query: "foo"},
+                        numMatches:       14,
+                        replaceText:      "bar",
+                        knownGoodFolder:  "simple-case-insensitive-except-foo.css",
+                        inMemoryFiles:    ["/css/foo.css"],
+                        inMemoryKGFolder: "simple-case-insensitive"
+                    });
+                });
+
+                it("should do the replacement in memory for a file that's in the working set but not yet open in an editor", function () {
+                    openTestProjectCopy(defaultSourcePath);
+
+                    runs(function () {
+                        DocumentManager.addToWorkingSet(FileSystem.getFileForPath(testPath + "/css/foo.css"));
                     });
 
                     doInMemoryTest({
