@@ -649,6 +649,35 @@ define(function (require, exports, module) {
         return new $.Deferred().reject();
     }
     
+    function _onFileRemoved(file) {
+        // There's one case where an editor should be disposed even though the current document
+        // didn't change: removing a document from the working set (via the "X" button). (This may
+        // also cover the case where the document WAS current, if the editor-swap happens before the
+        // removal from the working set.
+        var doc;
+        if (typeof file === "string") {
+            doc = DocumentManager.getOpenDocumentForPath(file);
+        } else {
+            doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+        }
+        
+        if (doc) {
+            MainViewManager.destroyEditorIfNotNeeded(doc);
+        }
+    }
+
+    /** 
+     */
+    function _handleRemoveFromPaneView(e, removedFiles) {
+        if ($.isArray(removedFiles)) {
+            removedFiles.forEach(function (removedFile) {
+                _onFileRemoved(removedFile);
+            });
+        } else {
+            _onFileRemoved(removedFiles);
+        }
+    }    
+    
     /**
      * Asynchronously asks providers to handle jump-to-definition.
      * @return {!Promise} Resolved when the provider signals that it's done; rejected if no
@@ -689,7 +718,8 @@ define(function (require, exports, module) {
     });
 
     $(MainViewManager).on("currentFileChanged", _handleCurrentFileChanged);
-        
+    $(MainViewManager).on("paneViewListRemove paneViewListRemoveList", _handleRemoveFromPaneView);
+
     
     // For unit tests and internal use only
     exports._createFullEditorForDocument  = _createFullEditorForDocument;
