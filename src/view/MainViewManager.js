@@ -847,12 +847,18 @@ define(function (require, exports, module) {
      */
 
     function destroyEditorIfNotNeeded(document) {
+        if (!(document instanceof DocumentManager.Document)) {
+            throw new Error("_destroyEditorIfUnneeded() should be passed a Document");
+        }
         if (document._masterEditor) {
             var paneId = _getPaneIdFromContainer(document._masterEditor.getContainer()),
                 pane = _paneViews[paneId];
             
             if (pane) {
                 pane.destroyViewIfNotNeeded(document._masterEditor);
+            } else {
+                // not referenced in a working set or current view
+                document._masterEditor.destroy();
             }
         }
     }
