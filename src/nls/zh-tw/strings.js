@@ -271,7 +271,7 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "新增資料夾",
     "CMD_FILE_OPEN"                       : "開啟\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "加進工作集",
-    "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
+    "CMD_OPEN_DROPPED_FILES"              : "開啟拖放的檔案",
     "CMD_OPEN_FOLDER"                     : "開啟資料夾\u2026",
     "CMD_FILE_CLOSE"                      : "關閉",
     "CMD_FILE_CLOSE_ALL"                  : "全部關閉",
