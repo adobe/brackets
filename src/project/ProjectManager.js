@@ -1157,6 +1157,7 @@ define(function (require, exports, module) {
             _unwatchProjectRoot().always(function () {
                 // Done closing old project (if any)
                 if (_projectRoot) {
+                    PreferencesManager._reloadUserPrefs(_projectRoot);
                     $(exports).triggerHandler("projectClose", _projectRoot);
                 }
                 

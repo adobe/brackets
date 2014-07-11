@@ -474,7 +474,7 @@ define(function (require, exports, module) {
         if (_enabled) {
             // register our event listeners
             $(DocumentManager)
-                .on("currentDocumentChange.codeInspection", function () {
+                .on("currentDocumentChange.codeInspection currentDocumentLanguageChanged.codeInspection", function () {
                     run();
                 })
                 .on("documentSaved.codeInspection documentRefreshed.codeInspection", function (event, document) {
