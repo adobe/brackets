@@ -34,12 +34,12 @@ define(function (require, exports, module) {
         DocumentManager      = brackets.getModule("document/DocumentManager"),
         Commands             = brackets.getModule("command/Commands"),
         CommandManager       = brackets.getModule("command/CommandManager"),
+        LanguageManager      = brackets.getModule("language/LanguageManager"),
         Menus                = brackets.getModule("command/Menus"),
         AppInit              = brackets.getModule("utils/AppInit"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         PerfUtils            = brackets.getModule("utils/PerfUtils"),
         StringMatch          = brackets.getModule("utils/StringMatch"),
-        LanguageManager      = brackets.getModule("language/LanguageManager"),
         ProjectManager       = brackets.getModule("project/ProjectManager"),
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         ParameterHintManager = require("ParameterHintManager"),
@@ -308,8 +308,7 @@ define(function (require, exports, module) {
      * @return {boolean} - true if the document is a html file
      */
     function isHTMLFile(document) {
-        var languageID = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
-        return languageID === "html";
+        return LanguageManager.getLanguageForPath(document.file.fullPath).getId() === "html";
     }
     
     function isInlineScript(editor) {
@@ -596,7 +595,6 @@ define(function (require, exports, module) {
                         }
                         ignoreChange = false;
                     });
-
                 ParameterHintManager.installListeners(editor);
             } else {
                 session = null;
@@ -626,6 +624,18 @@ define(function (require, exports, module) {
          * @param {Editor} previous - the previous editor context
          */
         function handleActiveEditorChange(event, current, previous) {
+            // Uninstall "languageChanged" event listeners on the previous editor's document
+            if (previous && previous !== current) {
+                $(previous.document)
+                    .off(HintUtils.eventName("languageChanged"));
+            }
+            if (current && current.document !== DocumentManager.getCurrentDocument()) {
+                $(current.document)
+                    .on(HintUtils.eventName("languageChanged"), function () {
+                        uninstallEditorListeners(current);
+                        installEditorListeners(current);
+                    });
+            }
             uninstallEditorListeners(previous);
             installEditorListeners(current, previous);
         }
@@ -792,6 +802,13 @@ define(function (require, exports, module) {
         $(EditorManager)
             .on(HintUtils.eventName("activeEditorChange"),
                 handleActiveEditorChange);
+        
+        $(DocumentManager)
+            .on("currentDocumentLanguageChanged", function (e) {
+                var activeEditor = EditorManager.getActiveEditor();
+                uninstallEditorListeners(activeEditor);
+                installEditorListeners(activeEditor);
+            });
         
         $(ProjectManager).on("beforeProjectClose", function () {
             ScopeManager.handleProjectClose();
