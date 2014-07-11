@@ -77,10 +77,15 @@ define(function (require, exports, module) {
         options = options || {};
         var fileName = file.name;
 
+        // The name is used to map the loaded themes to the list in the settings dialog. So we want
+        // a unique name if one is not provided.  This is partocularly important when loading just
+        // files where there is no other way to feed in meta data to provide unique names.  Say, there
+        // is a theme1.css and a theme1.less that are entirely different themes...
+
         this.file        = file;
-        this.displayName = options.title     || toDisplayName(fileName);
-        this.name        = options.name      || fileName.replace('.', '-');
+        this.name        = options.name      || (options.title || fileName).toLocaleLowerCase().replace(/[\W]/g, '-');
         this.className   = options.className || "theme-" + this.name;
+        this.displayName = options.title     || toDisplayName(fileName);
     }
 
 
@@ -198,8 +203,8 @@ define(function (require, exports, module) {
             return loadedThemes[item] || loadedThemes[defaultTheme];
         });
     }
-    
-    
+
+
     /**
      * Provides quick access to all available themes
      * @return {array} collection of all available themes
