@@ -59,6 +59,9 @@ define(function (require, exports, module) {
             });
             
             afterEach(function () {
+                $fakeHolder.remove();
+                $fakeHolder = null;
+
                 $fakeContentDiv.remove();
                 $fakeContentDiv = null;
                 

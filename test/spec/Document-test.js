@@ -245,6 +245,7 @@ define(function (require, exports, module) {
             DocumentManager = null;
             MainViewManager = null;
             SpecRunnerUtils.closeTestWindow();
+            testWindow = null;
         });
 
         afterEach(function () {
@@ -262,7 +263,7 @@ define(function (require, exports, module) {
 
 
         describe("Dirty flag and undo", function () {
-            var promise, doc;
+            var promise;
             
             it("should not fire dirtyFlagChange when created", function () {
                 var dirtyFlagListener = jasmine.createSpy();
@@ -399,6 +400,8 @@ define(function (require, exports, module) {
                     $(doc).off("change", changeListener);
                     $(DocumentManager).off("dirtyFlagChange", dirtyFlagListener);
                 });
+                
+                doc = null;
             });
         });
         
