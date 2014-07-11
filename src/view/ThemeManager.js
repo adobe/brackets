@@ -78,7 +78,7 @@ define(function (require, exports, module) {
         var fileName = file.name;
 
         // The name is used to map the loaded themes to the list in the settings dialog. So we want
-        // a unique name if one is not provided.  This is partocularly important when loading just
+        // a unique name if one is not provided.  This is particularly important when loading just
         // files where there is no other way to feed in meta data to provide unique names.  Say, there
         // is a theme1.css and a theme1.less that are entirely different themes...
 
@@ -120,6 +120,22 @@ define(function (require, exports, module) {
 
     /**
     * @private
+    * Function will process a string and figure out if it looks like window path with a
+    * a drive.  If that's the case, then we lower case everything.
+    * --- NOTE: There is a bug in less that only checks for lowercase in order to handle
+    * the rootPath configuration...  Hopefully a PR will be coming their way soon.
+    *
+    * @return {string} Windows Drive letter in lowercase.
+    */
+    function fixPath(path) {
+        return path.replace(/^([A-Z]+:)?\//, function (match) {
+            return match.toLocaleLowerCase();
+        });
+    }
+
+
+    /**
+    * @private
     * Takes the content of a file and feeds it through the less processor in order
     * to provide support for less files.
     *
@@ -130,8 +146,8 @@ define(function (require, exports, module) {
     function lessifyTheme(content, theme) {
         var deferred = new $.Deferred();
         var parser   = new less.Parser({
-            rootpath: stylesPath,
-            filename: theme.file._path
+            rootpath: fixPath(stylesPath),
+            filename: fixPath(theme.file._path)
         });
 
         parser.parse("." + theme.className + "{" + content + "}", function (err, tree) {
