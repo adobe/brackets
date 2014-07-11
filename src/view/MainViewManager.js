@@ -845,14 +845,32 @@ define(function (require, exports, module) {
     /**
      *
      */
-
+    function _findPaneForDocument(document) {
+        if (!document || !document.file) {
+            return;
+        }
+        // First check for an editor view of the document 
+        var paneId = _getPaneIdFromContainer(document._masterEditor.getContainer()),
+            pane = _paneViews[paneId];
+        
+        if (!paneId) {
+            // No view of the document, it may be in a working set and not yet opened
+            var info = findInPaneViewList(ALL_PANES, document.file.fullPath);
+            if (info !== -1) {
+                pane = _paneViews[info.paneId];
+            }
+        }
+        
+        return pane;
+    }
+    
+    
     function destroyEditorIfNotNeeded(document) {
         if (!(document instanceof DocumentManager.Document)) {
             throw new Error("_destroyEditorIfUnneeded() should be passed a Document");
         }
         if (document._masterEditor) {
-            var paneId = _getPaneIdFromContainer(document._masterEditor.getContainer()),
-                pane = _paneViews[paneId];
+            var pane = _findPaneForDocument(document);
             
             if (pane) {
                 pane.destroyViewIfNotNeeded(document._masterEditor);
