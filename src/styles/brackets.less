@@ -888,7 +888,7 @@ a, img {
     width: 250px;
     max-width: 50%;
     overflow: hidden;
-    background: @inline-background-color-2;
+    background: @bc-panel-bg;
 
     // Without this, the "New Rule" button shows on top of the rule list if you resize
     // the window narrow enough. No idea why, since there's no z-index on the button, and
@@ -897,10 +897,10 @@ a, img {
 
     .selection {
         width: 100%;
-        background: @bc-panel-bg-promoted;
+        background: @bc-panel-bg-selected;
         position: absolute;
-        border-top: 1px solid darken(@inline-background-color-3, @bc-color-step-size);
-        border-bottom: 1px solid lighten(@inline-background-color-3, @bc-color-step-size);
+        border-top: 1px solid @bc-shadow-small;
+        border-bottom: 1px solid @bc-highlight;
         top: @top-margin;
 
         &.animate {
@@ -918,9 +918,9 @@ a, img {
         position: absolute;
         width: 0;
         height: 0;
-        border-top: @inline-triangle-size solid @inline-background-color-3;
-        border-bottom: @inline-triangle-size solid @inline-background-color-3;
-        border-left: @inline-triangle-size solid @inline-background-color-1;
+        border-top: @inline-triangle-size solid transparent;
+        border-bottom: @inline-triangle-size solid transparent;
+        border-left: @inline-triangle-size solid @bc-panel-bg-alt;
         margin-top: -@inline-triangle-size;
         top: 50%;
         .scale-x(0.9, left, top);
@@ -1434,6 +1434,7 @@ textarea.exclusions-editor {
 
         &.smart_autocomplete_highlight {
             background-color: @bc-bg-highlight;
+            color: @bc-text-alt;
         }
     }
 }
