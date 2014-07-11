@@ -1545,6 +1545,7 @@ define(function (require, exports, module) {
         
         describe("InlineEditor provider prioritization", function () {
             var testWindow,
+                testDocumentManager,
                 testEditorManager,
                 testMainViewManager,
                 testDoc;
@@ -1567,7 +1568,14 @@ define(function (require, exports, module) {
                     Commands            = testWindow.brackets.test.Commands;
                     testEditorManager   = testWindow.brackets.test.EditorManager;
                     testMainViewManager = testWindow.brackets.test.MainViewManager;
+                    testDocumentManager = testWindow.brackets.test.DocumentManager;
+                    
                     testDoc             = mock.doc;
+                    
+                    testDocumentManager.getOpenDocumentForPath = function (fullPath) {
+                        return testDoc;
+                    };
+                    
                     testMainViewManager.doEdit(testMainViewManager.FOCUSED_PANE, testDoc);
                 });
             });
@@ -1580,6 +1588,7 @@ define(function (require, exports, module) {
                 testEditorManager   = null;
                 testDoc             = null;
                 testMainViewManager = null;
+                testDocumentManager = null;
             });
             
             
