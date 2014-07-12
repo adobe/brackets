@@ -106,9 +106,9 @@ define({
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "即時預覽 (檔案儲存後重新載入)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "即時預覽 (語法錯誤，不更新)",
 
-    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "已取消即時預覽，因為瀏覽器的開發者工具被打開了",
-    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "已取消即時預覽，因為頁面已經在瀏覽器中關掉了",
-    "LIVE_DEV_NAVIGATED_AWAY"                  : "已取消即時預覽，因為瀏覽器連到專案外的頁面了",
+    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "已取消即時預覽，因為開發者工具被打開了",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "已取消即時預覽，因為頁面被關掉了",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "已取消即時預覽，因為您連到專案外的頁面了",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "即時預覽因為不明的錯誤而取消 ({0})",
     
     "SAVE_CLOSE_TITLE"                  : "儲存變更",
