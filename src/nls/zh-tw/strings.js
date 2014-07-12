@@ -92,7 +92,7 @@ define({
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "正在連到瀏覽器",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "為了讓即時預覽功能順利連線，需要重新啟動 Chrome 並開啟遠端除錯功能。<br /><br />您是否要重新啟動 Chrome 並啟用遠端除錯功能?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "無法載入即時預覽頁",
-    "LIVE_DEV_NEED_HTML_MESSAGE"        : "直接開啟 HTML 檔，或是確定專案中有 index.html 檔才能啟動即時預覽功能。",
+    "LIVE_DEV_NEED_HTML_MESSAGE"        : "請開啟 HTML 檔，或是確定專案中有 index.html 檔才能啟動即時預覽功能。",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "您需要指定專案的 URL 根位址，才能啟動包含伺服器端資源的即時預覽功能。",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "無法啟動即時預覽用的 HTTP 伺服器。請再試一次。",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "歡迎使用即時預覽!",
