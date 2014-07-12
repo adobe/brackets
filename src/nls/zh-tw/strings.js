@@ -522,7 +522,7 @@ define({
     "CMD_SWITCH_LANGUAGE"                       : "切換語言",
     "CMD_RUN_UNIT_TESTS"                        : "執行測試",
     "CMD_SHOW_PERF_DATA"                        : "顯示效能資料",
-    "CMD_ENABLE_NODE_DEBUGGER"                  : "啟用 Node 偵錯工具",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "啟用 Node 除錯工具",
     "CMD_LOG_NODE_STATE"                        : "將 Node 狀態寫到 Console",
     "CMD_RESTART_NODE"                          : "重新啟動 Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "在狀態列顯示錯誤訊息",
