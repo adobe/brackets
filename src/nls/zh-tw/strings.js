@@ -394,7 +394,7 @@ define({
     "CLOSE_DONT_SAVE"                      : "關閉 (不要儲存)",
     "RELAUNCH_CHROME"                      : "重新啟動 Chrome",
     "ABOUT"                                : "關於",
-    "CLOSE"                                : "結束",
+    "CLOSE"                                : "關閉",
     "ABOUT_TEXT_LINE1"                     : "第 {VERSION_MINOR} 回 Sprint {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_BUILD_TIMESTAMP"           : "建置時間: ",
     "ABOUT_TEXT_LINE3"                     : "第三方軟體的注意事項、使用條款及條件公佈在 <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a>，於此引用納入。",
