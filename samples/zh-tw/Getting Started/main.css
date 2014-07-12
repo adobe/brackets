@@ -9,7 +9,7 @@ body {
     margin: 0 auto;
     padding: 2em 2em 4em;
     max-width: 800px;
-    font-family: "Droid Sans Fallback", "LiHei Pro", "Microsoft JhengHei", "Arial Unicode MS", sans-serif;
+    font-family: "Heiti TC", "LiHei Pro", "Microsoft JhengHei", "WenQuanYi Micro Hei", "Droid Sans Fallback", "Arial Unicode MS", sans-serif;
     font-size: 16px;
     line-height: 1.5em;
     color: #545454;
@@ -21,7 +21,7 @@ h1, h2, h3, h4, h5, h6 {
     color: #222;
     font-weight: 600;
     line-height: 1.3em;
-    font-family: "Droid Sans Fallback", "LiHei Pro", "Microsoft JhengHei Bold", "Arial Unicode MS", sans-serif;
+    font-family: "Heiti TC", "LiHei Pro", "Microsoft JhengHei Bold",  "WenQuanYi Micro Hei", "Droid Sans Fallback", "Arial Unicode MS", sans-serif;
 }
 
 h2 {
@@ -34,7 +34,7 @@ a {
 
 b, strong {
     font-weight: 600;
-    font-family: "Droid Sans Fallback", "LiHei Pro", "Microsoft JhengHei Bold", "Arial Unicode MS", sans-serif;
+    font-family: "Heiti TC", "LiHei Pro", "Microsoft JhengHei Bold",  "WenQuanYi Micro Hei", "Droid Sans Fallback", "Arial Unicode MS", sans-serif;
 }
 
 samp {
