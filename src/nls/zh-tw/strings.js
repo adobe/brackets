@@ -224,7 +224,7 @@ define({
      */
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
-    "KEYBOARD_SPACE"  : "空格鍵",
+    "KEYBOARD_SPACE"  : "空白鍵",
     
     /**
      * StatusBar strings
