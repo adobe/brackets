@@ -246,6 +246,7 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "已停用擴充功能",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_DEFAULT_LANG"                : "(預設)",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} 項問題",
@@ -567,4 +568,4 @@ define({
     "DOCS_MORE_LINK"                            : "更多資訊"
 });
 
-/* Last translated for 46de60683124768aa7f074aa3168f99d23f6c016 */
+/* Last translated for dce3176aba48f6c3fe7971e76bfefe66c6ebd013 */
