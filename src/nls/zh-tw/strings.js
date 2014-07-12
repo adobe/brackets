@@ -96,7 +96,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "您需要指定專案的 URL 根位址，才能啟動包含伺服器端資源的即時預覽功能。",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "無法啟動 HTTP 伺服器來即時預覽。請再試一次。",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "歡迎便用即時預覽!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "即時預覽將 {APP_NAME} 與您的瀏覽器連線。讓您在瀏覽器中預覽 HTML 檔案，編輯的內容也會即時反應在預覽畫面上。<br /><br />因為 {APP_NAME} 才剛起步，即時預覽目前只能在 <strong>Google Chrome</strong> 上面執行，<strong>CSS 或 HTML 檔案</strong>的異動會即時反應。修改 JavaScript 並存檔案，會重新載入頁面。<br /><br />(您只會看到一次這段訊息。)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "即時預覽將 {APP_NAME} 與您的瀏覽器連線。讓您在瀏覽器中預覽 HTML 檔案，編輯的內容也會即時反應在預覽畫面上。<br /><br />因為 {APP_NAME} 才剛起步，即時預覽目前只能在 <strong>Google Chrome</strong> 上面執行，<strong>CSS 或 HTML 檔案</strong>的異動會即時反應。修改 JavaScript 檔案並儲存後會重新載入頁面。<br /><br />(您只會看到一次這段訊息。)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "想要了解更多，請參考<a href='{0}' title='{0}'>即時預覽連結錯誤排解</a>。",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "即時預覽",
@@ -106,9 +106,9 @@ define({
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "即時預覽 (檔案儲存後重新載入)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "即時預覽 (語法錯誤，不更新)",
 
-    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "即時預覽已取消，因為瀏覽器的開發者工具已開啟",
-    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "即時預覽已取消，因為瀏覽器中的頁面已關閉",
-    "LIVE_DEV_NAVIGATED_AWAY"                  : "即時預覽已取消，因為瀏覽器已經瀏覽到專案外的頁面",
+    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "已取消即時預覽，因為瀏覽器的開發者工具被打開了",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "已取消即時預覽，因為頁面已經在瀏覽器中關掉了",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "已取消即時預覽，因為瀏覽器連到專案外的頁面了",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "即時預覽因為不明的錯誤而取消 ({0})",
     
     "SAVE_CLOSE_TITLE"                  : "儲存變更",
@@ -162,10 +162,10 @@ define({
     "NO_UPDATE_MESSAGE"                 : "您的 {APP_NAME} 已經是最新版。",
 
     // Find and Replace
-    "FIND_REPLACE_TITLE_LABEL"          : "取代",
-    "FIND_REPLACE_TITLE_WITH"           : "成",
+    "FIND_REPLACE_TITLE_LABEL"          : "將",
+    "FIND_REPLACE_TITLE_WITH"           : "取代成",
     "FIND_TITLE_LABEL"                  : "找到",
-    "FIND_TITLE_SUMMARY"                : " &mdash; {3}中有{0} {1} 筆{2}",
+    "FIND_TITLE_SUMMARY"                : " &mdash; {3}中共有{0} {1} 筆{2}",
 
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} 個{1}",
@@ -193,7 +193,7 @@ define({
     "EXCLUDE_FILE_FILTER"               : "排除 {0}",
     "EDIT_FILE_FILTER"                  : "編輯\u2026",
     "FILE_FILTER_DIALOG"                : "編輯排除集",
-    "FILE_FILTER_INSTRUCTIONS"          : "排除名稱完全或部分下列字串的檔案或資料夾，也可以使用<a href='{0}' title='{0}'>萬用字元</a>。 多組條件請分行輸入，一行一個。",
+    "FILE_FILTER_INSTRUCTIONS"          : "排除名稱完全或部分符合下列字串的檔案及資料夾，也可以使用<a href='{0}' title='{0}'>萬用字元</a>。 多組條件請分行輸入，一行一個。",
     "FILTER_NAME_PLACEHOLDER"           : "這組排除集的名稱 (選填)",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "及其他 {0} 個",
     "FILTER_COUNTING_FILES"             : "計算檔案數目中\u2026",
@@ -500,7 +500,7 @@ define({
     "EXTENSIONS_UPDATES_TITLE"             : "更新",
     
     "INLINE_EDITOR_NO_MATCHES"             : "找不到符合的。",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "即有 CSS 中沒有符合您選取內容的規則。<br> 按一下 \"新增規則\" 建立一組。",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "即有 CSS 中沒有符合您選取內容的規則。<br> 按一下「新增規則」 建立一組。",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "您的專案中沒有 Stylesheet 樣式表檔案。<br>建立一個來新增 CSS 規則。",
 
     // Custom Viewers
