@@ -73,31 +73,31 @@ define({
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "讀取喜好設定時發生錯誤",
-    "ERROR_PREFS_CORRUPT"               : "您的喜好設定檔內容不是有效的 JSON 格式。將會開啟該檔，以便讓您修正格式問題。 要重新啟動 {APP_NAME} 後異動才會生效。",
+    "ERROR_PREFS_CORRUPT"               : "您的喜好設定檔內容不是有效的 JSON 格式。將開啟該檔以便您修正格式問題。 重新啟動 {APP_NAME} 後異動才會生效。",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "不妙! {APP_NAME} 還不能在瀏覽器裡跑。",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} 是以 HTML 打造，不過要以應用程式的方式執行，才能讓您編輯電腦上的檔案。請透過 <b>github.com/adobe/brackets-shell</b> 儲存庫中的應用程式介面來執行 {APP_NAME}。",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} 是以 HTML 打造，不過要以應用程式的方式執行才能編輯電腦上的檔案。請透過 <b>github.com/adobe/brackets-shell</b> 儲存庫中的應用程式介面來執行 {APP_NAME}。",
     
     // ProjectManager max files error string
-    "ERROR_MAX_FILES_TITLE"             : "建立檔案索引時發生錯誤",
+    "ERROR_MAX_FILES_TITLE"             : "無法建立檔案索引",
     "ERROR_MAX_FILES"                   : "建立索引的檔案數已達上限。會透過索引尋找檔案內容的功能可能會不太正常。",
 
     // Live Preview error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "啟動瀏覽器時發生錯誤",
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "無法啟動瀏覽器",
     "ERROR_CANT_FIND_CHROME"            : "找不到 Google Chrome 瀏覽器。請確定您有安裝。",
     "ERROR_LAUNCHING_BROWSER"           : "啟動瀏覽器時發生錯誤。 (錯誤 {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "即時預覽錯誤",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "正在連到瀏覽器",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "為了讓即時預覽功能順利連線，Chrome 需要重新啟動並開啟遠端除錯功能。<br /><br />您是否要重新啟動 Chrome 並啟用遠端除錯功能?",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "為了讓即時預覽功能順利連線，需要重新啟動 Chrome 並開啟遠端除錯功能。<br /><br />您是否要重新啟動 Chrome 並啟用遠端除錯功能?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "無法載入即時預覽頁",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "直接開啟 HTML 檔，或是確定專案中有 index.html 檔才能啟動即時預覽功能。",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "您需要指定專案的 URL 根位址，才能啟動包含伺服器端資源的即時預覽功能。",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "無法啟動即時預覽用的 HTTP 伺服器。請再試一次。",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "歡迎使用即時預覽!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "即時預覽將 {APP_NAME} 與您的瀏覽器連線。讓您在瀏覽器中預覽 HTML 檔案，編輯的內容也會即時反應在預覽畫面上。<br /><br />因為 {APP_NAME} 才剛起步，即時預覽目前只能在 <strong>Google Chrome</strong> 上面執行，<strong>CSS 或 HTML 檔案</strong>的異動會即時反應。修改 JavaScript 檔案並儲存後會重新載入頁面。<br /><br />(您只會看到一次這段訊息。)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "想要了解更多，請參考<a href='{0}' title='{0}'>即時預覽連結錯誤排解</a>。",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "想了解更多，請參考<a href='{0}' title='{0}'>即時預覽連結錯誤排解</a>。",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "即時預覽",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "即時預覽: 連線中\u2026",
@@ -148,7 +148,7 @@ define({
     "BUTTON_NEXT_HINT"                  : "下一筆符合的",
     "BUTTON_PREV_HINT"                  : "上一筆符合的",
     "BUTTON_CASESENSITIVE_HINT"         : "大小寫須相符",
-    "BUTTON_REGEXP_HINT"                : "規則運算式",
+    "BUTTON_REGEXP_HINT"                : "正規表示式",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "取代後無法復原",
     "REPLACE_WITHOUT_UNDO_WARNING"      : "有超過 {0} 個檔案會被變更，{APP_NAME} 會修改到磁碟上沒被開啟的檔案。<br />這些檔案內容取代後無法再復原。",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "直接取代，不用復原",
@@ -224,7 +224,7 @@ define({
      */
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
-    "KEYBOARD_SPACE"  : "Space",
+    "KEYBOARD_SPACE"  : "空格鍵",
     
     /**
      * StatusBar strings
@@ -339,7 +339,7 @@ define({
     "VIEW_MENU"                           : "檢視",
     "CMD_HIDE_SIDEBAR"                    : "隱藏側欄",
     "CMD_SHOW_SIDEBAR"                    : "顯示側欄",
-    "CMD_INCREASE_FONT_SIZE"              : "加大字體",
+    "CMD_INCREASE_FONT_SIZE"              : "放大字體",
     "CMD_DECREASE_FONT_SIZE"              : "縮小字體",
     "CMD_RESTORE_FONT_SIZE"               : "還原字體大小",
     "CMD_SCROLL_LINE_UP"                  : "向上捲動一行",
