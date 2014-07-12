@@ -492,7 +492,7 @@ define({
     "UPDATE_AND_RELOAD"                    : "更新擴充功能並重新載入",
     "PROCESSING_EXTENSIONS"                : "正在變更擴充功能\u2026",
     "EXTENSION_NOT_INSTALLED"              : "無法移除還沒安裝的擴充功能 {0}。",
-    "NO_EXTENSIONS"                        : "還沒安裝任何擴充功能。<br>請點一下上方的「可使用」頁籤開始使用。",
+    "NO_EXTENSIONS"                        : "還沒安裝任何擴充功能。<br>請點一下上方的「可使用」頁籤開始。",
     "NO_EXTENSION_MATCHES"                 : "找不到符合您搜尋條件的擴充功能。",
     "REGISTRY_SANITY_CHECK_WARNING"        : "由不明來源安裝擴充功能時請特別小心，保持警覺。",
     "EXTENSIONS_INSTALLED_TITLE"           : "已安裝",
