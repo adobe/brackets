@@ -41,7 +41,7 @@ define({
     "FILE_EXISTS_ERR"                   : "Файл уже существует.",
     "FILE"                              : "файл",
     "DIRECTORY"                         : "директория",
-	"DIRECTORY_NAMES_LEDE"              : "Имена директорий",
+    "DIRECTORY_NAMES_LEDE"              : "Имена директорий",
     "FILENAMES_LEDE"                    : "Имена файлов",
     "FILENAME"                          : "имя файла",
     "DIRECTORY_NAME"                    : "имя директории",
@@ -66,7 +66,7 @@ define({
     "ERROR_DELETING_FILE"               : "Произошла ошибка при попытке удалить файл <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Неверное имя файла {0}",
     "INVALID_FILENAME_MESSAGE"          : "{0} не может содержать зарезервированные слова, заканчиваться точкой (.) или содержать следующие символы: <code class='emphasized'>{1}</code>",
-    "FILE_ALREADY_EXISTS"               : "Файл <span class='dialog-filename'>{0}</span> уже существует.",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "Файл или директория с именем <span class='dialog-filename'>{0}</span> уже существует.",
     "ERROR_CREATING_FILE_TITLE"         : "Ошибка создания файла",
     "ERROR_CREATING_FILE"               : "Произошла ошибка при попытке создать файл <span class='dialog-filename'>{0}</span>. {1}",
 
@@ -122,7 +122,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> был удален на диске, но имеются несохраненные изменения в {APP_NAME}.<br /><br />Вы хотите оставить ваши изменения?",
     
     // Generic dialog/button labels
-	"DONE"                              : "Сделано",
+    "DONE"                              : "Готово",
     "OK"                                : "ОК",
     "CANCEL"                            : "Отменить",
     "DONT_SAVE"                         : "Не сохранять",
@@ -137,7 +137,7 @@ define({
     "FIND_RESULT_COUNT"                 : "{0} результатов",
     "FIND_RESULT_COUNT_SINGLE"          : "1 результат",
     "FIND_NO_RESULTS"                   : "Не найдено",
-	"FIND_QUERY_PLACEHOLDER"            : "Найти\u2026",
+    "FIND_QUERY_PLACEHOLDER"            : "Найти\u2026",
     "REPLACE_PLACEHOLDER"               : "Заменить на\u2026",
     "BUTTON_REPLACE_ALL"                : "Все\u2026",
     "BUTTON_REPLACE"                    : "Заменить",
@@ -147,8 +147,8 @@ define({
     "BUTTON_PREV_HINT"                  : "Предыдущее совпадение",
     "BUTTON_CASESENSITIVE_HINT"         : "С учетом регистра",
     "BUTTON_REGEXP_HINT"                : "Регулярное выражение",
-	"REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Заменить без отмены",
-    "REPLACE_WITHOUT_UNDO_WARNING"      : "Т.к. необходимо изменить более чем {0} файла(ов), {APP_NAME} изменит неоткрытые файлы на диске.<br />Вы не сможете обратить изменения в тех файлах.",
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Заменить без отмены",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Т.к. необходимо изменить более чем {0} файла(ов), {APP_NAME} выполнит замену непосредственно на диске.<br />Вы не сможете отменить изменения в этих файлах.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Заменить без отмены",
 
     "OPEN_FILE"                         : "Открыть файл",
@@ -158,13 +158,8 @@ define({
     "RELEASE_NOTES"                     : "Примечания к выпуску",
     "NO_UPDATE_TITLE"                   : "Обновления отсутствуют",
     "NO_UPDATE_MESSAGE"                 : "Вы используете последнюю версию {APP_NAME}.",
-	
-    // Replace All (in single file)
-    "FIND_REPLACE_TITLE_PART1"          : "Заменить \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" на \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
 
-	// Find and Replace
+    // Find and Replace
     "FIND_REPLACE_TITLE_LABEL"          : "Заменить",
     "FIND_REPLACE_TITLE_WITH"           : "на",
     "FIND_TITLE_LABEL"                  : "Найдено",
@@ -174,7 +169,7 @@ define({
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" найдено",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} в {3} {4}",
-	"FIND_NUM_FILES"                    : "{0} {1}",
+    "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "в <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "в проекте",
     "FIND_IN_FILES_ZERO_FILES"          : "Фильтр исключает все файлы {0}",
@@ -188,19 +183,19 @@ define({
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd-клик чтобы развернуть/свернуть все",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Ошибка замены",
     "REPLACE_IN_FILES_ERRORS"           : "Данные файлы не были изменены, т.к. они изменились после поиска или не могут быть записаны.",
-	"ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Ошибка при получении информации об обновлениях",
+    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Ошибка при получении информации об обновлениях",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ошибка при получении информации о последних обновлениях с сервера. Пожалуйста, убедитесь, что вы подключены к интернету и попробуйте снова. ",
     
     // File exclusion filters
-	"NEW_FILE_FILTER"                   : "Новый фильтр\u2026",
-	"CLEAR_FILE_FILTER"                 : "Не исключать файлы",
+    "NEW_FILE_FILTER"                   : "Новый фильтр\u2026",
+    "CLEAR_FILE_FILTER"                 : "Не исключать файлы",
     "NO_FILE_FILTER"                    : "Нет исключенных файлов",
-	"EXCLUDE_FILE_FILTER"               : "Исключить {0}",
+    "EXCLUDE_FILE_FILTER"               : "Исключить {0}",
     "EDIT_FILE_FILTER"                  : "Редактировать\u2026",
     "FILE_FILTER_DIALOG"                : "Редактировать фильтр",
     "FILE_FILTER_INSTRUCTIONS"          : "Исключить файлы и директории содержащие любую из перечисленных строк, возможно использование <a href='{0}' title='{0}'>групповых символов</a>. Указывайте по одной строке на линию.",
     "FILTER_NAME_PLACEHOLDER"           : "Назвать этот фильтр (опционально)",
-	"FILE_FILTER_LIST_PREFIX"           : "кроме",
+    "FILE_FILTER_LIST_PREFIX"           : "кроме",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "и еще {0}",
 
     "FILTER_COUNTING_FILES"             : "Подсчет количества файлов\u2026",
@@ -388,7 +383,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Примечания к выпуску",
     "CMD_GET_INVOLVED"                    : "Принять участие в проекте",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Показать директорию расширений",
-	"CMD_HOMEPAGE"                        : "Домашняя страница {APP_TITLE}",
+    "CMD_HOMEPAGE"                        : "Домашняя страница {APP_TITLE}",
     "CMD_TWITTER"                         : "{TWITTER_NAME} в Twitter",
     "CMD_ABOUT"                           : "О {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Открыть файл настроек",
