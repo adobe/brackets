@@ -38,7 +38,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "您的權限不足，無法修改。",
     "CONTENTS_MODIFIED_ERR"             : "檔案已被 {APP_NAME} 以外的程式修改。",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} 目前只支援 UTF-8 編碼的文字檔。",
-    "FILE_EXISTS_ERR"                   : "檔案或目錄己經存在。",
+    "FILE_EXISTS_ERR"                   : "檔案或目錄已經存在。",
     "FILE"                              : "檔案",
     "DIRECTORY"                         : "目錄",
     "DIRECTORY_NAMES_LEDE"              : "目錄名稱",
@@ -61,13 +61,13 @@ define({
     "ERROR_RELOADING_FILE"              : "重新載入 <span class='dialog-filename'>{0}</span> 檔案時發生錯誤。 {1}",
     "ERROR_SAVING_FILE_TITLE"           : "無法儲存檔案",
     "ERROR_SAVING_FILE"                 : "儲存 <span class='dialog-filename'>{0}</span> 檔案時發生錯誤。 {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "無法重新命名檔案",
+    "ERROR_RENAMING_FILE_TITLE"         : "無法將檔案重新命名",
     "ERROR_RENAMING_FILE"               : "重新命名 <span class='dialog-filename'>{0}</span> 檔案時發生錯誤。 {1}",
     "ERROR_DELETING_FILE_TITLE"         : "無法刪除檔案",
     "ERROR_DELETING_FILE"               : "刪除 <span class='dialog-filename'>{0}</span> 檔案時發生錯誤。 {1}",
     "INVALID_FILENAME_TITLE"            : "{0}無效",
     "INVALID_FILENAME_MESSAGE"          : "{0}當中不能包含任何的系統保留字、結尾不能是半型句點 (.)，也不能使用下列字元: <code class='emphasized'>{1}</code>",
-    "ENTRY_WITH_SAME_NAME_EXISTS"       : "已經有叫做 <span class='dialog-filename'>{0}</span> 的檔案或目錄存在了。",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "已經有叫做 <span class='dialog-filename'>{0}</span> 的檔案或目錄了。",
     "ERROR_CREATING_FILE_TITLE"         : "無法建立{0}",
     "ERROR_CREATING_FILE"               : "建立{0} <span class='dialog-filename'>{1}</span> 時發生錯誤。 {2}",
 
@@ -91,11 +91,11 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "即時預覽錯誤",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "正在連到瀏覽器",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "為了讓即時預覽功能順利連線，Chrome 需要重新啟動並開啟遠端除錯功能。<br /><br />您是否要重新啟動 Chrome 並啟用遠端除錯功能?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "無法載入 Live Preview 頁",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "無法載入即時預覽頁",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "直接開啟 HTML 檔，或是確定專案中有 index.html 檔才能啟動即時預覽功能。",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "您需要指定專案的 URL 根位址，才能啟動包含伺服器端資源的即時預覽功能。",
-    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "無法啟動 HTTP 伺服器來即時預覽。請再試一次。",
-    "LIVE_DEVELOPMENT_INFO_TITLE"       : "歡迎便用即時預覽!",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "無法啟動即時預覽用的 HTTP 伺服器。請再試一次。",
+    "LIVE_DEVELOPMENT_INFO_TITLE"       : "歡迎使用即時預覽!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "即時預覽將 {APP_NAME} 與您的瀏覽器連線。讓您在瀏覽器中預覽 HTML 檔案，編輯的內容也會即時反應在預覽畫面上。<br /><br />因為 {APP_NAME} 才剛起步，即時預覽目前只能在 <strong>Google Chrome</strong> 上面執行，<strong>CSS 或 HTML 檔案</strong>的異動會即時反應。修改 JavaScript 檔案並儲存後會重新載入頁面。<br /><br />(您只會看到一次這段訊息。)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "想要了解更多，請參考<a href='{0}' title='{0}'>即時預覽連結錯誤排解</a>。",
     
@@ -118,9 +118,9 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "確定刪除",
     "CONFIRM_FOLDER_DELETE"             : "您確定要刪除 <span class='dialog-filename'>{0}</span> 資料夾嗎?",
     "FILE_DELETED_TITLE"                : "檔案已刪除",
-    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> 已經被修改過。<br /><br />您想要儲存檔案並覆寫掉外部的變更嗎?",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> 已經被修改過，但在 {APP_NAME} 中也有還沒儲存的變更。<br /><br />您想保留哪個版本呢?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> 已經被刪除，但在 {APP_NAME} 中還有沒儲存的變更。<br /><br />想要保留您變更的東西嗎?",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> 被修改過了。<br /><br />您想要儲存檔案並覆寫蓋掉外部的變更嗎?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> 被修改過了，但在 {APP_NAME} 中也有還沒儲存的變更。<br /><br />您想保留哪個版本呢?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> 被刪除了，但在 {APP_NAME} 中還有沒儲存的變更。<br /><br />想要保留您變更的內容嗎?",
     
     // Generic dialog/button labels
     "DONE"                              : "完成",
@@ -150,7 +150,7 @@ define({
     "BUTTON_CASESENSITIVE_HINT"         : "大小寫須相符",
     "BUTTON_REGEXP_HINT"                : "規則運算式",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "取代後無法復原",
-    "REPLACE_WITHOUT_UNDO_WARNING"      : "有超過 {0} 個檔案會動變更到，{APP_NAME} 會修改到磁碟上沒被開啟的檔案。<br />這些檔案內容取代後無法再復原。",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "有超過 {0} 個檔案會被變更，{APP_NAME} 會修改到磁碟上沒被開啟的檔案。<br />這些檔案內容取代後無法再復原。",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "直接取代，不用復原",
 
     "OPEN_FILE"                         : "開啟檔案",
@@ -181,10 +181,10 @@ define({
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "按住 Ctrl/Cmd 再用滑鼠點一下可以全部展開/收合",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "取代錯誤",
-    "REPLACE_IN_FILES_ERRORS"           : "下列檔案沒有被修改，可能是搜尋後又被變更，或是無法寫入。",
+    "REPLACE_IN_FILES_ERRORS"           : "下列檔案沒有被修改，可能是搜尋後又被變更或是無法寫入。",
     
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "無法取得更新資訊",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "由伺服器取得最新的更版資訊時發生問題。請確定您已連線到 Internet 後再重試一次。",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "由伺服器取得更新資訊時發生錯誤。請確定您已連線到 Internet 後再重試一次。",
     
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "新增排除集\u2026",
@@ -194,14 +194,14 @@ define({
     "EDIT_FILE_FILTER"                  : "編輯\u2026",
     "FILE_FILTER_DIALOG"                : "編輯排除集",
     "FILE_FILTER_INSTRUCTIONS"          : "排除名稱完全或部分符合下列字串的檔案及資料夾，也可以使用<a href='{0}' title='{0}'>萬用字元</a>。 多組條件請分行輸入，一行一個。",
-    "FILTER_NAME_PLACEHOLDER"           : "這組排除集的名稱 (選填)",
+    "FILTER_NAME_PLACEHOLDER"           : "排除集名稱 (選填)",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "及其他 {0} 個",
     "FILTER_COUNTING_FILES"             : "計算檔案數目中\u2026",
     "FILTER_FILE_COUNT"                 : "包含{2}全部 {1} 個檔案中的 {0} 個",
     "FILTER_FILE_COUNT_ALL"             : "包含{1}的全部 {0} 個檔案",
 
     // Quick Edit
-    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "目前游標位置沒有相關的快速編輯功能",
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "游標所在位置沒有相關的快速編輯功能",
     "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS 快速編輯: 將游標放在單一 class 名稱上",
     "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS 快速編輯: class 屬性不完整",
     "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS 快速編輯: id 屬性不完整",
@@ -210,13 +210,13 @@ define({
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS 快速編輯: 將游標放在函式名稱上",
 
     // Quick Docs
-    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "目前游標位置沒有相關的快速文件",
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "游標所在位置沒有相關的快速文件",
 
     /**
      * ProjectManager
      */
     "PROJECT_LOADING"   : "載入中\u2026",
-    "UNTITLED"          : "還沒命名",
+    "UNTITLED"          : "未命名",
     "WORKING_FILES"     : "工作檔案",
 
     /**
@@ -251,12 +251,12 @@ define({
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} 項問題",
     "SINGLE_ERROR"                          : "1 項 {0} 問題",
     "MULTIPLE_ERRORS"                       : "{1} 項 {0} 問題",
-    "NO_ERRORS"                             : "沒發現任何 {0} 問題 - 幹得好!",
-    "NO_ERRORS_MULTIPLE_PROVIDER"           : "沒發現任何問題 - 幹得好!",
+    "NO_ERRORS"                             : "沒發現任何 {0} 問題，幹得好!",
+    "NO_ERRORS_MULTIPLE_PROVIDER"           : "沒發現任何問題，幹得好!",
     "LINT_DISABLED"                         : "已停用 Lint 功能",
     "NO_LINT_AVAILABLE"                     : "沒有 {0} 適用的 Linter",
     "NOTHING_TO_LINT"                       : "沒有東西好 Lint",
-    "LINTER_TIMED_OUT"                      : "{0} 等候 {1} 毫秒後已逾時",
+    "LINTER_TIMED_OUT"                      : "{0} 等了 {1} 毫秒後逾時",
     "LINTER_FAILED"                         : "{0} 已終止，錯誤: {1}",
     
     
@@ -302,7 +302,7 @@ define({
     "CMD_COPY"                            : "複製",
     "CMD_PASTE"                           : "貼上",
     "CMD_SELECT_ALL"                      : "全部選取",
-    "CMD_SELECT_LINE"                     : "整列選取",
+    "CMD_SELECT_LINE"                     : "整行選取",
     "CMD_SPLIT_SEL_INTO_LINES"            : "逐行切成多段選取區塊",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "在下一行加入游標",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "在上一行加入游標",
@@ -310,8 +310,8 @@ define({
     "CMD_UNINDENT"                        : "取消縮排",
     "CMD_DUPLICATE"                       : "整行複製",
     "CMD_DELETE_LINES"                    : "整行刪除",
-    "CMD_COMMENT"                         : "切換行註解",
-    "CMD_BLOCK_COMMENT"                   : "切換區塊註解",
+    "CMD_COMMENT"                         : "加入或取消行註解",
+    "CMD_BLOCK_COMMENT"                   : "加入或取消區塊註解",
     "CMD_LINE_UP"                         : "整行上移",
     "CMD_LINE_DOWN"                       : "整行下移",
     "CMD_OPEN_LINE_ABOVE"                 : "往上新增一行",
@@ -382,7 +382,7 @@ define({
     "CMD_GET_INVOLVED"                    : "參與",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "顯示擴充功能資料夾",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} 首頁",
-    "CMD_TWITTER"                         : "{TWITTER_NAME} Twitter 頁",
+    "CMD_TWITTER"                         : "Twitter {TWITTER_NAME} 專頁",
     "CMD_ABOUT"                           : "關於 {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "開啟喜好設定檔",
 
@@ -398,9 +398,9 @@ define({
     "ABOUT_TEXT_LINE1"                     : "第 {VERSION_MINOR} 回 Sprint {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_BUILD_TIMESTAMP"           : "建置時間: ",
     "ABOUT_TEXT_LINE3"                     : "第三方軟體的注意事項、使用條款及條件公佈在 <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a>，於此引用納入。",
-    "ABOUT_TEXT_LINE4"                     : "說明文件及原始碼都在 <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a> 上",
-    "ABOUT_TEXT_LINE5"                     : "以 JavaScript 匠 \u2764 打造，工匠:",
-    "ABOUT_TEXT_LINE6"                     : "一大票人馬 (可惜我們現在沒辦法正常載入清單)。",
+    "ABOUT_TEXT_LINE4"                     : "說明文件及原始碼都在 <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a> 上。",
+    "ABOUT_TEXT_LINE5"                     : "用 \u2764 跟 JavaScript 打造。工匠名錄:",
+    "ABOUT_TEXT_LINE6"                     : "一大票人馬 (只可惜我們現在沒辦法正常載入名單)。",
     "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform 文件及 Web Platform 圖示皆以 Creative Commons Attribution 授權條款 <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a> 授權。",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "有新版的 {APP_NAME}! 點這裡了解詳情。",
     "UPDATE_AVAILABLE_TITLE"               : "有新版",
@@ -408,11 +408,11 @@ define({
     "GET_IT_NOW"                           : "馬上取得!",
     "PROJECT_SETTINGS_TITLE"               : "專案設定: {0}",
     "PROJECT_SETTING_BASE_URL"             : "即時預覽 URL 根位址",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "想要使用本機伺服器，可以輸入 http://localhost:8000/ 這類 URL",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "如果要用本機伺服器，可以輸入 http://localhost:8000/ 這類 URL",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "即時預覽功能不支援 {0} 協定&mdash;請使用 http: 或 https: 。",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL 根位址不能有 \"{0}\" 這類搜尋參數。",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL 根位址不能有半型井號 (#)，例如 \"{0}\"。",
-    "BASEURL_ERROR_INVALID_CHAR"           : "'{0}' 這類特殊字元必需使用 % 格式編碼。",
+    "BASEURL_ERROR_INVALID_CHAR"           : "'{0}' 這類特殊字元一定要用 % 格式編碼過。",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "解析 URL 根位址時發生不明錯誤",
     
     // CSS Quick Edit
@@ -434,7 +434,7 @@ define({
     "INSTALL_SUCCEEDED"                    : "安裝成功!",
     "INSTALL_FAILED"                       : "安裝失敗。",
     "CANCELING_INSTALL"                    : "取消中\u2026",
-    "CANCELING_HUNG"                       : "取消安裝費時過久。可能發生了內部錯誤。",
+    "CANCELING_HUNG"                       : "取消安裝花太多時間。可能發生了內部錯誤。",
     "INSTALL_CANCELED"                     : "安裝已取消。",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "下載的內容不是有效的 zip 壓縮檔。",
@@ -445,12 +445,12 @@ define({
     "INVALID_VERSION_NUMBER"               : "套件版號 ({0}) 無效。",
     "INVALID_BRACKETS_VERSION"             : "{APP_NAME} 相容性字串 ({0}) 無效。",
     "DISALLOWED_WORDS"                     : "{0} 欄位中不能有 ({1}) 這些字。",
-    "API_NOT_COMPATIBLE"                   : "這個擴充功能不相容於本版 {APP_NAME}。已經其安裝在已停用擴充功能資料夾中。",
+    "API_NOT_COMPATIBLE"                   : "這個擴充功能不相容於本版 {APP_NAME}。已將其安裝在 \"disabled\" 已停用擴充功能資料夾中。",
     "MISSING_MAIN"                         : "套件中沒有 main.js 檔案。",
     "EXTENSION_ALREADY_INSTALLED"          : "安裝這個套件將會蓋掉先前安裝的擴充功能。 是否要覆寫?",
-    "EXTENSION_SAME_VERSION"               : "這個版本的套件已經安裝過了。 是否要覆寫已經安裝的版本?",
+    "EXTENSION_SAME_VERSION"               : "已經安裝過這個版本的套件了。 是否要覆寫已安裝的版本?",
     "EXTENSION_OLDER_VERSION"              : "{0} 版的套件比已安裝的版本 ({1}) 還要舊。 是否要覆寫已經安裝的版本?",
-    "DOWNLOAD_ID_IN_USE"                   : "內部錯誤: 下載識別碼已在使用中。",
+    "DOWNLOAD_ID_IN_USE"                   : "內部錯誤: 下載識別碼正在使用中。",
     "NO_SERVER_RESPONSE"                   : "無法連到伺服器。",
     "BAD_HTTP_STATUS"                      : "伺服器 (HTTP {0}) 回應找不到檔案。",
     "CANNOT_WRITE_TEMP"                    : "無法下載存成暫存檔。",
@@ -494,13 +494,13 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "無法移除還沒安裝的擴充功能 {0}。",
     "NO_EXTENSIONS"                        : "還沒安裝任何擴充功能。<br>請點一下上方的「可使用」頁籤開始使用。",
     "NO_EXTENSION_MATCHES"                 : "找不到符合您搜尋條件的擴充功能。",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "由不明來源安裝擴充功能時請特別小心。",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "由不明來源安裝擴充功能時請特別小心，保持警覺。",
     "EXTENSIONS_INSTALLED_TITLE"           : "已安裝",
     "EXTENSIONS_AVAILABLE_TITLE"           : "可使用",
     "EXTENSIONS_UPDATES_TITLE"             : "更新",
     
     "INLINE_EDITOR_NO_MATCHES"             : "找不到符合的。",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "即有 CSS 中沒有符合您選取內容的規則。<br> 按一下「新增規則」 建立一組。",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "既有 CSS 中沒有符合您選取內容的規則。<br> 按一下「新增規則」 建立一組。",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "您的專案中沒有 Stylesheet 樣式表檔案。<br>建立一個來新增 CSS 規則。",
 
     // Custom Viewers
@@ -538,7 +538,7 @@ define({
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "進度",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 移動選取的控制點<br><kbd class='text'>Shift</kbd> 移動 10 個單位<br><kbd class='text'>Tab</kbd> 切換控制點",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> 增加或減少 Step 數<br><kbd>←</kbd><kbd>→</kbd> 'Start' 或 'End'",
-    "INLINE_TIMING_EDITOR_INVALID"              : "原始值 <code>{0}</code> 是無效的，因此改以 <code>{1}</code> 函式顯示。 檔案在第一次編輯後將被更新。",
+    "INLINE_TIMING_EDITOR_INVALID"              : "原始值 <code>{0}</code> 無效，因此改以 <code>{1}</code> 函式顯示。 檔案在第一次編輯後將被更新。",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "目前的色彩",
