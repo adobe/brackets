@@ -485,7 +485,9 @@ define(function LiveDevelopment(require, exports, module) {
         docPromise.done(function (doc) {
             if ((_classForDocument(doc) === CSSDocument) &&
                     (!_liveDocument || (doc !== _liveDocument.doc))) {
-                var liveDoc = _createDocument(doc);
+                // The doc may already have an editor (e.g. starting live preview from an css file),
+                // so pass the editor if any
+                var liveDoc = _createDocument(doc, doc._masterEditor);
                 if (liveDoc) {
                     _server.add(liveDoc);
                     _relatedDocuments[doc.url] = liveDoc;
@@ -933,6 +935,19 @@ define(function LiveDevelopment(require, exports, module) {
         return loadAgents();
     }
 
+    /** reload the live preview */
+    function reload() {
+        // Unload and reload agents before reloading the page
+        // Some agents (e.g. DOMAgent and RemoteAgent) require us to
+        // navigate to the page first before loading can complete.
+        // To accomodate this, we load all agents (in reconnect())
+        // and navigate in parallel.
+        reconnect();
+
+        // Reload HTML page
+        Inspector.Page.reload();
+    }
+
     /**
      * Close the connection and the associated window asynchronously
      * @return {jQuery.Promise} Resolves once the connection is closed
@@ -1373,15 +1388,7 @@ define(function LiveDevelopment(require, exports, module) {
             wasRequested    = agents.network && agents.network.wasURLRequested(documentUrl);
         
         if (wasRequested) {
-            // Unload and reload agents before reloading the page
-            // Some agents (e.g. DOMAgent and RemoteAgent) require us to
-            // navigate to the page first before loading can complete.
-            // To accomodate this, we load all agents (in reconnect())
-            // and navigate in parallel.
-            reconnect();
-
-            // Reload HTML page
-            Inspector.Page.reload();
+            reload();
         }
     }
 
@@ -1452,6 +1459,7 @@ define(function LiveDevelopment(require, exports, module) {
     exports.open                = open;
     exports.close               = close;
     exports.reconnect           = reconnect;
+    exports.reload              = reload;
     exports.enableAgent         = enableAgent;
     exports.disableAgent        = disableAgent;
     exports.getLiveDocForPath   = getLiveDocForPath;
