@@ -810,6 +810,10 @@ define(function (require, exports, module) {
                 installEditorListeners(activeEditor);
             });
         
+        $(ProjectManager).on("beforeAppClose", function () {
+            ScopeManager.handleProjectClose(true);
+        });
+
         $(ProjectManager).on("beforeProjectClose", function () {
             ScopeManager.handleProjectClose();
         });

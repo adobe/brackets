@@ -1155,8 +1155,10 @@ define(function (require, exports, module) {
          *
          * We can clean up the web worker we use to calculate hints now, since
          * we know we will need to re-init it in any new project that is opened.  
+         *
+         * @param {boolean=} quitting - whether the app is closing or not.
          */
-        function closeWorker() {
+        function closeWorker(quitting) {
             function terminateWorker() {
                 var worker = _ternWorker;
                 
@@ -1175,6 +1177,10 @@ define(function (require, exports, module) {
             
             if (_ternWorker) {
                 if (addFilesPromise) {
+                    if (quitting) {
+                        brackets.app.longRunningPromises.push(addFilesPromise);
+                    }
+                    
                     // If we're in the middle of added files, don't terminate 
                     // until we're done or we might get NPEs
                     addFilesPromise.done(terminateWorker).fail(terminateWorker);
@@ -1391,10 +1397,12 @@ define(function (require, exports, module) {
      *
      * We can clean up the web worker we use to calculate hints now, since
      * we know we will need to re-init it in any new project that is opened.  
+     *
+     * @param {boolean=} quitting - whether the app is closing or not.
      */
-    function handleProjectClose() {
+    function handleProjectClose(quitting) {
         if (currentWorker) {
-            currentWorker.closeWorker();
+            currentWorker.closeWorker(quitting);
             currentWorker = null;
         }
     }

@@ -1268,7 +1268,7 @@ define(function (require, exports, module) {
      * the same except for the final step
     */
     function _handleWindowGoingAway(commandData, postCloseHandler, failHandler) {
-        if (_windowGoingAway) {
+        if (_windowGoingAway && !brackets.app.longRunningPromises) {
             //if we get called back while we're closing, then just return
             return (new $.Deferred()).reject().promise();
         }
@@ -1276,6 +1276,11 @@ define(function (require, exports, module) {
         return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
             .done(function () {
                 _windowGoingAway = true;
+                
+                // Initialize a global promise list for long running ones.
+                // Each feature that has long running promises needs to listen to 
+                // "beforeAppClose" events and add them to this list.
+                brackets.app.longRunningPromises = [];
                 
                 // Give everyone a chance to save their state - but don't let any problems block
                 // us from quitting
@@ -1286,8 +1291,11 @@ define(function (require, exports, module) {
                 }
                 
                 PreferencesManager.savePreferences();
+                brackets.app.longRunningPromises.push(PreferencesManager.finalize());
                 
-                PreferencesManager.finalize().always(postCloseHandler);
+                var identityFunc = function (promise) { return promise; };
+                Async.doSequentially(brackets.app.longRunningPromises, identityFunc, false)
+                    .always(postCloseHandler);
             })
             .fail(function () {
                 _windowGoingAway = false;
