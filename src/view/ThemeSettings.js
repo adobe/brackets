@@ -96,7 +96,7 @@ define(function (require, exports, module) {
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.is(":checked");
             })
-            .on("keyup", "[data-target]:text", function () {
+            .on("input", "[data-target]:text", function () {
                 var $target = $(this);
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.val();
