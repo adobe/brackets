@@ -53,6 +53,7 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/addon/edit/closetag");
     require("thirdparty/CodeMirror2/addon/scroll/scrollpastend");
     require("thirdparty/CodeMirror2/addon/selection/active-line");
+    require("thirdparty/CodeMirror2/addon/selection/mark-selection");
     require("thirdparty/CodeMirror2/addon/mode/multiplex");
     require("thirdparty/CodeMirror2/addon/mode/overlay");
     require("thirdparty/CodeMirror2/addon/search/match-highlighter");
@@ -103,6 +104,7 @@ define(function (require, exports, module) {
         NativeApp               = require("utils/NativeApp"),
         DeprecationWarning      = require("utils/DeprecationWarning"),
         ViewCommandHandlers     = require("view/ViewCommandHandlers"),
+        ThemeManager            = require("view/ThemeManager"),
         _                       = require("thirdparty/lodash");
     
     // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
