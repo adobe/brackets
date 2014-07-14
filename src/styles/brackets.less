@@ -188,6 +188,7 @@ a, img {
         vertical-align: top;
         width: auto;
         cursor: pointer;
+        box-shadow: none;
         &:focus {
             outline: 0;
         }
@@ -715,7 +716,7 @@ a, img {
 /** Classes for icons from jsTreeSprites.svg
 */
 .jstree-sprite {
-    background-image: url("images/jsTreeSprites.svg");
+    background-image: @jstree-sprite;
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
@@ -1183,7 +1184,7 @@ a, img {
         padding: 1px 5px;
     }
     .button-icon {  // icons must be nested inside button so we can apply padding w/o tiling icon
-        .sprite-icon(0, 0, 24px, 24px, "images/find-replace-sprites.svg");
+        .sprite-icon(0, 0, 24px, 24px, @button-icon);
         background-repeat: no-repeat;
     }
     #find-regexp.active .button-icon {
