@@ -181,6 +181,11 @@ define(function (require, exports, module) {
         var previous = _lastFocusedEditor;
         _lastFocusedEditor = current;
         
+        // handle programmatic activeEditorChange case 
+        if (current && !current.hasFocus()) {
+            current.focus();
+        }
+        
         $(exports).triggerHandler("activeEditorChange", [current, previous]);
     }
 	
