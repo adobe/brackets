@@ -436,7 +436,8 @@ define(function (require, exports, module) {
         // Prevent extensions from using window.open() to insecurely load untrusted web content
         var real_windowOpen = window.open;
         window.open = function (url) {
-            if (!url.match(/^file:\/\//) && url.indexOf(":") !== -1) {
+            // Allow file:// URLs, relative URLs (implicitly file: also), and about:blank
+            if (!url.match(/^file:\/\//) && url !== "about:blank" && url.indexOf(":") !== -1) {
                 throw new Error("Brackets-shell is not a secure general purpose web browser. Use NativeApp.openURLInDefaultBrowser() to open URLs in the user's main browser");
             }
             return real_windowOpen.apply(window, arguments);
