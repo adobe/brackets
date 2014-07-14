@@ -197,16 +197,26 @@ define(function (require, exports, module) {
         // This properly handles sending the right nofications in cases where the document
         // is already the current one. In that case we will want to notify with
         // documentSelectionFocusChange so the views change their selection
-        promise.done(function (doc) {
+        promise.done(function (file) {
             // CMD_ADD_TO_PANE_VIEW_LIST command sets the current document. Update the 
             // selection focus only if doc is not null. When double-clicking on an
             // image file, we get a null doc here but we still want to keep _fileSelectionFocus
             // as PROJECT_MANAGER. Regardless of doc is null or not, call _selectCurrentDocument
             // to trigger documentSelectionFocusChange event.
-            if (doc) {
+            var doc;
+            
+            if (file) {
                 _fileSelectionFocus = selectIn || PANE_VIEW_LIST_VIEW;
             }
             _selectCurrentDocument(paneId);
+
+            if (file) {
+                doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                if (!doc) {
+                    // just resolve with the file object
+                    doc = file;
+                }
+            }
             
             result.resolve(doc);
         }).fail(function (err) {
