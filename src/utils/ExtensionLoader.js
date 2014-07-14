@@ -39,11 +39,12 @@ define(function (require, exports, module) {
 
     require("utils/Global");
 
-    var _           = require("thirdparty/lodash"),
-        FileSystem  = require("filesystem/FileSystem"),
-        FileUtils   = require("file/FileUtils"),
-        Async       = require("utils/Async"),
-        UrlParams   = require("utils/UrlParams").UrlParams;
+    var _              = require("thirdparty/lodash"),
+        FileSystem     = require("filesystem/FileSystem"),
+        FileUtils      = require("file/FileUtils"),
+        Async          = require("utils/Async"),
+        ExtensionUtils = require("utils/ExtensionUtils"),
+        UrlParams      = require("utils/UrlParams").UrlParams;
 
     // default async initExtension timeout
     var INIT_EXTENSION_TIMEOUT = 10000;
@@ -156,6 +157,38 @@ define(function (require, exports, module) {
      *              (Note: if extension contains a JS syntax error, promise is resolved not rejected).
      */
     function loadExtension(name, config, entryPoint) {
+        var promise = new $.Deferred();
+
+        // Try to load the package.json to figure out if we are loading a theme.
+        ExtensionUtils.loadPackageJson(config.baseUrl).always(promise.resolve);
+
+        return promise
+            .then(function(metadata) {
+                // No special handling for themes... Let the promise propagate into the ExtensionManager
+                if (metadata && "theme" in metadata) {
+                    return;
+                }
+
+                return loadExtensionModule(name, config, entryPoint);
+            })
+            .then(function () {
+                $(exports).triggerHandler("load", config.baseUrl);
+            }, function (err) {
+                $(exports).triggerHandler("loadFailed", config.baseUrl);
+            });
+    }
+    
+    /**
+     * Loads the extension module that lives at baseUrl into its own Require.js context
+     *
+     * @param {!string} name, used to identify the extension
+     * @param {!{baseUrl: string}} config object with baseUrl property containing absolute path of extension
+     * @param {!string} entryPoint, name of the main js file to load
+     * @return {!$.Promise} A promise object that is resolved when the extension is loaded, or rejected
+     *              if the extension fails to load or throws an exception immediately when loaded.
+     *              (Note: if extension contains a JS syntax error, promise is resolved not rejected).
+     */
+    function loadExtensionModule(name, config, entryPoint) {
         var extensionConfig = {
             context: name,
             baseUrl: config.baseUrl,
@@ -215,12 +248,8 @@ define(function (require, exports, module) {
                 // This type has a useful stack (exception thrown by ext code or info on bad getModule() call)
                 console.log(err.stack);
             }
-        }).then(function () {
-            $(exports).triggerHandler("load", config.baseUrl);
-        }, function (err) {
-            $(exports).triggerHandler("loadFailed", config.baseUrl);
         });
-        
+
         return promise;
     }
 

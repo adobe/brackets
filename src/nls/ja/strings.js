@@ -246,6 +246,7 @@ define({
 	"STATUSBAR_USER_EXTENSIONS_DISABLED": "拡張機能無効",
 	"STATUSBAR_INSERT": "INS",
 	"STATUSBAR_OVERWRITE": "OVR",
+	"STATUSBAR_DEFAULT_LANG": "(default)",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} 個の問題",
