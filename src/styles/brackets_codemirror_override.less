@@ -20,6 +20,8 @@
 
 /* Brackets / CodeMirror Code Formatting */
 
+@code-padding: 15px;
+
 .CodeMirror pre {
     padding: 0 @code-padding 0 0;
 }
@@ -29,7 +31,7 @@
 }
 
 .CodeMirror-scroll {
-    background-color: @background-color-3;
+    background-color: @background;
 }
 
 .CodeMirror {
@@ -43,8 +45,6 @@
 .platform-win .CodeMirror {
     .code-font-win();
 }
-
-@code-padding: 15px;
 
 .CodeMirror-activeline-background {
     background: transparent;
@@ -136,7 +136,7 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
 }
 
 .CodeMirror-gutters {
-    background-color: @background-color-3;
+    background-color: @background;
     border-right: none;
 }
 
@@ -161,7 +161,7 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
 .platform-linux {
     .CodeMirror-scrollbar-filler,
     .CodeMirror-gutter-filler {
-        background-color: @background-color-3;
+        background-color: @background;
         height: 12px !important;
     }
     .CodeMirror-scrollbar-filler {
@@ -255,12 +255,12 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
     }
     
     .show-line-padding & .CodeMirror-focused .CodeMirror-activeline-background {
-        box-shadow: inset @code-padding 0 0 0 @bc-panel-bg-promoted;
+        box-shadow: inset @code-padding 0 0 0 @background;
     }
     
     .CodeMirror-focused .CodeMirror-activeline {
         .CodeMirror-gutter-elt {
-            background: @bc-panel-bg-promoted;
+            background: @background;
             color: @activeline-number;
         }
     }

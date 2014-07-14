@@ -23,7 +23,7 @@
 
 
 // Brackets-specific default font and color definitions
-@import url("brackets_colors.less");
+@import url("brackets_core_ui_variables_dark.less");
 
 // Default theme -- all UI styling comes from variables in a theme
 // Themes can rely on variables defined above
@@ -63,29 +63,6 @@
 @yellow: #f0c674;
 @pink: #d85896;
 
-/*
- * Background colors are ordered from least "intense" to most "intense"
- * So, if the background is light, then @background-color-3 should be
- * lightest, -2 should be darker, and -1 should be darker still.
- *
- * The opposite is true for a dark background -- background-color-3 should be
- * the darkest, -2 should be lighter, and -1 should be lighter still.
- */
-@background-color-1: lighten(@background, @bc-color-step-size*2);
-@background-color-2: lighten(@background, @bc-color-step-size);
-@background-color-3: @background;
-
-/*
- * @content-color-stronger should be should be further away from the
- * background color than @content-color (i.e. more contrasty).
- *
- * @content-color-weaker should be closer to the background color
- * than @content-color (i.e. less contrasty).
- */
-@content-color: @foreground;
-@content-color-stronger: lighten(@foreground, @bc-color-step-size);
-@content-color-weaker: darken(@foreground, @bc-color-step-size);
-
 /* Code Styling */
 
 /* code accent colors */
@@ -116,29 +93,13 @@
 @accent-minus: @red;
 @accent-plus: @green;
 
-/* inline editor colors */
-@inline-background-color-1: lighten(@background, @bc-color-step-size);
-@inline-background-color-2: lighten(@background, @bc-color-step-size*2);
-@inline-background-color-3: rgba(0,0,0,0);
-
-@inline-color-1: darken(@foreground, @bc-color-step-size*2);
-@inline-color-2: darken(@foreground, @bc-color-step-size);
-@inline-color-3: @background;
-
 /* Selection colors */
 @selection-color-focused: #133c53;
 @selection-color-unfocused: #424242;
 
-@activeline-bgcolor: rgb(49, 49, 49);
-@activeline-number-bgcolor: rgb(0, 0, 0);
+@activeline-bg: rgb(49, 49, 49);
+@activeline-number-bg: rgb(0, 0, 0);
 @matching-bracket: rgba(100, 189, 138, 0.43);
-
-/* Status Bar Colors */
-@status-bar-background-color: #1C1C1E;
-@status-bar-border: rgba(255, 255, 255, 0.08);
-@status-bar-text-color: #a1a1a1;
-@status-bar-quiet-text-color: #666;
-
 
 /* Extra CSS */
 
@@ -148,7 +109,7 @@
     // border: none !important;
 
     // to make an I-cursor, use something like this:
-    border-left: 1px solid @content-color !important;
+    border-left: 1px solid @foreground !important;
 }
 
 .CodeMirror .CodeMirror-gutters {
@@ -158,27 +119,4 @@
 
 .CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
     color: @comment;
-}
-
-#status-bar {
-    background: @status-bar-background-color;
-    border-top: 1px solid @status-bar-border;
-    color:@status-bar-text-color;
-}
-
-#status-info {
-    color: @status-bar-text-color;
-}
-
-#status-file {
-    color: @status-bar-quiet-text-color;
-}
-
-#status-indicators {
-    background: @status-bar-background-color;
-    color: @status-bar-text-color;
-
-    > div {
-        border-left: 1px solid @status-bar-border;
-    }
 }

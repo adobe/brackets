@@ -191,7 +191,7 @@ a:focus {
 .toolbar {
     font-size: @label-font-size;
     padding: 4px 8px;
-    background-color: @background-color-0;
+    background-color: @bc-bg-tool-bar;
     color: @bc-text;
 
     position: relative;  // needed for abs-positioned elements in toolbar (e.g. right-aligned "X")
@@ -599,6 +599,7 @@ a:focus {
     background: @bc-panel-bg-promoted;
     border-radius: 4px 4px 0 0;
     border-bottom: 1px solid @bc-panel-separator;
+    box-shadow: inset 0 1px 0 @bc-highlight;
 }
 
 .modal-body {
