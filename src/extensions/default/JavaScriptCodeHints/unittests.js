@@ -29,6 +29,7 @@ define(function (require, exports, module) {
 
     var Commands             = brackets.getModule("command/Commands"),
         CommandManager       = brackets.getModule("command/CommandManager"),
+        MainViewManager      = brackets.getModule("view/MainViewManager"),
         DocumentManager      = brackets.getModule("document/DocumentManager"),
         Editor               = brackets.getModule("editor/Editor").Editor,
         EditorManager        = brackets.getModule("editor/EditorManager"),
@@ -53,7 +54,7 @@ define(function (require, exports, module) {
     CommandManager.register("test-file-open", Commands.FILE_OPEN, function (fileInfo) {
         // Register a command for FILE_OPEN, which the jump to def code will call
         return DocumentManager.getDocumentForPath(fileInfo.fullPath).done(function (doc) {
-            DocumentManager.setCurrentDocument(doc);
+            MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, doc);
         });
     });
     

@@ -36,8 +36,6 @@ define(function (require, exports, module) {
     // TODO -- This is a workspace layout thing now so we need to repurpose this 
     describe("EditorManager", function () {
 
-        MainViewManager._initialize();
-        
         describe("Create Editors", function () {
             var pane, testEditor, testDoc, $root, $fakeContentDiv, $fakeHolder;
             
@@ -51,7 +49,7 @@ define(function (require, exports, module) {
                 
                 $fakeHolder = SpecRunnerUtils.createMockElement()
                                             .css("width", "1000px")
-                                            .attr("id", "mock-editor-holder")
+                                            .attr("id", "hidden-editors")
                                             .appendTo($fakeContentDiv);
 
                 pane = SpecRunnerUtils.createMockPane($fakeHolder);

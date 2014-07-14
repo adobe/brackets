@@ -55,6 +55,8 @@ define(function (require, exports, module) {
         _rootSuite              = { id: "__brackets__" },
         _unitTestReporter;
     
+    MainViewManager._initialize($("#mock-main-view"));
+    
     function _getFileSystem() {
         return _testWindow ? _testWindow.brackets.test.FileSystem : FileSystem;
     }
@@ -411,7 +413,7 @@ define(function (require, exports, module) {
     function createMockEditorForDocument(doc, visibleRange) {
         // Initialize EditorManager/WorkspaceManager and position the editor-holder offscreen
         // (".content" may not exist, but that's ok for headless tests where editor height doesn't matter)
-        var $editorHolder = createMockElement().css("width", "1000px").attr("id", "mock-editor-holder");
+        var $editorHolder = createMockElement().css("width", "1000px").attr("id", "hidden-editors");
         WorkspaceManager._setMockDOM($(".content"), $editorHolder);
         
         // create Editor instance
@@ -456,7 +458,7 @@ define(function (require, exports, module) {
         MainViewManager.destroyEditorIfNotNeeded(doc);
 
         // Clear editor holder so EditorManager doesn't try to resize destroyed object
-        $("#mock-editor-holder").remove();
+        $("#hidden-editors").remove();
     }
     
     /**

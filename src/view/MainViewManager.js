@@ -681,8 +681,6 @@ define(function (require, exports, module) {
     function _createPaneIfNecessary(paneId) {
         var pane;
         
-        _$container = $("#editor-holder");
-        
         if (!_paneViews.hasOwnProperty(paneId)) {
             pane = new Pane(paneId, _$container);
             _paneViews[paneId] = pane;
@@ -983,15 +981,18 @@ define(function (require, exports, module) {
         PreferencesManager.setViewState(PREFS_NAME, state, context);
     }
     
-    function _initialize() {
-        _createPaneIfNecessary(FIRST_PANE);
-        _activePaneId = FIRST_PANE;
-        _paneViews[FIRST_PANE].onSetActive(true);
-        _updateLayout();
+    function _initialize($container) {
+        if (!_activePaneId) {
+            _$container = $container;
+            _createPaneIfNecessary(FIRST_PANE);
+            _activePaneId = FIRST_PANE;
+            _paneViews[FIRST_PANE].onSetActive(true);
+            _updateLayout();
+        }
     }
     
     AppInit.htmlReady(function () {
-        _initialize();
+        _initialize($("#editor-holder"));
     });
     
     // Event handlers

@@ -52,7 +52,6 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var _                   = require("thirdparty/lodash"),
-        AppInit             = require("utils/AppInit"),
         Commands            = require("command/Commands"),
         WorkspaceManager    = require("view/WorkspaceManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
@@ -237,8 +236,11 @@ define(function (require, exports, module) {
         
         array.splice(index, 0, prioritizedProvider);
     }
-        
+    
     function createUnattachedMasterEditor(doc) {
+        if (!_$hiddenEditorsContainer) {
+            _$hiddenEditorsContainer = $("#hidden-editors");
+        }
         var editor = _createEditorForDocument(doc, true, _$hiddenEditorsContainer);
         editor.setVisible(false);
     }
@@ -712,11 +714,6 @@ define(function (require, exports, module) {
 
     // Create PerfUtils measurement
     PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
-
-    // Initialize hiddenEditorsContainer
-    AppInit.htmlReady(function () {
-        _$hiddenEditorsContainer = $("#hidden-editors");
-    });
 
     $(MainViewManager).on("currentFileChanged", _handleCurrentFileChanged);
     $(MainViewManager).on("paneViewListRemove paneViewListRemoveList", _handleRemoveFromPaneView);
