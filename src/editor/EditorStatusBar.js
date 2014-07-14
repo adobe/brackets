@@ -331,6 +331,8 @@ define(function (require, exports, module) {
         
         languageSelect.dropdownExtraClasses = "dropdown-status-bar";
         languageSelect.$button.addClass("btn-status-bar");
+        // Need to remove btn class to prevent the border style of a button showing up in a dark theme
+        languageSelect.$button.removeClass("btn");
         $("#status-language").append(languageSelect.$button);
         
         // indentation event handlers
