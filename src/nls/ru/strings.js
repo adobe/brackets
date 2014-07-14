@@ -532,7 +532,7 @@ define({
     "LANGUAGE_MESSAGE"                          : "Пожалуйста, выберите желаемый язык из списка ниже:",
     "LANGUAGE_SUBMIT"                           : "Перезагрузить {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Отмена",
-    "LANGUAGE_SYSTEM_DEFAULT"                   : "Система по умолчанию",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "По умолчанию",
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Время",
