@@ -234,8 +234,8 @@ define(function (require, exports, module) {
             // Pass `true` for quickChange here. This will make listeners debounce the change event,
             // avoiding lots of updates if the user types quickly.
             searchModel.fireChanged(true);
-                }
-            }
+        }
+    }
         
 
     /**
@@ -407,7 +407,7 @@ define(function (require, exports, module) {
                 PerfUtils.addMeasurement(perfTimer);
                 
                 // Listen for FS & Document changes to keep results up to date
-                    _addListeners();
+                _addListeners();
                 
                 if (zeroFilesToken === ZERO_FILES_TO_SEARCH) {
                     return zeroFilesToken;
@@ -455,7 +455,7 @@ define(function (require, exports, module) {
         }
         candidateFilesPromise = candidateFilesPromise || getCandidateFiles(scope);
         return _doSearch(queryInfo, candidateFilesPromise, filter);
-        }
+    }
         
     /**
      * Given a set of search results, replaces them with the given replaceText, either on disk or in memory.
@@ -476,7 +476,7 @@ define(function (require, exports, module) {
         return FindUtils.performReplacements(results, replaceText, options).always(function () {
             // For UI integration testing only
             exports._replaceDone = true;
-            });
+        });
     }
     
     /**
@@ -494,13 +494,13 @@ define(function (require, exports, module) {
             if (fullPath.indexOf(oldName) === 0) {
                 searchModel.removeResults(fullPath);
                 searchModel.setResults(fullPath.replace(oldName, newName), item);
-                    resultsChanged = true;
-                }
-            });
+                resultsChanged = true;
+            }
+        });
 
-            if (resultsChanged) {
+        if (resultsChanged) {
             searchModel.fireChanged();
-    }
+        }
     };
     
     /**
