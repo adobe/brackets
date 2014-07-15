@@ -1268,7 +1268,7 @@ define(function (require, exports, module) {
      * the same except for the final step
     */
     function _handleWindowGoingAway(commandData, postCloseHandler, failHandler) {
-        if (_windowGoingAway && !brackets.app.longRunningPromises) {
+        if (_windowGoingAway) {
             //if we get called back while we're closing, then just return
             return (new $.Deferred()).reject().promise();
         }
