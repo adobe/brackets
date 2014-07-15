@@ -21,62 +21,117 @@
  * 
  */
 
-
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, spyOn, expect, beforeEach, afterEach, waitsFor, runs, $ */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, spyOn, beforeFirst, afterLast, jasmine */
 
 define(function (require, exports, module) {
     'use strict';
     
-    var MainViewManager  = require("view/MainViewManager"),
-        WorkspaceManager = require("view/WorkspaceManager"),
-        SpecRunnerUtils  = require("spec/SpecRunnerUtils");
+    var CommandManager,          // loaded from brackets.test
+        Commands,                // loaded from brackets.test
+        DocumentManager,         // loaded from brackets.test
+        EditorManager,           // loaded from brackets.test
+        MainViewManager,         // loaded from brackets.test
+        SpecRunnerUtils          = require("spec/SpecRunnerUtils");
 
     describe("MainViewManager", function () {
-        it("should exist", function () {
-            expect(MainViewManager).toNotBe(null);
+        this.category = "integration";
+
+        var testPath = SpecRunnerUtils.getTestPath("/spec/MainViewManager-test-files"),
+            testFile = testPath + "/test.js",
+            testWindow,
+            _$,
+            promise;
+
+        
+        beforeFirst(function () {
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                testWindow = w;
+                _$ = testWindow.$;
+
+                // Load module instances from brackets.test
+                CommandManager          = testWindow.brackets.test.CommandManager;
+                Commands                = testWindow.brackets.test.Commands;
+                DocumentManager         = testWindow.brackets.test.DocumentManager;
+                EditorManager           = testWindow.brackets.test.EditorManager;
+                MainViewManager         = testWindow.brackets.test.MainViewManager;
+            });
         });
-    });
-    // Other tests go here as we develop more functionality into MainViewManager.
+        
+        afterLast(function () {
+            testWindow              = null;
+            CommandManager          = null;
+            Commands                = null;
+            DocumentManager         = null;
+            EditorManager           = null;
+            SpecRunnerUtils.closeTestWindow();
+        });
     
-/*
-        describe("currentFileChanged ", function () {
+        describe("basic attributes", function () {
+            it("should have an active pane id", function () {
+                runs(function () {
+                    expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
+                });
+            });
+            it("should have only one pane", function () {
+                runs(function () {
+                    expect(MainViewManager.getPaneCount()).toEqual(1);
+                    expect(MainViewManager.getPaneIdList().length).toEqual(1);
+                    expect(MainViewManager.getPaneIdList()[0]).toEqual("first-pane");
+                });
+            });
+            it("Pane should not have a title", function () {
+                runs(function () {
+                    expect(MainViewManager.getPaneTitle("first-pane")).toBeFalsy();
+                });
+            });
+        });
+        
+        describe("currentFileChanged", function () {
             it("should fire currentFileChanged event", function () {
                 var currentFileChangedListener = jasmine.createSpy();
 
                 runs(function () {
-                    _$(MainViewManger).on("currentFileChanged", currentFileChangedListener);
+                    _$(MainViewManager).on("currentFileChanged", currentFileChangedListener);
                     expect(currentFileChangedListener.callCount).toBe(0);
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, Commands.FILE_OPEN);
                 });
                 runs(function () {
                     expect(currentFileChangedListener.callCount).toBe(1);
+                    expect(currentFileChangedListener.calls[0].args[1].name).toEqual("test.js");
+                    expect(currentFileChangedListener.calls[0].args[2]).toEqual("first-pane");
                     MainViewManager.doCloseAll(MainViewManager.ALL_PANES);
                     expect(currentFileChangedListener.callCount).toBe(2);
-                    
+                    expect(currentFileChangedListener.calls[1].args[1]).toEqual(null);
                     _$(MainViewManager).off("currentFileChanged", currentFileChangedListener);
                 });
-
             });
-        });
-
-        
-        describe("  ", function () {
-            it("should return null ", function () {
-
+            it("DocumentManager should listen to currentFileChanged events", function () {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, Commands.FILE_OPEN);
                 });
                 runs(function () {
                     expect(DocumentManager.getCurrentDocument()).toBeTruthy();
+                    expect(DocumentManager.getCurrentDocument().file.name).toEqual("test.js");
                     MainViewManager.doCloseAll(MainViewManager.ALL_PANES);
                     expect(DocumentManager.getCurrentDocument()).toBe(null);
                 });
-
+            });
+            it("EditorManager should listen to currentFileChanged events", function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(EditorManager.getCurrentFullEditor()).toBeTruthy();
+                    expect(EditorManager.getCurrentFullEditor().document.file.name).toEqual("test.js");
+                    MainViewManager.doCloseAll(MainViewManager.ALL_PANES);
+                    expect(EditorManager.getCurrentFullEditor()).toBe(null);
+                });
             });
         });
-*/
-    
+        
+    });
 });
