@@ -863,10 +863,10 @@ a, img {
     }
 
     .CodeMirror-scroll {
-        background-color: transparent;
+        background-color: transparent !important; // need !important in order to see the inline-editor background. 
 
         .CodeMirror-linenumbers {
-            background-color: @bc-panel-bg-alt;
+            background-color: transparent;
         }
     }
 
@@ -922,7 +922,7 @@ a, img {
         height: 0;
         border-top: @inline-triangle-size solid transparent;
         border-bottom: @inline-triangle-size solid transparent;
-        border-left: @inline-triangle-size solid @bc-panel-bg-alt;
+        border-left: @inline-triangle-size solid @bc-bg-inline-widget;
         margin-top: -@inline-triangle-size;
         top: 50%;
         .scale-x(0.9, left, top);
