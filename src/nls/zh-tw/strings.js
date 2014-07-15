@@ -354,6 +354,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "依檔名排序",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "依類型排序",
     "CMD_SORT_WORKINGSET_AUTO"            : "自動排序",
+    "CMD_THEMES"                          : "佈景主題\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "瀏覽",
@@ -416,6 +417,14 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "'{0}' 這類特殊字元一定要用 % 格式編碼過。",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "解析 URL 根位址時發生不明錯誤",
     
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "目前的佈景主題",
+    "CUSTOM_SCROLLBARS"                    : "自訂捲軸",
+    "FONT_SIZE"                            : "字體大小",
+    "FONT_FAMILY"                          : "字體",
+    "LINE_HEIGHT"                          : "行高",
+    "GENERAL"                              : "一般",
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "新增規則",
     
@@ -568,4 +577,4 @@ define({
     "DOCS_MORE_LINK"                            : "更多資訊"
 });
 
-/* Last translated for dce3176aba48f6c3fe7971e76bfefe66c6ebd013 */
+/* Last translated for 99e8df52a90ae33e96878e0cda273fcdc0610e0d */
