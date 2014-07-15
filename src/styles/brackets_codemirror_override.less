@@ -64,7 +64,7 @@
     }
     .CodeMirror-gutter-elt {
         background: @activeline-number-bg;
-        color: @activeline-number;
+        color: @activeline-number !important;
     }
     .inline-widget .CodeMirror-gutter-elt {
         color: @accent-comment;    
@@ -250,7 +250,7 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
     
     .CodeMirror .CodeMirror-activeline .CodeMirror-gutter-elt {
         background: transparent;
-        color: @accent-comment;
+        color: @activeline-number !important;
     }
     
     .CodeMirror-focused .CodeMirror-activeline-background {
@@ -264,7 +264,7 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
     .CodeMirror-focused .CodeMirror-activeline {
         .CodeMirror-gutter-elt {
             background: @background;
-            color: @activeline-number;
+            color: @activeline-number !important;
         }
     }
 
