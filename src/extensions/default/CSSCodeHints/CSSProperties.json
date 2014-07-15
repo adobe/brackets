@@ -184,6 +184,7 @@
     "text-indent":                 {"values": ["inherit"]},
     "text-overflow":               {"values": ["clip", "ellipsis", "inherit"]},
     "text-shadow":                 {"values": []},
+    "text-rendering":              {"values": ["auto", "geometricPrecision", "optimizeLegibility", "optimizeSpeed"]},
     "text-transform":              {"values": ["capitalize", "full-width", "lowercase", "none", "uppercase", "inherit"]},
     "text-underline-position":     {"values": ["alphabetic", "auto", "below", "left", "right"]},
     "top":                         {"values": ["auto", "inherit"]},
