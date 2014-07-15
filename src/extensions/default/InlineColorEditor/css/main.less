@@ -22,7 +22,8 @@
  */
 
 // General
-@bc-bg-highlight:               #288edf;
+@bc-bg-highlight:               #1671db;
+@bc-bg-inline-widget:           #1b1b1b;
 @bc-bg-tool-bar:                #5D5F60;
 @bc-bg-status-bar:              #1c1c1e;
 @bc-disabled-opacity:           0.3;
@@ -71,7 +72,7 @@
 @bc-panel-separator:            #343434;
 
 // Default Button
-@bc-btn-bg:                     #4d4d4d;
+@bc-btn-bg:                     #3f3f3f;
 @bc-btn-bg-down:                #222;
 @bc-btn-bg-down-alt:            #404141;
 @bc-btn-border:                 #202020;
@@ -85,16 +86,23 @@
 // Primary Button
 @bc-primary-btn-bg:             #288edf;
 @bc-primary-btn-bg-down:        #0380e8;
-@bc-primary-btn-border:         #001c31;
+@bc-primary-btn-border:         #202020;
 
 // Secondary Button
 @bc-secondary-btn-bg:           #5b9e00;
 @bc-secondary-btn-bg-down:      #437900;
-@bc-secondary-btn-border:       #0f1a00;
+@bc-secondary-btn-border:       #202020;
 
 // Sidebar
 @bc-sidebar-bg:                 #3C3F41;
 @bc-sidebar-selection:          #2D2E30;
+
+// images
+@button-icon:                   "images/find-replace-sprites-dark.svg";
+@jstree-sprite:                 url("images/jsTreeSprites-dark.svg") !important;
+@cubic-bezier:                  url(grid-dark.png);
+@swatch-bg:                     url("../img/color_thumb_back_dark.png");
+@swatch-bg-2x:                  url("../img/color_thumb_back_dark@2x.png");
 
 .color-editor {
     font-size: 12px;
@@ -120,7 +128,7 @@
 }
 .color-editor aside header .large-swatches {
     border-radius: 3px;
-    background-image: url("../img/color_thumb_back.png");
+    background-image: @swatch-bg;
     background-size: 8px;
     height: 35px;
     width: 88px;
@@ -159,7 +167,7 @@
     border-radius: 2px;
 }
 .color-editor aside ul.swatches li .swatch-bg {
-    background-image: url("../img/color_thumb_back.png");
+    background-image: @swatch-bg;
     background-size: 8px;
     width: 15px;
     height: 15px;
@@ -269,7 +277,7 @@
     background-image: url("../img/grabber_color-slider.png");
 }
 .color-editor section .slider.opacity-slider {
-    background-image: url("../img/color_thumb_back.png");
+    background-image: @swatch-bg;
     background-size: 8px;
     margin-right: 0px;  
 }
@@ -314,10 +322,10 @@
 }
 @media all and (-webkit-min-device-pixel-ratio : 2), (min-device-pixel-ratio : 2) {
     .color-editor aside header .large-swatches {
-        background-image: url("../img/color_thumb_back@2x.png");
+        background-image: @swatch-bg-2x;
     }
     .color-editor aside ul.swatches li .swatch-bg {
-        background-image: url("../img/color_thumb_back@2x.png");
+        background-image: @swatch-bg-2x;
     }
     .color-editor section .color-selection-field .selector {
         background-image: url("../img/grabber_color-well@2x.png");
@@ -328,7 +336,7 @@
         background-size: 200% 100%;
     }
     .color-editor section .slider.opacity-slider {
-        background-image: url("../img/color_thumb_back@2x.png");
+        background-image: @swatch-bg-2x;
     }
 }
 .color-editor ul, .color-editor li {
@@ -391,7 +399,7 @@
     border-bottom-right-radius: 3px;
 }
 .color-editor .button-bar li.selected a {
-    background-color: @bc-btn-bg-down;
+    background-color: @bc-bg-highlight;
     box-shadow: inset 0 1px 0 @bc-shadow-small;
     background-image: none;
 }

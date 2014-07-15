@@ -2,10 +2,13 @@
  * All BezierCurveEditor selectors descend from .bezier-curve-editor to constrain styles to this extension
  */
 // General
-@bc-bg-highlight:               #288edf;
+@bc-bg-highlight:               #1671db;
+@bc-bg-inline-widget:           #1b1b1b;
+@bc-bg-tool-bar:                #5D5F60;
 @bc-bg-status-bar:              #1c1c1e;
 @bc-disabled-opacity:           0.3;
 @bc-error:                      #f74687;
+@bc-modal-backdrop-opacity:     0.7;
 
 // Highlights and Shadows
 @bc-highlight:                  rgba(255, 255, 255, 0.06);
@@ -40,39 +43,46 @@
 // Panel
 @bc-panel-bg:                   #2c2c2c;
 @bc-panel-bg-alt:               #333;
-@bc-panel-bg-promoted:          #1f1f1f;
+@bc-panel-bg-promoted:          #222;
 @bc-panel-bg-hover:             rgba(255, 255, 255, 0.12);
 @bc-panel-bg-hover-alt:         rgba(0, 0, 0, 0.04);
 @bc-panel-bg-selected:          #494a4b;
 @bc-panel-bg-text-highlight:    #000;
-@bc-panel-border:               rgba(255, 255, 255, 0.1);
+@bc-panel-border:               #000;
 @bc-panel-separator:            #343434;
 
 // Default Button
-@bc-btn-bg:                     #4d4d4d;
+@bc-btn-bg:                     #3f3f3f;
 @bc-btn-bg-down:                #222;
 @bc-btn-bg-down-alt:            #404141;
 @bc-btn-border:                 #202020;
 @bc-btn-border-error:           #fa689d;
-@bc-btn-border-error-glow:      transparent; //#ffb0cd
+@bc-btn-border-error-glow:      transparent;
 @bc-btn-border-focused:         #2893ef;
-@bc-btn-border-focused-glow:    transparent; //#94ceff
+@bc-btn-border-focused-glow:    transparent;
 @bc-btn-triangle:               #aaa;
 @bc-input-bg:                   #555;
 
 // Primary Button
 @bc-primary-btn-bg:             #288edf;
 @bc-primary-btn-bg-down:        #0380e8;
-@bc-primary-btn-border:         #001c31;
+@bc-primary-btn-border:         #202020;
 
 // Secondary Button
-@bc-secondary-btn-bg:           #68b400;
-@bc-secondary-btn-bg-down:      #539500;
-@bc-secondary-btn-border:       #0f1a00;
+@bc-secondary-btn-bg:           #5b9e00;
+@bc-secondary-btn-bg-down:      #437900;
+@bc-secondary-btn-border:       #202020;
 
 // Sidebar
 @bc-sidebar-bg:                 #3C3F41;
 @bc-sidebar-selection:          #2D2E30;
+
+// images
+@button-icon:                   "images/find-replace-sprites-dark.svg";
+@jstree-sprite:                 url("images/jsTreeSprites-dark.svg") !important;
+@cubic-bezier:                  url(grid-dark.png);
+@swatch-bg:                     url("../img/color_thumb_back_dark.png");
+@swatch-bg-2x:                  url("../img/color_thumb_back_dark@2x.png");
 
 
 .bezier-curve-editor * {
