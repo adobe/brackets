@@ -1094,6 +1094,4 @@ define(function (require, exports, module) {
     // Constants
     exports.ALL_PANES                        = ALL_PANES;
     exports.FOCUSED_PANE                     = FOCUSED_PANE;
-    exports.VERTICAL                         = VERTICAL;
-    exports.HORIZONTAL                       = HORIZONTAL;
 });

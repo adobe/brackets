@@ -80,11 +80,39 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getPaneIdList()[0]).toEqual("first-pane");
                 });
             });
+            it("should not be viewing anything", function () {
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedFile()).toEqual(null);
+                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(null);
+                    expect(MainViewManager.getCurrentlyViewedFileForPane("first-pane")).toEqual(null);
+                    expect(MainViewManager.getCurrentlyViewedPathForPane("first-pane")).toEqual(null);
+                });
+            });
             it("Pane should not have a title", function () {
                 runs(function () {
                     expect(MainViewManager.getPaneTitle("first-pane")).toBeFalsy();
                 });
             });
+        });
+        
+        describe("open and close", function () {
+            it("should open a document", function () {
+                runs(function () {
+                    promise = MainViewManager.doOpen(MainViewManager.FOCUSED_PANE, { fullPath: testPath + "/test.js" });
+                    waitsForDone(promise, "MainViewManager.doOpen");
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedFile().name).toEqual("test.js");
+                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(testPath + "/test.js");
+                    expect(MainViewManager.getCurrentlyViewedFileForPane("first-pane").name).toEqual("test.js");
+                    expect(MainViewManager.getCurrentlyViewedPathForPane("first-pane")).toEqual(testPath + "/test.js");
+
+                    MainViewManager.doClose(MainViewManager.FOCUSED_PANE, { fullPath: testPath + "/test.js" });
+                    expect(MainViewManager.getCurrentlyViewedFile()).toEqual(null);
+                    expect(MainViewManager.getPaneViewListSize(MainViewManager.ALL_PANES)).toEqual(0);
+                });
+            });
+            
         });
         
         describe("currentFileChanged", function () {
@@ -94,8 +122,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     _$(MainViewManager).on("currentFileChanged", currentFileChangedListener);
                     expect(currentFileChangedListener.callCount).toBe(0);
-                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
-                    waitsForDone(promise, Commands.FILE_OPEN);
+                    promise = MainViewManager.doOpen(MainViewManager.FOCUSED_PANE, { fullPath: testPath + "/test.js" });
+                    waitsForDone(promise, "MainViewManager.doOpen");
                 });
                 runs(function () {
                     expect(currentFileChangedListener.callCount).toBe(1);
@@ -109,8 +137,8 @@ define(function (require, exports, module) {
             });
             it("DocumentManager should listen to currentFileChanged events", function () {
                 runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
-                    waitsForDone(promise, Commands.FILE_OPEN);
+                    promise = MainViewManager.doOpen(MainViewManager.FOCUSED_PANE, { fullPath: testPath + "/test.js" });
+                    waitsForDone(promise, "MainViewManager.doOpen");
                 });
                 runs(function () {
                     expect(DocumentManager.getCurrentDocument()).toBeTruthy();
@@ -121,8 +149,8 @@ define(function (require, exports, module) {
             });
             it("EditorManager should listen to currentFileChanged events", function () {
                 runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
-                    waitsForDone(promise, Commands.FILE_OPEN);
+                    promise = MainViewManager.doOpen(MainViewManager.FOCUSED_PANE, { fullPath: testPath + "/test.js" });
+                    waitsForDone(promise, "MainViewManager.doOpen");
                 });
                 runs(function () {
                     expect(EditorManager.getCurrentFullEditor()).toBeTruthy();
