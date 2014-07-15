@@ -930,8 +930,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // save the file opened above to a different filename
-                    DocumentManager.setCurrentDocument(targetDoc);
-                    
+                    MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, targetDoc);
                     spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
@@ -1251,8 +1250,6 @@ define(function (require, exports, module) {
                     
                     e = EditorManager.getCurrentFullEditor();
                     expect(e.document.file.fullPath).toBe(path);
-                    
-                    expect(EditorManager.getCurrentlyViewedPath()).toEqual(path);
                 });
             });
         });

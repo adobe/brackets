@@ -1498,7 +1498,7 @@ define(function (require, exports, module) {
                             .fail(function () { gotError = true; });
                     });
                     
-                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
+                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.openAndSelectDocument() timeout", 1000);
                     
                     var rules = null;
                     
@@ -1534,7 +1534,7 @@ define(function (require, exports, module) {
                             .fail(function () { gotError = true; });
                     });
                     
-                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
+                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.openAndSelectDocument() timeout", 1000);
                     
                     var rules = null;
                     

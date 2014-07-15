@@ -1061,7 +1061,7 @@ define(function (require, exports, module) {
                         );
                         
                         // activate the full editor
-                        DocumentManager.setCurrentDocument(cssDoc);
+                        MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, cssDoc);
                         fullEditor = EditorManager.getCurrentFullEditor();
                         
                         // sanity check
@@ -1111,7 +1111,7 @@ define(function (require, exports, module) {
                         inlineEditor = hostEditor.getInlineWidgets()[0].editor;
                         
                         // activate the full editor
-                        DocumentManager.setCurrentDocument(cssDoc);
+                        MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, cssDoc);
                         fullEditor = EditorManager.getCurrentFullEditor();
                         
                         // alias offsets to nice names
@@ -1506,7 +1506,7 @@ define(function (require, exports, module) {
                         inlineEditor = hostEditor.getInlineWidgets()[0].editor;
                         
                         // activate the full editor
-                        DocumentManager.setCurrentDocument(cssDoc);
+                        MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, cssDoc);
                         fullEditor = EditorManager.getCurrentFullEditor();
                     });
                 });
