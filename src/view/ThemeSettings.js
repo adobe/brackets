@@ -45,7 +45,7 @@ define(function (require, exports, module) {
      */
     var defaults = {
         "fontSize": 12,
-        "lineHeight": 1.4,
+        "lineHeight": 1.25,
         "fontFamily": "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace",
         "customScrollbars": true,
         "themes": ["thor-light-theme"]
@@ -96,7 +96,7 @@ define(function (require, exports, module) {
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.is(":checked");
             })
-            .on("change", "[data-target]:text", function () {
+            .on("input", "[data-target]:text", function () {
                 var $target = $(this);
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.val();
