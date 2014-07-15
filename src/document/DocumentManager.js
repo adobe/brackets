@@ -687,10 +687,9 @@ define(function (require, exports, module) {
         if (file) {
             doc = getDocumentForPath(file.fullPath);
         }
-        var listeners = $._data(exports, "events");
-        if (listeners && listeners.currentDocumentChange && listeners.currentDocumentChange.length > 0) {
+        var count = DeprecationWarning.getEventHandlerCount(exports, "currentDocumentChange");
+        if (count > 0) {
             DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChanged' instead.", true);
-            console.log(listeners.currentDocumentChange);
         }
         $(exports).triggerHandler("currentDocumentChange", [doc, null]);
     });

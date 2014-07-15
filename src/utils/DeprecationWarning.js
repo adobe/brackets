@@ -89,6 +89,25 @@ define(function (require, exports, module) {
         displayedWarnings[message][callerLocation] = true;
     }
 
+    function getEventHandlerCount(object, name) {
+        var count = 0,
+            events = $._data(object, "events");
+        
+        // If there are there any listeners then display a deprecation warning
+        if (events && events.hasOwnProperty(name)) {
+            var listeners = events[name];
+            count = listeners.length;
+            
+            if (listeners.hasOwnProperty("delegateCount")) {
+                // we need to subtract 1 since delegateCount is counted 
+                //  in the length computed above.
+                count += (listeners.delegateCount - 1);
+            }
+        }
+        
+        return count;
+    }
+    
     /**
      * Show a deprecation warning if there are listeners for the event
      * 
@@ -112,9 +131,8 @@ define(function (require, exports, module) {
         // create an event handler for the new event to listen for 
         $(inbound).on(newEventName, function () {
             // Get the jQuery event data from the outbound object -- usually the module's exports
-            var listeners = $._data(outbound, "events");
-            // If there are there any listeners then display a deprecation warning
-            if (listeners && listeners.hasOwnProperty(oldEventName) && listeners[oldEventName].length > 0) {
+            var listenerCount = getEventHandlerCount(outbound, oldEventName);
+            if (listenerCount > 0) {
                 var message = "The Event " + (canonicalOutboundName || oldEventName) + " has been deprecated. Use " + (canonicalInboundName || newEventName) + " instead.";
                 // We only want to show the deprecation warning once
                 if (!displayedWarnings[message]) {
@@ -130,6 +148,7 @@ define(function (require, exports, module) {
     
     
     // Define public API
-    exports.deprecationWarning = deprecationWarning;
-    exports.deprecateEvent = deprecateEvent;
+    exports.deprecationWarning   = deprecationWarning;
+    exports.deprecateEvent       = deprecateEvent;
+    exports.getEventHandlerCount = getEventHandlerCount;
 });
