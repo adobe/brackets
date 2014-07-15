@@ -32,17 +32,20 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var AppInit             = require("utils/AppInit"),
-        AnimationUtils      = require("utils/AnimationUtils"),
-        EditorManager       = require("editor/EditorManager"),
-        Editor              = require("editor/Editor").Editor,
-        KeyEvent            = require("utils/KeyEvent"),
-        StatusBar           = require("widgets/StatusBar"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+    var _                            = require("thirdparty/lodash"),
+        AnimationUtils               = require("utils/AnimationUtils"),
+        AppInit                      = require("utils/AppInit"),
+        DropdownButton               = require("widgets/DropdownButton").DropdownButton,
+        EditorManager                = require("editor/EditorManager"),
+        Editor                       = require("editor/Editor").Editor,
+        KeyEvent                     = require("utils/KeyEvent"),
+        LanguageManager              = require("language/LanguageManager"),
+        StatusBar                    = require("widgets/StatusBar"),
+        Strings                      = require("strings"),
+        StringUtils                  = require("utils/StringUtils");
     
     /* StatusBar indicators */
-    var $languageInfo,
+    var languageSelect, // this is a DropdownButton instance
         $cursorInfo,
         $fileInfo,
         $indentType,
@@ -67,7 +70,15 @@ define(function (require, exports, module) {
      * @param {Editor} editor Current editor
      */
     function _updateLanguageInfo(editor) {
-        $languageInfo.text(editor.document.getLanguage().getName());
+        var doc = editor.document,
+            lang = doc.getLanguage();
+        
+        // Ensure width isn't left locked by a previous click of the dropdown (which may not have resulted in a "change" event at the time)
+        languageSelect.$button.css("width", "auto");
+        // Setting Untitled documents to non-text mode isn't supported yet, so disable the switcher in that case for now
+        languageSelect.$button.prop("disabled", doc.isUntitled());
+        // Show the current language as button title
+        languageSelect.$button.text(lang.getName());
     }
     
     /**
@@ -260,7 +271,9 @@ define(function (require, exports, module) {
             $(current).on("overwriteToggle.statusbar", _updateOverwriteLabel);
             
             current.document.addRef();
-            $(current.document).on("languageChanged.statusbar", function () { _updateLanguageInfo(current); });
+            $(current.document).on("languageChanged.statusbar", function () {
+                _updateLanguageInfo(current);
+            });
             
             _updateCursorInfo(null, current);
             _updateLanguageInfo(current);
@@ -272,16 +285,53 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Populate the languageSelect DropdownButton's menu with all registered Languages
+     */
+    function _populateLanguageDropdown() {
+        // Get all non-binary languages
+        var languages = _.values(LanguageManager.getLanguages()).filter(function (language) {
+            return !language.isBinary();
+        });
+        
+        // sort dropdown alphabetically
+        languages.sort(function (a, b) {
+            return a.getName().toLowerCase().localeCompare(b.getName().toLowerCase());
+        });
+        
+        languageSelect.items = languages;
+        
+    }
+    
+    /**
      * Initialize
      */
     function _init() {
-        $languageInfo       = $("#status-language");
+        
         $cursorInfo         = $("#status-cursor");
         $fileInfo           = $("#status-file");
         $indentType         = $("#indent-type");
         $indentWidthLabel   = $("#indent-width-label");
         $indentWidthInput   = $("#indent-width-input");
         $statusOverwrite    = $("#status-overwrite");
+        
+        languageSelect      = new DropdownButton("", [], function (item, index) {
+            var document = EditorManager.getActiveEditor().document,
+                defaultLang = LanguageManager.getLanguageForPath(document.file.fullPath, true),
+                html = _.escape(item.getName());
+            
+            // Show indicators for currently selected & default languages for the current file
+            if (item === defaultLang) {
+                html += " <span class='default-language'>" + Strings.STATUSBAR_DEFAULT_LANG + "</span>";
+            }
+            if (item === document.getLanguage()) {
+                html = "<span class='checked-language'></span>" + html;
+            }
+            return html;
+        });
+        
+        languageSelect.dropdownExtraClasses = "dropdown-status-bar";
+        languageSelect.$button.addClass("btn-status-bar");
+        $("#status-language").append(languageSelect.$button);
         
         // indentation event handlers
         $indentType.on("click", _toggleIndentType);
@@ -310,6 +360,16 @@ define(function (require, exports, module) {
 
         $indentWidthInput.focus(function () { $indentWidthInput.select(); });
 
+        // Language select change handler
+        $(languageSelect).on("select", function (e, lang, index) {
+            var document = EditorManager.getActiveEditor().document,
+                fullPath = document.file.fullPath,
+                defaultLang = LanguageManager.getLanguageForPath(fullPath, true);
+            // if default language selected, don't "force" it
+            // (passing in null will reset the force flag)
+            document.setLanguageOverride(lang === defaultLang ? null : lang);
+        });
+
         $statusOverwrite.on("click", _updateEditorOverwriteMode);
         
         _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
@@ -319,4 +379,5 @@ define(function (require, exports, module) {
     $(EditorManager).on("activeEditorChange", _onActiveEditorChange);
     
     AppInit.htmlReady(_init);
+    AppInit.appReady(_populateLanguageDropdown);
 });

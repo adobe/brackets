@@ -171,7 +171,33 @@ a, img {
 
     #status-language {
         border-right: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 0px;
+        margin: 0px;
     }
+    
+    /* dropdown button styling */
+    .btn-status-bar {
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        font: inherit;
+        height: inherit;
+        line-height: inherit;
+        margin: 0;
+        padding: 0 20px 0 10px;
+        vertical-align: top;
+        width: auto;
+        cursor: pointer;
+        &:focus {
+            outline: 0;
+        }
+        &[disabled] {
+            cursor: inherit;
+            background: none;
+            text-decoration: none;
+        }
+    }
+    
 }
 
 #status-indent > * {
@@ -219,7 +245,6 @@ a, img {
 #status-overwrite {
     transition: background-color 3s;
     background-color: rgba(120, 178, 242, 0);
-    color: rgb(69, 69, 69);
     cursor: pointer;
 }
 
@@ -1625,4 +1650,17 @@ label input {
 .emphasized {
     font-weight: 900;
     font-size: 1.01em;
+}
+
+.theme-settings td {
+    padding: 2px;
+}
+
+.theme-settings .modal-body {
+    min-height: 300px;
+    max-height: 300px;
+}
+
+.theme-settings .label {
+    padding: 4px !important;
 }

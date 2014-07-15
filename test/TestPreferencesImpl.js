@@ -87,6 +87,10 @@ define(function (require, exports, module) {
     smUserScope.addLayer(stateProjectLayer);
     var smUserScopeLoading = stateManager.addScope("user", smUserScope);
     
+    function _reloadUserPrefs() {
+        return;
+    }
+    
     // Semi-Public API. Use this at your own risk. The public API is in PreferencesManager.
     exports.manager             = manager;
     exports.projectStorage      = projectStorage;
@@ -98,6 +102,7 @@ define(function (require, exports, module) {
     exports.userPrefFile        = userPrefFile;
     exports.isUserScopeCorrupt  = isUserScopeCorrupt;
     exports.managerReady        = _prefManagerReadyDeferred.promise();
+    exports.reloadUserPrefs    = _reloadUserPrefs;
     exports.STATE_FILENAME      = STATE_FILENAME;
     exports.SETTINGS_FILENAME   = SETTINGS_FILENAME;
 });

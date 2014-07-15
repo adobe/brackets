@@ -71,6 +71,7 @@ define(function (require, exports, module) {
     require("spec/StringMatch-test");
     require("spec/StringUtils-test");
     require("spec/TextRange-test");
+    require("spec/ThemeManager-test");
     require("spec/UpdateNotification-test");
     require("spec/UrlParams-test");
     require("spec/ValidationUtils-test");

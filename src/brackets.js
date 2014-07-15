@@ -53,6 +53,7 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/addon/edit/closetag");
     require("thirdparty/CodeMirror2/addon/scroll/scrollpastend");
     require("thirdparty/CodeMirror2/addon/selection/active-line");
+    require("thirdparty/CodeMirror2/addon/selection/mark-selection");
     require("thirdparty/CodeMirror2/addon/mode/multiplex");
     require("thirdparty/CodeMirror2/addon/mode/overlay");
     require("thirdparty/CodeMirror2/addon/search/match-highlighter");
@@ -103,6 +104,7 @@ define(function (require, exports, module) {
         NativeApp               = require("utils/NativeApp"),
         DeprecationWarning      = require("utils/DeprecationWarning"),
         ViewCommandHandlers     = require("view/ViewCommandHandlers"),
+        ThemeManager            = require("view/ThemeManager"),
         _                       = require("thirdparty/lodash");
     
     // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
@@ -400,14 +402,15 @@ define(function (require, exports, module) {
         $("html").on("mousedown", ".no-focus", function (e) {
             // Text fields should always be focusable.
             var $target = $(e.target),
-                isTextField =
+                isFormElement =
                     $target.is("input[type=text]") ||
                     $target.is("input[type=number]") ||
                     $target.is("input[type=password]") ||
                     $target.is("input:not([type])") || // input with no type attribute defaults to text
-                    $target.is("textarea");
+                    $target.is("textarea") ||
+                    $target.is("select");
     
-            if (!isTextField) {
+            if (!isFormElement) {
                 e.preventDefault();
             }
         });
