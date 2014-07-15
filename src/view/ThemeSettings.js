@@ -45,7 +45,7 @@ define(function (require, exports, module) {
      */
     var defaults = {
         "fontSize": 12,
-        "lineHeight": 1.4,
+        "lineHeight": 1.25,
         "fontFamily": "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace",
         "customScrollbars": true,
         "themes": ["thor-light-theme"]
