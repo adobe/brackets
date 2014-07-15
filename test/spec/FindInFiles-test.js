@@ -1468,7 +1468,7 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     runs(function () {
-                        DocumentManager.addToWorkingSet(FileSystem.getFileForPath(testPath + "/css/foo.css"));
+                        MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, FileSystem.getFileForPath(testPath + "/css/foo.css"));
                     });
 
                     doInMemoryTest({
