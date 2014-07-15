@@ -84,7 +84,7 @@ define(function CSSAgent(require, exports, module) {
         var styleSheetId, styles = {};
         url = _canonicalize(url);
         for (styleSheetId in _styleSheetDetails) {
-            if (_styleSheetDetails[styleSheetId].sourceURL === url) {
+            if (_styleSheetDetails[styleSheetId].canonicalizedURL === url) {
                 styles[styleSheetId] = _styleSheetDetails[styleSheetId];
             }
         }
@@ -99,7 +99,7 @@ define(function CSSAgent(require, exports, module) {
     function getStylesheetURLs() {
         var styleSheetId, urls = [];
         for (styleSheetId in _styleSheetDetails) {
-            urls[_styleSheetDetails[styleSheetId].sourceURL] = true;
+            urls[_styleSheetDetails[styleSheetId].canonicalizedURL] = true;
         }
         return _.keys(urls);
     }
@@ -144,18 +144,20 @@ define(function CSSAgent(require, exports, module) {
      * @param {header: CSSStyleSheetHeader}
      */
     function _styleSheetAdded(event, res) {
-        var url = _canonicalize(res.header.sourceURL),
-            existing = styleForURL(res.header.sourceURL);
+        var url             = _canonicalize(res.header.sourceURL),
+            existing        = styleForURL(res.header.sourceURL),
+            styleSheetId    = res.header.styleSheetId;
         
         // detect duplicates
         existing = _.some(existing, function (styleSheet) {
-            return styleSheet && styleSheet.styleSheetId === res.header.styleSheetId;
+            return styleSheet && styleSheet.styleSheetId === styleSheetId;
         });
         if (existing) {
             return;
         }
         
-        _styleSheetDetails[res.header.styleSheetId] = res.header;
+        _styleSheetDetails[styleSheetId] = res.header;
+        _styleSheetDetails[styleSheetId].canonicalizedURL = url; // canonicalized URL
         
         $(exports).triggerHandler("styleSheetAdded", [url, res.header]);
     }
@@ -170,7 +172,7 @@ define(function CSSAgent(require, exports, module) {
         
         delete _styleSheetDetails[res.styleSheetId];
         
-        $(exports).triggerHandler("styleSheetRemoved", [header.sourceURL, header]);
+        $(exports).triggerHandler("styleSheetRemoved", [header.canonicalizedURL, header]);
     }
     
     /**

@@ -109,7 +109,8 @@ define(function CSSDocumentModule(require, exports, module) {
      */
     CSSDocument.prototype.getSourceFromBrowser = function getSourceFromBrowser() {
         var deferred = new $.Deferred(),
-            styleSheetId = this._getStyleSheetHeader()[0].styleSheetId,
+            styleSheetHeader = this._getStyleSheetHeader(),
+            styleSheetId = styleSheetHeader[_.keys(styleSheetHeader)[0]].styleSheetId,
             inspectorPromise = Inspector.CSS.getStyleSheetText(styleSheetId);
         
         inspectorPromise.then(function (res) {
