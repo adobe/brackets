@@ -752,8 +752,8 @@ define(function (require, exports, module) {
         Async.doSequentially(fullpaths, function (path, i) {
             var one = new $.Deferred();
             
-            FileViewController.addToWorkingSetAndSelect(path).done(function (doc) {
-                docs[keys[i]] = doc;
+            FileViewController.addToPaneViewAndSelect(path).done(function (file) {
+                docs[keys[i]] = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 one.resolve();
             }).fail(function (err) {
                 one.reject(err);

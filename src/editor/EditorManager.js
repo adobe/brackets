@@ -346,8 +346,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Creates a new "full-size" (not inline) Editor for the given Document, and sets it as the
-     * Document's master backing editor. The editor is not yet visible; to show it, use
-     * DocumentManager.setCurrentDocument().
+     * Document's master backing editor. The editor is not yet visible; 
      * Semi-private: should only be called within this module or by Document.
      * @param {!Document} document  Document whose main/full Editor to create
      */
@@ -458,21 +457,18 @@ define(function (require, exports, module) {
         }
     }
 
-    
-    // TODO: Deprecate this stuff
-
     function getCurrentlyViewedPath() {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.getCurrentlyViewedFile instead of EditorManager.getrCurrentlyViewedPath.", true);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.getCurrentlyViewedFile instead of EditorManager.getCurrentlyViewedPath.", true);
         var file = MainViewManager.getCurrentlyViewedFile();
         return file ? file.fullPath : null;
     }
     
+
+    // TODO: Move custom viewer code to Pane 
     /** Remove existing custom view if present */
     function _removeCustomViewer() {
         
     }
-
-    // TODO: Move custom viewer code to Pane 
     
     /** 
      * Closes the customViewer currently displayed, shows the NoEditor view
@@ -740,7 +736,6 @@ define(function (require, exports, module) {
     // Convenience Methods
     exports.getActiveEditor               = getActiveEditor;
     exports.getCurrentFullEditor          = getCurrentFullEditor;
-    exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;
     exports.getFocusedEditor              = getFocusedEditor;
     
     
@@ -757,4 +752,5 @@ define(function (require, exports, module) {
     exports.resizeEditor                  = resizeEditor;
     exports.showingCustomViewerForPath    = showingCustomViewerForPath;
     exports.focusEditor                   = focusEditor;
+    exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;
 });
