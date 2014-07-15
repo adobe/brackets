@@ -508,8 +508,10 @@ define(function (require, exports, module) {
         this.$hintMenu.removeClass("open");
         this.opened = false;
         
-        PopUpManager.removePopUp(this.$hintMenu);
-        this.$hintMenu.remove();
+        if (this.$hintMenu) {
+            PopUpManager.removePopUp(this.$hintMenu);
+            this.$hintMenu.remove();
+        }
         
         KeyBindingManager.removeGlobalKeydownHook(this._keydownHook);
     };

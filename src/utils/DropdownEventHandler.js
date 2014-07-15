@@ -134,7 +134,9 @@ define(function (require, exports, module) {
      * Public close method
      */
     DropdownEventHandler.prototype.close = function () {
-        PopUpManager.removePopUp(this.$list);
+        if (this.$list) {
+            PopUpManager.removePopUp(this.$list);
+        }
     };
 
     /**
