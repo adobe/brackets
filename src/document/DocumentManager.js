@@ -690,6 +690,7 @@ define(function (require, exports, module) {
         var listeners = $._data(exports, "events");
         if (listeners && listeners.currentDocumentChange && listeners.currentDocumentChange.length > 0) {
             DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChanged' instead.", true);
+            console.log(listeners.currentDocumentChange);
         }
         $(exports).triggerHandler("currentDocumentChange", [doc, null]);
     });
