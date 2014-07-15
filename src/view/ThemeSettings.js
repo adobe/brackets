@@ -121,6 +121,10 @@ define(function (require, exports, module) {
                     prefs.set(setting, newSettings[setting]);
                 });
             }
+            else if (id === "cancel") {
+                // Make sure we revert any changes to theme selection
+                prefs.set("themes", currentSettings.themes);
+            }
         });
     }
 
