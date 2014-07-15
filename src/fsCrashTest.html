@@ -1,0 +1,106 @@
+    
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Crash On Quit Test</title>
+    <script>
+        
+    function readFiles1() {
+        var files = ["C:/Users/rlim/brackets/src/brackets.config.json",
+                     "C:/Users/rlim/brackets/src/brackets.js",
+                     "C:/Users/rlim/brackets/src/config.json",
+                     "C:/Users/rlim/brackets/src/dependencies.js",
+                     "C:/Users/rlim/brackets/src/index.html",
+                     "C:/Users/rlim/brackets/src/main.js",
+                     "C:/Users/rlim/brackets/src/strings.js",
+                     "C:/Users/rlim/brackets/src/test.html",
+                     "C:/Users/rlim/brackets/src/test.js",
+                     "C:/Users/rlim/brackets/src/test2.js",
+                     "C:/Users/rlim/brackets/src/xorigin"];
+        files.forEach(function (file) {
+            appshell.fs.stat(file, function (err, stats) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (stats.isFile()) {
+                        appshell.fs.readFile(file, "utf8", function (_err, _data) {
+                                if (_err) {
+                                    console.log("error reading " + file);
+                                } else {
+                                    console.log(file);
+                                }
+                        });
+                    }
+                }
+            });
+        });
+    }
+    
+    function getAppDirectoryPath() {
+        function convertToNativePath(path) {
+            path = unescape(path);
+            if (path.indexOf(":") !== -1 && path[0] === "/") {
+                return path.substr(1);
+            }
+
+            return path;
+        }
+
+        var pathname = decodeURI(window.location.pathname);
+        var directory = pathname.substr(0, pathname.lastIndexOf("/"));
+        return convertToNativePath(directory);
+    }
+    
+    function readFiles() {
+        var path = getAppDirectoryPath();
+        appshell.fs.readdir(path, function (err, files) {
+            if (err) {
+                return;
+            }
+            
+            var count = files.length;
+            if (!count) {
+                return;
+            }
+            console.log("# of files: " + count);
+            files.forEach(function (file) {
+                // Crash only if we call stat
+                appshell.fs.stat(path + "/" + file, function (err2, stats) {
+                    if (err2) {
+                        console.log(err2);
+                    } else if (stats.isFile()) {
+                        appshell.fs.readFile(path + "/" + file, "utf8", function (_err, _data) {
+                            if (_err) {
+                                console.log(_err);
+                            } else {
+                                console.log(file);
+                            }
+                        });
+                    }
+                });
+                
+                // NO CRASH if just call readFile
+//                appshell.fs.readFile(path + "/" +  file, "utf8", function (_err, _data) {
+//                    if (_err) {
+//                        console.log(_err);
+//                    } else {
+//                        console.log(file);
+//                    }
+//                });
+            });
+        });
+    }
+
+    window.addEventListener("keydown", function (e) {
+        if (String.fromCharCode(e.keyCode) === 'Q') {
+            readFiles();
+            window.close();
+        }
+    });
+    </script>
+</head>
+<body>
+Press 'Q' to quit.
+</body>
+</html>
