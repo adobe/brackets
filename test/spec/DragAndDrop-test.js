@@ -77,7 +77,7 @@ define(function (require, exports, module) {
                 // Call closeAll() directly. Some tests set a spy on the save as
                 // dialog preventing SpecRunnerUtils.closeAllFiles() from
                 // working properly.
-                testWindow.brackets.test.DocumentManager.closeAll();
+                testWindow.brackets.test.MainViewManager.doCloseAll(testWindow.brackets.test.MainViewManager.ALL_PANES);
             });
         });
         
@@ -97,7 +97,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var editor = EditorManager.getActiveEditor();
                     expect(editor.document.file.fullPath).toBe(jsFilePath);
-                    expect(EditorManager.getCurrentlyViewedPath()).toEqual(jsFilePath);
+                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(jsFilePath);
                 });
             });
 
@@ -111,7 +111,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var editor = EditorManager.getActiveEditor();
                     expect(editor).toBe(null);
-                    expect(EditorManager.getCurrentlyViewedPath()).toEqual(path);
+                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(path);
                 });
             });
 
@@ -126,7 +126,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var editor = EditorManager.getActiveEditor();
                     expect(editor).toBe(null);
-                    expect(EditorManager.getCurrentlyViewedPath()).toEqual(lastImagePath);
+                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(lastImagePath);
                 });
             });
             */

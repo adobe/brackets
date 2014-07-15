@@ -64,6 +64,7 @@ define(function (require, exports, module) {
             CommandManager          = null;
             Commands                = null;
             DocumentManager         = null;
+            EditorManager           = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
@@ -81,51 +82,9 @@ define(function (require, exports, module) {
                 // Call closeAll() directly. Some tests set a spy on the save as
                 // dialog preventing SpecRunnerUtils.closeAllFiles() from
                 // working properly.
-                testWindow.brackets.test.DocumentManager.closeAll();
+                testWindow.brackets.test.MainViewManager.doCloseAll(testWindow.brackets.test.MainViewManager.ALL_PANES);
             });
         });
-
-/*        Deprecated --
-          TODO: re-work this to check the new stuff
-        describe("clearCurrentDocument ", function () {
-            it("should fire currentDocumentChange", function () {
-                var docChangeListener = jasmine.createSpy();
-
-                runs(function () {
-                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
-                    expect(docChangeListener.callCount).toBe(0);
-                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
-                    waitsForDone(promise, Commands.FILE_OPEN);
-                });
-                runs(function () {
-                    expect(docChangeListener.callCount).toBe(1);
-                    DocumentManager.clearCurrentDocument();
-                    expect(docChangeListener.callCount).toBe(2);
-                    
-                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
-                    
-                });
-
-            });
-        });
-
-        
-        describe("After clearCurrentDocument ", function () {
-            it("getCurrentDocument should return null ", function () {
-
-                runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
-                    waitsForDone(promise, Commands.FILE_OPEN);
-                });
-                runs(function () {
-                    expect(DocumentManager.getCurrentDocument()).toBeTruthy();
-                    DocumentManager.clearCurrentDocument();
-                    expect(DocumentManager.getCurrentDocument()).toBe(null);
-                });
-
-            });
-        });
-*/
         describe("openDocument ", function () {
             it("Should report document in open documents list", function () {
 

@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         AppInit             = require("utils/AppInit"),
         Commands            = require("command/Commands"),
         DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
         ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
@@ -101,11 +102,11 @@ define(function (require, exports, module) {
     function parseQuery(queryInfo) {
         if (findBar) {
             findBar.showError(null);
-    }
+        }
         
         if (!queryInfo || !queryInfo.query) {
             return "";
-    }
+        }
     
         // Is it a (non-blank) regex?
         if (queryInfo.isRegexp) {
@@ -136,8 +137,8 @@ define(function (require, exports, module) {
             state.parsedQuery = null;
         } else {
             state.parsedQuery = parseQuery(queryInfo);
-                }
-            }
+        }
+    }
 
     /**
      * @private
@@ -546,7 +547,7 @@ define(function (require, exports, module) {
         if (findBar) {
             // Use the previous query. This can happen if the user switches from Find to Replace.
             initialQuery = findBar.getQueryInfo().query;
-                    } else {
+        } else {
             // Prepopulate with the current primary selection, if any
             var sel = editor.getSelection();
             initialQuery = cm.getRange(sel.start, sel.end);
@@ -614,7 +615,7 @@ define(function (require, exports, module) {
      * When the user switches documents (or closes the last document), ensure that the find bar
      * closes, and also close the Replace All panel.
      */
-    function _handleDocumentChange() {
+    function _handleFileChanged() {
         if (findBar) {
             findBar.close();
         }
@@ -657,7 +658,7 @@ define(function (require, exports, module) {
             })
             .on("doReplaceAll.FindReplace", function (e) {
                 doReplace(editor, true);
-        });
+            });
     }
 
     function _launchFind() {
@@ -690,7 +691,7 @@ define(function (require, exports, module) {
         }
     }
 
-    $(DocumentManager).on("currentDocumentChange", _handleDocumentChange);
+    $(MainViewManager).on("currentFileChanged", _handleFileChanged);
 
     CommandManager.register(Strings.CMD_FIND,                   Commands.CMD_FIND,                  _launchFind);
     CommandManager.register(Strings.CMD_FIND_NEXT,              Commands.CMD_FIND_NEXT,             _findNext);

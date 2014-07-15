@@ -295,12 +295,12 @@ define(function (require, exports, module) {
     }
     
     function _documentSelectionFocusChange() {
-        var curFile = EditorManager.getCurrentlyViewedPath();
-        if (curFile && _hasFileSelectionFocus()) {
+        var curFullPath = MainViewManager.getCurrentlyViewedPath();
+        if (curFullPath && _hasFileSelectionFocus()) {
             var nodeFound = $("#project-files-container li").is(function (index) {
                 var $treeNode = $(this),
                     entry = $treeNode.data("entry");
-                if (entry && entry.fullPath === curFile) {
+                if (entry && entry.fullPath === curFullPath) {
                     if (!_projectTree.jstree("is_selected", $treeNode)) {
                         if ($treeNode.parents(".jstree-closed").length) {
                             //don't auto-expand tree to show file - but remember it if parent is manually expanded later
@@ -1153,7 +1153,7 @@ define(function (require, exports, module) {
             }
             
             // close all the old files
-            DocumentManager.closeAll();
+            MainViewManager.doCloseAll(MainViewManager.ALL_PANES);
     
             _unwatchProjectRoot().always(function () {
                 // Done closing old project (if any)
@@ -1803,9 +1803,9 @@ define(function (require, exports, module) {
         var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
         entry.rename(newName, function (err) {
             if (!err) {
-                if (EditorManager.getCurrentlyViewedPath()) {
+                if (MainViewManager.getCurrentlyViewedPath()) {
                     FileViewController.openAndSelectDocument(
-                        EditorManager.getCurrentlyViewedPath(),
+                        MainViewManager.getCurrentlyViewedPath(),
                         FileViewController.getFileSelectionFocus()
                     );
                 }

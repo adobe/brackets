@@ -30,6 +30,7 @@ define(function (require, exports, module) {
 
     // Modules from the SpecRunner window
     var DocumentManager     = brackets.getModule("document/DocumentManager"),
+        MainViewManager     = brackets.getModule("view/MainViewManager"),
         Editor              = brackets.getModule("editor/Editor").Editor,
         EditorManager       = brackets.getModule("editor/EditorManager"),
         FileUtils           = brackets.getModule("file/FileUtils"),
@@ -88,8 +89,7 @@ define(function (require, exports, module) {
             runs(function () {
                 // The following call ensures that the document is reloaded
                 // from disk before each test
-                DocumentManager.closeAll();
-                
+                MainViewManager.doCloseAll(MainViewManager.ALL_PANES);
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testEditor = null;
                 testDocument = null;

@@ -474,10 +474,11 @@ define(function (require, exports, module) {
     function updateListeners() {
         if (_enabled) {
             // register our event listeners
-            $(DocumentManager)
-                .on("currentDocumentChange.codeInspection", function () {
+            $(MainViewManager)
+                .on("currentFileChanged.codeInspection", function () {
                     run();
-                })
+                });
+            $(DocumentManager)
                 .on("documentSaved.codeInspection documentRefreshed.codeInspection", function (event, document) {
                     if (document === DocumentManager.getCurrentDocument()) {
                         run();
@@ -485,6 +486,7 @@ define(function (require, exports, module) {
                 });
         } else {
             $(DocumentManager).off(".codeInspection");
+            $(MainViewManager).off(".codeInspection");
         }
     }
 

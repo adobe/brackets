@@ -58,7 +58,7 @@ define(function (require, exports, module) {
         DeprecationWarning  = require("utils/DeprecationWarning");
 
     /** 
-     * Tracks whether a "currentDocumentChange" notification occured due to a call to 
+     * Tracks whether a "currentFileChangeD" notification occured due to a call to 
      * openAndSelectDocument.
      * @see FileviewController.openAndSelectDocument
      * @private 
@@ -113,7 +113,7 @@ define(function (require, exports, module) {
             MainViewManager.forceFocusToActivePaneView();
         }
         // If fullPath corresonds to the current doc being viewed then opening the file won't
-        // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
+        // trigger a currentFileChanged event, so we need to trigger a documentSelectionFocusChange 
         // in this case to signify the selection focus has changed even though the current document has not.
         $(exports).triggerHandler("documentSelectionFocusChange");
     }
@@ -151,7 +151,7 @@ define(function (require, exports, module) {
 
         // Opening files are asynchronous and we want to know when this function caused a file
         // to open so that _fileSelectionFocus is set appropriatly. _curDocChangedDueToMe is set here
-        // and checked in the currentDocumentChange handler
+        // and checked in the currentFileChanged handler
         _curDocChangedDueToMe = true;
 
         _fileSelectionFocus = fileSelectionFocus;
@@ -159,7 +159,7 @@ define(function (require, exports, module) {
         paneId = (paneId || MainViewManager.FOCUSED_PANE);
         
         // If fullPath corresonds to the current doc being viewed then opening the file won't
-        // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
+        // trigger a currentFileChanged event, so we need to trigger a documentSelectionFocusChange 
         // in this case to signify the selection focus has changed even though the current document has not.
         var currentPath = MainViewManager.getCurrentlyViewedPathForPane(paneId);
         if (currentPath === fullPath) {

@@ -40,7 +40,7 @@
  *      control (e.g. search toolbar or modal dialog, or window deactivation). Does
  *      fire when focus moves between inline editor and its full-size container.
  *      This event tracks `getActiveEditor()` changes, while DocumentManager's
- *      `currentDocumentChange` tracks `getCurrentFullEditor()` changes.
+ *      `currentFileChange` tracks `getCurrentFullEditor()` changes.
  *      The 2nd arg to the listener is which Editor became active; the 3rd arg is
  *      which Editor is deactivated as a result. Either one may be null.
  *      NOTE (#1257): `getFocusedEditor()` sometimes lags behind this event. Listeners
@@ -555,7 +555,7 @@ define(function (require, exports, module) {
     
     /** Handles changes to DocumentManager.getCurrentDocument() */
     function doOpenDocument(doc, pane) {
-        var perfTimerName = PerfUtils.markStart("EditorManager._onCurrentDocumentChange():\t" + (!doc || doc.file.fullPath));
+        var perfTimerName = PerfUtils.markStart("EditorManager.doOpenDocument():\t" + (!doc || doc.file.fullPath));
         
         // Update the UI to show the right editor (or nothing), and also dispose old editor if no
         // longer needed.
@@ -736,6 +736,13 @@ define(function (require, exports, module) {
     exports.doOpenDocument                = doOpenDocument;
     exports.createUnattachedMasterEditor  = createUnattachedMasterEditor;
     exports.canOpenFile                   = canOpenFile;
+
+    // Convenience Methods
+    exports.getActiveEditor               = getActiveEditor;
+    exports.getCurrentFullEditor          = getCurrentFullEditor;
+    exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;
+    exports.getFocusedEditor              = getFocusedEditor;
+    
     
     // CUSTOM VIEWER API (Will be deprecated)
     exports.registerCustomViewer          = registerCustomViewer;
@@ -746,13 +753,8 @@ define(function (require, exports, module) {
     exports._showCustomViewer             = _showCustomViewer;
     exports._closeCustomViewer            = _closeCustomViewer;
     
-    
     // Deprecated
     exports.resizeEditor                  = resizeEditor;
-    exports.getActiveEditor               = getActiveEditor;
-    exports.getCurrentFullEditor          = getCurrentFullEditor;
-    exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;
     exports.showingCustomViewerForPath    = showingCustomViewerForPath;
-    exports.getFocusedEditor              = getFocusedEditor;
     exports.focusEditor                   = focusEditor;
 });

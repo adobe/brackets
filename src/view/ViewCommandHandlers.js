@@ -42,6 +42,7 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
         AppInit             = require("utils/AppInit");
     
     
@@ -342,7 +343,7 @@ define(function (require, exports, module) {
     PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewState);
 
     // Update UI when opening or closing a document
-    $(DocumentManager).on("currentDocumentChange", _updateUI);
+    $(MainViewManager).on("currentFileChanged", _updateUI);
 
     // Update UI when Brackets finishes loading
     AppInit.appReady(_updateUI);

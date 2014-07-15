@@ -38,4 +38,45 @@ define(function (require, exports, module) {
         });
     });
     // Other tests go here as we develop more functionality into MainViewManager.
+    
+/*
+        describe("currentFileChanged ", function () {
+            it("should fire currentFileChanged event", function () {
+                var currentFileChangedListener = jasmine.createSpy();
+
+                runs(function () {
+                    _$(MainViewManger).on("currentFileChanged", currentFileChangedListener);
+                    expect(currentFileChangedListener.callCount).toBe(0);
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(currentFileChangedListener.callCount).toBe(1);
+                    MainViewManager.doCloseAll(MainViewManager.ALL_PANES);
+                    expect(currentFileChangedListener.callCount).toBe(2);
+                    
+                    _$(MainViewManager).off("currentFileChanged", currentFileChangedListener);
+                });
+
+            });
+        });
+
+        
+        describe("  ", function () {
+            it("should return null ", function () {
+
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(DocumentManager.getCurrentDocument()).toBeTruthy();
+                    MainViewManager.doCloseAll(MainViewManager.ALL_PANES);
+                    expect(DocumentManager.getCurrentDocument()).toBe(null);
+                });
+
+            });
+        });
+*/
+    
 });

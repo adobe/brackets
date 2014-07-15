@@ -440,7 +440,7 @@ define(function (require, exports, module) {
 
             // The following call ensures that the document is reloaded
             // from disk before each test
-            DocumentManager.closeAll();
+            MainViewManager.doCloseAll(MainViewManager.ALL_PANES);
             SpecRunnerUtils.destroyMockEditor(testDoc);
             testEditor = null;
             testDoc = null;

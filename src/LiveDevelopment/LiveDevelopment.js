@@ -1260,7 +1260,7 @@ define(function LiveDevelopment(require, exports, module) {
             }
         }
         
-        // TODO: need to run _onDocumentChange() after load if doc != currentDocument here? Maybe not, since activeEditorChange
+        // TODO: need to run _onFileChanged() after load if doc != currentDocument here? Maybe not, since activeEditorChange
         // doesn't trigger it, while inline editors can still cause edits in doc other than currentDoc...
         _getInitialDocFromCurrent().done(function (doc) {
             var prepareServerPromise = (doc && _prepareServer(doc)) || new $.Deferred().reject(),
@@ -1313,9 +1313,9 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * @private
-     * DocumentManager currentDocumentChange event handler. 
+     * DocumentManager currentFileChanged event handler. 
      */
-    function _onDocumentChange() {
+    function _onFileChanged() {
         var doc = _getCurrentDocument();
         
         if (!doc || !Inspector.connected()) {
@@ -1422,10 +1422,13 @@ define(function LiveDevelopment(require, exports, module) {
         // We may get interim added/removed events when pushing incremental updates
         $(CSSAgent).on("styleSheetAdded.livedev", _styleSheetAdded);
         
-        $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
+        $(MainViewManager)
+            .on("currentFileChanged", _onFileChanged);
+        $(DocumentManager)
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
-        $(ProjectManager).on("beforeProjectClose beforeAppClose", close);
+        $(ProjectManager)
+            .on("beforeProjectClose beforeAppClose", close);
         
         // Register user defined server provider
         LiveDevServerManager.registerServer({ create: _createUserServer }, 99);
