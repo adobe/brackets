@@ -211,7 +211,7 @@
     "link/type":          { "attribOption": ["text/css"] },
     "menu/type":          { "attribOption": ["context", "list", "toolbar"] },
     "ol/type":            { "attribOption": ["1", "a", "A", "i", "I"] },
-    "script/type":        { "attribOption": ["text/javascript", "text/ecmascript", "text/jscript", "text/livescript", "text/tcl", "text/x-javascript", "text/x-ecmascript", 
+    "script/type":        { "attribOption": ["text/javascript", "text/ecmascript", "text/jscript", "text/livescript", "text/tcl", "text/x-javascript", "text/x-ecmascript", "text/jsx", 
                                              "application/x-javascript", "application/x-ecmascript", "application/javascript", "application/ecmascript"] },
     "style/type":         { "attribOption": ["text/css"] },
     "input/type":         { "attribOption": ["button", "checkbox", "color", "date", "datetime", "datetime-local", "email", "file", "hidden", "image", "month",
