@@ -203,22 +203,7 @@ define(function (require, exports, module) {
             // image file, we get a null doc here but we still want to keep _fileSelectionFocus
             // as PROJECT_MANAGER. Regardless of doc is null or not, call _selectCurrentDocument
             // to trigger documentSelectionFocusChange event.
-            var doc;
-            
-            if (file) {
-                _fileSelectionFocus = selectIn || PANE_VIEW_LIST_VIEW;
-            }
-            _selectCurrentDocument(paneId);
-
-            if (file) {
-                doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-                if (!doc) {
-                    // just resolve with the file object
-                    doc = file;
-                }
-            }
-            
-            result.resolve(doc);
+            result.resolve(file);
         }).fail(function (err) {
             result.reject(err);
         });
@@ -238,7 +223,21 @@ define(function (require, exports, module) {
      */
     function addToWorkingSetAndSelect(fullPath, selectIn, index) {
         DeprecationWarning.deprecationWarning("Use FileViweController.addToPaneViewAndSelect() instead of FileViweController.addToWorkingSetAndSelect().", true);
-        return addToPaneViewAndSelect(fullPath, selectIn, index);
+        var result = new $.Deferred();
+        addToPaneViewAndSelect(fullPath, selectIn, index)
+            .done(function (file) {
+                var doc;
+                
+                if (file) {
+                    doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                }
+                
+                result.resolve(doc);
+            })
+            .fail(function (err) {
+                result.reject(err);
+            });
+        return result.promise();
     }
     
     
@@ -257,6 +256,7 @@ define(function (require, exports, module) {
     exports.getFileSelectionFocus = getFileSelectionFocus;
     exports.openAndSelectDocument = openAndSelectDocument;
     exports.addToWorkingSetAndSelect = addToWorkingSetAndSelect;
+    exports.addToPaneViewAndSelect = addToPaneViewAndSelect;
     exports.setFileViewFocus = setFileViewFocus;
     exports.PANE_VIEW_LIST_VIEW = PANE_VIEW_LIST_VIEW;
     exports.PROJECT_MANAGER = PROJECT_MANAGER;
