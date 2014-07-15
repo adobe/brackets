@@ -44,7 +44,7 @@ define(function (require, exports, module) {
             promise;
 
         
-        beforeFirst(function () {
+        beforeEach(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
                 _$ = testWindow.$;
@@ -58,7 +58,7 @@ define(function (require, exports, module) {
             });
         });
         
-        afterLast(function () {
+        afterEach(function () {
             testWindow              = null;
             CommandManager          = null;
             Commands                = null;
@@ -160,6 +160,62 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+        describe("splitView", function () {
+            it("should create a new pane", function () {
+                var paneCreatedListener = jasmine.createSpy(),
+                    paneLayoutChangeListener = jasmine.createSpy();
+                    
+                runs(function () {
+                    _$(MainViewManager).on("paneCreated", paneCreatedListener);
+                    _$(MainViewManager).on("paneLayoutChange", paneLayoutChangeListener);
+                });
+                runs(function () {
+                    promise = CommandManager.execute("cmd.splitVertically");
+                    waitsForDone(promise, "cmd.splitVertically");
+                });
+                runs(function () {
+                    expect(MainViewManager.getPaneCount()).toEqual(2);
+                    expect(MainViewManager.getPaneIdList().length).toEqual(2);
+                    expect(MainViewManager.getPaneIdList()[1]).toEqual("second-pane");
+                    
+                    expect(paneCreatedListener.callCount).toBe(1);
+                    expect(paneLayoutChangeListener.callCount).toBe(1);
+                    
+                    expect(paneCreatedListener.calls[0].args[1]).toEqual("second-pane");
+                    expect(paneLayoutChangeListener.calls[0].args[1]).toEqual("VERTICAL");
+                });
+                runs(function () {
+                    _$(MainViewManager).off("paneCreated", paneCreatedListener);
+                    _$(MainViewManager).off("paneLayoutChange", paneLayoutChangeListener);
+                });                
+            });
+            it("should destroy a pane", function () {
+                var paneCreatedListener = jasmine.createSpy(),
+                    paneLayoutChangeListener = jasmine.createSpy();
+                    
+                runs(function () {
+                    promise = CommandManager.execute("cmd.splitVertically");
+                    waitsForDone(promise, "cmd.splitVertically");
+                });
+                runs(function () {
+                    expect(MainViewManager.getPaneCount()).toEqual(2);
+                    expect(MainViewManager.getPaneIdList().length).toEqual(2);
+                    expect(MainViewManager.getPaneIdList()[1]).toEqual("second-pane");
+                });
+                runs(function () {
+                    promise = CommandManager.execute("cmd.splitVertically");
+                    waitsForDone(promise, "cmd.splitVertically");
+                });
+                runs(function () {
+                    expect(MainViewManager.getPaneCount()).toEqual(1);
+                    expect(MainViewManager.getPaneIdList().length).toEqual(1);
+                    expect(MainViewManager.getPaneIdList()[0]).toEqual("first-pane");
+                });
+                runs(function () {
+                    _$(MainViewManager).off("paneCreated", paneCreatedListener);
+                    _$(MainViewManager).off("paneLayoutChange", paneLayoutChangeListener);
+                });                
+            });
+        });
     });
 });
