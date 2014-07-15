@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, $ */
 
 /**
  * Defines hooks to assist with module initialization.
@@ -39,11 +39,26 @@
 define(function (require, exports, module) {
     "use strict";
     
-    // Fires when the base htmlContent/main-view.html is loaded
+    var Async         = require("utils/Async");
+    
+    /**
+     * Fires when the base htmlContent/main-view.html is loaded
+     * type {string}
+     */
     var HTML_READY  = "htmlReady";
 
-    // Fires when all extensions are loaded
+    /**
+     * Fires when all extensions are loaded
+     * type {string}
+     */
     var APP_READY   = "appReady";
+
+    /**
+     * @private
+     * Resolves when all appReady callbacks have completed
+     * type {Promise}
+     */
+    var _appReadyDeferred = new $.Deferred();
 
     var status      = { HTML_READY : false, APP_READY : false },
         callbacks   = {};
@@ -65,17 +80,34 @@ define(function (require, exports, module) {
 
     function _dispatchReady(type) {
         var i,
-            myHandlers = callbacks[type];
+            myHandlers = callbacks[type],
+            promiseList = [],
+            identityFunc = function (promise) { return promise; },
+            deferred,
+            masterDeferred = new $.Deferred();
 
         // mark this status complete
         status[type] = true;
 
         for (i = 0; i < myHandlers.length; i++) {
-            _callHandler(myHandlers[i]);
+            deferred = _callHandler(myHandlers[i]);
+            if (deferred) {
+                promiseList.push(deferred);
+            }
         }
 
-        // clear all callbacks after being called
-        callbacks[type] = [];
+        masterDeferred = Async.doInParallel(promiseList, identityFunc, false);
+
+        masterDeferred.done(function () {
+            // clear all callbacks after being called
+            callbacks[type] = [];
+
+            if (type === APP_READY) {
+                _appReadyDeferred.resolve();
+            }
+        });
+        
+        return masterDeferred.promise();
     }
 
     function _addListener(type, callback) {
@@ -105,7 +137,16 @@ define(function (require, exports, module) {
         _addListener(HTML_READY, callback);
     }
 
+    /**
+     * Return promise for `appReadyDeferred`.
+     * @return {promise}
+     */
+    function getAppReadyPromise() {
+        return _appReadyDeferred && _appReadyDeferred.promise();
+    }
+
     exports.appReady = appReady;
+    exports.getAppReadyPromise = getAppReadyPromise;
     exports.htmlReady = htmlReady;
     
     exports.HTML_READY = HTML_READY;

@@ -21,22 +21,22 @@
  * 
  */
 
-/*
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, brackets, $, Worker, setTimeout */
+
+/**
  * Throughout this file, the term "outer scope" is used to refer to the outer-
  * most/global/root Scope objects for particular file. The term "inner scope"
  * is used to refer to a Scope object that is reachable via the child relation
  * from an outer scope.
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, Worker, setTimeout */
-
 define(function (require, exports, module) {
     "use strict";
 
     var _ = brackets.getModule("thirdparty/lodash");
     
-    var DocumentManager     = brackets.getModule("document/DocumentManager"),
+    var Async               = brackets.getModule("utils/Async"),
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
         LanguageManager     = brackets.getModule("language/LanguageManager"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
@@ -58,7 +58,8 @@ define(function (require, exports, module) {
         currentWorker       = null,
         documentChanges     = null,     // bounds of document changes
         preferences         = null,
-        deferredPreferences = null;
+        deferredPreferences = null,
+        addFilesDeferred    = null;
 
     var MAX_HINTS           = 30,  // how often to reset the tern server
         LARGE_LINE_CHANGE   = 100,
@@ -1047,7 +1048,7 @@ define(function (require, exports, module) {
                 files       = [],
                 pr;
     
-            var addFilesDeferred = $.Deferred();
+            addFilesDeferred = $.Deferred();
     
             documentChanges = null;
             addFilesPromise = addFilesDeferred.promise();
@@ -1412,7 +1413,21 @@ define(function (require, exports, module) {
     
     /** Used to avoid timing bugs in unit tests */
     function _readyPromise() {
-        return deferredPreferences;
+        var promiseList  = [],
+            identityFunc = function (promise) { return promise; };
+
+        if (deferredPreferences) {
+            promiseList.push(deferredPreferences);
+        } else {
+            window.console.log("deferredPreferences is null");
+        }
+        if (addFilesDeferred) {
+            promiseList.push(addFilesDeferred);
+        } else {
+            window.console.log("addFilesDeferred is null");
+        }
+        
+        return Async.doSequentially(promiseList, identityFunc, false);
     }
     
     /**

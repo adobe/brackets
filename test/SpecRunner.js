@@ -163,9 +163,10 @@ define(function (require, exports, module) {
             $("#" + (selectedSuites[0])).closest("li").toggleClass("active", true);
         }
         
-        AppInit._dispatchReady(AppInit.APP_READY);
-        
-        jasmine.getEnv().execute();
+        AppInit._dispatchReady(AppInit.APP_READY)
+            .always(function () {
+                jasmine.getEnv().execute();
+            });
     }
 
     function writeResults(path, text) {

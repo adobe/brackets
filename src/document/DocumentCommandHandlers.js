@@ -1287,7 +1287,14 @@ define(function (require, exports, module) {
                 
                 PreferencesManager.savePreferences();
                 
-                PreferencesManager.finalize().always(postCloseHandler);
+                var promiseList = [
+                    PreferencesManager.finalize(),
+                    AppInit.getAppReadyPromise()
+                ];
+                var identityFunc = function (promise) { return promise; };
+
+                Async.doSequentially(promiseList, identityFunc, false)
+                    .always(postCloseHandler);
             })
             .fail(function () {
                 _windowGoingAway = false;
