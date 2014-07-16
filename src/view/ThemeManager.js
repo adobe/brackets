@@ -50,13 +50,13 @@ define(function (require, exports, module) {
 
 
     /**
-    * @private
-    * Takes all dashes and converts them to white spaces. Then takes all first letters
-    * and capitalizes them.
-    *
-    * @param {string} name is what needs to be procseed to generate a display name
-    * @return {string} theme name properly formatted for display
-    */
+     * @private
+     * Takes all dashes and converts them to white spaces. Then takes all first letters
+     * and capitalizes them.
+     *
+     * @param {string} name is what needs to be procseed to generate a display name
+     * @return {string} theme name properly formatted for display
+     */
     function toDisplayName(name) {
         var extIndex = name.lastIndexOf('.');
         name = name.substring(0, extIndex !== -1 ? extIndex : undefined).replace(/-/g, ' ');
@@ -68,11 +68,14 @@ define(function (require, exports, module) {
 
 
     /**
-    * @constructor
-    *
-    * @param {File} file for the theme
-    * @param {string} displayName is an optional parameter used as the display name for the theme
-    */
+     * @constructor
+     * Theme contains all the essential bit to load a theme from disk, display a theme in the settings
+     * dialog, and to properly add a theme into CodeMirror along with the rest of brackets.
+     *
+     * @param {File} file for the theme
+     * @param {{name: string, className: string, title: string}} options to configure different
+     *   properties in the theme
+     */
     function Theme(file, options) {
         options = options || {};
         var fileName = file.name;
@@ -90,15 +93,15 @@ define(function (require, exports, module) {
 
 
     /**
-    * @private
-    * Extracts the scrollbar text from the css/less content so that it can be treated
-    * as a separate styling component that can be anabled/disabled independently from
-    * the theme.
-    *
-    * @param {string} content is the css/less input string to be processed
-    * @return {{content: string, scrollbar: string}} content is the new css/less content
-    *    with the scrollbar rules extracted out and put in scrollbar
-    */
+     * @private
+     * Extracts the scrollbar text from the css/less content so that it can be treated
+     * as a separate styling component that can be anabled/disabled independently from
+     * the theme.
+     *
+     * @param {string} content is the css/less input string to be processed
+     * @return {{content: string, scrollbar: Array.<string>}} content is the new css/less content
+     *   with the scrollbar rules extracted out and put in scrollbar
+     */
     function extractScrollbars(content) {
         var scrollbar = [];
 
@@ -119,14 +122,17 @@ define(function (require, exports, module) {
 
 
     /**
-    * @private
-    * Function will process a string and figure out if it looks like window path with a
-    * a drive.  If that's the case, then we lower case everything.
-    * --- NOTE: There is a bug in less that only checks for lowercase in order to handle
-    * the rootPath configuration...  Hopefully a PR will be coming their way soon.
-    *
-    * @return {string} Windows Drive letter in lowercase.
-    */
+     * @private
+     * Function will process a string and figure out if it looks like window path with a
+     * a drive.  If that's the case, then we lower case everything.
+     * --- NOTE: There is a bug in less that only checks for lowercase in order to handle
+     * the rootPath configuration...  Hopefully a PR will be coming their way soon.
+     *
+     * @param {string} path is a string to search for drive letters that need to be converted
+     *   to lower case.
+     *
+     * @return {string} Windows Drive letter in lowercase.
+     */
     function fixPath(path) {
         return path.replace(/^([A-Z]+:)?\//, function (match) {
             return match.toLocaleLowerCase();
@@ -135,14 +141,14 @@ define(function (require, exports, module) {
 
 
     /**
-    * @private
-    * Takes the content of a file and feeds it through the less processor in order
-    * to provide support for less files.
-    *
-    * @param {string} content is the css/less string to be processed
-    * @param {Theme} theme is the object the css/less corresponds to
-    * @return {$.Promise} promsie with the processed css/less as the resolved value
-    */
+     * @private
+     * Takes the content of a file and feeds it through the less processor in order
+     * to provide support for less files.
+     *
+     * @param {string} content is the css/less string to be processed
+     * @param {Theme} theme is the object the css/less corresponds to
+     * @return {$.Promise} promsie with the processed css/less as the resolved value
+     */
     function lessifyTheme(content, theme) {
         var deferred = new $.Deferred();
         var parser   = new less.Parser({
@@ -163,12 +169,12 @@ define(function (require, exports, module) {
 
 
     /**
-    * @private
-    * Verifies that the file passed in is a valid theme file type.
-    *
-    * @param {File} file is object to verify if it is a valid theme file type
-    * @return {boolean} to confirm if the file is a valid theme file type
-    */
+     * @private
+     * Verifies that the file passed in is a valid theme file type.
+     *
+     * @param {File} file is object to verify if it is a valid theme file type
+     * @return {boolean} to confirm if the file is a valid theme file type
+     */
     function isFileTypeValid(file) {
         return file.isFile &&
             validExtensions.indexOf(FileUtils.getFileExtension(file.name)) !== -1;
@@ -176,12 +182,12 @@ define(function (require, exports, module) {
 
 
     /**
-    * @private
-    * Will search all loaded themes for one the matches the file passed in
-    *
-    * @param {File} file is the search criteria
-    * @return {Theme} theme that matches the file
-    */
+     * @private
+     * Will search all loaded themes for one the matches the file passed in
+     *
+     * @param {File} file is the search criteria
+     * @return {Theme} theme that matches the file
+     */
     function getThemeByFile(file) {
         var path = file._path;
         return _.find(loadedThemes, function (item) {
@@ -191,11 +197,11 @@ define(function (require, exports, module) {
 
 
     /**
-    * @private
-    * Get all current theme objects
-    *
-    * @return {array} collection of the current theme instances
-    */
+     * @private
+     * Get all current theme objects
+     *
+     * @return {Array.<Theme>} collection of the current theme instances
+     */
     function getCurrentThemes() {
         return _.map(prefs.get("themes").slice(0), function (item) {
             return loadedThemes[item] || loadedThemes[defaultTheme];
@@ -205,7 +211,7 @@ define(function (require, exports, module) {
 
     /**
      * Provides quick access to all available themes
-     * @return {array} collection of all available themes
+     * @return {Array.<Theme>} collection of all available themes
      */
     function getAllThemes() {
         return _.map(loadedThemes, function (item) {
@@ -215,12 +221,12 @@ define(function (require, exports, module) {
 
 
     /**
-    * @private
-    * Loads all current themes
-    *
-    * @return {$.Promise} promise object resolved with the theme object and all
-    *    corresponding new css/less and scrollbar information
-    */
+     * @private
+     * Loads all current themes
+     *
+     * @return {$.Promise} promise object resolved with the theme object and all
+     *    corresponding new css/less and scrollbar information
+     */
     function loadCurrentThemes() {
         var pendingThemes = _.map(getCurrentThemes(), function (theme) {
 
@@ -252,10 +258,10 @@ define(function (require, exports, module) {
 
 
     /**
-    * Refresh currently loaded themes
-    *
-    * @param <boolean> force is to force reload the current themes
-    */
+     * Refresh currently loaded themes
+     *
+     * @param {boolean} force is to force reload the current themes
+     */
     function refresh(force) {
         $.when(force && loadCurrentThemes()).done(function () {
             var editor = EditorManager.getActiveEditor();
@@ -271,15 +277,14 @@ define(function (require, exports, module) {
 
 
     /**
-    * Loads a theme from a file.
-    *
-    * @param {string} fileName is the full path to the file to be opened
-    * @param {object} options is an optional parameter to specify metadata
-    *    for the theme.
-    * @return {$.Promise} promise object resolved with the theme to be loaded from fileName
-    */
+     * Loads a theme from a file.
+     *
+     * @param {string} fileName is the full path to the file to be opened
+     * @param {Object} options is an optional parameter to specify metadata
+     *    for the theme.
+     * @return {$.Promise} promise object resolved with the theme to be loaded from fileName
+     */
     function loadFile(fileName, options) {
-        options = options || {};
         var deferred      = new $.Deferred(),
             file          = FileSystem.getFileForPath(fileName),
             currentThemes = (prefs.get("themes") || []);
@@ -310,11 +315,11 @@ define(function (require, exports, module) {
 
 
     /**
-    * Loads a theme from an extension package.
-    *
-    * @param {package} themePackage is a package for the theme to be loaded.
-    * @return {$.Promise} promise object resolved with the theme to be loaded from the pacakge
-    */
+     * Loads a theme from an extension package.
+     *
+     * @param {Object} themePackage is a package for the theme to be loaded.
+     * @return {$.Promise} promise object resolved with the theme to be loaded from the pacakge
+     */
     function loadPackage(themePackage) {
         var fileName = themePackage.path + "/" + themePackage.metadata.theme;
         return loadFile(fileName, themePackage.metadata);
@@ -322,11 +327,11 @@ define(function (require, exports, module) {
 
 
     /**
-    * Load css/less files from a directory to be treated as themes
-    *
-    * @param {string} path where theme files are to be loaded from
-    * @return {$.Promise} promise object resolved with the themes to be loaded from the directory
-    */
+     * Load css/less files from a directory to be treated as themes
+     *
+     * @param {string} path where theme files are to be loaded from
+     * @return {$.Promise} promise object resolved with the themes to be loaded from the directory
+     */
     function loadDirectory(path) {
         var result = new $.Deferred();
 
@@ -374,56 +379,51 @@ define(function (require, exports, module) {
     }
 
 
-    function init() {
-        prefs.on("change", "themes", function () {
-            refresh(true);
-            ThemeView.updateScrollbars(getCurrentThemes()[0]);
-
-            // Expose event for theme changes
-            $(exports).trigger("themeChange", getCurrentThemes());
-        });
-
-        prefs.on("change", "customScrollbars", function () {
-            refresh();
-            ThemeView.updateScrollbars(getCurrentThemes()[0]);
-        });
-
-        prefs.on("change", "fontSize", function () {
-            refresh();
-            ThemeView.updateFontSize();
-        });
-
-        prefs.on("change", "lineHeight", function () {
-            refresh();
-            ThemeView.updateLineHeight();
-        });
-
-        prefs.on("change", "fontFamily", function () {
-            refresh();
-            ThemeView.updateFontFamily();
-        });
-
-        FileSystem.on("change", function (evt, file) {
-            if (file.isDirectory) {
-                return;
-            }
-
-            if (getThemeByFile(file)) {
-                refresh(true);
-            }
-        });
-
-        $(EditorManager).on("activeEditorChange", function () {
-            refresh();
-        });
-
+    prefs.on("change", "themes", function () {
         refresh(true);
-        ThemeView.updateFonts();
-        ThemeView.updateScrollbars();
-    }
+        ThemeView.updateScrollbars(getCurrentThemes()[0]);
 
-    // When the app is ready, we need to try to load whatever theme needs to be processed
-    AppInit.appReady(init);
+        // Expose event for theme changes
+        $(exports).trigger("themeChange", getCurrentThemes());
+    });
+
+    prefs.on("change", "customScrollbars", function () {
+        refresh();
+        ThemeView.updateScrollbars(getCurrentThemes()[0]);
+    });
+
+    prefs.on("change", "fontSize", function () {
+        refresh();
+        ThemeView.updateFontSize();
+    });
+
+    prefs.on("change", "lineHeight", function () {
+        refresh();
+        ThemeView.updateLineHeight();
+    });
+
+    prefs.on("change", "fontFamily", function () {
+        refresh();
+        ThemeView.updateFontFamily();
+    });
+
+    FileSystem.on("change", function (evt, file) {
+        if (file.isDirectory) {
+            return;
+        }
+
+        if (getThemeByFile(file)) {
+            refresh(true);
+        }
+    });
+
+    $(EditorManager).on("activeEditorChange", function () {
+        refresh();
+    });
+
+    refresh(true);
+    ThemeView.updateFonts();
+    ThemeView.updateScrollbars();
 
     exports.refresh          = refresh;
     exports.loadFile         = loadFile;

@@ -563,6 +563,8 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
     "NO_ARGUMENTS"                              : "<no parameters>",
+    "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets ran into trouble processing:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> in your project and remove the file from jscodehints.detectedExclusions.",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
