@@ -140,10 +140,12 @@ define(function (require, exports, module) {
      * Verifies if an extension is a theme based on the presence of the field "theme"
      * in the package.json.  If it is a theme, then the theme file is just loaded by the
      * ThemeManager
+     *
+     * @param {string} id of the theme extension to load
      */
     function loadTheme(id) {
         var extension = extensions[id];
-        if ( extension.installInfo && extension.installInfo.metadata && extension.installInfo.metadata.theme ) {
+        if (extension.installInfo && extension.installInfo.metadata && extension.installInfo.metadata.theme) {
             ThemeManager.loadPackage(extension.installInfo);
         }
     }
