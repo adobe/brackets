@@ -1026,6 +1026,20 @@ define(function (require, exports, module) {
         }
     }
     
+    function setLayoutScheme(rows, columns) {
+        if ((rows < 1) || (rows > 2) || (columns < 1) || (columns > 2) || (columns === rows === 2)) {
+            console.error("setLayoutScheme unsupported layout " + rows + ", " + columns);
+        }
+        
+        if (rows === columns) {
+            _doUnsplit();
+        } else if (rows > columns) {
+            _doSplit(HORIZONTAL);
+        } else {
+            _doSplit(VERTICAL);
+        }
+    }
+    
     AppInit.appReady(function () {
         _cmdSplitVertically = CommandManager.register("Split Vertically", CMD_ID_SPLIT_VERTICALLY,   _handleSplitVertically);
         _cmdSplitHorizontally = CommandManager.register("Split Horizontally", CMD_ID_SPLIT_HORIZONTALLY, _handleSplitHorizontially);
@@ -1092,6 +1106,9 @@ define(function (require, exports, module) {
     exports.doClose                          = doClose;
     exports.doCloseAll                       = doCloseAll;
     exports.doCloseList                      = doCloseList;
+    
+    // Layout
+    exports.setLayoutScheme                  = setLayoutScheme;
     
     // Convenience
     exports.getCurrentlyViewedFile           = getCurrentlyViewedFile;

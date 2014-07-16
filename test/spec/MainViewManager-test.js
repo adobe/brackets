@@ -233,8 +233,7 @@ define(function (require, exports, module) {
                     _$(MainViewManager).on("paneLayoutChanged", paneLayoutChangedListener);
                 });
                 runs(function () {
-                    promise = CommandManager.execute("cmd.splitVertically");
-                    waitsForDone(promise, "cmd.splitVertically");
+                    MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
                     expect(MainViewManager.getPaneCount()).toEqual(2);
@@ -255,8 +254,7 @@ define(function (require, exports, module) {
             });
             it("should should show interstitial page", function () {
                 runs(function () {
-                    promise = CommandManager.execute("cmd.splitVertically");
-                    waitsForDone(promise, "cmd.splitVertically");
+                    MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
                     var interstitials = _$(".not-editor");
@@ -274,8 +272,7 @@ define(function (require, exports, module) {
                     _$(MainViewManager).on("paneLayoutChanged", paneLayoutChangedListener);
                 });
                 runs(function () {
-                    promise = CommandManager.execute("cmd.splitVertically");
-                    waitsForDone(promise, "cmd.splitVertically");
+                    MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
                     expect(MainViewManager.getPaneCount()).toEqual(2);
@@ -283,8 +280,7 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getPaneIdList()[1]).toEqual("second-pane");
                 });
                 runs(function () {
-                    promise = CommandManager.execute("cmd.splitVertically");
-                    waitsForDone(promise, "cmd.splitVertically");
+                    MainViewManager.setLayoutScheme(1, 1);
                 });
                 runs(function () {
                     expect(MainViewManager.getPaneCount()).toEqual(1);
@@ -304,8 +300,7 @@ define(function (require, exports, module) {
             });
             it("should show two files", function () {
                 runs(function () {
-                    promise = CommandManager.execute("cmd.splitVertically");
-                    waitsForDone(promise, "cmd.splitVertically");
+                    MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
@@ -336,8 +331,7 @@ define(function (require, exports, module) {
             });
             it("should merge two panes to the right", function () {
                 runs(function () {
-                    promise = CommandManager.execute("cmd.splitVertically");
-                    waitsForDone(promise, "cmd.splitVertically");
+                    MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
@@ -354,8 +348,7 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getPaneViewListSize("second-pane")).toEqual(0);
                 });
                 runs(function () {
-                    promise = CommandManager.execute("cmd.splitVertically");
-                    waitsForDone(promise, "cmd.splitVertically");
+                    MainViewManager.setLayoutScheme(1, 1);
                 });
                 runs(function () {
                     expect(MainViewManager.getPaneIdForPath(testPath + "/test.js")).toEqual(null);
@@ -364,8 +357,7 @@ define(function (require, exports, module) {
             });
             it("should merge two panes to the left", function () {
                 runs(function () {
-                    promise = CommandManager.execute("cmd.splitVertically");
-                    waitsForDone(promise, "cmd.splitVertically");
+                    MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
@@ -383,8 +375,7 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     MainViewManager.setActivePaneId("first-pane");
-                    promise = CommandManager.execute("cmd.splitVertically");
-                    waitsForDone(promise, "cmd.splitVertically");
+                    MainViewManager.setLayoutScheme(1, 1);
                 });
                 runs(function () {
                     expect(MainViewManager.getPaneIdForPath(testPath + "/test.js")).toEqual("first-pane");
@@ -400,8 +391,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     _$(EditorManager).on("fullEditorCreatedForDocument", handler);
-                    promise = CommandManager.execute("cmd.splitVertically");
-                    waitsForDone(promise, "cmd.splitVertically");
+                    MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
@@ -431,8 +421,7 @@ define(function (require, exports, module) {
                     _$(MainViewManager).on("activePaneChanged", activePaneChangedListener);
                 });
                 runs(function () {
-                    promise = CommandManager.execute("cmd.splitVertically");
-                    waitsForDone(promise, "cmd.splitVertically");
+                    MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
                     _$("#second-pane").click();
@@ -451,17 +440,16 @@ define(function (require, exports, module) {
         describe("pane targeting", function () {
             it("should count open views", function () {
                 runs(function () {
-                    promise = CommandManager.execute("cmd.splitVertically");
-                    waitsForDone(promise, "cmd.splitVertically");
+                    MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
                     promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.js",
-                                                                            paneId: "first-pane" });
+                                                                                            paneId: "first-pane" });
                     waitsForDone(promise, Commands.FILE_OPEN);
                 });
                 runs(function () {
                     promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.css",
-                                                                            paneId: "second-pane" });
+                                                                                            paneId: "second-pane" });
                     waitsForDone(promise, Commands.FILE_OPEN);
                 });
                 runs(function () {
@@ -471,12 +459,11 @@ define(function (require, exports, module) {
             });
             it("should find file in view", function () {
                 runs(function () {
-                    promise = CommandManager.execute("cmd.splitVertically");
-                    waitsForDone(promise, "cmd.splitVertically");
+                    MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
                     promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.js",
-                                                                            paneId: "second-pane" });
+                                                                                            paneId: "second-pane" });
                     waitsForDone(promise, Commands.FILE_OPEN);
                 });
                 runs(function () {
@@ -485,17 +472,16 @@ define(function (require, exports, module) {
             });
             it("should reopen file in view", function () {
                 runs(function () {
-                    promise = CommandManager.execute("cmd.splitVertically");
-                    waitsForDone(promise, "cmd.splitVertically");
+                    MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
                     promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.js",
-                                                                            paneId: "second-pane" });
+                                                                                            paneId: "second-pane" });
                     waitsForDone(promise, Commands.FILE_OPEN);
                 });
                 runs(function () {
                     promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.js",
-                                                                            paneId: "first-pane" });
+                                                                                            paneId: "first-pane" });
                     waitsForDone(promise, Commands.FILE_OPEN);
                 });
                 runs(function () {
@@ -504,17 +490,16 @@ define(function (require, exports, module) {
             });
             it("should close all files in pane", function () {
                 runs(function () {
-                    promise = CommandManager.execute("cmd.splitVertically");
-                    waitsForDone(promise, "cmd.splitVertically");
+                    MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
                     promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.js",
-                                                                            paneId: "second-pane" });
+                                                                                            paneId: "second-pane" });
                     waitsForDone(promise, Commands.FILE_OPEN);
                 });
                 runs(function () {
                     promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.css",
-                                                                            paneId: "first-pane" });
+                                                                                            paneId: "first-pane" });
                     waitsForDone(promise, Commands.FILE_OPEN);
                 });
                 runs(function () {
