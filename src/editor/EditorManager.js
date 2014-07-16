@@ -355,7 +355,7 @@ define(function (require, exports, module) {
         var editor = _createEditorForDocument(document, true, pane.$el);
         editor.setVisible(false);
         pane.addView(document.file.fullPath, editor);
-        $(exports).triggerHandler("fullEditorCreatedForDocument", document, editor, pane.id);
+        $(exports).triggerHandler("fullEditorCreatedForDocument", [document, editor, pane.id]);
     }
  
     

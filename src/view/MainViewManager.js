@@ -390,7 +390,7 @@ define(function (require, exports, module) {
         
         var result = pane.reorderItem(file, index, force);
         if (result === pane.ITEM_FOUND_NEEDS_SORT) {
-            $(exports).triggerHandler("paneViewListSort", pane.id);
+            $(exports).triggerHandler("paneViewListSort", [pane.id]);
         } else if (result === pane.ITEM_NOT_FOUND) {
             index = pane.addToViewList(file, index);
             $(exports).triggerHandler("paneViewListAdd", [file, index, pane.id]);
@@ -669,7 +669,7 @@ define(function (require, exports, module) {
             _orientation = null;
             _updateLayout();
             _updateCommandState();
-            $(exports).triggerHandler("paneLayoutChange", _orientation);
+            $(exports).triggerHandler("paneLayoutChange", [_orientation]);
 
             if (getCurrentlyViewedFile() !== lastViewed) {
                 exports.doOpen(firstPane.id, lastViewed);
@@ -685,13 +685,13 @@ define(function (require, exports, module) {
             pane = new Pane(paneId, _$container);
             _paneViews[paneId] = pane;
             
-            $(exports).triggerHandler("paneCreated", pane.id);
+            $(exports).triggerHandler("paneCreated", [pane.id]);
             
             pane.$el.on("click.mainview", function () {
                 setActivePaneId(pane.id);
             });
             $(pane).on("viewListChanged.mainview", function () {
-                $(exports).triggerHandler("paneViewListUpdated", pane.id);
+                $(exports).triggerHandler("paneViewListUpdated", [pane.id]);
             });
         }
         
@@ -703,7 +703,7 @@ define(function (require, exports, module) {
         _orientation = orientation;
         _updateLayout();
         _updateCommandState();
-        $(exports).triggerHandler("paneLayoutChange", _orientation);
+        $(exports).triggerHandler("paneLayoutChange", [_orientation]);
         
     }
     
