@@ -138,7 +138,7 @@ define(function (require, exports, module) {
             
             _activePaneId = newPaneId;
             
-            $(exports).triggerHandler("activePaneChange", [newPaneId, oldPaneId]);
+            $(exports).triggerHandler("activePaneChanged", [newPaneId, oldPaneId]);
             $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), newPaneId]);
             
             oldPane.onSetActive(false);
@@ -669,7 +669,7 @@ define(function (require, exports, module) {
             _orientation = null;
             _updateLayout();
             _updateCommandState();
-            $(exports).triggerHandler("paneLayoutChange", [_orientation]);
+            $(exports).triggerHandler("paneLayoutChanged", [_orientation]);
 
             if (getCurrentlyViewedFile() !== lastViewed) {
                 exports.doOpen(firstPane.id, lastViewed);
@@ -712,7 +712,7 @@ define(function (require, exports, module) {
         _orientation = orientation;
         _updateLayout();
         _updateCommandState();
-        $(exports).triggerHandler("paneLayoutChange", [_orientation]);
+        $(exports).triggerHandler("paneLayoutChanged", [_orientation]);
         
     }
     
@@ -956,7 +956,7 @@ define(function (require, exports, module) {
                 _updateLayout();
                 _updateCommandState();
                 if (_orientation) {
-                    $(exports).triggerHandler("paneLayoutChange", _orientation);
+                    $(exports).triggerHandler("paneLayoutChanged", _orientation);
                 }
             });
         }

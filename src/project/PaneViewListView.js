@@ -724,8 +724,8 @@ define(function (require, exports, module) {
         $(MainViewManager).on(this._makeEventName("paneViewListRemove"), _.bind(this._handleFileRemoved, this));
         $(MainViewManager).on(this._makeEventName("paneViewListRemoveList"), _.bind(this._handleRemoveList, this));
         $(MainViewManager).on(this._makeEventName("paneViewListSort"), _.bind(this._handlePaneViewListSort, this));
-        $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
-        $(MainViewManager).on(this._makeEventName("paneLayoutChange"), _.bind(this._handlePaneLayoutChange, this));
+        $(MainViewManager).on(this._makeEventName("activePaneChanged"), _.bind(this._handleActivePaneChange, this));
+        $(MainViewManager).on(this._makeEventName("paneLayoutChanged"), _.bind(this._handlePaneLayoutChange, this));
         $(MainViewManager).on(this._makeEventName("paneViewListUpdated"), _.bind(this._handlePaneViewListUpdated, this));
 
         $(DocumentManager).on(this._makeEventName("dirtyFlagChange"), _.bind(this._handleDirtyFlagChanged, this));
