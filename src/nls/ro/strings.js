@@ -566,3 +566,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Vezi mai mult"
 });
+
+/* Last translated for 99e8df52a90ae33e96878e0cda273fcdc0610e0d */
