@@ -690,6 +690,15 @@ define(function (require, exports, module) {
             pane.$el.on("click.mainview", function () {
                 setActivePaneId(pane.id);
             });
+
+// TODO: Need to figure out if keyboard accessibility needs to be implemented
+//          and how to do so
+//
+//       This doesn't work because there is no tabIndex on the pane
+//
+//            pane.$el.on("focus.mainview", function () {
+//                setActivePaneId(pane.id);
+//            });
             $(pane).on("viewListChanged.mainview", function () {
                 $(exports).triggerHandler("paneViewListUpdated", [pane.id]);
             });

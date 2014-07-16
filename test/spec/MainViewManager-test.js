@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         DocumentManager,         // loaded from brackets.test
         EditorManager,           // loaded from brackets.test
         MainViewManager,         // loaded from brackets.test
+        ProjectManager,          // loaded from brackets.test
         SpecRunnerUtils          = require("spec/SpecRunnerUtils");
 
     describe("MainViewManager", function () {
@@ -55,6 +56,7 @@ define(function (require, exports, module) {
                 DocumentManager         = testWindow.brackets.test.DocumentManager;
                 EditorManager           = testWindow.brackets.test.EditorManager;
                 MainViewManager         = testWindow.brackets.test.MainViewManager;
+                ProjectManager          = testWindow.brackets.test.ProjectManager;
             });
         });
         
@@ -65,6 +67,7 @@ define(function (require, exports, module) {
             Commands                = null;
             DocumentManager         = null;
             EditorManager           = null;
+            ProjectManager          = null;
             SpecRunnerUtils.closeTestWindow();
         });
     
@@ -97,7 +100,7 @@ define(function (require, exports, module) {
         });
         
         describe("open and close", function () {
-            it("should open a document", function () {
+            it("should open a file", function () {
                 runs(function () {
                     promise = MainViewManager.doOpen(MainViewManager.FOCUSED_PANE, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, "MainViewManager.doOpen");
@@ -107,13 +110,49 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getCurrentlyViewedPath()).toEqual(testPath + "/test.js");
                     expect(MainViewManager.getCurrentlyViewedFileForPane("first-pane").name).toEqual("test.js");
                     expect(MainViewManager.getCurrentlyViewedPathForPane("first-pane")).toEqual(testPath + "/test.js");
+                    expect(MainViewManager.getPaneViewListSize()).toEqual(1);
 
                     MainViewManager.doClose(MainViewManager.FOCUSED_PANE, { fullPath: testPath + "/test.js" });
                     expect(MainViewManager.getCurrentlyViewedFile()).toEqual(null);
                     expect(MainViewManager.getPaneViewListSize(MainViewManager.ALL_PANES)).toEqual(0);
                 });
             });
-            
+            it("should edit a document", function () {
+                runs(function () {
+                    promise = new $.Deferred();
+                    DocumentManager.getDocumentForPath(testPath + "/test.js")
+                        .done(function (doc) {
+                            MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, doc);
+                            promise.resolve();
+                        });
+                    
+                    waitsForDone(promise, "MainViewManager.doOpen");
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedFile().name).toEqual("test.js");
+                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(testPath + "/test.js");
+                    expect(MainViewManager.getCurrentlyViewedFileForPane("first-pane").name).toEqual("test.js");
+                    expect(MainViewManager.getCurrentlyViewedPathForPane("first-pane")).toEqual(testPath + "/test.js");
+                    expect(MainViewManager.getPaneViewListSize()).toEqual(1);
+
+                    MainViewManager.doClose(MainViewManager.FOCUSED_PANE, { fullPath: testPath + "/test.js" });
+                    expect(MainViewManager.getCurrentlyViewedFile()).toEqual(null);
+                    expect(MainViewManager.getPaneViewListSize(MainViewManager.ALL_PANES)).toEqual(0);
+                });
+            });
+            it("should not automatically be added to the working set when opening a file", function () {
+                ProjectManager.isWithinProject = function (fullPath) {
+                    return true;
+                };
+                runs(function () {
+                    promise = MainViewManager.doOpen(MainViewManager.FOCUSED_PANE, { fullPath: testPath + "/test.js" });
+                    waitsForDone(promise, "MainViewManager.doOpen");
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedFile().name).toEqual("test.js");
+                    expect(MainViewManager.getPaneViewListSize()).toEqual(0);
+                });
+            });
         });
         
         describe("currentFileChanged", function () {
@@ -287,8 +326,7 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getPaneIdForPath(testPath + "/test.css")).toEqual("first-pane");
                 });
             });
-            it("should activate pane", function () {
-                
+            it("should activate pane when editor gains focus", function () {
                 var editors = {
                     },
                     handler = function (e, doc, editor, paneId) {
@@ -319,6 +357,18 @@ define(function (require, exports, module) {
                 runs(function () {
                     editors = null;
                     _$(EditorManager).off("fullEditorCreatedForDocument", handler);
+                });
+            });
+            it("should activate pane when pane is clicked", function () {
+                runs(function () {
+                    promise = CommandManager.execute("cmd.splitVertically");
+                    waitsForDone(promise, "cmd.splitVertically");
+                });
+                runs(function () {
+                    _$("#second-pane").click();
+                    expect(MainViewManager.getActivePaneId()).toEqual("second-pane");
+                    _$("#first-pane").click();
+                    expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
                 });
             });
 
@@ -378,6 +428,31 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getPaneIdForPath(testPath + "/test.js")).toEqual("second-pane");
                 });
             });
+            it("should close all files in pane", function () {
+                runs(function () {
+                    promise = CommandManager.execute("cmd.splitVertically");
+                    waitsForDone(promise, "cmd.splitVertically");
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "second-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.css",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    MainViewManager.doCloseAll("second-pane");
+                    expect(MainViewManager.getAllOpenFiles().length).toEqual(1);
+                });
+                runs(function () {
+                    MainViewManager.doCloseAll("first-pane");
+                    expect(MainViewManager.getAllOpenFiles().length).toEqual(0);
+                });
+            });
+                        
         });
     });
 });
