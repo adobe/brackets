@@ -122,8 +122,14 @@ define(function (require, exports, module) {
      * @type {int}
      */
     var ERR_TYPE_CREATE = 1,
-        ERR_TYPE_RENAME = 2,
-        ERR_TYPE_DELETE = 3;
+        ERR_TYPE_CREATE_EXISTS = 2,
+        ERR_TYPE_RENAME = 3,
+        ERR_TYPE_DELETE = 4,
+        ERR_TYPE_LOADING_PROJECT = 5,
+        ERR_TYPE_LOADING_PROJECT_NATIVE = 6,
+        ERR_TYPE_MAX_FILES = 7,
+        ERR_TYPE_OPEN_DIALOG = 8,
+        ERR_TYPE_INVALID_FILENAME = 9;
 
     /**
      * @private
@@ -774,6 +780,52 @@ define(function (require, exports, module) {
         return Async.withTimeout(result.promise(), 1000);
     }
     
+    function _showErrorDialog(errType, isFolder, error, path) {
+        var titleType = isFolder ? Strings.DIRECTORY_TITLE : Strings.FILE_TITLE,
+            entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
+            title,
+            message;
+        path = StringUtils.breakableUrl(path);
+
+        if (errType === ERR_TYPE_CREATE) {
+            title = StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, titleType);
+            message = StringUtils.format(Strings.ERROR_CREATING_FILE, entryType, path, error);
+        } else if (errType === ERR_TYPE_CREATE_EXISTS) {
+            title = StringUtils.format(Strings.INVALID_FILENAME_TITLE, titleType);
+            message = StringUtils.format(Strings.ENTRY_WITH_SAME_NAME_EXISTS, path);
+        } else if (errType === ERR_TYPE_RENAME) {
+            title = StringUtils.format(Strings.ERROR_RENAMING_FILE_TITLE, titleType);
+            message = StringUtils.format(Strings.ERROR_RENAMING_FILE, path, error, entryType);
+        } else if (errType === ERR_TYPE_DELETE) {
+            title = StringUtils.format(Strings.ERROR_DELETING_FILE_TITLE, titleType);
+            message = StringUtils.format(Strings.ERROR_DELETING_FILE, path, error, entryType);
+        } else if (errType === ERR_TYPE_LOADING_PROJECT) {
+            title = StringUtils.format(Strings.ERROR_LOADING_PROJECT);
+            message = StringUtils.format(Strings.READ_DIRECTORY_ENTRIES_ERROR, path, error);
+        } else if (errType === ERR_TYPE_LOADING_PROJECT_NATIVE) {
+            title = Strings.ERROR_LOADING_PROJECT;
+            message = StringUtils.format(Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR, path, error);
+        } else if (errType === ERR_TYPE_MAX_FILES) {
+            title = Strings.ERROR_MAX_FILES_TITLE;
+            message = Strings.ERROR_MAX_FILES;
+        } else if (errType === ERR_TYPE_OPEN_DIALOG) {
+            title = Strings.ERROR_LOADING_PROJECT;
+            message = StringUtils.format(Strings.OPEN_DIALOG_ERROR, error);
+        } else if (errType === ERR_TYPE_INVALID_FILENAME) {
+            title = StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME);
+            message = StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE,  error);
+        }
+
+        if (title && message) {
+            return Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_ERROR,
+                title,
+                message
+            );
+        }
+        return null;
+    }
+    
     /**
      * @private
      * See shouldShow
@@ -955,15 +1007,7 @@ define(function (require, exports, module) {
         // Fetch dirEntry's contents
         dirEntry.getContents(function (err, contents, stats, statsErrs) {
             if (err) {
-                Dialogs.showModalDialog(
-                    DefaultDialogs.DIALOG_ID_ERROR,
-                    Strings.ERROR_LOADING_PROJECT,
-                    StringUtils.format(
-                        Strings.READ_DIRECTORY_ENTRIES_ERROR,
-                        StringUtils.breakableUrl(dirEntry.fullPath),
-                        err
-                    )
-                );
+                _showErrorDialog(ERR_TYPE_LOADING_PROJECT, null, err, dirEntry.fullPath);
                 // Reject the render promise so we can move on.
                 deferred.reject();
             } else {
@@ -1059,25 +1103,13 @@ define(function (require, exports, module) {
         return updateWelcomeProjectPath(PreferencesManager.getViewState("projectPath"));
     }
     
-    /**
-     * Error dialog when max files in index is hit
-     * @return {Dialog}
-     */
-    function _showMaxFilesDialog() {
-        return Dialogs.showModalDialog(
-            DefaultDialogs.DIALOG_ID_ERROR,
-            Strings.ERROR_MAX_FILES_TITLE,
-            Strings.ERROR_MAX_FILES
-        );
-    }
-    
     function _watchProjectRoot(rootPath) {
         FileSystem.on("change", _fileSystemChange);
         FileSystem.on("rename", _fileSystemRename);
 
         FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), _shouldShowName, function (err) {
             if (err === FileSystemError.TOO_MANY_ENTRIES) {
-                _showMaxFilesDialog();
+                _showErrorDialog(ERR_TYPE_MAX_FILES);
             } else if (err) {
                 console.error("Error watching project root: ", rootPath, err);
             }
@@ -1255,31 +1287,24 @@ define(function (require, exports, module) {
                             PerfUtils.addMeasurement(perfTimerName);
                         });
                     } else {
-                        Dialogs.showModalDialog(
-                            DefaultDialogs.DIALOG_ID_ERROR,
-                            Strings.ERROR_LOADING_PROJECT,
-                            StringUtils.format(
-                                Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
-                                StringUtils.breakableUrl(rootPath),
-                                err || FileSystemError.NOT_FOUND
-                            )
-                        ).done(function () {
-                            // Reset _projectRoot to null so that the following _loadProject call won't 
-                            // run the 'beforeProjectClose' event a second time on the original project, 
-                            // which is now partially torn down (see #6574).
-                            _projectRoot = null;
-                            
-                            // The project folder stored in preference doesn't exist, so load the default
-                            // project directory.
-                            // TODO (issue #267): When Brackets supports having no project directory
-                            // defined this code will need to change
-                            _loadProject(_getWelcomeProjectPath()).always(function () {
-                                // Make sure not to reject the original deferred until the fallback
-                                // project is loaded, so we don't violate expectations that there is always
-                                // a current project before continuing after _loadProject().
-                                result.reject();
+                        _showErrorDialog(ERR_TYPE_LOADING_PROJECT_NATIVE, null, rootPath, err || FileSystemError.NOT_FOUND)
+                            .done(function () {
+                                // Reset _projectRoot to null so that the following _loadProject call won't 
+                                // run the 'beforeProjectClose' event a second time on the original project, 
+                                // which is now partially torn down (see #6574).
+                                _projectRoot = null;
+
+                                // The project folder stored in preference doesn't exist, so load the default
+                                // project directory.
+                                // TODO (issue #267): When Brackets supports having no project directory
+                                // defined this code will need to change
+                                _loadProject(_getWelcomeProjectPath()).always(function () {
+                                    // Make sure not to reject the original deferred until the fallback
+                                    // project is loaded, so we don't violate expectations that there is always
+                                    // a current project before continuing after _loadProject().
+                                    result.reject();
+                                });
                             });
-                        });
                     }
                 });
             }
@@ -1531,11 +1556,7 @@ define(function (require, exports, module) {
                                 result.reject();
                             }
                         } else {
-                            Dialogs.showModalDialog(
-                                DefaultDialogs.DIALOG_ID_ERROR,
-                                Strings.ERROR_LOADING_PROJECT,
-                                StringUtils.format(Strings.OPEN_DIALOG_ERROR, err)
-                            );
+                            _showErrorDialog(ERR_TYPE_OPEN_DIALOG, null, err);
                             result.reject();
                         }
                     });
@@ -1574,11 +1595,7 @@ define(function (require, exports, module) {
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
         if ((filename.search(new RegExp("[" + _invalidChars + "]+")) !== -1) ||
                 filename.match(_illegalFilenamesRegEx)) {
-            Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_ERROR,
-                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME),
-                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE,  _invalidChars)
-            );
+            _showErrorDialog(ERR_TYPE_INVALID_FILENAME, isFolder, _invalidChars);
             return false;
         }
         return true;
@@ -1619,33 +1636,6 @@ define(function (require, exports, module) {
         
         if (!skipRedraw) {
             _redraw(true);
-        }
-    }
-
-    function _showErrorDialog(errType, isFolder, error, path) {
-        var titleType = isFolder ? Strings.DIRECTORY_TITLE : Strings.FILE_TITLE,
-            entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
-            title,
-            message;
-        path = StringUtils.breakableUrl(path);
-
-        if (errType === ERR_TYPE_CREATE) {
-            title = StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, titleType);
-            message = StringUtils.format(Strings.ERROR_CREATING_FILE, entryType, path, error);
-        } else if (errType === ERR_TYPE_RENAME) {
-            title = StringUtils.format(Strings.ERROR_RENAMING_FILE_TITLE, titleType);
-            message = StringUtils.format(Strings.ERROR_RENAMING_FILE, path, error, entryType);
-        } else if (errType === ERR_TYPE_DELETE) {
-            title = StringUtils.format(Strings.ERROR_DELETING_FILE_TITLE, titleType);
-            message = StringUtils.format(Strings.ERROR_DELETING_FILE, path, error, entryType);
-        }
-
-        if (title && message) {
-            Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_ERROR,
-                title,
-                message
-            );
         }
     }
 
@@ -1732,14 +1722,7 @@ define(function (require, exports, module) {
                 
                 var errorCallback = function (error) {
                     if (error === FileSystemError.ALREADY_EXISTS) {
-                        var titleType = isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME;
-
-                        Dialogs.showModalDialog(
-                            DefaultDialogs.DIALOG_ID_ERROR,
-                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, titleType),
-                            StringUtils.format(Strings.ENTRY_WITH_SAME_NAME_EXISTS,
-                                StringUtils.breakableUrl(data.rslt.name))
-                        );
+                        _showErrorDialog(ERR_TYPE_CREATE_EXISTS, isFolder, null, data.rslt.name);
                     } else {
                         var errString = error === FileSystemError.NOT_WRITABLE ?
                                          Strings.NO_MODIFICATION_ALLOWED_ERR :
