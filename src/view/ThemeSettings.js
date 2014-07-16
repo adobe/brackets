@@ -36,6 +36,7 @@ define(function (require, exports, module) {
     var prefs = PreferencesManager.getExtensionPrefs("brackets-themes");
 
     /**
+     * @type {Object}
      * Currently loaded themes that are available to choose from.
      */
     var loadedThemes = {};
@@ -61,7 +62,7 @@ define(function (require, exports, module) {
      * @private
      * Gets all the configurable settings that need to be loaded in the settings dialog
      *
-     * @return {array} a collection with all the settings
+     * @return {Object} a collection with all the settings
      */
     function getValues() {
         return _.transform(defaults, function (result, value, key) {
