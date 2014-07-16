@@ -1029,6 +1029,7 @@ define(function (require, exports, module) {
     function setLayoutScheme(rows, columns) {
         if ((rows < 1) || (rows > 2) || (columns < 1) || (columns > 2) || (columns === rows === 2)) {
             console.error("setLayoutScheme unsupported layout " + rows + ", " + columns);
+            return false;
         }
         
         if (rows === columns) {
@@ -1038,6 +1039,22 @@ define(function (require, exports, module) {
         } else {
             _doSplit(VERTICAL);
         }
+        return true;
+    }
+    
+    function getLayoutScheme() {
+        var result = {
+            rows: 1,
+            columns: 1
+        };
+
+        if (_orientation === HORIZONTAL) {
+            result.rows = 2;
+        } else if (_orientation === VERTICAL) {
+            result.columns = 2;
+        }
+        
+        return result;
     }
     
     AppInit.appReady(function () {
@@ -1109,6 +1126,7 @@ define(function (require, exports, module) {
     
     // Layout
     exports.setLayoutScheme                  = setLayoutScheme;
+    exports.getLayoutScheme                  = getLayoutScheme;
     
     // Convenience
     exports.getCurrentlyViewedFile           = getCurrentlyViewedFile;

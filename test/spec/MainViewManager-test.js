@@ -434,7 +434,49 @@ define(function (require, exports, module) {
                 });
                 _$(MainViewManager).off("activePaneChanged", activePaneChangedListener);
             });
-
+            it("should enforce bounds", function () {
+                runs(function () {
+                    expect(MainViewManager.setLayoutScheme(1, 4)).toBeFalsy();
+                    expect(MainViewManager.setLayoutScheme(4, -2)).toBeFalsy();
+                    expect(MainViewManager.setLayoutScheme(0, 0)).toBeFalsy();
+                    expect(MainViewManager.setLayoutScheme(-1, -1)).toBeFalsy();
+                    expect(MainViewManager.setLayoutScheme(4, 1)).toBeFalsy();
+                    expect(MainViewManager.setLayoutScheme(1, 1)).toBeTruthy();
+                    expect(MainViewManager.setLayoutScheme(1, 2)).toBeTruthy();
+                    expect(MainViewManager.setLayoutScheme(2, 1)).toBeTruthy();
+                });
+            });
+            it("should toggle layout", function () {
+                var paneLayoutChangedListener = jasmine.createSpy();
+                
+                runs(function () {
+                    _$(MainViewManager).on("paneLayoutChanged", paneLayoutChangedListener);
+                });
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                    expect(MainViewManager.getLayoutScheme()).toEqual({rows: 1, columns: 2});
+                    expect(paneLayoutChangedListener.calls[0].args[1]).toEqual("VERTICAL");
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.css",
+                                                                            paneId: "second-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    MainViewManager.setLayoutScheme(2, 1);
+                    expect(MainViewManager.getLayoutScheme()).toEqual({rows: 2, columns: 1});
+                    expect(paneLayoutChangedListener.calls[1].args[1]).toEqual("HORIZONTAL");
+                });
+                runs(function () {
+                    expect(paneLayoutChangedListener.callCount).toBe(2);
+                });
+                _$(MainViewManager).off("paneLayoutChanged", paneLayoutChangedListener);
+            });
         
         });
         describe("pane targeting", function () {
