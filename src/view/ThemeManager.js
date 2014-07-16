@@ -192,24 +192,6 @@ define(function (require, exports, module) {
 
     /**
     * @private
-    * Will trigger a refresh of codemirror instance and editor resize so that
-    * inline widgets get properly rendered
-    *
-    * @param {CodeMiror} cm code mirror instance to refresh
-    */
-    function refreshEditor(cm) {
-        // Really dislike timing issues with CodeMirror.  I have to refresh
-        // the editor after a little bit of time to make sure that themes
-        // are properly applied to quick edit widgets
-        setTimeout(function () {
-            cm.refresh();
-            EditorManager.resizeEditor();
-        }, 100);
-    }
-
-
-    /**
-    * @private
     * Get all current theme objects
     *
     * @return {array} collection of the current theme instances
@@ -284,7 +266,6 @@ define(function (require, exports, module) {
             var cm =  editor._codeMirror;
             ThemeView.setDocumentMode(cm);
             ThemeView.updateThemes(cm);
-            refreshEditor(cm);
         });
     }
 
