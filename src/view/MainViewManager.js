@@ -520,7 +520,7 @@ define(function (require, exports, module) {
      * @param {!string} paneId this will identify which Pane with which the caller wants to change
      * @param {!File} file to make most recent
      */
-    function makePaneViewMostRecent(paneId, file) {
+    function _makePaneViewMostRecent(paneId, file) {
         var pane = _getPaneFromPaneId(paneId);
 
         if (pane && !_traversingFileList) {
@@ -605,7 +605,7 @@ define(function (require, exports, module) {
         if (_traversingFileList) {
             _traversingFileList = false;
             
-            makePaneViewMostRecent(pane.id, pane.getCurrentlyViewedFile());
+            _makePaneViewMostRecent(pane.id, pane.getCurrentlyViewedFile());
         }
     }
     
@@ -742,7 +742,7 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("currentFileChanged", [doc.file, pane.id]);
         }
 
-        makePaneViewMostRecent(paneId, doc.file);
+        _makePaneViewMostRecent(paneId, doc.file);
     }
     
     function doOpen(paneId, file) {
@@ -1061,7 +1061,6 @@ define(function (require, exports, module) {
     exports.getPaneViewListSize              = getPaneViewListSize;
     exports.getPaneViewList                  = getPaneViewList;
     exports.getAllOpenFiles                  = getAllOpenFiles;
-    exports.makePaneViewMostRecent           = makePaneViewMostRecent;
     exports.removeAllFromPaneViewList        = removeAllFromPaneViewList;
     exports.removeFromPaneViewList           = removeFromPaneViewList;
     exports.removeListFromPaneViewList       = removeListFromPaneViewList;
