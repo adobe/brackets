@@ -56,9 +56,6 @@ define(function (require, exports, module) {
         matcher      = null,  // string matcher for hints
         ignoreChange;         // can ignore next "change" event if true;
     
-    // Define the defaultExclusions which are files that are known to cause Tern to run out of control.
-    PreferencesManager.definePreference("jscodehints.defaultExclusions", "array", []);
-    
     // Define the detectedExclusions which are files that have been detected to cause Tern to run out of control.
     PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", []);
     
