@@ -252,7 +252,7 @@ define(function (require, exports, module) {
         codeHintsEnabled = true;
 
 
-    PreferencesManager.definePreference("showCodeHints", "boolean", true);
+    PreferencesManager.definePreference("showCodeHints", "boolean", codeHintsEnabled);
     PreferencesManager.definePreference("insertHintOnTab", "boolean", false);
 
     PreferencesManager.on("change", "showCodeHints", function () {
@@ -518,9 +518,6 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      */
     function _startNewSession(editor) {
-        if (!codeHintsEnabled) {
-            return;
-        }
         if (!editor) {
             editor = EditorManager.getFocusedEditor();
         }
