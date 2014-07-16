@@ -393,56 +393,51 @@ define(function (require, exports, module) {
     }
 
 
-    function init() {
-        prefs.on("change", "themes", function () {
-            refresh(true);
-            ThemeView.updateScrollbars(getCurrentThemes()[0]);
-
-            // Expose event for theme changes
-            $(exports).trigger("themeChange", getCurrentThemes());
-        });
-
-        prefs.on("change", "customScrollbars", function () {
-            refresh();
-            ThemeView.updateScrollbars(getCurrentThemes()[0]);
-        });
-
-        prefs.on("change", "fontSize", function () {
-            refresh();
-            ThemeView.updateFontSize();
-        });
-
-        prefs.on("change", "lineHeight", function () {
-            refresh();
-            ThemeView.updateLineHeight();
-        });
-
-        prefs.on("change", "fontFamily", function () {
-            refresh();
-            ThemeView.updateFontFamily();
-        });
-
-        FileSystem.on("change", function (evt, file) {
-            if (file.isDirectory) {
-                return;
-            }
-
-            if (getThemeByFile(file)) {
-                refresh(true);
-            }
-        });
-
-        $(EditorManager).on("activeEditorChange", function () {
-            refresh();
-        });
-
+    prefs.on("change", "themes", function () {
         refresh(true);
-        ThemeView.updateFonts();
-        ThemeView.updateScrollbars();
-    }
+        ThemeView.updateScrollbars(getCurrentThemes()[0]);
 
-    // When the app is ready, we need to try to load whatever theme needs to be processed
-    AppInit.appReady(init);
+        // Expose event for theme changes
+        $(exports).trigger("themeChange", getCurrentThemes());
+    });
+
+    prefs.on("change", "customScrollbars", function () {
+        refresh();
+        ThemeView.updateScrollbars(getCurrentThemes()[0]);
+    });
+
+    prefs.on("change", "fontSize", function () {
+        refresh();
+        ThemeView.updateFontSize();
+    });
+
+    prefs.on("change", "lineHeight", function () {
+        refresh();
+        ThemeView.updateLineHeight();
+    });
+
+    prefs.on("change", "fontFamily", function () {
+        refresh();
+        ThemeView.updateFontFamily();
+    });
+
+    FileSystem.on("change", function (evt, file) {
+        if (file.isDirectory) {
+            return;
+        }
+
+        if (getThemeByFile(file)) {
+            refresh(true);
+        }
+    });
+
+    $(EditorManager).on("activeEditorChange", function () {
+        refresh();
+    });
+
+    refresh(true);
+    ThemeView.updateFonts();
+    ThemeView.updateScrollbars();
 
     exports.refresh          = refresh;
     exports.loadFile         = loadFile;
