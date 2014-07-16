@@ -36,7 +36,7 @@ define(function (require, exports, module) {
     var prefs = PreferencesManager.getExtensionPrefs("brackets-themes");
 
     /**
-     * @Type {Object}
+     * @type {Object}
      * Currently loaded themes that are available to choose from.
      */
     var loadedThemes = {};

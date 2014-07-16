@@ -133,8 +133,8 @@ define(function (require, exports, module) {
     /**
      * Sets the document type in the DOM to enable styling per doc type
      *
-     * @param {CodeMirror} cm is the CodeMirror instance currently loaded
-     * @rreturn {string} current document type
+     * @param {CodeMirror} cm is the CodeMirror instance currently loaded in the editor
+     * @return {string} current document type
      */
     function setDocumentMode(cm) {
         var mode = cm.getDoc().getMode();

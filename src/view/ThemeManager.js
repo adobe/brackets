@@ -69,6 +69,8 @@ define(function (require, exports, module) {
 
     /**
      * @constructor
+     * Theme contains all the essential bit to load a theme from disk, display a theme in the settings
+     * dialog, and to properly add a theme into CodeMirror along with the rest of brackets.
      *
      * @param {File} file for the theme
      * @param {{name: string, className: string, title: string}} options to configure different
