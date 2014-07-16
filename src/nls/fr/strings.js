@@ -354,6 +354,7 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
 	"CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
+	"CMD_THEMES": "Themes\u2026",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "Naviguer",
@@ -416,6 +417,14 @@ define({
 	"BASEURL_ERROR_INVALID_CHAR": "Les caractères spéciaux tels que '{0}' doivent être codés en %.",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
     
+    // Strings for themes-settings.html and themes-general.html
+	"CURRENT_THEME": "Current Theme",
+	"CUSTOM_SCROLLBARS": "Custom Scrollbars",
+	"FONT_SIZE": "Font Size",
+	"FONT_FAMILY": "Font Family",
+	"LINE_HEIGHT": "Line Height",
+	"GENERAL": "General",
+
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "Nouvelle règle",
     

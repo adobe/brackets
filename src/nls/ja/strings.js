@@ -354,6 +354,7 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
 	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
+	"CMD_THEMES": "Themes\u2026",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "ナビゲート",
@@ -416,6 +417,14 @@ define({
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
     
+    // Strings for themes-settings.html and themes-general.html
+	"CURRENT_THEME": "Current Theme",
+	"CUSTOM_SCROLLBARS": "Custom Scrollbars",
+	"FONT_SIZE": "Font Size",
+	"FONT_FAMILY": "Font Family",
+	"LINE_HEIGHT": "Line Height",
+	"GENERAL": "General",
+
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "新規ルール",
     

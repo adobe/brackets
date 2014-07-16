@@ -354,7 +354,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatic Sort",
-    "CMD_THEMES"                          : "Themes",
+    "CMD_THEMES"                          : "Themes\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigate",
