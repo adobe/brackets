@@ -12,8 +12,8 @@
 4. Copy the root `strings.js` file into your subfolder and start translating!
 5. Use the [UI walkthrough steps](https://github.com/adobe/brackets/wiki/Localization-Tests) to
    see strings in context.
-6. Add this comment ``/* Last translated for commot_SHA_of_root_strings.js */`` at the end 
-   of your `strings.js` and replace `commot_SHA_of_root_strings.js` with the actual SHA.
+6. Add this comment ``/* Last translated for commit_SHA_of_root_strings.js */`` at the end 
+   of your `strings.js` and replace `commit_SHA_of_root_strings.js` with the actual SHA.
    You can copy the actual SHA in this [history page](https://github.com/adobe/brackets/commits/master/src/nls/root/strings.js)
    by hovering on the one you used for this translation and click on Copy SHA button.
 7. Edit this file and update the list of languages below!
@@ -31,8 +31,8 @@ providing a ``urls.js`` file that points to a localized directory under the
 ``samples`` folder at the root of the Brackets repository. See the French
 localization (`src/nls/fr/urls.js`) for an example.
 
-It is also recommended to add this comment ``<!-- Last translated for commot_SHA_of_root_index.html -->``
-at the end of your `index.html` and replace `commot_SHA_of_root_index.html` with the actual SHA.
+It is also recommended to add this comment ``<!-- Last translated for commit_SHA_of_root_index.html -->``
+at the end of your `index.html` and replace `commit_SHA_of_root_index.html` with the actual SHA.
 
 
 # How to modify *existing* translations
