@@ -387,7 +387,7 @@ define(function (require, exports, module) {
                     // orphaned to the right of the electric char being inserted
                     this.setCursorPos(cursor.line, this.document.getLine(cursor.line).length);
                 } else {
-                    // if the line is has non-whitespace to the right of the electric char we
+                    // if the line has non-whitespace to the right of the electric char we
                     // intend to insert, then set the cursor at the beginning of the non-
                     // whitespace and indent to there.
                     this.setCursorPos(cursor.line, nonWS);
