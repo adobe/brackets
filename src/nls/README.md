@@ -64,6 +64,7 @@ The following languages have been contributed by the Brackets community:
 * Galician (gl)
 * Croatian (hr)
 * Hungarian (hu)
+* Indonesia (id)
 * Italian (it)
 * Korean (ko)
 * Norwegian (nb)
@@ -78,7 +79,6 @@ The following languages have been contributed by the Brackets community:
 * Swedish (sv)
 * Turkish (tr)
 * Simplified Chinese (zh-cn)
-* Indonesia (id)
 
 These translations _can be directly modified_ through our normal pull request
 process. Make sure that you also update the comment on the last line with the 
