@@ -45,8 +45,8 @@ define({
     "DIRECTORY_TITLE"                   : "Directory",
     "DIRECTORY_NAMES_LEDE"              : "Directory names",
     "FILENAMES_LEDE"                    : "Filenames",
-    "FILENAME"                          : "filename",
-    "DIRECTORY_NAME"                    : "directory name",
+    "FILENAME"                          : "Filename",
+    "DIRECTORY_NAME"                    : "Directory Name",
     
 
     // Project error strings
