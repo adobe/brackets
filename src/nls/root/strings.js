@@ -247,6 +247,7 @@ define({
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
     "STATUSBAR_DEFAULT_LANG"                : "(default)",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Set as Default for .{0} Files",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",

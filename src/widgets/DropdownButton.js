@@ -56,7 +56,9 @@ define(function (require, exports, module) {
      *  - "select" - when an option in the dropdown is clicked. Passed item object and index.
      * 
      * @param {!string} label  Label to display on the button
-     * @param {!Array.<*>} items  Items in the dropdown list
+     * @param {!Array.<*>} items  Items in the dropdown list. It generally doesn't matter what type/value the
+     *          items have, except that any item === "---" will be treated as a divider. Such items are not
+     *          clickable and itemRenderer() will not be called for them.
      * @param {?function(*, number):!string} itemRenderer  Optional function to convert a single item to HTML
      *          (see itemRenderer() docs below). If not provided, items are assumed to be plain text strings.
      */
