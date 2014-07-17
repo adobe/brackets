@@ -31,6 +31,9 @@ providing a ``urls.js`` file that points to a localized directory under the
 ``samples`` folder at the root of the Brackets repository. See the French
 localization (`src/nls/fr/urls.js`) for an example.
 
+It is also recommended to add this comment ``<!-- Last translated for commot_SHA_of_root_index.html -->``
+at the end of your `index.html` and replace `commot_SHA_of_root_index.html` with the actual SHA.
+
 
 # How to modify *existing* translations
 
