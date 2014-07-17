@@ -283,6 +283,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Tallenna kaikki",
     "CMD_FILE_SAVE_AS"                    : "Tallenna nimellä\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Esikatselu",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Pakota esikatselun päivitys",
     "CMD_PROJECT_SETTINGS"                : "Projektin asetukset\u2026",
     "CMD_FILE_RENAME"                     : "Nimeä uudelleen",
     "CMD_FILE_DELETE"                     : "Poista",
