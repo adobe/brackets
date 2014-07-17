@@ -113,6 +113,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> è stato eliminato sul disco ma ha delle modifiche non ancora salvate in {APP_NAME}.<br /><br />Vuoi mantenere le tue modifiche?",
 
     // Generic dialog/button labels
+    "DONE"                              : "Fatto",
     "OK"                                : "OK",
     "CANCEL"                            : "Annulla",
     "DONT_SAVE"                         : "Non salvare",
@@ -171,13 +172,25 @@ define({
     "ERROR_CSSQUICKEDIT_IDNOTFOUND"     : "CSS Quick Edit: attributo id incompleto",
     "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: posiziona il cursore su etichetta, classe, oppure id",
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: posiziona il cursore su nome della funziona",
-    "EDIT_FILE_FILTER"  : "Modifica\u2026",
+    "EDIT_FILE_FILTER"                      : "Modifica\u2026",
     "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Quick Docs non disponibile per posizione attuale del cursore",
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Quick Edit non disponibile per posizione attuale del cursore",
     "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Funzione CSS Timing Quick Edit:  sintassi invalida",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "e {0} in più ",
     "FILE_FILTER_INSTRUCTIONS"          : "Esclude i file e cartelle che sono uguali a qualsiasi delle seguente stringhe / sottostringhe o <a href='{0}' title='{0}'>caratteri jolly</a>.  Digita ciascun stringa su una nuova riga.",
  
+    // File exclusion filters
+    "NEW_FILE_FILTER"                   : "Nuova regola di esclusione\u2026",
+    "CLEAR_FILE_FILTER"                 : "Non escludere file",
+    "NO_FILE_FILTER"                    : "Nessun file escluso",
+    "EXCLUDE_FILE_FILTER"               : "Escludere {0}",
+    "FILE_FILTER_DIALOG"                : "Modifica regole di esclusione",
+    "FILTER_NAME_PLACEHOLDER"           : "Nome delle regole di esclusione (facoltativo)",
+    "FILTER_COUNTING_FILES"             : "Contando i file\u2026",
+    "FILTER_FILE_COUNT"                 : "Consentire {0} di {1} file {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Consentire tutti {0} file {1}",
+     
+      
     /**
      * ProjectManager
      */
@@ -244,6 +257,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Salva tutto",
     "CMD_FILE_SAVE_AS"                    : "Salva come\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Anteprima Live",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Forza ricarica Anteprima Live",
     "CMD_PROJECT_SETTINGS"                : "Impostazioni del progetto\u2026",
     "CMD_FILE_RENAME"                     : "Rinomina",
     "CMD_FILE_DELETE"                     : "Elimina",
@@ -263,28 +277,36 @@ define({
     "CMD_PASTE"                         : "Incolla",
     "CMD_SELECT_ALL"                    : "Seleziona tutto",
     "CMD_SELECT_LINE"                   : "Seleziona riga",
-    "CMD_FIND"                          : "Cerca",
+    
     "CMD_FIND_FIELD_PLACEHOLDER"        : "Trova\u2026",
-    "CMD_FIND_IN_FILES"                 : "Cerca nei file",
-    "CMD_FIND_IN_SELECTED"              : "Cerca nel file/cartella selezionata",
-    "CMD_FIND_IN_SUBTREE"               : "Cerca in\u2026",
-    "CMD_FIND_NEXT"                     : "Cerca il successivo",
-    "CMD_FIND_PREVIOUS"                 : "Cerca il precedente",
-    "CMD_REPLACE"                       : "Sostituisci",
     "CMD_INDENT"                        : "Aumenta indentazione",
     "CMD_UNINDENT"                      : "Riduci indentazione",
     "CMD_DUPLICATE"                     : "Duplica",
     "CMD_DELETE_LINES"                  : "Elimina linea",
     "CMD_COMMENT"                       : "Commenta/De-commenta linee",
     "CMD_BLOCK_COMMENT"                 : "Commenta/De-commenta blocco",
-    "CMD_ADD_NEXT_MATCH"                : "Aggiungi la prossima correspondenza alla selezione",
-    "CMD_SKIP_CURRENT_MATCH"            : "Salta e aggiungi prossima correspondenza",
     "CMD_LINE_UP"                       : "Sposta la riga in alto",
     "CMD_LINE_DOWN"                     : "Sposta la riga in basso",
     "CMD_OPEN_LINE_ABOVE"               : "Apri linea sopra",
     "CMD_OPEN_LINE_BELOW"               : "Apri linea sotto",
     "CMD_TOGGLE_CLOSE_BRACKETS"         : "Chiudi le parentesi automaticamente",
     "CMD_SHOW_CODE_HINTS"               : "Mostra suggerimenti",
+    
+     // Search menu commands
+    "FIND_MENU"                           : "Cerca",
+    "CMD_FIND"                            : "Cerca",
+    "CMD_FIND_NEXT"                       : "Cerca il successivo",
+    "CMD_FIND_PREVIOUS"                   : "Cerca il precedente",
+    "CMD_FIND_ALL_AND_SELECT"             : "Trova tutto e seleziona",
+    "CMD_ADD_NEXT_MATCH"                  : "Aggiungi la prossima corrispondenza alla selezione",
+    "CMD_SKIP_CURRENT_MATCH"              : "Salta e aggiungi prossima correspondenza",
+    "CMD_FIND_IN_FILES"                   : "Cerca nei file",
+    "CMD_FIND_IN_SELECTED"                : "Cerca nel file/cartella selezionata",
+    "CMD_FIND_IN_SUBTREE"                 : "Cerca in\u2026",
+    "CMD_REPLACE"                         : "Sostituisci",
+    "CMD_REPLACE_IN_FILES"                : "Sostituisci nei file",
+    "CMD_REPLACE_IN_SELECTED"             : "Sostituisci nei selezionati file/cartelle",
+    "CMD_REPLACE_IN_SUBTREE"              : "Sostituisci in\u2026",
     
     // View menu commands
     "VIEW_MENU"                         : "Vista",
@@ -306,7 +328,6 @@ define({
     "CMD_SORT_WORKINGSET_AUTO"          : "Ordinamento automatico",
 
     // Navigate menu Commands
-    "FIND_MENU"                         : "Trova",
     "NAVIGATE_MENU"                     : "Naviga",
     "CMD_QUICK_OPEN"                    : "Apri velocemente",
     "CMD_GOTO_LINE"                     : "Vai alla linea",
@@ -326,14 +347,15 @@ define({
     "HELP_MENU"                         : "Aiuto",
     "CMD_CHECK_FOR_UPDATE"              : "Controlla aggiornamenti",
     "CMD_HOW_TO_USE_BRACKETS"           : "Come usare {APP_NAME}",
-    "CMD_FORUM"                         : "Forum di{APP_NAME}",
+    "CMD_FORUM"                         : "Forum di {APP_NAME}",
     "CMD_RELEASE_NOTES"                 : "Note del lancio",
     "CMD_REPORT_AN_ISSUE"               : "Segnala un problema",
     "CMD_SHOW_EXTENSIONS_FOLDER"        : "Mostra cartella estensioni",
+    "CMD_HOMEPAGE"                      : "Sito WEB di {APP_TITLE}",
     "CMD_TWITTER"                       : "{TWITTER_NAME} su Twitter",
     "CMD_ABOUT"                         : "Informazioni su {APP_TITLE}",
     "CMD_SHOW_IN_EXPLORER"              : "Mostra in Explorer",
-    "CMD_SHOW_IN_FINDER"                : "Mostra nel finder",
+    "CMD_SHOW_IN_FINDER"                : "Mostra nel Finder",
 
     "CMD_OPEN_PREFERENCES"              : "Apri il file delle preferenze",
 
@@ -456,6 +478,9 @@ define({
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Non ci sono regole CSS esistenti che corrispondano alla tua selezione.<br />Clicca \"Nuova Regola\" per crearne una.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Non ci sono fogli di stile nel tuo progetto.<br />Creane uno per aggiungere regole CSS.",
     
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "il più grande",
+    
     /**
      * Unit names
      */
@@ -517,5 +542,5 @@ define({
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
 
-/* Last translation of: 0565e3daa00e27f02ce0975be779a583971b016f */
+/* Last translation of: 46de60683124768aa7f074aa3168f99d23f6c016*/
 

@@ -514,9 +514,32 @@ a:focus {
     &.dropdown-menu a:not(.selected):hover {
         background: none;
     }
-    
+
     .divider {
         margin: 5px 1px;
+    }
+
+}
+
+/* Status bar language picker's DropdownButton */
+.dropdownbutton-popup.dropdown-status-bar {
+    height: auto;
+    max-height: 80%;
+    
+    // Improve how bottom of the dropdown joins with top of status bar button
+    margin-top: -6px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    
+    li a .default-language {
+        font-style: italic;
+        color: @tc-quiet-text;
+    }
+
+    li a .checked-language::before {
+        content: "✓";
+        margin-left: -11px;
+        margin-right: 3px;
     }
 }
 
