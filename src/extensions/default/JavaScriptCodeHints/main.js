@@ -564,7 +564,7 @@ define(function (require, exports, module) {
          * information, and reject any pending deferred requests.
          * 
          * @param {Editor} editor - editor context to be initialized.
-         * @param {Editor} previousEditor - the previous editor.
+         * @param {?Editor} previousEditor - the previous editor.
          */
         function initializeSession(editor, previousEditor) {
             session = new Session(editor);
@@ -579,7 +579,7 @@ define(function (require, exports, module) {
          * 
          * @param {Editor} editor - editor context on which to listen for
          *      changes
-         * @param {Editor} previousEditor - the previous editor
+         * @param {?Editor} previousEditor - the previous editor
          */
         function installEditorListeners(editor, previousEditor) {
             // always clean up cached scope and hint info
@@ -624,18 +624,21 @@ define(function (require, exports, module) {
          * @param {Editor} previous - the previous editor context
          */
         function handleActiveEditorChange(event, current, previous) {
-            // Uninstall "languageChanged" event listeners on the previous editor's document
-            if (previous && previous !== current) {
+            // Uninstall "languageChanged" event listeners on previous editor's document & put them on current editor's doc
+            if (previous) {
                 $(previous.document)
                     .off(HintUtils.eventName("languageChanged"));
             }
-            if (current && current.document !== DocumentManager.getCurrentDocument()) {
+            if (current) {
                 $(current.document)
                     .on(HintUtils.eventName("languageChanged"), function () {
+                        // If current doc's language changed, reset our state by treating it as if the user switched to a
+                        // different document altogether
                         uninstallEditorListeners(current);
                         installEditorListeners(current);
                     });
             }
+            
             uninstallEditorListeners(previous);
             installEditorListeners(current, previous);
         }
@@ -802,13 +805,6 @@ define(function (require, exports, module) {
         $(EditorManager)
             .on(HintUtils.eventName("activeEditorChange"),
                 handleActiveEditorChange);
-        
-        $(DocumentManager)
-            .on("currentDocumentLanguageChanged", function (e) {
-                var activeEditor = EditorManager.getActiveEditor();
-                uninstallEditorListeners(activeEditor);
-                installEditorListeners(activeEditor);
-            });
         
         $(ProjectManager).on("beforeProjectClose", function () {
             ScopeManager.handleProjectClose();

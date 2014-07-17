@@ -672,19 +672,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Overrides the default language of this document and sets it to the given
-     * language. This change is not persisted if the document is closed.
-     * @param {?Language} language The language to be set for this document; if
-     * null, the language will be set back to the default.
-     */
-    Document.prototype.setLanguageOverride = function (language) {
-        LanguageManager._setLanguageOverrideForPath(this.file.fullPath, language);
-        this._updateLanguage();
-    };
-
-    /**
-     * Updates the language according to the file extension. If the current
-     * language was forced (set manually by user), don't change it.
+     * Updates the language to match the current mapping given by LanguageManager
      */
     Document.prototype._updateLanguage = function () {
         var oldLanguage = this.language;

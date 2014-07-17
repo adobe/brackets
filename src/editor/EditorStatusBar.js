@@ -365,9 +365,9 @@ define(function (require, exports, module) {
             var document = EditorManager.getActiveEditor().document,
                 fullPath = document.file.fullPath,
                 defaultLang = LanguageManager.getLanguageForPath(fullPath, true);
-            // if default language selected, don't "force" it
-            // (passing in null will reset the force flag)
-            document.setLanguageOverride(lang === defaultLang ? null : lang);
+            
+            // if default language selected, pass null to clear the override
+            LanguageManager.setLanguageOverrideForPath(fullPath, lang === defaultLang ? null : lang);
         });
 
         $statusOverwrite.on("click", _updateEditorOverwriteMode);

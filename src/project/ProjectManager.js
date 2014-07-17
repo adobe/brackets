@@ -1117,8 +1117,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Loads the given folder as a project. Normally, you would call openProject() instead to let the
-     * user choose a folder.
+     * Loads the given folder as a project. Does NOT prompt about any unsaved changes - use openProject()
+     * instead to check for unsaved changes and (optionally) let the user choose the folder to open.
      *
      * @param {!string} rootPath  Absolute path to the root folder of the project.
      *  A trailing "/" on the path is optional (unlike many Brackets APIs that assume a trailing "/").
@@ -1155,8 +1155,9 @@ define(function (require, exports, module) {
             DocumentManager.closeAll();
     
             _unwatchProjectRoot().always(function () {
-                // Done closing old project (if any)
+                // Finish closing old project (if any)
                 if (_projectRoot) {
+                    LanguageManager._resetPathLanguageOverrides();
                     PreferencesManager._reloadUserPrefs(_projectRoot);
                     $(exports).triggerHandler("projectClose", _projectRoot);
                 }
