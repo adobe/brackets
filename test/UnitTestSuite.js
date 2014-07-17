@@ -64,6 +64,7 @@ define(function (require, exports, module) {
     require("spec/MultiRangeInlineEditor-test");
     require("spec/NativeMenu-test");
     require("spec/NodeConnection-test");
+    require("spec/Pane-test");
     require("spec/PreferencesBase-test");
     require("spec/PreferencesManager-test");
     require("spec/ProjectManager-test");

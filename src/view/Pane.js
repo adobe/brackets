@@ -145,10 +145,6 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype._addToViewList = function (file, inPlace) {
-        if (!((file instanceof File) || (file instanceof InMemoryFile))) {
-            return;
-        }
-        
         if (inPlace && inPlace.indexRequested) {
             // If specified, insert into the pane view list at this 0-based index
             this.viewList.splice(inPlace.index, 0, file);
@@ -282,7 +278,7 @@ define(function (require, exports, module) {
         }
 
         if (!current && this.currentView) {
-            current = this.getPathForView(this.currentView);
+            current = this.currentView.getFullPath();
         }
         
         var index = this.findInViewListMRUOrder(current);
@@ -308,20 +304,22 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype._handleFileNameChange = function (e, oldname, newname) {
-        if (this.findInViewList(newname) >= 0) {
-            if (this.views.hasOwnProperty(oldname)) {
-                var view = this.views[oldname];
+        var dispatchEvent = (this.findInViewList(newname) >= 0);
+        
+        if (this.views.hasOwnProperty(oldname)) {
+            var view = this.views[oldname];
 
-                this.views[newname] = view;
-                delete this.views[oldname];
-            }
+            this.views[newname] = view;
+            delete this.views[oldname];
+        }
+        
+        if (dispatchEvent) {
             $(this).triggerHandler("viewListChanged");
         }
     };
 
     Pane.prototype._handleFileDeleted = function (e, fullPath) {
-        if (this.findInViewList(fullPath) >= 0) {
-            this.doRemoveView({fullPath: fullPath});
+        if (this.doRemoveView({fullPath: fullPath})) {
             $(this).triggerHandler("viewListChanged");
         }
     };
@@ -336,10 +334,6 @@ define(function (require, exports, module) {
     
     Pane.prototype.getViewForPath = function (path) {
         return this.views[path];
-    };
-    
-    Pane.prototype.getPathForView = function (view) {
-        return view.getFile().fullPath;
     };
     
     Pane.prototype.addView = function (path, view, show) {
@@ -385,7 +379,7 @@ define(function (require, exports, module) {
         }
         
         if ((this.findInViewList(newPath) !== -1) && (!this.views.hasOwnProperty(newPath))) {
-            console.error(newPath + "found in pane working set but pane.addView() has not been called for the view created for it");
+            console.error(newPath + " found in pane working set but pane.addView() has not been called for the view created for it");
         }
     };
     
@@ -440,11 +434,12 @@ define(function (require, exports, module) {
     
     Pane.prototype.doRemoveView = function (file) {
         var nextFile = this.traverseViewListByMRU(1, file.fullPath);
-        if (nextFile) {
-            if (this.views.hasOwnProperty(nextFile)) {
-                this.showView(this.views[nextFile]);
+        if (nextFile && nextFile.fullPath !== file.fullPath) {
+            var fullPath = nextFile.fullPath;
+            if (this.views.hasOwnProperty(fullPath)) {
+                this.showView(this.views[fullPath]);
             } else {
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath,
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath,
                                                              paneId: this.id});
             }
         }
