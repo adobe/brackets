@@ -1,6 +1,90 @@
 /**
  * All BezierCurveEditor selectors descend from .bezier-curve-editor to constrain styles to this extension
  */
+// General
+@bc-bg-highlight:               #e0f0fa;
+@bc-bg-inline-widget:           #e6e9e9;
+@bc-bg-tool-bar:                #5D5F60;
+@bc-bg-status-bar:              #fff;
+@bc-disabled-opacity:           0.3;
+@bc-error:                      #f74687;
+@bc-modal-backdrop-opacity:     0.4;
+
+// Highlights and Shadows
+@bc-highlight:                  rgba(255, 255, 255, 0.12);
+@bc-highlight-hard:             rgba(255, 255, 255, 0.7);
+@bc-shadow:                     rgba(0, 0, 0, 0.24);
+@bc-shadow-large:               rgba(0, 0, 0, 0.5);
+@bc-shadow-small:               rgba(0, 0, 0, 0.06);
+
+// Border Radius
+@bc-border-radius:              3px;
+@bc-border-radius-large:        5px;
+@bc-border-radius-small:        2px;
+
+// Menu
+@bc-menu-bg:                    #fff;
+@bc-menu-text:                  #000;
+@bc-menu-separator:             #eaeaea;
+
+// Warning
+@bc-warning-bg:                 #fdf5cc;
+@bc-warning-text:               #635301;
+
+// Text
+@bc-text:                       #333;
+@bc-text-alt:                   #fff;
+@bc-text-emphasized:            #111;
+@bc-text-link:                  #0083e8;
+@bc-text-quiet:                 #aaa;
+@bc-text-thin:                  #000;
+@bc-text-thin-quiet:            #777;
+
+// Panel
+@bc-panel-bg:                   #dfe2e2;
+@bc-panel-bg-alt:               #e6e9e9;
+@bc-panel-bg-promoted:          #d4d7d7;
+@bc-panel-bg-hover:             rgba(255, 255, 255, 0.6);
+@bc-panel-bg-hover-alt:         rgba(0, 0, 0, 0.04);
+@bc-panel-bg-selected:          #d0d5d5;
+@bc-panel-bg-text-highlight:    #fff;
+@bc-panel-border:               rgba(0, 0, 0, 0.09);
+@bc-panel-separator:            #c3c6c5;
+
+// Default Button
+@bc-btn-bg:                     #e5e9e9;
+@bc-btn-bg-down:                #d3d7d7;
+@bc-btn-bg-down-alt:            #404141;
+@bc-btn-border:                 #b2b5b5;
+@bc-btn-border-error:           #fa689d;
+@bc-btn-border-error-glow:      #ffb0cd;
+@bc-btn-border-focused:         #2893ef;
+@bc-btn-border-focused-glow:    #94ceff;
+@bc-btn-triangle:               #878787;
+@bc-input-bg:                   #fff;
+
+// Primary Button
+@bc-primary-btn-bg:             #288edf;
+@bc-primary-btn-bg-down:        #0380e8;
+@bc-primary-btn-border:         #1474bf;
+
+// Secondary Button
+@bc-secondary-btn-bg:           #91cc41;
+@bc-secondary-btn-bg-down:      #82b839;
+@bc-secondary-btn-border:       #74B120;
+
+// Sidebar
+@bc-sidebar-bg:                 #3C3F41;
+@bc-sidebar-selection:          #2D2E30;
+
+// images
+@button-icon:                   "images/find-replace-sprites.svg";
+@jstree-sprite:                 url("images/jsTreeSprites.svg") !important;
+@cubic-bezier:                  url(grid.png);
+@swatch-bg:                     url("../img/color_thumb_back.png");
+@swatch-bg-2x:                  url("../img/color_thumb_back@2x.png");
+
+
 .bezier-curve-editor * {
     margin: 0;
 }
@@ -16,9 +100,7 @@
 }
 
 .bezier-curve-editor .cubic-bezier {
-    background: url(grid.png) 0px -75px repeat-x;
-    border-left: 1px solid #bbb;
-    border-right: 1px solid #bbb;
+    background: @cubic-bezier 0px -75px repeat-x;
     background-size: 15px 450px;
     height: 300px;
     width: 149px;
@@ -34,7 +116,7 @@
     height: 300px;
     width: 149px;
     margin: 0 0 0 25px;
-    background: -webkit-linear-gradient(270deg, rgba(255, 255, 255, 0) 0%, #fff 30%, #fff 70%, rgba(255, 255, 255, 0) 100%);
+    background: -webkit-linear-gradient(270deg, rgba(255, 255, 255, 0) 0%, @bc-input-bg 30%, @bc-input-bg 70%, rgba(255, 255, 255, 0) 100%);
     background-position: 2px 0;
     position: absolute;
     top: 0;
@@ -63,7 +145,7 @@
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     
-    color: #454545;
+    color: @bc-text;
     font-size: 11px;
     line-height: 1;
 }
@@ -89,12 +171,12 @@
 }
 
 .bezier-curve-editor .control-point {
-    background: -webkit-linear-gradient(270deg, rgb(249, 249, 249) 50%, rgb(237, 237, 237) 50%);
+    background: @bc-btn-bg;
     position: absolute;
     z-index: 2;
     height: 16px;
     width: 16px;
-    border: 1px solid #9c9e9e;
+    border: 1px solid @bc-btn-border;
     margin: -8px 0 0 -8px;
     outline: none;
     padding: 0 !important;
@@ -103,12 +185,12 @@
 }
 
 .bezier-curve-editor .control-point:focus {
-    border: 1px solid #0940fd !important;
-    box-shadow: 0 0 0 2px #6fb5f1;
+    border: 1px solid @bc-btn-border-focused !important;
+    box-shadow: 0 0 0 2px @bc-btn-border-focused-glow;
 }
 
 .bezier-curve-editor .P0, .bezier-curve-editor .P3 {
-    background: #1461FC;
+    background: @bc-btn-border-focused;
     border-radius: 0;
     border: none;
     height: 12px;
@@ -152,6 +234,7 @@
     font-family: SourceSansPro;
     font-size: 11px;
     line-height: 1.9 !important;
+    color: @bc-text;
 }
 
 
@@ -215,7 +298,7 @@
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     
-    color: #454545;
+    color: @bc-text;
     font-size: 11px;
     line-height: 1;
 }
@@ -261,15 +344,16 @@
     font-family: SourceSansPro;
     font-size: 11px;
     line-height: 1.9 !important;
+    color: @bc-text;
 }
 
 .bezier-curve-editor kbd,
 .step-editor kbd {
     font-size: 15px;
     font-weight: bold;
-    color: #454545;
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: @bc-text;
+    background: @bc-shadow;
+    border: 1px solid @bc-shadow;
     display: inline-block;
     margin: 0 2px 2px 0;
     padding: 0 3px 2px;
@@ -284,6 +368,7 @@
     font-family: SourceSansPro;
     font-weight: normal;
     padding: 4px 4px;
+    color: @bc-text;
 }
 
 .bezier-curve-editor .info .hint,

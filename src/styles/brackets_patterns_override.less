@@ -31,28 +31,23 @@
  *
  */
 
-/* Variable Overrides */
-
-@tooltipBackground: #fff;
-@tooltipArrowColor: @tooltipBackground;
-
 /* Links */
 
 a {
-    color: @tc-link;
+    color: @bc-text-link;
     text-decoration: none;
 }
 
 a:hover {
-    color: @tc-link-hover;
+    color: @bc-text-link;
     text-decoration: underline;
 }
 
 a:focus {
-    color: @tc-link-hover;
+    color: @bc-text-link;
     outline: 0;
     border-radius: 3px;
-    box-shadow: @tc-input-glow;
+    box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
     text-decoration: none;
 }
 
@@ -63,10 +58,9 @@ a:focus {
     padding: 0;
     margin: 0;
 
-    background: @project-panel-base-color url("images/propertiespanel_back.png") repeat-x 0 0;
-    color: #bbb;
+    background: @project-panel-base-color;
     letter-spacing: .01em;
-    text-shadow: 0px 1px 2px rgba(0,0,0,.5);
+    text-shadow: 0px 1px 2px @bc-shadow-large;
 }
 
 
@@ -171,11 +165,11 @@ a:focus {
         }
 
         > a:hover {
-            background-color: rgba(0, 0, 0, 0.24) !important;
+            background-color: @bc-shadow !important;
         }
 
         > a:active {
-            background-color: rgba(0, 0, 0, 0.66) !important;
+            background-color: @bc-shadow-large !important;
         }
     }
 
@@ -192,8 +186,8 @@ a:focus {
 .toolbar {
     font-size: @label-font-size;
     padding: 4px 8px;
-    background-color: @bc-white;
-    color: @bc-black;
+    background-color: @bc-bg-tool-bar;
+    color: @bc-text;
 
     position: relative;  // needed for abs-positioned elements in toolbar (e.g. right-aligned "X")
 
@@ -233,14 +227,13 @@ a:focus {
 @menubar-top-padding: 8px;
 @menubar-bottom-padding: 6px;
 @menubar-h-padding: 9px;
-@item-highlight-color: #e0f0fa;
 
 // Dropdown Menu Animation
 .dropdown-menu {
     .animation(dropdown, 90ms, cubic-bezier(0, .97, .2, .99), 0, 1);
     -webkit-transform-origin: 0 0;
     border: none;
-    border-radius: @tc-control-border-radius;
+    border-radius: @bc-border-radius;
 }
 
 @-webkit-keyframes dropdown {
@@ -265,7 +258,7 @@ a:focus {
 
     // General item appearance
     a {
-        color: @bc-black;
+        color: @bc-menu-text;
         text-shadow: none;
         cursor: default;
     }
@@ -274,20 +267,20 @@ a:focus {
     .dropdown-toggle {
         padding: @menubar-top-padding @menubar-h-padding @menubar-bottom-padding;
         border: 1px solid rgba(0, 0, 0, 0); // transparent border just to hold the layout so it doesn't shift on hover
-        color: fadeout(@bc-black, 25%);
+        color: fadeout(@bc-menu-text, 25%);
         font-weight: @font-weight-light;
     }
     .dropdown-toggle:focus {
-        background-color: @bc-white;
+        background-color: @bc-menu-bg;
         outline: 0;
     }
     .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
         /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
            color rules we need to override (and Bootstrap has several selectors because the colors really differ
            in their defaults). */
-        color: @bc-black;
-        background: @item-highlight-color;
-        border-color: #dbeaf4;
+        color: @bc-menu-text;
+        background: @bc-bg-highlight;
+        border-color: @bc-bg-highlight;
     }
 
     // no triangle icon after menu items
@@ -308,9 +301,9 @@ a:focus {
         width: -webkit-max-content;
         width: -moz-max-content;
 
-        background-color: @bc-white;
+        background-color: @bc-menu-bg;
         .border-radius(0 0 3px 3px);
-        box-shadow: @tc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-shadow;
         border: none;
 
         // Menu items
@@ -323,7 +316,7 @@ a:focus {
                 // More padding on top than bottom to center font within its bg highlight better.
                 padding: 2px 10px 0px 6px;
 
-                color: @bc-black;
+                color: @bc-menu-text;
                 text-shadow: none;
                 white-space: nowrap;
                 .box-shadow(none);
@@ -333,15 +326,15 @@ a:focus {
                 }
 
                 &:hover, &.highlight {
-                    color: @bc-black;
-                    background: @item-highlight-color;
+                    color: @bc-menu-text;
+                    background: @bc-bg-highlight;
                 }
 
                 &.disabled {
-                    color: @bc-gray;
+                    color: @bc-text-thin-quiet;
 
                     &:hover {
-                        background: @bc-white;
+                        background: @bc-menu-bg;
                     }
                 }
 
@@ -358,7 +351,7 @@ a:focus {
         }
 
         .divider {
-            background-color: #eaeaea;
+            background-color: @bc-menu-separator;
             border: 0;
             margin: 5px 1px;
         }
@@ -382,7 +375,7 @@ a:focus {
 
     .dropdown-menu {
         .border-radius(3px);
-        box-shadow: @tc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-shadow;
     }
 
     .menu-shortcut {
@@ -393,7 +386,7 @@ a:focus {
 .codehint-menu {
     opacity: 0;
     .dropdown-menu {
-        box-shadow: @tc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-shadow;
         max-height: 160px;
         overflow-y: auto;
         padding: 0;
@@ -406,14 +399,14 @@ a:focus {
 
                 // Don't show highlighting on hover for code hints...
                 &:hover {
-                    color: @bc-black;
-                    background-color: @bc-white;
+                    color: @bc-menu-text;
+                    background-color: @bc-menu-bg;
                 }
 
                 // ...except for selected item
                 &.highlight:hover {
-                    color: @bc-black;
-                    background-color: @item-highlight-color;
+                    color: @bc-menu-text;
+                    background-color: @bc-bg-highlight;
                 }
             }
         }
@@ -449,7 +442,7 @@ a:focus {
     top: 11px;
 
     /* dropdown triangle */
-    border-top: 4px solid @tc-gray-component-triangle;
+    border-top: 4px solid @bc-btn-triangle;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
 }
@@ -464,11 +457,11 @@ a:focus {
     
     &.dropdown-menu {
         border: none;
-        border-radius: @tc-control-border-radius;
+        border-radius: @bc-border-radius;
         padding: 5px 0;
         position: absolute;
         display: block;
-        box-shadow: @tc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-shadow;
         max-height: 160px;
         overflow-y: auto;
         max-width: none;
@@ -478,7 +471,7 @@ a:focus {
     
     &.dropdown-menu li a {
         padding: 1px 15px 1px 15px;
-        color: @bc-black;
+        color: @bc-menu-text;
     }
     
     &.dropdown-menu .stylesheet-link {
@@ -486,8 +479,8 @@ a:focus {
     }
     
     &.dropdown-menu a.selected {
-        background: @tc-highlight;
-        color: @bc-black !important;
+        background: @bc-bg-highlight;
+        color: @bc-menu-text !important;
     }
 
     &.dropdown-menu a {
@@ -523,17 +516,18 @@ a:focus {
 
 /* Status bar language picker's DropdownButton */
 .dropdownbutton-popup.dropdown-status-bar {
+    -webkit-transform-origin: 0 100%;
     height: auto;
     max-height: 80%;
-    
+
     // Improve how bottom of the dropdown joins with top of status bar button
     margin-top: -6px;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
-    
+
     li a .default-language {
         font-style: italic;
-        color: @tc-quiet-text;
+        color: @bc-text-quiet;
     }
 
     li a .checked-language::before {
@@ -556,11 +550,11 @@ a:focus {
     }
     
     .stylesheet-name {
-        color: @tc-text;
+        color: @bc-text;
     }
     
     .stylesheet-dir {
-        color: @tc-quiet-text;
+        color: @bc-text-quiet;
     }
 }
 
@@ -582,8 +576,8 @@ a:focus {
 }
 
 .modal {
-    background-color: @tc-gray-panel;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    background-color: @bc-panel-bg;
+    border: 1px solid @bc-panel-border;
     min-width: 200px;
     position: relative;
     top: 0;
@@ -597,13 +591,14 @@ a:focus {
 }
 
 .modal-header {
-    background: @tc-gray-panel-top-bar;
+    background: @bc-panel-bg-promoted;
     border-radius: 4px 4px 0 0;
-    border-bottom: 1px solid @tc-gray-panel-separator;
+    border-bottom: 1px solid @bc-panel-separator;
+    box-shadow: inset 0 1px 0 @bc-highlight;
 }
 
 .modal-body {
-    background-color: @tc-gray-panel;
+    background-color: @bc-panel-bg;
 }
 
 .modal-body.no-padding {
@@ -629,8 +624,8 @@ a:focus {
 
 .modal-footer {
     text-align: right;
-    background-color: @tc-gray-panel;
-    border-top: 1px solid @tc-gray-panel-separator;
+    background-color: @bc-panel-bg;
+    border-top: 1px solid @bc-panel-separator;
     box-shadow: none;
     padding: 10px 15px 12px;
     white-space: nowrap;
@@ -670,7 +665,7 @@ a:focus {
 
 .modal-backdrop {
     .animation (backdrop, 200ms, linear, 0, 1);
-    opacity: 0.4;
+    opacity: @bc-modal-backdrop-opacity;
 }
 
 @-webkit-keyframes backdrop {
@@ -693,7 +688,7 @@ a:focus {
 
 
 .dialog-title {
-    color: @tc-light-weight-text;
+    color: @bc-text-thin;
     margin-bottom: 0;
     margin-top: 0;
     font-size: 22px;
@@ -702,7 +697,7 @@ a:focus {
 }
 
 .dialog-message {
-    color: @tc-text;
+    color: @bc-text;
     font-size: 14px;
     line-height: 20px;
     margin-bottom: 20px;
@@ -711,7 +706,7 @@ a:focus {
 
 .dialog-message li {
     line-height: 20px;
-    color: @tc-light-weight-text;
+    color: @bc-text-thin;
     padding: 0 0 5px;
 }
 
@@ -730,7 +725,7 @@ a:focus {
 
 .dialog-list > li:before {
     content: "•  ";
-    color: @tc-input-border;
+    color: @bc-btn-border;
     font-size: 1.5em;
     position: relative;
     top: 1px;
@@ -814,7 +809,7 @@ a[href^="http"] {
 
 /* Extension Manager dialog */
 .extension-manager-dialog {
-    background-color: #d4d7d7;
+    background-color: @bc-panel-bg-promoted;
     width: 760px;
     
     .modal-header {
@@ -823,13 +818,13 @@ a[href^="http"] {
         
         .nav-tabs {
             margin: 0;
-            border-color: #c3c6c5;
+            border-color: @bc-panel-separator;
 
             /* Tab styling */
             > li > a {
                 min-width: 80px;
                 min-height: 60px;
-                color: black;
+                color: @bc-text-thin;
                 cursor: default;
                 font-size: 12px;
 
@@ -843,8 +838,8 @@ a[href^="http"] {
                 text-align: center;
 
                 &:hover {
-                    background-color: rgba(0, 0, 0, 0.04);
-                    border-color: rgba(0, 0, 0, 0.04);
+                    background-color: @bc-panel-bg-hover-alt;
+                    border-color: @bc-panel-bg-hover-alt;
                 }
 
                 > img {
@@ -861,16 +856,16 @@ a[href^="http"] {
             /* Colors for the active tab, remove bottom border */
             > .active > a,
             > .active > a:hover {
-                background-color: #dfe2e2;
-                border-color: #b4b7b7 #b4b7b7 transparent #b4b7b7;
+                background-color: @bc-panel-bg;
+                border-color: @bc-btn-border @bc-btn-border transparent @bc-btn-border;
             }
             
             > li {
                 position: relative;  // for positioning .notification icon
                 .notification {
                     display: none;  // hidden by default
-                    background-color: #91CC41;
-                    color: white;
+                    background-color: @bc-secondary-btn-bg;
+                    color: @bc-text-alt;
                     border-radius: 16px;
                     padding: 0 5px;
                     position: absolute;
@@ -887,7 +882,7 @@ a[href^="http"] {
             right: 15px;
         }
         .search {
-            background: #fff url("images/topcoat-search-20.svg") 3px 4px no-repeat;
+            background: @bc-input-bg url("images/topcoat-search-20.svg") 3px 4px no-repeat;
             float: right;
             margin: 0;
             padding-left: 27px;
@@ -924,7 +919,7 @@ a[href^="http"] {
     .modal-body {
         height: 400px;
         overflow-y: scroll;
-        background-color: @tc-gray-panel;
+        background-color: @bc-panel-bg;
         padding: 0;
         
         .empty-message {
@@ -936,7 +931,7 @@ a[href^="http"] {
         }
 
         .info-message {
-            background-color: @tc-gray-panel;
+            background-color: @bc-panel-bg;
             padding: 1em;
         }
 
@@ -957,7 +952,7 @@ a[href^="http"] {
                 width: 220px;
             }
             .ext-name {
-                color: @tc-text;
+                color: @bc-text;
                 display: block;
                 font-size: 15px;
                 font-weight: normal;
@@ -966,16 +961,16 @@ a[href^="http"] {
             }
             .ext-desc {
                 width: auto;
-                color: @tc-text;
+                color: @bc-text;
                 font-weight: normal;
                 .user-select(text);
                 cursor: text;
             }
             .ext-keywords {
-                color: @tc-input-placeholder-text;
+                color: @bc-text-thin-quiet;
             }
             .muted {
-                color: @tc-input-placeholder-text;
+                color: @bc-text-thin-quiet;
             }
             .alert {
                 font-size: 11px;
@@ -983,7 +978,7 @@ a[href^="http"] {
             }
             .error {
                 font-weight: @font-weight-semibold;
-                color: @tc-error-text;
+                color: @bc-error;
             }
             .ext-version,
             .ext-date,
@@ -1025,7 +1020,7 @@ a[href^="http"] {
         overflow: auto;
 
         #about-build-number {
-            color: @tc-light-weight-quiet-text;
+            color: @bc-text-thin-quiet;
         }
         .about-info {
             max-height: 300px;
@@ -1078,32 +1073,32 @@ input[type="search"],
 input[type="tel"],
 input[type="color"],
 .uneditable-input {
-    background-color: @tc-input-background;
-    border: 1px solid @tc-input-border;
-    color: @tc-light-weight-text;
+    background-color: @bc-input-bg;
+    border: 1px solid @bc-btn-border;
+    color: @bc-text-thin;
     font-size: (@baseFontSize + 1px);
     font-weight: normal;
     -webkit-font-smoothing: antialiased;
-    .border-radius(@tc-control-border-radius);
-    .box-shadow(@tc-input-inner-shadow);
+    .border-radius(@bc-border-radius);
+    .box-shadow(inset 0 1px 0 @bc-shadow-small);
     .transition(~"border linear 180ms, box-shadow linear 180ms");
 
     &::-webkit-input-placeholder {
-        color: @tc-input-placeholder-text;
+        color: @bc-text-thin-quiet;
         font-weight: normal;
         -webkit-font-smoothing: antialiased;
     }
 
     &:focus {
         outline: 0;
-        background-color: @tc-input-background;
+        background-color: @bc-input-bg;
         text-shadow: none;
-        border: 1px solid @tc-gray-component-focused-border;
-        box-shadow: @tc-input-inner-shadow, @tc-input-glow;
+        border: 1px solid @bc-btn-border-focused;
+        box-shadow: inset 0 1px 0 @bc-shadow-small, 0 0 0 1px @bc-btn-border-focused-glow;
     }
 
     &:disabled {
-        opacity: @tc-disabled-opacity;
+        opacity: @bc-disabled-opacity;
         cursor: default;
     }
 }
@@ -1115,8 +1110,8 @@ input[type="color"],
 }
 
 .tooltip-inner {
-    box-shadow: @tc-dropdown-shadow;
-    color: @tc-text;
+    box-shadow: 0 3px 9px @bc-shadow;
+    color: @bc-text;
     max-width: 220px;
     text-align: left;
 }
@@ -1144,107 +1139,109 @@ input[type="color"],
 .btn:focus,
 .btn.disabled,
 .btn[disabled] {
-    background-color: @tc-button-background;
+    background-color: @bc-btn-bg;
+    color: @bc-text;
 }
 
 .btn.primary:hover,
 .btn.primary:focus,
 .btn.primary.disabled,
 .btn.primary[disabled] {
-    background-color: @tc-call-to-action;
+    background-color: @bc-primary-btn-bg;
 }
 
 .btn {
     // Button Base
     background-image: none;
 
-    background-color: @tc-button-background;
-    color: @tc-text;
+    background-color: @bc-btn-bg;
+    color: @bc-text;
     cursor: default;
     font-size: (@baseFontSize + 1);
     font-weight: @font-weight-semibold;
     line-height: normal;
-    border: 1px solid @tc-gray-component-border;
-    .border-radius(@tc-control-border-radius);
-    box-shadow: @tc-button-highlight;
+    border: 1px solid @bc-btn-border;
+    .border-radius(@bc-border-radius);
+    box-shadow: inset 0 1px 0 @bc-highlight;
     -webkit-font-smoothing: antialiased;
+    text-shadow: none;
 
     &:hover {
-        background-color: @tc-button-background;
-        color: @tc-text;
+        background-color: @bc-btn-bg;
+        color: @bc-text;
     }
 
     // Focus state for keyboard and accessibility
     &:focus {
-        border: 1px solid @tc-gray-component-focused-border;
-        box-shadow: @tc-button-highlight, @tc-input-glow;
-        color: @tc-text;
+        border: 1px solid @bc-btn-border-focused;
+        box-shadow: inset 0 1px 0 @bc-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
+        color: @bc-text;
         outline: none;
     }
 
     // Active and Disabled states
     &.active:not([disabled]) {
         background-image: none;
-        background-color: @tc-highlight;
-        box-shadow: @tc-button-down-shadow;
-        color: @tc-link;
+        background-color: @bc-bg-highlight;
+        box-shadow: inset 0 1px 0 @bc-shadow-small;
+        color: @bc-text-alt;
     }
     
     &:active:not([disabled]) {
         background-image: none;
-        background-color: @tc-button-down-background;
-        box-shadow: @tc-button-down-shadow;
-        color: @tc-text;
+        background-color: @bc-btn-bg-down;
+        box-shadow: inset 0 1px 0 @bc-shadow-small;
+        color: @bc-text;
     }
 
     &.disabled, &[disabled] {
-        opacity: @tc-disabled-opacity;
+        opacity: @bc-disabled-opacity;
     }
 
     // Primary Button Type
     &.primary {
         background-image: none;
-        background-color: @tc-call-to-action;
-        border: 1px solid  @tc-call-to-action-border;
-        box-shadow: @tc-call-to-action-highlight;
-        color: @tc-call-to-action-text;
+        background-color: @bc-primary-btn-bg;
+        border: 1px solid  @bc-primary-btn-border;
+        box-shadow: inset 0 1px 0 @bc-highlight;
+        color: @bc-text-alt;
         text-shadow: none;
         &.active,
         &:active {
             background-image: none;
-            background-color: @tc-call-to-action-down;
-            box-shadow: @tc-call-to-action-down-shadow;
-            color: @tc-call-to-action-text;
+            background-color: @bc-primary-btn-bg-down;
+            box-shadow: inset 0 1px 0 @bc-shadow-small;
+            color: @bc-text-alt;
         }
 
         &:focus {
-            border: 1px solid @tc-call-to-action-border;
-            box-shadow: @tc-call-to-action-highlight, @tc-input-glow;
+            border: 1px solid @bc-btn-border-focused;
+            box-shadow: inset 0 1px 0 @bc-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
             outline: none;
         }
     }
     
     // Update Button Type
     &.update {
-        background-color: #91cc41;
-        border-color: #65a015;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.27);
-        color: #fff;
+        background-color: @bc-secondary-btn-bg;
+        border-color: @bc-secondary-btn-border;
+        box-shadow: inset 0 1px 0 @bc-highlight;
+        color: @bc-text-alt;
         font-weight: @font-weight-semibold;
-        text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.24);
+        text-shadow: 0 -1px 0 @bc-shadow-small;
         
         &:active {
-            background-color: #82b839;
-            border-color: #5b8028;
-            box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
-            color: #fff;
+            background-color: @bc-secondary-btn-bg-down;
+            border-color: @bc-secondary-btn-border;
+            box-shadow: inset 0 1px 0 @bc-shadow-small;
+            color: @bc-text-alt;
         }
     }
 
     // Button Sizes
     &.large {
         font-size: (@baseFontSize + 1px);
-        .border-radius(@tc-control-border-radius);
+        .border-radius(@bc-border-radius);
     }
     &.small {
         font-size: (@baseFontSize - 1px);
@@ -1253,16 +1250,16 @@ input[type="color"],
 
 .btn-alt-quiet {
     border: 1px solid transparent;
-    border-radius: @tc-control-border-radius;
+    border-radius: @bc-border-radius;
     text-decoration: none;
     &:hover {
-        border: 1px solid @tc-alt-component-border;
-        box-shadow: @tc-button-alt-highlight;
+        border: 1px solid @bc-btn-border;
+        box-shadow: inset 0 1px 0 @bc-highlight;
     }
     &:active {
-        background: @tc-button-alt-down-background;
-        border: 1px solid @tc-alt-component-border;
-        box-shadow: @tc-call-to-action-down-shadow;
+        background: @bc-btn-bg-down-alt;
+        border: 1px solid @bc-btn-border;
+        box-shadow: inset 0 1px 0 @bc-shadow-small;
     }
 }
 
@@ -1272,12 +1269,33 @@ input[type="color"],
     font-weight: normal;
     line-height: 14px;
     &:focus {
-        border: 1px solid @tc-gray-component-focused-border;
-        box-shadow: @tc-button-highlight, @tc-input-glow;
+        border: 1px solid @bc-btn-border-focused;
+        box-shadow: inset 0 1px 0 @bc-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
         outline: none;
     }
 }
 
+.btn-group > .btn:first-child {
+    border-top-left-radius: @bc-border-radius;
+    border-bottom-left-radius: @bc-border-radius;
+}
+
+.btn-group > .btn:last-child,
+.btn-group > .dropdown-toggle {
+    border-top-right-radius: @bc-border-radius;
+    border-bottom-right-radius: @bc-border-radius;
+}
+
+.btn-group > .btn.large:first-child {
+    border-top-left-radius: @bc-border-radius;
+    border-bottom-left-radius: @bc-border-radius;
+}
+
+.btn-group > .btn.large:last-child,
+.btn-group > .large.dropdown-toggle {
+    border-top-right-radius: @bc-border-radius;
+    border-bottom-right-radius: @bc-border-radius;
+}
 
 /* Tables */
 
@@ -1299,17 +1317,18 @@ input[type="color"],
 .table-striped tbody {
     tr:nth-child(odd) td,
     tr:nth-child(odd) th {
-        background-color: @tc-lighter-gray; // TopCoat palette
+        background-color: @bc-panel-bg-alt;
     }
     tr:nth-child(even) td,
     tr:nth-child(even) th {
-        background-color: @tc-gray-panel; // turn off bootstrap hover highlight
+        background-color: @bc-panel-bg; // turn off bootstrap hover highlight
     }
 }
 .row-highlight tbody {
     tr:hover td,
     tr:hover th {
-        background-color: @tc-highlight; // TopCoat palette
+        background-color: @bc-bg-highlight;
+        color: @bc-menu-text;
     }
 }
 
@@ -1322,7 +1341,7 @@ strong {
 /* Type */
 
 code {
-    color: @bc-black;
+    color: @bc-text;
     background-color: transparent;
 }
 
@@ -1346,7 +1365,7 @@ b,
 strong,
 dt,
 .label {
-    color: @tc-text;
+    color: @bc-text;
     font-weight: @font-weight-semibold;
 }
 
@@ -1357,13 +1376,13 @@ dt,
 
 .alert {
     text-shadow: none;
-    background-color: @tc-warning-background;
+    background-color: @bc-warning-bg;
     border: none;
 }
 .alert,
 .alert h4 {
     // Specified for the h4 to prevent conflicts of changing @headingsColor
-    color: @tc-warning-text;
+    color: @bc-warning-text;
 }
 
 input[type="radio"],
@@ -1375,31 +1394,68 @@ input[type="checkbox"] {
     height: 13px;
     width: 13px;
     vertical-align: middle;
-    border: 1px solid @tc-gray-component-border;
+    border: 1px solid @bc-btn-border;
     border-radius: 3px;
-    background-color: @tc-button-background;
+    background-color: @bc-btn-bg;
     -webkit-appearance: none;
-    box-shadow: @tc-button-highlight;
+    box-shadow: inset 0 1px 0 @bc-highlight;
 }
 
 input[type="checkbox"]:active:not(:disabled) {
-    background-color: @tc-button-down-background;
-    box-shadow: @tc-button-down-shadow;
+    background-color: @bc-btn-bg-down;
+    box-shadow: inset 0 1px 0 @bc-shadow-small;
 }
 
 input[type="checkbox"]:focus {
     outline:none;
-    border: 1px solid @tc-gray-component-focused-border;
-    box-shadow: @tc-input-glow;
+    border: 1px solid @bc-btn-border-focused;
+    box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
 }
 
 input[type="checkbox"]:checked:before {
     font-weight: bold;
-    color: @tc-text;
+    color: @bc-text;
     content: '\2713';
     -webkit-margin-start: 0;
     position: relative;
     left: 2px;
     top: -7px;
     font-size: 16px;
+}
+
+code {
+    border: none;
+}
+
+.close {
+    color: @bc-text;
+    text-shadow: none;
+    opacity: 0.7;
+    filter: alpha(opacity=70);
+}
+
+.close:hover {
+    color: @bc-text;
+    opacity: 1;
+    filter: alpha(opacity=100);
+}
+
+.dropdown-menu {
+    background-color: @bc-menu-bg;
+    color: @bc-menu-text;
+    
+    .divider {
+        background-color: @bc-menu-separator;
+        border: none;
+    }
+}
+
+.form-horizontal {
+    .controls {
+        margin-left: 170px;
+    
+        input[type='checkbox'] {
+            margin-top: 8px;
+        }
+    }
 }

@@ -226,7 +226,7 @@ define(function (require, exports, module) {
 
         _modeToLanguageMap[mode] = language;
     }
-    
+
     /**
      * Adds a language mapping for the specified fullPath. If language is falsy (null or undefined), the mapping
      * is removed.
@@ -241,7 +241,7 @@ define(function (require, exports, module) {
             _filePathToLanguageMap[fullPath] = language;
         }
     }
-    
+
     /**
      * Resets all the language overrides for file paths. Used by unit tests only.
      */
@@ -281,15 +281,15 @@ define(function (require, exports, module) {
             language = _filePathToLanguageMap[path],
             extension,
             parts;
-        
+
         // if there's an override, return it
         if (!ignoreOverride && language) {
             return language;
         }
-        
+
         fileName = FileUtils.getBaseName(path).toLowerCase();
         language = _fileNameToLanguageMap[fileName];
-        
+
         // If no language was found for the file name, use the file extension instead
         if (!language) {
             // Split the file name into parts:
@@ -346,7 +346,7 @@ define(function (require, exports, module) {
     function getLanguages() {
         return $.extend({}, _languages); // copy to prevent modification
     }
-    
+
     /**
      * Resolves a CodeMirror mode to a Language object.
      * @param {!string} mode CodeMirror mode

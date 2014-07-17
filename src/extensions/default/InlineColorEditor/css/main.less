@@ -21,6 +21,90 @@
  * 
  */
 
+// General
+@bc-bg-highlight:               #e0f0fa;
+@bc-bg-inline-widget:           #e6e9e9;
+@bc-bg-tool-bar:                #5D5F60;
+@bc-bg-status-bar:              #fff;
+@bc-disabled-opacity:           0.3;
+@bc-error:                      #f74687;
+@bc-modal-backdrop-opacity:     0.4;
+
+// Highlights and Shadows
+@bc-highlight:                  rgba(255, 255, 255, 0.12);
+@bc-highlight-hard:             rgba(255, 255, 255, 0.7);
+@bc-shadow:                     rgba(0, 0, 0, 0.24);
+@bc-shadow-medium:              rgba(0, 0, 0, 0.12);
+@bc-shadow-large:               rgba(0, 0, 0, 0.5);
+@bc-shadow-small:               rgba(0, 0, 0, 0.06);
+
+// Border Radius
+@bc-border-radius:              3px;
+@bc-border-radius-large:        5px;
+@bc-border-radius-small:        2px;
+
+// Menu
+@bc-menu-bg:                    #fff;
+@bc-menu-text:                  #000;
+@bc-menu-separator:             #eaeaea;
+
+// Warning
+@bc-warning-bg:                 #fdf5cc;
+@bc-warning-text:               #635301;
+
+// Text
+@bc-text:                       #333;
+@bc-text-alt:                   #fff;
+@bc-text-emphasized:            #111;
+@bc-text-link:                  #0083e8;
+@bc-text-quiet:                 #aaa;
+@bc-text-thin:                  #000;
+@bc-text-thin-quiet:            #777;
+
+// Panel
+@bc-panel-bg:                   #dfe2e2;
+@bc-panel-bg-alt:               #e6e9e9;
+@bc-panel-bg-promoted:          #d4d7d7;
+@bc-panel-bg-hover:             rgba(255, 255, 255, 0.6);
+@bc-panel-bg-hover-alt:         rgba(0, 0, 0, 0.04);
+@bc-panel-bg-selected:          #d0d5d5;
+@bc-panel-bg-text-highlight:    #fff;
+@bc-panel-border:               rgba(0, 0, 0, 0.09);
+@bc-panel-separator:            #c3c6c5;
+
+// Default Button
+@bc-btn-bg:                     #e5e9e9;
+@bc-btn-bg-down:                #d3d7d7;
+@bc-btn-bg-down-alt:            #404141;
+@bc-btn-border:                 #b2b5b5;
+@bc-btn-border-error:           #fa689d;
+@bc-btn-border-error-glow:      #ffb0cd;
+@bc-btn-border-focused:         #2893ef;
+@bc-btn-border-focused-glow:    #94ceff;
+@bc-btn-triangle:               #878787;
+@bc-input-bg:                   #fff;
+
+// Primary Button
+@bc-primary-btn-bg:             #288edf;
+@bc-primary-btn-bg-down:        #0380e8;
+@bc-primary-btn-border:         #1474bf;
+
+// Secondary Button
+@bc-secondary-btn-bg:           #91cc41;
+@bc-secondary-btn-bg-down:      #82b839;
+@bc-secondary-btn-border:       #74B120;
+
+// Sidebar
+@bc-sidebar-bg:                 #3C3F41;
+@bc-sidebar-selection:          #2D2E30;
+
+// images
+@button-icon:                   "images/find-replace-sprites.svg";
+@jstree-sprite:                 url("images/jsTreeSprites.svg") !important;
+@cubic-bezier:                  url(grid.png);
+@swatch-bg:                     url("../img/color_thumb_back.png");
+@swatch-bg-2x:                  url("../img/color_thumb_back@2x.png");
+
 .color-editor {
     font-size: 12px;
     min-width: 450px;
@@ -45,28 +129,28 @@
 }
 .color-editor aside header .large-swatches {
     border-radius: 3px;
-    background-image: url("../img/color_thumb_back.png");
+    background-image: @swatch-bg;
     background-size: 8px;
     height: 35px;
     width: 88px;
     margin-right: 9px;
     display: inline-block;
-    box-shadow: 0 1px 0 #fff;
     position: relative;
+    overflow: hidden;
+    -webkit-background-clip: padding-box;
+    background-clip: padding-box;
 }
 .color-editor aside header .large-swatch {
     width: 50%;
     height: 100%;
     position: absolute;
-    box-shadow: inset 0 1px 0 rgba(0,0,0,0.2);
+    box-shadow: inset 0 1px 0 @bc-shadow-medium, 0 -1px 0 @bc-highlight-hard; 
 }
 .color-editor aside header .current-color {
-    border-radius: 3px 0px 0px 3px;
     left: 0;
     top: 0;
 }
 .color-editor aside header .original-color {
-    border-radius: 0px 3px 3px 0px;
     right: 0;
     top: 0;
 }
@@ -80,11 +164,11 @@
 }
 .color-editor aside ul.swatches li:focus {
     outline: none;
-    box-shadow: 0 0 0 1px #94ceff;
+    box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
     border-radius: 2px;
 }
 .color-editor aside ul.swatches li .swatch-bg {
-    background-image: url("../img/color_thumb_back.png");
+    background-image: @swatch-bg;
     background-size: 8px;
     width: 15px;
     height: 15px;
@@ -98,13 +182,14 @@
     width: 100%;
     height: 100%;
     border-radius: 3px;
-    box-shadow: 0 -1px 0 rgba(0,0,0,0.2), 0 1px 0 #fff;
+    box-shadow: 0 -1px 1px @bc-shadow, 0 1px 0 @bc-highlight-hard;
     top: 0;
 }
 .color-editor aside ul.swatches li .value {
     left: -3px;
     position: relative;
     top: -1px;
+    color: @bc-text;
 }
 .color-editor section {
     display: inline-block;
@@ -120,8 +205,7 @@
     width: 100%;
     height: 100%;
     border-radius: 3px;
-    border-bottom: 1px solid #fff;
-    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.12);
+    box-shadow: 0 1px 0 @bc-highlight, inset 0 1px 0 @bc-shadow-medium;
 }
 .color-editor section .color-selection-field {
     width: 181px;
@@ -141,14 +225,14 @@
 .color-editor section .color-selection-field .selector-base {
     width: 12px;
     height: 12px;
-    background-color: #fff;
+    background-color: @bc-input-bg;
     position: absolute;
     margin-bottom: -8px;
     margin-left: -5px;
 }
 .color-editor section .color-selection-field .selector-base:focus {
     outline: none;
-    box-shadow: 0 0 0 5px #94ceff;
+    box-shadow: 0 0 0 5px @bc-btn-border-focused-glow;
     border-radius: 10px;
 }
 .color-editor section .color-selection-field .selector {
@@ -161,14 +245,14 @@
 }
 .color-editor section .slider {
     border-radius: 3px;
-    border-bottom: 1px solid #fff;
-    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.12);      
+    border-bottom: 1px solid @bc-highlight-hard;
+    box-shadow: 0 -1px 0 @bc-shadow-small;      
     width: 12px;
     height: 156px;
     margin-right: 13px;
-    background-color: #ccc;
+    background-color: @bc-highlight-hard;
     display: block;
-    box-shadow: 0 1px 0 #fff, inset 0 1px 0 rgba(0,0,0,0.2);
+    box-shadow: 0 1px 0 @bc-highlight-hard, inset 0 1px 0 @bc-shadow;
     float: left;
     position: relative;
 }
@@ -181,7 +265,7 @@
 }
 .color-editor section .slider .selector-base:focus {
     outline: none;
-    box-shadow: 0 0 0 5px #94ceff;
+    box-shadow: 0 0 0 5px @bc-btn-border-focused-glow;
     border-radius: 1px;
 }
 .color-editor section .slider .selector {
@@ -193,7 +277,7 @@
     background-image: url("../img/grabber_color-slider.png");
 }
 .color-editor section .slider.opacity-slider {
-    background-image: url("../img/color_thumb_back.png");
+    background-image: @swatch-bg;
     background-size: 8px;
     margin-right: 0px;  
 }
@@ -210,38 +294,38 @@
     width: 118px;
     height: 23px;
     margin-right: 5px;
-    border-color: #b2b5b5;
+    border-color: @bc-btn-border;
     box-sizing: border-box;
     display: inline-block;
-    color: #222;
+    color: @bc-text;
 }
 .color-editor section footer input {
     display: inline-block;
     height: 23px;
     padding: 0 0 0 4px;
-    border: 1px solid #b2b5b5;
-    box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
-    background: #fff;
+    border: 1px solid @bc-btn-border;
+    box-shadow: inset 0 1px 0 @bc-shadow-small;
+    background: @bc-input-bg;
     font-family: "SourceSansPro";
     font-size: 12px;
-    color: #454545;
+    color: @bc-text;
     border-radius: 3px;
     margin: 0;
     vertical-align: middle;
 }
 .color-editor section footer input:focus {
-    background: #fff;
+    background: @bc-input-bg;
     outline: none;
-    box-shadow: 0 0 0 1px #94ceff;
-    border: 1px solid #2893ef;
+    box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
+    border: 1px solid @bc-btn-border-focused;
     z-index: 911;
 }
 @media all and (-webkit-min-device-pixel-ratio : 2), (min-device-pixel-ratio : 2) {
     .color-editor aside header .large-swatches {
-        background-image: url("../img/color_thumb_back@2x.png");
+        background-image: @swatch-bg-2x;
     }
     .color-editor aside ul.swatches li .swatch-bg {
-        background-image: url("../img/color_thumb_back@2x.png");
+        background-image: @swatch-bg-2x;
     }
     .color-editor section .color-selection-field .selector {
         background-image: url("../img/grabber_color-well@2x.png");
@@ -252,7 +336,7 @@
         background-size: 200% 100%;
     }
     .color-editor section .slider.opacity-slider {
-        background-image: url("../img/color_thumb_back@2x.png");
+        background-image: @swatch-bg-2x;
     }
 }
 .color-editor ul, .color-editor li {
@@ -278,27 +362,27 @@
 }
 .color-editor .button-bar a {
     text-decoration: none;
-    color: #454545;
+    color: @bc-text;
     cursor: default;
     display: block;
     padding: 2px 4px 4px;
     height: 15px;
     font-size: 12px;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.76);
-    background-color: #e5e9e9;
-    border: 1px solid #b2b5b5;
+    text-shadow: 0 1px 0 @bc-highlight;
+    background-color: @bc-btn-bg;
+    border: 1px solid @bc-btn-border;
     border-right: 1px solid transparent;
     margin-left: -3px;
     
-    box-shadow: inset 0 1px 0 #f3f3f3;
+    box-shadow: inset 0 1px 0 @bc-highlight;
 }
 
 .color-editor .button-bar a:focus, .color-editor .button-bar li.selected a:focus{
     outline: none;
     position: relative;
-    border: 1px solid #2893ef;
-    border-right: 1px solid #2893ef !important; /* we need this !important, sorry! */
-    box-shadow: 0 0 0 1px #94ceff;
+    border: 1px solid @bc-btn-border-focused;
+    border-right: 1px solid @bc-btn-border-focused !important; /* we need this !important, sorry! */
+    box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
     z-index: 999;
 }
 .color-editor .button-bar li:first-child {
@@ -310,13 +394,13 @@
     border-bottom-left-radius: 3px;
 }
 .color-editor .button-bar li:last-child a {
-    border-right: 1px solid #b2b5b5;
+    border-right: 1px solid @bc-btn-border;
     border-top-right-radius: 3px;
     border-bottom-right-radius: 3px;
 }
 .color-editor .button-bar li.selected a {
-    background-color: #d3d7d7;
-    box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
+    background-color: @bc-bg-highlight;
+    box-shadow: inset 0 1px 0 @bc-shadow-small;
     background-image: none;
 }
 .color-editor .button-bar li.disabled a {

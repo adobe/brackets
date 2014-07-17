@@ -156,7 +156,7 @@ define(function (require, exports, module) {
      * @type {FileUtils.LINE_ENDINGS_CRLF|FileUtils.LINE_ENDINGS_LF}
      */
     Document.prototype._lineEndings = null;
-    
+
     /** Add a ref to keep this Document alive */
     Document.prototype.addRef = function () {
         //console.log("+++REF+++ "+this);
@@ -670,7 +670,7 @@ define(function (require, exports, module) {
     Document.prototype.getLanguage = function () {
         return this.language;
     };
-    
+
     /**
      * Overrides the default language of this document and sets it to the given
      * language. This change is not persisted if the document is closed.

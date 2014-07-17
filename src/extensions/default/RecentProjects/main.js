@@ -450,7 +450,7 @@ define(function (require, exports, module) {
 
     // Initialize extension
     AppInit.appReady(function () {
-        ExtensionUtils.loadStyleSheet(module, "styles/styles.css");
+        ExtensionUtils.loadStyleSheet(module, "styles/styles.less");
 
         $(ProjectManager).on("projectOpen", add);
         $(ProjectManager).on("beforeProjectClose", add);

@@ -1,18 +1,95 @@
-/* Colors */
-@body-text-color: #666;
-@emphasized-text-color: #454545;
-@heading-color: #454545;
-@link-color: #0083e8;
+// General
+@bc-bg-highlight:               #e0f0fa;
+@bc-bg-inline-widget:           #e6e9e9;
+@bc-bg-tool-bar:                #5D5F60;
+@bc-bg-status-bar:              #fff;
+@bc-disabled-opacity:           0.3;
+@bc-error:                      #f74687;
+@bc-modal-backdrop-opacity:     0.4;
+
+// Highlights and Shadows
+@bc-highlight:                  rgba(255, 255, 255, 0.12);
+@bc-highlight-hard:             rgba(255, 255, 255, 0.7);
+@bc-shadow:                     rgba(0, 0, 0, 0.24);
+@bc-shadow-large:               rgba(0, 0, 0, 0.5);
+@bc-shadow-small:               rgba(0, 0, 0, 0.06);
+
+// Border Radius
+@bc-border-radius:              3px;
+@bc-border-radius-large:        5px;
+@bc-border-radius-small:        2px;
+
+// Menu
+@bc-menu-bg:                    #fff;
+@bc-menu-text:                  #000;
+@bc-menu-separator:             #eaeaea;
+
+// Warning
+@bc-warning-bg:                 #fdf5cc;
+@bc-warning-text:               #635301;
+
+// Text
+@bc-text:                       #333;
+@bc-text-alt:                   #fff;
+@bc-text-emphasized:            #111;
+@bc-text-link:                  #0083e8;
+@bc-text-quiet:                 #aaa;
+@bc-text-thin:                  #000;
+@bc-text-thin-quiet:            #777;
+
+// Panel
+@bc-panel-bg:                   #dfe2e2;
+@bc-panel-bg-alt:               #e6e9e9;
+@bc-panel-bg-promoted:          #d4d7d7;
+@bc-panel-bg-hover:             rgba(255, 255, 255, 0.6);
+@bc-panel-bg-hover-alt:         rgba(0, 0, 0, 0.04);
+@bc-panel-bg-selected:          #d0d5d5;
+@bc-panel-bg-text-highlight:    #fff;
+@bc-panel-border:               rgba(0, 0, 0, 0.09);
+@bc-panel-separator:            #c3c6c5;
+
+// Default Button
+@bc-btn-bg:                     #e5e9e9;
+@bc-btn-bg-down:                #d3d7d7;
+@bc-btn-bg-down-alt:            #404141;
+@bc-btn-border:                 #b2b5b5;
+@bc-btn-border-error:           #fa689d;
+@bc-btn-border-error-glow:      #ffb0cd;
+@bc-btn-border-focused:         #2893ef;
+@bc-btn-border-focused-glow:    #94ceff;
+@bc-btn-triangle:               #878787;
+@bc-input-bg:                   #fff;
+
+// Primary Button
+@bc-primary-btn-bg:             #288edf;
+@bc-primary-btn-bg-down:        #0380e8;
+@bc-primary-btn-border:         #1474bf;
+
+// Secondary Button
+@bc-secondary-btn-bg:           #91cc41;
+@bc-secondary-btn-bg-down:      #82b839;
+@bc-secondary-btn-border:       #74B120;
+
+// Sidebar
+@bc-sidebar-bg:                 #3C3F41;
+@bc-sidebar-selection:          #2D2E30;
+
+// images
+@button-icon:                   "images/find-replace-sprites.svg";
+@jstree-sprite:                 url("images/jsTreeSprites.svg") !important;
+@cubic-bezier:                  url(grid.png);
+@swatch-bg:                     url("../img/color_thumb_back.png");
+@swatch-bg-2x:                  url("../img/color_thumb_back@2x.png");
 
 /* Typography */
- @font-weight-semibold: 500;
+@font-weight-semibold: 500;
 
 
 /* Overall inline widget content container */
 .css-prop-defn {
     margin-left: 20px;
     
-    color: @body-text-color;
+    color: @bc-text-thin-quiet;
     
     /* Enable text selection */
     cursor: auto;
@@ -31,7 +108,7 @@
     font-size: 14px;
     
     h1 {
-        color: @heading-color;
+        color: @bc-text;
         font-size: 16px;
         font-weight: @font-weight-semibold;
         line-height: normal;
@@ -39,13 +116,13 @@
     }
     
     a {
-        color: @link-color;
+        color: @bc-text-link;
     }
     
     code {
         font-family: SourceCodePro;
         font-size: 12px;
-        color: @emphasized-text-color;
+        color: @bc-text;
         background: none;   // revert Bootstrap's styling
         padding: 0;
         white-space: normal;
@@ -95,7 +172,7 @@
         margin-top: 0px;
         
         dt {
-            color: @emphasized-text-color;
+            color: @bc-text;
             font-size: 13px;
             font-weight: @font-weight-semibold;
             margin-bottom: 3px;
@@ -128,8 +205,7 @@
         margin-left: 12px;
         width: 0px;
         height: 100%;
-        border-left: 1px solid #cccccc;
-        border-right: 1px solid white;
+        border-left: 1px solid @bc-panel-separator;
     }
 }
 
@@ -146,22 +222,21 @@ a.more-info {
     right: (33px + @scrollbar-wid);
     padding: 4px 10px 4px 28px;
     
-    background: #e5e9e9 url("logo.svg");
+    background:@bc-btn-bg url("logo.svg");
     background-repeat: no-repeat;
     background-size: 15px 15px;
     background-position: 8px 4px;
     
-    border: 1px solid #9c9e9e;
+    border: 1px solid @bc-btn-border;
     border-radius: 3px 3px 0 0;
     border-bottom: none;
-    box-shadow: inset 0 1px 0 white;  // white chisel along top edge
+    box-shadow: inset 0 1px 0 @bc-highlight;  // white chisel along top edge
     
     font-size: 12px;
     font-weight: @font-weight-semibold;
-    color: @heading-color;
-    text-shadow: 0 1px 0 white;
+    color: @bc-text;
+    text-shadow: 0 1px 0 @bc-highlight;
     &:hover {
-        background-color: #edf1f1;
         text-decoration: none;
     }
 }

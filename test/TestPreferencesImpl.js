@@ -90,7 +90,7 @@ define(function (require, exports, module) {
     function _reloadUserPrefs() {
         return;
     }
-    
+
     // Semi-Public API. Use this at your own risk. The public API is in PreferencesManager.
     exports.manager             = manager;
     exports.projectStorage      = projectStorage;

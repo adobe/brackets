@@ -152,7 +152,7 @@ define(function (require, exports, module) {
     function _unregisterAll() {
         _providers = {};
     }
-    
+
     /**
      * Returns a list of provider for given file path, if available.
      * Decision is made depending on the file extension.

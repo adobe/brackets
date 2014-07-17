@@ -7,7 +7,7 @@ width="6px" height="105px">
             <g>
                 <g>
                     <g>
-                        <path d="M5,3.5 L0,0 L0,7 L5,3.5 L5,3.5 Z M5,3.5" fill="#555555"></path>
+                        <path d="M5,3.5 L0,0 L0,7 L5,3.5 L5,3.5 Z M5,3.5" fill="#dddddd"></path>
                         <path d="M0,21 L5,17.5 L0,14 L0,21 L0,21 Z M0,21" fill="#6D787A"></path>
                     </g>
                 </g>
@@ -17,7 +17,7 @@ width="6px" height="105px">
             <g>
                 <g>
                     <g>
-                        <path d="M5,3.5 L0,0 L0,7 L5,3.5 L5,3.5 Z M5,3.5" fill="#555555"></path>
+                        <path d="M5,3.5 L0,0 L0,7 L5,3.5 L5,3.5 Z M5,3.5" fill="#dddddd"></path>
                         <path d="M0,21 L5,17.5 L0,14 L0,21 L0,21 Z M0,21" fill="#6D787A"></path>
                     </g>
                 </g>
@@ -27,7 +27,7 @@ width="6px" height="105px">
             <g>
                 <g>
                     <g>
-                        <path d="M5,3.5 L0,0 L0,7 L5,3.5 L5,3.5 Z M5,3.5" fill="#555555"></path>
+                        <path d="M5,3.5 L0,0 L0,7 L5,3.5 L5,3.5 Z M5,3.5" fill="#dddddd"></path>
                         <path d="M0,21 L5,17.5 L0,14 L0,21 L0,21 Z M0,21" fill="#6D787A"></path>
                     </g>
                 </g>
@@ -37,14 +37,14 @@ width="6px" height="105px">
             <g>
                 <g>
                     <g>
-                        <path d="M5,3.5 L0,0 L0,7 L5,3.5 L5,3.5 Z M5,3.5" fill="#555555"></path>
+                        <path d="M5,3.5 L0,0 L0,7 L5,3.5 L5,3.5 Z M5,3.5" fill="#dddddd"></path>
                         <path d="M0,21 L5,17.5 L0,14 L0,21 L0,21 Z M0,21" fill="#6D787A"></path>
                     </g>
                 </g>
             </g>
         </g>
-        <path d="M5,56 L5,63 L6,63 L6,56 L5,56 Z M5,56" fill="#555555"></path>
-        <path d="M0,84 L0,91 L1,91 L1,84 L0,84 Z M0,84" fill="#555555"></path>
+        <path d="M5,56 L5,63 L6,63 L6,56 L5,56 Z M5,56" fill="#dddddd"></path>
+        <path d="M0,84 L0,91 L1,91 L1,84 L0,84 Z M0,84" fill="#dddddd"></path>
         <path d="M5,70 L5,77 L6,77 L6,70 L5,70 Z M5,70" fill="#6D787A"></path>
         <path d="M0,98 L0,105 L1,105 L1,98 L0,98 Z M0,98" fill="#6D787A"></path>
     </g>

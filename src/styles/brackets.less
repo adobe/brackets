@@ -44,6 +44,7 @@
 /* Overall layout */
 
 html, body {
+    color: @bc-text;
     height: 100%;
     overflow: hidden;
 
@@ -86,7 +87,7 @@ a, img {
 }
 
 .main-view {
-    background: @background-color-3; // to keep the theme background consistent
+    background: @bc-menu-bg; // to keep the theme background consistent
     height: 100%;
 
     .sidebar {
@@ -109,8 +110,8 @@ a, img {
 }
 
 #titlebar, .modal-bar {
-    border-bottom: 1px solid @tc-gray-panel-border;
-    box-shadow: @tc-small-shadow-bottom;
+    border-bottom: 1px solid @bc-panel-border;
+    box-shadow: 0 1px 3px @bc-shadow-small;
 
     // Make sure the bottom box-shadow goes above the editor (position: relative needed to start a new stacking group)
     position: relative;
@@ -123,10 +124,10 @@ a, img {
 
 #status-bar {
     position: relative;
-    background: #fff;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    background: @bc-bg-status-bar;
+    border-top: 1px solid @bc-panel-border;
     box-sizing: border-box;
-    color: @tc-text;
+    color: @bc-text;
     font-family: @sansFontFamily;
     font-size: 11px;
     line-height: 25px;
@@ -135,7 +136,7 @@ a, img {
 }
 
 #status-info {
-    color: @tc-text;
+    color: @bc-text;
     left: 10px;
     position: absolute;
     white-space: nowrap;
@@ -146,12 +147,12 @@ a, img {
 }
 
 #status-file {
-    color: #999;
+    color: @bc-text-quiet;
 }
 
 #status-indicators {
-    background: #fff;
-    color: @tc-text;
+    background: @bc-bg-status-bar;
+    color: @bc-text;
     position: absolute;
     right: 0;
     text-align: right;
@@ -159,7 +160,7 @@ a, img {
 
     > div {
         &:not(.spinner) {
-            border-left: 1px solid rgba(0, 0, 0, 0.1);
+            border-left: 1px solid @bc-panel-border;
         }
         float: right;
         padding: 0 10px;
@@ -170,11 +171,11 @@ a, img {
     }
 
     #status-language {
-        border-right: 1px solid rgba(0, 0, 0, 0.1);
+        border-right: 1px solid @bc-panel-border;
         padding: 0px;
         margin: 0px;
     }
-    
+
     /* dropdown button styling */
     .btn-status-bar {
         border: 0;
@@ -188,6 +189,7 @@ a, img {
         vertical-align: top;
         width: auto;
         cursor: pointer;
+        box-shadow: none;
         &:focus {
             outline: 0;
         }
@@ -197,7 +199,7 @@ a, img {
             text-decoration: none;
         }
     }
-    
+
 }
 
 #status-indent > * {
@@ -223,7 +225,7 @@ a, img {
     height: 13px;
     line-height: 1;
     vertical-align: middle;
-    color: @tc-text;
+    color: @bc-text;
     margin: 0;
     padding: 0 3px 2px;
     position: relative;
@@ -245,6 +247,7 @@ a, img {
 #status-overwrite {
     transition: background-color 3s;
     background-color: rgba(120, 178, 242, 0);
+    color: @bc-text;
     cursor: pointer;
 }
 
@@ -263,7 +266,7 @@ a, img {
         .vbox;
         .box-pack(center);
         .box-align(center);
-        background: @background-color-3 url('images/no_content_bg.svg') no-repeat center 45%;
+        background: @bc-menu-bg url('images/no_content_bg.svg') no-repeat center 45%;
     }
 
     /* Image Preview */
@@ -296,9 +299,9 @@ a, img {
         vertical-align: middle;
     }
 
-    #img-preview {
+    #img-preview { 
         background: url(images/preview_bg.png);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.36);
+        box-shadow: 0 1px 3px @bc-shadow;
         max-height: 90%;
     }
 
@@ -341,9 +344,9 @@ a, img {
         width: 40px;
         text-align: center;
         background-color: rgba(0, 0, 0, 0.8);
-        color: #fff;
+        color: @bc-text-alt;
         border-radius: 3px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 1px 3px @bc-shadow;
     }
 
     #img-tip {
@@ -352,13 +355,13 @@ a, img {
         text-align: left;
         white-space: nowrap;
         padding: 6px 9px;
-        color: #fff;
+        color: @bc-text-alt;
         background-color: rgba(0, 0, 0, 0.8);
         font-size: 11px;
         font-family: SourceCodePro;
         line-height: 13px;
         border-radius: 3px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.24);
+        box-shadow: 0 1px 3px @bc-shadow;
     }
 
     #x-value,
@@ -410,27 +413,25 @@ a, img {
 }
 
 .bottom-panel {
-    background-color: @tc-gray-panel;
+    background-color: @bc-panel-bg;
     display: none;
     height: 200px;
-    border-top-style: solid;
-    border-width: 1px;
-    border-color: @tc-gray-panel-border;
-
+    border-top: 1px solid @bc-panel-border;
+    
     .check-all {
         margin: 7px 15px 7px 7px;
     }
 
     .toolbar {
-        background-color: @tc-gray-panel-top-bar;
-        border-bottom: @tc-gray-panel-top-bar-shadow;
+        background-color: @bc-panel-bg-promoted;
+        border-bottom: 1px solid @bc-panel-separator;
         height: auto;
         padding-top: (@base-padding / 2);
         padding-bottom: (@base-padding / 2);
         z-index: @z-index-brackets-results-panel;
-        box-shadow: @tc-gray-panel-bevel, @tc-small-shadow-top;
+        box-shadow: inset 0 1px 0 @bc-highlight, 0 -1px 3px @bc-shadow-small;
         .title {
-            color: @tc-text;
+            color: @bc-text;
             font-size: @label-font-size;
             font-weight: @font-weight-semibold;
         }
@@ -449,13 +450,13 @@ a, img {
         overflow: auto;
 
         .highlight {
-            background: @bc-white;
+            background: @bc-panel-bg-text-highlight;
             border-radius: 2px;
         }
 
         tr.selected td {
-            background-color: @tc-selected-row;
-            color: @bc-black;
+            background-color: @bc-panel-bg-selected;
+            color: @bc-text-thin;
         }
     }
 }
@@ -473,7 +474,7 @@ a, img {
     }
 
     .line-number {
-        color: @tc-light-weight-quiet-text;
+        color: @bc-text-thin-quiet;
         font-family: SourceCodePro;
         font-size: 11px;
         padding: 4px 0 0 15px;
@@ -538,9 +539,9 @@ a, img {
     position: relative;
     height: 19px;
     padding: 10px 0 9px 12px;
-    background: #3C3F41;
+    background: @bc-sidebar-bg;
     color: @project-panel-text-2;
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+    text-shadow: 0 -1px 0 @bc-shadow-large;
     overflow: hidden;
 }
 
@@ -582,7 +583,7 @@ a, img {
 
 #open-files-container {
     .box-flex(0);
-    background: #3C3F41;
+    background: @bc-sidebar-bg;
     padding: 0px;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
@@ -610,7 +611,7 @@ a, img {
     }
 
     a {
-        color: #fff;
+        color: @bc-text-alt;
 
         font-size: 13px;
         text-decoration: none;
@@ -634,17 +635,17 @@ a, img {
 }
 
 .sidebar-selection {
-    background: @tc-sidebar-selection;
-    border-top: 1px solid @tc-sidebar-selection-shadow;
-    border-bottom: 1px solid @tc-sidebar-selection-highlight;
+    background: @bc-sidebar-selection;
+    border-top: 1px solid @bc-shadow-small;
+    border-bottom: 1px solid @bc-highlight;
     height: 22px;
     position: absolute;
 }
 
 .sidebar-selection-triangle {
-    background: @tc-sidebar-selection;
-    border-top: 1px solid @tc-sidebar-selection-shadow;
-    border-bottom: 1px solid @tc-sidebar-selection-highlight;
+    background: @bc-sidebar-selection;
+    border-top: 1px solid @bc-shadow-small;
+    border-bottom: 1px solid @bc-highlight;
     width: 9px; /* quiet scrollbar width */
     height: 22px;
     position: fixed;
@@ -657,7 +658,7 @@ a, img {
 
     border-top: @sidebar-triangle-size solid transparent;
     border-bottom: (@sidebar-triangle-size - 1) solid transparent;
-    border-left: @sidebar-triangle-size solid @tc-sidebar-selection;
+    border-left: @sidebar-triangle-size solid @bc-sidebar-selection;
 
     display: block;
     position: absolute;
@@ -716,7 +717,7 @@ a, img {
 /** Classes for icons from jsTreeSprites.svg
 */
 .jstree-sprite {
-    background-image: url("images/jsTreeSprites.svg");
+    background-image: @jstree-sprite;
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
@@ -730,14 +731,14 @@ a, img {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0) rotate(90deg);
     -webkit-transition: -webkit-transform 190ms cubic-bezier(.01, .91, 0, .99);
-    -webkit-filter: drop-shadow(1px 0 1px rgba(0, 0, 0, 0.36));
+    -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
 }
 
 .jstree-brackets .jstree-no-dots .jstree-closed > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0); /* Need this to make sure that the svg isn't blurry on retina. */
     -webkit-transition: -webkit-transform 90ms cubic-bezier(.01, .91, 0, .99);
-    -webkit-filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.36));
+    -webkit-filter: drop-shadow(0 1px 1px @bc-shadow);
 }
 
 /** Unicode Icon container
@@ -792,7 +793,7 @@ a, img {
     position: relative;
     overflow: hidden;
 
-    background-color: @tc-lighter-gray;
+    background-color: @bc-bg-inline-widget;
     min-width: 250px;
     cursor: default;
 
@@ -821,7 +822,7 @@ a, img {
             vertical-align: middle;
             font-family: @sansFontFamily;
             font-size: 13px;
-            color: @bc-black;
+            color: @bc-text-thin;
 
             // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
             // default; but the hand cursor is shut off by Bootstrap's reset stylesheet)
@@ -829,14 +830,14 @@ a, img {
 
             .dirty-indicator {
                 .unicode-icon-container;
-                color: @tc-quiet-text;
+                color: @bc-text-quiet;
                 overflow: hidden;
                 position: relative;
                 top: 1px;
             }
 
             .line-number {
-                color: @inline-color-2;
+                color: @accent-comment;
             }
         }
     }
@@ -862,10 +863,10 @@ a, img {
     }
 
     .CodeMirror-scroll {
-        background-color: transparent;
+        background-color: transparent !important; // need !important in order to see the inline-editor background. 
 
         .CodeMirror-linenumbers {
-            background-color: @tc-lighter-gray;
+            background-color: transparent;
         }
     }
 
@@ -889,7 +890,7 @@ a, img {
     width: 250px;
     max-width: 50%;
     overflow: hidden;
-    background: @inline-background-color-2;
+    background: @bc-panel-bg;
 
     // Without this, the "New Rule" button shows on top of the rule list if you resize
     // the window narrow enough. No idea why, since there's no z-index on the button, and
@@ -898,10 +899,10 @@ a, img {
 
     .selection {
         width: 100%;
-        background: #d0d5d5;
+        background: @bc-panel-bg-selected;
         position: absolute;
-        border-top: 1px solid darken(@inline-background-color-3, @bc-color-step-size);
-        border-bottom: 1px solid lighten(@inline-background-color-3, @bc-color-step-size);
+        border-top: 1px solid @bc-shadow-small;
+        border-bottom: 1px solid @bc-highlight;
         top: @top-margin;
 
         &.animate {
@@ -919,9 +920,9 @@ a, img {
         position: absolute;
         width: 0;
         height: 0;
-        border-top: @inline-triangle-size solid @inline-background-color-3;
-        border-bottom: @inline-triangle-size solid @inline-background-color-3;
-        border-left: @inline-triangle-size solid @inline-background-color-1;
+        border-top: @inline-triangle-size solid transparent;
+        border-bottom: @inline-triangle-size solid transparent;
+        border-left: @inline-triangle-size solid @bc-bg-inline-widget;
         margin-top: -@inline-triangle-size;
         top: 50%;
         .scale-x(0.9, left, top);
@@ -941,7 +942,7 @@ a, img {
         }
 
         li {
-            color: @tc-emphasized-text;
+            color: @bc-text-emphasized;
             margin: 0;
             overflow: hidden;
             padding: 2px 0px 2px 15px;
@@ -949,19 +950,19 @@ a, img {
             white-space: nowrap;
 
             .related-file {
-                color: @tc-input-placeholder-text;
+                color: @bc-text-thin-quiet;
             }
         }
 
         .selected {
-            color: @tc-light-weight-text;
+            color: @bc-text-thin;
             transition: color 0.1s ease-out .15s;
         }
     }
 }
 
 .inline-editor-message {
-    color: @tc-input-placeholder-text;
+    color: @bc-text-thin-quiet;
     font-family: @sansFontFamily;
     font-size: 12px;
     line-height: 17px;
@@ -1017,7 +1018,7 @@ a, img {
         background-color: rgba(255, 255, 255, 0.3);
     }
     .pagination-col > span:active {
-        background-color: rgba(0, 0, 0, 0.12);
+        background-color: @bc-shadow;
     } 
     .replace-col {
         .flex-item(1, 0);
@@ -1081,8 +1082,8 @@ a, img {
 
     font-family: @sansFontFamily;
     font-size: 14px;
-    color: @tc-text;
-    background: @tc-gray-panel;
+    color: @bc-text;
+    background: @bc-panel-bg;
     overflow: visible;  // needed for .error popup
     padding: 5px 4px 4px 14px;
 
@@ -1093,7 +1094,7 @@ a, img {
     body.in-browser &,
     body:not(.has-appshell-menus) & {
         // Separator line between us and the HTML menu/titlebar above
-        border-top: 1px solid darken(@background-color-3, @bc-color-step-size);
+        border-top: 1px solid @bc-panel-border;
     }
 
     &.popout {
@@ -1118,8 +1119,8 @@ a, img {
         position: relative;
         top: -3px;
         &.no-results {
-            border: 1px solid @tc-gray-component-error-border;
-            box-shadow: @tc-input-inner-shadow, @tc-input-error-glow;
+            border: 1px solid @bc-btn-border-error;
+            box-shadow: inset 0 1px 0 @bc-shadow-small, 0 0 0 1px @bc-btn-border-error-glow;
         }
     }
 
@@ -1139,11 +1140,11 @@ a, img {
             z-index: 1; // to appear above any controls that wrap below
 
             background-color: @bc-error;
-            color: @bc-white;
+            color: @bc-text-alt;
             font-size: 12px;
             padding: 3px 8px;
             border-radius: 0 0 3px 3px;
-            box-shadow: @tc-small-shadow-bottom;
+            box-shadow: 0 1px 3px @bc-shadow-small;
         }
 
         #find-what {
@@ -1152,7 +1153,7 @@ a, img {
         }
         #find-counter {
             position: absolute;
-            color: @tc-light-weight-quiet-text;
+            color: @bc-text-thin-quiet;
             top: 1px;
             right: 2px;
             font-size: 12px;
@@ -1184,7 +1185,7 @@ a, img {
         padding: 1px 5px;
     }
     .button-icon {  // icons must be nested inside button so we can apply padding w/o tiling icon
-        .sprite-icon(0, 0, 24px, 24px, "images/find-replace-sprites.svg");
+        .sprite-icon(0, 0, 24px, 24px, @button-icon);
         background-repeat: no-repeat;
     }
     #find-regexp.active .button-icon {
@@ -1197,7 +1198,7 @@ a, img {
         .sprite-swap(0, 72px);
     }
     #find-regexp.active, #find-case-sensitive.active {
-        background-color: @tc-highlight;
+        background-color: @bc-bg-highlight;
     }
 
     .navigator {  // next/prev buttons
@@ -1285,7 +1286,7 @@ li:hover .filter-edit-icon {
 }
 
 .recent-filter-patterns {
-    color: @tc-light-weight-quiet-text;
+    color: @bc-text-thin-quiet;
     padding-right: 52px;
 }
 
@@ -1314,8 +1315,8 @@ textarea.exclusions-editor {
 .exclusions-filecount {
     margin: 12px 0 -14px 0;
     padding: 4px 8px;
-    background-color: @tc-highlight;
-    border-radius: @tc-control-border-radius;
+    background-color: @bc-bg-highlight;
+    border-radius: @bc-border-radius;
 }
 
 
@@ -1326,15 +1327,15 @@ textarea.exclusions-editor {
 .CodeMirror-searching {
     // Highlight color, overlaid on top of the .find-highlighting color
     background-color: @cm-match-highlight;
-    box-shadow: @tc-small-shadow-bottom;
+    box-shadow: 0 1px 3px @bc-shadow-small;
     color: @match-text !important;
     &.searching-first {
-        border-top-left-radius: @tc-inline-border-radius;
-        border-bottom-left-radius: @tc-inline-border-radius;
+        border-top-left-radius: @bc-border-radius-small;
+        border-bottom-left-radius: @bc-border-radius-small;
     }
     &.searching-last {
-        border-top-right-radius: @tc-inline-border-radius;
-        border-bottom-right-radius: @tc-inline-border-radius;
+        border-top-right-radius: @bc-border-radius-small;
+        border-bottom-right-radius: @bc-border-radius-small;
     }
 }
 .CodeMirror.find-highlighting div.CodeMirror-selected,
@@ -1344,7 +1345,7 @@ textarea.exclusions-editor {
     // Note: the 2nd selector reflecting CM nesting is needed to override the similar rules in
     // brackets_codemirror_override.less (see the note about #324).
     background: @cm-current-match-highlight;
-    border-radius: @tc-inline-border-radius;
+    border-radius: @bc-border-radius-small;
 }
 #find-counter {
     font-weight: @font-weight-semibold;
@@ -1375,8 +1376,8 @@ textarea.exclusions-editor {
 /* Quick Open search bar & dropdown */
 
 .find-dialog-label {
-    background: @bc-white;
-    color: @tc-quiet-text;
+    background: @bc-input-bg;
+    color: @bc-text-quiet;
     position: absolute;
     right: 15px;
     text-align: right;
@@ -1386,9 +1387,9 @@ textarea.exclusions-editor {
 
 .smart_autocomplete_container {
     // the borders show up even if the container is empty, must set height to zero using JS.
-    background-color: @tc-gray-panel;
+    background-color: @bc-panel-bg;
     border-radius: 0 0 4px 4px;
-    box-shadow: @tc-normal-shadow-bottom;
+    box-shadow: 0 5px 10px @bc-shadow;
     opacity: 0;
     
     // Need this for border-radius because there are no borders
@@ -1412,29 +1413,30 @@ textarea.exclusions-editor {
     margin: 9px 0 0;
 
     .quick-open-path {
-        color: #666;
+        color: @bc-text-thin-quiet;
         font-size: 11px;
         letter-spacing: 0.04em;
         line-height: 11px;
     }
 
     li {
-        color: #222;
+        color: @bc-text-emphasized;
         line-height: 15px;
         list-style: none;
         cursor: default;
         padding: 6px 10px;
 
         &:nth-child(odd) {
-            background-color: @tc-lighter-gray;
+            background-color: @bc-panel-bg-alt;
         }
 
         &:hover {
-            background-color: @tc-hover-highlight;
+            background-color: @bc-panel-bg-hover;
         }
 
         &.smart_autocomplete_highlight {
-            background-color: @tc-highlight;
+            background-color: @bc-bg-highlight;
+            color: @bc-menu-text;
         }
     }
 }
@@ -1454,7 +1456,7 @@ textarea.exclusions-editor {
 }
 
 .quicksearch-pathmatch {
-    color: #555;
+    color: @bc-text;
 }
 
 
@@ -1609,8 +1611,8 @@ label input {
         padding: 5px 10px;
         background-color: @bc-error;
         border-radius: 3px;
-        color: @bc-white;
-        box-shadow: @tc-dropdown-shadow;
+        color: @bc-text-alt;
+        box-shadow: 0 3px 9px @bc-shadow;
         white-space: nowrap;
     }
     .arrowAbove {

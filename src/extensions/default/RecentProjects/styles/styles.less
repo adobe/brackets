@@ -1,0 +1,176 @@
+// General
+@bc-bg-highlight:               #e0f0fa;
+@bc-bg-inline-widget:           #e6e9e9;
+@bc-bg-tool-bar:                #5D5F60;
+@bc-bg-status-bar:              #fff;
+@bc-disabled-opacity:           0.3;
+@bc-error:                      #f74687;
+@bc-modal-backdrop-opacity:     0.4;
+
+// Highlights and Shadows
+@bc-highlight:                  rgba(255, 255, 255, 0.12);
+@bc-highlight-hard:             rgba(255, 255, 255, 0.7);
+@bc-shadow:                     rgba(0, 0, 0, 0.24);
+@bc-shadow-large:               rgba(0, 0, 0, 0.5);
+@bc-shadow-small:               rgba(0, 0, 0, 0.06);
+
+// Border Radius
+@bc-border-radius:              3px;
+@bc-border-radius-large:        5px;
+@bc-border-radius-small:        2px;
+
+// Menu
+@bc-menu-bg:                    #fff;
+@bc-menu-text:                  #000;
+@bc-menu-separator:             #eaeaea;
+
+// Warning
+@bc-warning-bg:                 #fdf5cc;
+@bc-warning-text:               #635301;
+
+// Text
+@bc-text:                       #333;
+@bc-text-alt:                   #fff;
+@bc-text-emphasized:            #111;
+@bc-text-link:                  #0083e8;
+@bc-text-quiet:                 #aaa;
+@bc-text-thin:                  #000;
+@bc-text-thin-quiet:            #777;
+
+// Panel
+@bc-panel-bg:                   #dfe2e2;
+@bc-panel-bg-alt:               #e6e9e9;
+@bc-panel-bg-promoted:          #d4d7d7;
+@bc-panel-bg-hover:             rgba(255, 255, 255, 0.6);
+@bc-panel-bg-hover-alt:         rgba(0, 0, 0, 0.04);
+@bc-panel-bg-selected:          #d0d5d5;
+@bc-panel-bg-text-highlight:    #fff;
+@bc-panel-border:               rgba(0, 0, 0, 0.09);
+@bc-panel-separator:            #c3c6c5;
+
+// Default Button
+@bc-btn-bg:                     #e5e9e9;
+@bc-btn-bg-down:                #d3d7d7;
+@bc-btn-bg-down-alt:            #404141;
+@bc-btn-border:                 #b2b5b5;
+@bc-btn-border-error:           #fa689d;
+@bc-btn-border-error-glow:      #ffb0cd;
+@bc-btn-border-focused:         #2893ef;
+@bc-btn-border-focused-glow:    #94ceff;
+@bc-btn-triangle:               #878787;
+@bc-input-bg:                   #fff;
+
+// Primary Button
+@bc-primary-btn-bg:             #288edf;
+@bc-primary-btn-bg-down:        #0380e8;
+@bc-primary-btn-border:         #1474bf;
+
+// Secondary Button
+@bc-secondary-btn-bg:           #91cc41;
+@bc-secondary-btn-bg-down:      #82b839;
+@bc-secondary-btn-border:       #74B120;
+
+// Sidebar
+@bc-sidebar-bg:                 #3C3F41;
+@bc-sidebar-selection:          #2D2E30;
+
+// images
+@button-icon:                   "images/find-replace-sprites.svg";
+@jstree-sprite:                 url("images/jsTreeSprites.svg") !important;
+@cubic-bezier:                  url(grid.png);
+@swatch-bg:                     url("../img/color_thumb_back.png");
+@swatch-bg-2x:                  url("../img/color_thumb_back@2x.png");
+
+.dropdown-arrow {
+    display: inline-block;
+    width: 7px;
+    height: 5px;
+    margin-left: 4px;
+    background-image: url("down-arrow.svg");
+    background-repeat: no-repeat;
+    position: relative;
+    top: 0;
+}
+
+.trash-icon {
+    position: absolute;
+    left: 7px;
+    width: 16px;
+    height: 16px;
+    font-size: 20px;
+    color: @bc-menu-text;
+    line-height: 15px;
+    text-align: center;
+}
+
+.trash-icon:hover {
+    color: @bc-text-thin;
+}
+
+#project-dropdown-toggle {
+    display: inline-block;
+    /* adjust margins to keep position #project-title position stable after extension is loaded */
+    margin: -3px 0px -2px -6px;
+    overflow: hidden;
+    padding: 0 5px;
+    white-space: nowrap;
+}
+
+#project-title {
+    /* vertical align center text */
+    height: 21px;
+    line-height: 21px;
+}
+
+#project-dropdown-toggle:hover .dropdown-arrow {
+    background-image: url("down-arrow.svg");
+}
+
+#project-dropdown.dropdown-menu:focus {
+    outline: none;
+}
+
+/* TODO: style the dropdown content */
+#project-dropdown.dropdown-menu {
+    position: absolute;
+    
+    /* offset for better alignment with the button */
+    margin-top: -1px;
+    margin-left: 1px;
+    
+    display: block;
+    max-width: none;
+    z-index: 100;
+}
+
+#project-dropdown.dropdown-menu .divider {
+    margin: 5px 1px;
+}
+
+.recent-folder-link, .recent-folder, .recent-folder-path {
+    white-space: nowrap;
+}
+
+#project-dropdown.dropdown-menu li a {
+    padding: 5px 15px;
+}
+
+#project-dropdown.dropdown-menu .recent-folder-link, #project-dropdown.dropdown-menu #open-folder-link {
+	display: block;
+	padding: 5px 26px 5px 26px;
+}
+
+.recent-folder, #open-folder-link {
+    color: @bc-menu-text;
+}
+
+.recent-folder-path {
+    color: @bc-text-quiet;
+}
+
+#project-dropdown.dropdown-menu a.selected {
+     background: @bc-bg-highlight;
+}
+#project-dropdown.dropdown-menu a:not(.selected):hover {
+     background: none;
+}

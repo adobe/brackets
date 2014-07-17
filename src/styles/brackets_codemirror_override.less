@@ -20,6 +20,8 @@
 
 /* Brackets / CodeMirror Code Formatting */
 
+@code-padding: 15px;
+
 .CodeMirror pre {
     padding: 0 @code-padding 0 0;
 }
@@ -29,7 +31,7 @@
 }
 
 .CodeMirror-scroll {
-    background-color: @background-color-3;
+    background-color: @background;
 }
 
 .CodeMirror {
@@ -44,18 +46,16 @@
     .code-font-win();
 }
 
-@code-padding: 15px;
-
 .CodeMirror-activeline-background {
     background: transparent;
 }
 
 .CodeMirror-focused .CodeMirror-activeline-background {
-    background: @activeline-bgcolor;
+    background: @activeline-bg;
 }
 
 .show-line-padding .CodeMirror-focused .CodeMirror-activeline-background {
-    box-shadow: inset @code-padding 0 0 0 @activeline-number-bgcolor;
+    box-shadow: inset @code-padding 0 0 0 @activeline-number-bg;
 }
 
 .CodeMirror-focused .CodeMirror-activeline {
@@ -63,8 +63,8 @@
         height: 100%;
     }
     .CodeMirror-gutter-elt {
-        background: @activeline-number-bgcolor;
-        color: @bc-black;
+        background: @activeline-number-bg;
+        color: @activeline-number !important;
     }
     .inline-widget .CodeMirror-gutter-elt {
         color: @accent-comment;    
@@ -136,7 +136,7 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
 }
 
 .CodeMirror-gutters {
-    background-color: @background-color-3;
+    background-color: @background;
     border-right: none;
 }
 
@@ -161,7 +161,7 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
 .platform-linux {
     .CodeMirror-scrollbar-filler,
     .CodeMirror-gutter-filler {
-        background-color: @background-color-3;
+        background-color: @background;
         height: 12px !important;
     }
     .CodeMirror-scrollbar-filler {
@@ -174,6 +174,9 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
     min-width: 2.5em;
     /*font-size: 0.9em;*/  /* restore after SourceCodePro font fix? */
     padding: 0 @code-padding 0 10px;  /* left padding for project panel selection triangle */
+}
+.CodeMirror .CodeMirror-selected {
+    background: @selection-color-unfocused;
 }
 .CodeMirror-focused .CodeMirror-selected {
     background: @selection-color-focused;
@@ -247,21 +250,21 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
     
     .CodeMirror .CodeMirror-activeline .CodeMirror-gutter-elt {
         background: transparent;
-        color: @accent-comment;
+        color: @activeline-number !important;
     }
     
     .CodeMirror-focused .CodeMirror-activeline-background {
-        background: @activeline-bgcolor;
+        background: @activeline-bg;
     }
     
     .show-line-padding & .CodeMirror-focused .CodeMirror-activeline-background {
-        box-shadow: inset @code-padding 0 0 0 @tc-gray-panel-top-bar;
+        box-shadow: inset @code-padding 0 0 0 @background;
     }
     
     .CodeMirror-focused .CodeMirror-activeline {
         .CodeMirror-gutter-elt {
-            background: @tc-gray-panel-top-bar;
-            color: @bc-black;
+            background: @background;
+            color: @activeline-number !important;
         }
     }
 

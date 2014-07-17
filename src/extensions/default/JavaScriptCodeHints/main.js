@@ -809,7 +809,7 @@ define(function (require, exports, module) {
                 uninstallEditorListeners(activeEditor);
                 installEditorListeners(activeEditor);
             });
-        
+
         $(ProjectManager).on("beforeProjectClose", function () {
             ScopeManager.handleProjectClose();
         });

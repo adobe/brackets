@@ -72,7 +72,7 @@ define(function (require, exports, module) {
     function _updateLanguageInfo(editor) {
         var doc = editor.document,
             lang = doc.getLanguage();
-        
+
         // Ensure width isn't left locked by a previous click of the dropdown (which may not have resulted in a "change" event at the time)
         languageSelect.$button.css("width", "auto");
         // Setting Untitled documents to non-text mode isn't supported yet, so disable the switcher in that case for now
@@ -292,21 +292,21 @@ define(function (require, exports, module) {
         var languages = _.values(LanguageManager.getLanguages()).filter(function (language) {
             return !language.isBinary();
         });
-        
+
         // sort dropdown alphabetically
         languages.sort(function (a, b) {
             return a.getName().toLowerCase().localeCompare(b.getName().toLowerCase());
         });
-        
+
         languageSelect.items = languages;
-        
+
     }
-    
+
     /**
      * Initialize
      */
     function _init() {
-        
+
         $cursorInfo         = $("#status-cursor");
         $fileInfo           = $("#status-file");
         $indentType         = $("#indent-type");
@@ -318,7 +318,7 @@ define(function (require, exports, module) {
             var document = EditorManager.getActiveEditor().document,
                 defaultLang = LanguageManager.getLanguageForPath(document.file.fullPath, true),
                 html = _.escape(item.getName());
-            
+
             // Show indicators for currently selected & default languages for the current file
             if (item === defaultLang) {
                 html += " <span class='default-language'>" + Strings.STATUSBAR_DEFAULT_LANG + "</span>";
@@ -328,11 +328,11 @@ define(function (require, exports, module) {
             }
             return html;
         });
-        
+
         languageSelect.dropdownExtraClasses = "dropdown-status-bar";
         languageSelect.$button.addClass("btn-status-bar");
         $("#status-language").append(languageSelect.$button);
-        
+
         // indentation event handlers
         $indentType.on("click", _toggleIndentType);
         $indentWidthLabel

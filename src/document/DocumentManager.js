@@ -474,7 +474,7 @@ define(function (require, exports, module) {
         if (_currentDocument === doc) {
             return;
         }
-        
+
         var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + doc.file.fullPath);
         
         if (_currentDocument) {
@@ -500,7 +500,7 @@ define(function (require, exports, module) {
         $(_currentDocument).on("languageChanged.DocumentManager", function (data) {
             $(exports).trigger("currentDocumentLanguageChanged", data);
         });
-        
+
         $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
         // (this event triggers EditorManager to actually switch editors in the UI)
         
