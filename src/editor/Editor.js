@@ -380,6 +380,13 @@ define(function (require, exports, module) {
             var lineStr = instance.getLine(cursor.line);
             var nonWS = lineStr.search(/\S/);
 
+            // if the entire line is whitespace, it is set to a blank line to eliminate possible
+            // embedded whitespace like a softindent or tab which would otherwise be to the
+            // right of the newly indented electric char
+            if (nonWS === -1) {
+                instance.replaceRange("", {line: cursor.line, ch: 0}, {line: cursor.line});
+            }
+
             if (nonWS === -1 || nonWS >= cursor.ch) {
                 // Need to do the auto-indent on a timeout to ensure
                 // the keypress is handled before auto-indenting.
