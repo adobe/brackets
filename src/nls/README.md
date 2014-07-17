@@ -176,5 +176,5 @@ Some strings cannot be localized yet:
 * [Keyboard shortcuts](https://trello.com/c/4k2yalBd)
 * [Some native menus on Mac](https://trello.com/c/0IsE7q02) (hardcoded support only for English, French, Japanese)
 * Windows installer UI (hardcoded support only for English, Japanese - with some limitations)
-* Localized folder name of "Getting Started" has to be made of up basic English characters only, as descirbed
+* Localized folder name of "Getting Started" has to be made of up basic English characters only, as described
 [here](https://github.com/adobe/brackets/pull/8332#issuecomment-48767847).
