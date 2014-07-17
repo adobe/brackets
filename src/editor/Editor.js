@@ -381,6 +381,17 @@ define(function (require, exports, module) {
             var nonWS = lineStr.search(/\S/);
 
             if (nonWS === -1 || nonWS >= cursor.ch) {
+                if (nonWS === -1) {
+                    // if the line is all whitespace, move the cursor to the end of the line
+                    // before indenting so that embedded whitespace such as indents are not
+                    // orphaned to the right of the electric char being inserted
+                    this.setCursorPos(cursor.line, this.document.getLine(cursor.line).length);
+                } else if (nonWS >= cursor.ch) {
+                    // if the line is has non-whitespace to the right of the electric char we
+                    // intend to insert, then set the cursor at the beginning of the non-
+                    // whitespace and indent to there.
+                    this.setCursorPos(cursor.line, nonWS);
+                }
                 // Need to do the auto-indent on a timeout to ensure
                 // the keypress is handled before auto-indenting.
                 // This is the same timeout value used by the
