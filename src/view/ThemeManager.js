@@ -42,6 +42,7 @@ define(function (require, exports, module) {
         prefs              = PreferencesManager.getExtensionPrefs("brackets-themes");
 
     var loadedThemes    = {},
+        currentThemes   = null,
         defaultTheme    = "thor-light-theme",
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
         scrollbarsRegex = /::-webkit-scrollbar(?:[\s\S]*?)\{(?:[\s\S]*?)\}/mg,
@@ -73,7 +74,7 @@ define(function (require, exports, module) {
      * dialog, and to properly add a theme into CodeMirror along with the rest of brackets.
      *
      * @param {File} file for the theme
-     * @param {{name: string, className: string, title: string}} options to configure different
+     * @param {{name: string, title: string}} options to configure different
      *   properties in the theme
      */
     function Theme(file, options) {
@@ -87,7 +88,6 @@ define(function (require, exports, module) {
 
         this.file        = file;
         this.name        = options.name      || (options.title || fileName).toLocaleLowerCase().replace(/[\W]/g, '-');
-        this.className   = options.className || "theme-" + this.name;
         this.displayName = options.title     || toDisplayName(fileName);
     }
 
@@ -156,7 +156,7 @@ define(function (require, exports, module) {
             filename: fixPath(theme.file._path)
         });
 
-        parser.parse("." + theme.className + " #editor-holder {" + content + "}", function (err, tree) {
+        parser.parse("#editor-holder {" + content + "}", function (err, tree) {
             if (err) {
                 deferred.reject(err);
             } else {
@@ -197,38 +197,41 @@ define(function (require, exports, module) {
 
 
     /**
-     * @private
-     * Get all current theme objects
+     * Get all current theme objects that are loaded in the editor.
      *
      * @return {Array.<Theme>} collection of the current theme instances
      */
     function getCurrentThemes() {
-        return _.map(prefs.get("themes").slice(0), function (item) {
-            return loadedThemes[item] || loadedThemes[defaultTheme];
-        });
+        if (!currentThemes) {
+            currentThemes = prefs.get("themes").map(function (theme) {
+                return loadedThemes[theme] || loadedThemes[defaultTheme];
+            });
+        }
+
+        return currentThemes;
     }
 
 
     /**
-     * Provides quick access to all available themes
+     * Gets all available themes that can be loaded in the editor.
      * @return {Array.<Theme>} collection of all available themes
      */
     function getAllThemes() {
-        return _.map(loadedThemes, function (item) {
-            return item;
+        return loadedThemes.map(function (theme) {
+            return theme;
         });
     }
 
 
     /**
      * @private
-     * Loads all current themes
+     * Process and load all current themes into the editor
      *
      * @return {$.Promise} promise object resolved with the theme object and all
      *    corresponding new css/less and scrollbar information
      */
     function loadCurrentThemes() {
-        var pendingThemes = _.map(getCurrentThemes(), function (theme) {
+        var pendingThemes = getCurrentThemes().map(function (theme) {
 
             return theme && FileUtils.readAsText(theme.file)
                 .then(function (content) {
@@ -258,11 +261,15 @@ define(function (require, exports, module) {
 
 
     /**
-     * Refresh currently loaded themes
+     * Refresh current themes in the editor
      *
      * @param {boolean} force is to force reload the current themes
      */
     function refresh(force) {
+        if (force) {
+            currentThemes = null;
+        }
+
         $.when(force && loadCurrentThemes()).done(function () {
             var editor = EditorManager.getActiveEditor();
             if (!editor || !editor._codeMirror) {
@@ -285,9 +292,9 @@ define(function (require, exports, module) {
      * @return {$.Promise} promise object resolved with the theme to be loaded from fileName
      */
     function loadFile(fileName, options) {
-        var deferred      = new $.Deferred(),
-            file          = FileSystem.getFileForPath(fileName),
-            currentThemes = (prefs.get("themes") || []);
+        var deferred          = new $.Deferred(),
+            file              = FileSystem.getFileForPath(fileName),
+            currentThemeNames = (prefs.get("themes") || []);
 
         file.exists(function (err, exists) {
             var theme;
@@ -300,7 +307,7 @@ define(function (require, exports, module) {
                 // For themes that are loaded after ThemeManager has been loaded,
                 // we should check if it's the current theme.  It is, then we just
                 // load it.
-                if (currentThemes.indexOf(theme.name) !== -1) {
+                if (currentThemeNames.indexOf(theme.name) !== -1) {
                     refresh(true);
                 }
 
@@ -379,17 +386,12 @@ define(function (require, exports, module) {
     }
 
 
-    prefs.on("change", "themes", function () {
-        refresh(true);
-        ThemeView.updateScrollbars(getCurrentThemes()[0]);
-
-        // Expose event for theme changes
-        $(exports).trigger("themeChange", getCurrentThemes());
-    });
-
     prefs.on("change", "customScrollbars", function () {
         refresh();
-        ThemeView.updateScrollbars(getCurrentThemes()[0]);
+
+        getCurrentThemes().forEach(function (theme) {
+            ThemeView.updateScrollbars(theme);
+        });
     });
 
     prefs.on("change", "fontSize", function () {
@@ -421,7 +423,37 @@ define(function (require, exports, module) {
         refresh();
     });
 
-    refresh(true);
+
+    // We need to postpone setting the prefs on change event handler for themes
+    // to prevent flickering
+    AppInit.appReady(function () {
+        prefs.on("change", "themes", function () {
+            // Save themes that are about to be replaces to allow for some transition
+            var oldThemes = getCurrentThemes();
+
+            // Refresh editor with the new theme
+            refresh(true);
+
+            // Process the scrollbars for the editor
+            getCurrentThemes().forEach(function (theme) {
+                ThemeView.updateScrollbars(theme);
+            });
+
+            // Expose event for theme changes
+            $(exports).trigger("themeChange", getCurrentThemes());
+
+            // Delay removing the old style element to avoid flashes when transitioning between themes
+            setTimeout(function () {
+                oldThemes.forEach(function (theme) {
+                    if (theme && theme.css) {
+                        $(theme.css).remove();
+                    }
+                });
+            }, 0);
+        });
+    });
+
+
     ThemeView.updateFonts();
     ThemeView.updateScrollbars();
 
