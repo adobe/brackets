@@ -89,7 +89,7 @@ define(function (require, exports, module) {
         this.file        = file;
         this.name        = options.name  || (options.title || fileName).toLocaleLowerCase().replace(/[\W]/g, '-');
         this.displayName = options.title || toDisplayName(fileName);
-        this.dark        = options.dark === true;
+        this.dark        = options.theme.dark === true;
     }
 
 

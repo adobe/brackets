@@ -1,5 +1,5 @@
 {
-    "title": "Thor Light",
+    "title": "Default (Thor Light)",
     "name": "thor-light-theme",
     "description": "Awesome light theme for Brackets",
     "version": "0.0.1",
@@ -7,6 +7,8 @@
     "engines": {
         "brackets": ">=0.39.0"
     },
-    "theme": "main.less",
+    "theme": {
+        "file": "main.less"
+    },
     "screenshot": "screenshot.png"
 }
