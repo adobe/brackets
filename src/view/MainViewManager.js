@@ -1081,7 +1081,7 @@ define(function (require, exports, module) {
     
     // Unit Test Helpers
     exports._initialize                     = _initialize;
-    
+    exports._getPaneFromPaneId              = _getPaneFromPaneId;
     
     // PaneView Management
     exports.addToPaneViewList                = addToPaneViewList;

@@ -40,14 +40,11 @@ define(function (require, exports, module) {
         paneTemplate        = require("text!htmlContent/pane.html");
     
     function Pane(id, $container) {
+        this.reset();
+
         this.$container = $container;
         this.id = id;
-        this.viewList = [];
-        this.viewListMRUOrder = [];
-        this.viewListAddedOrder = [];
-        this.currentView = null;
         this.$el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id);
-        this.views = {};
         
         $(DocumentManager).on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
         $(DocumentManager).on(this._makeEventName("pathDeleted"), _.bind(this._handleFileDeleted, this));
@@ -57,6 +54,14 @@ define(function (require, exports, module) {
     Pane.prototype.ITEM_FOUND_NO_SORT = 0;
     Pane.prototype.ITEM_FOUND_NEEDS_SORT = 1;
 
+    
+    Pane.prototype.reset = function () {
+        this.viewList = [];
+        this.viewListMRUOrder = [];
+        this.viewListAddedOrder = [];
+        this.views = {};
+        this.currentView = null;
+    };
     
     Pane.prototype._makeEventName = function (name) {
         return name + ".pane" + this.paneId;
