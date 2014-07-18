@@ -80,7 +80,11 @@ var config = {};
              */
             function _reportError(e, file) {
                 if (e instanceof Infer.TimedOut) {
-                    _log("Timeout during Tern processing of " + file);
+                    // Post a message back to the main thread with timedout info
+                    self.postMessage({
+                        type: MessageIds.TERN_INFERENCE_TIMEDOUT,
+                        file: file
+                    });
                 } else {
                     _log("Error thrown in tern_worker:" + e.message + "\n" + e.stack);
                 }

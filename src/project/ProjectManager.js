@@ -223,8 +223,8 @@ define(function (require, exports, module) {
     function _generateSortPrefixes() {
         var previousDirFirst  = _dirFirst;
         _dirFirst             = PreferencesManager.get("sortDirectoriesFirst");
-        _sortPrefixDir        = _dirFirst ? "0" : "";
-        _sortPrefixFile       = _dirFirst ? "1" : "";
+        _sortPrefixDir        = _dirFirst ? "a" : "";
+        _sortPrefixFile       = _dirFirst ? "b" : "";
         
         return previousDirFirst !== _dirFirst;
     }
@@ -671,6 +671,12 @@ define(function (require, exports, module) {
 
                 var $treenode = $(event.target).closest("li"),
                     entry = $treenode.data("entry");
+
+                // If we are already in a rename, don't re-invoke it, just cancel it.
+                if (_isInRename($treenode)) {
+                    return;
+                }
+
                 // Don't do the rename for folders, because clicking on a folder name collapses/expands it.
                 if (entry && entry.isFile && $treenode.is($(_projectTree.jstree("get_selected")))) {
                     // wrap this in a setTimeout function so that we can check if it's a double click.
@@ -1158,6 +1164,7 @@ define(function (require, exports, module) {
             _unwatchProjectRoot().always(function () {
                 // Done closing old project (if any)
                 if (_projectRoot) {
+                    PreferencesManager._reloadUserPrefs(_projectRoot);
                     $(exports).triggerHandler("projectClose", _projectRoot);
                 }
                 

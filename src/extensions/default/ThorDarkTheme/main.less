@@ -1,0 +1,194 @@
+// Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
+// Style definitions are from
+// https://github.com/chriskempson/tomorrow-theme/tree/master/Brackets
+
+
+// Brackets-specific default font and color definitions
+@import url("brackets_colors.less");
+
+// Default theme -- all UI styling comes from variables in a theme
+// Themes can rely on variables defined above
+@import url("brackets_theme_default.less");
+
+// Include Codemirror styling overrides so that we can overrides proper values
+// for the theme.  If you need to customize the tree, you also include jsTree.less
+// and even brackets_scrollbars.less
+@import url("brackets_codemirror_override.less");
+
+
+/*
+ * Brackets Default Theme
+ *
+ * Defines all the variables that one can configure in a theme. This should
+ * contain all variables / mixins for UI styling that we want to be able to
+ * change in a theme.
+ *
+ * Throughout the rest of the LESS files we should _only_ use color
+ * variable names that are on the LHS of the list below. So, if we
+ * need a new color for some UI element, we should add a variable
+ * in this file.
+ */
+
+/* Overall Colors */
+@background: #1d1f21;
+@current-line: #000;
+@foreground: #c5c8c6;
+@comment: #767676;
+@orange: #d89333;
+@blue: #6c9ef8;
+@purple: #b77fdb;
+@green: #85a300;
+@red: #dc322f;
+@aqua: #8abeb7;
+@violet: #6c71c4;
+@yellow: #f0c674;
+@pink: #d85896;
+
+/*
+ * Background colors are ordered from least "intense" to most "intense"
+ * So, if the background is light, then @background-color-3 should be
+ * lightest, -2 should be darker, and -1 should be darker still.
+ *
+ * The opposite is true for a dark background -- background-color-3 should be
+ * the darkest, -2 should be lighter, and -1 should be lighter still.
+ */
+@background-color-1: lighten(@background, @bc-color-step-size*2);
+@background-color-2: lighten(@background, @bc-color-step-size);
+@background-color-3: @background;
+
+/*
+ * @content-color-stronger should be should be further away from the
+ * background color than @content-color (i.e. more contrasty).
+ *
+ * @content-color-weaker should be closer to the background color
+ * than @content-color (i.e. less contrasty).
+ */
+@content-color: @foreground;
+@content-color-stronger: lighten(@foreground, @bc-color-step-size);
+@content-color-weaker: darken(@foreground, @bc-color-step-size);
+
+/* Code Styling */
+
+/* code accent colors */
+@accent-keyword: @blue;
+@accent-atom: @orange;
+@accent-number: @green;
+@accent-def: @purple;
+@accent-variable: @foreground;
+@accent-variable-2: @foreground;
+@accent-variable-3: @foreground;
+@accent-property: @purple;
+@accent-operator: @foreground;
+@accent-comment: @comment;
+@accent-string: @orange;
+@accent-string-2: @orange;
+@accent-meta: @foreground;
+@accent-error: @red;
+@accent-qualifier: @blue;
+@accent-builtin: @blue;
+@accent-bracket: @foreground;
+@accent-tag: @blue;
+@accent-attribute: @green;
+@accent-header: @pink;
+@accent-quote: @blue;
+@accent-hr: @orange;
+@accent-link: @purple;
+@accent-rangeinfo: @violet;
+@accent-minus: @red;
+@accent-plus: @green;
+
+/* inline editor colors */
+@inline-background-color-1: lighten(@background, @bc-color-step-size);
+@inline-background-color-2: lighten(@background, @bc-color-step-size*2);
+@inline-background-color-3: rgba(0,0,0,0);
+
+@inline-color-1: darken(@foreground, @bc-color-step-size*2);
+@inline-color-2: darken(@foreground, @bc-color-step-size);
+@inline-color-3: @background;
+
+/* Selection colors */
+@selection-color-focused: #0050a0;
+@selection-color-unfocused: #333f48;
+
+@activeline-bgcolor: #2f2f2f;
+@activeline-number: #fff;
+@activeline-number-bgcolor: #000;
+@matching-bracket: #2e5c00;
+
+/* Status Bar Colors */
+@status-bar-background-color: #1C1C1E;
+@status-bar-border: rgba(255, 255, 255, 0.08);
+@status-bar-text-color: #a1a1a1;
+@status-bar-quiet-text-color: #666;
+
+/* custom scrollbar colors */
+@win-scrollbar-track: rgb(15, 15, 15);
+@win-scrollbar-thumb: rgb(49, 49, 49);
+@win-scrollbar-thumb-hover: rgb(89, 89, 89);
+@win-scrollbar-thumb-active: rgb(169, 169, 169);
+
+@linux-scrollbar-thumb: rgba(255, 255, 255, 0.24);
+@linux-scrollbar-thumb-inactive: rgba(255, 255, 255, 0.12);
+
+
+/* Extra CSS */
+
+.code-cursor() {
+    // to make a block cursor, use something like this:
+    // background-color: fadeout(@blue, 50%);
+    // border: none !important;
+
+    // to make an I-cursor, use something like this:
+    border-left: 1px solid @content-color !important;
+}
+
+.CodeMirror .CodeMirror-gutters {
+    // gutter border:
+    // border-right: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
+    color: @comment;
+}
+
+#status-bar {
+    background: @status-bar-background-color;
+    border-top: 1px solid @status-bar-border;
+    color:@status-bar-text-color;
+}
+
+#status-info {
+    color: @status-bar-text-color;
+}
+
+#status-file {
+    color: @status-bar-quiet-text-color;
+}
+
+#status-indicators {
+    background: @status-bar-background-color;
+    color: @status-bar-text-color;
+
+    > div {
+        border-left: 1px solid @status-bar-border;
+    }
+}

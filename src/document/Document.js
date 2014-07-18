@@ -156,7 +156,7 @@ define(function (require, exports, module) {
      * @type {FileUtils.LINE_ENDINGS_CRLF|FileUtils.LINE_ENDINGS_LF}
      */
     Document.prototype._lineEndings = null;
-
+    
     /** Add a ref to keep this Document alive */
     Document.prototype.addRef = function () {
         //console.log("+++REF+++ "+this);
@@ -670,14 +670,25 @@ define(function (require, exports, module) {
     Document.prototype.getLanguage = function () {
         return this.language;
     };
+    
+    /**
+     * Overrides the default language of this document and sets it to the given
+     * language. This change is not persisted if the document is closed.
+     * @param {?Language} language The language to be set for this document; if
+     * null, the language will be set back to the default.
+     */
+    Document.prototype.setLanguageOverride = function (language) {
+        LanguageManager._setLanguageOverrideForPath(this.file.fullPath, language);
+        this._updateLanguage();
+    };
 
     /**
-     * Updates the language according to the file extension
+     * Updates the language according to the file extension. If the current
+     * language was forced (set manually by user), don't change it.
      */
     Document.prototype._updateLanguage = function () {
         var oldLanguage = this.language;
         this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
-        
         if (oldLanguage && oldLanguage !== this.language) {
             $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
         }
@@ -697,7 +708,6 @@ define(function (require, exports, module) {
     Document.prototype.isUntitled = function () {
         return this.file instanceof InMemoryFile;
     };
-
 
     // Define public API
     exports.Document = Document;

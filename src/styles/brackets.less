@@ -177,7 +177,33 @@ a, img {
 
     #status-language {
         border-right: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 0px;
+        margin: 0px;
     }
+    
+    /* dropdown button styling */
+    .btn-status-bar {
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        font: inherit;
+        height: inherit;
+        line-height: inherit;
+        margin: 0;
+        padding: 0 20px 0 10px;
+        vertical-align: top;
+        width: auto;
+        cursor: pointer;
+        &:focus {
+            outline: 0;
+        }
+        &[disabled] {
+            cursor: inherit;
+            background: none;
+            text-decoration: none;
+        }
+    }
+    
 }
 
 #status-indent > * {
@@ -225,7 +251,6 @@ a, img {
 #status-overwrite {
     transition: background-color 3s;
     background-color: rgba(120, 178, 242, 0);
-    color: rgb(69, 69, 69);
     cursor: pointer;
 }
 
@@ -246,7 +271,7 @@ a, img {
         .box-align(center);
         background: @background-color-3 url('images/no_content_bg.svg') no-repeat center 45%;
     }
-    
+
     .view-pane {
         display: block;
         margin: 0;
@@ -863,10 +888,10 @@ a, img {
     }
 
     .CodeMirror-scroll {
-        background-color: transparent;
+        background-color: transparent !important;
 
         .CodeMirror-linenumbers {
-            background-color: @tc-lighter-gray;
+            background-color: transparent;
         }
     }
 
@@ -1655,5 +1680,9 @@ label input {
 
 #hidden-editors {
     display: none;
+}
+
+.theme-settings td {
+    padding: 2px;
 }
 

@@ -59,7 +59,7 @@
  *      Document that has been saved.
  *    - documentRefreshed -- When a Document's contents have been reloaded from disk. The 2nd arg to the
  *      listener is the Document that has been refreshed.
- * 
+ *
  * NOTE: WorkingSet APIs have been deprecated and have moved to MainViewManager as PaneViewList APIs
  *       Some WorkingSet APIs that have been identified as being used by 3rd party extensions will
  *       emit deprecation warnings and call the PaneViewList APIS to maintain backwards compatibility
@@ -108,7 +108,7 @@ define(function (require, exports, module) {
      */
     var _untitledDocumentPath = "/_brackets_" + _.random(10000000, 99999999);
 
-  
+    
     /**
      * While true, the MRU order is frozen
      * @type {boolean}
@@ -121,7 +121,7 @@ define(function (require, exports, module) {
      * @type {Object.<string, Document>}
      */
     var _openDocuments = {};
-    
+
     /**
      * Creates a deprecation warning event handler
      * @param {!string} the event being deprecated
@@ -135,7 +135,7 @@ define(function (require, exports, module) {
                                           "DocumentManager." + oldEventName,
                                           "MainViewManager." + newEventName);
     }
-        
+    
     /**
      * Returns the existing open Document for the given file, or null if the file is not open ('open'
      * means referenced by the UI somewhere). If you will hang onto the Document, you must addRef()
@@ -162,7 +162,7 @@ define(function (require, exports, module) {
         }
         return null;
     }
- 
+    
     /**
      * Returns the Document that is currently open in the editor UI. May be null.
      * @return {?Document}
@@ -237,7 +237,7 @@ define(function (require, exports, module) {
         
         MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, list);
     }
-    
+
     /**
      * Returns all Documents that are 'open' in the UI somewhere (for now, this means open in an
      * inline editor and/or a full-size editor). Only these Documents can be modified, and only
@@ -298,7 +298,7 @@ define(function (require, exports, module) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.removeFromPaneViewList() instead of DocumentManager.removeFromWorkingSet()", true);
         MainViewManager.removeFromPaneViewList(MainViewManager.FOCUSED_PANE, file, suppressRedraw);
     }
-    
+
     /**
      * @deprecated Use MainViewManager.doCloseAll() instead
      * Equivalent to calling closeFullEditor() for all Documents.
@@ -308,7 +308,7 @@ define(function (require, exports, module) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.doCloseAll() instead of DocumentManager.closeAll()", true);
         MainViewManager.doCloseAll(MainViewManager.ALL_PANES);
     }
-            
+
     /**
      * @deprecated use MainViewManager.doClose() instead
      * @param {!File} file
@@ -329,7 +329,8 @@ define(function (require, exports, module) {
      */
     function setCurrentDocument(doc) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.doEdit() instead of DocumentManager.setCurrentDocument()", true);
-        return MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, doc);
+        var result = MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, doc);
+        return result;
     }
 
     
@@ -534,7 +535,7 @@ define(function (require, exports, module) {
 
         $(exports).triggerHandler("pathDeleted", file.fullPath);
     }
-    
+
     /**
      * Called after a file or folder has been deleted. This function is responsible
      * for updating underlying model data and notifying all views of the change.
@@ -545,11 +546,11 @@ define(function (require, exports, module) {
         /* FileSyncManager.syncOpenDocuments() does all the work of closing files
            in the working set and notifying the user of any unsaved changes. */
         FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
-
+        
         // Send a "pathDeleted" event. This will trigger the views to update.
         $(exports).triggerHandler("pathDeleted", path);
     }
-    
+
     /**
      * Called after a file or folder name has changed. This function is responsible
      * for updating underlying model data and notifying all views of the change.
@@ -571,7 +572,7 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("fileNameChange", [oldName, newName]);
     }
     
-
+    
     /**
      * @private
      * Update document
@@ -654,7 +655,7 @@ define(function (require, exports, module) {
         
         return null;
     }
-
+    
     /* 
      * Setup an extensionsReady handler to register deprecated events.  
      * We do this so these events are added to the end of the event
@@ -682,16 +683,35 @@ define(function (require, exports, module) {
         PreferencesManager.fileChanged(doc.file.fullPath);
     });
     
-    $(MainViewManager).on("currentFileChanged", function (e, file) {
-        var doc = null;
-        if (file) {
-            doc = getDocumentForPath(file.fullPath);
+    $(MainViewManager).on("currentFileChanged", function (e, newFile, newPaneId, oldFile, oldPaneId) {
+        var newDoc = null,
+            oldDoc = null;
+
+        if (newFile) {
+            newDoc = getDocumentForPath(newFile.fullPath);
         }
+        
+        if (oldFile) {
+            oldDoc = getDocumentForPath(oldFile.fullPath);
+        }
+        
+        if (oldDoc) {
+            $(oldDoc).off("languageChanged.DocumentManager");
+        }
+        
         var count = DeprecationWarning.getEventHandlerCount(exports, "currentDocumentChange");
         if (count > 0) {
             DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChanged' instead.", true);
         }
-        $(exports).triggerHandler("currentDocumentChange", [doc, null]);
+        
+        $(exports).triggerHandler("currentDocumentChange", [newDoc, oldDoc]);
+
+        if (newDoc) {
+            $(newDoc).on("languageChanged.DocumentManager", function (data) {
+                $(exports).trigger("currentDocumentLanguageChanged", data);
+            });
+        }
+    
     });
     
     // Deprecated APIs   
@@ -704,21 +724,21 @@ define(function (require, exports, module) {
     exports.getCurrentDocument             = getCurrentDocument;
     exports.beginDocumentNavigation        = beginDocumentNavigation;
     exports.finalizeDocumentNavigation     = finalizeDocumentNavigation;
-   
-    // Define public API   
-    exports.Document                       = DocumentModule.Document;
-    exports.getDocumentForPath             = getDocumentForPath;
-    exports.getOpenDocumentForPath         = getOpenDocumentForPath;
-    exports.getDocumentText                = getDocumentText;
-    exports.createUntitledDocument         = createUntitledDocument;
-    exports.getAllOpenDocuments            = getAllOpenDocuments;
-    exports.setCurrentDocument             = setCurrentDocument;
+    
+    // Define public API
+    exports.Document                    = DocumentModule.Document;
+    exports.getDocumentForPath          = getDocumentForPath;
+    exports.getOpenDocumentForPath      = getOpenDocumentForPath;
+    exports.getDocumentText             = getDocumentText;
+    exports.createUntitledDocument      = createUntitledDocument;
+    exports.getAllOpenDocuments         = getAllOpenDocuments;
+    exports.setCurrentDocument          = setCurrentDocument;
     exports.clearCurrentDocument           = clearCurrentDocument;
-    exports.closeFullEditor                = closeFullEditor;
-    exports.closeAll                       = closeAll;
-    exports.notifyFileDeleted              = notifyFileDeleted;
-    exports.notifyPathNameChanged          = notifyPathNameChanged;
-    exports.notifyPathDeleted              = notifyPathDeleted;
+    exports.closeFullEditor             = closeFullEditor;
+    exports.closeAll                    = closeAll;
+    exports.notifyFileDeleted           = notifyFileDeleted;
+    exports.notifyPathNameChanged       = notifyPathNameChanged;
+    exports.notifyPathDeleted           = notifyPathDeleted;
 
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");

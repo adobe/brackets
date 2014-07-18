@@ -139,7 +139,7 @@ define(function (require, exports, module) {
             _activePaneId = newPaneId;
             
             $(exports).triggerHandler("activePaneChanged", [newPaneId, oldPaneId]);
-            $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), newPaneId]);
+            $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), newPaneId, oldPane.getCurrentlyViewedFile(), oldPaneId]);
             
             oldPane.onSetActive(false);
             newPane.onSetActive(true);
@@ -192,7 +192,7 @@ define(function (require, exports, module) {
                 } else {
                     var currentFile = getCurrentlyViewedFile();
                     if (currentFile !== current.getFile()) {
-                        $(exports).triggerHandler("currentFileChanged", [current.getFile(), _activePaneId]);
+                        $(exports).triggerHandler("currentFileChanged", [current.getFile(), _activePaneId, currentFile, _activePaneId]);
                         forceFocusToActivePaneView();
                     }
                 }
@@ -717,7 +717,10 @@ define(function (require, exports, module) {
     }
     
     function doEdit(paneId, doc) {
-        var currentPaneId = getPaneIdForPath(doc.file.fullPath);
+        
+        var currentPaneId = getPaneIdForPath(doc.file.fullPath),
+            oldPane = _getActivePane(),
+            oldFile = oldPane.getCurrentlyViewedFile();
 
         if (currentPaneId) {
             paneId = currentPaneId;
@@ -739,7 +742,7 @@ define(function (require, exports, module) {
         EditorManager.doOpenDocument(doc, pane);
 
         if (pane.id === _activePaneId) {
-            $(exports).triggerHandler("currentFileChanged", [doc.file, pane.id]);
+            $(exports).triggerHandler("currentFileChanged", [doc.file, pane.id, oldFile, pane.id]);
         }
 
         _makePaneViewMostRecent(paneId, doc.file);
@@ -793,13 +796,15 @@ define(function (require, exports, module) {
             paneId = getPaneIdForPath(file.fullPath);
         }
 
-        var pane = _getPaneFromPaneId(paneId);
+        var pane = _getPaneFromPaneId(paneId),
+            oldFile = pane.getCurrentlyViewedFile();
+
         
         if (pane.doRemoveView(file)) {
             $(exports).triggerHandler("paneViewListRemove", [file, false, pane.id]);
         
             if (pane.id === _activePaneId) {
-                $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), paneId]);
+                $(exports).triggerHandler("currentFileChanged", [pane.getCurrentlyViewedFile(), pane.id, oldFile, pane.id]);
             }
         }
     }
@@ -821,13 +826,15 @@ define(function (require, exports, module) {
         }
         
         if (currentFileClosed) {
-            $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), _activePaneId]);
+            $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), _activePaneId, currentFile, _activePaneId]);
         }
     }
     
     
     function doCloseAll(paneId) {
-        var fileList;
+        var fileList,
+            currentFile = _getActivePane().getCurrentlyViewedFile();
+        
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
                 fileList = pane.getViewList();
@@ -842,7 +849,7 @@ define(function (require, exports, module) {
         }
         
         if (paneId === _activePaneId || paneId === FOCUSED_PANE || paneId === ALL_PANES) {
-            $(exports).triggerHandler("currentFileChanged", [null, _activePaneId]);
+            $(exports).triggerHandler("currentFileChanged", [null, _activePaneId, currentFile, _activePaneId]);
         }
         
         _doUnsplit();

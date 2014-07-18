@@ -479,6 +479,9 @@ define(function (require, exports, module) {
                     run();
                 });
             $(DocumentManager)
+                .on("currentDocumentLanguageChanged.codeInspection", function () {
+                    run();
+                })
                 .on("documentSaved.codeInspection documentRefreshed.codeInspection", function (event, document) {
                     if (document === DocumentManager.getCurrentDocument()) {
                         run();

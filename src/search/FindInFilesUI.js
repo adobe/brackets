@@ -224,7 +224,9 @@ define(function (require, exports, module) {
             // is hidden when we set options.multifile.
             $(_findBar).on("doReplaceAll.FindInFiles", startReplace);
         }
-                
+        
+        var oldModalBarHeight = _findBar._modalBar.height();
+        
         // Show file-exclusion UI *unless* search scope is just a single file
         if (!scope || scope.isDirectory) {
             var exclusionsContext = {
@@ -238,6 +240,20 @@ define(function (require, exports, module) {
         }
         
         handleQueryChange();
+        
+        // Appending FilterPicker and query text can change height of modal bar, so resize editor.
+        // Preserve scroll position of the current full editor across the editor refresh, adjusting
+        // for the height of the modal bar so the code doesn't appear to shift if possible.
+        var fullEditor = EditorManager.getCurrentFullEditor(),
+            scrollPos;
+        if (fullEditor) {
+            scrollPos = fullEditor.getScrollPos();
+            scrollPos.y -= oldModalBarHeight;   // modalbar already showing, adjust for old height
+        }
+        EditorManager.resizeEditor();
+        if (fullEditor) {
+            fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + _findBar._modalBar.height());
+        }
     }
     
     /**

@@ -226,7 +226,7 @@ define({
     "BOTTOM"            : "Bottom",
     "LEFT"              : "Left",
     "RIGHT"             : "Right",
-    
+
     /**
      * Keyboard modifier names
      */
@@ -254,6 +254,7 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensions Disabled",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_DEFAULT_LANG"                : "(default)",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",
@@ -291,6 +292,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_FILE_SAVE_AS"                    : "Save As\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Force Reload Live Preview",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_FILE_DELETE"                     : "Delete",
@@ -360,6 +362,7 @@ define({
     "CMD_SORT_PANE_VIEW_LIST_BY_NAME"     : "Sort by Name",
     "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"     : "Sort by Type",
     "CMD_TOGGLE_AUTO_SORT"                : "Automatic Sort",
+    "CMD_THEMES"                          : "Themes\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigate",
@@ -422,6 +425,14 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unknown error parsing Base URL",
     
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Current Theme",
+    "CUSTOM_SCROLLBARS"                    : "Custom Scrollbars",
+    "FONT_SIZE"                            : "Font Size",
+    "FONT_FAMILY"                          : "Font Family",
+    "LINE_HEIGHT"                          : "Line Height",
+    "GENERAL"                              : "General",
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "New Rule",
     
@@ -560,6 +571,8 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
     "NO_ARGUMENTS"                              : "<no parameters>",
+    "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets ran into trouble processing:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> in your project and remove the file from jscodehints.detectedExclusions.",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",

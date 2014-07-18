@@ -42,6 +42,7 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
+        ThemeSettings       = require("view/ThemeSettings"),
         MainViewManager     = require("view/MainViewManager"),
         AppInit             = require("utils/AppInit");
     
@@ -319,6 +320,11 @@ define(function (require, exports, module) {
         _scrollLine(1);
     }
     
+    /** Open theme settings dialog */
+    function _handleThemeSettings() {
+        ThemeSettings.showDialog();
+    }
+
     /**
      * @private
      * Convert the old "fontSizeAdjustment" preference to the new view state.
@@ -339,6 +345,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
     CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
     CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
+    CommandManager.register(Strings.CMD_THEMES,             Commands.CMD_THEMES_OPEN_SETTINGS, _handleThemeSettings);
 
     PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewState);
 
