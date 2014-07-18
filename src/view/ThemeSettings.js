@@ -49,7 +49,7 @@ define(function (require, exports, module) {
         "lineHeight": 1.25,
         "fontFamily": "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace",
         "customScrollbars": true,
-        "themes": ["thor-light-theme"]
+        "theme": "thor-light-theme"
     };
 
 
@@ -81,11 +81,9 @@ define(function (require, exports, module) {
         var $template       = $(Mustache.render(template, {"settings": currentSettings, "themes": themes, "Strings": Strings}));
 
         // Select the correct theme.
-        _.each(currentSettings.themes, function (item) {
-            $template
-                .find("[value='" + item + "']")
-                .attr("selected", "selected");
-        });
+        $template
+            .find("[value='" + currentSettings.theme + "']")
+            .attr("selected", "selected");
 
         $template
             .find("[data-toggle=tab].default")
@@ -103,16 +101,11 @@ define(function (require, exports, module) {
                 newSettings[attr] = $target.val();
             })
             .on("change", function () {
-                var items;
                 var $target = $(":selected", this);
                 var attr = $target.attr("data-target");
 
                 if (attr) {
-                    items = $target.map(function (i, item) {
-                        return $(item).val();
-                    });
-
-                    prefs.set(attr, items.toArray());
+                    prefs.set(attr, $target.val());
                 }
             });
 
@@ -123,7 +116,7 @@ define(function (require, exports, module) {
                 });
             } else if (id === "cancel") {
                 // Make sure we revert any changes to theme selection
-                prefs.set("themes", currentSettings.themes);
+                prefs.set("theme", currentSettings.theme);
             }
         });
     }
@@ -140,7 +133,7 @@ define(function (require, exports, module) {
      * Restores themes to factory settings.
      */
     function restore() {
-        prefs.set("themes", defaults.themes);
+        prefs.set("theme", defaults.theme);
         prefs.set("fontSize", defaults.fontSize + "px");
         prefs.set("lineHeight", defaults.lineHeight);
         prefs.set("fontFamily", defaults.fontFamily);
@@ -148,7 +141,7 @@ define(function (require, exports, module) {
     }
 
 
-    prefs.definePreference("themes", "array", defaults.themes);
+    prefs.definePreference("theme", "string", defaults.theme);
     prefs.definePreference("fontSize", "string", defaults.fontSize + "px");
     prefs.definePreference("lineHeight", "number", defaults.lineHeight);
     prefs.definePreference("fontFamily", "string", defaults.fontFamily);

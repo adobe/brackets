@@ -95,17 +95,17 @@ define(function (require, exports, module) {
      * @param {CodeMirror} cm is the CodeMirror instance currently loaded
      */
     function updateThemes(cm) {
-        var newThemes = (prefs.get("themes") || []).join(" "),
-            cmThemes  = cm.getOption("theme").replace(/[\s]*/, " "); // Normalize themes string
+        var newTheme = prefs.get("theme"),
+            cmTheme  = (cm.getOption("theme") || "").replace(/[\s]*/, ""); // Normalize themes string
 
         // Check if the editor already has the theme applied...
-        if (cmThemes === newThemes) {
+        if (cmTheme === newTheme) {
             return;
         }
 
         // Setup current and further documents to get the new theme...
-        CodeMirror.defaults.theme = newThemes;
-        cm.setOption("theme", newThemes);
+        CodeMirror.defaults.theme = newTheme;
+        cm.setOption("theme", newTheme);
     }
 
 
