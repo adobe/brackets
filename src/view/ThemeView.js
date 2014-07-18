@@ -139,7 +139,7 @@ define(function (require, exports, module) {
     function setDocumentMode(cm) {
         var mode = cm.getDoc().getMode();
         var docMode = mode && (mode.helperType || mode.name);
-        $("body").removeClass("doctype-" + currentDocMode).addClass("doctype-" + docMode);
+        $("#editor-holder .CodeMirror").removeClass("doctype-" + currentDocMode).addClass("doctype-" + docMode);
         currentDocMode = docMode; // Update docMode
         return docMode;
     }

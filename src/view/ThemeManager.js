@@ -156,7 +156,7 @@ define(function (require, exports, module) {
             filename: fixPath(theme.file._path)
         });
 
-        parser.parse("." + theme.className + "{" + content + "}", function (err, tree) {
+        parser.parse("." + theme.className + " #editor-holder {" + content + "}", function (err, tree) {
             if (err) {
                 deferred.reject(err);
             } else {
