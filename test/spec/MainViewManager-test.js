@@ -846,6 +846,19 @@ define(function (require, exports, module) {
                 });
             });
             //findInPaneViewList;
+            it("should find file in view", function () {
+                runs(function () {
+                    MainViewManager.addToPaneViewList("second-pane", getFileObject("test.js"));
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, getFileObject("test.js").fullPath).paneId).toEqual("second-pane");
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.FOCUSED_PANE, getFileObject("test.js").fullPath)).toEqual(-1);
+                    expect(MainViewManager.findInPaneViewList("second-pane", getFileObject("test.js").fullPath)).toNotEqual(-1);
+                    expect(MainViewManager.findInPaneViewList("first-pane", getFileObject("test.js").fullPath)).toEqual(-1);
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, getFileObject("test.css").fullPath)).toEqual(-1);
+                });
+            });
         });
     });
 });
