@@ -23,16 +23,16 @@
 
 
 // Brackets-specific default font and color definitions
-@import url("brackets_colors.less");
+//@import url("brackets_colors.less");
 
 // Default theme -- all UI styling comes from variables in a theme
 // Themes can rely on variables defined above
-@import url("brackets_theme_default.less");
+//@import url("brackets_theme_default.less");
 
 // Include Codemirror styling overrides so that we can overrides proper values
 // for the theme.  If you need to customize the tree, you also include jsTree.less
 // and even brackets_scrollbars.less
-@import url("brackets_codemirror_override.less");
+//@import url("brackets_codemirror_override.less");
 
 
 /*
@@ -50,71 +50,19 @@
 
 /* Overall Colors */
 @background: #1d1f21;
-@current-line: #000;
 @foreground: #c5c8c6;
-@comment: #767676;
-@orange: #d89333;
-@blue: #6c9ef8;
-@purple: #b77fdb;
-@green: #85a300;
-@red: #dc322f;
-@aqua: #8abeb7;
-@violet: #6c71c4;
-@yellow: #f0c674;
-@pink: #d85896;
 
 /*
  * Background colors are ordered from least "intense" to most "intense"
- * So, if the background is light, then @background-color-3 should be
+ * So, if the background is light, then @background should be
  * lightest, -2 should be darker, and -1 should be darker still.
  *
  * The opposite is true for a dark background -- background-color-3 should be
  * the darkest, -2 should be lighter, and -1 should be lighter still.
  */
-@background-color-1: lighten(@background, @bc-color-step-size*2);
-@background-color-2: lighten(@background, @bc-color-step-size);
-@background-color-3: @background;
-
-/*
- * @content-color-stronger should be should be further away from the
- * background color than @content-color (i.e. more contrasty).
- *
- * @content-color-weaker should be closer to the background color
- * than @content-color (i.e. less contrasty).
- */
-@content-color: @foreground;
-@content-color-stronger: lighten(@foreground, @bc-color-step-size);
-@content-color-weaker: darken(@foreground, @bc-color-step-size);
+@bc-color-step-size: 10%;
 
 /* Code Styling */
-
-/* code accent colors */
-@accent-keyword: @blue;
-@accent-atom: @orange;
-@accent-number: @green;
-@accent-def: @purple;
-@accent-variable: @foreground;
-@accent-variable-2: @foreground;
-@accent-variable-3: @foreground;
-@accent-property: @purple;
-@accent-operator: @foreground;
-@accent-comment: @comment;
-@accent-string: @orange;
-@accent-string-2: @orange;
-@accent-meta: @foreground;
-@accent-error: @red;
-@accent-qualifier: @blue;
-@accent-builtin: @blue;
-@accent-bracket: @foreground;
-@accent-tag: @blue;
-@accent-attribute: @green;
-@accent-header: @pink;
-@accent-quote: @blue;
-@accent-hr: @orange;
-@accent-link: @purple;
-@accent-rangeinfo: @violet;
-@accent-minus: @red;
-@accent-plus: @green;
 
 /* inline editor colors */
 @inline-background-color-1: lighten(@background, @bc-color-step-size);
@@ -125,70 +73,115 @@
 @inline-color-2: darken(@foreground, @bc-color-step-size);
 @inline-color-3: @background;
 
-/* Selection colors */
-@selection-color-focused: #0050a0;
-@selection-color-unfocused: #333f48;
+@inline-triangle-size: 9px;
 
-@activeline-bgcolor: #2f2f2f;
-@activeline-number: #fff;
-@activeline-number-bgcolor: #000;
-@matching-bracket: #2e5c00;
 
-/* Status Bar Colors */
-@status-bar-background-color: #1C1C1E;
-@status-bar-border: rgba(255, 255, 255, 0.08);
-@status-bar-text-color: #a1a1a1;
-@status-bar-quiet-text-color: #666;
+/* Custom scrollbar colors */
+.platform-win & {
+    .CodeMirror-gutter-filler {
+        background-color: rgb(15, 15, 15);
+    }
+    // Note: when changing padding/margins, may need to adjust metrics in ScrollTrackMarkers.js
 
-/* custom scrollbar colors */
-@win-scrollbar-track: rgb(15, 15, 15);
-@win-scrollbar-thumb: rgb(49, 49, 49);
-@win-scrollbar-thumb-hover: rgb(89, 89, 89);
-@win-scrollbar-thumb-active: rgb(169, 169, 169);
+    ::-webkit-scrollbar {
+        background-color: rgb(15, 15, 15);
+    }
 
-@linux-scrollbar-thumb: rgba(255, 255, 255, 0.24);
-@linux-scrollbar-thumb-inactive: rgba(255, 255, 255, 0.12);
+    ::-webkit-scrollbar-thumb {
+        box-shadow: 0 0 0 12px rgb(49, 49, 49) inset;
+    }
+    ::-webkit-scrollbar-thumb:hover,
+    ::-webkit-scrollbar-thumb:focus {
+        box-shadow: 0 0 0 12px rgb(89, 89, 89) inset;
+    }
+    ::-webkit-scrollbar-thumb:active {
+        box-shadow: 0 0 0 12px rgb(169, 169, 169) inset;
+    }
+}
 
+.platform-linux & {
+    ::-webkit-scrollbar-thumb {
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.24) inset;
+    }
+
+    ::-webkit-scrollbar-thumb:window-inactive {
+        box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.12) inset;
+    }
+}
+
+
+.CodeMirror, .CodeMirror-scroll {
+    background-color: @background;
+    color: @foreground;
+}
+
+.CodeMirror-focused .CodeMirror-activeline-background {
+    background: #2f2f2f;
+}
+.show-line-padding .CodeMirror-focused .CodeMirror-activeline-background {
+    box-shadow: inset 15px 0 0 0 #000;
+}
+
+.CodeMirror-focused .CodeMirror-activeline {
+    .CodeMirror-gutter-elt {
+        background: #000;
+        color: #fff;
+    }
+    .inline-widget .CodeMirror-gutter-elt {
+        color: #767676;    
+    }
+}
+
+.cm-keyword, .cm-qualifier, .cm-builtin, .cm-tag, .cm-quote {color: #6c9ef8;}
+.cm-atom, .cm-string, .cm-string-2, .cm-hr {color: #d89333;}
+.cm-number, .cm-attribute, .cm-plus {color: #85a300;}
+.cm-def, .cm-property {color: #b77fdb;}
+.cm-variable, .cm-variable-2, .cm-variable-3, .cm-operator, .cm-meta, .cm-bracket {color: @foreground;}
+.cm-comment {color: #767676;}
+.cm-error, .cm-minus {color: #dc322f;}
+.cm-header {color: #d85896;}
+.cm-link {color: #b77fdb; text-decoration: none;}
+.cm-rangeinfo {color: #6c71c4;}
 
 /* Extra CSS */
 
-.code-cursor() {
-    // to make a block cursor, use something like this:
-    // background-color: fadeout(@blue, 50%);
-    // border: none !important;
-
-    // to make an I-cursor, use something like this:
-    border-left: 1px solid @content-color !important;
+.CodeMirror-cursor {
+    border-left: 1px solid #c5c8c6 !important;
 }
 
-.CodeMirror .CodeMirror-gutters {
-    // gutter border:
-    // border-right: 1px solid rgba(255, 255, 255, 0.03);
+.CodeMirror-gutters {
+    background-color: @background;
+    border-right: none;
 }
 
-.CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
-    color: @comment;
+.CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt, .CodeMirror-linenumber {
+    color: #767676;
 }
 
-#status-bar {
-    background: @status-bar-background-color;
-    border-top: 1px solid @status-bar-border;
-    color:@status-bar-text-color;
+.CodeMirror .CodeMirror-selected {
+    background: #333f48;
+}
+.CodeMirror-focused .CodeMirror-selected {
+    background: #0050a0;
 }
 
-#status-info {
-    color: @status-bar-text-color;
+.CodeMirror-matchingbracket, .CodeMirror-matchingtag {
+    /* Ensure visibility against gray inline editor background */
+    background-color: #2e5c00;
+    color: @foreground !important;
 }
 
-#status-file {
-    color: @status-bar-quiet-text-color;
-}
+.related-container {
+    background: @inline-background-color-2;
+    
+    .selection {
+        border-top: 1px solid darken(@inline-background-color-3, @bc-color-step-size);
+        border-bottom: 1px solid lighten(@inline-background-color-3, @bc-color-step-size);
+    }
 
-#status-indicators {
-    background: @status-bar-background-color;
-    color: @status-bar-text-color;
-
-    > div {
-        border-left: 1px solid @status-bar-border;
+    .selection:before {
+        border-top: @inline-triangle-size solid @inline-background-color-3;
+        border-bottom: @inline-triangle-size solid @inline-background-color-3;
+        border-left: @inline-triangle-size solid @inline-background-color-1;
     }
 }
