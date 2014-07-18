@@ -200,7 +200,7 @@ define(function (require, exports, module) {
     /**
      * Get all current theme objects that are loaded in the editor.
      *
-     * @return {Array.<Theme>} collection of the current theme instances
+     * @return {Theme} the current theme instance
      */
     function getCurrentTheme() {
         if (!currentTheme) {
