@@ -330,60 +330,6 @@ define(function (require, exports, module) {
         return loadFile(fileName, themePackage.metadata);
     }
 
-
-    /**
-     * Load css/less files from a directory to be treated as themes
-     *
-     * @param {string} path where theme files are to be loaded from
-     * @return {$.Promise} promise object resolved with the themes to be loaded from the directory
-     */
-    function loadDirectory(path) {
-        var result = new $.Deferred();
-
-        if (!path) {
-            return result.reject({
-                path: path,
-                error: "Path not defined"
-            });
-        }
-
-        function readContent(err, entries) {
-            var i, files = [];
-            entries = entries || [];
-
-            for (i = 0; i < entries.length; i++) {
-                if (isFileTypeValid(entries[i])) {
-                    files.push(entries[i].name);
-                }
-            }
-
-            if (err) {
-                result.reject({
-                    path: path,
-                    error: err
-                });
-            } else {
-                result.resolve({
-                    files: files,
-                    path: path
-                });
-            }
-        }
-
-        function loadThemeFiles(theme) {
-            // Iterate through each name in the themes and make them theme objects
-            var deferred = theme.files.forEach(function (themeFile) {
-                return loadFile(theme.path + "/" + themeFile);
-            });
-
-            return $.when.apply(undefined, deferred);
-        }
-
-        FileSystem.getDirectoryForPath(path).getContents(readContent);
-        return result.then(loadThemeFiles);
-    }
-
-
     prefs.on("change", "customScrollbars", function () {
         refresh();
         ThemeView.updateScrollbars(getCurrentTheme());
@@ -453,7 +399,6 @@ define(function (require, exports, module) {
     exports.refresh         = refresh;
     exports.loadFile        = loadFile;
     exports.loadPackage     = loadPackage;
-    exports.loadDirectory   = loadDirectory;
     exports.getCurrentTheme = getCurrentTheme;
     exports.getAllThemes    = getAllThemes;
 

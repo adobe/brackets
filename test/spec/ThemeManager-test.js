@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, it, xit, runs, expect, waitsForDone, beforeFirst, afterLast */
+/*global define, describe, beforeEach, it, runs, expect, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -105,17 +105,6 @@ define(function (require, exports, module) {
                 });
 
                 waitsForDone(promise, "theme file", 5000);
-            });
-            
-            xit("should load a theme directory", function () {
-                var promise = ThemeManager.loadDirectory(testFilePath).done(function () {
-                    var themes = Array.prototype.slice.call(arguments);
-                    var allThemes = ThemeManager.getAllThemes();
-                    expect(themes.length).toEqual(4);
-                    expect(allThemes.length).toEqual(4);
-                });
-
-                waitsForDone(promise, "theme directory - skips invalid extensions", 5000);
             });
         });
     });
