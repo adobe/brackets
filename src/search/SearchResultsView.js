@@ -237,6 +237,45 @@ define(function (require, exports, module) {
                 }
             });
         
+        function updateHeaderCheckbox($checkAll) {
+            var $allFileRows     = self._panel.$panel.find(".file-section"),
+                $checkedFileRows = $allFileRows.filter(function (index) {
+                                        return $(this).find(".check-one-file").is(":checked");
+                                    });
+            if ($checkedFileRows.length === $allFileRows.length) {
+                $checkAll.prop("checked", true);
+            }
+        }
+        
+        function updateFileAndHeaderCheckboxes($clickedRow, isChecked) {
+            var $firstMatch = ($clickedRow.data("item-index") === 0)
+                                ? $clickedRow : $clickedRow.prevUntil(".file-section").last(),
+                $fileRow = $firstMatch.prev(),
+                $siblingRows = $fileRow.nextUntil(".file-section"),
+                $fileCheckbox = $fileRow.find(".check-one-file"),
+                $checkAll = self._panel.$panel.find(".check-all");
+        
+            if (isChecked) {
+                if (!$fileCheckbox.is(":checked")) {
+                    var $checkedSibilings = $siblingRows.filter(function (index) {
+                                                return $(this).find(".check-one").is(":checked");
+                                            });
+                    if ($checkedSibilings.length === $siblingRows.length) {
+                        $fileCheckbox.prop("checked", true);
+                        if (!$checkAll.is(":checked")) {
+                            updateHeaderCheckbox($checkAll);
+                        }
+                    }
+                }
+            } else {
+                if ($checkAll.is(":checked")) {
+                    $checkAll.prop("checked", false);
+                }
+                if ($fileCheckbox.is(":checked")) {
+                    $fileCheckbox.prop("checked", false);
+                }
+            }
+        }
         
         // Add the Click handlers for replace functionality if required
         if (this._model.isReplace) {
@@ -256,7 +295,8 @@ define(function (require, exports, module) {
                     var isChecked = $(this).is(":checked"),
                         $row = $(e.target).closest("tr"),
                         item = self._searchList[$row.data("file-index")],
-                        $matchRows = $row.nextUntil(".file-section");
+                        $matchRows = $row.nextUntil(".file-section"),
+                        $checkAll = self._panel.$panel.find(".check-all");
                     
                     if (item) {
                         self._model.results[item.fullPath].matches.forEach(function (match) {
@@ -264,26 +304,22 @@ define(function (require, exports, module) {
                         });
                     }
                     $matchRows.find(".check-one").prop("checked", isChecked);
+                    if (!isChecked) {
+                        if ($checkAll.is(":checked")) {
+                            $checkAll.prop("checked", false);
+                        }
+                    } else if (!$checkAll.is(":checked")) {
+                        updateHeaderCheckbox($checkAll);
+                    }
                     e.stopPropagation();
                 })
                 .on("click.searchResults", ".check-one", function (e) {
                     var $row = $(e.target).closest("tr"),
-                        $firstMatch = ($row.data("item-index") === 0) ? $row : $row.prevUntil(".file-section").last(),
-                        $fileRow = $firstMatch.prev(),
-                        $fileCheckbox = $fileRow.find(".check-one-file"),
                         item = self._searchList[$row.data("file-index")],
-                        match = self._model.results[item.fullPath].matches[$row.data("match-index")],
-                        $checkAll = self._panel.$panel.find(".check-all");
+                        match = self._model.results[item.fullPath].matches[$row.data("match-index")];
 
                     match.isChecked = $(this).is(":checked");
-                    if (!match.isChecked) {
-                        if ($checkAll.is(":checked")) {
-                            $checkAll.prop("checked", false);
-                        }
-                        if ($fileCheckbox.is(":checked")) {
-                            $fileCheckbox.prop("checked", false);
-                        }
-                    }
+                    updateFileAndHeaderCheckboxes($row, match.isChecked);
                     e.stopPropagation();
                 })
                 .on("click.searchResults", ".replace-checked", function (e) {
