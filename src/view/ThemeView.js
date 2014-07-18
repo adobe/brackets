@@ -78,6 +78,12 @@ define(function (require, exports, module) {
     }
 
 
+    /**
+     * Load scrollbar styling based on whether or not theme scrollbars are enabled.
+     *
+     * @param {ThemeManager.Theme} theme Is the theme object with the corresponding scrollbar style
+     *   to be updated
+     */
     function updateScrollbars(theme) {
         theme = theme || {};
         if (prefs.get("customScrollbars")) {
@@ -124,9 +130,6 @@ define(function (require, exports, module) {
     }
 
 
-    //
-    // Expose API
-    //
     exports.updateFonts      = updateFonts;
     exports.updateLineHeight = updateLineHeight;
     exports.updateFontSize   = updateFontSize;
