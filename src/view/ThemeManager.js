@@ -254,7 +254,7 @@ define(function (require, exports, module) {
                 return theme;
             });
 
-        return $.when.apply(undefined, pending);
+        return $.when(pending);
     }
 
 
@@ -326,7 +326,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} promise object resolved with the theme to be loaded from the pacakge
      */
     function loadPackage(themePackage) {
-        var fileName = themePackage.path + "/" + themePackage.metadata.theme;
+        var fileName = themePackage.path + "/" + themePackage.metadata.theme.file;
         return loadFile(fileName, themePackage.metadata);
     }
 
