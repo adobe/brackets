@@ -248,9 +248,8 @@ define(function (require, exports, module) {
         }
         
         function updateFileAndHeaderCheckboxes($clickedRow, isChecked) {
-            var $firstMatch = ($clickedRow.data("item-index") === 0)
-                    ? $clickedRow
-                    : $clickedRow.prevUntil(".file-section").last(),
+            var $firstMatch = ($clickedRow.data("item-index") === 0) ? $clickedRow :
+                    $clickedRow.prevUntil(".file-section").last(),
                 $fileRow = $firstMatch.prev(),
                 $siblingRows = $fileRow.nextUntil(".file-section"),
                 $fileCheckbox = $fileRow.find(".check-one-file"),
