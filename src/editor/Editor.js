@@ -1610,7 +1610,9 @@ define(function (require, exports, module) {
         // PopUpManager.removePopUp() is called either directly by this closure, or by
         // PopUpManager as a result of another popup being invoked.
         function _removeMessagePopover() {
-            PopUpManager.removePopUp(self._$messagePopover);
+            if (self._$messagePopover) {
+                PopUpManager.removePopUp(self._$messagePopover);
+            }
         }
 
         function _addListeners() {
