@@ -149,9 +149,9 @@ define({
 	"BUTTON_PREV_HINT": "Résultat précédent",
 	"BUTTON_CASESENSITIVE_HINT": "Respecter la casse",
 	"BUTTON_REGEXP_HINT": "Expression régulière",
-	"REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Remplacer sans annuler",
+	"REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Remplacer sans possibilité d’annuler",
 	"REPLACE_WITHOUT_UNDO_WARNING": "Dans la mesure où le nombre de fichiers à modifier excède {0}, {APP_NAME} va modifier des fichiers non ouverts sur le disque.<br />Vous ne pourrez pas annuler les remplacements effectués dans ces fichiers.",
-	"BUTTON_REPLACE_WITHOUT_UNDO": "Remplacer sans annuler",
+	"BUTTON_REPLACE_WITHOUT_UNDO": "Remplacer sans possibilité d’annuler",
 
 	"OPEN_FILE": "Ouvrir le fichier",
 	"SAVE_FILE_AS": "Enregistrer le fichier",
@@ -164,13 +164,13 @@ define({
     // Find and Replace
 	"FIND_REPLACE_TITLE_LABEL": "Remplacer",
 	"FIND_REPLACE_TITLE_WITH": "par",
-	"FIND_TITLE_LABEL": "Occurrence(s) trouvée(s)",
+	"FIND_TITLE_LABEL": "Occurrences trouvées pour",
 	"FIND_TITLE_SUMMARY": " &mdash; {0} {1} {2} dans {3}",
 
     // Find in Files
 	"FIND_NUM_FILES": "{0} {1}",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
-	"FIND_IN_FILES_NO_SCOPE": "du projet",
+	"FIND_IN_FILES_NO_SCOPE": "dans le projet",
 	"FIND_IN_FILES_ZERO_FILES": "Le filtre exclut tous les fichiers {0}",
 	"FIND_IN_FILES_FILE": "fichier",
 	"FIND_IN_FILES_FILES": "fichiers",
