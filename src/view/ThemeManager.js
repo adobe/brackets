@@ -43,6 +43,7 @@ define(function (require, exports, module) {
 
     var loadedThemes    = {},
         currentTheme    = null,
+        styleNode       = $(ExtensionUtils.addEmbeddedStyleSheet("")),
         defaultTheme    = "thor-light-theme",
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
         scrollbarsRegex = /::-webkit-scrollbar(?:[\s\S]*?)\{(?:[\s\S]*?)\}/mg,
@@ -198,7 +199,7 @@ define(function (require, exports, module) {
 
 
     /**
-     * Get all current theme objects that are loaded in the editor.
+     * Get current theme object that is loaded in the editor.
      *
      * @return {Theme} the current theme instance
      */
@@ -212,7 +213,7 @@ define(function (require, exports, module) {
 
 
     /**
-     * Gets all available themes that can be loaded in the editor.
+     * Gets all available themes
      * @return {Array.<Theme>} collection of all available themes
      */
     function getAllThemes() {
@@ -238,19 +239,11 @@ define(function (require, exports, module) {
                 theme.scrollbar = result.scrollbar;
                 return result.content;
             })
-            .then(function (content) {
-                return lessifyTheme(content, theme);
+            .then(function (lessContent) {
+                return lessifyTheme(lessContent, theme);
             })
-            .then(function (style) {
-                return ExtensionUtils.addEmbeddedStyleSheet(style);
-            })
-            .then(function (styleNode) {
-                // Remove after the style has been applied to avoid weird flashes
-                if (theme.css) {
-                    $(theme.css).remove();
-                }
-
-                theme.css = styleNode;
+            .then(function (cssContent) {
+                styleNode.text(cssContent);
                 return theme;
             });
 
@@ -261,7 +254,7 @@ define(function (require, exports, module) {
     /**
      * Refresh current theme in the editor
      *
-     * @param {boolean} force is to force reload the current theme
+     * @param {boolean} force Forces a reload the current theme.  It reload the theme file.
      */
     function refresh(force) {
         if (force) {
@@ -330,6 +323,23 @@ define(function (require, exports, module) {
         return loadFile(fileName, themePackage.metadata);
     }
 
+
+    prefs.on("change", "theme", function () {
+        // Make sure we don't reprocess a theme that's already loaded
+        if (currentTheme && currentTheme.name === prefs.get("theme")) {
+            return;
+        }
+
+        // Refresh editor with the new theme
+        refresh(true);
+
+        // Process the scrollbars for the editor
+        ThemeView.updateScrollbars(getCurrentTheme());
+
+        // Expose event for theme changes
+        $(exports).trigger("themeChange", getCurrentTheme());
+    });
+
     prefs.on("change", "customScrollbars", function () {
         refresh();
         ThemeView.updateScrollbars(getCurrentTheme());
@@ -350,6 +360,8 @@ define(function (require, exports, module) {
         ThemeView.updateFontFamily();
     });
 
+    // Monitor file changes.  If the file that has changed is actually the currently loaded
+    // theme, then we just reload the theme.  This allows to live edit the theme
     FileSystem.on("change", function (evt, file) {
         if (file.isDirectory) {
             return;
@@ -362,34 +374,6 @@ define(function (require, exports, module) {
 
     $(EditorManager).on("activeEditorChange", function () {
         refresh();
-    });
-
-
-    // We need to postpone setting the prefs on change event handler for themes
-    // to prevent flickering
-    AppInit.appReady(function () {
-        prefs.on("change", "theme", function () {
-            // Save the theme that's about to be replaced to allow for some transition to prevent flicker
-            var oldTheme = getCurrentTheme();
-
-            // Refresh editor with the new theme
-            refresh(true);
-
-            // Process the scrollbars for the editor
-            ThemeView.updateScrollbars(getCurrentTheme());
-
-            // Expose event for theme changes
-            $(exports).trigger("themeChange", getCurrentTheme());
-
-            // Delay removing the old style element to avoid flashes when transitioning between themes
-            if (oldTheme) {
-                setTimeout(function (theme) {
-                    if (theme.css) {
-                        $(theme.css).remove();
-                    }
-                }, 0, oldTheme);
-            }
-        });
     });
 
 
