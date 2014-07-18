@@ -89,7 +89,7 @@ define(function (require, exports, module) {
         this.file        = file;
         this.name        = options.name  || (options.title || fileName).toLocaleLowerCase().replace(/[\W]/g, '-');
         this.displayName = options.title || toDisplayName(fileName);
-        this.dark        = options.theme.dark === true;
+        this.dark        = options.theme && options.theme.dark === true;
     }
 
 
@@ -216,7 +216,7 @@ define(function (require, exports, module) {
      * @return {Array.<Theme>} collection of all available themes
      */
     function getAllThemes() {
-        return loadedThemes.map(function (theme) {
+        return _.map(loadedThemes, function (theme) {
             return theme;
         });
     }
@@ -310,7 +310,7 @@ define(function (require, exports, module) {
                 }
 
                 deferred.resolve(theme);
-            } else if (err) {
+            } else if (err || !exists) {
                 deferred.reject(err);
             }
         });
