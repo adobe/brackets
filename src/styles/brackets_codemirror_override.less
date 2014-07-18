@@ -175,6 +175,9 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
     /*font-size: 0.9em;*/  /* restore after SourceCodePro font fix? */
     padding: 0 @code-padding 0 10px;  /* left padding for project panel selection triangle */
 }
+.CodeMirror .CodeMirror-selected {
+    background: @selection-color-unfocused;
+}
 .CodeMirror-focused .CodeMirror-selected {
     background: @selection-color-focused;
 }
