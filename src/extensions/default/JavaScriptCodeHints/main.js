@@ -65,20 +65,23 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 5000);
     
     // This preference controls whether to create a session and process all JS files or not.
-    PreferencesManager.definePreference("codehint.JSHints", "boolean", jsHintsEnabled);
+    PreferencesManager.definePreference("codehint.JSHints", "boolean", true);
+
+    /**
+     * Check whether any of code hints preferences for JS Code Hints is disabled
+     * @return {boolean} enabled/disabled
+     */
+    function _areHintsEnabled() {
+        return (PreferencesManager.get("codehint.JSHints") !== false) &&
+            (PreferencesManager.get("showCodeHints") !== false);
+    }
 
     PreferencesManager.on("change", "codehint.JSHints", function () {
-        jsHintsEnabled = PreferencesManager.get("codehint.JSHints");
+        jsHintsEnabled = _areHintsEnabled();
     });
     
     PreferencesManager.on("change", "showCodeHints", function () {
-        var showHintsEnabled = PreferencesManager.get("showCodeHints");
-        
-        if (jsHintsEnabled && !showHintsEnabled) {
-            jsHintsEnabled = showHintsEnabled;
-        } else if (!jsHintsEnabled && showHintsEnabled) {
-            jsHintsEnabled = PreferencesManager.get("codehint.JSHints");
-        }
+        jsHintsEnabled = _areHintsEnabled();
     });
     
     /**
@@ -602,13 +605,13 @@ define(function (require, exports, module) {
          * @param {Editor} previousEditor - the previous editor
          */
         function installEditorListeners(editor, previousEditor) {
+            // always clean up cached scope and hint info
+            resetCachedHintContext();
+
             if (!jsHintsEnabled) {
                 return;
             }
             
-            // always clean up cached scope and hint info
-            resetCachedHintContext();
-
             if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
                 initializeSession(editor, previousEditor);
                 $(editor)

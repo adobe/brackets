@@ -252,7 +252,7 @@ define(function (require, exports, module) {
         codeHintsEnabled = true;
 
 
-    PreferencesManager.definePreference("showCodeHints", "boolean", codeHintsEnabled);
+    PreferencesManager.definePreference("showCodeHints", "boolean", true);
     PreferencesManager.definePreference("insertHintOnTab", "boolean", false);
 
     PreferencesManager.on("change", "showCodeHints", function () {
