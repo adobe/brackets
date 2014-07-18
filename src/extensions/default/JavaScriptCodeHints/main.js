@@ -60,7 +60,7 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", []);
     
     // This preference controls when Tern will time out when trying to understand files
-    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 5000);
+    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 10000);
     
     /**
      * Sets the configuration, generally for testing/debugging use.
