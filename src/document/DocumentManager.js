@@ -688,11 +688,11 @@ define(function (require, exports, module) {
             oldDoc = null;
 
         if (newFile) {
-            newDoc = getDocumentForPath(newFile.fullPath);
+            newDoc = getOpenDocumentForPath(newFile.fullPath);
         }
         
         if (oldFile) {
-            oldDoc = getDocumentForPath(oldFile.fullPath);
+            oldDoc = getOpenDocumentForPath(oldFile.fullPath);
         }
         
         if (oldDoc) {
