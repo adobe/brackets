@@ -210,7 +210,7 @@ define(function (require, exports, module) {
                 models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
                 $(this).tab("show");
                 $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
-                $searchClear.click();
+                $searchClear.trigger("click");
             });
         
         // Update & hide/show the notification overlay on a tab's icon, based on its model's notifyCount

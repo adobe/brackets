@@ -169,15 +169,15 @@ define(function (require, exports, module) {
             // Click primary
             stopEvent();
             if (e.target.tagName === "BUTTON") {
-                this.find(e.target).click();
+                this.find(e.target).trigger("click");
             } else {
-                $primaryBtn.click();
+                $primaryBtn.trigger("click");
             }
         } else if (e.which === KeyEvent.DOM_VK_SPACE) {
             if ($focusedElement.length) {
                 // Space bar on focused button or link
                 stopEvent();
-                $focusedElement.click();
+                $focusedElement.trigger("click");
             }
         } else if (brackets.platform === "mac") {
             // CMD+D Don't Save
