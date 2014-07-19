@@ -136,6 +136,12 @@ define(function (require, exports, module) {
             // The modalBar was already up. When creating the new modalBar, copy the
             // current query instead of using the passed-in selected text.
             initialString = _findBar.getQueryInfo().query;
+        } else {
+            // Eliminate newlines since we don't generally support searching across line boundaries (#2960)
+            var newline = initialString.indexOf("\n");
+            if (newline !== -1) {
+                initialString = initialString.substr(0, newline);
+            }
         }
         
         FindInFiles.clearSearch();
