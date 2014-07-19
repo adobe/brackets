@@ -162,9 +162,9 @@ define({
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
 
     // Find and Replace
-	"FIND_REPLACE_TITLE_LABEL": "置換",
+	"FIND_REPLACE_TITLE_LABEL": "置換対象",
 	"FIND_REPLACE_TITLE_WITH": "置換後の文字列",
-	"FIND_TITLE_LABEL": "見つかりました",
+	"FIND_TITLE_LABEL": "検索結果",
 	"FIND_TITLE_SUMMARY": " &mdash; {0} {1} {2} ({3})",
 
     // Find in Files
@@ -175,7 +175,7 @@ define({
 	"FIND_IN_FILES_FILE": "ファイル",
 	"FIND_IN_FILES_FILES": "ファイル",
 	"FIND_IN_FILES_MATCH": "が見つかりました",
-	"FIND_IN_FILES_MATCHES": "が見つかりました",
+	"FIND_IN_FILES_MATCHES": "件見つかりました",
 	"FIND_IN_FILES_MORE_THAN": "以上",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
