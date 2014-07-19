@@ -45,7 +45,7 @@ define({
     "DIRECTORY_NAMES_LEDE"              : "نام های پوشه",
     "FILENAMES_LEDE"                    : "نام های پرونده",
     "FILENAME"                          : "نام پرونده",
-    "DIRECTORY_NAME"                    : "نام پوشه", 
+    "DIRECTORY_NAME"                    : "نام پوشه",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "خطا در بارگذاری پروژه",
@@ -68,7 +68,7 @@ define({
     "INVALID_FILENAME_TITLE"            : "مقدار وارد شده {0} معتبر نمی باشد",
     "INVALID_FILENAME_MESSAGE"          : "نام پرونده نمی تواند شامل مقادیر زیر باشد: {0} و همچنین نمی توانید از عبارات مورد استفاده نرم افزار استفاده نمایید.",
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "پوشه یا پروندهی با نام <span class='dialog-filename'>{0}</span> هم اکنون موجود است.",
-    "ERROR_CREATING_FILE_TITLE"         : "خطا در ایج    "ERROR_CREATING_FILE"               : "بروز خطا بهنگام ایجاد {0} <span class='dialog-filename'>{1}</span>. {2}",
+    "ERROR_CREATING_FILE_TITLE"         : "خطا در ایجاد {0}",
 اد {0}",
 
     // Application preferences corrupt error strings
@@ -151,14 +151,14 @@ define({
     "NO_UPDATE_MESSAGE"                 : "شما درحال استفاده از آخرین نسخه براکتس هستید.",
 
    // Replace All (in single file)
-    "FIND_REPLACE_TITLE_PART1"          : "جایگزینی \"", 
+    "FIND_REPLACE_TITLE_PART1"          : "جایگزینی \"",
     "FIND_REPLACE_TITLE_PART2"          : "\" با \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",     
+    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
 
     // Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" پیدا شد",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}", 
+    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} در {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "در <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "در پروژ]",
     "FIND_IN_FILES_ZERO_FILES"          : "فیلترسازی تمامی پرونده های منع شده {0}",
@@ -179,7 +179,7 @@ define({
      "EDIT_FILE_FILTER"                    : "ویرایش\u2026",
      "FILE_FILTER_DIALOG"                : "ویرایش محرومیت(منعیت پرونده)",
      "FILE_FILTER_INSTRUCTIONS"            : "محروم سازی پرونده ها و پوشه های منطبق با عبارات زیر یا برخی <a href='{0}' title='{0}'>نویسه های عام</a>. هر عبارت را در یک سطر جدید وارد کنید.",
-     "FILE_FILTER_LIST_PREFIX"            : "جز", 
+     "FILE_FILTER_LIST_PREFIX"            : "جز",
      "FILE_FILTER_CLIPPED_SUFFIX"        : "و {0} بیشتر",
      "FILTER_COUNTING_FILES"            : "شمارش پرونده ها\u2026",
      "FILTER_FILE_COUNT"                : "همیشه {0} از {1} پرونده {2}",
@@ -219,7 +219,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 {0} ستون انتخاب شده",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 {0} خط انتخاب شده",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 {0} خط انتخاب شده",
-    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} انتخاب شده ها", 
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} انتخاب شده ها",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "کلیک کنید تا به این فضاها منتقل شوید",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "کلیک کنید تا به این زبانه ها منتقل شوید",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "جهت تغییر تعداد فضاهای خالی استفاده شده در هنگام فاصله دهی خطوط از چپ، کلیک کنید",
@@ -357,7 +357,7 @@ define({
     // Help menu commands
     "HELP_MENU"                           : "راهنما",
     "CMD_CHECK_FOR_UPDATE"                : "بررسی برای بروزرسانی",
-    "CMD_HOW_TO_USE_BRACKETS"             : "چگونه از {APP_NAME} استفاده کنیم", 
+    "CMD_HOW_TO_USE_BRACKETS"             : "چگونه از {APP_NAME} استفاده کنیم",
     "CMD_SUPPORT"                         : "پشتیبانی {APP_NAME}",
     "CMD_SUGGEST"                         : "پیشنهاد یک امکان جدید",
     "CMD_RELEASE_NOTES"                   : "نکات انتشار",
@@ -498,7 +498,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "خطا یابی",
-    "ERRORS"                                    : "خطاها", 
+    "ERRORS"                                    : "خطاها",
     "CMD_SHOW_DEV_TOOLS"                        : "نمایش ابزار های توسعه دهندگان",
     "CMD_REFRESH_WINDOW"                        : "بارگذاری مجدد براکتس",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "بارگذاری مجدد براکتس بدون بارگذاری افزونه های کاربر",
@@ -509,7 +509,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "فعال سازی اشکال زدای گرهی",
     "CMD_LOG_NODE_STATE"                        : "ورود گره به حالت کنسول",
     "CMD_RESTART_NODE"                          : "شروع دوباره گره",
-    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "نمایش خطاها در نوار وظیفه", 
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "نمایش خطاها در نوار وظیفه",
     "LANGUAGE_TITLE"                            : "انتخاب زبان",
     "LANGUAGE_MESSAGE"                          : "زبان:",
     "LANGUAGE_SUBMIT"                           : "بارگذاری مجدد براکتس",
@@ -521,7 +521,7 @@ define({
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "پیشرفت",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units<br><kbd class='text'>Tab</kbd> Switch points",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'",
-    "INLINE_TIMING_EDITOR_INVALID"              : "مقدار سابق <code>{0}</code> دیگر معتبر نمی باشد, زیرا تابع نمایش به مقدار <code>{1}</code> تغییر یافته. سند در اولین ویرایش بروزرسانی خواهد شد.", 
+    "INLINE_TIMING_EDITOR_INVALID"              : "مقدار سابق <code>{0}</code> دیگر معتبر نمی باشد,زیرا تابع نمایش به مقدار <code>{1}</code> تغییر یافته. سند در اولین ویرایش بروزرسانی خواهد شد.",
 
 
     // extensions/default/InlineColorEditor
