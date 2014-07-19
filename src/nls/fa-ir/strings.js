@@ -69,7 +69,6 @@ define({
     "INVALID_FILENAME_MESSAGE"          : "نام پرونده نمی تواند شامل مقادیر زیر باشد: {0} و همچنین نمی توانید از عبارات مورد استفاده نرم افزار استفاده نمایید.",
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "پوشه یا پروندهی با نام <span class='dialog-filename'>{0}</span> هم اکنون موجود است.",
     "ERROR_CREATING_FILE_TITLE"         : "خطا در ایجاد {0}",
-اد {0}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE" : "خطا در خواندن تنظیمات",
