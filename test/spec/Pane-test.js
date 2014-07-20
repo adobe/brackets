@@ -105,13 +105,17 @@ define(function (require, exports, module) {
                 expect(myPane.$el.length).toEqual(1);
                 expect($container.find(myPane.$el).length).toEqual(1);
             });
+            it("should not allow you to change the id", function () {
+                myPane.id = "junk";
+                expect(myPane.id).toEqual("test-pane");
+            });
         });
         describe("View management", function () {
             beforeEach(function () {
                 myPane.addView(myView.getFullPath(), myView);
             });
             it("should be added to pane's view map", function () {
-                expect(myPane.views[myView.getFullPath()]).toEqual(myView);
+                expect(myPane._views[myView.getFullPath()]).toEqual(myView);
             });
             it("should show a view", function () {
                 spyOn(myView, "setVisible").andCallThrough();
@@ -144,7 +148,7 @@ define(function (require, exports, module) {
             });
             it("should report currents", function () {
                 myPane.showView(myView);
-                expect(myPane.currentView).toEqual(myView);
+                expect(myPane._currentView).toEqual(myView);
                 expect(myPane.getCurrentlyViewedFile()).toEqual(myView.getFile());
                 expect(myPane.getCurrentlyViewedPath()).toEqual(myView.getFullPath());
             });
@@ -163,6 +167,7 @@ define(function (require, exports, module) {
                 myPane.showView(myView);
                 myPane.doRemoveAllViews();
                 
+                expect(Object.keys(myPane._views).length).toBe(0);
                 expect(myView.destroy).toHaveBeenCalled();
             });
             it("should show interstitial page when no view is displayed", function () {
@@ -194,7 +199,7 @@ define(function (require, exports, module) {
             });
             it("should rename view map entry when file is renamed", function () {
                 myPane._handleFileNameChange(undefined, myView.getFullPath(), "xxxx");
-                expect(myPane.views.xxxx).toEqual(myView);
+                expect(myPane._views.xxxx).toEqual(myView);
             });
             it("should swap view container when pane is merged with another", function () {
                 var secondView = createMockView("second-view"),
@@ -256,7 +261,7 @@ define(function (require, exports, module) {
 
                 myPane.showView(myView);
                 myPane.addView(secondView.getFullPath(), secondView);
-                expect(myPane.currentView).toEqual(myView);
+                expect(myPane._currentView).toEqual(myView);
             });
             it("should switch views when removing view", function () {
                 var secondView = createMockView("second-view");
@@ -269,7 +274,7 @@ define(function (require, exports, module) {
                 myPane.showView(secondView);
                 
                 myPane.doRemoveView(secondView.getFile());
-                expect(myPane.currentView).toEqual(myView);
+                expect(myPane._currentView).toEqual(myView);
             });
             it("should hide view when switching views", function () {
                 var secondView = createMockView("second-view");
@@ -288,9 +293,9 @@ define(function (require, exports, module) {
             it("should get added to all lists", function () {
                 myPane.addToViewList(myView.getFile());
 
-                expect(myPane.viewList.length).toEqual(1);
-                expect(myPane.viewListAddedOrder.length).toEqual(1);
-                expect(myPane.viewListMRUOrder.length).toEqual(1);
+                expect(myPane._viewList.length).toEqual(1);
+                expect(myPane._viewListAddedOrder.length).toEqual(1);
+                expect(myPane._viewListMRUOrder.length).toEqual(1);
             });
             it("should get removed from all lists", function () {
                 myPane.addToViewList(myView.getFile());
@@ -298,19 +303,19 @@ define(function (require, exports, module) {
                 myPane.showView(myView);
                 myPane.removeFromViewList(myView.getFile());
 
-                expect(myPane.viewList.length).toEqual(0);
-                expect(myPane.viewListAddedOrder.length).toEqual(0);
-                expect(myPane.viewListMRUOrder.length).toEqual(0);
-                expect(myPane.views[myView.getFullPath()]).toBeFalsy();
+                expect(myPane._viewList.length).toEqual(0);
+                expect(myPane._viewListAddedOrder.length).toEqual(0);
+                expect(myPane._viewListMRUOrder.length).toEqual(0);
+                expect(myPane._views[myView.getFullPath()]).toBeFalsy();
             });
             it("should add all items to the list", function () {
                 var secondView = createMockView("second-view");
 
                 myPane.addListToViewList([myView.getFile(), secondView.getFile()]);
 
-                expect(myPane.viewList.length).toEqual(2);
-                expect(myPane.viewListAddedOrder.length).toEqual(2);
-                expect(myPane.viewListMRUOrder.length).toEqual(2);
+                expect(myPane._viewList.length).toEqual(2);
+                expect(myPane._viewListAddedOrder.length).toEqual(2);
+                expect(myPane._viewListMRUOrder.length).toEqual(2);
             });
             it("should remove all items to the list", function () {
                 var secondView = createMockView("second-view");
@@ -318,9 +323,9 @@ define(function (require, exports, module) {
                 myPane.addListToViewList([myView.getFile(), secondView.getFile()]);
                 myPane.removeListFromViewList([myView.getFile(), secondView.getFile()]);
 
-                expect(myPane.viewList.length).toEqual(0);
-                expect(myPane.viewListAddedOrder.length).toEqual(0);
-                expect(myPane.viewListMRUOrder.length).toEqual(0);
+                expect(myPane._viewList.length).toEqual(0);
+                expect(myPane._viewListAddedOrder.length).toEqual(0);
+                expect(myPane._viewListMRUOrder.length).toEqual(0);
             });
             it("should walk MRU list in order", function () {
                 var i,
@@ -369,7 +374,7 @@ define(function (require, exports, module) {
                 var order = [4, 3, 2, 1, 0];
 
                 for (i = 0; i < order.length; i++) {
-                    expect(myPane.viewList[i]).toEqual(files[order[i]]);
+                    expect(myPane._viewList[i]).toEqual(files[order[i]]);
                 }
             });
             it("should maintain order", function () {
@@ -397,7 +402,7 @@ define(function (require, exports, module) {
                 files.reverse();
                 
                 for (i = 0; i < files.length; i++) {
-                    expect(myPane.viewListAddedOrder[i]).toEqual(files[i]);
+                    expect(myPane._viewListAddedOrder[i]).toEqual(files[i]);
                 }
             });
         });

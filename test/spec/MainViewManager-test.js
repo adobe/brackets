@@ -786,7 +786,7 @@ define(function (require, exports, module) {
                                                                          getFileObject("test.css")]);
                     MainViewManager.removeListFromPaneViewList(MainViewManager.ALL_PANES, [getFileObject("test.js"),
                                                                                             getFileObject("test.css")]);
-                    expect(Object.keys(MainViewManager._getPaneFromPaneId("first-pane").views).length).toEqual(0);
+                    expect(Object.keys(MainViewManager._getPaneFromPaneId("first-pane")._views).length).toEqual(0);
                 });
             });
             it("should remove files from the pane view list", function () {
