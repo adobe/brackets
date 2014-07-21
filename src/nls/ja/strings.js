@@ -162,9 +162,9 @@ define({
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
 
     // Find and Replace
-	"FIND_REPLACE_TITLE_LABEL": "置換",
+	"FIND_REPLACE_TITLE_LABEL": "置換対象",
 	"FIND_REPLACE_TITLE_WITH": "置換後の文字列",
-	"FIND_TITLE_LABEL": "見つかりました",
+	"FIND_TITLE_LABEL": "検索結果",
 	"FIND_TITLE_SUMMARY": " &mdash; {0} {1} {2} ({3})",
 
     // Find in Files
@@ -175,7 +175,7 @@ define({
 	"FIND_IN_FILES_FILE": "ファイル",
 	"FIND_IN_FILES_FILES": "ファイル",
 	"FIND_IN_FILES_MATCH": "が見つかりました",
-	"FIND_IN_FILES_MATCHES": "が見つかりました",
+	"FIND_IN_FILES_MATCHES": "件見つかりました",
 	"FIND_IN_FILES_MORE_THAN": "以上",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
@@ -246,6 +246,7 @@ define({
 	"STATUSBAR_USER_EXTENSIONS_DISABLED": "拡張機能無効",
 	"STATUSBAR_INSERT": "INS",
 	"STATUSBAR_OVERWRITE": "OVR",
+	"STATUSBAR_DEFAULT_LANG": "(default)",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} 個の問題",
@@ -353,6 +354,7 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
 	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
+	"CMD_THEMES": "Themes\u2026",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "ナビゲート",
@@ -415,6 +417,14 @@ define({
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
     
+    // Strings for themes-settings.html and themes-general.html
+	"CURRENT_THEME": "Current Theme",
+	"CUSTOM_SCROLLBARS": "Custom Scrollbars",
+	"FONT_SIZE": "Font Size",
+	"FONT_FAMILY": "Font Family",
+	"LINE_HEIGHT": "Line Height",
+	"GENERAL": "General",
+
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "新規ルール",
     
@@ -553,6 +563,8 @@ define({
 	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
 	"CMD_SHOW_PARAMETER_HINT": "パラメーターヒントを表示",
 	"NO_ARGUMENTS": "<パラメーターがありません>",
+	"DETECTED_EXCLUSION_TITLE": "JavaScript File Inference Problem",
+	"DETECTED_EXCLUSION_INFO": "Brackets ran into trouble processing:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> in your project and remove the file from jscodehints.detectedExclusions.",
     
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",

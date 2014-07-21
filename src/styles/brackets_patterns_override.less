@@ -514,9 +514,33 @@ a:focus {
     &.dropdown-menu a:not(.selected):hover {
         background: none;
     }
-    
+
     .divider {
         margin: 5px 1px;
+    }
+
+}
+
+/* Status bar language picker's DropdownButton */
+.dropdownbutton-popup.dropdown-status-bar {
+    -webkit-transform-origin: 0 100%;
+    height: auto;
+    max-height: 80%;
+    
+    // Improve how bottom of the dropdown joins with top of status bar button
+    margin-top: -6px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    
+    li a .default-language {
+        font-style: italic;
+        color: @tc-quiet-text;
+    }
+
+    li a .checked-language::before {
+        content: "✓";
+        margin-left: -11px;
+        margin-right: 3px;
     }
 }
 
@@ -948,6 +972,9 @@ a[href^="http"] {
                 .user-select(text);
                 cursor: text;
             }
+            .ext-translated {
+                color: @tc-input-placeholder-text;
+            }
             .muted {
                 color: @tc-input-placeholder-text;
             }
@@ -1377,3 +1404,13 @@ input[type="checkbox"]:checked:before {
     top: -7px;
     font-size: 16px;
 }
+
+.form-horizontal {
+    .controls {
+        margin-left: 170px;
+        
+        input[type='checkbox'] {
+             margin-top: 8px;
+         }
+     }
+ }

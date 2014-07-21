@@ -165,7 +165,7 @@ define({
     "FIND_REPLACE_TITLE_LABEL"          : "Erstat",
     "FIND_REPLACE_TITLE_WITH"           : "med",
     "FIND_TITLE_LABEL"                  : "Fundet",
-    "FIND_TITLE_SUMMARY"                : " &mdash; {0} {1} {2} i {3}",
+    "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} i {3}",
 
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} {1}",

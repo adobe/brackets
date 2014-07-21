@@ -149,9 +149,9 @@ define({
 	"BUTTON_PREV_HINT": "Résultat précédent",
 	"BUTTON_CASESENSITIVE_HINT": "Respecter la casse",
 	"BUTTON_REGEXP_HINT": "Expression régulière",
-	"REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Remplacer sans annuler",
+	"REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Remplacer sans possibilité d’annuler",
 	"REPLACE_WITHOUT_UNDO_WARNING": "Dans la mesure où le nombre de fichiers à modifier excède {0}, {APP_NAME} va modifier des fichiers non ouverts sur le disque.<br />Vous ne pourrez pas annuler les remplacements effectués dans ces fichiers.",
-	"BUTTON_REPLACE_WITHOUT_UNDO": "Remplacer sans annuler",
+	"BUTTON_REPLACE_WITHOUT_UNDO": "Remplacer sans possibilité d’annuler",
 
 	"OPEN_FILE": "Ouvrir le fichier",
 	"SAVE_FILE_AS": "Enregistrer le fichier",
@@ -164,13 +164,13 @@ define({
     // Find and Replace
 	"FIND_REPLACE_TITLE_LABEL": "Remplacer",
 	"FIND_REPLACE_TITLE_WITH": "par",
-	"FIND_TITLE_LABEL": "Occurrence(s) trouvée(s)",
+	"FIND_TITLE_LABEL": "Occurrences trouvées pour",
 	"FIND_TITLE_SUMMARY": " &mdash; {0} {1} {2} dans {3}",
 
     // Find in Files
 	"FIND_NUM_FILES": "{0} {1}",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
-	"FIND_IN_FILES_NO_SCOPE": "du projet",
+	"FIND_IN_FILES_NO_SCOPE": "dans le projet",
 	"FIND_IN_FILES_ZERO_FILES": "Le filtre exclut tous les fichiers {0}",
 	"FIND_IN_FILES_FILE": "fichier",
 	"FIND_IN_FILES_FILES": "fichiers",
@@ -246,6 +246,7 @@ define({
 	"STATUSBAR_USER_EXTENSIONS_DISABLED": "Extensions désactivées",
 	"STATUSBAR_INSERT": "INS",
 	"STATUSBAR_OVERWRITE": "RFP",
+	"STATUSBAR_DEFAULT_LANG": "(default)",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} problèmes",
@@ -353,6 +354,7 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
 	"CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
+	"CMD_THEMES": "Themes\u2026",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "Naviguer",
@@ -415,6 +417,14 @@ define({
 	"BASEURL_ERROR_INVALID_CHAR": "Les caractères spéciaux tels que '{0}' doivent être codés en %.",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
     
+    // Strings for themes-settings.html and themes-general.html
+	"CURRENT_THEME": "Current Theme",
+	"CUSTOM_SCROLLBARS": "Custom Scrollbars",
+	"FONT_SIZE": "Font Size",
+	"FONT_FAMILY": "Font Family",
+	"LINE_HEIGHT": "Line Height",
+	"GENERAL": "General",
+
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "Nouvelle règle",
     
@@ -553,6 +563,8 @@ define({
 	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
 	"CMD_SHOW_PARAMETER_HINT": "Afficher l’indicateur de paramètre",
 	"NO_ARGUMENTS": "<aucun paramètre>",
+	"DETECTED_EXCLUSION_TITLE": "JavaScript File Inference Problem",
+	"DETECTED_EXCLUSION_INFO": "Brackets ran into trouble processing:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> in your project and remove the file from jscodehints.detectedExclusions.",
     
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",

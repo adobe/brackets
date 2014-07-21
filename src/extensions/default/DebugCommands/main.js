@@ -40,6 +40,7 @@ define(function (require, exports, module) {
         Dialogs                = brackets.getModule("widgets/Dialogs"),
         Strings                = brackets.getModule("strings"),
         PreferencesManager     = brackets.getModule("preferences/PreferencesManager"),
+        LocalizationUtils      = brackets.getModule("utils/LocalizationUtils"),
         ErrorNotification      = require("ErrorNotification"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
@@ -168,16 +169,7 @@ define(function (require, exports, module) {
                     locale = $select.val();
                     $submit.prop("disabled", locale === (curLocale || ""));
                 };
-                
-                // returns the localized label for the given locale
-                // or the locale, if nothing found
-                var getLocalizedLabel = function (locale) {
-                    var key  = "LOCALE_" + locale.toUpperCase().replace("-", "_"),
-                        i18n = Strings[key];
-                    
-                    return i18n === undefined ? locale : i18n;
-                };
-                
+
                 // inspect all children of dirEntry
                 entries.forEach(function (entry) {
                     if (entry.isDirectory) {
@@ -191,12 +183,12 @@ define(function (require, exports, module) {
                                 label += match[2].toUpperCase();
                             }
                             
-                            languages.push({label: getLocalizedLabel(label), language: language});
+                            languages.push({label: LocalizationUtils.getLocalizedLabel(label), language: language});
                         }
                     }
                 });
                 // add English (US), which is the root folder and should be sorted as well
-                languages.push({label: getLocalizedLabel("en"),  language: "en"});
+                languages.push({label: LocalizationUtils.getLocalizedLabel("en"),  language: "en"});
 
                 // sort the languages via their display name
                 languages.sort(function (lang1, lang2) {

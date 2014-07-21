@@ -45,6 +45,10 @@
         {{#metadata.homepage}}
             <p><a title="{{metadata.homepage}}" href="{{metadata.homepage}}">{{Strings.EXTENSION_MORE_INFO}}</a></p>
         {{/metadata.homepage}}
+        {{#translated}}
+            <br/>
+            <span class="ext-translated" title="{{translatedLangs}}">{{extensionTranslated}}</span>
+        {{/translated}}
     </td>
     <td class="ext-action">
         {{#showInstallButton}}
