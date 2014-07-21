@@ -141,8 +141,8 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("activePaneChanged", [newPaneId, oldPaneId]);
             $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), newPaneId, oldPane.getCurrentlyViewedFile(), oldPaneId]);
             
-            oldPane.onSetActive(false);
-            newPane.onSetActive(true);
+            oldPane.notifySetActive(false);
+            newPane.notifySetActive(true);
         }
         
         forceFocusToActivePaneView();
@@ -1002,7 +1002,7 @@ define(function (require, exports, module) {
             _$container = $container;
             _createPaneIfNecessary(FIRST_PANE);
             _activePaneId = FIRST_PANE;
-            _paneViews[FIRST_PANE].onSetActive(true);
+            _paneViews[FIRST_PANE].notifySetActive(true);
             _updateLayout();
         }
     }

@@ -70,10 +70,10 @@ define(function (require, exports, module) {
                 focus: function () {
                     this._hasFocus = true;
                 },
-                getPaneScrollState: function () {
+                getScrollPos: function () {
                     return "1234";
                 },
-                adjustPaneScrollState: function () {
+                adjustScrollPos: function () {
                 },
                 switchContainers: function () {
                 }
@@ -153,9 +153,9 @@ define(function (require, exports, module) {
                 expect(myPane.getCurrentlyViewedPath()).toEqual(myView.getFullPath());
             });
             it("should report whether or not view is needed", function () {
-                expect(myPane.isViewNeeded(myView)).toBeFalsy();
+                expect(myPane._isViewNeeded(myView)).toBeFalsy();
                 myPane.showView(myView);
-                expect(myPane.isViewNeeded(myView)).toBeTruthy();
+                expect(myPane._isViewNeeded(myView)).toBeTruthy();
             });
             it("should not show interstitial page after showing a view", function () {
                 myPane.showView(myView);
