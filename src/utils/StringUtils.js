@@ -169,12 +169,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Convert number of bytes into human readable format. 
+     * Converts number of bytes into human readable format.
      * If param bytes is negative it returns the number without any changes.
      *
-     * @param number bytes     Number of bytes to convert
-     * @param number precision Number of digits after the decimal separator
-     * @return string
+     * @param {number} bytes     Number of bytes to convert
+     * @param {number} precision Number of digits after the decimal separator
+     * @return {string}
      */
     function prettyPrintBytes(bytes, precision) {
         var kilobyte = 1024,

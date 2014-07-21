@@ -41,6 +41,10 @@
             {{/metadata.keywords}}
             </span>
         {{/metadata.keywords.length}}
+        {{#translated}}
+            <br/>
+            <span class="ext-translated" title="{{translatedLangs}}">{{extensionTranslated}}</span>
+        {{/translated}}
     </td>
     <td class="ext-action">
         {{#showInstallButton}}
