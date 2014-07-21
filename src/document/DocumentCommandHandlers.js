@@ -128,7 +128,10 @@ define(function (require, exports, module) {
      * @type {function}
      */
     var handleFileSaveAs;
-
+    
+    /**
+     * Updates the title bar with new file title or dirty indicator
+     */
     function updateTitle() {
         var currentlyViewedFile = MainViewManager.getCurrentlyViewedFile(),
             currentlyViewedPath = currentlyViewedFile ? currentlyViewedFile.fullPath : null,
@@ -211,7 +214,10 @@ define(function (require, exports, module) {
         }
     }
 
-    function updateDocumentTitle() {
+    /**
+     * Handles currentFileChanged and filenameChanged events and updates the titlebar
+     */
+    function handleCurrentFileChange() {
         var newFile = MainViewManager.getCurrentlyViewedFile();
         
         if (newFile) {
@@ -230,6 +236,9 @@ define(function (require, exports, module) {
         updateTitle();
     }
 
+    /**
+     * Handles dirtyFlagChange event and updates the title bar if necessary
+     */
     function handleDirtyChange(event, changedDoc) {
         var currentDoc = DocumentManager.getCurrentDocument();
         
@@ -1188,7 +1197,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Closes all open documents; equivalent to calling handleFileClose() for each document, except
+     * Closes all open files; equivalent to calling handleFileClose() for each document, except
      * that unsaved changes are confirmed once, in bulk.
      * @param {?{promptOnly: boolean, _forceClose: boolean}}
      *          If promptOnly is true, only displays the relevant confirmation UI and does NOT
@@ -1203,6 +1212,18 @@ define(function (require, exports, module) {
                                     (commandData && commandData.promptOnly), (commandData && commandData._forceClose));
     }
 
+
+    /**
+     * Closes a list of open files; equivalent to calling handleFileClose() for each document, except
+     * that unsaved changes are confirmed once, in bulk.
+     * @param {?{promptOnly: boolean, _forceClose: boolean}}
+     *          If promptOnly is true, only displays the relevant confirmation UI and does NOT
+     *          actually close any documents. This is useful when chaining close-all together with
+     *          other user prompts that may be cancelable.
+     *          If _forceClose is true, forces the files to close with no confirmation even if dirty. 
+     *          Should only be used for unit test cleanup.
+     * @return {$.Promise} a promise that is resolved when all files are closed
+     */
     function handleFileCloseList(commandData) {
         return _closeList(commandData.fileList);
     }
@@ -1216,7 +1237,10 @@ define(function (require, exports, module) {
      * @private
      * Common implementation for close/quit/reload which all mostly
      * the same except for the final step
-    */
+     * @param {Object} commandData - (not referenced)
+     * @param {callback} postCloseHandler - called after close
+     * @param {callback} failHandler - called when the save fails to cancel closing the window
+     */
     function _handleWindowGoingAway(commandData, postCloseHandler, failHandler) {
         if (_windowGoingAway) {
             //if we get called back while we're closing, then just return
@@ -1263,7 +1287,10 @@ define(function (require, exports, module) {
         $(PopUpManager).triggerHandler("beforeMenuPopup");
     }
 
-    /** Confirms any unsaved changes, then closes the window */
+    /** 
+     * Confirms any unsaved changes, then closes the window 
+     * @param {Object} command data
+     */
     function handleFileCloseWindow(commandData) {
         return _handleWindowGoingAway(
             commandData,
@@ -1587,8 +1614,8 @@ define(function (require, exports, module) {
 
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
-    $(DocumentManager).on("fileNameChange", updateDocumentTitle);
-    $(MainViewManager).on("currentFileChanged", updateDocumentTitle);
+    $(DocumentManager).on("fileNameChange", handleCurrentFileChange);
+    $(MainViewManager).on("currentFileChanged", handleCurrentFileChange);
 
     // Reset the untitled document counter before changing projects
     $(ProjectManager).on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });
