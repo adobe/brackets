@@ -11,6 +11,15 @@
         background-image: url(fu.bar);
 }
 
+@keyframes colorize {
+    0% {
+        -webkit-filter: grayscale(100%);
+    }
+    100% {
+        -webkit-filter: grayscale(0%);
+    }
+}
+
 {{2}}#myDiv {
     display: block;
 }

@@ -923,11 +923,20 @@ define(function (require, exports, module) {
                 }
                 
             } else {
+                var unmatchedBraces = 0;
                 // This code handle @rules that use this format:
                 //    @rule ... { ... }
                 // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
-                // Skip everything until the next '}'
-                while (token !== "}") {
+                // Skip everything including nested braces until the next matching '}'
+                while (true) {
+                    if (token === "{") {
+                        unmatchedBraces++;
+                    } else if (token === "}") {
+                        unmatchedBraces--;
+                        if (unmatchedBraces === 0) {
+                            return;
+                        }
+                    }
                     if (!_nextTokenSkippingComments()) {
                         return; // eof
                     }
