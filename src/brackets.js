@@ -415,6 +415,7 @@ define(function (require, exports, module) {
                     $target.is("input:not([type])") || // input with no type attribute defaults to text
                     $target.is("textarea") ||
                     $target.is("select");
+            
             if (!isFormElement) {
                 e.preventDefault();
             }
