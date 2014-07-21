@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+
     /**
      * Errors
      */
@@ -36,6 +37,8 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "A pasta de destino não pode ser modificado.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "As permissões não permitem modificações.",
     "FILE_EXISTS_ERR"                   : "O ficheiro já existe.",
+    "FILE"                              : "ficheiro",
+    "DIRECTORY"                         : "pasta",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Erro ao carregar o projeto",
@@ -46,12 +49,15 @@ define({
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Erro ao abrir ficheiro",
     "ERROR_OPENING_FILE"                : "Ocorreu um erro ao tentar abrir o ficheiro <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_OPENING_FILES"               : "Ocorreu um erro ao tentar abrir os seguintes ficheiros:",
     "ERROR_RELOADING_FILE_TITLE"        : "Ocorreu um erro ao recarregar as mudanças a partir do disco",
     "ERROR_RELOADING_FILE"              : "Ocorreu um erro ao tentar recarregar o ficheiro <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_SAVING_FILE_TITLE"           : "Erro ao guardar ficheiro",
+    "ERROR_SAVING_FILE_TITLE"           : "Erro ao guardar ficheiro.",
     "ERROR_SAVING_FILE"                 : "Ocorreu um erro ao tentar guardar o ficheiro <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "Erro ao renomear ficheiro",
+    "ERROR_RENAMING_FILE_TITLE"         : "Erro ao renomear ficheiro.",
     "ERROR_RENAMING_FILE"               : "Ocorreu um erro ao tentar renomear o ficheiro <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_DELETING_FILE_TITLE"         : "Erro ao apagar o ficheiro.",
+    "ERROR_DELETING_FILE"               : "Ocorreu um erro ao tentar apagar o ficheiro <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Nome do ficheiro inválido",
     "INVALID_FILENAME_MESSAGE"          : "O nome do ficheiro não pode conter os seguintes caracteres: {0}",
     "FILE_ALREADY_EXISTS"               : "O ficheiro <span class='dialog-filename'>{0}</span> já existe.",
@@ -74,31 +80,52 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Erro no Live Preview",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "A conectar ao navegador",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para que a Live Preview funcione, o Google Chrome deve ser aberto com a opção de depuração(debug) remota ativada.<br /><br />Gostaria de reabrir Goggle Chrome e permitir a depuração remota?",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Incapaz de iniciar a página Live Development.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Abra um ficheiro HTML de modo a executar o Live Preview.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Bem-vindo ao Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview liga o {APP_NAME} ao seu navegador. Ele faz uma pré-vizualização do seu ficheiro HTML no navegador, e cada vez que editar o código a pré-vizualização é automáticamente actualizada.<br /><br />Nesta versão inicial do {APP_NAME}, o Live Preview só funciona com a edição de <strong>ficheiros CSS</strong> e apenas com <strong>Google Chrome</strong>. Iremos implementá-lo para HTML e JavaScript em breve!<br /><br />(Só vai ver esta mensagem uma vez.)",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Para mais informações, veja <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
 
+    
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: A ligar\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: A iniciar\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Live Preview: Desligar",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Clique para desligar (Guarde o ficheiro para atualizar)",
 
+    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Live Preview foi cancelado porque as Ferramentas de Programador do navehador estavam abertas.",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Live Preview foi cancelado porque a página foi fechada no navegador.",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "Live Preview foi cancelado porque navegou para uma página que não faz parte do projeto.",
+    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Live Preview foi cancelado por uma razão desconhecida ({0})",
+    
     "SAVE_CLOSE_TITLE"                  : "Guardar alterações",
     "SAVE_CLOSE_MESSAGE"                : "Você quer guardar as alterações feitas no ficheiro <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Você quer guardar as alterações para os seguintes ficheiros?",
     "EXT_MODIFIED_TITLE"                : "Mudanças externas",
+    "CONFIRM_FOLDER_DELETE"             : "Tem a certeza que pertende apagar a pasta <span class='dialog-filename'>{0}</span>?",
+    "FILE_DELETED_TITLE"                : "Ficheiro apagado",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> foi modificado no disco, mas também tem alterações não guardadas em {APP_NAME}.<br /><br />Que versão quer manter?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> foi apagado do disco, mas tem alterações não guardadas em {APP_NAME}.<br /><br />Quer manter as suas alterações?",
 
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Usar /re/ sintaxe para usar regexp na pesquisa",
+    "FIND_RESULT_COUNT"                 : "{0} resultados",
+    "FIND_RESULT_COUNT_SINGLE"          : "1 resultado",
+    "FIND_NO_RESULTS"                   : "Sem resultados",
     "WITH"                              : "Com",
     "BUTTON_YES"                        : "Sim",
+    "BUTTON_REPLACE_ALL"                : "Tudo\u2026",
     "BUTTON_NO"                         : "Não",
     "BUTTON_STOP"                       : "Parar",
+    "BUTTON_REPLACE"                    : "Substituir",
+    
+    "BUTTON_NEXT"                       : "\u25B6",
+    "BUTTON_PREV"                       : "\u25C0",
+    "BUTTON_NEXT_HINT"                  : "Próxima correspondência ",
+    "BUTTON_PREV_HINT"                  : "Correspondência Anterior",
 
     "OPEN_FILE"                         : "Abrir ficheiro",
+    "SAVE_FILE_AS"                      : "Salvar ficheiro",
     "CHOOSE_FOLDER"                     : "Escolha uma pasta",
 
     "RELEASE_NOTES"                     : "Notas de lançamento",
@@ -124,6 +151,7 @@ define({
      * ProjectManager
      */
 
+    "PROJECT_LOADING"   : "A carregar\u2026",
     "UNTITLED" : "Sem título",
 
     /**
@@ -138,21 +166,35 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Linha {0}, Coluna {1}",
+    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 {0} Coluna selecionada",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 {0} Colunas selecionadas",
+    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 {0} Linha selecionada",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 {0} Linhas selecionadas",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Mudar a indentação para espaços",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Mudar a indentação para tabulação",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Mudar o número de espaços usados ao indentar",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Mudar a largura do caractere de tabulação",
     "STATUSBAR_SPACES"                      : "Espaços",
     "STATUSBAR_TAB_SIZE"                    : "Tamanho da tabulação",
-    "STATUSBAR_LINE_COUNT"                  : "{0} Linhas",
+    "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Linha",
+    "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Linhas",
 
+     // CodeInspection: errors/warnings
+    "ERRORS_PANEL_TITLE"                    : "{0} Erros",
+    "SINGLE_ERROR"                          : "1 {0} Erro",
+    "MULTIPLE_ERRORS"                       : "{1} {0} Erros",
+    "NO_ERRORS"                             : "Sem erros JSLint - bom trabalho!",
+    "LINT_DISABLED"                         : "JSLint desativado",
+    "NO_LINT_AVAILABLE"                     : "JSLint indisponível para {0}",
+    
     /**
      * Command Name Constants
      */
-
+    
     // File menu commands
     "FILE_MENU"                           : "Ficheiro",
-    "CMD_FILE_NEW"                        : "Novo",
+    "CMD_FILE_NEW_UNTITLED"               : "Novo",
+    "CMD_FILE_NEW"                        : "Novo Ficheiro",
     "CMD_FILE_NEW_FOLDER"                 : "Nova pasta",
     "CMD_FILE_OPEN"                       : "Abrir\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Adicionar ao conjunto de trabalho",
@@ -161,13 +203,25 @@ define({
     "CMD_FILE_CLOSE_ALL"                  : "Fechar tudo",
     "CMD_FILE_SAVE"                       : "Guardar",
     "CMD_FILE_SAVE_ALL"                   : "Guardar tudo",
+    "CMD_FILE_SAVE_AS"                    : "Save Como\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
     "CMD_PROJECT_SETTINGS"                : "Definições do projeto\u2026",
     "CMD_FILE_RENAME"                     : "Renomear",
+    "CMD_FILE_DELETE"                     : "Apagat",
+    "CMD_INSTALL_EXTENSION"               : "Instalar Extensões\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Gestor de Extensões\u2026",
+    "CMD_FILE_REFRESH"                    : "Atualizar árvore de ficheiros",
     "CMD_QUIT"                            : "Sair",
+    // Used in native File menu on Windows
+    "CMD_EXIT"                            : "Sair",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Editar",
+    "CMD_UNDO"                            : "Desfazer",
+    "CMD_REDO"                            : "Refazer",
+    "CMD_CUT"                             : "Cortar",
+    "CMD_COPY"                            : "Copiar",
+    "CMD_PASTE"                           : "Colar",
     "CMD_SELECT_ALL"                      : "Selecionar tudo",
     "CMD_SELECT_LINE"                     : "Selecionar linha",
     "CMD_FIND"                            : "Encontrar",
@@ -215,6 +269,10 @@ define({
     "CMD_CHECK_FOR_UPDATE"                : "Verificar atualizações",
     "CMD_ABOUT"                           : "Sobre",
     "CMD_FORUM"                           : "Forum do {APP_NAME}",
+    "CMD_HOW_TO_USE_BRACKETS"             : "Como usar {APP_NAME}",
+    "CMD_RELEASE_NOTES"                   : "Notas de Lançamento",
+    "CMD_REPORT_AN_ISSUE"                 : "Reportar um erro",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} no Twitter",
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Fechar a janela",
@@ -265,11 +323,4 @@ define({
     "LANGUAGE_SUBMIT"                      : "Recarregar {APP_NAME}",
     "LANGUAGE_CANCEL"                      : "Cancelar",
     
-    // extensions/default/JSLint
-    "CMD_JSLINT"                           : "Activar JSLint",
-    "JSLINT_ERRORS"                        : "Erros JSLint",
-    "JSLINT_ERROR_INFORMATION"             : "1 Erro JSLint",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} Erros JSLint",
-    "JSLINT_NO_ERRORS"                     : "Sem erros JSLint - bom trabalho!",
-    "JSLINT_DISABLED"                      : "JSLint desabilitado ou não funcionando para o arquivo atual"
 });
