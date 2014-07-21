@@ -389,7 +389,7 @@ define(function (require, exports, module) {
         Object.keys(_idsToUpdate).forEach(function (id) {
             var installResult = _idsToUpdate[id],
                 keepFile = installResult.keepFile,
-                filename = _idsToUpdate.localPath;
+                filename = installResult.localPath;
 
             if (filename && !keepFile) {
                 FileSystem.getFileForPath(filename).unlink();
