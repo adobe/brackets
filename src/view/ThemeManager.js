@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         ThemeView          = require("view/ThemeView"),
         AppInit            = require("utils/AppInit"),
         PreferencesManager = require("preferences/PreferencesManager"),
-        prefs              = PreferencesManager.getExtensionPrefs("brackets-themes");
+        prefs              = PreferencesManager.getExtensionPrefs("themes");
 
     var loadedThemes    = {},
         currentTheme    = null,

@@ -31,9 +31,8 @@ define(function (require, exports, module) {
         Dialogs            = require("widgets/Dialogs"),
         Strings            = require("strings"),
         PreferencesManager = require("preferences/PreferencesManager"),
-        settingsTemplate   = require("text!htmlContent/themes-settings.html");
-
-    var prefs = PreferencesManager.getExtensionPrefs("brackets-themes");
+        settingsTemplate   = require("text!htmlContent/themes-settings.html"),
+        prefs              = PreferencesManager.getExtensionPrefs("themes");
 
     /**
      * @type {Object}

@@ -14,7 +14,7 @@ define(function (require, exports, module) {
     var ThemeSettings       = require("view/ThemeSettings"),
         ViewCommandHandlers = require("view/ViewCommandHandlers"),
         PreferencesManager  = require("preferences/PreferencesManager"),
-        prefs               = PreferencesManager.getExtensionPrefs("brackets-themes");
+        prefs               = PreferencesManager.getExtensionPrefs("themes");
 
     function updateThemeFontSize(evt, adjustment, fontSize /*, lineHeight*/) {
         prefs.set("fontSize", fontSize);

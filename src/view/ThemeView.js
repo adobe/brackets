@@ -32,7 +32,7 @@ define(function (require, exports, module) {
     var _                  = require("thirdparty/lodash"),
         CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
         PreferencesManager = require("preferences/PreferencesManager"),
-        prefs              = PreferencesManager.getExtensionPrefs("brackets-themes");
+        prefs              = PreferencesManager.getExtensionPrefs("themes");
 
 
     var templates = {
