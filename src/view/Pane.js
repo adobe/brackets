@@ -127,7 +127,7 @@ define(function (require, exports, module) {
      * Pane 
      *
      * Pane Objects are constructed by the MainViewManager object when a Pane view is needed
-     * See MainViewManager for more information
+     * @see {@link MainViewManager} for more information
      *
      * @constructor
      * @param {!string} id - The id to use to identify this pane
@@ -135,9 +135,6 @@ define(function (require, exports, module) {
      */
     function Pane(id, $container) {
         this._id = id;
-        // Make sure that all properties
-        //  are copied from the prototype into "this" otherwise
-        //  some of the lodash functions don't work right
         this._reset();
         
         // Setup the container and the element we're inserting
@@ -171,8 +168,8 @@ define(function (require, exports, module) {
 
     /**
      * id of the pane
-     * @type {!string}
      * @readonly
+     * @type {!string}
      */
     Pane.prototype.id = null;
     
@@ -189,43 +186,7 @@ define(function (require, exports, module) {
      * @type {JQuery}
      */
     Pane.prototype.$el = null;
-
-    
-    /**
-     * List of FILES in the Pane's working set
-     * @private
-     * @type {?Array.<File>}
-     */
-    Pane.prototype._viewList = [];
-
-    /**
-     * List of FILES in the Pane's working set maintained in MRU order
-     * @private
-     * @type {!Array.<File>}
-     */
-    Pane.prototype._viewListMRUOrder = [];
-
-   /**
-     * List of FILES in the Pane's working set maintained in added order
-     * @private
-     * @type {!Array.<File>}
-     */
-    Pane.prototype._viewListAddedOrder = [];
-
-    /**
-     * views of files (Editors, ImageViewers, etc...)
-     * @private
-     * @type {!Object.<string, View>} maps the filename to a view object
-     */
-    Pane.prototype._views = {};
-    
-    /**
-     * current view (Editor, ImageView, etc...)
-     * @private
-     * @type {View} the current view
-     */
-    Pane.prototype._currentView = null;
-    
+  
     /**
      * Resets the Pane back to its default state
      * @private
@@ -354,13 +315,27 @@ define(function (require, exports, module) {
         });
     };
     
-    /** @const */
+    /** 
+     * Return value from reorderItem when the Item was not found 
+     * @see {@link reorderItem()}
+     * @const 
+     */
     Pane.prototype.ITEM_NOT_FOUND = -1;
     
-    /** @const */
+    /** 
+     * Return value from reorderItem when the Item was found at its natural index 
+     * and the pane view list does not need to be resorted
+     * @see {@link reorderItem()}
+     * @const 
+     */
     Pane.prototype.ITEM_FOUND_NO_SORT = 0;
     
-    /** @const */
+    /** 
+     * Return value from reorderItem when the Item was found and reindexed 
+     * and the pane view list needs to be resorted
+     * @see {@link reorderItem()}
+     * @const 
+     */
     Pane.prototype.ITEM_FOUND_NEEDS_SORT = 1;
 
     /**
@@ -369,10 +344,10 @@ define(function (require, exports, module) {
      * @param {File} file - the file object of the item to reorder
      * @param {number=} index - the new position of the item
      * @param {boolean=} force - true to force the item into that position, false otherwise.  (Requires an index be requested)
-     * @return {!number} this function returns one of the following manifest constants:
-     *            ITEM_NOT_FOUND        : The request file object was not found
-     *            ITEM_FOUND_NO_SORT    : The request file object was found but it was already at the requested index
-     *            ITEM_FOUND_NEEDS_SORT : The request file object was found and moved to a new index and the list should be resorted
+     * @return {!number} this function returns one of the following manifest constants:  
+     *            ITEM_NOT_FOUND        : The request file object was not found   
+     *            ITEM_FOUND_NO_SORT    : The request file object was found but it was already at the requested index   
+     *            ITEM_FOUND_NEEDS_SORT : The request file object was found and moved to a new index and the list should be resorted   
      */
     Pane.prototype.reorderItem = function (file, index, force) {
         var indexRequested = (index !== undefined && index !== null && index >= 0),
@@ -589,7 +564,7 @@ define(function (require, exports, module) {
      * @param {string=} current - the fullPath of the item where traversal is to start. 
      *                              If this paramater is ommitted then the path of the current view is used.
      *                              If the current view is a temporary view then the first item in the MRU list is returned
-     * @return {File=} The File object of the next item in the travesal order or null if there isn't one.
+     * @return {?File} The File object of the next item in the travesal order or null if there isn't one.
      */
     Pane.prototype.traverseViewListByMRU = function (direction, current) {
         if (Math.abs(direction) !== 1) {
@@ -771,7 +746,7 @@ define(function (require, exports, module) {
     
     /**
      * Retrieves the File object of the current view
-     * @return {File=} the File object of the current view or null if there isn't one
+     * @return {?File} the File object of the current view or null if there isn't one
      */
     Pane.prototype.getCurrentlyViewedFile = function () {
         return this._currentView ? this._currentView.getFile() : null;
@@ -779,7 +754,7 @@ define(function (require, exports, module) {
     
     /**
      * Retrieves the path of the current view
-     * @return {string=} the path of the current view or null if there isn't one
+     * @return {?string} the path of the current view or null if there isn't one
      */
     Pane.prototype.getCurrentlyViewedPath = function () {
         var file = this.getCurrentlyViewedFile();
@@ -788,6 +763,7 @@ define(function (require, exports, module) {
     
     /**
      * destroys the view if it isn't needed
+     * @param {View} view - the view to destroy
      */
     Pane.prototype.destroyViewIfNotNeeded = function (view) {
         if (view && !this._isViewNeeded(view)) {

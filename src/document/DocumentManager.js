@@ -27,8 +27,7 @@
 
 /**
  * DocumentManager maintains a list of currently 'open' Documents. The DocumentManager is responsible 
- * manifesting documents into the editor, closing documents, coordinating document operations and 
- * dispatching certain document events.
+ * for coordinating document operations and dispatching certain document events.
  *
  * Document is the model for a file's contents; it dispatches events whenever those contents change.
  * To transiently inspect a file's content, simply get a Document and call getText() on it. However,
@@ -41,9 +40,7 @@
  * Secretly, a Document may use an Editor instance to act as the model for its internal state. (This
  * is unavoidable because CodeMirror does not separate its model from its UI). Documents are not
  * modifiable until they have a backing 'master Editor'. Creation of the backing Editor is owned by
- * EditorManager. A Document only gets a backing Editor if it becomes the currentDocument, or if edits
- * occur in any Editor (inline or full-sized) bound to the Document; there is currently no other way
- * to ensure a Document is modifiable.
+ * EditorManager. A Document only gets a backing Editor if it opened in an editor.
  *
  * A non-modifiable Document may still dispatch change notifications, if the Document was changed
  * externally on disk.
@@ -64,13 +61,16 @@
  *       Some WorkingSet APIs that have been identified as being used by 3rd party extensions will
  *       emit deprecation warnings and call the PaneViewList APIS to maintain backwards compatibility
  *
- *    - currentDocumentChange -- This is being deprecated and is currently ony used as a shim to assist 
+ *    - currentDocumentChange -- This is being deprecated and is currently only used as a shim to assist 
  *      the document open process so that the editor will actually open or close the desired document. 
  *      This will change accordingly once work begins to refactor EditorManager to be a view provider
  *      and open documents directly.
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
- *      The 3rd arg is the new name.
+ *      The 3rd arg is the new name.  Generally, however, file objects have already been changed by the 
+ *      time this event is dispatched so code that relies on matching the filename to a file object 
+ *      will need to compare the newname.
+ * 
  *    - pathDeleted -- When a file or folder has been deleted. The 2nd arg is the path that was deleted.
  *
  * These are jQuery events, so to listen for them you do something like this:
@@ -108,13 +108,6 @@ define(function (require, exports, module) {
      */
     var _untitledDocumentPath = "/_brackets_" + _.random(10000000, 99999999);
 
-    
-    /**
-     * While true, the MRU order is frozen
-     * @type {boolean}
-     */
-    var _documentNavPending = false;
-    
     /**
      * All documents with refCount > 0. Maps Document.file.id -> Document.
      * @private
@@ -724,6 +717,10 @@ define(function (require, exports, module) {
     exports.getCurrentDocument             = getCurrentDocument;
     exports.beginDocumentNavigation        = beginDocumentNavigation;
     exports.finalizeDocumentNavigation     = finalizeDocumentNavigation;
+    exports.setCurrentDocument             = setCurrentDocument;
+    exports.clearCurrentDocument           = clearCurrentDocument;
+    exports.closeFullEditor                = closeFullEditor;
+    exports.closeAll                       = closeAll;
     
     // Define public API
     exports.Document                    = DocumentModule.Document;
@@ -732,10 +729,6 @@ define(function (require, exports, module) {
     exports.getDocumentText             = getDocumentText;
     exports.createUntitledDocument      = createUntitledDocument;
     exports.getAllOpenDocuments         = getAllOpenDocuments;
-    exports.setCurrentDocument          = setCurrentDocument;
-    exports.clearCurrentDocument           = clearCurrentDocument;
-    exports.closeFullEditor             = closeFullEditor;
-    exports.closeAll                    = closeAll;
     exports.notifyFileDeleted           = notifyFileDeleted;
     exports.notifyPathNameChanged       = notifyPathNameChanged;
     exports.notifyPathDeleted           = notifyPathDeleted;

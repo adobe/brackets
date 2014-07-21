@@ -900,12 +900,16 @@ define(function (require, exports, module) {
     };
     
    /**
-    * Gets the document associated with this editor
+    * Gets the full path of the file being edited
     */
     Editor.prototype.getFullPath = function () {
         return this.document.file.fullPath;
     };
     
+    
+   /**
+    * Gets the file associated with this editor
+    */
     Editor.prototype.getFile = function () {
         return this.document.file;
     };
@@ -918,6 +922,11 @@ define(function (require, exports, module) {
         return this.$editorHolder;
     };
     
+    
+    /**
+     * reparents the Editor's DOM element to a new container
+     * @return {!jQueryObject} newContainer - the new parent to append to.
+     */
     Editor.prototype.switchContainers = function ($newContainer) {
         var wrapper = this._codeMirror.getWrapperElement();
         this.$editorHolder = $newContainer;
@@ -1034,6 +1043,7 @@ define(function (require, exports, module) {
         this._codeMirror.setSize(width, height);
     };
     
+    /** @const */
     var CENTERING_MARGIN = 0.15;
     
     /**
@@ -2135,6 +2145,10 @@ define(function (require, exports, module) {
         }
     };
     
+    /*
+     * gets the language for the selection. (Javascript selected from an HTML document or CSS selected from an HTML document, etc...)
+     * @return {?Language} 
+     */
     Editor.prototype.getLanguageForSelection = function () {
         return this.document.getLanguage().getLanguageForMode(this.getModeForSelection());
     };

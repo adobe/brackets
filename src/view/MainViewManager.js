@@ -54,25 +54,59 @@ define(function (require, exports, module) {
         Pane                = require("view/Pane").Pane;
         
 
-    /** @const **/
-    var CMD_ID_SPLIT_VERTICALLY = "cmd.splitVertically",
-        CMD_ID_SPLIT_HORIZONTALLY = "cmd.splitHorizontally";
+    /** 
+     * @const
+     * @private
+     */
+    var CMD_ID_SPLIT_VERTICALLY = "cmd.splitVertically";
+
+    /** 
+     * @const
+     * @private
+     */
+    var CMD_ID_SPLIT_HORIZONTALLY = "cmd.splitHorizontally";
+    
+    /** 
+     * @const
+     * @private
+     */
+    var PREFS_NAME          = "mainView.state";
+    
+    /** 
+     * @const
+     * @private
+     */
+    var OLD_PREFS_NAME      = "project.files";
     
     /** @const **/
-    var PREFS_NAME          = "mainView.state",
-        OLD_PREFS_NAME      = "project.files";
-    
+    var ALL_PANES           = "ALL_PANES";
+
     /** @const **/
-    var ALL_PANES           = "ALL_PANES",
-        FOCUSED_PANE        = "FOCUSED_PANE";
+    var FOCUSED_PANE        = "FOCUSED_PANE";
         
-    /** @const **/
-    var FIRST_PANE          = "first-pane",
-        SECOND_PANE         = "second-pane";
+    /** 
+     * @const
+     * @private
+     */
+    var FIRST_PANE          = "first-pane";
+
+    /** 
+     * @const
+     * @private
+     */
+    var SECOND_PANE         = "second-pane";
     
-    /** @const **/
-    var VERTICAL            = "VERTICAL",
-        HORIZONTAL          = "HORIZONTAL";
+    /** 
+     * @const
+     * @private
+     */
+    var VERTICAL            = "VERTICAL";
+
+    /** 
+     * @const
+     * @private
+     */
+    var HORIZONTAL          = "HORIZONTAL";
     
 
     /**
@@ -149,7 +183,7 @@ define(function (require, exports, module) {
     
     /**
      * Retrieves the currently active Pane Id
-     * @return {!string}
+     * @return {!string} Active Pane's ID.
      */
     function getActivePaneId() {
         return _activePaneId;
@@ -158,7 +192,7 @@ define(function (require, exports, module) {
     /**
      * Retrieves the Pane object for the given paneId
      * @param {!string} paneId - id of the pane to retrieve
-     * @return {Pane=} the Pane object or null if a pane object doesn't exist for the pane
+     * @return {?Pane} the Pane object or null if a pane object doesn't exist for the pane
      * @private
      */
     function _getPaneFromPaneId(paneId) {
@@ -216,7 +250,7 @@ define(function (require, exports, module) {
     /**
      * Retrieves the Pane ID for the container specified
      * @param {!jQuery} $container - the container of the item to fetch
-     * @return {string=} the id of the pane that matches the container or undefined if a pane doesn't exist for that container
+     * @return {?string} the id of the pane that matches the container or undefined if a pane doesn't exist for that container
      */
     function _getPaneIdFromContainer($container) {
         var paneId;
@@ -232,7 +266,7 @@ define(function (require, exports, module) {
     /**
      * Retrieves the currently viewed file of the pane specified by paneId
      * @param {!string} paneId - the id of the pane in which to retrieve the currently viewed file
-     * @return {File=} File object of the currently viewed file, null if there isn't one or undefined if there isn't a matching pane
+     * @return {?File} File object of the currently viewed file, null if there isn't one or undefined if there isn't a matching pane
      */
     function getCurrentlyViewedFileForPane(paneId) {
         var pane = _getPaneFromPaneId(paneId);
@@ -244,7 +278,7 @@ define(function (require, exports, module) {
     /**
      * Retrieves the currently viewed path of the pane specified by paneId
      * @param {!string} paneId - the id of the pane in which to retrieve the currently viewed path
-     * @return {string=} the path of the currently viewed file or null if there isn't one
+     * @return {?string} the path of the currently viewed file or null if there isn't one
      */
     function getCurrentlyViewedPathForPane(paneId) {
         var file = getCurrentlyViewedFileForPane(paneId);
@@ -253,7 +287,7 @@ define(function (require, exports, module) {
     
     /**
      * Retrieves the currently viewed file of the focused pane
-     * @return {File=} File object of the currently viewed file, null if there isn't one or undefined if there isn't a matching pane
+     * @return {?File} File object of the currently viewed file, null if there isn't one or undefined if there isn't a matching pane
      */
     function getCurrentlyViewedFile() {
         return getCurrentlyViewedFileForPane(FOCUSED_PANE);
@@ -261,7 +295,7 @@ define(function (require, exports, module) {
     
     /**
      * Retrieves the currently viewed path of the focused pane
-     * @return {string=} the path of the currently viewed file or null if there isn't one
+     * @return {?string} the path of the currently viewed file or null if there isn't one
      */
     function getCurrentlyViewedPath() {
         return getCurrentlyViewedPathForPane(FOCUSED_PANE);
@@ -412,7 +446,7 @@ define(function (require, exports, module) {
     /**
      * Retrieves the title to display in the pane view list view
      * @param {!string} paneId - id of the pane in which to get the title
-     * @return {string=} title
+     * @return {?string} title
      */
     function getPaneTitle(paneId) {
         return _paneTitles[paneId][_orientation];
@@ -485,7 +519,7 @@ define(function (require, exports, module) {
     /**
      * Retrieves pane id where the specified file has been opened
      * @param {!string} fullPath - full path of the file to search for
-     * @return {string=} pane id where the file has been opened or null if it wasn't found
+     * @return {?string} pane id where the file has been opened or null if it wasn't found
      */
     function getPaneIdForPath(fullPath) {
         // Search all working sets
@@ -882,8 +916,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Creates a split for the specified orientation
-     * @param {!string} orientation (VERTICAL|HORIZONTAL)
+     * Edits a document in the specified pane
+     * @param {!string} paneId - id of the pane in which to open the document
+     * @param {!Document} doc - document to edit
      */
     function doEdit(paneId, doc) {
         
