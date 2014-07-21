@@ -104,6 +104,7 @@ define(function (require, exports, module) {
         NativeApp               = require("utils/NativeApp"),
         DeprecationWarning      = require("utils/DeprecationWarning"),
         ViewCommandHandlers     = require("view/ViewCommandHandlers"),
+        ThemeManager            = require("view/ThemeManager"),
         MainViewManager         = require("view/MainViewManager"),
         _                       = require("thirdparty/lodash");
     
