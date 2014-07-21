@@ -690,7 +690,7 @@ define(function (require, exports, module) {
                     });
                     runs(function () {
                         expect(file.unlink).not.toHaveBeenCalled();
-                        expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
+                        expect(Package.installUpdate).toHaveBeenCalledWith(filename, id, undefined);
                     });
                 });
                 
@@ -1499,7 +1499,7 @@ define(function (require, exports, module) {
                         });
                         waitsFor(function () { return didReload; }, "mock reload");
                         runs(function () {
-                            expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
+                            expect(Package.installUpdate).toHaveBeenCalledWith(filename, id, undefined);
                             expect(didClose).toBe(true);
                             expect(didReload).toBe(true);
                         });
