@@ -1,4 +1,4 @@
-// Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+// Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -48,33 +48,12 @@
  * in this file.
  */
 
-/* Overall Colors */
+/* Define some variables used in multiple places */
 @background: #1d1f21;
 @foreground: #c5c8c6;
-
-/*
- * Background colors are ordered from least "intense" to most "intense"
- * So, if the background is light, then @background should be
- * lightest, -2 should be darker, and -1 should be darker still.
- *
- * The opposite is true for a dark background -- background-color-3 should be
- * the darkest, -2 should be lighter, and -1 should be lighter still.
- */
 @bc-color-step-size: 10%;
 
 /* Code Styling */
-
-/* inline editor colors */
-@inline-background-color-1: lighten(@background, @bc-color-step-size);
-@inline-background-color-2: lighten(@background, @bc-color-step-size*2);
-@inline-background-color-3: rgba(0,0,0,0);
-
-@inline-color-1: darken(@foreground, @bc-color-step-size*2);
-@inline-color-2: darken(@foreground, @bc-color-step-size);
-@inline-color-3: @background;
-
-@inline-triangle-size: 9px;
-
 
 /* Custom scrollbar colors */
 .platform-win & {
@@ -171,17 +150,13 @@
     color: @foreground !important;
 }
 
-.related-container {
-    background: @inline-background-color-2;
-    
-    .selection {
-        border-top: 1px solid darken(@inline-background-color-3, @bc-color-step-size);
-        border-bottom: 1px solid lighten(@inline-background-color-3, @bc-color-step-size);
-    }
+/* Inline editor styling */
 
-    .selection:before {
-        border-top: @inline-triangle-size solid @inline-background-color-3;
-        border-bottom: @inline-triangle-size solid @inline-background-color-3;
-        border-left: @inline-triangle-size solid @inline-background-color-1;
-    }
+.related-container .selection:before {
+    border-top: 9px solid black;
+    border-bottom: 9px solid black;
+}
+
+.inline-widget .CodeMirror, .inline-widget .CodeMirror-gutters {
+    background: transparent;
 }
