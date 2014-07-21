@@ -212,10 +212,7 @@ define(function (require, exports, module) {
         }
 
         if (info.metadata.description !== undefined) {
-            context.hasShortDescription = StringUtils.truncate(info.metadata.description, 140);
-            if (context.hasShortDescription !== undefined) {
-                info.metadata.shortdescription = context.hasShortDescription;
-            }
+            info.metadata.shortdescription = StringUtils.truncate(info.metadata.description, 140);
         }
 
         context.isMarkedForRemoval = ExtensionManager.isMarkedForRemoval(info.metadata.name);

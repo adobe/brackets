@@ -27,21 +27,21 @@
             {{/isCompatible}}
         {{/showInstallButton}}
         <span class="ext-full-description">
-            {{#hasShortDescription}}
+            {{#metadata.shortdescription}}
                 {{metadata.shortdescription}}
-            {{/hasShortDescription}}
-            {{^hasShortDescription}}
+            {{/metadata.shortdescription}}
+            {{^metadata.shortdescription}}
                 {{#metadata.description}}
                     {{metadata.description}}
                 {{/metadata.description}}
                 {{^metadata.description}}
                     <p class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></p>
                 {{/metadata.description}}
-            {{/hasShortDescription}}
+            {{/metadata.shortdescription}}
         </span>
-        {{#hasShortDescription}}
+        {{#metadata.shortdescription}}
         <a data-extension-id="{{metadata.name}}" data-toggle-desc="expand-desc" title="{{Strings.VIEW_COMPLETE_DESCRIPTION}}" href="#">...</a>
-        {{/hasShortDescription}}
+        {{/metadata.shortdescription}}
         {{#metadata.homepage}}
             <p><a title="{{metadata.homepage}}" href="{{metadata.homepage}}">{{Strings.EXTENSION_MORE_INFO}}</a></p>
         {{/metadata.homepage}}
