@@ -787,33 +787,43 @@ define(function (require, exports, module) {
             message;
         path = StringUtils.breakableUrl(path);
 
-        if (errType === ERR_TYPE_CREATE) {
+        switch (errType) {
+        case ERR_TYPE_CREATE:
             title = StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, titleType);
             message = StringUtils.format(Strings.ERROR_CREATING_FILE, entryType, path, error);
-        } else if (errType === ERR_TYPE_CREATE_EXISTS) {
+            break;
+        case ERR_TYPE_CREATE_EXISTS:
             title = StringUtils.format(Strings.INVALID_FILENAME_TITLE, titleType);
             message = StringUtils.format(Strings.ENTRY_WITH_SAME_NAME_EXISTS, path);
-        } else if (errType === ERR_TYPE_RENAME) {
+            break;
+        case ERR_TYPE_RENAME:
             title = StringUtils.format(Strings.ERROR_RENAMING_FILE_TITLE, titleType);
             message = StringUtils.format(Strings.ERROR_RENAMING_FILE, path, error, entryType);
-        } else if (errType === ERR_TYPE_DELETE) {
+            break;
+        case ERR_TYPE_DELETE:
             title = StringUtils.format(Strings.ERROR_DELETING_FILE_TITLE, titleType);
             message = StringUtils.format(Strings.ERROR_DELETING_FILE, path, error, entryType);
-        } else if (errType === ERR_TYPE_LOADING_PROJECT) {
-            title = StringUtils.format(Strings.ERROR_LOADING_PROJECT);
+            break;
+        case ERR_TYPE_LOADING_PROJECT:
+            title = Strings.ERROR_LOADING_PROJECT;
             message = StringUtils.format(Strings.READ_DIRECTORY_ENTRIES_ERROR, path, error);
-        } else if (errType === ERR_TYPE_LOADING_PROJECT_NATIVE) {
+            break;
+        case ERR_TYPE_LOADING_PROJECT_NATIVE:
             title = Strings.ERROR_LOADING_PROJECT;
             message = StringUtils.format(Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR, path, error);
-        } else if (errType === ERR_TYPE_MAX_FILES) {
+            break;
+        case ERR_TYPE_MAX_FILES:
             title = Strings.ERROR_MAX_FILES_TITLE;
             message = Strings.ERROR_MAX_FILES;
-        } else if (errType === ERR_TYPE_OPEN_DIALOG) {
+            break;
+        case ERR_TYPE_OPEN_DIALOG:
             title = Strings.ERROR_LOADING_PROJECT;
             message = StringUtils.format(Strings.OPEN_DIALOG_ERROR, error);
-        } else if (errType === ERR_TYPE_INVALID_FILENAME) {
+            break;
+        case ERR_TYPE_INVALID_FILENAME:
             title = StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME);
-            message = StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE,  error);
+            message = StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE, error);
+            break;
         }
 
         if (title && message) {
