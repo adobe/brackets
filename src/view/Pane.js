@@ -100,6 +100,12 @@ define(function (require, exports, module) {
      */
     
     /**
+     * Called to get the owning container of a view
+     * @callback getContainerCallBack
+     * @return {jQuery} the container for the view
+     */
+    
+    /**
      * View interface
      * @typedef {Object} View
      * @property {getFullPathCallBack} getFullPath 
@@ -113,6 +119,7 @@ define(function (require, exports, module) {
      * @property {getScrollPosCallback} getScrollPos 
      * @property {adjustScrollPosCallBack} adjustScrollPos 
      * @property {switchContainersCallBack} switchContainers 
+     * @property {getContainerCallBack} getContainer
      */
     
     
@@ -165,20 +172,23 @@ define(function (require, exports, module) {
     /**
      * id of the pane
      * @type {!string}
+     * @readonly
      */
     Pane.prototype.id = null;
     
     /**
      * container where the pane lives
+     * @readonly
      * @type {JQuery}
      */
     Pane.prototype.$container = null;
     
     /**
-     * container where the pane lives
+     * the wrapped DOM node of this pane
+     * @readonly
      * @type {JQuery}
      */
-    Pane.prototype.$container = null;
+    Pane.prototype.$el = null;
 
     
     /**
@@ -543,9 +553,9 @@ define(function (require, exports, module) {
     
     /**
      * @callback sortFunctionCallback
-     * @param {number} the id of the pane object
-     * @param {File} The first item to compare
-     * @param {File} the second item to compare
+     * @param {!string} the id of the pane object
+     * @param {!File} The first item to compare
+     * @param {!File} the second item to compare
      * @return {!number} 0 if the two params are equal, -1 if the first is to come before the seond and 1 if the second comes before the first
      */
     
