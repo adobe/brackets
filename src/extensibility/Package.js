@@ -283,9 +283,10 @@ define(function (require, exports, module) {
      * localized error message.
      * 
      * @param {string} path Absolute path to the package zip file
-     * @param {?string} nameHint Hint for the extension folder's name (used in favor of
+     * @param {?string} filenameHint Hint for the extension folder's name (used in favor of
      *          path's filename if present, and if no package metadata present).
-     * @return {$.Promise}
+     * @return {$.Promise} A promise that is rejected if there are errors during
+     *          install or the extension is disabled.
      */
     function installFromPath(path, filenameHint) {
         var d = new $.Deferred();
@@ -297,8 +298,6 @@ define(function (require, exports, module) {
                         installationStatus === InstallationStatuses.NEEDS_UPDATE ||
                         installationStatus === InstallationStatuses.SAME_VERSION ||
                         installationStatus === InstallationStatuses.OLDER_VERSION) {
-                    // We don't delete the file in this case, because it will be needed
-                    // if the user is going to install the update.
                     d.resolve(result);
                 } else {
                     if (result.errors && result.errors.length > 0) {
@@ -390,7 +389,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Converts an error object as returned by install() or installFromURL() into a flattened, localized string.
+     * Converts an error object as returned by install(), installFromPath() or
+     * installFromURL() into a flattened, localized string.
+     *
      * @param {string|Array.<string>} error
      * @return {string}
      */

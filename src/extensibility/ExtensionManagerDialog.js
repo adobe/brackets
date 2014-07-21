@@ -51,6 +51,11 @@ define(function (require, exports, module) {
     
     var _activeTabIndex;
 
+    function _stopEvent(event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
     /**
      * @private
      * Triggers changes requested by the dialog UI.
@@ -163,6 +168,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Install extensions from the local file system using the install dialog.
+     * @return {$.Promise}
      */
     function _installUsingDragAndDrop() {
         var installZips = [],
@@ -172,33 +178,44 @@ define(function (require, exports, module) {
 
         brackets.app.getDroppedFiles(function (err, paths) {
             if (err) {
-                deferred.reject();
+                // Only possible error is invalid params, silently ignore
+                console.error(err);
+                deferred.resolve();
                 return;
             }
 
             // Parse zip files and separate new installs vs. updates
-            validatePromise = Async.doSequentially(paths, function (path) {
+            validatePromise = Async.doInParallel_aggregateErrors(paths, function (path) {
                 var result = new $.Deferred();
                 
                 FileSystem.resolve(path, function (err, file) {
-                    var extension = FileUtils.getFileExtension(path);
+                    var extension = FileUtils.getFileExtension(path),
+                        isZip = file.isFile && (extension === "zip"),
+                        errStr;
+                    
+                    if (err) {
+                        errStr = FileUtils.getFileErrorString(err);
+                    } else if (!isZip) {
+                        errStr = Strings.INVALID_ZIP_FILE;
+                    }
 
-                    if (err || !file.isFile || (extension !== "zip")) {
-                        result.reject();
+                    if (errStr) {
+                        result.reject(errStr);
                         return;
                     }
                     
                     // Call validate() so that we open the local zip file and parse the
                     // package.json. We need the name to detect if this zip will be a
                     // new install or an update.
-                    Package.validate(path).then(function (info) {
+                    Package.validate(path, { requirePackageJSON: true }).done(function (info) {
                         if (info.errors.length) {
-                            result.reject();
+                            result.reject(Package.formatError(info.errors));
                             return;
                         }
 
-                        var extensionInfo = ExtensionManager.extensions[info.metadata.name],
-                            isUpdate = !!extensionInfo.installInfo;
+                        var extensionName = info.metadata.name,
+                            extensionInfo = ExtensionManager.extensions[extensionName],
+                            isUpdate = extensionInfo && !!extensionInfo.installInfo;
 
                         if (isUpdate) {
                             updateZips.push(file);
@@ -207,27 +224,33 @@ define(function (require, exports, module) {
                         }
 
                         result.resolve();
-                    }, result.reject);
+                    }).fail(function (err) {
+                        result.reject(Package.formatError(err));
+                    });
                 });
                 
                 return result.promise();
             });
 
-            validatePromise.then(function () {
-                deferred.resolve();
-                
+            validatePromise.done(function () {
                 var installPromise = Async.doSequentially(installZips, function (file) {
                     return InstallExtensionDialog.installUsingDialog(file);
                 });
 
-                installPromise.done(function () {
-                    Async.doSequentially(updateZips, function (file) {
+                var updatePromise = installPromise.then(function () {
+                    return Async.doSequentially(updateZips, function (file) {
                         return InstallExtensionDialog.updateUsingDialog(file).done(function (result) {
                             ExtensionManager.updateFromDownload(result);
                         });
                     });
                 });
-            }, deferred.reject);
+                
+                // InstallExtensionDialog displays it's own errors, always
+                // resolve the outer promise
+                updatePromise.always(deferred.resolve);
+            }).fail(function (errorArray) {
+                deferred.reject(errorArray);
+            });
         });
         
         return deferred.promise();
@@ -388,42 +411,44 @@ define(function (require, exports, module) {
         var $dropzone = $("#install-drop-zone"),
             $dropmask = $("#install-drop-zone-mask");
         
-        $dropzone.on("dragover", function (event) {
-            if (!event.originalEvent.dataTransfer.files) {
-                return;
-            }
-            
-            event.stopPropagation();
-            event.preventDefault();
+        $dropzone
+            .on("dragover", function (event) {
+                _stopEvent(event);
 
-            var items = event.originalEvent.dataTransfer.items,
-                isValidDrop = false;
-
-            isValidDrop = _.every(items, function (item) {
-                if (item.kind === "file") {
-                    var entry = item.webkitGetAsEntry(),
-                        extension = FileUtils.getFileExtension(entry.fullPath);
-
-                    return entry.isFile && extension === "zip";
+                if (!event.originalEvent.dataTransfer.files) {
+                    return;
                 }
 
-                return false;
-            });
+                var items = event.originalEvent.dataTransfer.items,
+                    isValidDrop = false;
 
-            if (isValidDrop) {
-                // Set an absolute width to stabilize the button size
-                $dropzone.width($dropzone.width());
+                isValidDrop = _.every(items, function (item) {
+                    if (item.kind === "file") {
+                        var entry = item.webkitGetAsEntry(),
+                            extension = FileUtils.getFileExtension(entry.fullPath);
 
-                // Show drop styling and message
-                $dropzone.removeClass("drag");
-                $dropzone.addClass("drop");
-            }
-        });
+                        return entry.isFile && extension === "zip";
+                    }
+
+                    return false;
+                });
+
+                if (isValidDrop) {
+                    // Set an absolute width to stabilize the button size
+                    $dropzone.width($dropzone.width());
+
+                    // Show drop styling and message
+                    $dropzone.removeClass("drag");
+                    $dropzone.addClass("drop");
+                } else {
+                    event.originalEvent.dataTransfer.dropEffect = "none";
+                }
+            })
+            .on("drop", _stopEvent);
         
         $dropmask
             .on("dragover", function (event) {
-                event.stopPropagation();
-                event.preventDefault();
+                _stopEvent(event);
                 event.originalEvent.dataTransfer.dropEffect = "copy";
             })
             .on("dragleave", function () {
@@ -431,18 +456,35 @@ define(function (require, exports, module) {
                 $dropzone.addClass("drag");
             })
             .on("drop", function (event) {
+                _stopEvent(event);
+                
                 if (event.originalEvent.dataTransfer.files) {
-                    event.stopPropagation();
-                    event.preventDefault();
+                    // Attempt install
+                    _installUsingDragAndDrop().fail(function (errorArray) {
+                        var message = Strings.INSTALL_EXTENSION_DROP_ERROR;
 
-                    _installUsingDragAndDrop().always(function () {
+                        message += "<ul class='dialog-list'>";
+                        errorArray.forEach(function (info) {
+                            message += "<li><span class='dialog-filename'>";
+                            message += StringUtils.breakableUrl(info.item);
+                            message += "</span>: " + info.error + "</li>";
+                        });
+                        message += "</ul>";
+
+                        Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_ERROR,
+                            Strings.EXTENSION_MANAGER_TITLE,
+                            message
+                        );
+                    }).always(function () {
                         $dropzone.removeClass("validating");
                         $dropzone.addClass("drag");
                     });
+                    
+                    // While installing, show validating message
+                    $dropzone.removeClass("drop");
+                    $dropzone.addClass("validating");
                 }
-
-                $dropzone.removeClass("drop");
-                $dropzone.addClass("validating");
             });
         
         return new $.Deferred().resolve(dialog).promise();
