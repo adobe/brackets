@@ -373,11 +373,12 @@ define(function (require, exports, module) {
      * Updates an installed extension with the given package file.
      * @param {string} id of the extension
      * @param {string} packagePath path to the package file
+     * @param {boolean=} keepFile Flag to keep extension package file, default=false
      * @return {$.Promise} A promise that's resolved when the extension is updated or
      *     rejected with an error if there's a problem with the update.
      */
-    function update(id, packagePath) {
-        return Package.installUpdate(packagePath, id);
+    function update(id, packagePath, keepFile) {
+        return Package.installUpdate(packagePath, id, keepFile);
     }
 
     /**
@@ -386,8 +387,11 @@ define(function (require, exports, module) {
      */
     function cleanupUpdates() {
         Object.keys(_idsToUpdate).forEach(function (id) {
-            var filename = _idsToUpdate[id].localPath;
-            if (filename) {
+            var installResult = _idsToUpdate[id],
+                keepFile = installResult.keepFile,
+                filename = _idsToUpdate.localPath;
+
+            if (filename && !keepFile) {
                 FileSystem.getFileForPath(filename).unlink();
             }
         });
@@ -461,7 +465,7 @@ define(function (require, exports, module) {
         if (!installationResult) {
             return;
         }
-        if (installationResult.localPath) {
+        if (installationResult.localPath && !installationResult.keepFile) {
             FileSystem.getFileForPath(installationResult.localPath).unlink();
         }
         delete _idsToUpdate[id];
@@ -513,7 +517,7 @@ define(function (require, exports, module) {
             Object.keys(_idsToUpdate),
             function (id) {
                 var installationResult = _idsToUpdate[id];
-                return update(installationResult.name, installationResult.localPath);
+                return update(installationResult.name, installationResult.localPath, installationResult.keepFile);
             }
         );
     }
