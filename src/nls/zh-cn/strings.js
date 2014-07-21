@@ -270,10 +270,14 @@ define({
     "CMD_SPLIT_SEL_INTO_LINES"            : "将选中内容拆分至多行",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "将下一行添加至选中内容",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "将上一行添加至选中内容",
+    
+    // Search menu commands
+    "FIND_MENU"                           : "查找",
     "CMD_FIND"                            : "查找",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "查找\u2026",
     "CMD_FIND_IN_FILES"                   : "在文件中查找",
     "CMD_FIND_IN_SUBTREE"                 : "在该位置查找\u2026",
+    "CMD_FIND_IN_SELECTED"                : "在选中的文件/文件夹查找",
     "CMD_FIND_NEXT"                       : "查找下一个",
     "CMD_FIND_PREVIOUS"                   : "查找上一个",
     "CMD_FIND_ALL_AND_SELECT"             : "查找全部并选中",

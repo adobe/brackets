@@ -162,7 +162,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Encoded URL
-     * @ see getBaseUrl(), setBaseUrl()
+     * @see getBaseUrl(), setBaseUrl()
      */
     var _projectBaseUrl = "";
     
@@ -209,14 +209,21 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * @type {Number}
+     * Tracks the timeoutID for mouseup events.
+     */
+    var _mouseupTimeoutId = null;
+    
+    /**
+     * @private
      * Generates the prefixes used for sorting the files in the project tree
      * @return {boolean} true if the sort prefixes have changed
      */
     function _generateSortPrefixes() {
         var previousDirFirst  = _dirFirst;
         _dirFirst             = PreferencesManager.get("sortDirectoriesFirst");
-        _sortPrefixDir        = _dirFirst ? "0" : "";
-        _sortPrefixFile       = _dirFirst ? "1" : "";
+        _sortPrefixDir        = _dirFirst ? "a" : "";
+        _sortPrefixFile       = _dirFirst ? "b" : "";
         
         return previousDirFirst !== _dirFirst;
     }
@@ -656,7 +663,30 @@ define(function (require, exports, module) {
                         }
                     }
                 }
-            );
+            ).bind("mouseup.jstree", function (event) {
+                if (event.button !== 0) { // 0 = Left mouse button
+                    return;
+                }
+
+                var $treenode = $(event.target).closest("li"),
+                    entry = $treenode.data("entry");
+
+                // If we are already in a rename, don't re-invoke it, just cancel it.
+                if (_isInRename($treenode)) {
+                    return;
+                }
+
+                // Don't do the rename for folders, because clicking on a folder name collapses/expands it.
+                if (entry && entry.isFile && $treenode.is($(_projectTree.jstree("get_selected")))) {
+                    // wrap this in a setTimeout function so that we can check if it's a double click.
+                    _mouseupTimeoutId = window.setTimeout(function () {
+                        // if we get a double-click, _mouseupTimeoutId will have been set to null by the double-click handler before this runs.
+                        if (_mouseupTimeoutId !== null) {
+                            CommandManager.execute(Commands.FILE_RENAME);
+                        }
+                    }, 500);
+                }
+            });
 
         // jstree has a default event handler for dblclick that attempts to clear the
         // global window selection (presumably because it doesn't want text within the tree
@@ -718,6 +748,11 @@ define(function (require, exports, module) {
                     if (entry && entry.isFile && !_isInRename(event.target)) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
+                    if (_mouseupTimeoutId !== null) {
+                        window.clearTimeout(_mouseupTimeoutId);
+                        _mouseupTimeoutId = null;
+                    }
+                    
                 });
 
             // fire selection changed events for sidebar-selection
@@ -1128,6 +1163,7 @@ define(function (require, exports, module) {
             _unwatchProjectRoot().always(function () {
                 // Done closing old project (if any)
                 if (_projectRoot) {
+                    PreferencesManager._reloadUserPrefs(_projectRoot);
                     $(exports).triggerHandler("projectClose", _projectRoot);
                 }
                 
@@ -1756,7 +1792,7 @@ define(function (require, exports, module) {
      * Rename a file/folder. This will update the project tree data structures
      * and send notifications about the rename.
      *
-     * @prarm {string} oldName Old item name
+     * @param {string} oldName Old item name
      * @param {string} newName New item name
      * @param {boolean} isFolder True if item is a folder; False if it is a file.
      * @return {$.Promise} A promise object that will be resolved or rejected when

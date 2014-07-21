@@ -68,7 +68,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type{jQuery.Deferred.<NodeConnection>}
+     * @type {jQuery.Deferred.<NodeConnection>}
      * A deferred which is resolved with a NodeConnection or rejected if
      * we are unable to connect to Node.
      */

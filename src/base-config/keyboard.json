@@ -26,6 +26,11 @@
     "file.liveFilePreview":  [
         "Ctrl-Alt-P"
     ],
+    "file.reloadLivePreview": [
+        {
+            "key": "Ctrl-Shift-R"
+        }
+    ],
     "file.previewHighlight":  [
         "Ctrl-Shift-C"
     ],
@@ -150,6 +155,9 @@
     ],
     "cmd.findInFiles":  [
         "Ctrl-Shift-F"
+    ],
+    "cmd.replaceInFiles":  [
+        "Ctrl-Alt-Shift-F"
     ],
     "cmd.findNext":  [
         {

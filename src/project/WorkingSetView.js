@@ -221,7 +221,7 @@ define(function (require, exports, module) {
      * Starts the drag and drop working set view reorder.
      * @private
      * @param {!Event} event - jQuery event
-     * @paran {!HTMLLIElement} $listItem - jQuery element
+     * @param {!HTMLLIElement} $listItem - jQuery element
      * @param {?bool} fromClose - true if reorder was called from the close icon
      */
     function _reorderListItem(event, $listItem, fromClose) {

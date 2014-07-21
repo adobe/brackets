@@ -561,6 +561,7 @@ define(function (require, exports, module) {
     exports._setProjectSettingsFile = _setProjectSettingsFile;
     exports._smUserScopeLoading     = PreferencesImpl.smUserScopeLoading;
     exports._stateProjectLayer      = PreferencesImpl.stateProjectLayer;
+    exports._reloadUserPrefs        = PreferencesImpl.reloadUserPrefs;
     
     // Public API
     
