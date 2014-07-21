@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
         LanguageManager     = require("language/LanguageManager"),
         DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
         PathUtils           = require("thirdparty/path-utils/path-utils.min"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         PreferencesManager  = require("preferences/PreferencesManager"),
@@ -544,7 +545,7 @@ define(function (require, exports, module) {
 
                 var renameDeferred = $.Deferred();
                 runs(function () {
-                    DocumentManager.setCurrentDocument(doc);
+                    MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, doc);
                     javascript = LanguageManager.getLanguage("javascript");
                     
                     // sanity check language

@@ -69,19 +69,47 @@ define(function (require, exports, module) {
     /**
      * view provider registry
      * @type {?Object}
+     * @private
      */
     var _customViewerRegistry = {};
     
     /**
      * Currently focused Editor (full-size, inline, or otherwise)
      * @type {?Editor}
+     * @private
      */
     var _lastFocusedEditor = null;
     
     /**
+     * @typedef {Object} Coord
+     * @property {!number} x
+     * @property {!number} y
+     */
+     
+    /**
+     * @typedef {Object} LineChar
+     * @property {!number} line
+     * @property {!number} ch
+     */
+    
+    /**
+     * @typedef {Object} Selection
+     * @property {LineChar} start
+     * @property {LineChar} end
+     */
+    
+    
+    /**
+     * @typedef {Object} ViewState
+     * @property {Coord} scrollPos
+     * @property {Array.<Selection>} selections
+     */
+    
+    /**
      * Maps full path to scroll pos & cursor/selection info. Not kept up to date while an editor is current.
      * Only updated when switching / closing editor, or when requested explicitly via _getViewState().
-     * @type {Object.<string, {scrollPos:{x:number, y:number}, selection:{start:{line:number, ch:number}, end:{line:number, ch:number}}}>}
+     * @type {Object.<string, ViewState>}
+     * @private
      */
     var _viewStateCache = {};
     
@@ -89,6 +117,7 @@ define(function (require, exports, module) {
      * Registered inline-editor widget providers sorted descending by priority. 
      * See {@link #registerInlineEditProvider()}.
      * @type {Array.<{priority:number, provider:function(...)}>}
+     * @private
      */
     var _inlineEditProviders = [];
     
@@ -96,23 +125,30 @@ define(function (require, exports, module) {
      * Registered inline documentation widget providers sorted descending by priority.
      * See {@link #registerInlineDocsProvider()}.
      * @type {Array.<{priority:number, provider:function(...)}>}
+     * @private
      */
     var _inlineDocsProviders = [];
     
     /**
      * Registered jump-to-definition providers. See {@link #registerJumpToDefProvider()}.
+     * @private
      * @type {Array.<function(...)>}
      */
     var _jumpToDefProviders = [];
     
     
     /**
-     *
+     * DOM element to house any hidden editors created soley for inline widgets
+     * @private
+     * @type {jQuery}
      */
     var _$hiddenEditorsContainer;
     
    
-    /** Returns the visible full-size Editor corresponding to DocumentManager.getCurrentDocument() */
+    /** 
+     * Retrieves the visible full-size Editor for the currently opened file in the FOCUSED_PANE
+     * @return {?Editor} editor of the current view or null
+     */
     function getCurrentFullEditor() {
         var currentPath = MainViewManager.getCurrentlyViewedPath(),
             doc = DocumentManager.getOpenDocumentForPath(currentPath);
@@ -126,7 +162,11 @@ define(function (require, exports, module) {
 
     
 
-    /** Updates _viewStateCache from the given editor's actual current state */
+    /** 
+     * Updates _viewStateCache from the given editor's actual current state 
+     * @private
+     * @param {!Editor] editor - editor to cache data for
+     */
     function _saveEditorViewState(editor) {
         _viewStateCache[editor.document.file.fullPath] = {
             selections: editor.getSelections(),
@@ -134,7 +174,11 @@ define(function (require, exports, module) {
         };
     }
     
-    /** Updates the given editor's actual state from _viewStateCache, if any state stored */
+    /** 
+     * Updates _viewStateCache from the given editor's actual current state 
+     * @param {!Editor] editor - editor restore cached data 
+     * @private
+     */
     function _restoreEditorViewState(editor) {
         // We want to ignore the current state of the editor, so don't call _getViewState()
         var viewState = _viewStateCache[editor.document.file.fullPath];
@@ -153,24 +197,35 @@ define(function (require, exports, module) {
         }
     }
     
-    /** Returns up-to-date view state for the given file, or null if file not open and no state cached */
+    /** 
+     * @param {!string} fullPath - path of the file to retrieve the view state
+     * @return {ViewState} up-to-date view state for the given file, or null if file not open and no state cached 
+     */
     function getViewState(fullPath) {
         return _viewStateCache[fullPath];
     }
     
-    /** Removes all cached view state info and replaces it with the given mapping */
+    /** 
+     * Initializes the view state cache
+     * @param {Array.<ViewState>} viewStates - serialized view state to initialize cache with
+     */
     function resetViewStates(viewStates) {
         _viewStateCache = viewStates || {};
     }
 
+    /** 
+     * Adds view states to the view state cache without destroying the existing data
+     * @param {Array.<ViewState>} viewStates - serialized view state to append to the cache
+     */
     function addViewStates(viewStates) {
         _viewStateCache = _.extend(_viewStateCache, viewStates);
     }
     
     
 	/**
+     * Editor focus handler to change the currently active editor
      * @private
-     * @param {?Editor} current
+     * @param {?Editor} current - the editor that will be the active editor
      */
     function _notifyActiveEditorChanged(current) {
         // Skip if the Editor that gained focus was already the most recently focused editor.
@@ -184,6 +239,12 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("activeEditorChange", [current, previous]);
     }
 	
+	/**
+     * Current File Changed handler
+     * @private
+     * @param {!jQuery.Event} e - event
+     * @param {?File} file - current file (can be null)
+     */
     function _handleCurrentFileChanged(e, file) {
         var doc = file ? DocumentManager.getOpenDocumentForPath(file.fullPath) : null;
         _notifyActiveEditorChanged(doc ? doc._masterEditor : null);
@@ -192,6 +253,7 @@ define(function (require, exports, module) {
     /**
      * Creates a new Editor bound to the given Document.
      * The editor is appended to the given container as a visible child.
+     * @private
      * @param {!Document} doc  Document for the Editor's content
      * @param {!boolean} makeMasterEditor  If true, the Editor will set itself as the private "master"
      *          Editor for the Document. If false, the Editor will attach to the Document as a "slave."
@@ -216,7 +278,7 @@ define(function (require, exports, module) {
     
     /**
      * Inserts a prioritized provider object into the array in sorted (descending) order.
-     *
+     * @private
      * @param {Array.<{priority:number, provider:function(...)}>} array
      * @param {number} priority
      * @param {function(...)} provider
@@ -237,11 +299,23 @@ define(function (require, exports, module) {
         array.splice(index, 0, prioritizedProvider);
     }
     
+        
+    /**
+     * Creates a hidden, unattached master editor that is needed when a document is created for the 
+     * sole purpose of creating an inline editor so operations that require a master editor can be performed
+     * Only called from Document._ensureMasterEditor()
+     * The editor view is placed in a hidden part of the DOM but can later be moved to a visible pane 
+     * when the document is opened using Editor.switchContainers()
+     * @param {!Document} doc - document to create a hidden editor for
+     */
     function createUnattachedMasterEditor(doc) {
+        // attach to the hidden containers DOM node if necessary
         if (!_$hiddenEditorsContainer) {
             _$hiddenEditorsContainer = $("#hidden-editors");
         }
+        // Create an editor
         var editor = _createEditorForDocument(doc, true, _$hiddenEditorsContainer);
+        // and hide it
         editor.setVisible(false);
     }
     
@@ -420,13 +494,10 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Create and/or show the editor for the specified document
+     * @param {!Document} document - document to edit
+     * @param {!Pane} pane - pane to show it in
      * @private
-     */
-
-    /**
-     * Make the given document's editor visible in the UI, hiding whatever was
-     * visible before. Creates a new editor if none is assigned.
-     * @param {!Document} document
      */
     function _showEditor(document, pane) {
         // Ensure a main editor exists for this document to show in the UI
@@ -445,11 +516,15 @@ define(function (require, exports, module) {
             // Editor doesn't exist: populate a new Editor with the text
             _createFullEditorForDocument(document, pane);
         } else if (editor.getContainer() !== pane.$el) {
+            // editor does exist but is not a child of the pane with which
+            //  to show it so we need to add the view and switch the container of the editor
             pane.addView(document.file.fullPath, editor);
             editor.switchContainers(pane.$el);
         }
-        
+
+        // show the view
         pane.showView(document._masterEditor);
+        // give it focus
         document._masterEditor.focus();
         
         if (createdNewEditor) {
@@ -457,46 +532,16 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * @deprecated use MainViewManager.getCurrentlyViewedFile() instead
+     * @return {string=} path of the file currently viewed in the active, full sized editor or null when there is no active editor 
+     */
     function getCurrentlyViewedPath() {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.getCurrentlyViewedFile instead of EditorManager.getCurrentlyViewedPath.", true);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.getCurrentlyViewedFile() instead of EditorManager.getCurrentlyViewedPath().", true);
         var file = MainViewManager.getCurrentlyViewedFile();
         return file ? file.fullPath : null;
     }
     
-
-    // TODO: Move custom viewer code to Pane 
-    /** Remove existing custom view if present */
-    function _removeCustomViewer() {
-        
-    }
-    
-    /** 
-     * Closes the customViewer currently displayed, shows the NoEditor view
-     * and notifies the ProjectManager to update the file selection
-     */
-    function _closeCustomViewer() {
-    }
-
-    /** 
-     * Append custom view to editor-holder
-     * @param {!Object} provider  custom view provider
-     * @param {!string} fullPath  path to the file displayed in the custom view
-     */
-    function _showCustomViewer(provider, fullPath) {
-    }
-
-    /**
-     * Check whether the given file is currently open in a custom viewer.
-     *
-     * @param {!string} fullPath  file path to check
-     * @return {boolean} true if we have a custom viewer showing and the given file
-     *     path matches the one in the custom viewer, false otherwise.
-     */
-    function showingCustomViewerForPath(fullPath) {
-        return false;
-    }
-        
-    // TODO: Move this to MainViewManager
   
     
     /**
@@ -509,6 +554,8 @@ define(function (require, exports, module) {
      * The first argument defines a so called languageId which bundles
      * file extensions to be handled by the custom viewer, see more
      * in LanguageManager JSDocs.
+     *
+     * Will be deprecated soon
      * 
      * @param {!String} languageId, i.e. string such as image, audio, etc to 
      *                              identify a language known to LanguageManager 
@@ -528,11 +575,10 @@ define(function (require, exports, module) {
     }
     
     /** 
-     * Return the provider of a custom viewer for the given path if one exists.
-     * Otherwise, return null.
-     *
-     * @param {!string} fullPath - file path to be checked for a custom viewer
-     * @return {?Object}
+     * Will be deprecated soon
+     * Gets the custom viewer view factory for the specified file path
+     * @param {!string} fullPath - file path to match the custom viewer to
+     * @return {?Object} the custom view factory object or null if one doesn't exist for the specified language
      */
     function getCustomViewerForPath(fullPath) {
         var lang = LanguageManager.getLanguageForPath(fullPath);
@@ -541,7 +587,6 @@ define(function (require, exports, module) {
     
     /** 
      * Determines if the file can be opened
-     *
      * @param {!string} fullPath - file path to be checked for a custom viewer
      * @return {boolean} true if the file can be opened, false if not
      */
@@ -549,13 +594,16 @@ define(function (require, exports, module) {
         return !getCustomViewerForPath(fullPath);
     }
     
-    /** Handles changes to DocumentManager.getCurrentDocument() */
+    /** 
+     * Opens the specified document in the given pane
+     * @param {!Document} doc - the document to open
+     * @param {!Pane} pane - the pane to open the document in
+     * @return {boolean} true if the file can be opened, false if not
+     */
     function doOpenDocument(doc, pane) {
         var perfTimerName = PerfUtils.markStart("EditorManager.doOpenDocument():\t" + (!doc || doc.file.fullPath));
-        
-        // Update the UI to show the right editor (or nothing), and also dispose old editor if no
-        // longer needed.
-        if (doc) {
+
+        if (doc && pane) {
             _showEditor(doc, pane);
         }
 
@@ -745,12 +793,9 @@ define(function (require, exports, module) {
     exports.registerInlineEditProvider    = registerInlineEditProvider;
     exports.registerInlineDocsProvider    = registerInlineDocsProvider;
     exports.registerJumpToDefProvider     = registerJumpToDefProvider;
-    exports._showCustomViewer             = _showCustomViewer;
-    exports._closeCustomViewer            = _closeCustomViewer;
     
     // Deprecated
     exports.resizeEditor                  = resizeEditor;
-    exports.showingCustomViewerForPath    = showingCustomViewerForPath;
     exports.focusEditor                   = focusEditor;
     exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;
 });

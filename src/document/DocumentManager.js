@@ -180,8 +180,8 @@ define(function (require, exports, module) {
     
     
     /**
-     * [shim] Clears the current document.  This is usually in response to a close all command
-     *         or close current document when there are no other documents left to open. This
+     * @deprecated use MainViewManager.doClose() instead
+     * closes the current document
      */
     function clearCurrentDocument() {
         DeprecationWarning.deprecationWarning("DocumentManager.clearCurrentDocument() has been deprecated. Use MainViewManager.doClose()", true);

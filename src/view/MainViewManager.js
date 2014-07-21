@@ -93,7 +93,7 @@ define(function (require, exports, module) {
      * localized pane titles 
      * @type {Object.{FIRST_PANE|SECOND_PANE, <VERTICAL.string, HORIZONTAL.string}}}
      *  Localized string for first and second panes in the current orientation.  
-     * @see {@link getPaneTitle} for more information
+     * @see {@link getPaneTitle()} for more information
      * @private
      */
     var _paneTitles  = {
@@ -256,7 +256,7 @@ define(function (require, exports, module) {
      * @return {File=} File object of the currently viewed file, null if there isn't one or undefined if there isn't a matching pane
      */
     function getCurrentlyViewedFile() {
-        return getCurrentlyViewedFile(FOCUSED_PANE);
+        return getCurrentlyViewedFileForPane(FOCUSED_PANE);
     }
     
     /**
@@ -568,7 +568,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @see {link doClose} use doClose instead
+     * @see {link doClose()} use doClose instead
      * Removes the specified file from the pane view list, if it was in the list. 
      *   Will show the interstitial page if the current file is closed 
      *       even if there are  other files in which to show
@@ -609,7 +609,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @see {link doCloseList} use doCloseList instead
+     * @see {link doCloseList()} use doCloseList instead
      * Removes the specified file list from the pane view list, if it was in the list. 
      *   Will show the interstitial page if the current file is closed 
      *       even if there are  other files in which to show
@@ -652,7 +652,7 @@ define(function (require, exports, module) {
     
     
     /**
-     * @see {link doCloseAll} use doCloseList instead
+     * @see {link doCloseAll()} use doCloseList instead
      * Removes the specified file list from the pane view list, if it was in the list. 
      *   Will show the interstitial page if the current file is closed 
      *       even if there are  other files in which to show
@@ -686,7 +686,7 @@ define(function (require, exports, module) {
      * sorts the pane's view list 
      * @param {!string} paneId - id of the pane to sort, ALL_PANES or FOCUSED_PANE
      * @param {sortFunctionCallback} compareFn - callback to determine sort order (called on each item)
-     * @see {@link Pane.sortViewList} for more information
+     * @see {@link Pane.sortViewList()} for more information
      * @see {@link https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort|Sort Array - MDN}
      */
     function sortPaneViewList(paneId, compareFn) {

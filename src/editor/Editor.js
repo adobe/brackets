@@ -1421,6 +1421,11 @@ define(function (require, exports, module) {
         return { x: scrollInfo.left, y: scrollInfo.top };
     };
     
+    /**
+     * Restores and adjusts the current scroll position of the editor.
+     * @param {{x:number, y:number}} scrollPos - The x,y scroll position in pixels
+     * @param {!number} heightDelta - The amount of delta H to apply to the scroll position
+     */
     Editor.prototype.adjustScrollPos = function (scrollPos, heightDelta) {
         this._codeMirror.scrollTo(scrollPos.x, scrollPos.y + heightDelta);
     };
@@ -1982,6 +1987,7 @@ define(function (require, exports, module) {
         return this._focused;
     };
     
+    /** Returns true if a child editor (inline widget) has focus */
     Editor.prototype.childHasFocus = function () {
         return (this.getFocusedInlineWidget() !== null);
     };
