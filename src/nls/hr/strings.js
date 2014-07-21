@@ -270,7 +270,7 @@ define({
     // Used in native File menu on Windows
     "CMD_EXIT" : "Izađi",
 
-     // Edit menu commands
+    // Edit menu commands
     "EDIT_MENU"                           : "Uredi",
     "CMD_UNDO"                            : "Poništi",
     "CMD_REDO"                            : "Ponovi",
@@ -310,7 +310,7 @@ define({
     "CMD_REPLACE"                         : "Zamijeni",
     "CMD_REPLACE_IN_FILES"                : "Zamijeni u datotekama",
     "CMD_REPLACE_IN_SELECTED"             : "Zamijeni u odabranoj datoteci/mapi",
-    "CMD_REPLACE_IN_SUBTREE"              : "Zamijeni u\u2026"
+    "CMD_REPLACE_IN_SUBTREE"              : "Zamijeni u\u2026",
     
     // View menu commands
     "VIEW_MENU"                           : "Prikaz",
