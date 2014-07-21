@@ -696,7 +696,12 @@ define(function (require, exports, module) {
         return new $.Deferred().reject();
     }
     
-    function _onFileRemoved(file) {
+    /**
+     * file removed helper. Facilitates destroying editors no longer needed.
+     * @param {File|string} file - the file or filepath being removed
+     * 
+     */
+    function _handleFileRemoved(file) {
         // There's one case where an editor should be disposed even though the current document
         // didn't change: removing a document from the working set (via the "X" button). (This may
         // also cover the case where the document WAS current, if the editor-swap happens before the
@@ -714,14 +719,17 @@ define(function (require, exports, module) {
     }
 
     /** 
+     * file removed from pane handler.
+     * @param {jQuery.Event} e
+     * @param {File|string|Array.<File>|Array.<string>} removedFiles - file, path or array of files or paths that are being removed
      */
     function _handleRemoveFromPaneView(e, removedFiles) {
         if ($.isArray(removedFiles)) {
             removedFiles.forEach(function (removedFile) {
-                _onFileRemoved(removedFile);
+                _handleFileRemoved(removedFile);
             });
         } else {
-            _onFileRemoved(removedFiles);
+            _handleFileRemoved(removedFiles);
         }
     }
     
