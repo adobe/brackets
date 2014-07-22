@@ -138,7 +138,7 @@ define(function (require, exports, module) {
             currentDoc = DocumentManager.getOpenDocumentForPath(currentlyViewedPath),
             windowTitle = brackets.config.app_title;
 
-        if (_$title && _$dirtydot && !_$titleWrapper) {
+        if (_$title && _$dirtydot && _$titleWrapper) {
         
             if (!brackets.nativeMenus) {
                 if (currentlyViewedPath) {
