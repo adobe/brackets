@@ -27,13 +27,13 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _                  = require("thirdparty/lodash"),
-        Dialogs            = require("widgets/Dialogs"),
-        Strings            = require("strings"),
-        PreferencesManager = require("preferences/PreferencesManager"),
-        settingsTemplate   = require("text!htmlContent/themes-settings.html");
-
-    var prefs = PreferencesManager.getExtensionPrefs("brackets-themes");
+    var _                   = require("thirdparty/lodash"),
+        Dialogs             = require("widgets/Dialogs"),
+        Strings             = require("strings"),
+        ViewCommandHandlers = require("view/ViewCommandHandlers"),
+        settingsTemplate    = require("text!htmlContent/themes-settings.html"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        prefs               = PreferencesManager.getExtensionPrefs("themes");
 
     /**
      * @type {Object}
@@ -45,9 +45,6 @@ define(function (require, exports, module) {
      * Object with all default values that can be configure via the settings UI
      */
     var defaults = {
-        "fontSize": 12,
-        "lineHeight": 1.25,
-        "fontFamily": "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace",
         "customScrollbars": true,
         "theme": "thor-light-theme"
     };
@@ -65,9 +62,16 @@ define(function (require, exports, module) {
      * @return {Object} a collection with all the settings
      */
     function getValues() {
-        return _.transform(defaults, function (result, value, key) {
+        var result = {};
+
+        Object.keys(defaults).forEach(function (key) {
             result[key] = prefs.get(key);
         });
+
+        result.fontFamily = ViewCommandHandlers.getFontFamily();
+        result.fontSize   = ViewCommandHandlers.getFontSize();
+        result.lineHeight = ViewCommandHandlers.getLineHeight();
+        return result;
     }
 
     /**
@@ -110,9 +114,21 @@ define(function (require, exports, module) {
             });
 
         Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
+            var setterFn;
+
             if (id === "save") {
+                // Go through each new setting and apply it
                 Object.keys(newSettings).forEach(function (setting) {
-                    prefs.set(setting, newSettings[setting]);
+                    if (defaults.hasOwnProperty(setting)) {
+                        prefs.set(setting, newSettings[setting]);
+                    } else {
+                        // Figure out if the setting is in the ViewCommandHandlers, which means it is
+                        // a font setting
+                        setterFn = "set" + setting[0].toLocaleUpperCase() + setting.substr(1);
+                        if (typeof ViewCommandHandlers[setterFn] === 'function') {
+                            ViewCommandHandlers[setterFn](newSettings[setting]);
+                        }
+                    }
                 });
             } else if (id === "cancel") {
                 // Make sure we revert any changes to theme selection
@@ -134,21 +150,13 @@ define(function (require, exports, module) {
      */
     function restore() {
         prefs.set("theme", defaults.theme);
-        prefs.set("fontSize", defaults.fontSize + "px");
-        prefs.set("lineHeight", defaults.lineHeight);
-        prefs.set("fontFamily", defaults.fontFamily);
         prefs.set("customScrollbars", defaults.customScrollbars);
     }
 
-
     prefs.definePreference("theme", "string", defaults.theme);
-    prefs.definePreference("fontSize", "string", defaults.fontSize + "px");
-    prefs.definePreference("lineHeight", "number", defaults.lineHeight);
-    prefs.definePreference("fontFamily", "string", defaults.fontFamily);
     prefs.definePreference("customScrollbars", "boolean", defaults.customScrollbars);
 
     exports._setThemes = setThemes;
-    exports._defaults  = defaults;
     exports.restore    = restore;
     exports.showDialog = showDialog;
 });

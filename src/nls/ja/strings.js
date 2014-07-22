@@ -40,7 +40,9 @@ define({
 	"UNSUPPORTED_ENCODING_ERR": "{APP_NAME} は現在 UTF-8 でエンコードされたテキストファイルのみをサポートしています。",
 	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
 	"FILE": "ファイル",
+	"FILE_TITLE": "File",
 	"DIRECTORY": "ディレクトリ",
+	"DIRECTORY_TITLE": "Directory",
 	"DIRECTORY_NAMES_LEDE": "ディレクトリ名",
 	"FILENAMES_LEDE": "ファイル名",
 	"FILENAME": "ファイル名",
@@ -162,9 +164,9 @@ define({
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
 
     // Find and Replace
-	"FIND_REPLACE_TITLE_LABEL": "置換",
+	"FIND_REPLACE_TITLE_LABEL": "置換対象",
 	"FIND_REPLACE_TITLE_WITH": "置換後の文字列",
-	"FIND_TITLE_LABEL": "見つかりました",
+	"FIND_TITLE_LABEL": "検索結果",
 	"FIND_TITLE_SUMMARY": " &mdash; {0} {1} {2} ({3})",
 
     // Find in Files
@@ -175,7 +177,7 @@ define({
 	"FIND_IN_FILES_FILE": "ファイル",
 	"FIND_IN_FILES_FILES": "ファイル",
 	"FIND_IN_FILES_MATCH": "が見つかりました",
-	"FIND_IN_FILES_MATCHES": "が見つかりました",
+	"FIND_IN_FILES_MATCHES": "件見つかりました",
 	"FIND_IN_FILES_MORE_THAN": "以上",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
@@ -446,6 +448,8 @@ define({
 	"CANCELING_INSTALL": "キャンセルしています\u2026",
 	"CANCELING_HUNG": "インストールのキャンセルに時間がかかっています。内部エラーが発生した可能性があります。",
 	"INSTALL_CANCELED": "インストールはキャンセルされました。",
+	"VIEW_COMPLETE_DESCRIPTION": "View complete description",
+	"VIEW_TRUNCATED_DESCRIPTION": "View truncated description",
     // These must match the error codes in ExtensionsDomain.Errors.* :
 	"INVALID_ZIP_FILE": "ダウンロードされたコンテンツは有効な zip ファイルではありません。",
 	"INVALID_PACKAGE_JSON": "package.json ファイルは有効ではありません (エラーは {0} です)。",
@@ -471,7 +475,11 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
 	"EXTENSION_MANAGER_TITLE": "拡張機能マネージャー",
 	"EXTENSION_MANAGER_ERROR_LOAD": "拡張機能レジストリにアクセスできません。後でもう一度試してください。",
+	"INSTALL_EXTENSION_DRAG": "Drag .zip in here or",
+	"INSTALL_EXTENSION_DROP": "Drop .zip to install",
+	"INSTALL_EXTENSION_DROP_ERROR": "Install/Update aborted due to the following errors:",
 	"INSTALL_FROM_URL": "URL からインストール\u2026",
+	"INSTALL_EXTENSION_VALIDATING": "Validating\u2026",
 	"EXTENSION_AUTHOR": "作成者",
 	"EXTENSION_DATE": "日付",
 	"EXTENSION_INCOMPATIBLE_NEWER": "この拡張機能には新しいバージョンの {APP_NAME} が必要です。",
@@ -482,6 +490,9 @@ define({
 	"EXTENSION_MORE_INFO": "詳細情報...",
 	"EXTENSION_ERROR": "拡張機能のエラー",
 	"EXTENSION_KEYWORDS": "キーワード",
+	"EXTENSION_TRANSLATED_USER_LANG": "Translated into {0} languages, including yours",
+	"EXTENSION_TRANSLATED_GENERAL": "Translated into {0} languages",
+	"EXTENSION_TRANSLATED_LANGS": "This extension has been translated into these languages: {0}",
 	"EXTENSION_INSTALLED": "インストール完了",
 	"EXTENSION_UPDATE_INSTALLED": "この拡張機能のアップデートがダウンロードされました。{APP_NAME} のリロード後にインストールされます。",
 	"EXTENSION_SEARCH_PLACEHOLDER": "検索",

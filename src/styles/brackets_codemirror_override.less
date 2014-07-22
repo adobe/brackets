@@ -75,6 +75,15 @@
     border-bottom: 2px solid #78B2F2;
 }
 
+/**
+ * These classes are set to inline-block because they are spans and they need block dimension properties when
+ * when calculation height and width.
+ */
+.CodeMirror-searching,
+.CodeMirror-matchingtag,
+.CodeMirror-matchingbracket {
+    display: inline-block;
+}
 
 span.cm-keyword {color: @accent-keyword;}
 span.cm-atom {color: @accent-atom;}
@@ -104,7 +113,7 @@ span.cm-minus {color: @accent-minus;}
 span.cm-plus {color: @accent-plus;}
 
 span.CodeMirror-matchingbracket {color: @accent-bracket !important; background-color: @matching-bracket;}
-span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
+span.CodeMirror-nonmatchingbracket {color: @accent-bracket;}
 
 .CodeMirror-cursors {
     .CodeMirror-cursor {
@@ -194,9 +203,9 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
     other than a vanilla .CodeMirror)
  */
 .CodeMirror {
-    div.CodeMirror-overwrite div.CodeMirror-cursor {
+    .CodeMirror-overwrite .CodeMirror-cursor {
         border-left: none !important;
-        border-bottom: 1px solid black !important;
+        border-bottom: 1px solid black;
         width: 1.2ex;
     }
     
