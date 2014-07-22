@@ -119,7 +119,7 @@ define(function (require, exports, module) {
             if (id === "save") {
                 // Go through each new setting and apply it
                 Object.keys(newSettings).forEach(function (setting) {
-                    if (prefs.hasOwnProperty(setting)) {
+                    if (defaults.hasOwnProperty(setting)) {
                         prefs.set(setting, newSettings[setting]);
                     } else {
                         // Figure out if the setting is in the ViewCommandHandlers, which means it is
