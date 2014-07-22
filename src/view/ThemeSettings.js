@@ -46,7 +46,7 @@ define(function (require, exports, module) {
      */
     var defaults = {
         "customScrollbars": true,
-        "theme": "thor-light-theme"
+        "theme": "light-theme"
     };
 
 
@@ -85,9 +85,13 @@ define(function (require, exports, module) {
         var $template       = $(Mustache.render(template, {"settings": currentSettings, "themes": themes, "Strings": Strings}));
 
         // Select the correct theme.
-        $template
-            .find("[value='" + currentSettings.theme + "']")
-            .attr("selected", "selected");
+        var $currentThemeOption = $template
+            .find("[value='" + currentSettings.theme + "']");
+        
+        if ($currentThemeOption.length === 0) {
+            $currentThemeOption = $template.find("[value='" + defaults.theme + "']");
+        }
+        $currentThemeOption.attr("selected", "selected");
 
         $template
             .find("[data-toggle=tab].default")
