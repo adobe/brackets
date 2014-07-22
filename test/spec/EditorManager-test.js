@@ -55,7 +55,6 @@ define(function (require, exports, module) {
                 pane = SpecRunnerUtils.createMockPane($fakeHolder);
                 testDoc = SpecRunnerUtils.createMockDocument("");
             });
-            
             afterEach(function () {
                 $fakeHolder.remove();
                 $fakeHolder = null;
@@ -70,13 +69,11 @@ define(function (require, exports, module) {
                 $root = null;
                 EditorManager.resetViewStates();
             });
-            
             it("should create a new editor for a document and add it to a pane", function () {
                 spyOn(pane, "addView");
                 EditorManager.doOpenDocument(testDoc, pane);
                 expect(pane.addView).toHaveBeenCalled();
             });
-            
             it("should use an existing editor for a document and show the editor", function () {
                 spyOn(pane, "addView");
                 spyOn(pane, "showView");
@@ -86,44 +83,16 @@ define(function (require, exports, module) {
                 expect(pane.addView).toHaveBeenCalled();
                 expect(pane.addView.calls[0].args[1]).toEqual(editor);
             });
-            
-            
-//            this is an integration test
-//            it("should report the existing editor as the current full editor", function () {
-//                var editor = SpecRunnerUtils.createEditorInstance(testDoc, pane.$el);
-//                EditorManager.doOpenDocument(testDoc, pane);
-//                expect(EditorManager.getCurrentFullEditor()).toEqual(editor);
-//            });
-//
-//            this is an integration test
-//            it("should notify when active editor changes", function () {
-//                var called = false,
-//                    other;
-//
-//                spyOn(pane, "addView");
-//                function callback(newEditor) {
-//                    called = true;
-//                    other = newEditor;
-//                }
-//                
-//                $(EditorManager).on("activeEditorChange", callback);
-//                EditorManager.doOpenDocument(testDoc, pane);
-//                expect(called).toBe(true);
-//                expect(pane.addView.calls[0].args[1]).toEqual(other);
-//            });
-            
             it("should remember a file's view state", function () {
                 EditorManager.addViewStates({ a: "1234" });
                 expect(EditorManager.getViewState("a")).toEqual("1234");
             });
-
             it("should extend the view state cache", function () {
                 EditorManager.addViewStates({ a: "1234" });
                 EditorManager.addViewStates({ b: "5678" });
                 expect(EditorManager.getViewState("a")).toEqual("1234");
                 expect(EditorManager.getViewState("b")).toEqual("5678");
             });
-            
             it("should reset the view state cache", function () {
                 EditorManager.addViewStates({ a: "1234" });
                 EditorManager.addViewStates({ b: "5678" });
@@ -131,152 +100,6 @@ define(function (require, exports, module) {
                 expect(EditorManager.getViewState("a")).toBeUndefined();
                 expect(EditorManager.getViewState("b")).toBeUndefined();
             });
-            
-//this is an integration test
-//it(
-//    "should report the existing editor as the current full editor", function () {
-//    var editor = SpecRunnerUtils.createEditorInstance(testDoc, pane.$el);
-//    EditorManager.doOpenDocument(testDoc, pane);
-//    expect(EditorManager.getCurrentFullEditor()).toEqual(editor);
-//});            
-                        
-/**
-No longer an editor-manager test since editor-manager doesn't handle the event anymore
-            // force cases
-            it("should refresh if force is specified even if no width or height change", function () {
-                $root.height(200); // same as content div, so shouldn't be detected as a change
-                $root.width(200);
-                WorkspaceManager.recomputeLayout(); // cache the width
-                                
-                spyOn(testEditor, "refreshAll");
-                WorkspaceManager.recomputeLayout(EditorManager.REFRESH_FORCE);
-                expect(testEditor.refreshAll).toHaveBeenCalled();
-            });
-            it("should refresh if force is specified when width changed but height hasn't", function () {
-                $root.height(200); // same as content div, so shouldn't be detected as a change
-                $root.width(200);
-                WorkspaceManager.recomputeLayout(); // cache the width
-                $root.width(300); // change the width
-                
-                spyOn(testEditor, "refreshAll");
-                WorkspaceManager.recomputeLayout(EditorManager.REFRESH_FORCE);
-                expect(testEditor.refreshAll).toHaveBeenCalled();
-            });
-
-            it("should refresh if force is specified when height changed but width hasn't", function () {
-                $root.height(200); // same as content div, so shouldn't be detected as a change
-                $root.width(200);
-                WorkspaceManager.recomputeLayout(); // cache the width
-                $root.height(300); // change the height (to be different from content div)
-                
-                spyOn(testEditor, "refreshAll");
-                WorkspaceManager.recomputeLayout(EditorManager.REFRESH_FORCE);
-                expect(testEditor.refreshAll).toHaveBeenCalled();
-            });
-
-            it("should refresh if force is specified when both height and width changed", function () {
-                $root.height(200); // same as content div, so shouldn't be detected as a change
-                $root.width(200);
-                WorkspaceManager.recomputeLayout(); // cache the width
-                $root.height(300); // change the height (to be different from content div)
-                $root.width(300); // change the width
-                
-                spyOn(testEditor, "refreshAll");
-                WorkspaceManager.recomputeLayout(EditorManager.REFRESH_FORCE);
-                expect(testEditor.refreshAll).toHaveBeenCalled();
-            });
-
-            // skip cases
-            it("should NOT refresh if skip is specified if no width or height change", function () {
-                $root.height(200); // same as content div, so shouldn't be detected as a change
-                $root.width(200);
-                WorkspaceManager.recomputeLayout(); // cache the width
-                                
-                spyOn(testEditor, "refreshAll");
-                WorkspaceManager.recomputeLayout(EditorManager.REFRESH_SKIP);
-                expect(testEditor.refreshAll).not.toHaveBeenCalled();
-            });
-
-            it("should NOT refresh if skip is specified when width changed but height hasn't", function () {
-                $root.height(200); // same as content div, so shouldn't be detected as a change
-                $root.width(200);
-                WorkspaceManager.recomputeLayout(); // cache the width
-                $root.width(300); // change the width
-                
-                spyOn(testEditor, "refreshAll");
-                WorkspaceManager.recomputeLayout(EditorManager.REFRESH_SKIP);
-                expect(testEditor.refreshAll).not.toHaveBeenCalled();
-            });
-
-            it("should NOT refresh if skip is specified when height changed but width hasn't", function () {
-                $root.height(200); // same as content div, so shouldn't be detected as a change
-                $root.width(200);
-                WorkspaceManager.recomputeLayout(); // cache the width
-                $root.height(300); // change the height (to be different from content div)
-                
-                spyOn(testEditor, "refreshAll");
-                WorkspaceManager.recomputeLayout(EditorManager.REFRESH_SKIP);
-                expect(testEditor.refreshAll).not.toHaveBeenCalled();
-            });
-
-            it("should NOT refresh if skip is specified when both height and width changed", function () {
-                $root.height(200); // same as content div, so shouldn't be detected as a change
-                $root.width(200);
-                WorkspaceManager.recomputeLayout(); // cache the width
-                $root.height(300); // change the height (to be different from content div)
-                $root.width(300); // change the width
-                
-                spyOn(testEditor, "refreshAll");
-                WorkspaceManager.recomputeLayout(EditorManager.REFRESH_SKIP);
-                expect(testEditor.refreshAll).not.toHaveBeenCalled();
-            });
-            
-            // unspecified cases
-            it("should NOT refresh if unspecified if no width or height change", function () {
-                $root.height(200); // same as content div, so shouldn't be detected as a change
-                $root.width(200);
-                WorkspaceManager.recomputeLayout(); // cache the width
-                                
-                spyOn(testEditor, "refreshAll");
-                WorkspaceManager.recomputeLayout();
-                expect(testEditor.refreshAll).not.toHaveBeenCalled();
-            });
-
-            it("should refresh if unspecified when width changed but height hasn't", function () {
-                $root.height(200); // same as content div, so shouldn't be detected as a change
-                $root.width(200);
-                WorkspaceManager.recomputeLayout(); // cache the width
-                $root.width(300); // change the width
-                
-                spyOn(testEditor, "refreshAll");
-                WorkspaceManager.recomputeLayout();
-                expect(testEditor.refreshAll).toHaveBeenCalled();
-            });
-
-            it("should refresh if unspecified when height changed but width hasn't", function () {
-                $root.height(200); // same as content div, so shouldn't be detected as a change
-                $root.width(200);
-                WorkspaceManager.recomputeLayout(); // cache the width
-                $root.height(300); // change the height (to be different from content div)
-                
-                spyOn(testEditor, "refreshAll");
-                WorkspaceManager.recomputeLayout();
-                expect(testEditor.refreshAll).toHaveBeenCalled();
-            });
-
-            it("should refresh if unspecified when both height and width changed", function () {
-                $root.height(200); // same as content div, so shouldn't be detected as a change
-                $root.width(200);
-                WorkspaceManager.recomputeLayout(); // cache the width
-                $root.height(300); // change the height (to be different from content div)
-                $root.width(300); // change the width
-                
-                spyOn(testEditor, "refreshAll");
-                WorkspaceManager.recomputeLayout();
-                expect(testEditor.refreshAll).toHaveBeenCalled();
-            });
-**/
         });
-        
     });
 });

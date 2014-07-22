@@ -183,7 +183,54 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+        describe("editor manager integration", function () {
+            
+            beforeEach(function () {
+            });
+
+            it("should report the existing editor as the current full editor", function () {
+                var promise,
+                    testDoc;
+                runs(function () {
+                    promise = new $.Deferred();
+                    DocumentManager.getDocumentForPath(testPath + "/test.js")
+                        .done(function (doc) {
+                            testDoc = doc;
+                            MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, doc);
+                            promise.resolve();
+                        });
+                    
+                    waitsForDone(promise, "MainViewManager.doEdit");
+                });
+                runs(function () {
+                    expect(EditorManager.getCurrentFullEditor()).toEqual(testDoc._masterEditor);
+                });
+            });
+            it("should notify when active editor changes", function () {
+                var promise,
+                    docChangeListener = jasmine.createSpy(),
+                    activeEditorChangeListener = jasmine.createSpy();
+
+                runs(function () {
+                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                });
+                runs(function () {
+                    promise = new $.Deferred();
+                    DocumentManager.getDocumentForPath(testPath + "/test.js")
+                        .done(function (doc) {
+                            MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, doc);
+                            promise.resolve();
+                        });
+                    
+                    waitsForDone(promise, "MainViewManager.doEdit");
+                });
+                runs(function () {
+                    expect(docChangeListener).toHaveBeenCalled();
+                    expect(activeEditorChangeListener).toHaveBeenCalled();
+                });
+            });
+        });
         describe("currentFileChanged event handlers", function () {
             it("should fire currentFileChanged event", function () {
                 var currentFileChangedListener = jasmine.createSpy();
