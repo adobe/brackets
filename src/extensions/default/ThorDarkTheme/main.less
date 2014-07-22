@@ -111,7 +111,6 @@
     }
 }
 
-.cm-keyword, .cm-qualifier, .cm-builtin, .cm-tag, .cm-quote {color: #6c9ef8;}
 .cm-atom, .cm-string, .cm-string-2, .cm-hr {color: #d89333;}
 .cm-number, .cm-attribute, .cm-plus {color: #85a300;}
 .cm-def, .cm-property {color: #b77fdb;}
@@ -121,8 +120,14 @@
 .cm-header {color: #d85896;}
 .cm-link {color: #b77fdb; text-decoration: none;}
 .cm-rangeinfo {color: #6c71c4;}
+.cm-keyword, .cm-qualifier, .cm-builtin, .cm-tag, .cm-quote {color: #6c9ef8;}
 
 /* Extra CSS */
+
+.CodeMirror.find-highlighting div.CodeMirror-selected,
+.CodeMirror .CodeMirror.find-highlighting div.CodeMirror-selected {
+    background: red;
+}
 
 .CodeMirror-cursor {
     border-left: 1px solid #c5c8c6 !important;
@@ -150,11 +155,20 @@
     color: @foreground !important;
 }
 
+.CodeMirror-overwrite .CodeMirror-cursor {
+    border-left: none !important;
+    border-bottom: 1px solid #fff;
+}
+
 /* Inline editor styling */
 
 .related-container .selection:before {
-    border-top: 9px solid black;
-    border-bottom: 9px solid black;
+    border-top: 9px solid transparent;
+    border-bottom: 9px solid transparent;
+}
+
+.inline-widget {
+    color: #333;
 }
 
 .inline-widget .CodeMirror, .inline-widget .CodeMirror-gutters {
