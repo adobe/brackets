@@ -345,7 +345,7 @@ define(function (require, exports, module) {
     // Monitor file changes.  If the file that has changed is actually the currently loaded
     // theme, then we just reload the theme.  This allows to live edit the theme
     FileSystem.on("change", function (evt, file) {
-        if (file.isDirectory) {
+        if (!file || file.isDirectory) {
             return;
         }
 
