@@ -310,13 +310,13 @@ define(function (require, exports, module) {
     CodeHintList.prototype.isHandlingKeyCode = function (keyCode) {
         return (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN ||
                 keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN ||
-                keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_CONTROL ||
+                keyCode === KeyEvent.DOM_VK_RETURN ||
                 (keyCode === KeyEvent.DOM_VK_TAB && this.insertHintOnTab));
     };
 
     /**
      * Convert keydown events into hint list navigation actions.
-     * Also ctrlKey toggles the list selection
+     *
      * @param {KeyBoardEvent} keyEvent
      */
     CodeHintList.prototype._keydownHook = function (event) {
@@ -383,18 +383,19 @@ define(function (require, exports, module) {
         // (page) up, (page) down, enter and tab key are handled by the list
         if (event.type === "keydown" && this.isHandlingKeyCode(event.keyCode)) {
             keyCode = event.keyCode;
+
             if (event.shiftKey &&
                     (event.keyCode === KeyEvent.DOM_VK_UP ||
                      event.keyCode === KeyEvent.DOM_VK_DOWN ||
                      event.keyCode === KeyEvent.DOM_VK_PAGE_UP ||
                      event.keyCode === KeyEvent.DOM_VK_PAGE_DOWN)) {
                 this.handleClose();
-				
+                
                 // Let the event bubble.
                 return false;
             } else if (keyCode === KeyEvent.DOM_VK_UP) {
                 _rotateSelection.call(this, -1);
-            } else if ((keyCode === KeyEvent.DOM_VK_DOWN)||(event.ctrlKey)) {
+            } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
                 _rotateSelection.call(this, 1);
             } else if (keyCode === KeyEvent.DOM_VK_PAGE_UP) {
                 _rotateSelection.call(this, -_itemsPerPage());
