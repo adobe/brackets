@@ -792,6 +792,12 @@ define(function (require, exports, module) {
         }
     };
 
+    exports.refresh = function () {
+        _.forEach(_views, function (paneViewListView) {
+            paneViewListView._redraw();
+        });
+    };
+    
     $(MainViewManager).on("paneDestroyed", function (e, paneId) {
         var index = _.findIndex(_views, function (paneViewListView) {
             return paneViewListView.paneId === paneId;
