@@ -322,7 +322,7 @@ define(function (require, exports, module) {
         return prefs.get("lineHeight");
     }
 
-    
+
     /**
      * @private
      * Increases or decreases the editor's font size.
@@ -390,7 +390,7 @@ define(function (require, exports, module) {
             CommandManager.get(Commands.VIEW_RESTORE_FONT_SIZE).setEnabled(false);
         }
     }
-    
+
     /**
      * Initializes the different settings that need to loaded
      */
@@ -551,7 +551,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_THEMES,             Commands.CMD_THEMES_OPEN_SETTINGS, _handleThemeSettings);
 
     PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewState);
-    
+
     prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px");
     prefs.definePreference("lineHeight", "number", DEFAULT_LINE_HEIGHT);
     prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);
@@ -560,7 +560,7 @@ define(function (require, exports, module) {
     $(DocumentManager).on("currentDocumentChange", _updateUI);
 
     // Update UI when Brackets finishes loading
-    AppInit.appReady(_updateUI);
+    AppInit.appReady(init);
 
     exports.restoreFontSize = restoreFontSize;
     exports.restoreFonts    = restoreFonts;
