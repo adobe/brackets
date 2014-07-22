@@ -34,48 +34,7 @@ define(function (require, exports, module) {
         PreferencesManager = require("preferences/PreferencesManager"),
         prefs              = PreferencesManager.getExtensionPrefs("themes");
 
-
-    var templates = {
-        $lineHeight: $("<style type='text/css' id='lineHeight'>").appendTo("head"),
-        $fontSize: $("<style type='text/css' id='fontSize'>").appendTo("head"),
-        $fontFamily: $("<style type='text/css' id='fontFamily'>").appendTo("head"),
-        $scrollbars: $("<style id='scrollbars'>").appendTo("head")
-    };
-
-
-    function clearFonts() {
-        // Remove this tag that is intefering with font settings set in this module
-        $("#codemirror-dynamic-fonts").remove();
-    }
-
-
-    function updateLineHeight() {
-        clearFonts();
-        var value = prefs.get("lineHeight");
-        templates.$lineHeight.text(".CodeMirror-lines{" + "line-height: " + value + "; }");
-    }
-
-
-    function updateFontSize() {
-        clearFonts();
-        var value = prefs.get("fontSize");
-        templates.$fontSize.text(".CodeMirror{" + "font-size: " + value + " !important; }");
-    }
-
-
-    function updateFontFamily() {
-        clearFonts();
-        var value = prefs.get("fontFamily");
-        templates.$fontFamily.text(".CodeMirror{" + "font-family: " + value + " !important; }");
-    }
-
-
-    function updateFonts() {
-        clearFonts();
-        updateLineHeight();
-        updateFontSize();
-        updateFontFamily();
-    }
+    var $scrollbars = $("<style id='scrollbars'>").appendTo("head");
 
 
     /**
@@ -88,9 +47,9 @@ define(function (require, exports, module) {
         theme = theme || {};
         if (prefs.get("customScrollbars")) {
             var scrollbar = (theme.scrollbar || []).join(" ");
-            templates.$scrollbars.text(scrollbar || "");
+            $scrollbars.text(scrollbar || "");
         } else {
-            templates.$scrollbars.text("");
+            $scrollbars.text("");
         }
     }
 
@@ -130,10 +89,6 @@ define(function (require, exports, module) {
     }
 
 
-    exports.updateFonts      = updateFonts;
-    exports.updateLineHeight = updateLineHeight;
-    exports.updateFontSize   = updateFontSize;
-    exports.updateFontFamily = updateFontFamily;
     exports.updateScrollbars = updateScrollbars;
     exports.updateThemes     = updateThemes;
     exports.setDocumentMode  = setDocumentMode;
