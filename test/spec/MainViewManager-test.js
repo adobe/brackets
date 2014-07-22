@@ -845,7 +845,6 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getPaneViewListSize("second-pane")).toEqual(0);
                 });
             });
-            //findInPaneViewList;
             it("should find file in view", function () {
                 runs(function () {
                     MainViewManager.addToPaneViewList("second-pane", getFileObject("test.js"));
