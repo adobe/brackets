@@ -40,11 +40,6 @@ define(function (require, exports, module) {
         Strings                 = require("strings"),
         _                       = require("thirdparty/lodash");
     
-    var defaultPrefs = {
-        currentSort:   Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED,
-        automaticSort: false
-    };
-    
     /**
      * List of sorting method objects
      * @private
@@ -118,6 +113,12 @@ define(function (require, exports, module) {
         return _sorts[commandID];
     }
     
+    /**
+     * Converts the old brackets working set sort preference into the modern paneview sort preference
+     * @private
+     * @param {!string} sortMethod - sort preference to convert
+     * @return {?string} new sort preference string or undefined if an sortMethod is not found
+     */
     function _convertSortPref(sortMethod) {
         if (!sortMethod) {
             return;
@@ -141,8 +142,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @private
      * Removes the sort listeners.
+     * @private
      */
     function _removeListeners() {
         $(MainViewManager).off(".sort");
@@ -166,8 +167,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @private
      * Adds the current sort MainViewManager listeners.
+     * @private
      */
     function _addListeners() {
         if (_automaticSort && _currentSort && _currentSort.getEvents()) {
@@ -183,8 +184,8 @@ define(function (require, exports, module) {
     
     
     /**
-     * @private
      * Sets the current sort method and checks it on the context menu.
+     * @private
      * @param {Sort} newSort
      */
     function _setCurrentSort(newSort) {
@@ -206,8 +207,6 @@ define(function (require, exports, module) {
     
     /**
      * @constructor
-     * @private
-     *
      * @param {string} commandID A valid command identifier.
      * @param {function(File, File): number} compareFn A valid sort
      *      function (see register for a longer explanation).
@@ -390,6 +389,9 @@ define(function (require, exports, module) {
      */
     PreferencesManager.stateManager.definePreference(_PANE_SORT_PREF, "string");
     
+    /*
+     * initializes global sort method from preference settings or the default 
+     */
     function initSortMethod() {
         var sortMethod = PreferencesManager.getViewState(_PANE_SORT_PREF);
         
@@ -422,7 +424,7 @@ define(function (require, exports, module) {
         }
     });
     
-    
+    // Public API
     exports.register        = register;
     exports.get             = get;
     exports.getAutomatic    = getAutomatic;

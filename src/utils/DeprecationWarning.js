@@ -89,6 +89,13 @@ define(function (require, exports, module) {
         displayedWarnings[message][callerLocation] = true;
     }
 
+    
+    /**
+     * Counts the number of event handlers listening for the specified event on the specified object
+     * @param {!Object} object - the object with the old event to dispatch
+     * @param {!string} name - the name of the  event
+     * @return {!number} count of event handlers
+     */
     function getEventHandlerCount(object, name) {
         var count = 0,
             events = $._data(object, "events");
@@ -120,12 +127,12 @@ define(function (require, exports, module) {
      *                                      "MainViewManager.paneViewListAdd");
      * ```
      *
-     * @param {Object} outbound the object with the old event to dispatch
-     * @param {Object} inbound the object with the new event to map to the old event
-     * @param {string} oldEventName the name of the old event
-     * @param {string} newEventName the name of the new event
-     * @param {string=} canonicalOutboundName the canonical name of the old event
-     * @param {string=} canonicalInboundName the canonical name of the new event  
+     * @param {Object} outbound - the object with the old event to dispatch
+     * @param {Object} inbound - the object with the new event to map to the old event
+     * @param {string} oldEventName - the name of the old event
+     * @param {string} newEventName - the name of the new event
+     * @param {string=} canonicalOutboundName - the canonical name of the old event
+     * @param {string=} canonicalInboundName - the canonical name of the new event  
      */
     function deprecateEvent(outbound, inbound, oldEventName, newEventName, canonicalOutboundName, canonicalInboundName) {
         // create an event handler for the new event to listen for 
