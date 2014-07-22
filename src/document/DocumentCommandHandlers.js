@@ -1366,17 +1366,22 @@ define(function (require, exports, module) {
         }
     }
 
+    /** Next Doc command handler **/
     function handleGoNextDoc() {
         goNextPrevDoc(+1);
+
     }
+    /** Previous Doc command handler **/
     function handleGoPrevDoc() {
         goNextPrevDoc(-1);
     }
 
+    /** Show in File Tree command handler **/
     function handleShowInTree() {
         ProjectManager.showInTree(MainViewManager.getCurrentlyViewedFile());
     }
 
+    /** Delete file command handler  **/
     function handleFileDelete() {
         var entry = ProjectManager.getSelectedItem();
         if (entry.isDirectory) {
@@ -1498,16 +1503,27 @@ define(function (require, exports, module) {
             _isReloading = false;
         });
     }
-
-    function handleReload() {
+    
+    /**
+     * Restarts brackets
+     * @param {boolean=} loadWithoutExtensions - true to restart without extensions, 
+     *                                           otherwise extensions are loadeed as it is durning a typical boot
+     */
+    function doReload(loadWithoutExtensions) {
         var href    = window.location.href,
             params  = new UrlParams();
         
         // Make sure the Reload Without User Extensions parameter is removed
         params.parse();
         
-        if (params.get("reloadWithoutUserExts")) {
-            params.remove("reloadWithoutUserExts");
+        if (loadWithoutExtensions) {
+            if (!params.get("reloadWithoutUserExts")) {
+                params.put("reloadWithoutUserExts", true);
+            }
+        } else {
+            if (params.get("reloadWithoutUserExts")) {
+                params.remove("reloadWithoutUserExts");
+            }
         }
         
         if (href.indexOf("?") !== -1) {
@@ -1525,29 +1541,17 @@ define(function (require, exports, module) {
         }, 100);
     }
 
-    function handleReloadWithoutExts() {
-        var href    = window.location.href,
-            params  = new UrlParams();
-        
-        params.parse();
-        
-        if (!params.get("reloadWithoutUserExts")) {
-            params.put("reloadWithoutUserExts", true);
-        }
-        
-        if (href.indexOf("?") !== -1) {
-            href = href.substring(0, href.indexOf("?"));
-        }
-        
-        href += "?" + params.toString();
-        
-        // Give Mac native menus extra time to update shortcut highlighting.
-        // Prevents the menu highlighting from getting messed up after reload.
-        window.setTimeout(function () {
-            browserReload(href);
-        }, 100);
+    /** Reload commnad handler **/
+    function handleReload() {
+        doReload(true);
     }
 
+    /** Reload Without Extensions commnad handler **/
+    function handleReloadWithoutExts() {
+        doReload();
+    }
+
+    /** Do some initialization when the DOM is ready **/
     AppInit.htmlReady(function () {
         // If in Reload Without User Extensions mode, update UI and log console message
         var params      = new UrlParams(),

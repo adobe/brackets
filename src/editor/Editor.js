@@ -1640,7 +1640,6 @@ define(function (require, exports, module) {
      *   when closed. Rejected if there is neither an existing widget to close nor a provider
      *   willing to create a widget (or if no editor is open).
      */
-    
     Editor.prototype.toggleInlineWidget = function (providers, errorMsg) {
         var result = new $.Deferred(),
             inlineWidget = this.getFocusedInlineWidget();
@@ -2274,30 +2273,11 @@ define(function (require, exports, module) {
         }
     };
 
-    
-    Editor.prototype.resize = function (editorAreaHt, forceRefresh) {
-        // TODO: Deprecate this API
-        var curRoot = this.getRootElement(),
-            curWidth = $(curRoot).width();
-        if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
-            // Call setSize() instead of $.height() to allow CodeMirror to
-            // check for options like line wrapping
-            this.setSize(null, editorAreaHt);
-            if (forceRefresh === undefined) {
-                forceRefresh = true;
-            }
-        } else if (curWidth !== this._lastEditorWidth) {
-            if (forceRefresh === undefined) {
-                forceRefresh = true;
-            }
-        }
-        this._lastEditorWidth = curWidth;
-
-        if (forceRefresh) {
-            this.refreshAll(true);
-        }
-    };
-    
+    /** 
+     * resizes the editor to fill its parent container
+     * @param {boolean=} forceRefresh - forces the editor to update its layout 
+     *                                   even if it already matches the container's height / width
+     */
     Editor.prototype.resizeToFit = function (forceRefresh) {
         var curRoot = this.getRootElement(),
             curWidth = $(curRoot).width(),
@@ -2322,6 +2302,11 @@ define(function (require, exports, module) {
         }
     };
     
+    /** 
+     * finds a jump to definition provider that can respond to the current cursor 
+     *  and construct an instance of the provider's jump to def object if one is found
+     * @param {Array.<Providers>} providers - jump to def providers
+     */
     Editor.prototype.jumpToDefinition = function (providers) {
         var i,
             promise,
