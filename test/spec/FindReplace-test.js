@@ -1351,8 +1351,8 @@ define(function (require, exports, module) {
             });
             
             it("should find and replace all", function () {
-                    var searchText  = "require",
-                        replaceText = "brackets.getModule";
+                var searchText  = "require",
+                    replaceText = "brackets.getModule";
                 runs(function () {
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     enterSearchText(searchText);
@@ -1681,21 +1681,21 @@ define(function (require, exports, module) {
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
-            });
+                });
 
-            waitsFor(function () {
+                waitsFor(function () {
                     return twFindInFiles._searchDone;
                 }, "search finished");
 
-            runs(function () {
+                runs(function () {
                     tw$(".replace-checked").click();
-            });
+                });
 
-            waitsFor(function () {
+                waitsFor(function () {
                     return twFindInFiles._replaceDone;
                 }, "replace finished");
 
-            runs(function () {
+                runs(function () {
                     myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: 23}, {line: LINE_FIRST_REQUIRE, ch: 41});
                     expect(/_modules\/Foo-Foo\$&/i.test(myEditor.getSelectedText())).toBe(true);
 
@@ -1704,7 +1704,7 @@ define(function (require, exports, module) {
 
                     myEditor.setSelection({line: LINE_FIRST_REQUIRE + 2, ch: 23}, {line: LINE_FIRST_REQUIRE + 2, ch: 41});
                     expect(/_modules\/Baz-Baz\$&/i.test(myEditor.getSelectedText())).toBe(true);
-            });
+                });
             });
         });
     });
