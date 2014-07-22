@@ -45,7 +45,7 @@ define(function (require, exports, module) {
      */
     function updateScrollbars(theme) {
         theme = theme || {};
-        if (prefs.get("customScrollbars")) {
+        if (prefs.get("themeScrollbars")) {
             var scrollbar = (theme.scrollbar || []).join(" ");
             $scrollbars.text(scrollbar || "");
         } else {

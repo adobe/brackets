@@ -337,7 +337,7 @@ define(function (require, exports, module) {
         $(exports).trigger("themeChange", getCurrentTheme());
     });
 
-    prefs.on("change", "customScrollbars", function () {
+    prefs.on("change", "themeScrollbars", function () {
         refresh();
         ThemeView.updateScrollbars(getCurrentTheme());
     });
