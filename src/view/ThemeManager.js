@@ -27,9 +27,6 @@
 define(function (require, exports, module) {
     "use strict";
 
-    // FontsCommandsManager will be going away soon when we add font size management in Brackets.
-    require("themes/FontCommandsManager");
-
     var _                  = require("thirdparty/lodash"),
         FileSystem         = require("filesystem/FileSystem"),
         FileUtils          = require("file/FileUtils"),
@@ -345,21 +342,6 @@ define(function (require, exports, module) {
         ThemeView.updateScrollbars(getCurrentTheme());
     });
 
-    prefs.on("change", "fontSize", function () {
-        refresh();
-        ThemeView.updateFontSize();
-    });
-
-    prefs.on("change", "lineHeight", function () {
-        refresh();
-        ThemeView.updateLineHeight();
-    });
-
-    prefs.on("change", "fontFamily", function () {
-        refresh();
-        ThemeView.updateFontFamily();
-    });
-
     // Monitor file changes.  If the file that has changed is actually the currently loaded
     // theme, then we just reload the theme.  This allows to live edit the theme
     FileSystem.on("change", function (evt, file) {
@@ -376,9 +358,6 @@ define(function (require, exports, module) {
         refresh();
     });
 
-
-    ThemeView.updateFonts();
-    ThemeView.updateScrollbars();
 
     exports.refresh         = refresh;
     exports.loadFile        = loadFile;
