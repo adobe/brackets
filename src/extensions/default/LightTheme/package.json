@@ -9,6 +9,5 @@
     },
     "theme": {
         "file": "main.less"
-    },
-    "screenshot": "screenshot.png"
+    }
 }

@@ -10,6 +10,5 @@
     "theme": {
         "file": "main.less",
         "dark": true
-    },
-    "screenshot": "screenshot.png"
+    }
 }
