@@ -89,7 +89,7 @@ define(function (require, exports, module) {
             .find("[value='" + currentSettings.theme + "']");
         
         if ($currentThemeOption.length === 0) {
-            $currentThemeOption = $template.find("[value='light-theme']");
+            $currentThemeOption = $template.find("[value='" + defaults.theme + "']");
         }
         $currentThemeOption.attr("selected", "selected");
 
