@@ -46,7 +46,7 @@ define(function (require, exports, module) {
         styleNode       = $(ExtensionUtils.addEmbeddedStyleSheet("")),
         defaultTheme    = "thor-light-theme",
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
-        scrollbarsRegex = /::-webkit-scrollbar(?:[\s\S]*?)\{(?:[\s\S]*?)\}/mg,
+        scrollbarsRegex = /((?:[^}|,]*)::-webkit-scrollbar(?:[^{]*)[{](?:[^}]*?)[}])/mgi,
         stylesPath      = FileUtils.getNativeBracketsDirectoryPath() + "/styles/",
         validExtensions = ["css", "less"];
 
@@ -110,7 +110,6 @@ define(function (require, exports, module) {
         // Go through and extract out scrollbar customizations so that we can
         // enable/disable via settings.
         content = content
-            .replace(commentRegex, "")
             .replace(scrollbarsRegex, function (match) {
                 scrollbar.push(match);
                 return "";
@@ -234,15 +233,16 @@ define(function (require, exports, module) {
         var theme = getCurrentTheme();
 
         var pending = theme && FileUtils.readAsText(theme.file)
+            .then(function (lessContent) {
+                return lessifyTheme(lessContent.replace(commentRegex, ""), theme);
+            })
             .then(function (content) {
                 var result = extractScrollbars(content);
                 theme.scrollbar = result.scrollbar;
                 return result.content;
             })
-            .then(function (lessContent) {
-                return lessifyTheme(lessContent, theme);
-            })
             .then(function (cssContent) {
+                $("[class|=platform]").toggleClass("dark", theme.dark);
                 styleNode.text(cssContent);
                 return theme;
             });
