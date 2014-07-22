@@ -129,7 +129,7 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getPaneViewListSize(MainViewManager.ALL_PANES)).toEqual(0);
                 });
             });
-            it("should add file to working-set when outside the project", function () {
+            it("should add file to working-set when opening files that are outside of the project", function () {
                 ProjectManager.isWithinProject = function () {
                     return false;
                 };
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
                             promise.resolve();
                         });
                     
-                    waitsForDone(promise, "MainViewManager.doOpen");
+                    waitsForDone(promise, "MainViewManager.doEdit");
                 });
                 runs(function () {
                     expect(MainViewManager.getCurrentlyViewedFile().name).toEqual("test.js");
@@ -700,7 +700,7 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getPaneViewListSize("first-pane")).toEqual(0);
                 });
             });
-            it("should remove all from all panes", function () {
+            it("should remove all from ALL_PANES", function () {
                 runs(function () {
                     MainViewManager.addToPaneViewList("first-pane", getFileObject("test.js"));
                     MainViewManager.addToPaneViewList("second-pane", getFileObject("test.css"));
@@ -758,7 +758,7 @@ define(function (require, exports, module) {
                     expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, getFileObject("test.js").fullPath)).toEqual(-1);
                 });
             });
-            it("should remove the file when removing from the all panes", function () {
+            it("should remove the file when removing from ALL_PANES", function () {
                 runs(function () {
                     MainViewManager.addListToPaneViewList("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
@@ -826,16 +826,7 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getPaneViewListSize("first-pane")).toEqual(0);
                 });
             });
-            it("should remove the file when removing from the all panes", function () {
-                runs(function () {
-                    MainViewManager.addListToPaneViewList("first-pane", [getFileObject("test.js"),
-                                                                         getFileObject("test.css")]);
-                    MainViewManager.removeListFromPaneViewList(MainViewManager.ALL_PANES, [getFileObject("test.js"),
-                                                                                           getFileObject("test.css")]);
-                    expect(MainViewManager.getPaneViewListSize("first-pane")).toEqual(0);
-                });
-            });
-            it("should remove the file when removing from the all panes", function () {
+            it("should remove the file when removing from ALL_PANES", function () {
                 runs(function () {
                     MainViewManager.addToPaneViewList("first-pane", getFileObject("test.js"));
                     MainViewManager.addToPaneViewList("second-pane", getFileObject("test.css"));
