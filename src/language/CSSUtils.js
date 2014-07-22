@@ -846,11 +846,29 @@ define(function (require, exports, module) {
             ruleStartChar = -1;
 
             // Skip everything until the next '}'
-            while (token !== "}") {
+            var unmatchedBraces = 0;
+            // This code handle @rules that use this format:
+            //    @rule ... { ... }
+            // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
+            // Skip everything until the next '}'
+            while (true) {
+                if (token === "{") {
+                    unmatchedBraces++;
+                } else if (token === "}") {
+                    unmatchedBraces--;
+                    if (unmatchedBraces === 0) {
+                        break;
+                    }
+                }
                 if (!_nextTokenSkippingComments()) {
-                    break;
+                    break; // eof
                 }
             }
+//            while (token !== "}") {
+//                if (!_nextTokenSkippingComments()) {
+//                    break;
+//                }
+//            }
             
             // assign this declaration list position and selector group to every selector on the stack
             // that doesn't have a declaration list start and end line
@@ -923,11 +941,20 @@ define(function (require, exports, module) {
                 }
                 
             } else {
+                var unmatchedBraces = 0;
                 // This code handle @rules that use this format:
                 //    @rule ... { ... }
                 // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
                 // Skip everything until the next '}'
-                while (token !== "}") {
+                while (true) {
+                    if (token === "{") {
+                        unmatchedBraces++;
+                    } else if (token === "}") {
+                        unmatchedBraces--;
+                        if (unmatchedBraces === 0) {
+                            return;
+                        }
+                    }
                     if (!_nextTokenSkippingComments()) {
                         return; // eof
                     }
@@ -1101,7 +1128,7 @@ define(function (require, exports, module) {
             return oneFileResult.promise();
         }
         
-        ProjectManager.getAllFiles(ProjectManager.getLanguageFilter("css"))
+        ProjectManager.getAllFiles(ProjectManager.getLanguageFilter(["css", "less", "scss"]))
             .done(function (cssFiles) {
                 // Load index of all CSS files; then process each CSS file in turn (see above)
                 Async.doInParallel(cssFiles, function (fileInfo, number) {
