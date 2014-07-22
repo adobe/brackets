@@ -239,7 +239,7 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("activeEditorChange", [current, previous]);
     }
 	
-	/**
+    /**
      * Current File Changed handler
      * @private
      * @param {!jQuery.Event} e - event
