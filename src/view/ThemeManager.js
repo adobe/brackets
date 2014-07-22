@@ -241,6 +241,11 @@ define(function (require, exports, module) {
             .then(function (cssContent) {
                 $("[class|=platform]").toggleClass("dark", theme.dark);
                 styleNode.text(cssContent);
+                if (theme.dark) {
+                    $("body").addClass("dark");
+                } else {
+                    $("body").removeClass("dark");
+                }
                 return theme;
             });
 
