@@ -448,6 +448,8 @@ define({
     "CANCELING_INSTALL"                    : "Canceling\u2026",
     "CANCELING_HUNG"                       : "Canceling the install is taking a long time. An internal error may have occurred.",
     "INSTALL_CANCELED"                     : "Installation canceled.",
+    "VIEW_COMPLETE_DESCRIPTION"            : "View complete description",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "View truncated description",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "The downloaded content is not a valid zip file.",
     "INVALID_PACKAGE_JSON"                 : "The package.json file is not valid (error was: {0}).",
