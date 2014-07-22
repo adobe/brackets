@@ -220,6 +220,110 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Font size setter to set the font size for the document editor
+     * @param {string} fontSize The font size with size unit as 'px' or 'em'
+     */
+    function setFontSize(fontSize) {
+        var oldValue = prefs.get("fontSize");
+
+        if (oldValue === fontSize) {
+            return;
+        }
+
+        _removeDynamicFontSize();
+        if (fontSize) {
+            _addDynamicFontSize(fontSize);
+        }
+
+        if (EditorManager.getCurrentFullEditor()) {
+            _updateScroll(fontSize);
+        }
+
+        $(exports).triggerHandler("fontSizeChange", [fontSize, oldValue]);
+        prefs.set("fontSize", fontSize);
+    }
+
+    /**
+     * Font size getter to get the current font size for the document editor
+     * @return {string} Font size with size unit as 'px' or 'em'
+     */
+    function getFontSize() {
+        return prefs.get("fontSize");
+    }
+
+
+    /**
+     * Font family setter to set the font family for the document editor
+     * @param {string} fontFamily The font family to be set.  It can be a string with multiple comma separated fonts
+     */
+    function setFontFamily(fontFamily) {
+        var editor = EditorManager.getCurrentFullEditor(),
+            oldValue = prefs.get("fontFamily");
+
+        if (oldValue === fontFamily) {
+            return;
+        }
+
+        _removeDynamicFontFamily();
+        if (fontFamily) {
+            _addDynamicFontFamily(fontFamily);
+        }
+
+        $(exports).triggerHandler("fontFamilyChange", [fontFamily, oldValue]);
+        prefs.set("fontFamily", fontFamily);
+
+        if (editor) {
+            editor.refreshAll();
+        }
+    }
+
+    /**
+     * Font family getter to get the currently configured font family for the document editor
+     * @return {string} The font family for the document editor
+     */
+    function getFontFamily() {
+        return prefs.get("fontFamily");
+    }
+
+
+    /**
+     * Line height setter to set the line height of the document editor
+     * @param {string} lineHeight The line height. The value is in 'em'.
+     */
+    function setLineHeight(lineHeight) {
+        var editor = EditorManager.getCurrentFullEditor(),
+            oldValue = prefs.get("lineHeight");
+
+        // Make sure the incoming value is a number...  Strip off any size units
+        lineHeight = parseFloat(lineHeight);
+
+        if (oldValue === lineHeight) {
+            return;
+        }
+
+        _removeDynamicLineHeight();
+        if (lineHeight) {
+            _addDynamicLineHeight(lineHeight);
+        }
+
+        $(exports).triggerHandler("lineHeightChange", [lineHeight, oldValue]);
+        prefs.set("lineHeight", lineHeight);
+
+        if (editor) {
+            editor.refreshAll();
+        }
+    }
+
+    /**
+     * Line height getter to get the line height for the document editor
+     * @return {string} The line height with size unit as 'em' for the document editor
+     */
+    function getLineHeight() {
+        return prefs.get("lineHeight");
+    }
+
+    
+    /**
      * @private
      * Increases or decreases the editor's font size.
      * @param {number} adjustment  Negative number to make the font smaller; positive number to make it bigger
@@ -267,16 +371,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Initializes the different settings that need to loaded
-     */
-    function init() {
-        _addDynamicFontFamily(prefs.get("fontFamily"));
-        _addDynamicFontSize(prefs.get("fontSize"));
-        _addDynamicLineHeight(prefs.get("lineHeight"));
-        _updateUI();
-    }
-
-    /**
      * @private
      * Updates the user interface appropriately based on whether or not a document is
      * currently open in the editor.
@@ -295,6 +389,16 @@ define(function (require, exports, module) {
             CommandManager.get(Commands.VIEW_DECREASE_FONT_SIZE).setEnabled(false);
             CommandManager.get(Commands.VIEW_RESTORE_FONT_SIZE).setEnabled(false);
         }
+    }
+    
+    /**
+     * Initializes the different settings that need to loaded
+     */
+    function init() {
+        _addDynamicFontFamily(prefs.get("fontFamily"));
+        _addDynamicFontSize(prefs.get("fontSize"));
+        _addDynamicLineHeight(prefs.get("lineHeight"));
+        _updateUI();
     }
 
     /**
@@ -423,109 +527,6 @@ define(function (require, exports, module) {
         ThemeSettings.showDialog();
     }
 
-    /**
-     * Font size setter to set the font size for the document editor
-     * @param {string} fontSize The font size with size unit as 'px' or 'em'
-     */
-    function setFontSize(fontSize) {
-        var oldValue = prefs.get("fontSize");
-
-        if (oldValue === fontSize) {
-            return;
-        }
-
-        _removeDynamicFontSize();
-        if (fontSize) {
-            _addDynamicFontSize(fontSize);
-        }
-
-        if (EditorManager.getCurrentFullEditor()) {
-            _updateScroll(fontSize);
-        }
-
-        $(exports).triggerHandler("fontSizeChange", [fontSize, oldValue]);
-        prefs.set("fontSize", fontSize);
-    }
-
-    /**
-     * Font size getter to get the current font size for the document editor
-     * @return {string} Font size with size unit as 'px' or 'em'
-     */
-    function getFontSize() {
-        return prefs.get("fontSize");
-    }
-
-
-    /**
-     * Font family setter to set the font family for the document editor
-     * @param {string} fontFamily The font family to be set.  It can be a string with multiple comma separated fonts
-     */
-    function setFontFamily(fontFamily) {
-        var editor = EditorManager.getCurrentFullEditor(),
-            oldValue = prefs.get("fontFamily");
-
-        if (oldValue === fontFamily) {
-            return;
-        }
-
-        _removeDynamicFontFamily();
-        if (fontFamily) {
-            _addDynamicFontFamily(fontFamily);
-        }
-
-        $(exports).triggerHandler("fontFamilyChange", [fontFamily, oldValue]);
-        prefs.set("fontFamily", fontFamily);
-
-        if (editor) {
-            editor.refreshAll();
-        }
-    }
-
-    /**
-     * Font family getter to get the currently configured font family for the document editor
-     * @return {string} The font family for the document editor
-     */
-    function getFontFamily() {
-        return prefs.get("fontFamily");
-    }
-
-
-    /**
-     * Line height setter to set the line height of the document editor
-     * @param {string} lineHeight The line height. The value is in 'em'.
-     */
-    function setLineHeight(lineHeight) {
-        var editor = EditorManager.getCurrentFullEditor(),
-            oldValue = prefs.get("lineHeight");
-
-        // Make sure the incoming value is a number...  Strip off any size units
-        lineHeight = parseFloat(lineHeight);
-
-        if (oldValue === lineHeight) {
-            return;
-        }
-
-        _removeDynamicLineHeight();
-        if (lineHeight) {
-            _addDynamicLineHeight(lineHeight);
-        }
-
-        $(exports).triggerHandler("lineHeightChange", [lineHeight, oldValue]);
-        prefs.set("lineHeight", lineHeight);
-
-        if (editor) {
-            editor.refreshAll();
-        }
-    }
-
-    /**
-     * Line height getter to get the line height for the document editor
-     * @return {string} The line height with size unit as 'em' for the document editor
-     */
-    function getLineHeight() {
-        return prefs.get("lineHeight");
-    }
-
 
     /**
      * @private
@@ -553,7 +554,7 @@ define(function (require, exports, module) {
     
     prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px");
     prefs.definePreference("lineHeight", "number", DEFAULT_LINE_HEIGHT);
-    prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);    
+    prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);
 
     // Update UI when opening or closing a document
     $(DocumentManager).on("currentDocumentChange", _updateUI);
