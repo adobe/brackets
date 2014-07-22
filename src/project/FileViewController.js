@@ -212,9 +212,9 @@ define(function (require, exports, module) {
     }
     
     /** 
-     * @Deprecated use FileViweController.addToPaneViewAndSelect() instead
      * Opens the specified document if it's not already open, adds it to the working set,
      * and selects it in the PaneViewListView
+     * @deprecated use FileViewController.addToPaneViewAndSelect() instead
      * @param {!fullPath}
      * @param {?String} selectIn - specify either WORING_SET_VIEW or PROJECT_MANAGER.
      *      Default is WORING_SET_VIEW.
@@ -251,11 +251,13 @@ define(function (require, exports, module) {
     }
 
 
+    // Deprecated
+    exports.addToWorkingSetAndSelect = addToWorkingSetAndSelect;
+
 
     // Define public API
     exports.getFileSelectionFocus = getFileSelectionFocus;
     exports.openAndSelectDocument = openAndSelectDocument;
-    exports.addToWorkingSetAndSelect = addToWorkingSetAndSelect;
     exports.addToPaneViewAndSelect = addToPaneViewAndSelect;
     exports.setFileViewFocus = setFileViewFocus;
     exports.PANE_VIEW_LIST_VIEW = PANE_VIEW_LIST_VIEW;

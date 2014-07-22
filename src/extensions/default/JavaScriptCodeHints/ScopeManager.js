@@ -1171,7 +1171,6 @@ define(function (require, exports, module) {
             deferredPreferences.done(function () {
                 FileSystem.resolve(dir, function (err, directory) {
                     if (err) {
-                        //console.error("Error resolving", dir);
                         addFilesDeferred.resolveWith(null);
                         return;
                     }

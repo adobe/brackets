@@ -173,8 +173,8 @@ define(function (require, exports, module) {
     
     
     /**
-     * @deprecated use MainViewManager.doClose() instead
      * closes the current document
+     * @deprecated use MainViewManager.doClose() instead
      */
     function clearCurrentDocument() {
         DeprecationWarning.deprecationWarning("DocumentManager.clearCurrentDocument() has been deprecated. Use MainViewManager.doClose()", true);
@@ -182,8 +182,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @deprecated Use MainViewManager.getPaneViewList() instead
      * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
+     * @deprecated Use MainViewManager.getPaneViewList() instead
      * @return {Array.<File>}
      */
     function getWorkingSet() {
@@ -192,13 +192,10 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @deprecated Use MainViewManager.findInPaneViewList() instead
      * Returns the index of the file matching fullPath in the working set.
-     * Returns -1 if not found.
+     * @deprecated Use MainViewManager.findInPaneViewList() instead
      * @param {!string} fullPath
-     * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
-     *          use only.
-     * @return {number} index
+     * @return {number} index, -1 if not found
      */
     function findInWorkingSet(fullPath, list) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.findInPaneViewList() instead of DocumentManager.findInWorkingSet()", true);
@@ -210,11 +207,10 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Removes a list of files from the working set and closes their respective editors
      * @deprecated Use MainViewManager.removeListFromPaneViewList() instead
-     * Removes a list of files from the working set
-     * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
-     *          use only.
-     * @param {boolean=} true to close the current document too [deprecated]
+     * @param {Array.<File>=} list of files to close and remove from the working set
+     
      */
     function removeListFromWorkingSet(list, clearCurrentDocument) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.removeListFromPaneViewList() instead of DocumentManager.removeListFromWorkingSet()", true);
@@ -250,10 +246,8 @@ define(function (require, exports, module) {
     
     
     /**
+     * Adds the given file to the end of the working set list.
      * @deprecated Use MainViewManager.addToPaneViewList() instead 
-     * Adds the given file to the end of the working set list, if it is not 
-     * already in the list and it does not have a custom viewer.
-     * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!File} file
      * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
      * @param {boolean=} forceRedraw  If true, a working set change notification is always sent
@@ -265,13 +259,8 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Adds the given file list to the end of the working set list. 
      * @deprecated Use MainViewManager.addListToPaneViewList() instead 
-     * Adds the given file list to the end of the working set list.
-     * If a file in the list has its own custom viewer, then it 
-     * is not added into the working set.
-     * Does not change which document is currently open in the editor.
-     * More efficient than calling addToWorkingSet() (in a loop) for
-     * a list of files because there's only 1 redraw at the end
      * @param {!Array.<File>} fileList
      */
     function addListToWorkingSet(fileList) {
@@ -280,10 +269,8 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Removes the given file from the working set list, if it was in the list. 
      * @deprecated Use MainViewManager.removeFromPaneViewList() instead 
-     * Warning: low level API - use FILE_CLOSE command in most cases.
-     * Removes the given file from the working set list, if it was in the list. Does not change
-     * the current editor even if it's for this file. Does not prompt for unsaved changes.
      * @param {!File} file
      * @param {boolean=} true to suppress redraw after removal
      */
@@ -293,8 +280,8 @@ define(function (require, exports, module) {
     }
 
     /**
+     * closes all open files
      * @deprecated Use MainViewManager.doCloseAll() instead
-     * Equivalent to calling closeFullEditor() for all Documents.
      * Calling this discards any unsaved changes, so the UI should confirm with the user before calling this.
      */
     function closeAll() {
@@ -303,6 +290,7 @@ define(function (require, exports, module) {
     }
 
     /**
+     * closes the specified file file 
      * @deprecated use MainViewManager.doClose() instead
      * @param {!File} file
      */
@@ -312,13 +300,9 @@ define(function (require, exports, module) {
     }
     
     /**
+     * opens the specified document for editing in the currently active pane
      * @deprecated use MainViewManger.doOpen() instead
-     * Changes currentDocument to the given Document, firing currentDocumentChange, which in turn
-     * causes this Document's main editor UI to be shown in the editor pane, updates the selection
-     * in the file tree / working set UI, etc. This call may also add the item to the working set.
-     *
-     * @param {!Document} document  The Document to make current. May or may not already be in the
-     *      working set.
+     * @param {!Document} document  The Document to make current. 
      */
     function setCurrentDocument(doc) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.doEdit() instead of DocumentManager.setCurrentDocument()", true);
@@ -327,11 +311,19 @@ define(function (require, exports, module) {
     }
 
     
+    /**
+     * freezes the Working Set MRU list 
+     * @deprecated use MainViewManger.doOpen() instead
+     */
     function beginDocumentNavigation() {
         DeprecationWarning.deprecationWarning("Use MainViewManager.beginTraversal() instead of DocumentManager.beginDocumentNavigation()", true);
         MainViewManager.beginTraversal();
     }
     
+    /**
+     * ends document navigation and moves the current file to the front of the MRU list in the Working Set
+     * @deprecated use MainViewManager.endTraversal() instead
+     */
     function finalizeDocumentNavigation() {
         DeprecationWarning.deprecationWarning("Use MainViewManager.endTraversal() instead of DocumentManager.finalizeDocumentNavigation()", true);
         MainViewManager.endTraversal();

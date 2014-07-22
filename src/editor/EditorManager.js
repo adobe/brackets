@@ -165,7 +165,7 @@ define(function (require, exports, module) {
     /** 
      * Updates _viewStateCache from the given editor's actual current state 
      * @private
-     * @param {!Editor] editor - editor to cache data for
+     * @param {!Editor} editor - editor to cache data for
      */
     function _saveEditorViewState(editor) {
         _viewStateCache[editor.document.file.fullPath] = {
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
     
     /** 
      * Updates _viewStateCache from the given editor's actual current state 
-     * @param {!Editor] editor - editor restore cached data 
+     * @param {!Editor} editor - editor restore cached data 
      * @private
      */
     function _restoreEditorViewState(editor) {
@@ -699,7 +699,6 @@ define(function (require, exports, module) {
     /**
      * file removed helper. Facilitates destroying editors no longer needed.
      * @param {File|string} file - the file or filepath being removed
-     * 
      */
     function _handleFileRemoved(file) {
         // There's one case where an editor should be disposed even though the current document
