@@ -797,7 +797,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         _.forEach(mockRegistry, function (item) {
                             if (item.metadata.description) {
-                                if (StringUtils.truncate(item.metadata.description, 140) === undefined) {
+                                if (StringUtils.truncate(item.metadata.description, 200) === undefined) {
                                     expect(view).toHaveText(item.metadata.description);
                                 }
                             }
@@ -810,7 +810,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         _.forEach(mockRegistry, function (item) {
                             if (item.metadata.description) {
-                                var shortDescription = StringUtils.truncate(item.metadata.description, 140);
+                                var shortDescription = StringUtils.truncate(item.metadata.description, 200);
                                 if (shortDescription !== undefined) {
                                     expect(view).toHaveText(shortDescription);
                                 }
