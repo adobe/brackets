@@ -55,40 +55,6 @@
 
 /* Code Styling */
 
-/* Custom scrollbar colors */
-.platform-win & {
-    .CodeMirror-gutter-filler {
-        background-color: rgb(15, 15, 15);
-    }
-    // Note: when changing padding/margins, may need to adjust metrics in ScrollTrackMarkers.js
-
-    ::-webkit-scrollbar {
-        background-color: rgb(15, 15, 15);
-    }
-
-    ::-webkit-scrollbar-thumb {
-        box-shadow: 0 0 0 12px rgb(49, 49, 49) inset;
-    }
-    ::-webkit-scrollbar-thumb:hover,
-    ::-webkit-scrollbar-thumb:focus {
-        box-shadow: 0 0 0 12px rgb(89, 89, 89) inset;
-    }
-    ::-webkit-scrollbar-thumb:active {
-        box-shadow: 0 0 0 12px rgb(169, 169, 169) inset;
-    }
-}
-
-.platform-linux & {
-    ::-webkit-scrollbar-thumb {
-        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.24) inset;
-    }
-
-    ::-webkit-scrollbar-thumb:window-inactive {
-        box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.12) inset;
-    }
-}
-
-
 .CodeMirror, .CodeMirror-scroll {
     background-color: @background;
     color: @foreground;
