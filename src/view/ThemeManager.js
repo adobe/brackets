@@ -241,6 +241,11 @@ define(function (require, exports, module) {
             })
             .then(function (cssContent) {
                 styleNode.text(cssContent);
+                if (theme.dark) {
+                    $("body").addClass("dark");
+                } else {
+                    $("body").removeClass("dark");
+                }
                 return theme;
             });
 
