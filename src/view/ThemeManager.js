@@ -87,7 +87,7 @@ define(function (require, exports, module) {
         this.file        = file;
         this.name        = options.name  || (options.title || fileName).toLocaleLowerCase().replace(/[\W]/g, '-');
         this.displayName = options.title || toDisplayName(fileName);
-        this.dark        = options.theme && options.theme.dark === true;
+        this.dark        = !!options.theme.dark;
     }
 
 
@@ -239,13 +239,8 @@ define(function (require, exports, module) {
                 return result.content;
             })
             .then(function (cssContent) {
-                $("[class|=platform]").toggleClass("dark", theme.dark);
+                $("body").toggleClass("dark", theme.dark);
                 styleNode.text(cssContent);
-                if (theme.dark) {
-                    $("body").addClass("dark");
-                } else {
-                    $("body").removeClass("dark");
-                }
                 return theme;
             });
 
