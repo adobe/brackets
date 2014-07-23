@@ -746,7 +746,15 @@ define(function (require, exports, module) {
             
             // Everything until the next ',' or '{' is part of the current selector
             while (token !== "," && token !== "{") {
-                currentSelector += token;
+                if (token === ";") {
+                    currentSelector = "";
+                } else {
+                    if (!currentSelector) {
+                        selectorStartChar = start;
+                        selectorStartLine = line;
+                    }
+                    currentSelector += token;
+                }
                 if (!_nextTokenSkippingComments()) {
                     return false; // eof
                 }
@@ -847,10 +855,6 @@ define(function (require, exports, module) {
 
             // Skip everything until the next '}'
             var unmatchedBraces = 0;
-            // This code handle @rules that use this format:
-            //    @rule ... { ... }
-            // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
-            // Skip everything until the next '}'
             while (true) {
                 if (token === "{") {
                     unmatchedBraces++;
@@ -864,11 +868,6 @@ define(function (require, exports, module) {
                     break; // eof
                 }
             }
-//            while (token !== "}") {
-//                if (!_nextTokenSkippingComments()) {
-//                    break;
-//                }
-//            }
             
             // assign this declaration list position and selector group to every selector on the stack
             // that doesn't have a declaration list start and end line

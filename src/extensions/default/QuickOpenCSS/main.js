@@ -116,7 +116,7 @@ define(function (require, exports, module) {
     QuickOpen.addQuickOpenPlugin(
         {
             name: "CSS Selectors",
-            languageIds: ["css"],
+            languageIds: ["css", "less", "scss"],
             search: search,
             match: match,
             itemFocus: itemFocus,
