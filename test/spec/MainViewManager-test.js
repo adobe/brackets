@@ -436,8 +436,7 @@ define(function (require, exports, module) {
                 });
             });
             it("should activate pane when editor gains focus", function () {
-                var editors = {
-                    },
+                var editors = {},
                     handler = function (e, doc, editor, paneId) {
                         editors[doc.file.name] = editor;
                     };
