@@ -171,6 +171,57 @@
 .dark {
     .inline-widget {
         color: #333;
+        background-color: #1b1b1b;
+
+        .inline-editor-header {
+            .filename {
+                color: #fff;
+
+                .dirty-indicator {
+                    color: #aaa;
+                }
+
+                .line-number {
+                    color: #bbb;
+                }
+            }
+        }
+
+        .close {
+            color: #ddd;
+        }
+    }
+
+    .related-container {
+        background: #2c2c2c;
+
+        .selection {
+            background: #494a4b;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .selection:before {
+            border-left: @inline-triangle-size solid #1b1b1b;
+        }
+
+        .related {
+            li {
+                color: #fff;
+
+                .related-file {
+                    color: #bbb;
+                }
+            }
+
+            .selected {
+                color: #fff;
+            }
+        }
+
+        .inline-editor-message {
+            color: #bbb;
+        }
     }
     
     /* Custom scrollbar colors */
