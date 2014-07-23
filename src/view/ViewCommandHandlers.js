@@ -392,16 +392,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Initializes the different settings that need to loaded
-     */
-    function init() {
-        _addDynamicFontFamily(prefs.get("fontFamily"));
-        _addDynamicFontSize(prefs.get("fontSize"));
-        _addDynamicLineHeight(prefs.get("lineHeight"));
-        _updateUI();
-    }
-
-    /**
      * Restores the font size using the saved style and migrates the old fontSizeAdjustment
      * view state to the new fontSize, when required
      */
@@ -556,11 +546,15 @@ define(function (require, exports, module) {
     prefs.definePreference("lineHeight", "number", DEFAULT_LINE_HEIGHT);
     prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);
 
+    _addDynamicFontFamily(prefs.get("fontFamily"));
+    _addDynamicFontSize(prefs.get("fontSize"));
+    _addDynamicLineHeight(prefs.get("lineHeight"));
+
     // Update UI when opening or closing a document
     $(DocumentManager).on("currentDocumentChange", _updateUI);
 
     // Update UI when Brackets finishes loading
-    AppInit.appReady(init);
+    AppInit.appReady(_updateUI);
 
     exports.restoreFontSize = restoreFontSize;
     exports.restoreFonts    = restoreFonts;
