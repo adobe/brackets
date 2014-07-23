@@ -421,7 +421,7 @@ define({
     
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "Current Theme",
-	"CUSTOM_SCROLLBARS": "Custom Scrollbars",
+	"USE_THEME_SCROLLBARS": "Use Theme Scrollbars",
 	"FONT_SIZE": "Font Size",
 	"FONT_FAMILY": "Font Family",
 	"LINE_HEIGHT": "Line Height",
