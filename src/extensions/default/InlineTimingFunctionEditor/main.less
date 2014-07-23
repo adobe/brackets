@@ -302,14 +302,54 @@
 
 /* Dark UI theme */
 
+@dark-bc-bg-highlight: #1671db;
+@dark-bc-highlight: rgba(255, 255, 255, 0.06);
+@dark-bc-text: #ddd;
+@dark-bc-highlight-hard: rgba(255, 255, 255, 0.1);
+@dark-bc-btn-bg: #3f3f3f;
+@dark-bc-btn-border: #202020;
+@dark-bc-btn-border-focused: #2893ef;
+@dark-bc-btn-border-focused-glow: transparent;
+@dark-bc-shadow: rgba(0, 0, 0, 0.24);
+@dark-bc-shadow-small: rgba(0, 0, 0, 0.06);
+@dark-bc-shadow-medium: rgba(0, 0, 0, 0.12);
+@dark-bc-input-bg: #555;
+
 @dark-cubic-bezier: url("grid-dark.png");
 
 .dark {
-    .bezier-curve-editor .cubic-bezier {
-        background: @dark-cubic-bezier 0px -75px repeat-x;
+    .bezier-curve-editor {
+        color: @dark-bc-text;
+
+        .cubic-bezier {
+            background: @dark-cubic-bezier 0px -75px repeat-x;
+        }
+
+        .control-point {
+            background: @dark-bc-btn-bg;
+            border: 1px solid @dark-bc-btn-border;
+        }
+
+        .control-point:focus {
+            border: 1px solid @dark-bc-btn-border-focused !important;
+            box-shadow: 0 0 0 2px @dark-bc-btn-border-focused-glow;
+        }
+
+        .P0, .P3 {
+            background: @dark-bc-btn-border-focused;
+        }
     }
 
-    .bezier-curve-editor .info {
-        color: #ddd;
+    .bezier-curve-editor:after {
+        background: -webkit-linear-gradient(270deg, rgba(255, 255, 255, 0) 0%, @dark-bc-input-bg 30%, @dark-bc-input-bg 70%, rgba(255, 255, 255, 0) 100%);
+    }
+
+    .step-editor {
+        color: @dark-bc-text;
+
+        kbd {
+            background: @dark-bc-shadow;
+            border: 1px solid @dark-bc-shadow;
+        }
     }
 }
