@@ -62,12 +62,6 @@ define(function (require, exports, module) {
 
     /**
      * @const
-     * @type {string}
-     */
-    var DYNAMIC_LINE_HEIGHT_ID = "codemirror-dynamic-line-height";
-
-    /**
-     * @const
      * @private
      * The smallest font size in pixels
      * @type {number}
@@ -89,14 +83,6 @@ define(function (require, exports, module) {
      * @type {number}
      */
     var DEFAULT_FONT_SIZE = 12;
-
-    /**
-     * @const
-     * @private
-     * The default line height
-     * @type {number}
-     */
-    var DEFAULT_LINE_HEIGHT = 1.25;
 
     /**
      * @const
@@ -166,23 +152,6 @@ define(function (require, exports, module) {
      */
     function _addDynamicFontFamily(fontFamily) {
         _addDynamicProperty(DYNAMIC_FONT_FAMILY_ID, "font-family", fontFamily);
-    }
-
-    /**
-     * @private
-     * Removes the styles used to update the font family
-     */
-    function _removeDynamicLineHeight() {
-        _removeDynamicProperty(DYNAMIC_LINE_HEIGHT_ID);
-    }
-
-    /**
-     * @private
-     * Add the styles used to update the line height
-     * @param {string} lineHeight  A string with the line height with size unit
-     */
-    function _addDynamicLineHeight(lineHeight) {
-        _addDynamicProperty(DYNAMIC_LINE_HEIGHT_ID, "line-height", lineHeight, true, ".CodeMirror-lines > div");
     }
 
     /**
@@ -287,43 +256,6 @@ define(function (require, exports, module) {
 
 
     /**
-     * Line height setter to set the line height of the document editor
-     * @param {string} lineHeight The line height. The value is in 'em'.
-     */
-    function setLineHeight(lineHeight) {
-        var editor = EditorManager.getCurrentFullEditor(),
-            oldValue = prefs.get("lineHeight");
-
-        // Make sure the incoming value is a number...  Strip off any size units
-        lineHeight = parseFloat(lineHeight);
-
-        if (oldValue === lineHeight) {
-            return;
-        }
-
-        _removeDynamicLineHeight();
-        if (lineHeight) {
-            _addDynamicLineHeight(lineHeight);
-        }
-
-        $(exports).triggerHandler("lineHeightChange", [lineHeight, oldValue]);
-        prefs.set("lineHeight", lineHeight);
-
-        if (editor) {
-            editor.refreshAll();
-        }
-    }
-
-    /**
-     * Line height getter to get the line height for the document editor
-     * @return {string} The line height with size unit as 'em' for the document editor
-     */
-    function getLineHeight() {
-        return prefs.get("lineHeight");
-    }
-
-
-    /**
      * @private
      * Increases or decreases the editor's font size.
      * @param {number} adjustment  Negative number to make the font smaller; positive number to make it bigger
@@ -397,7 +329,6 @@ define(function (require, exports, module) {
     function init() {
         _addDynamicFontFamily(prefs.get("fontFamily"));
         _addDynamicFontSize(prefs.get("fontSize"));
-        _addDynamicLineHeight(prefs.get("lineHeight"));
         _updateUI();
     }
 
@@ -427,12 +358,11 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Restores the font size, font family, and line height back to factory settings.
+     * Restores the font size and font family back to factory settings.
      */
     function restoreFonts() {
         setFontFamily(DEFAULT_FONT_FAMILY);
         setFontSize(DEFAULT_FONT_SIZE + "px");
-        setLineHeight(DEFAULT_LINE_HEIGHT);
     }
 
 
@@ -553,7 +483,6 @@ define(function (require, exports, module) {
     PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewState);
 
     prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px");
-    prefs.definePreference("lineHeight", "number", DEFAULT_LINE_HEIGHT);
     prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);
 
     // Update UI when opening or closing a document
@@ -568,6 +497,4 @@ define(function (require, exports, module) {
     exports.setFontSize     = setFontSize;
     exports.getFontFamily   = getFontFamily;
     exports.setFontFamily   = setFontFamily;
-    exports.getLineHeight   = getLineHeight;
-    exports.setLineHeight   = setLineHeight;
 });

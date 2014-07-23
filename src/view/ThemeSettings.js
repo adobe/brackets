@@ -70,7 +70,6 @@ define(function (require, exports, module) {
 
         result.fontFamily = ViewCommandHandlers.getFontFamily();
         result.fontSize   = ViewCommandHandlers.getFontSize();
-        result.lineHeight = ViewCommandHandlers.getLineHeight();
         return result;
     }
 
