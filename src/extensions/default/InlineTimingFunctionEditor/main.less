@@ -142,18 +142,6 @@
     user-select: none;
 }
 
-.bezier-curve-editor .info {
-    position: absolute;
-    z-index: 1;
-    top: 20px;
-    left: 170px;
-    width: 400px;
-
-    font-family: SourceSansPro;
-    font-size: 11px;
-    line-height: 1.9 !important;
-}
-
 
 /**
  * All StepEditor selectors descend from .step-editor to constrain styles to this extension
@@ -194,12 +182,13 @@
 }
 
 .step-editor .coordinate-plane {
+    background: #fff;
     position: relative;
     left: 0;
     line-height: 0;
     top: 0;
     width: 179px;
-    height: 179px;
+    height: 190px;
     -moz-box-sizing: content-box;
     box-sizing: content-box;
 }
@@ -210,7 +199,6 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    padding: .3em .5em 0 .3em;
     
     -moz-box-sizing: border-box;
     box-sizing: border-box;
@@ -233,11 +221,16 @@
     -webkit-transform-origin: top left;
             transform-origin: top left;
     white-space: nowrap;
+    
+    padding: .3em .5em 0 1.3em;
 }
 
 .step-editor .coordinate-plane:after {
     margin-left: 15px;
     white-space: nowrap;
+    
+    bottom: 0.9em;
+    padding: 0 .5em 0 0.2em;
 }
 
 .step-editor canvas.steps {
@@ -251,16 +244,18 @@
     user-select: none;
 }
 
+.bezier-curve-editor .info,
 .step-editor .info {
     position: absolute;
     z-index: 1;
     top: 20px;
-    left: 180px;
+    left: 170px;
     width: 400px;
+    margin-left: 20px;
 
     font-family: SourceSansPro;
     font-size: 11px;
-    line-height: 1.9 !important;
+    line-height: 2.2 !important;
 }
 
 .bezier-curve-editor kbd,
@@ -323,6 +318,7 @@
 
         .cubic-bezier {
             background: @dark-cubic-bezier 0px -75px repeat-x;
+            background-size: 15px 450px;
         }
 
         .control-point {
@@ -360,6 +356,10 @@
         kbd {
             background: #3D3D3D;
             color: white;
+        }
+        
+        .coordinate-plane {
+            background: #2c2c2c;
         }
 
         .coordinate-plane:before,

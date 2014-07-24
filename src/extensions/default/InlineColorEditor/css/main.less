@@ -336,6 +336,7 @@
 @dark-bc-bg-highlight: #1671db;
 @dark-bc-highlight: rgba(255, 255, 255, 0.06);
 @dark-bc-text: #ddd;
+@dark-bc-text-alt: #fff;
 @dark-bc-highlight-hard: rgba(255, 255, 255, 0.1);
 @dark-bc-btn-bg: #3f3f3f;
 @dark-bc-btn-border: #202020;
@@ -369,6 +370,7 @@
     }
 
     .color-editor aside ul.swatches li:focus {
+        outline: 1px solid @dark-bc-btn-border-focused;
         box-shadow: 0 0 0 1px @dark-bc-btn-border-focused-glow;
     }
 
@@ -431,6 +433,7 @@
     .color-editor .button-bar li.selected a {
         background-color: @dark-bc-bg-highlight;
         box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+        color: @dark-bc-text-alt;
     }
 }
 
