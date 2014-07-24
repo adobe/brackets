@@ -338,6 +338,16 @@
         .P0, .P3 {
             background: @dark-bc-btn-border-focused;
         }
+
+        .coordinate-plane:before,
+        .coordinate-plane:after {
+            color: @dark-bc-text;
+        }
+
+        kbd {
+            background: #3D3D3D;
+            color: white;
+        }
     }
 
     .bezier-curve-editor:after {
@@ -348,8 +358,13 @@
         color: @dark-bc-text;
 
         kbd {
-            background: @dark-bc-shadow;
-            border: 1px solid @dark-bc-shadow;
+            background: #3D3D3D;
+            color: white;
+        }
+
+        .coordinate-plane:before,
+        .coordinate-plane:after {
+            color: @dark-bc-text;
         }
     }
 }
