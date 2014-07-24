@@ -154,8 +154,26 @@ define(function (require, exports, module) {
     }
     
     
+    /**
+     * Create a deprecation warning and action for updated constants
+     * @param {!string} old Menu Id
+     * @param {!string} new Menu Id
+     */
+    function deprecateConstant(obj, oldId, newId) {
+        var warning     = "Use Menus." + newId + " instead of Menus." + oldId,
+            newValue    = obj[newId];
+        
+        Object.defineProperty(obj, oldId, {
+            get: function () {
+                deprecationWarning(warning, true);
+                return newValue;
+            }
+        });
+    }
+    
     // Define public API
     exports.deprecationWarning   = deprecationWarning;
     exports.deprecateEvent       = deprecateEvent;
     exports.getEventHandlerCount = getEventHandlerCount;
+    exports.deprecateConstant      = deprecateConstant;
 });

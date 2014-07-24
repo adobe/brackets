@@ -31,24 +31,6 @@ define(function (require, exports, module) {
     var DeprecationWarning = require("utils/DeprecationWarning");
     
     /**
-     * @private
-     * Create a deprecation warning and action for updated Command constants
-     * @param {!string} oldConstant
-     * @param {!string} newConstant
-     */
-    function _deprecateCommand(oldConstant, newConstant) {
-        var warning     = "Use Commands." + newConstant + " instead of Commands." + oldConstant,
-            newValue    = exports[newConstant];
-        
-        Object.defineProperty(exports, oldConstant, {
-            get: function () {
-                DeprecationWarning.deprecationWarning(warning, true);
-                return newValue;
-            }
-        });
-    }
-    
-    /**
      * List of constants for global command IDs.
      */
     
@@ -138,7 +120,7 @@ define(function (require, exports, module) {
     exports.CMD_SORT_PANE_VIEW_LIST_BY_ADDED  = "cmd.sortPaneViewListByAdded";    // PaneViewListSort.js          _handleSort()
     exports.CMD_SORT_PANE_VIEW_LIST_BY_NAME   = "cmd.sortPaneViewListByName";     // PaneViewListSort.js          _handleSort()
     exports.CMD_SORT_PANE_VIEW_LIST_BY_TYPE   = "cmd.sortPaneViewListByType";     // PaneViewListSort.js          _handleSort()
-    exports.CMD_TOGGLE_AUTO_SORT              = "cmd.toggleAutoSort";             // PaneViewListSort.js          _handleToggleAutoSort()
+    exports.CMD_SORT_PANE_VIEW_TOGGLE_AUTO    = "cmd.sortPaneViewToggleAuto";     // PaneViewListSort.js          _handleToggleAutoSort()
     
     // NAVIGATE
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";           // DocumentCommandHandlers.js   handleGoNextDoc()
@@ -179,21 +161,21 @@ define(function (require, exports, module) {
     exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";       // DocumentCommandHandlers.js   handleBeforeMenuPopup()
     
     // DEPRECATED: Working Set Commands
-    _deprecateCommand("FILE_ADD_TO_WORKING_SET",    "CMD_ADD_TO_PANE_VIEW_LIST");
-    _deprecateCommand("SORT_WORKINGSET_BY_ADDED",   "CMD_SORT_PANE_VIEW_LIST_BY_ADDED");
-    _deprecateCommand("SORT_WORKINGSET_BY_NAME",    "CMD_SORT_PANE_VIEW_LIST_BY_NAME");
-    _deprecateCommand("SORT_WORKINGSET_BY_TYPE",    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE");
-    _deprecateCommand("SORT_WORKINGSET_AUTO",       "CMD_TOGGLE_AUTO_SORT");
+    DeprecationWarning.deprecateConstant(exports, "FILE_ADD_TO_WORKING_SET",    "CMD_ADD_TO_PANE_VIEW_LIST");
+    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_ADDED",   "CMD_SORT_PANE_VIEW_LIST_BY_ADDED");
+    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_NAME",    "CMD_SORT_PANE_VIEW_LIST_BY_NAME");
+    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_TYPE",    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE");
+    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_AUTO",       "CMD_SORT_PANE_VIEW_TOGGLE_AUTO");
               
     // DEPRECATED: Edit commands that were moved from the Edit Menu to the Find Menu
-    _deprecateCommand("EDIT_FIND",                  "CMD_FIND");
-    _deprecateCommand("EDIT_FIND_IN_SELECTED",      "CMD_FIND_IN_SELECTED");
-    _deprecateCommand("EDIT_FIND_IN_SUBTREE",       "CMD_FIND_IN_SUBTREE");
-    _deprecateCommand("EDIT_FIND_NEXT",             "CMD_FIND_NEXT");
-    _deprecateCommand("EDIT_FIND_PREVIOUS",         "CMD_FIND_PREVIOUS");
-    _deprecateCommand("EDIT_FIND_ALL_AND_SELECT",   "CMD_FIND_ALL_AND_SELECT");
-    _deprecateCommand("EDIT_ADD_NEXT_MATCH",        "CMD_ADD_NEXT_MATCH");
-    _deprecateCommand("EDIT_SKIP_CURRENT_MATCH",    "CMD_SKIP_CURRENT_MATCH");
-    _deprecateCommand("EDIT_REPLACE",               "CMD_REPLACE");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_FIND",                  "CMD_FIND");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_FIND_IN_SELECTED",      "CMD_FIND_IN_SELECTED");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_FIND_IN_SUBTREE",       "CMD_FIND_IN_SUBTREE");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_FIND_NEXT",             "CMD_FIND_NEXT");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_FIND_PREVIOUS",         "CMD_FIND_PREVIOUS");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_FIND_ALL_AND_SELECT",   "CMD_FIND_ALL_AND_SELECT");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_ADD_NEXT_MATCH",        "CMD_ADD_NEXT_MATCH");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_SKIP_CURRENT_MATCH",    "CMD_SKIP_CURRENT_MATCH");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_REPLACE",               "CMD_REPLACE");
 });
 

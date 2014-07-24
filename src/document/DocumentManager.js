@@ -116,20 +116,6 @@ define(function (require, exports, module) {
     var _openDocuments = {};
 
     /**
-     * Creates a deprecation warning event handler
-     * @param {!string} the event being deprecated
-     * @param {!string} the new event to use
-     */
-    function _deprecateEvent(oldEventName, newEventName) {
-        DeprecationWarning.deprecateEvent(exports,
-                                          MainViewManager,
-                                          oldEventName,
-                                          newEventName,
-                                          "DocumentManager." + oldEventName,
-                                          "MainViewManager." + newEventName);
-    }
-    
-    /**
      * Returns the existing open Document for the given file, or null if the file is not open ('open'
      * means referenced by the UI somewhere). If you will hang onto the Document, you must addRef()
      * it; see {@link getDocumentForPath()} for details.
@@ -138,10 +124,6 @@ define(function (require, exports, module) {
      */
     function getOpenDocumentForPath(fullPath) {
         var id;
-        
-        if (!fullPath) {
-            return null;
-        }
         
         // Need to walk all open documents and check for matching path. We can't
         // use getFileForPath(fullPath).id since the file it returns won't match
@@ -171,16 +153,6 @@ define(function (require, exports, module) {
     }
 
     
-    
-    /**
-     * closes the current document
-     * @deprecated use MainViewManager.doClose() instead
-     */
-    function clearCurrentDocument() {
-        DeprecationWarning.deprecationWarning("DocumentManager.clearCurrentDocument() has been deprecated. Use MainViewManager.doClose()", true);
-        MainViewManager.doClose(MainViewManager.FOCUSED_PANE, MainViewManager.getCurrentlyViewedFile());
-    }
-    
     /**
      * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
      * @deprecated Use MainViewManager.getPaneViewList() instead
@@ -188,7 +160,7 @@ define(function (require, exports, module) {
      */
     function getWorkingSet() {
         DeprecationWarning.deprecationWarning("Use MainViewManager.getPaneViewList() instead of DocumentManager.getWorkingSet()", true);
-        return MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE);
+        return MainViewManager.getPaneViewList(MainViewManager.ALL_PANES);
     }
 
     /**
@@ -203,30 +175,9 @@ define(function (require, exports, module) {
             DeprecationWarning.deprecationWarning("DocumentManager.findInWorkingSet() no longer supports an arbitrary array", true);
             return [];
         }
-        return MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, fullPath);
+        return MainViewManager.findInPaneViewList(MainViewManager.FOCUSED_PANE, fullPath);
     }
     
-    /**
-     * Removes a list of files from the working set and closes their respective editors
-     * @deprecated Use MainViewManager.removeListFromPaneViewList() instead
-     * @param {Array.<File>=} list of files to close and remove from the working set
-     
-     */
-    function removeListFromWorkingSet(list, clearCurrentDocument) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.removeListFromPaneViewList() instead of DocumentManager.removeListFromWorkingSet()", true);
-
-        if (!list) {
-            return;
-        }
-        
-        if (clearCurrentDocument) {
-            DeprecationWarning.deprecationWarning("clearCurrentDocument is not a supported option for MainViewManager.removeListFromPaneViewList() Use DocumentManager.clearCurrentDocument() instead", true);
-            clearCurrentDocument();
-        }
-        
-        MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, list);
-    }
-
     /**
      * Returns all Documents that are 'open' in the UI somewhere (for now, this means open in an
      * inline editor and/or a full-size editor). Only these Documents can be modified, and only
@@ -641,6 +592,20 @@ define(function (require, exports, module) {
         return null;
     }
     
+    /**
+     * Creates a deprecation warning event handler
+     * @param {!string} the event being deprecated
+     * @param {!string} the new event to use
+     */
+    function _deprecateEvent(oldEventName, newEventName) {
+        DeprecationWarning.deprecateEvent(exports,
+                                          MainViewManager,
+                                          oldEventName,
+                                          newEventName,
+                                          "DocumentManager." + oldEventName,
+                                          "MainViewManager." + newEventName);
+    }
+    
     /* 
      * Setup an extensionsReady handler to register deprecated events.  
      * We do this so these events are added to the end of the event
@@ -705,12 +670,10 @@ define(function (require, exports, module) {
     exports.addToWorkingSet                = addToWorkingSet;
     exports.addListToWorkingSet            = addListToWorkingSet;
     exports.removeFromWorkingSet           = removeFromWorkingSet;
-    exports.removeListFromWorkingSet       = removeListFromWorkingSet;
     exports.getCurrentDocument             = getCurrentDocument;
     exports.beginDocumentNavigation        = beginDocumentNavigation;
     exports.finalizeDocumentNavigation     = finalizeDocumentNavigation;
     exports.setCurrentDocument             = setCurrentDocument;
-    exports.clearCurrentDocument           = clearCurrentDocument;
     exports.closeFullEditor                = closeFullEditor;
     exports.closeAll                       = closeAll;
     

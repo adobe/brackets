@@ -156,7 +156,7 @@ define(function (require, exports, module) {
     function setAutomatic(enable) {
         _automaticSort = enable;
         PreferencesManager.setViewState("automaticSort", _automaticSort);
-        CommandManager.get(Commands.CMD_TOGGLE_AUTO_SORT).setChecked(_automaticSort);
+        CommandManager.get(Commands.CMD_SORT_PANE_VIEW_TOGGLE_AUTO).setChecked(_automaticSort);
         _currentSort.setChecked(enable);
         
         if (enable) {
@@ -198,7 +198,7 @@ define(function (require, exports, module) {
                 newSort.setChecked(true);
             }
             
-            CommandManager.get(Commands.CMD_TOGGLE_AUTO_SORT).setEnabled(!!newSort.getEvents());
+            CommandManager.get(Commands.CMD_SORT_PANE_VIEW_TOGGLE_AUTO).setEnabled(!!newSort.getEvents());
             PreferencesManager.setViewState(_PANE_SORT_PREF, newSort.getCommandID());
             _currentSort = newSort;
         }
@@ -324,7 +324,7 @@ define(function (require, exports, module) {
     
     
     /** 
-     * Command Handler for CMD_TOGGLE_AUTO_SORT
+     * Command Handler for CMD_SORT_PANE_VIEW_TOGGLE_AUTO
      * @private
      */
     function _handleToggleAutoSort() {
@@ -375,7 +375,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_ADDED, Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED, _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED));
     CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_NAME,  Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME,  _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME));
     CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,  Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,  _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE));
-    CommandManager.register(Strings.CMD_TOGGLE_AUTO_SORT,             Commands.CMD_TOGGLE_AUTO_SORT,             _handleToggleAutoSort);
+    CommandManager.register(Strings.CMD_SORT_PANE_VIEW_TOGGLE_AUTO,   Commands.CMD_SORT_PANE_VIEW_TOGGLE_AUTO,    _handleToggleAutoSort);
     
     
     /**

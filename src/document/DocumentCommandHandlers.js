@@ -133,14 +133,22 @@ define(function (require, exports, module) {
      * Updates the title bar with new file title or dirty indicator
      */
     function updateTitle() {
-        var currentlyViewedFile = MainViewManager.getCurrentlyViewedFile(),
-            currentlyViewedPath = currentlyViewedFile ? currentlyViewedFile.fullPath : null,
-            currentDoc = DocumentManager.getOpenDocumentForPath(currentlyViewedPath),
+        var currentlyViewedPath = MainViewManager.getCurrentlyViewedPath(),
+            currentDoc = currentlyViewedPath && DocumentManager.getOpenDocumentForPath(currentlyViewedPath),
             windowTitle = brackets.config.app_title;
 
-        if (_$title && _$dirtydot && _$titleWrapper) {
+        if (currentlyViewedPath) {
+            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, windowTitle);
+        }
+        if (currentDoc) {
+            windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
+        }
         
-            if (!brackets.nativeMenus) {
+        if (!brackets.nativeMenus) {
+            // MainViewManager could file a currentFileChanged event during its AppInit handler
+            //  which could happen before our AppInit handler has been executed so 
+            //  check that we have jQuery wrappers setup for the DOM elements for browser version
+            if (_$title && _$dirtydot && _$titleWrapper) {
                 if (currentlyViewedPath) {
                     _$title.text(_currentTitlePath);
                     _$title.attr("title", currentlyViewedPath);
@@ -172,25 +180,8 @@ define(function (require, exports, module) {
                     WorkspaceManager.recomputeLayout();
                 }
             }
-
-            // build shell/browser window title, e.g. "• file.html — Brackets"
-            if (currentlyViewedPath) {
-                windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, windowTitle);
-            }
-
-            if (currentDoc) {
-                windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
-            } else {
-                // hide dirty dot if there is no document
-                _$dirtydot.css("visibility", "hidden");
-            }
-        } else if (currentlyViewedPath) {
-            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, windowTitle);
-            if (currentDoc) {
-                windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
-            }
         }
-        
+
         // update shell/browser window title
         window.document.title = windowTitle;
     }
@@ -252,6 +243,7 @@ define(function (require, exports, module) {
      * Creates a document and displays an editor for the specified file path.
      * @param {!string} fullPath
      * @param {boolean=} silent If true, don't show error message
+     * @param {string=} pane
      * @return {$.Promise} a jQuery promise that will either
      * - be resolved with a document for the specified file path or
      * - be resolved without document, i.e. when an image is displayed or
@@ -272,7 +264,7 @@ define(function (require, exports, module) {
         function _cleanup(fullFilePath) {
             if (fullFilePath) {
                 // For performance, we do lazy checking of file existence, so it may be in pane view list
-                MainViewManager.removeFromPaneViewList(MainViewManager.FOCUSED_PANE, FileSystem.getFileForPath(fullFilePath));
+                MainViewManager.removeFromPaneViewList(paneId, FileSystem.getFileForPath(fullFilePath));
                 MainViewManager.forceFocusToActivePaneView();
             }
             result.reject();
@@ -320,7 +312,7 @@ define(function (require, exports, module) {
      * Creates a document and displays an editor for the specified file path.
      * If no path is specified, a file prompt is provided for input.
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
-     * @param {boolean=} silent - If true, don't show error message
+     * @param {?boolean} silent - If true, don't show error message
      * @param {string=} paneId - the pane in which to open the file
      * @return {$.Promise} a jQuery promise that will be resolved with a new
      * document for the specified file path or be resolved without document, i.e. when an image is displayed,
@@ -353,11 +345,6 @@ define(function (require, exports, module) {
                         
                         doOpen(filteredPaths[filteredPaths.length - 1], silent, paneId)
                             .done(function (file) {
-                                //  doc may be null, i.e. if an image has been opened.
-                                // Then we do not add the opened file to the pane view list.
-                                if (file) {
-                                    MainViewManager.addToPaneViewList(paneId, file);
-                                }
                                 _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(MainViewManager.getCurrentlyViewedPathForPane(paneId));
                             })
                             // Send the resulting document that was opened
@@ -408,9 +395,9 @@ define(function (require, exports, module) {
      */
     function handleFileOpen(commandData) {
         var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
-            silent = commandData ? commandData.silent : false,
-            paneId = commandData ? commandData.paneId : MainViewManager.FOCUSED_PANE;
-        return _doOpenWithOptionalPath(fileInfo.path, silent, paneId || MainViewManager.FOCUSED_PANE)
+            silent = (commandData && commandData.silent) || false,
+            paneId = (commandData && commandData.paneId) || MainViewManager.FOCUSED_PANE;
+        return _doOpenWithOptionalPath(fileInfo.path, silent, paneId)
             .always(function () {
                 // If a line and column number were given, position the editor accordingly.
                 if (fileInfo.line !== null) {
@@ -439,17 +426,17 @@ define(function (require, exports, module) {
     /**
      * Opens the given file, makes it the current document, AND adds it to the pane view list
      * only if the file does not have a custom viewer.
-     * @param {!{fullPath:string, index:number=, forceRedraw:boolean}} commandData  File to open; optional position in
+     * @param {!{fullPath:string, index:number=, forceRedraw:boolean, paneId:string=}} commandData  File to open; optional position in
      *   pane view list list (defaults to last); optional flag to force pane view list redraw
      */
-    function handleOpenDocumentInNewPane(commandData) {
+    function handleAddToPaneViewList(commandData) {
         return handleFileOpen(commandData).done(function (file) {
             // addToPaneViewList is synchronous
             // When opening a file with a custom viewer, we get a null doc.
             // So check it before we add it to the pane view list.
             if (file) {
-                var paneId = commandData ? commandData.paneId : MainViewManager.FOCUSED_PANE;
-                MainViewManager.addToPaneViewList(paneId || MainViewManager.FOCUSED_PANE, file, commandData.index, commandData.forceRedraw);
+                var paneId = (commandData && commandData.paneId) || MainViewManager.FOCUSED_PANE;
+                MainViewManager.addToPaneViewList(paneId, file, commandData.index, commandData.forceRedraw);
             }
         });
     }
@@ -770,7 +757,7 @@ define(function (require, exports, module) {
                     MainViewManager.removeFromPaneViewList(info.paneId, doc.file, true);
                     
                     // Add new file to pane view list, and ensure we now redraw (even if index hasn't changed)
-                    fileOpenPromise = handleOpenDocumentInNewPane({fullPath: path, paneId: info.paneId, index: info.index, forceRedraw: true});
+                    fileOpenPromise = handleAddToPaneViewList({fullPath: path, paneId: info.paneId, index: info.index, forceRedraw: true});
                 }
 
                 // always configure editor after file is opened
@@ -1000,7 +987,7 @@ define(function (require, exports, module) {
         var file,
             promptOnly,
             _forceClose,
-            paneId = MainViewManager.ALL_PANES;
+            paneId = MainViewManager.FOCUSED_PANE;
         
         if (commandData) {
             file        = commandData.file;
@@ -1110,7 +1097,6 @@ define(function (require, exports, module) {
     /**
      * @param {!Array.<FileEntry>} list
      * @param {boolean} promptOnly
-     * @param {boolean} clearCurrentDoc
      * @param {boolean} _forceClose Whether to force all the documents to close even if they have unsaved changes. For unit testing only.
      */
     function _closeList(list, promptOnly, _forceClose) {
@@ -1238,8 +1224,8 @@ define(function (require, exports, module) {
      * Common implementation for close/quit/reload which all mostly
      * the same except for the final step
      * @param {Object} commandData - (not referenced)
-     * @param {callback} postCloseHandler - called after close
-     * @param {callback} failHandler - called when the save fails to cancel closing the window
+     * @param {!function()} postCloseHandler - called after close
+     * @param {!function()} failHandler - called when the save fails to cancel closing the window
      */
     function _handleWindowGoingAway(commandData, postCloseHandler, failHandler) {
         if (_windowGoingAway) {
@@ -1589,7 +1575,7 @@ define(function (require, exports, module) {
 
     // Register global commands
     CommandManager.register(Strings.CMD_FILE_OPEN,              Commands.FILE_OPEN, handleFileOpen);
-    CommandManager.register(Strings.CMD_ADD_TO_PANE_VIEW_LIST,  Commands.CMD_ADD_TO_PANE_VIEW_LIST, handleOpenDocumentInNewPane);
+    CommandManager.register(Strings.CMD_ADD_TO_PANE_VIEW_LIST,  Commands.CMD_ADD_TO_PANE_VIEW_LIST, handleAddToPaneViewList);
     CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,      Commands.FILE_NEW_UNTITLED, handleFileNew);
     CommandManager.register(Strings.CMD_FILE_NEW,               Commands.FILE_NEW, handleFileNewInProject);
     CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,        Commands.FILE_NEW_FOLDER, handleNewFolderInProject);

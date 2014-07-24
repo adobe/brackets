@@ -363,7 +363,7 @@ define({
     "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"    : "Sort by Added",
     "CMD_SORT_PANE_VIEW_LIST_BY_NAME"     : "Sort by Name",
     "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"     : "Sort by Type",
-    "CMD_TOGGLE_AUTO_SORT"                : "Automatic Sort",
+    "CMD_SORT_PANE_VIEW_TOGGLE_AUTO"                : "Automatic Sort",
     "CMD_THEMES"                          : "Themes\u2026",
 
     // Navigate menu Commands

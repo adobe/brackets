@@ -41,24 +41,6 @@ define(function (require, exports, module) {
         DeprecationWarning  = require("utils/DeprecationWarning");
 
     /**
-     * @private
-     * Create a deprecation warning and action for updated menu constants
-     * @param {!string} old Menu Id
-     * @param {!string} new Menu Id
-     */
-    function _deprecateMenuId(obj, oldId, newId) {
-        var warning     = "Use Menus." + newId + " instead of Menus." + oldId,
-            newValue    = obj[newId];
-        
-        Object.defineProperty(obj, oldId, {
-            get: function () {
-                DeprecationWarning.deprecationWarning(warning, true);
-                return newValue;
-            }
-        });
-    }
-    
-    /**
      * Brackets Application Menu Constants
      * @enum {string}
      */
@@ -1194,8 +1176,8 @@ define(function (require, exports, module) {
     }
 
     // Deprecated menu ids
-    _deprecateMenuId(ContextMenuIds, "WORKING_SET_MENU", "PANE_VIEW_LIST_CONTEXT_MENU");
-    _deprecateMenuId(ContextMenuIds, "WORKING_SET_SETTINGS_MENU", "PANE_VIEW_LIST_CONFIG_MENU");
+    DeprecationWarning.deprecateConstant(ContextMenuIds, "WORKING_SET_MENU", "PANE_VIEW_LIST_CONTEXT_MENU");
+    DeprecationWarning.deprecateConstant(ContextMenuIds, "WORKING_SET_SETTINGS_MENU", "PANE_VIEW_LIST_CONFIG_MENU");
     
     // Define public API
     exports.AppMenuBar = AppMenuBar;

@@ -156,7 +156,7 @@ define(function (require, exports, module) {
 
         it("should sort list by type automatically", function () {
             // toggle the auto sort on
-            CommandManager.execute(Commands.CMD_TOGGLE_AUTO_SORT);
+            CommandManager.execute(Commands.CMD_SORT_PANE_VIEW_TOGGLE_AUTO);
 
             // open another file, which should be added and auto-sorted into the list
             openAndMakeDirty(testPath + "/file_one.js");
@@ -177,7 +177,7 @@ define(function (require, exports, module) {
 
         it("should not sort list by type automatically", function () {
             // toggle the auto sort off
-            CommandManager.execute(Commands.CMD_TOGGLE_AUTO_SORT);
+            CommandManager.execute(Commands.CMD_SORT_PANE_VIEW_TOGGLE_AUTO);
 
             // open another file, which should not be added and auto-sorted into the list
             openAndMakeDirty(testPath + "/file_three.js");

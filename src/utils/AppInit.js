@@ -30,6 +30,7 @@
  *
  * This module defines 2 methods for client modules to attach callbacks:
  *    - htmlReady - When the main application template is rendered
+ *    - extensionsRead - When the extension manager has loaded all extensions
  *    - appReady - When Brackets completes loading all modules and extensions
  *
  * These are *not* jQuery events. Each method is similar to $(document).ready
