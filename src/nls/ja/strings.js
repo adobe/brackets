@@ -475,7 +475,7 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
 	"EXTENSION_MANAGER_TITLE": "拡張機能マネージャー",
 	"EXTENSION_MANAGER_ERROR_LOAD": "拡張機能レジストリにアクセスできません。後でもう一度試してください。",
-	"INSTALL_EXTENSION_DRAG": "Drag .zip in here or",
+	"INSTALL_EXTENSION_DRAG": "Drag .zip here or",
 	"INSTALL_EXTENSION_DROP": "Drop .zip to install",
 	"INSTALL_EXTENSION_DROP_ERROR": "Install/Update aborted due to the following errors:",
 	"INSTALL_FROM_URL": "URL からインストール\u2026",
