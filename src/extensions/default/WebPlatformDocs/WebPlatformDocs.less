@@ -184,33 +184,33 @@ a.more-info {
 .dark {
     .css-prop-defn {
         color: @dark-bc-text-thin-quiet;
-    }
+        
+        h1, b {
+            color: @dark-bc-text;
+        }
 
-    h1, b {
-        color: @dark-bc-text;
-    }
+        a {
+            color: @dark-bc-text-link;
+        }
 
-    a {
-        color: @dark-bc-text-link;
-    }
+        code {
+            color: @dark-bc-text;
+        }
 
-    code {
-        color: @dark-bc-text;
-    }
+        dl dt {
+            color: @dark-bc-text;
+        }
 
-    dl dt {
-        color: @dark-bc-text;
-    }
+        .divider-holder .divider {
+            border-left: 1px solid @dark-bc-panel-separator;
+        }
 
-    .divider-holder .divider {
-        border-left: 1px solid @dark-bc-panel-separator;
-    }
-
-    a.more-info {
-        background-color: @dark-bc-btn-bg;
-        border: 1px solid @dark-bc-btn-border;
-        box-shadow: inset 0 1px 0 @dark-bc-highlight;
-        color: @dark-bc-text;
-        text-shadow: 0 1px 0 @dark-bc-highlight;
+        a.more-info {
+            background-color: @dark-bc-btn-bg;
+            border: 1px solid @dark-bc-btn-border;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight;
+            color: @dark-bc-text;
+            text-shadow: 0 1px 0 @dark-bc-highlight;
+        }
     }
 }
