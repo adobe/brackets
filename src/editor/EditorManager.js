@@ -542,7 +542,9 @@ define(function (require, exports, module) {
         return file ? file.fullPath : null;
     }
     
-  
+    function setEditorHolder() {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.getCurrentlyViewedFile() instead of EditorManager.getCurrentlyViewedPath().", true);
+    }
     
     /**
      * Registers a new custom viewer provider. To create an extension 
@@ -805,4 +807,5 @@ define(function (require, exports, module) {
     exports.resizeEditor                  = resizeEditor;
     exports.focusEditor                   = focusEditor;
     exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;
+    exports.setEditorHolder               = setEditorHolder;
 });

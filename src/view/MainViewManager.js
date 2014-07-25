@@ -465,9 +465,9 @@ define(function (require, exports, module) {
      * @private
      */
     function _doFindInViewList(paneId, fullPath, method) {
+        var result = -1;
         if (paneId === ALL_PANES) {
-            var index,
-                result = -1;
+            var index;
             
             _.forEach(_paneViews, function (pane) {
                 index = pane[method].call(pane, fullPath);
@@ -477,13 +477,13 @@ define(function (require, exports, module) {
                 }
             });
             
-            return result;
         } else {
             var pane = _getPaneFromPaneId(paneId);
             if (pane) {
                 return pane[method].call(pane, fullPath);
             }
         }
+        return result;
     }
 
     /**
@@ -555,10 +555,16 @@ define(function (require, exports, module) {
             return;
         }
         
-        var pane = _getPaneFromPaneId(paneId);
+        var pane = _getPaneFromPaneId(paneId),
+            existingPaneId = getPaneIdForPath(file.fullPath);
 
         if (!pane || !EditorManager.canOpenFile(file.fullPath) || (findInPaneViewList(ALL_PANES, file.fullPath) !== -1)) {
             return;
+        }
+        
+        // if it's already open in another pane, then just use that pane
+        if (existingPaneId && existingPaneId !== pane.id) {
+            pane = _getPaneFromPaneId(existingPaneId);
         }
         
         var result = pane.reorderItem(file, index, force);
@@ -585,8 +591,19 @@ define(function (require, exports, module) {
         }
         
         uniqueFileList = pane.addListToViewList(fileList);
-        
         $(exports).triggerHandler("paneViewListAddList", [uniqueFileList, pane.id]);
+        
+        // basically find all of the files that could be added but were not added to the pane 
+        //  this means they are already open in another pane
+        var unSolvedList = fileList.map(function(item) {
+            return (EditorManager.canOpenFile(item.fullPath) && pane.findInPaneViewList(item.fullPath) === -1);
+        });
+
+        // Use the pane id of the first one in the list that 
+        //  couldn't be added and recurse
+        if (unSolvedList.length) {
+            addListToPaneViewList(getPaneIdForPath(unSolvedList[0].fullPath), fileList);
+        }
     }
     
     /**

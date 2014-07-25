@@ -210,16 +210,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Adds the given file list to the end of the working set list. 
-     * @deprecated Use MainViewManager.addListToPaneViewList() instead 
-     * @param {!Array.<File>} fileList
-     */
-    function addListToWorkingSet(fileList) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.addListToPaneViewList() instead of DocumentManager.addListToWorkingSet()", true);
-        MainViewManager.addListToPaneViewList(MainViewManager.FOCUSED_PANE, fileList);
-    }
-
-    /**
      * Removes the given file from the working set list, if it was in the list. 
      * @deprecated Use MainViewManager.removeFromPaneViewList() instead 
      * @param {!File} file
@@ -230,6 +220,18 @@ define(function (require, exports, module) {
         MainViewManager.removeFromPaneViewList(MainViewManager.FOCUSED_PANE, file, suppressRedraw);
     }
 
+    
+    /**
+     * Removes a list of files from the working set and closes their respective editors
+     * @deprecated Use MainViewManager.removeListFromPaneViewList() instead
+     * @param {Array.<File>=} list of files to close and remove from the working set
+     
+     */
+    function removeListFromWorkingSet(list) {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.removeListFromPaneViewList() instead of DocumentManager.removeListFromWorkingSet()", true);
+        MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, list);
+    }
+        
     /**
      * closes all open files
      * @deprecated Use MainViewManager.doCloseAll() instead
@@ -252,7 +254,7 @@ define(function (require, exports, module) {
     
     /**
      * opens the specified document for editing in the currently active pane
-     * @deprecated use MainViewManger.doOpen() instead
+     * @deprecated use MainViewManger.doEdit() instead
      * @param {!Document} document  The Document to make current. 
      */
     function setCurrentDocument(doc) {
@@ -264,7 +266,7 @@ define(function (require, exports, module) {
     
     /**
      * freezes the Working Set MRU list 
-     * @deprecated use MainViewManger.doOpen() instead
+     * @deprecated use MainViewManger.beginTraversal() instead
      */
     function beginDocumentNavigation() {
         DeprecationWarning.deprecationWarning("Use MainViewManager.beginTraversal() instead of DocumentManager.beginDocumentNavigation()", true);
@@ -280,6 +282,15 @@ define(function (require, exports, module) {
         MainViewManager.endTraversal();
     }
     
+    /**
+     * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
+     * return currentDocument itself if working set is length 1.
+     * @deprecated use MainViewManger.traversePaneViewListByMRU() instead
+     */
+    function getNextPrevFile(inc) {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.traversePaneViewListByMRU() instead of DocumentManager.getNextPrevFile()", true);
+        return MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, inc);
+    }    
     
     /**
      * Cleans up any loose Documents whose only ref is its own master Editor, and that Editor is not
@@ -669,7 +680,7 @@ define(function (require, exports, module) {
     exports.findInWorkingSet               = findInWorkingSet;
     exports.addToWorkingSet                = addToWorkingSet;
     exports.addListToWorkingSet            = addListToWorkingSet;
-    exports.removeFromWorkingSet           = removeFromWorkingSet;
+    exports.removeListFromWorkingSet       = removeListFromWorkingSet;
     exports.getCurrentDocument             = getCurrentDocument;
     exports.beginDocumentNavigation        = beginDocumentNavigation;
     exports.finalizeDocumentNavigation     = finalizeDocumentNavigation;
