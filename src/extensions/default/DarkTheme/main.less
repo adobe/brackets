@@ -50,7 +50,7 @@
 
 /* Define some variables used in multiple places */
 @background: #1d1f21;
-@foreground: #c5c8c6;
+@foreground: #ddd;
 @bc-color-step-size: 10%;
 
 /* Code Styling */
@@ -104,8 +104,8 @@
     border-right: none;
 }
 
-.CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt, .CodeMirror-linenumber {
-    color: #767676;
+.CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
+    color: #fff;
 }
 
 .CodeMirror .CodeMirror-selected {
@@ -135,4 +135,15 @@
 
 .inline-widget .CodeMirror, .inline-widget .CodeMirror-gutters {
     background: transparent;
+}
+
+/* Non-editor styling */
+
+#image-holder,
+#not-editor {
+    background-color: @background;
+}
+
+#image-holder {
+    color: @foreground;
 }
