@@ -37,7 +37,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Load dependent non-module scripts
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
@@ -59,7 +59,7 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/addon/search/match-highlighter");
     require("thirdparty/CodeMirror2/addon/search/searchcursor");
     require("thirdparty/CodeMirror2/keymap/sublime");
-    
+
     // Load dependent modules
     var Global                  = require("utils/Global"),
         AppInit                 = require("utils/AppInit"),
