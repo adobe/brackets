@@ -50,7 +50,7 @@
 
 /* Define some variables used in multiple places */
 @background: #1d1f21;
-@foreground: #c5c8c6;
+@foreground: #ddd;
 @bc-color-step-size: 10%;
 
 /* Code Styling */
@@ -137,8 +137,13 @@
     background: transparent;
 }
 
-/* No editor styling */
+/* Non-editor styling */
 
+#image-holder,
 #not-editor {
     background-color: @background;
+}
+
+#image-holder {
+    color: @foreground;
 }
