@@ -251,11 +251,14 @@
     top: 20px;
     left: 170px;
     width: 400px;
-    margin-left: 20px;
 
     font-family: SourceSansPro;
     font-size: 11px;
     line-height: 2.2 !important;
+}
+
+.step-editor .info {
+    left: 205px;
 }
 
 .bezier-curve-editor kbd,
@@ -287,6 +290,7 @@
     font-size: 13px;
     display: none;
     opacity: 1;
+    line-height: 1.5 !important;
 }
 
 .bezier-curve-editor .info .hint.fadeout,
@@ -300,6 +304,7 @@
 @dark-bc-bg-highlight: #1671db;
 @dark-bc-highlight: rgba(255, 255, 255, 0.06);
 @dark-bc-text: #ddd;
+@dark-bc-text-alt: #fff;
 @dark-bc-highlight-hard: rgba(255, 255, 255, 0.1);
 @dark-bc-btn-bg: #3f3f3f;
 @dark-bc-btn-border: #202020;
@@ -352,6 +357,10 @@
 
     .step-editor {
         color: @dark-bc-text;
+        
+        code {
+            color: @dark-bc-text-alt;
+        }
 
         kbd {
             background: #3D3D3D;
