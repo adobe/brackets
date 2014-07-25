@@ -88,7 +88,7 @@ define(function (require, exports, module) {
         var perfTimerName;
         if (!_curDocChangedDueToMe) {
             perfTimerName = PerfUtils.markStart("FileViewController._onCurrentFileChanged():\t" + (file ? (file.fullPath) : "(no open file)"));
-            if (!file || MainViewManager.findInPaneViewList(paneId,  file.fullPath) !== -1) {
+            if (file && MainViewManager.findInPaneViewList(paneId,  file.fullPath) !== -1) {
                 _fileSelectionFocus = PANE_VIEW_LIST_VIEW;
             } else {
                 _fileSelectionFocus = PROJECT_MANAGER;

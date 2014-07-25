@@ -218,7 +218,7 @@ define(function (require, exports, module) {
     Pane.prototype.mergeWith = function (other) {
         // hide the current views and show the interstitial page
         other.showInterstitial(true);
-
+        
         // Copy the File lists
         this._viewList = _.union(this._viewList, other._viewList);
         this._viewListMRUOrder = _.union(this._viewListMRUOrder, other._viewListMRUOrder);
@@ -457,6 +457,7 @@ define(function (require, exports, module) {
         if (view) {
             if (this._currentView === view) {
                 this.showInterstitial(true);
+                this._currentView = null;
             }
             delete this._views[file.fullPath];
             view.destroy();
@@ -642,10 +643,6 @@ define(function (require, exports, module) {
      * @param {boolean} show - show or hide the interstitial page
      */
     Pane.prototype.showInterstitial = function (show) {
-        if (this._currentView) {
-            this._currentView.setVisible(false);
-            this._currentView = null;
-        }
         if (this.$el) {
             this.$el.find(".not-editor").css("display", (show) ? "" : "none");
         }
@@ -803,13 +800,17 @@ define(function (require, exports, module) {
     Pane.prototype.doRemoveView = function (file) {
         var nextFile = this.traverseViewListByMRU(1, file.fullPath);
         if (nextFile && nextFile.fullPath !== file.fullPath) {
-            var fullPath = nextFile.fullPath;
-            if (this._views.hasOwnProperty(fullPath)) {
-                this.showView(this._views[fullPath]);
-            } else {
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath,
-                                                             paneId: this.id});
+            var fullPath = nextFile.fullPath,
+                needOpenNextFile = this._views.hasOwnProperty(fullPath);
+            
+            if (this._removeFromViewList(file)) {
+                if (needOpenNextFile) {
+                    CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath,
+                                                                 paneId: this.id});
+                }
+                return true;
             }
+            return false;
         }
         return this._removeFromViewList(file);
     };

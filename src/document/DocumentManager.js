@@ -305,7 +305,7 @@ define(function (require, exports, module) {
     function getNextPrevFile(inc) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.traversePaneViewListByMRU() instead of DocumentManager.getNextPrevFile()", true);
         return MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, inc);
-    }    
+    }
     
     /**
      * Cleans up any loose Documents whose only ref is its own master Editor, and that Editor is not
@@ -492,7 +492,7 @@ define(function (require, exports, module) {
         
         // At this point, all those other views SHOULD have released the Doc
         if (doc && doc._refCount > 0) {
-            console.log("WARNING: deleted Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
+            console.warn("Deleted " + file.fullPath + " Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
         }
 
         $(exports).triggerHandler("pathDeleted", file.fullPath);
