@@ -165,7 +165,7 @@ define({
     "FIND_REPLACE_TITLE_LABEL"          : "Ersetze",
     "FIND_REPLACE_TITLE_WITH"           : "mit",
     "FIND_TITLE_LABEL"                  : "",
-    "FIND_TITLE_SUMMARY"                : " gefunden &mdash; {0} {1} {2} in {3}",
+    "FIND_TITLE_SUMMARY"                : "gefunden &mdash; {0} {1} {2} in {3}",
 
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} {1}",

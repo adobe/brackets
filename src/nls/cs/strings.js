@@ -37,9 +37,14 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "Cílová složka nemůže být změněna.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Oprávnění neumožní provádět změny.",
     "CONTENTS_MODIFIED_ERR"             : "Soubor byl změněn mimo aplikaci {APP_NAME}.",
+    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} v této chvíli podporuje pouze UTF-8 textové soubory.",
     "FILE_EXISTS_ERR"                   : "Soubor již existuje.",
     "FILE"                              : "Soubor",
     "DIRECTORY"                         : "Složka",
+    "DIRECTORY_NAMES_LEDE"              : "Názvy složek",
+    "FILENAMES_LEDE"                    : "Názvy souborů",
+    "FILENAME"                          : "název souboru",
+    "DIRECTORY_NAME"                    : "název složky",
 
     // Řetězce chyb projektu
     "ERROR_LOADING_PROJECT"             : "Chyba při otevírání projektu",
@@ -61,7 +66,7 @@ define({
     "ERROR_DELETING_FILE"               : "Došlo k chybě při mazání souboru <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Špatné jméno souboru",
     "INVALID_FILENAME_MESSAGE"          : "Jméno souboru nemůže obsahovat znaky: /?*:;{}<>\\|",
-    "FILE_ALREADY_EXISTS"               : "Soubor <span class='dialog-filename'>{0}</span> již existuje.",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "Soubor nebo složka se jménem <span class='dialog-filename'>{0}</span> již existuje.",
     "ERROR_CREATING_FILE_TITLE"         : "Chyba při tvorbě souboru",
     "ERROR_CREATING_FILE"               : "Došlo k chybě při vytváření souboru <span class='dialog-filename'>{0}</span>. {1}",
 
@@ -117,6 +122,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> byl smazán z disku, ale změny nebyly uloženy v {APP_NAME}.<br /><br />Chcete uložit změny?",
 
     // Obecné označení - dialogy, tlačítka
+    "DONE"                              : "Hotovo",
     "OK"                                : "OK",
     "CANCEL"                            : "Zrušit",
     "DONT_SAVE"                         : "Neukládat",
@@ -126,21 +132,25 @@ define({
     "DELETE"                            : "Smazat",
     "BUTTON_YES"                        : "Ano",
     "BUTTON_NO"                         : "Ne",
-  
+
     // Find, Replace, Find in Files
     "FIND_RESULT_COUNT"                 : "{0} výsledků",
     "FIND_RESULT_COUNT_SINGLE"          : "1 výsledek",
     "FIND_NO_RESULTS"                   : "Žádné výsledky",
+    "FIND_QUERY_PLACEHOLDER"            : "Najít\u2026",
     "REPLACE_PLACEHOLDER"               : "Nahradit s\u2026",
     "BUTTON_REPLACE_ALL"                : "Vše\u2026",
+    "BUTTON_REPLACE_ALL_IN_FILES"       : "Nahradit\u2026",
     "BUTTON_REPLACE"                    : "Nahradit",
-
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Další shoda",
     "BUTTON_PREV_HINT"                  : "Předchozí shoda",
     "BUTTON_CASESENSITIVE_HINT"         : "Rozlišovat velká a malá písmena",
     "BUTTON_REGEXP_HINT"                : "Regulární výraz",
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Nahradit bez možnosti vrátit změny",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Protože musí být změněno více než {0} souborů, {APP_NAME} změní neotevřené soubory na disku.<br />Nebude možné vrátit změny v těchto souborech.",
+    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Nahradit bez možnosti vrátit změny",
 
     "OPEN_FILE"                         : "Otevřít soubor",
     "SAVE_FILE_AS"                      : "Uložit soubor",
@@ -150,15 +160,14 @@ define({
     "NO_UPDATE_TITLE"                   : "Vše je aktuální!",
     "NO_UPDATE_MESSAGE"                 : "Verze {APP_NAME} je aktuální.",
 
-    // Nahradit vše (v jednom souboru)
-    "FIND_REPLACE_TITLE_PART1"          : "Nahradit \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" s \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+    // Find and Replace
+    "FIND_REPLACE_TITLE_LABEL"          : "Nahradit",
+    "FIND_REPLACE_TITLE_WITH"           : "s",
+    "FIND_TITLE_LABEL"                  : "Nalezeno",
+    "FIND_TITLE_SUMMARY"                : " &mdash; {0} {1} {2} in {3}",
 
     // Najít v souborech
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" nalezen",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} v {3} {4}",
+    "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "v <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "v projektu",
     "FIND_IN_FILES_ZERO_FILES"          : "Filtr vyloučil všechny soubory {0}",
@@ -170,17 +179,22 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "Soubor: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd klik pro rozbalení/zbalení všeho",
+    "REPLACE_IN_FILES_ERRORS_TITLE"     : "Nahradit chyby",
+    "REPLACE_IN_FILES_ERRORS"           : "Následující soubory nebyly změněny, protože se změnily po hledání nebo do nich nelze zapisovat.",
+
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Chyba při získávání informací o aktualizaci",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Nelze získat aktualizace. Ujistěte se, že máte připojení na internet a zkuste to znovu.",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Nelze získat aktualizace. Ujistěte se, že máte připojení k internetu a zkuste to znovu.",
 
     // Filtry vyloučení souborů
+    "NEW_FILE_FILTER"                   : "Nová řada vyloučených souborů",
+    "CLEAR_FILE_FILTER"                 : "Nevylučovat soubory",
     "NO_FILE_FILTER"                    : "Vyloučit soubory\u2026",
+    "EXCLUDE_FILE_FILTER"               : "Vyloučit {0}",
     "EDIT_FILE_FILTER"                  : "Upravit\u2026",
     "FILE_FILTER_DIALOG"                : "Upravit filtr",
     "FILE_FILTER_INSTRUCTIONS"          : "Vyloučit soubory a složky, které obsahují jakýkoliv z následujících řetězců / podřetězců nebo <a href='{0}' title='{0}'>vzorků</a>. Vložte každý řetězec na nový řádek.",
-    "FILE_FILTER_LIST_PREFIX"           : "mimo",
+    "FILTER_NAME_PLACEHOLDER"           : "Pojmenujte řadu vyloučených souborů (nepovinné)",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "a {0} více",
-
     "FILTER_COUNTING_FILES"             : "Počítání souborů\u2026",
     "FILTER_FILE_COUNT"                 : "Povolit {0} z {1} souborů {2}",
     "FILTER_FILE_COUNT_ALL"             : "Povolit všechny {0} soubory {1}",
@@ -200,8 +214,8 @@ define({
     /**
      * Správce projektu
      */
-    "PROJECT_LOADING" : "Načítání\u2026",
-    "UNTITLED" : "Nový",
+    "PROJECT_LOADING"   : "Načítání\u2026",
+    "UNTITLED"          : "Nový",
     "WORKING_FILES"     : "Pracovní soubory",
 
     /**
@@ -268,7 +282,6 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Uložit vše",
     "CMD_FILE_SAVE_AS"                    : "Uložit jako\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Živý náhled",
-    "CMD_LIVE_HIGHLIGHT"                  : "Živé zvýraznění",
     "CMD_PROJECT_SETTINGS"                : "Nastavení projektu\u2026",
     "CMD_FILE_RENAME"                     : "Přejmenovat",
     "CMD_FILE_DELETE"                     : "Smazat",
@@ -288,19 +301,9 @@ define({
     "CMD_PASTE"                           : "Vložit",
     "CMD_SELECT_ALL"                      : "Vybrat vše",
     "CMD_SELECT_LINE"                     : "Vybrat řádek",
-    "CMD_FIND"                            : "Najít",
     "CMD_SPLIT_SEL_INTO_LINES"            : "Rozdělit výběr na řádky",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "Přidat kurzor na další řádek",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "Přidat kurzor na předcházející řádek",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Najít\u2026",
-    "CMD_FIND_IN_FILES"                   : "Najít v souborech",
-    "CMD_FIND_IN_SUBTREE"                 : "Najít v\u2026",
-    "CMD_FIND_NEXT"                       : "Najít další",
-    "CMD_FIND_PREVIOUS"                   : "Najít předchozí",
-    "CMD_FIND_ALL_AND_SELECT"             : "Najít vše a vybrat",
-    "CMD_ADD_NEXT_MATCH"                  : "Přidat další shodu do výběru",
-    "CMD_SKIP_CURRENT_MATCH"              : "Přeskočit a přidat další shodu do výběru",
-    "CMD_REPLACE"                         : "Nahradit",
     "CMD_INDENT"                          : "Odsadit",
     "CMD_UNINDENT"                        : "Vrátit odsazení",
     "CMD_DUPLICATE"                       : "Duplikovat",
@@ -314,6 +317,22 @@ define({
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Uzavírat závorky",
     "CMD_SHOW_CODE_HINTS"                 : "Zobrazit nápovědu",
 
+    //Příkazy menu Najít
+    "FIND_MENU"                           : "Najít",
+    "CMD_FIND"                            : "Najít",
+    "CMD_FIND_NEXT"                       : "Najít další",
+    "CMD_FIND_PREVIOUS"                   : "Najít předchozí",
+    "CMD_FIND_ALL_AND_SELECT"             : "Najít vše a vybrat",
+    "CMD_ADD_NEXT_MATCH"                  : "Přidat další shodu do výběru",
+    "CMD_SKIP_CURRENT_MATCH"              : "Přeskočit a přidat další shodu do výběru",
+    "CMD_FIND_IN_FILES"                   : "Najít v souborech",
+    "CMD_FIND_IN_SELECTED"                : "Najít ve vybraném souboru/složce",
+    "CMD_FIND_IN_SUBTREE"                 : "Najít v\u2026",
+    "CMD_REPLACE"                         : "Nahradit",
+    "CMD_REPLACE_IN_FILES"                : "Nahradit v souborech",
+    "CMD_REPLACE_IN_SELECTED"             : "Nahradit ve vybraném souboru/složce",
+    "CMD_REPLACE_IN_SUBTREE"              : "Nahradit v\u2026",
+
     // Příkazy menu Zobrazit
     "VIEW_MENU"                           : "Zobrazit",
     "CMD_HIDE_SIDEBAR"                    : "Skrýt boční menu",
@@ -326,6 +345,7 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Čísla řádků",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Zvýraznit aktivní řádek",
     "CMD_TOGGLE_WORD_WRAP"                : "Zalomit řádky",
+    "CMD_LIVE_HIGHLIGHT"                  : "Živé zvýraznění",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint soubory při uložení",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Řadit podle data",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Řadit podle jména",
@@ -346,9 +366,10 @@ define({
     "CMD_NEXT_DOC"                        : "Další dokument",
     "CMD_PREV_DOC"                        : "Předchozí dokument",
     "CMD_SHOW_IN_TREE"                    : "Zobrazit stromovou strukturu",
-    "CMD_SHOW_IN_OS"                      : "Zobrazit v OS",
     "CMD_SHOW_IN_EXPLORER"                : "Zobrazit v průzkumníkovi",
-    "CMD_SHOW_IN_FINDER"                  : "Zobrazit ve Finderu",
+    "CMD_SHOW_IN_FINDER"                  : "Zobrazit ve vyhledávači",
+    "CMD_SHOW_IN_OS"                      : "Zobrazit v OS",
+
 
     // Příkazy menu nápověda
     "HELP_MENU"                           : "Nápověda",
@@ -359,6 +380,7 @@ define({
     "CMD_GET_INVOLVED"                    : "Zapojte se",
     "CMD_RELEASE_NOTES"                   : "Poznámky k verzi",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s doplňky",
+    "CMD_HOMEPAGE"                        : "{APP_TITLE} domovská stránka",
     "CMD_TWITTER"                         : "{TWITTER_NAME} - Twitter",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Otevřít soubor s preferencemi",
@@ -373,6 +395,7 @@ define({
     "ABOUT"                                : "O aplikaci",
     "CLOSE"                                : "Zavřít",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_BUILD_TIMESTAMP"           : "vytvořeno: ",
     "ABOUT_TEXT_LINE3"                     : "Oznámení, podmínky týkající se software třetích stran jsou umístěny na <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> a začleněny prostřednictvím odkazu zde.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentace a zdrojový kód na <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>.",
     "ABOUT_TEXT_LINE5"                     : "Vytvořeno s \u2764 a pomocí JavaScript těmito lidmi:",
@@ -490,6 +513,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                          : "Nástroje",
+    "ERRORS"                              : "Chyby",
     "CMD_SHOW_DEV_TOOLS"                  : "Zobrazit nástroje pro vývojáře",
     "CMD_REFRESH_WINDOW"                  : "Restartovat {APP_NAME}",
     "CMD_RELOAD_WITHOUT_USER_EXTS"        : "Restartovat bez doplňků",
@@ -500,6 +524,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"            : "Povolit Node Debugger",
     "CMD_LOG_NODE_STATE"                  : "Uložit stav Node do konzole",
     "CMD_RESTART_NODE"                    : "Restartovat Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"       : "Zobrazit chyby ve stavovém řádku",
 
     "LANGUAGE_TITLE"                      : "Změnit jazyk",
     "LANGUAGE_MESSAGE"                    : "Prosím, vyberte jazyk ze seznamu:",
@@ -541,4 +566,4 @@ define({
     "DOCS_MORE_LINK"                            : "Více"
 });
 
-/* Last translated for c3411bb7f686f98381b18e729c097b6c5e270694 */
+/* Last translated for da9a2e1e5405d6ee5ec46dfa31003b1915d0766a */

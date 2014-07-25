@@ -2,7 +2,8 @@
     <tbody>
         {{#searchList}}
         <tr class="file-section" data-file-index="{{fileIndex}}">
-            <td colspan="{{#replace}}3{{/replace}}{{^replace}}2{{/replace}}">
+            {{#replace}}<td class="checkbox-column"><input type="checkbox" class="check-one-file" {{#isChecked}}checked="true"{{/isChecked}} /></td>{{/replace}}
+            <td colspan="2">
                 <span class="disclosure-triangle expanded" title="{{Strings.FIND_IN_FILES_EXPAND_COLLAPSE}}"></span>
                 {{{filename}}}
             </td>

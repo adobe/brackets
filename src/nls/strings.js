@@ -46,6 +46,7 @@ define(function (require, exports, module) {
         "fa-ir": true,
         "fi": true,
         "fr": true,
+        "gl": true,
         "hr": true,
         "hu": true,
         "id": true,
@@ -63,6 +64,7 @@ define(function (require, exports, module) {
         "sr": true,
         "sv": true,
         "tr": true,
-        "zh-cn": true
+        "zh-cn": true,
+        "zh-tw": true
     };
 });

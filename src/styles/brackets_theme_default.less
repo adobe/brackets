@@ -144,9 +144,7 @@
  */
 .code-font() {
     color: @content-color;
-    font-size: 12px;
     line-height: 1.25;
-    font-family: "SourceCodePro-Medium", "ＭＳ ゴシック", "MS Gothic", monospace;
 }
 
 .code-font-win() {
@@ -163,6 +161,161 @@
     // to make an I-cursor, use something like this:
     border-left: 1px solid black !important;
 
+}
+
+/* Dark theme styling
+ * 
+ * These are overrides to make the UI look better when the editor theme is dark.
+ * Eventually, these will likely be replaced by full-featured UI themes.
+ */
+
+@dark-bc-bg-highlight: #1671db;
+@dark-bc-highlight: rgba(255, 255, 255, 0.06);
+@dark-bc-text: #ddd;
+@dark-bc-highlight-hard: rgba(255, 255, 255, 0.1);
+@dark-bc-btn-bg: #3f3f3f;
+@dark-bc-btn-bg-down: #222;
+@dark-bc-btn-border: #202020;
+@dark-bc-btn-border-focused: #2893ef;
+@dark-bc-btn-border-focused-glow: transparent;
+@dark-bc-shadow: rgba(0, 0, 0, 0.24);
+@dark-bc-shadow-small: rgba(0, 0, 0, 0.06);
+@dark-bc-shadow-medium: rgba(0, 0, 0, 0.12);
+@dark-bc-input-bg: #555;
+@dark-bc-inline-widget: #1b1b1b;
+
+.dark {
+    .inline-widget {
+        color: @dark-bc-text;
+        background-color: @dark-bc-inline-widget;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+        .inline-editor-header {
+            .filename {
+                color: #fff;
+
+                .dirty-indicator {
+                    color: #aaa;
+                }
+
+                .line-number {
+                    color: #bbb;
+                }
+            }
+        }
+
+        .btn {
+            background-color: @dark-bc-btn-bg;
+            color: @dark-bc-text;
+            border: 1px solid @dark-bc-btn-border;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight;
+
+            &:hover {
+                background-color: @dark-bc-btn-bg;
+                color: @dark-bc-text;
+            }
+
+            &:focus {
+                border: 1px solid @dark-bc-btn-border-focused;
+                box-shadow: inset 0 1px 0 @dark-bc-highlight, 0 0 0 1px @dark-bc-btn-border-focused-glow;
+                color: @dark-bc-text;
+            }
+
+            &:active:not([disabled]) {
+                background-color: @dark-bc-btn-bg-down;
+                box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+                color: @dark-bc-text;
+            }
+        }
+
+        .close {
+            color: #ddd;
+        }
+            
+        .CodeMirror-scroll {
+            .CodeMirror-linenumbers {
+                background-color: @dark-bc-inline-widget;
+            }
+        }            
+        
+    }
+
+    .related-container {
+        background: #2c2c2c;
+
+        .selection {
+            background: #494a4b;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .selection:before {
+            border-left: @inline-triangle-size solid @dark-bc-inline-widget;
+        }
+
+        .related {
+            li {
+                color: #fff;
+
+                .related-file {
+                    color: #bbb;
+                }
+            }
+
+            .selected {
+                color: #fff;
+            }
+        }
+
+        .inline-editor-message {
+            color: #bbb;
+        }
+    }
+    
+    /* Custom scrollbar colors */
+    &.platform-win {
+        .CodeMirror-scrollbar-filler,
+        .CodeMirror-gutter-filler {
+            background-color: rgb(15, 15, 15);
+        }
+        
+        // Note: when changing padding/margins, may need to adjust metrics in ScrollTrackMarkers.js
+        
+        #editor-holder {
+            ::-webkit-scrollbar {
+                background-color: rgb(15, 15, 15);
+            }
+
+            ::-webkit-scrollbar-thumb {
+                box-shadow: 0 0 0 12px rgb(49, 49, 49) inset;
+            }
+            ::-webkit-scrollbar-thumb:hover,
+            ::-webkit-scrollbar-thumb:focus {
+                box-shadow: 0 0 0 12px rgb(89, 89, 89) inset;
+            }
+            ::-webkit-scrollbar-thumb:active {
+                box-shadow: 0 0 0 12px rgb(169, 169, 169) inset;
+            }
+        }
+    }
+
+    &.platform-linux {
+        .CodeMirror-scrollbar-filler,
+        .CodeMirror-gutter-filler {
+            background-color: #1d1f21;
+        }
+        
+        #editor-holder {
+            ::-webkit-scrollbar-thumb {
+                box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.24) inset;
+            }
+
+            ::-webkit-scrollbar-thumb:window-inactive {
+                box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.12) inset;
+            }
+        }
+    }
 }
 
 /* Variables and Mixins for non-code UI elements that can be styled */

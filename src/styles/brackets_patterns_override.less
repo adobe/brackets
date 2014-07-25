@@ -51,7 +51,6 @@ a:hover {
 a:focus {
     color: @tc-link-hover;
     outline: 0;
-    border-radius: 3px;
     box-shadow: @tc-input-glow;
     text-decoration: none;
 }
@@ -514,9 +513,33 @@ a:focus {
     &.dropdown-menu a:not(.selected):hover {
         background: none;
     }
-    
+
     .divider {
         margin: 5px 1px;
+    }
+
+}
+
+/* Status bar language picker's DropdownButton */
+.dropdownbutton-popup.dropdown-status-bar {
+    -webkit-transform-origin: 0 100%;
+    height: auto;
+    max-height: 80%;
+    
+    // Improve how bottom of the dropdown joins with top of status bar button
+    margin-top: -6px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    
+    li a .default-language {
+        font-style: italic;
+        color: @tc-quiet-text;
+    }
+
+    li a .checked-language::before {
+        content: "✓";
+        margin-left: -11px;
+        margin-right: 3px;
     }
 }
 
@@ -948,7 +971,7 @@ a[href^="http"] {
                 .user-select(text);
                 cursor: text;
             }
-            .ext-keywords {
+            .ext-translated {
                 color: @tc-input-placeholder-text;
             }
             .muted {
@@ -1145,6 +1168,8 @@ input[type="color"],
     .border-radius(@tc-control-border-radius);
     box-shadow: @tc-button-highlight;
     -webkit-font-smoothing: antialiased;
+    text-shadow: none;
+
 
     &:hover {
         background-color: @tc-button-background;
@@ -1364,6 +1389,7 @@ input[type="checkbox"]:active:not(:disabled) {
     box-shadow: @tc-button-down-shadow;
 }
 
+select:focus,
 input[type="checkbox"]:focus {
     outline:none;
     border: 1px solid @tc-gray-component-focused-border;
@@ -1380,3 +1406,41 @@ input[type="checkbox"]:checked:before {
     top: -7px;
     font-size: 16px;
 }
+
+code {
+    border: none;
+}
+
+
+.close {
+    color: #333;
+    text-shadow: none;
+    opacity: 0.7;
+    filter: alpha(opacity=70);
+}
+
+.close:hover {
+    color: #333;
+    opacity: 1;
+    filter: alpha(opacity=100);
+}
+
+.dropdown-menu {
+    background-color: #fff;
+    color: #000;
+    
+    .divider {
+        background-color: #eaeaea;
+        border: none;
+    }
+}
+
+.form-horizontal {
+    .controls {
+        margin-left: 170px;
+        
+        input[type='checkbox'] {
+             margin-top: 8px;
+         }
+     }
+ }
