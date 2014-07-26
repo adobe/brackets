@@ -487,6 +487,7 @@ define({
     "EXTENSION_NO_DESCRIPTION"             : "Keine Beschreibung",
     "EXTENSION_MORE_INFO"                  : "Mehr Informationen\u2026",
     "EXTENSION_ERROR"                      : "Erweiterungs-Fehler",
+    "EXTENSION_KEYWORDS"                   : "Schlüsselwörter",
     "EXTENSION_TRANSLATED_USER_LANG"       : "In {0} Sprachen, inklusive Ihrer, übersetzt",
     "EXTENSION_TRANSLATED_GENERAL"         : "In {0} Sprachen übersetzt",
     "EXTENSION_TRANSLATED_LANGS"           : "Die Erweiterung wurde in diese Sprachen übersetzt: {0}",
@@ -587,4 +588,4 @@ define({
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
 
-/* Last translated for 3a762c3cf91d6f65a5bb19aeb2056afacd777c71 */
+/* Last translated for 2f5acd9c6fb21330cad0dae16e26bf659859583e */
