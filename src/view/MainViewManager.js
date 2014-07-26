@@ -555,6 +555,7 @@ define(function (require, exports, module) {
             return;
         }
         
+        // look for the file to have already been added to another pane
         var pane = _getPaneFromPaneId(paneId),
             existingPaneId = getPaneIdForPath(file.fullPath);
 
@@ -593,16 +594,16 @@ define(function (require, exports, module) {
         uniqueFileList = pane.addListToViewList(fileList);
         $(exports).triggerHandler("paneViewListAddList", [uniqueFileList, pane.id]);
         
-        // basically find all of the files that could be added but were not added to the pane 
-        //  this means they are already open in another pane
-        var unSolvedList = fileList.map(function(item) {
-            return (EditorManager.canOpenFile(item.fullPath) && pane.findInPaneViewList(item.fullPath) === -1);
+        //  find all of the files that could be added but were not added to the pane that was passed to us
+        var unsolvedList = fileList.filter(function (item) {
+            // if the file open in another pane, then add it to the list of unsolvedList
+            return (pane.findInViewList(item.fullPath) === -1 && getPaneIdForPath(item.fullPath));
         });
 
-        // Use the pane id of the first one in the list that 
-        //  couldn't be added and recurse
-        if (unSolvedList.length) {
-            addListToPaneViewList(getPaneIdForPath(unSolvedList[0].fullPath), fileList);
+        // Use the pane id of the first one in the list that couldn't be added as the pane id and recurse
+        //  if we add more panes, then this will recurse until all items in the list are satisified
+        if (unsolvedList.length) {
+            addListToPaneViewList(getPaneIdForPath(unsolvedList[0].fullPath), unsolvedList);
         }
     }
     
@@ -972,7 +973,7 @@ define(function (require, exports, module) {
     function doOpen(paneId, file) {
         var result = new $.Deferred();
         
-        if (!file) {
+        if (!file || !_getPaneFromPaneId(paneId)) {
             return result.reject("bad argument");
         }
 

@@ -392,13 +392,25 @@ define(function (require, exports, module) {
         // Add first to Added order
         this._viewListAddedOrder.unshift(file);
     };
+
     
+    /**
+     * Determines if a file can be added to our file list
+     * @private
+     * @param {!File} file
+     * @return {boolean} true if it can be added, false if not
+     */
+    Pane.prototype._canAddFile = function (file) {
+        return ((this._views.hasOwnProperty(file.fullPath) && this.findInViewList(file.fullPath) === -1) ||
+                    (EditorManager.canOpenFile(file.fullPath) && !MainViewManager.getPaneIdForPath(file.fullPath)));
+    };
+                
     /**
      * Adds the given file to the end of the pane view list, if it is not already in the list
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!File} file
      * @param {number=} index of where to add the item
-     * @return {!number} index of where the item was added
+     * @return {number} index of where the item was added
      */
     Pane.prototype.addToViewList = function (file, index) {
         var indexRequested = (index !== undefined && index !== null && index >= 0);
@@ -411,7 +423,8 @@ define(function (require, exports, module) {
         
         return index;
     };
-            
+    
+
     /**
      * Adds the given file list to the end of the pane view list. 
      * @param {!Array.<File>} fileList
@@ -423,7 +436,7 @@ define(function (require, exports, module) {
 
         // Process only files not already in view list
         fileList.forEach(function (file) {
-            if (EditorManager.canOpenFile(file.fullPath) && self.findInViewList(file.fullPath) === -1 && !MainViewManager.getPaneIdForPath(file.fullPath)) {
+            if (self._canAddFile(file)) {
                 self._addToViewList(file);
                 uniqueFileList.push(file);
             }

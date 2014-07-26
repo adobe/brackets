@@ -1529,12 +1529,12 @@ define(function (require, exports, module) {
 
     /** Reload commnad handler **/
     function handleReload() {
-        doReload(true);
+        doReload();
     }
 
     /** Reload Without Extensions commnad handler **/
     function handleReloadWithoutExts() {
-        doReload();
+        doReload(true);
     }
 
     /** Do some initialization when the DOM is ready **/

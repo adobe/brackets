@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         Dialogs           = require("widgets/Dialogs"),
         DefaultDialogs    = require("widgets/DefaultDialogs"),
         EditorManager     = require("editor/EditorManager"),
+        WorkspaceManager  = require("view/WorkspaceManager"),
         FileFilters       = require("search/FileFilters"),
         FileUtils         = require("file/FileUtils"),
         FindBar           = require("search/FindBar").FindBar,
@@ -250,7 +251,7 @@ define(function (require, exports, module) {
             scrollPos = fullEditor.getScrollPos();
             scrollPos.y -= oldModalBarHeight;   // modalbar already showing, adjust for old height
         }
-        EditorManager.resizeEditor();
+        WorkspaceManager.recomputeLayout();
         if (fullEditor) {
             fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + _findBar._modalBar.height());
         }

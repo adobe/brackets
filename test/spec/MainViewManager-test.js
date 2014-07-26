@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, spyOn, beforeFirst, afterLast, jasmine */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine */
 
 define(function (require, exports, module) {
     'use strict';
@@ -34,10 +34,11 @@ define(function (require, exports, module) {
         MainViewManager,         // loaded from brackets.test
         ProjectManager,          // loaded from brackets.test
         FileSystem,              // loaded from brackets.test
+        Dialogs,                 // loaded from brackets.test
         SpecRunnerUtils          = require("spec/SpecRunnerUtils");
 
     describe("MainViewManager", function () {
-        this.category = "integration";
+        this.category = "mainview";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/MainViewManager-test-files"),
             testFile = testPath + "/test.js",
@@ -64,6 +65,7 @@ define(function (require, exports, module) {
                     MainViewManager         = testWindow.brackets.test.MainViewManager;
                     ProjectManager          = testWindow.brackets.test.ProjectManager;
                     FileSystem              = testWindow.brackets.test.FileSystem;
+                    Dialogs                 = testWindow.brackets.test.Dialogs;
                 });
             });
             runs(function () {
@@ -180,6 +182,35 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(MainViewManager.getCurrentlyViewedFile().name).toEqual("test.js");
                     expect(MainViewManager.getPaneViewListSize(MainViewManager.ALL_PANES)).toEqual(0);
+                });
+            });
+            it("should fail when operating on an invalid pane id", function () {
+                runs(function () {
+                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                        return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
+                    });
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "second-pane" });
+                    waitsForFail(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedFile()).toBeFalsy();
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("second-pane");
+                    expect(MainViewManager.getActivePaneId()).toNotEqual("second-pane");
+                });
+                runs(function () {
+                    MainViewManager.addToPaneViewList("second-pane", getFileObject("test.js"));
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, testPath + "/test.js")).toEqual(-1);
+                    expect(MainViewManager.findInPaneViewList("second-pane", testPath + "/test.js")).toEqual(-1);
+                });
+                runs(function () {
+                    MainViewManager.addListToPaneViewList("second-pane", [getFileObject("test.js")]);
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, testPath + "/test.js")).toEqual(-1);
+                    expect(MainViewManager.findInPaneViewList("second-pane", testPath + "/test.js")).toEqual(-1);
                 });
             });
         });
@@ -529,7 +560,6 @@ define(function (require, exports, module) {
                 });
                 _$(MainViewManager).off("paneLayoutChanged", paneLayoutChangedListener);
             });
-        
         });
         describe("Targeted Pane API tests", function () {
             it("should count open views", function () {
@@ -630,6 +660,48 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     expect(MainViewManager.getPaneIdForPath(getFileObject("test.js").fullPath)).toEqual("first-pane");
+                });
+            });
+            it("should add to the appropriate pane view list", function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("second-pane");
+                    MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, getFileObject("test.js"));
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, testPath + "/test.js").paneId).toEqual("first-pane");
+                });
+            });
+            it("should add list to the appropriate pane view list", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.css",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.html",
+                                                                            paneId: "second-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("second-pane");
+                    MainViewManager.addListToPaneViewList(MainViewManager.FOCUSED_PANE, [getFileObject("test.js"),
+                                                                                         getFileObject("test.css"),
+                                                                                         getFileObject("test.html")]);
+                    // test.js gets added to the second pane because it was closed in the first-pane when test.css was opened
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, testPath + "/test.js").paneId).toEqual("second-pane");
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, testPath + "/test.css").paneId).toEqual("first-pane");
+                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, testPath + "/test.html").paneId).toEqual("second-pane");
                 });
             });
         });
