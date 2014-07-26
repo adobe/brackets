@@ -392,7 +392,7 @@ define({
     
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Tema attuale",
-    "USE_THEME_SCROLLBARS"                 : "Use Theme Scrollbars",
+    "USE_THEME_SCROLLBARS"                 : "Utilizzare le barre di scorrimento a tema",
     "FONT_SIZE"                            : "Dimensioni carattere",
     "FONT_FAMILY"                          : "Tipo di carattere",
     "LINE_HEIGHT"                          : "Altezza linea",
