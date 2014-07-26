@@ -937,16 +937,19 @@ define(function (require, exports, module) {
      * Edits a document in the specified pane
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Document} doc - document to edit
+     * @param {Object={avoidPaneActivation:boolean}} optionsIn - options 
      */
-    function doEdit(paneId, doc) {
-        
+    function doEdit(paneId, doc, optionsIn) {
         var currentPaneId = getPaneIdForPath(doc.file.fullPath),
             oldPane = _getActivePane(),
-            oldFile = oldPane.getCurrentlyViewedFile();
-
+            oldFile = oldPane.getCurrentlyViewedFile(),
+            options = optionsIn || {};
+            
         if (currentPaneId) {
             paneId = currentPaneId;
-            setActivePaneId(paneId);
+            if (!options.avoidPaneActivation) {
+                setActivePaneId(paneId);
+            }
         }
         
         var pane = _getPaneFromPaneId(paneId);
@@ -970,8 +973,15 @@ define(function (require, exports, module) {
         _makePaneViewMostRecent(paneId, doc.file);
     }
     
-    function doOpen(paneId, file) {
-        var result = new $.Deferred();
+    /**
+     * Opens a file in the specified pane
+     * @param {!string} paneId - id of the pane in which to open the document
+     * @param {!Document} doc - document to edit
+     * @param {Object={avoidPaneActivation:boolean}} optionsIn - options 
+     */
+    function doOpen(paneId, file, optionsIn) {
+        var result = new $.Deferred(),
+            options = optionsIn || {};
         
         if (!file || !_getPaneFromPaneId(paneId)) {
             return result.reject("bad argument");
@@ -982,7 +992,9 @@ define(function (require, exports, module) {
 
         if (currentPaneId) {
             paneId = currentPaneId;
-            setActivePaneId(paneId);
+            if (!options.avoidPaneActivation) {
+                setActivePaneId(paneId);
+            }
         }
         
         if (doc) {
@@ -1004,7 +1016,13 @@ define(function (require, exports, module) {
         return result;
     }
 
-    function doClose(paneId, file) {
+    /**
+     * Closes a file in the specified pane or panes
+     * @param {!string} paneId - id of the pane in which to open the document
+     * @param {!Document} doc - document to edit
+     * @param {Object={noOpenNextFile:boolean}} optionsIn - options 
+     */
+    function doClose(paneId, file, optionsIn) {
         if (!file) {
             return;
         }
@@ -1015,18 +1033,30 @@ define(function (require, exports, module) {
         }
 
         var pane = _getPaneFromPaneId(paneId),
-            oldFile = pane.getCurrentlyViewedFile();
+            oldFile = pane.getCurrentlyViewedFile(),
+            options = optionsIn || {};
 
-        
-        if (pane.doRemoveView(file)) {
+        if (pane.doRemoveView(file, !options.noOpenNextFile)) {
             $(exports).triggerHandler("paneViewListRemove", [file, false, pane.id]);
-        
+            
             if (pane.id === _activePaneId) {
-                $(exports).triggerHandler("currentFileChanged", [pane.getCurrentlyViewedFile(), pane.id, oldFile, pane.id]);
+                // when doRemoveView is called, it will open next file unless the option
+                //  to not do so is specified. That will trigger the currentFileChanged Event
+                //  so we don't need to do it again, so if we removedthe current view of the activated
+                //  pane and the new view is now null then we need to tell our listeners that it's null
+                //  otherwise this is handled in doOpen
+                if (oldFile.fullPath === file.fullPath && !pane.getCurrentlyViewedFile()) {
+                    $(exports).triggerHandler("currentFileChanged", [pane.getCurrentlyViewedFile(), pane.id, oldFile, pane.id]);
+                }
             }
         }
     }
 
+    /**
+     * Closes a list of file in the specified pane or panes
+     * @param {!string} paneId - id of the pane in which to open the document
+     * @param {!Array.<File>} fileList - files to close
+     */
     function doCloseList(paneId, fileList) {
         var closedList,
             currentFile = _getActivePane().getCurrentlyViewedFile(),
@@ -1048,8 +1078,11 @@ define(function (require, exports, module) {
         }
     }
     
-    
-    function doCloseAll(paneId) {
+    /**
+     * Closes all files in the specified pane or panes
+     * @param {!string} paneId - id of the pane in which to open the document
+     */
+    function doCloseAll(paneId, options) {
         var fileList,
             currentFile = _getActivePane().getCurrentlyViewedFile();
         
@@ -1096,7 +1129,10 @@ define(function (require, exports, module) {
         return pane;
     }
     
-    
+    /**
+     * Destroys an editor object if a document is no longer referenced
+     * @param {!Document} doc - document to destroy
+     */
     function destroyEditorIfNotNeeded(document) {
         if (!(document instanceof DocumentManager.Document)) {
             throw new Error("_destroyEditorIfUnneeded() should be passed a Document");

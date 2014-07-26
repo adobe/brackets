@@ -798,28 +798,38 @@ define(function (require, exports, module) {
     
     /**
      * Destroys the requested views 
-     * @param {Array.<File>} the list of files to close
+     * @param {Array.<File>} fileList - the list of files to close
      * @return {!Array.<File>} the list of files actually close
      */
     Pane.prototype.doRemoveViews = function (fileList) {
         return this.removeListFromViewList(fileList);
     };
     
+    
+    /**
+     * Executes a FILE_OPEN command to open a file
+     * @param {!string} fullPath - path of the file to open
+     * @return {jQuery.promise} promise that will resolve when the file is opened
+     */
+    Pane.prototype._execOpenFile = function (fullPath) {
+        return CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath, paneId: this.id});
+    };
+    
     /**
      * Destroys the requested view
-     * @param {File} the file to close
+     * @param {File} file - the file to close
+     * @param {boolean} openNextFile - open the next in MRU order
      * @return {!boolean} true if removed, false if the file was not found either in a list or view
      */
-    Pane.prototype.doRemoveView = function (file) {
-        var nextFile = this.traverseViewListByMRU(1, file.fullPath);
+    Pane.prototype.doRemoveView = function (file, openNextFile) {
+        var nextFile = openNextFile && this.traverseViewListByMRU(1, file.fullPath);
         if (nextFile && nextFile.fullPath !== file.fullPath) {
             var fullPath = nextFile.fullPath,
                 needOpenNextFile = this._views.hasOwnProperty(fullPath);
             
             if (this._removeFromViewList(file)) {
                 if (needOpenNextFile) {
-                    CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath,
-                                                                 paneId: this.id});
+                    this._execOpenFile(fullPath);
                 }
                 return true;
             }
@@ -883,8 +893,7 @@ define(function (require, exports, module) {
         activeFile = activeFile || getInitialViewFilePath();
         
         if (activeFile) {
-            return CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeFile,
-                                                         paneId: this.id});
+            return this._execOpenFile(activeFile);
         }
         
         return new $.Deferred().resolve();

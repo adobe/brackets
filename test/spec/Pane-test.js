@@ -264,6 +264,25 @@ define(function (require, exports, module) {
                 expect(myPane._currentView).toEqual(myView);
             });
             it("should switch views when removing view", function () {
+                spyOn(myPane, "_execOpenFile").andCallFake(function (fullPath) {
+                    myPane.showView(myPane._views[fullPath]);
+                });
+                
+                var secondView = createMockView("second-view");
+
+                myPane.addToViewList(myView.getFile());
+                myPane.addToViewList(secondView.getFile());
+                myPane.addView(secondView.getFullPath(), secondView);
+                
+                myPane.showView(myView);
+                myPane.showView(secondView);
+                
+                myPane.doRemoveView(secondView.getFile(), true);
+                expect(myPane._currentView).toEqual(myView);
+            });
+            it("should not switch views when removing view", function () {
+                spyOn(myPane, "_execOpenFile");
+                
                 var secondView = createMockView("second-view");
 
                 myPane.addToViewList(myView.getFile());
@@ -274,7 +293,8 @@ define(function (require, exports, module) {
                 myPane.showView(secondView);
                 
                 myPane.doRemoveView(secondView.getFile());
-                expect(myPane._currentView).toEqual(myView);
+                expect(myPane._currentView).toEqual(null);
+                expect(myPane._execOpenFile).not.toHaveBeenCalled();
             });
             it("should hide view when switching views", function () {
                 var secondView = createMockView("second-view");
