@@ -424,8 +424,6 @@ define({
     "USE_THEME_SCROLLBARS"                 : "Använd temats scrollbars",
     "FONT_SIZE"                            : "Teckenstorlek",
     "FONT_FAMILY"                          : "Typsnitt",
-    "LINE_HEIGHT"                          : "Radavstånd",
-    "GENERAL"                              : "Generellt",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Ny regel",
@@ -449,7 +447,7 @@ define({
     "CANCELING_HUNG"                       : "Installationen avbröts då den tog för lång tid. Ett internt fel kan ha inträffat.",
     "INSTALL_CANCELED"                     : "Installationen avbröts.",
     "VIEW_COMPLETE_DESCRIPTION"            : "Visa hela beskrivningen",
-    "VIEW_TRUNCATED_DESCRIPTION"           : "Visa avkortad beskrivning",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "Visa förkortad beskrivning",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Det nedladdade innehållet är inte en fungerande zip-fil.",
     "INVALID_PACKAGE_JSON"                 : "Filen package.json är inte korrekt (felet var: {0}).",
@@ -475,11 +473,11 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Tilläggshanteraren",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Kunde inte nå tilläggsregistret. Vänligen försök igen senare.",
-    "INSTALL_EXTENSION_DRAG"               : "Drag .zip here or",
-    "INSTALL_EXTENSION_DROP"               : "Drop .zip to install",
-    "INSTALL_EXTENSION_DROP_ERROR"         : "Install/Update aborted due to the following errors:",
+    "INSTALL_EXTENSION_DRAG"               : "Dra .zip hit eller",
+    "INSTALL_EXTENSION_DROP"               : "Släpp .zip här för att installera",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Installation/Uppdatering avbröts på grund av följande fel:",
     "INSTALL_FROM_URL"                     : "Installera från URL\u2026",
-    "INSTALL_EXTENSION_VALIDATING"         : "Validating\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "Validerar\u2026",
     "EXTENSION_AUTHOR"                     : "Författare",
     "EXTENSION_DATE"                       : "Datum",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Detta tillägg kräver en nyare version av {APP_NAME}.",
@@ -575,7 +573,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Visa parameterförslag",
     "NO_ARGUMENTS"                              : "<inga parametrar>",
     "DETECTED_EXCLUSION_TITLE"                  : "Problem att slutleda JavaScript-fil",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets stötte på processeringsfel:<br><br>{0}<br><br>Denna fil kommer inte längre processeras för kodförslag eller definitioner. Öppna <code>.brackets.json</code> och ta bort filen från jscodehints.detectedExclusions för att återställa detta.",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets stötte på processeringsfel:<br><br>{0}<br><br>Denna fil kommer inte längre genomsökas efter kodförslag eller definitioner. Öppna <code>.brackets.json</code> och ta bort filen från jscodehints.detectedExclusions för att återställa detta.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
