@@ -395,8 +395,7 @@ define({
     "USE_THEME_SCROLLBARS"                 : "Utilizzare le barre di scorrimento a tema",
     "FONT_SIZE"                            : "Dimensioni carattere",
     "FONT_FAMILY"                          : "Tipo di carattere",
-    "LINE_HEIGHT"                          : "Altezza linea",
-    "GENERAL"                              : "Generale",
+ 
     
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nuova regola",
