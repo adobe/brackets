@@ -476,7 +476,7 @@ define({
     "INSTALL_EXTENSION_DRAG"               : ".zip hierhin ziehen oder",
     "INSTALL_EXTENSION_DROP"               : ".zip zum Installieren ablegen",
     "INSTALL_EXTENSION_DROP_ERROR"         : "Das Installieren/Aktualisieren schlug fehl, da die folgenden Fehler aufgetreten sind:",
-    "INSTALL_FROM_URL"                     : "Von URL installieren\u2026",
+    "INSTALL_FROM_URL"                     : "von URL installieren\u2026",
     "INSTALL_EXTENSION_VALIDATING"         : "Überprüfen\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Datum",
@@ -573,7 +573,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Parameter-Hinweis anzeigen",
     "NO_ARGUMENTS"                              : "<keine Parameter>",
     "DETECTED_EXCLUSION_TITLE"                  : "Problem mit einer JavaScript-Datei",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets hat Probleme damit, diese Datei zu verarbeiten:<br><br>{0}<br><br>Code-Vervollständigung und das Springen zur Definition werden für die Datei nicht mehr bereitgestellt. Öffnen Sie <code>.brackets.json</code> in diesem Projekt und entfernen Sie die Datei von jscodehints.detectedExclusions, um diese Features zu reaktivieren.",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets hat Probleme damit, diese Datei zu verarbeiten:<br><br>{0}<br><br>Code-Vervollständigung und das Springen zur Definition werden für die Datei nicht mehr bereitgestellt. Öffnen Sie <code>.brackets.json</code> in diesem Projekt und entfernen Sie den Dateipfad von jscodehints.detectedExclusions, um diese Features zu reaktivieren.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -588,4 +588,4 @@ define({
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
 
-/* Last translated for 2f5acd9c6fb21330cad0dae16e26bf659859583e */
+/* Last translated for 75c811dfa38164b7e9bd3921dd630d40720e9c2a */
