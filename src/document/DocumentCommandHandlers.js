@@ -249,7 +249,7 @@ define(function (require, exports, module) {
      * - be resolved without document, i.e. when an image is displayed or
      * - be rejected if the file can not be read.
      */
-    function doOpen(fullPath, silent, paneId) {
+    function _doOpen(fullPath, silent, paneId) {
         var result = new $.Deferred();
         
         // workaround for https://github.com/adobe/brackets/issues/6001
@@ -280,7 +280,7 @@ define(function (require, exports, module) {
         }
         
         if (!fullPath) {
-            console.error("doOpen() called without fullPath");
+            console.error("_doOpen() called without fullPath");
             result.reject();
         } else {
             var perfTimerName = PerfUtils.markStart("Open File:\t" + fullPath);
@@ -295,6 +295,7 @@ define(function (require, exports, module) {
                 })
                 .fail(function (fileError) {
                     _showErrorAndCleanUp(fileError, fullPath);
+                    result.reject();
                 });
         }
 
@@ -343,7 +344,7 @@ define(function (require, exports, module) {
                         });
                         MainViewManager.addListToPaneViewList(paneId, filesToOpen);
                         
-                        doOpen(filteredPaths[filteredPaths.length - 1], silent, paneId)
+                        _doOpen(filteredPaths[filteredPaths.length - 1], silent, paneId)
                             .done(function (file) {
                                 _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(MainViewManager.getCurrentlyViewedPathForPane(paneId));
                             })
@@ -356,7 +357,7 @@ define(function (require, exports, module) {
                 }
             });
         } else {
-            result = doOpen(fullPath, silent, paneId);
+            result = _doOpen(fullPath, silent, paneId);
         }
         
         return result.promise();
@@ -396,10 +397,11 @@ define(function (require, exports, module) {
     function handleFileOpen(commandData) {
         var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
             silent = (commandData && commandData.silent) || false,
-            paneId = (commandData && commandData.paneId) || MainViewManager.FOCUSED_PANE;
+            paneId = (commandData && commandData.paneId) || MainViewManager.FOCUSED_PANE,
+            result = new $.Deferred();
         
-        return _doOpenWithOptionalPath(fileInfo.path, silent, paneId)
-            .always(function (file) {
+        _doOpenWithOptionalPath(fileInfo.path, silent, paneId)
+            .done(function (file) {
                 MainViewManager.setActivePaneId(paneId);
 
                 // If a line and column number were given, position the editor accordingly.
@@ -412,8 +414,13 @@ define(function (require, exports, module) {
                     EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1, fileInfo.column - 1, true);
                 }
                 
-//                result.resolve(DocumentManager.getOpenDocumentForPath(file.fullPath));
+                result.resolve(DocumentManager.getOpenDocumentForPath(file.fullPath));
+            })
+            .fail(function () {
+                result.reject();
             });
+        
+        return result;
         // Testing notes: here are some recommended manual tests for handleFileOpen, on macintosh.
         // Do all tests with brackets already running, and also with brackets not already running.
         //
