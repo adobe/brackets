@@ -252,7 +252,7 @@ define(function (require, exports, module) {
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
                // Signal that extensions are loaded
-                AppInit._dispatchReady(AppInit.EXTENSIONS_READY);
+                AppInit._dispatchReady(AppInit.EXTENSIONS_LOADED);
 
                 // Finish UI initialization
                 ViewCommandHandlers.restoreFontSize();

@@ -633,7 +633,7 @@ define(function (require, exports, module) {
     }
     
     /* 
-     * Setup an extensionsReady handler to register deprecated events.  
+     * Setup an extensionsLoaded handler to register deprecated events.  
      * We do this so these events are added to the end of the event
      * handler chain which gives the system a chance to process them
      * before they are dispatched to extensions.  
@@ -644,7 +644,7 @@ define(function (require, exports, module) {
      * handling the event too soon. (e.g.  paneViewListView needs to 
      * process these events before the Extension Highlighter extension)
      */
-    AppInit.extensionsReady(function () {
+    AppInit.extensionsLoaded(function () {
         _deprecateEvent("workingSetAdd",         "paneViewListAdd");
         _deprecateEvent("workingSetAddList",     "paneViewListAddList");
         _deprecateEvent("workingSetRemove",      "paneViewListRemove");

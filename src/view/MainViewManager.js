@@ -155,7 +155,7 @@ define(function (require, exports, module) {
     
     /**
      * map of panes
-     * @type {Object.map<string, Pane>} 
+     * @type {Object.<string, Pane>} 
      * @private
      */
     var _paneViews = {

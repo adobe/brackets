@@ -131,8 +131,9 @@ define(function (require, exports, module) {
     
     /**
      * Updates the title bar with new file title or dirty indicator
+     * @private
      */
-    function updateTitle() {
+    function _updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
             currentlyViewedPath = MainViewManager.getCurrentlyViewedPath(),
             windowTitle = brackets.config.app_title;
@@ -189,7 +190,7 @@ define(function (require, exports, module) {
     /**
      * Returns a short title for a given document.
      *
-     * @param {Document} doc
+     * @param {Document} doc - the document to compute the short title for
      * @return {string} - a short title for doc.
      */
     function _shortTitleForDocument(doc) {
@@ -224,7 +225,7 @@ define(function (require, exports, module) {
         }
         
         // Update title text & "dirty dot" display
-        updateTitle();
+        _updateTitle();
     }
 
     /**
@@ -234,7 +235,7 @@ define(function (require, exports, module) {
         var currentDoc = DocumentManager.getCurrentDocument();
         
         if (currentDoc && changedDoc.file.fullPath === currentDoc.file.fullPath) {
-            updateTitle();
+            _updateTitle();
         }
     }
 
@@ -246,7 +247,6 @@ define(function (require, exports, module) {
      * @param {string=} pane, must be a valid pane id or FOCUSED_PANE
      * @return {$.Promise} a jQuery promise that will either
      * - be resolved with a document for the specified file path or
-     * - be resolved without document, i.e. when an image is displayed or
      * - be rejected if the file can not be read.
      */
     function _doOpen(fullPath, silent, paneId) {
@@ -313,11 +313,9 @@ define(function (require, exports, module) {
      * Creates a document and displays an editor for the specified file path.
      * If no path is specified, a file prompt is provided for input.
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
-     * @param {?boolean} silent - If true, don't show error message
+     * @param {boolean=} silent - If true, don't show error message
      * @param {string=}  paneId - the pane in which to open the file
-     * @return {$.Promise} a jQuery promise that will be resolved with a new
-     * document for the specified file path or be resolved without document, i.e. when an image is displayed,
-     * or rejected if the file can not be read.
+     * @return {$.Promise} a jQuery promise resolved with a document object or rejected if the file can not be read.
      */
     function _doOpenWithOptionalPath(fullPath, silent, paneId) {
         var result;
@@ -390,9 +388,11 @@ define(function (require, exports, module) {
 
     /**
      * Opens the given file and makes it the current document. Does NOT add it to the pane view list.
-     * @param {!{fullPath:string}} Params for FILE_OPEN command;
+     * @param {{!fullPath:string}, {silent:boolean}, {paneId:string}} Params for FILE_OPEN command;
      * the fullPath string is of the form "path[:lineNumber[:columnNumber]]"
      * lineNumber and columnNumber are 1-origin: the very first line is line 1, and the very first column is column 1.
+     * paneId if omitted will be the FOCUSED_PANE
+     * @return {$.Promise} a jQuery promise that will be resolved with a document object
      */
     function handleFileOpen(commandData) {
         var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
@@ -439,9 +439,12 @@ define(function (require, exports, module) {
      * only if the file does not have a custom viewer.
      * @param {!{fullPath:string, index:number=, forceRedraw:boolean, paneId:string=}} commandData  File to open; optional position in
      *   pane view list list (defaults to last); optional flag to force pane view list redraw
+     * @return {$.Promise} a jQuery promise that will be resolved with a document object
      */
     function handleAddToPaneViewList(commandData) {
         return handleFileOpen(commandData).done(function (doc) {
+            // TODO: This will not work for images since they do not
+            //          have document objects... 
             // addToPaneViewList is synchronous
             // When opening a file with a custom viewer, we get a null doc.
             // So check it before we add it to the pane view list.
@@ -495,6 +498,8 @@ define(function (require, exports, module) {
 
     /**
      * Bottleneck function for creating new files and folders in the project tree.
+     * @private
+     * @param {boolean} isFolder - true if creating a new folder, false if creating a new file
      */
     function _handleNewItemInProject(isFolder) {
         if (fileNewInProgress) {
@@ -687,6 +692,7 @@ define(function (require, exports, module) {
     /**
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
+     * @private
      * @param {Document} doc
      * @param {boolean=} suppressError If true, then a failure to read the file will be ignored and the
      *      resulting promise will be resolved rather than rejected.
@@ -694,7 +700,7 @@ define(function (require, exports, module) {
      *      rejected with a FileSystemError if the file cannot be read (after showing an error 
      *      dialog to the user).
      */
-    function doRevert(doc, suppressError) {
+    function _doRevert(doc, suppressError) {
         var result = new $.Deferred();
         
         FileUtils.readAsText(doc.file)
@@ -794,12 +800,12 @@ define(function (require, exports, module) {
                 .done(function () {
                     // If there were unsaved changes before Save As, they don't stay with the old
                     // file anymore - so must revert the old doc to match disk content.
-                    // Only do this if the doc was dirty: doRevert on a file that is not dirty and
+                    // Only do this if the doc was dirty: _doRevert on a file that is not dirty and
                     // not in the pane view list has the side effect of adding it to the pane view list.
                     if (doc.isDirty && !(doc.isUntitled())) {
                         // if the file is dirty it must be in the pane view list
-                        // doRevert is side effect free in this case
-                        doRevert(doc).always(openNewFile);
+                        // _doRevert is side effect free in this case
+                        _doRevert(doc).always(openNewFile);
                     } else {
                         openNewFile();
                     }
@@ -1086,7 +1092,7 @@ define(function (require, exports, module) {
                             // we want to ignore errors during the revert, since we don't want a failed revert
                             // to throw a dialog if the document isn't actually open in the UI.
                             var suppressError = !DocumentManager.getOpenDocumentForPath(file.fullPath);
-                            doRevert(doc, suppressError)
+                            _doRevert(doc, suppressError)
                                 .then(result.resolve, result.reject);
                         }
                     }
@@ -1104,9 +1110,10 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @param {!Array.<FileEntry>} list
-     * @param {boolean} promptOnly
+     * @param {!Array.<FileEntry>} list - the list of files to close
+     * @param {boolean} promptOnly - true to just prompt for saving documents with actually closing them.
      * @param {boolean} _forceClose Whether to force all the documents to close even if they have unsaved changes. For unit testing only.
+     * @return {jQuery.Promise} promise that is resolved or rejected when the function finishes.
      */
     function _closeList(list, promptOnly, _forceClose) {
         var result      = new $.Deferred(),
