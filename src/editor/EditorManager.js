@@ -36,16 +36,16 @@
  *
  * This module dispatches the following events:
  *    - activeEditorChange --  Fires after the active editor (full or inline) changes and size/visibility
- *      are complete. Doesn't fire when editor temporarily loses focus to a non-editor
- *      control (e.g. search toolbar or modal dialog, or window deactivation). Does
- *      fire when focus moves between inline editor and its full-size container.
+ *                             are complete. Doesn't fire when editor temporarily loses focus to a non-editor
+ *                             control (e.g. search toolbar or modal dialog, or window deactivation). Does
+ *                             fire when focus moves between inline editor and its full-size container.
  *      This event tracks `getActiveEditor()` changes, while DocumentManager's
  *      `currentDocumentChange` tracks `getCurrentFullEditor()` changes.
- *      The 2nd arg to the listener is which Editor became active; the 3rd arg is
- *      which Editor is deactivated as a result. Either one may be null.
+ *                             The 2nd arg to the listener is which Editor became active; the 3rd arg is
+ *                             which Editor is deactivated as a result. Either one may be null.
  *      NOTE (#1257): `getFocusedEditor()` sometimes lags behind this event. Listeners
  *      should use the arguments or call `getActiveEditor()` to reliably see which Editor 
- *      just gained focus.
+ *                             just gained focus.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -58,6 +58,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
+        FileSystem          = require("filesystem/FileSystem"),
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         Strings             = require("strings"),
         LanguageManager     = require("language/LanguageManager");
@@ -85,7 +86,11 @@ define(function (require, exports, module) {
      * @type {?string}
      */
     var _currentlyViewedPath = null;
-
+     /** 
+      * modification time of file 
+      * @type {?Date} 
+      */
+    var _currentlyViewedFileMTime = null;
     /**
      * DOM node representing UI of custom view  
      * @type {?JQuery}
@@ -570,7 +575,9 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Shows the document in a code mirror instance.
      * @private
+     * @param {!Document} Document to show
      */
     function _doShow(document) {
         // Show new editor
@@ -655,6 +662,7 @@ define(function (require, exports, module) {
             _currentEditorsDocument = null;
             _currentEditor = null;
             _currentlyViewedPath = null;
+            _currentlyViewedFileMTime = null;
             
             // No other Editor is gaining focus, so in this one special case we must trigger event manually
             _notifyActiveEditorChanged(null);
@@ -667,18 +675,68 @@ define(function (require, exports, module) {
         _nullifyEditor();
     }
     
+    /**
+     * Retrieves the currently viewed file (document or otherwise)
+     * @return {!string} full path of the currently viewed file
+     */
     function getCurrentlyViewedPath() {
         return _currentlyViewedPath;
     }
     
+    /**
+     * Clears all internal data for the currently viewed file
+     */
     function _clearCurrentlyViewedPath() {
         _currentlyViewedPath = null;
+        _currentlyViewedFileMTime = null;
         $(exports).triggerHandler("currentlyViewedFileChange");
     }
     
-    function _setCurrentlyViewedPath(fullPath) {
-        _currentlyViewedPath = fullPath;
-        $(exports).triggerHandler("currentlyViewedFileChange");
+    var notifyPathDeleted;
+
+    function _updateFileModificationTime(mtime) {
+        var result = new $.Deferred(),
+            file;
+        
+        if (mtime) {
+            _currentlyViewedFileMTime = mtime;
+            result.resolve();
+        } else if (_currentlyViewedPath) {
+            file = FileSystem.getFileForPath(_currentlyViewedPath);
+            file.stat(function (fileError, stat) {
+                if (!fileError) {
+                    _currentlyViewedFileMTime = stat.mtime.getTime();
+                    result.resolve();
+                } else {
+                    _currentlyViewedFileMTime = null;
+                    result.reject();
+                }
+            });
+        } else {
+            _currentlyViewedFileMTime = null;
+            result.reject();
+        }
+        
+        return result;
+    }
+    
+    function _setCurrentlyViewedPath(fullPath, mtime) {
+        if (fullPath) {
+            _currentlyViewedPath = fullPath;
+            _updateFileModificationTime(mtime)
+                .done(function () {
+                    $(exports).triggerHandler("currentlyViewedFileChange");
+                })
+                .fail(function () {
+                    notifyPathDeleted(fullPath);
+                });
+        } else {
+            // if fullpath is not defined reset path and timestamp
+            _currentlyViewedPath = null;
+            _currentlyViewedFileMTime = null;
+            $(exports).triggerHandler("currentlyViewedFileChange");
+        }
+
     }
     
     /** Remove existing custom view if present */
@@ -734,6 +792,14 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Check whether a custom viewer is visible
+     * @return {boolean} true if we have a custom viewer showing false otherwise.
+     */
+    function showingCustomViewer() {
+        return (_currentViewProvider !== null);
+    }
+    
+    /**
      * Check whether the given file is currently open in a custom viewer.
      *
      * @param {!string} fullPath  file path to check
@@ -752,11 +818,14 @@ define(function (require, exports, module) {
      * A CustomViewer, such as ImageViewer in Brackets core needs to 
      * implement and export two methods: 
      * - render
-     *     @param {!string} fullPath Path to the image file
-     *     @param {!jQueryObject} $editorHolder The DOM element to append the view to.     
+     *      @param {!string} fullPath Path to the image file
+     *      @param {!jQueryObject} $editorHolder The DOM element to append the view to.     
      * - onRemove
-     *   signs off listeners and performs any required clean up when editor manager closes
-     *   the custom viewer
+     *      signs off listeners and performs any required clean up when editor manager closes
+     *      the custom viewer
+     * - refresh (optional)
+     *      notifies a custom viewer of a timstamp
+     *      change of a file in view in a custom viewer
      *
      * By registering a CustomViewer with EditorManager  Brackets is
      * enabled to view files for one or more given file extensions. 
@@ -801,6 +870,36 @@ define(function (require, exports, module) {
     }
     
     /** 
+     * Resync's the contents of the custom viewer if it's visible and
+     * refreshes the viewer if the file is out of date or removes it if the file
+     * has been deleted.
+     * @param {!string} fullPath - path to file to be refreshed by custom viewer     
+     */
+    function notifyResyncCustomViewer() {
+        var file = FileSystem.getFileForPath(_currentlyViewedPath),
+            customViewer = getCustomViewerForPath(_currentlyViewedPath);
+
+        if (!customViewer) {
+            return;
+        }
+
+        // check to see if the file is out of date or missing
+        file.stat(function (err, stat) {
+            if (!err) {
+                if (stat.mtime !== _currentlyViewedFileMTime) {
+                    if (customViewer.refresh) {
+                        customViewer.refresh();
+                    }
+                    _updateFileModificationTime(stat.mtime);
+                }
+            } else {
+                // if we cannot stat the file we better close it.
+                notifyPathDeleted(_currentlyViewedPath);
+            }
+        });
+    }
+
+    /**
      * Clears custom viewer for a file with a given path and displays 
      * an alternate file or the no editor view. 
      * If no param fullpath is passed an alternate file will be opened 
@@ -809,7 +908,7 @@ define(function (require, exports, module) {
      * the currently viewed file an alternate file will be opened.
      * @param {?string} fullPath - file path of deleted file.
      */
-    function notifyPathDeleted(fullPath) {
+    notifyPathDeleted = function (fullPath) {
         function openAlternateFile() {
             var fileToOpen = DocumentManager.getNextPrevFile(1);
             if (fileToOpen) {
@@ -823,7 +922,7 @@ define(function (require, exports, module) {
         if (!fullPath || _currentlyViewedPath === fullPath) {
             openAlternateFile();
         }
-    }
+    };
     
     /** Handles changes to DocumentManager.getCurrentDocument() */
     function _onCurrentDocumentChange() {
@@ -865,7 +964,6 @@ define(function (require, exports, module) {
             _onWorkingSetRemove(event, removedFile);
         });
     }
-
     
     /**
      * Note: there are several paths that can lead to an editor getting destroyed
@@ -1085,8 +1183,6 @@ define(function (require, exports, module) {
     exports._resetViewStates              = _resetViewStates;
     exports._doShow                       = _doShow;
     exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;
-    exports._showCustomViewer             = _showCustomViewer;
-    exports._closeCustomViewer            = _closeCustomViewer;
     
     
     
@@ -1109,7 +1205,12 @@ define(function (require, exports, module) {
     exports.getInlineEditors              = getInlineEditors;
     exports.closeInlineWidget             = closeInlineWidget;
     exports.registerCustomViewer          = registerCustomViewer;
+    exports.notifyResyncCustomViewer      = notifyResyncCustomViewer;
     exports.getCustomViewerForPath        = getCustomViewerForPath;
     exports.notifyPathDeleted             = notifyPathDeleted;
+    exports.showingCustomViewer           = showingCustomViewer;
     exports.showingCustomViewerForPath    = showingCustomViewerForPath;
+    exports._showCustomViewer             = _showCustomViewer;
+    exports._closeCustomViewer            = _closeCustomViewer;
+
 });

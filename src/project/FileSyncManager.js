@@ -54,6 +54,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         FileUtils           = require("file/FileUtils"),
+        FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError");
 
     
@@ -435,10 +436,11 @@ define(function (require, exports, module) {
         //  3) Refresh all Documents that are clean (if file changed on disk)
         //  4) Close all Documents that are clean (if file deleted on disk)
         //  5) Prompt about any Documents that are dirty (if file changed/deleted on disk)
+        //  6) Handle custom viewer files: If a custom viewer is currently displaying a file, check if it has been updated or deleted
         // Each phase fully completes (asynchronously) before the next one begins.
-        
-        
-        // 1) Check for external modifications
+
+
+        // 1) Check for external modifications for open documents
         var allDocs = DocumentManager.getAllOpenDocuments();
         
         findExternalChanges(allDocs)
@@ -486,13 +488,18 @@ define(function (require, exports, module) {
                     });
             }).fail(function () {
                 // Unable to fetch timestamps for some reason - silently ignore (after logging to console)
-                // (We'll retry next time window is activated... and evenually we'll also be double
+                // (We'll retry next time window is activat ed... and evenually we'll also be double
                 // checking before each Save).
                 
                 // We can't go on without knowing which files are dirty, so bail now
                 _alreadyChecking = false;
             });
+
+        // 6) Handle custom viewer files: If a custom viewer is currently displaying a file, check if it has been updated or deleted
         
+        if (EditorManager.showingCustomViewer()) {
+            EditorManager.notifyResyncCustomViewer();
+        }
     }
     
     
