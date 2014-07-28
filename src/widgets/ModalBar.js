@@ -154,12 +154,17 @@ define(function (require, exports, module) {
             this._$root.css("top", top + "px");
         }
         
-        // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
-        // height of the modal bar so the code doesn't appear to shift if possible.
+        // Preserve scroll position of all visible views
+        //  adjusting for the height of the modal bar so the code doesn't appear to shift if possible.
         var barHeight = this.height();
-        MainViewManager.savePaneScrollState(MainViewManager.ALL_PANES);
+        if (restoreScrollPos) {
+            MainViewManager.savePaneScrollState(MainViewManager.ALL_PANES);
+        }
         WorkspaceManager.recomputeLayout();  // changes available ht for editor area
-        MainViewManager.adjustPaneScrollState(MainViewManager.ALL_PANES, -barHeight);
+        // restore scroll position of all vies
+        if (restoreScrollPos) {
+            MainViewManager.adjustPaneScrollState(MainViewManager.ALL_PANES, -barHeight);
+        }
     };
     
     /**

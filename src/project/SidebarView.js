@@ -167,12 +167,12 @@ define(function (require, exports, module) {
         
         // wire up an event handler to monitor when panes are created
         $(MainViewManager).on("paneCreated", function (evt, paneId) {
-            PaneViewListView.cratePaneViewListViewForPane($paneViewListContainer, paneId);
+            PaneViewListView.createPaneViewListViewForPane($paneViewListContainer, paneId);
         });
         
-        // craeate PaneViewListViews for each pane already created
+        // create PaneViewListViews for each pane already created
         _.forEach(MainViewManager.getPaneIdList(), function (paneId) {
-            PaneViewListView.cratePaneViewListViewForPane($paneViewListContainer, paneId);
+            PaneViewListView.createPaneViewListViewForPane($paneViewListContainer, paneId);
         });
     });
     

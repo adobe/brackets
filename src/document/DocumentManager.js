@@ -232,7 +232,7 @@ define(function (require, exports, module) {
      */
     function removeFromWorkingSet(file, suppressRedraw) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.removeFromPaneViewList() instead of DocumentManager.removeFromWorkingSet()", true);
-        MainViewManager.removeFromPaneViewList(MainViewManager.FOCUSED_PANE, file, suppressRedraw);
+        MainViewManager.removeFromPaneViewList(MainViewManager.ALL_PANES, file, suppressRedraw);
     }
 
     
@@ -244,7 +244,7 @@ define(function (require, exports, module) {
      */
     function removeListFromWorkingSet(list) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.removeListFromPaneViewList() instead of DocumentManager.removeListFromWorkingSet()", true);
-        MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, list);
+        MainViewManager.removeListFromPaneViewList(MainViewManager.ALL_PANES, list);
     }
         
     /**

@@ -1328,7 +1328,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * @private
-     * DocumentManager currentFileChanged event handler. 
+     * MainViewManager.currentFileChanged event handler. 
      */
     function _onFileChanged() {
         var doc = _getCurrentDocument();

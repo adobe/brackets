@@ -137,9 +137,13 @@ define(function (require, exports, module) {
                     MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, doc);
                 });
 
-                promise = CommandManager.execute(cmdToRun);
-                waitsForDone(promise, cmdToRun);
-                expect(MainViewManager.getCurrentlyViewedPath()).toEqual(ws[docSelectIndex].fullPath, "Path of document in editor after close others command should be the document that was selected");
+                runs(function () {
+                    promise = CommandManager.execute(cmdToRun);
+                    waitsForDone(promise, cmdToRun);
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(ws[docSelectIndex].fullPath, "Path of document in editor after close others command should be the document that was selected");
+                });
             }
         }
 
@@ -147,7 +151,7 @@ define(function (require, exports, module) {
             docSelectIndex = 2;
             cmdToRun       = "file.close_others";
 
-            runs(runCloseOthers);
+            runCloseOthers();
             
             runs(function () {
                 expect(MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).length).toEqual(1);
@@ -158,7 +162,7 @@ define(function (require, exports, module) {
             docSelectIndex = 2;
             cmdToRun       = "file.close_above";
 
-            runs(runCloseOthers);
+            runCloseOthers();
 
             runs(function () {
                 expect(MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).length).toEqual(3);
@@ -169,7 +173,7 @@ define(function (require, exports, module) {
             docSelectIndex = 1;
             cmdToRun       = "file.close_below";
 
-            runs(runCloseOthers);
+            runCloseOthers();
 
             runs(function () {
                 expect(MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).length).toEqual(2);

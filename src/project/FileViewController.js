@@ -58,7 +58,7 @@ define(function (require, exports, module) {
         DeprecationWarning  = require("utils/DeprecationWarning");
 
     /** 
-     * Tracks whether a "currentFileChangeD" notification occured due to a call to 
+     * Tracks whether a "currentFileChanged" notification occured due to a call to 
      * openAndSelectDocument.
      * @see FileviewController.openAndSelectDocument
      * @private 
@@ -87,6 +87,7 @@ define(function (require, exports, module) {
     $(MainViewManager).on("currentFileChanged", function (event, file, paneId) {
         var perfTimerName;
         if (!_curDocChangedDueToMe) {
+            // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
             perfTimerName = PerfUtils.markStart("FileViewController._onCurrentFileChanged():\t" + (file ? (file.fullPath) : "(no open file)"));
             if (file && MainViewManager.findInPaneViewList(paneId,  file.fullPath) !== -1) {
                 _fileSelectionFocus = PANE_VIEW_LIST_VIEW;
@@ -106,7 +107,7 @@ define(function (require, exports, module) {
      * @private
      * @return {$.Promise}
      */
-    function _selectCurrentDocument(paneId) {
+    function _activatePane(paneId) {
         if (paneId) {
             MainViewManager.setActivePaneId(paneId);
         } else {
@@ -137,7 +138,7 @@ define(function (require, exports, module) {
      * Opens a document if it's not open and selects the file in the UI corresponding to
      * fileSelectionFocus
      * @param {!fullPath}
-     * @param {string} focusHint (PANE_VIEW_LIST_VIEW, PROJECT_MANAGER)
+     * @param {string} fileSelectionFocus (PANE_VIEW_LIST_VIEW || PROJECT_MANAGER)
      * @param {string} paneId
      * @return {$.Promise}
      */
@@ -163,7 +164,7 @@ define(function (require, exports, module) {
         // in this case to signify the selection focus has changed even though the current document has not.
         var currentPath = MainViewManager.getCurrentlyViewedPathForPane(paneId);
         if (currentPath === fullPath) {
-            _selectCurrentDocument(paneId);
+            _activatePane(paneId);
             result = (new $.Deferred()).resolve().promise();
         } else {
             result = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath,
@@ -182,16 +183,12 @@ define(function (require, exports, module) {
      * Opens the specified document if it's not already open, adds it to the working set,
      * and selects it in the PaneViewListView
      * @param {!fullPath}
-     * @param {?String} selectIn - specify either WORING_SET_VIEW or PROJECT_MANAGER.
-     *      Default is WORING_SET_VIEW.
-     * @param {number=} index - insert into the working set list at this 0-based index
-     * @param {string=} paneId - Pane in which to add the view
+     * @param {string=} paneId - Pane in which to add the view.  If omitted, the command default is to use the FOCUSED_PANE 
      * @return {!$.Promise}
      */
-    function addToPaneViewAndSelect(fullPath, selectIn, index, paneId) {
+    function addToPaneViewAndSelect(fullPath, paneId) {
         var result = new $.Deferred(),
             promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, {fullPath: fullPath,
-                                                                                  index: index,
                                                                                   paneId: paneId});
 
         // This properly handles sending the right nofications in cases where the document
@@ -201,7 +198,7 @@ define(function (require, exports, module) {
             // CMD_ADD_TO_PANE_VIEW_LIST command sets the current document. Update the 
             // selection focus only if doc is not null. When double-clicking on an
             // image file, we get a null doc here but we still want to keep _fileSelectionFocus
-            // as PROJECT_MANAGER. Regardless of doc is null or not, call _selectCurrentDocument
+            // as PROJECT_MANAGER. Regardless of doc is null or not, call _activatePane
             // to trigger documentSelectionFocusChange event.
             result.resolve(file);
         }).fail(function (err) {
@@ -216,15 +213,12 @@ define(function (require, exports, module) {
      * and selects it in the PaneViewListView
      * @deprecated use FileViewController.addToPaneViewAndSelect() instead
      * @param {!fullPath}
-     * @param {?String} selectIn - specify either WORING_SET_VIEW or PROJECT_MANAGER.
-     *      Default is WORING_SET_VIEW.
-     * @param {number=} index - insert into the working set list at this 0-based index
      * @return {!$.Promise}
      */
-    function addToWorkingSetAndSelect(fullPath, selectIn, index) {
+    function addToWorkingSetAndSelect(fullPath) {
         DeprecationWarning.deprecationWarning("Use FileViweController.addToPaneViewAndSelect() instead of FileViweController.addToWorkingSetAndSelect().", true);
         var result = new $.Deferred();
-        addToPaneViewAndSelect(fullPath, selectIn, index)
+        addToPaneViewAndSelect(fullPath)
             .done(function (file) {
                 var doc;
                 

@@ -97,9 +97,9 @@ define(function (require, exports, module) {
             matches = [];
         
         while ((match = queryExpr.exec(contents)) !== null) {
-            lineNum     = StringUtils.offsetToLineNum(lines, match.index);
-            line        = lines[lineNum];
-            ch          = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
+            lineNum          = StringUtils.offsetToLineNum(lines, match.index);
+            line             = lines[lineNum];
+            ch               = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
             matchedLines     = match[0].split("\n");
             numMatchedLines  = matchedLines.length;
             totalMatchLength = match[0].length;
@@ -109,7 +109,7 @@ define(function (require, exports, module) {
             line = line.substr(0, Math.min(200, line.length));
             
             matches.push({
-                start: {line: lineNum, ch: ch},
+                start:       {line: lineNum, ch: ch},
                 end:         {line: lineNum + numMatchedLines - 1, ch: (numMatchedLines === 1 ? ch + totalMatchLength : lastLineLength)},
                 
                 // Note that the following offsets from the beginning of the file are *not* updated if the search
@@ -147,7 +147,7 @@ define(function (require, exports, module) {
     function _updateResults(doc, changeList) {
         var i, diff, matches, lines, start, howMany,
             resultsChanged = false,
-            fullPath = doc.file.fullPath,
+            fullPath       = doc.file.fullPath,
             resultInfo     = searchModel.results[fullPath];
         
         // Remove the results before we make any changes, so the SearchModel can accurately update its count.

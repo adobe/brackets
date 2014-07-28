@@ -133,53 +133,53 @@ define(function (require, exports, module) {
      * Updates the title bar with new file title or dirty indicator
      */
     function updateTitle() {
-        var currentlyViewedPath = MainViewManager.getCurrentlyViewedPath(),
-            currentDoc = currentlyViewedPath && DocumentManager.getOpenDocumentForPath(currentlyViewedPath),
+        var currentDoc = DocumentManager.getCurrentDocument(),
+            currentlyViewedPath = MainViewManager.getCurrentlyViewedPath(),
             windowTitle = brackets.config.app_title;
 
+        if (!brackets.nativeMenus) {
+            if (currentlyViewedPath) {
+                _$title.text(_currentTitlePath);
+                _$title.attr("title", currentlyViewedPath);
+                if (currentDoc) {
+                    // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
+                    _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
+                } else {
+                    // hide dirty dot if there is no document
+                    _$dirtydot.css("visibility", "hidden");
+                }
+            } else {
+                _$title.text("");
+                _$title.attr("title", "");
+                _$dirtydot.css("visibility", "hidden");
+            }
+        
+            // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
+            // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
+            // fixed width set on it (see the "#titlebar" CSS rule for details).
+            _$titleWrapper.css("width", "");
+            var newWidth = _$title.width();
+            _$titleWrapper.css("width", newWidth);
+            
+            // Changing the width of the title may cause the toolbar layout to change height, which needs to resize the
+            // editor beneath it (toolbar changing height due to window resize is already caught by EditorManager).
+            var newToolbarHeight = _$titleContainerToolbar.height();
+            if (_lastToolbarHeight !== newToolbarHeight) {
+                _lastToolbarHeight = newToolbarHeight;
+                EditorManager.resizeEditor();
+            }
+        }
+
+        // build shell/browser window title, e.g. "• file.html — Brackets"
         if (currentlyViewedPath) {
             windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, windowTitle);
         }
+        
         if (currentDoc) {
             windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
-        }
-        
-        if (!brackets.nativeMenus) {
-            // MainViewManager could file a currentFileChanged event during its AppInit handler
-            //  which could happen before our AppInit handler has been executed so 
-            //  check that we have jQuery wrappers setup for the DOM elements for browser version
-            if (_$title && _$dirtydot && _$titleWrapper) {
-                if (currentlyViewedPath) {
-                    _$title.text(_currentTitlePath);
-                    _$title.attr("title", currentlyViewedPath);
-                    if (currentDoc) {
-                        // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
-                        _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
-                    } else {
-                        // hide dirty dot if there is no document
-                        _$dirtydot.css("visibility", "hidden");
-                    }
-                } else {
-                    _$title.text("");
-                    _$title.attr("title", "");
-                    _$dirtydot.css("visibility", "hidden");
-                }
-
-                // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
-                // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
-                // fixed width set on it (see the "#titlebar" CSS rule for details).
-                _$titleWrapper.css("width", "");
-                var newWidth = _$title.width();
-                _$titleWrapper.css("width", newWidth);
-
-                // Changing the width of the title may cause the toolbar layout to change height, which needs to resize the
-                // editor beneath it (toolbar changing height due to window resize is already caught by EditorManager).
-                var newToolbarHeight = _$titleContainerToolbar.height();
-                if (_lastToolbarHeight !== newToolbarHeight) {
-                    _lastToolbarHeight = newToolbarHeight;
-                    WorkspaceManager.recomputeLayout();
-                }
-            }
+        } else {
+            // hide dirty dot if there is no document
+            _$dirtydot.css("visibility", "hidden");
         }
 
         // update shell/browser window title
@@ -243,7 +243,7 @@ define(function (require, exports, module) {
      * Creates a document and displays an editor for the specified file path.
      * @param {!string} fullPath
      * @param {boolean=} silent If true, don't show error message
-     * @param {string=} pane
+     * @param {string=} pane, must be a valid pane id or FOCUSED_PANE
      * @return {$.Promise} a jQuery promise that will either
      * - be resolved with a document for the specified file path or
      * - be resolved without document, i.e. when an image is displayed or
@@ -313,7 +313,7 @@ define(function (require, exports, module) {
      * If no path is specified, a file prompt is provided for input.
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @param {?boolean} silent - If true, don't show error message
-     * @param {string=} paneId - the pane in which to open the file
+     * @param {string=}  paneId - the pane in which to open the file
      * @return {$.Promise} a jQuery promise that will be resolved with a new
      * document for the specified file path or be resolved without document, i.e. when an image is displayed,
      * or rejected if the file can not be read.
@@ -397,18 +397,22 @@ define(function (require, exports, module) {
         var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
             silent = (commandData && commandData.silent) || false,
             paneId = (commandData && commandData.paneId) || MainViewManager.FOCUSED_PANE;
+        
         return _doOpenWithOptionalPath(fileInfo.path, silent, paneId)
-            .always(function () {
+            .always(function (file) {
+                MainViewManager.setActivePaneId(paneId);
+
                 // If a line and column number were given, position the editor accordingly.
                 if (fileInfo.line !== null) {
                     if (fileInfo.column === null || (fileInfo.column <= 0)) {
                         fileInfo.column = 1;
                     }
+                    
                     // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
                     EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1, fileInfo.column - 1, true);
                 }
                 
-                MainViewManager.setActivePaneId(paneId);
+//                result.resolve(DocumentManager.getOpenDocumentForPath(file.fullPath));
             });
         // Testing notes: here are some recommended manual tests for handleFileOpen, on macintosh.
         // Do all tests with brackets already running, and also with brackets not already running.
@@ -430,14 +434,12 @@ define(function (require, exports, module) {
      *   pane view list list (defaults to last); optional flag to force pane view list redraw
      */
     function handleAddToPaneViewList(commandData) {
-        return handleFileOpen(commandData).done(function (file) {
+        return handleFileOpen(commandData).done(function (doc) {
             // addToPaneViewList is synchronous
             // When opening a file with a custom viewer, we get a null doc.
             // So check it before we add it to the pane view list.
-            if (file) {
-                var paneId = (commandData && commandData.paneId) || MainViewManager.FOCUSED_PANE;
-                MainViewManager.addToPaneViewList(paneId, file, commandData.index, commandData.forceRedraw);
-            }
+            var paneId = (commandData && commandData.paneId) || MainViewManager.FOCUSED_PANE;
+            MainViewManager.addToPaneViewList(paneId, doc.file, commandData.index, commandData.forceRedraw);
         });
     }
 

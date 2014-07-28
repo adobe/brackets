@@ -130,8 +130,7 @@ define(function (require, exports, module) {
      * @see {@link getPaneTitle()} for more information
      * @private
      */
-    var _paneTitles  = {
-    };
+    var _paneTitles  = {};
     
     /**
      * current orientation (null, VERTICAL or HORIZONTAL)
@@ -816,12 +815,12 @@ define(function (require, exports, module) {
     
     /**
      * Event handler for "workspaceUpdateLayout" to update the layout
-     * @param {jQuery.Event} event object
-     * @param {number} viewAreaHeight
-     * @param {*} refresh hint data
+     * @param {jQuery.Event} event - jQuery event object
+     * @param {number} viewAreaHeight - unused
+     * @param {boolean} forceRefresh - true to force a resize and refresh of the entire view
      * @private
      */
-    function _updateLayout(event, viewAreaHeight, refreshHint) {
+    function _updateLayout(event, viewAreaHeight, forceRefresh) {
         var panes = Object.keys(_paneViews),
             size = 100 / panes.length;
         
@@ -838,7 +837,7 @@ define(function (require, exports, module) {
                              });
             }
             
-            pane.updateLayout(refreshHint);
+            pane.updateLayout(forceRefresh);
         });
         
         

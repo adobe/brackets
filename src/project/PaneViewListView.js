@@ -78,14 +78,18 @@ define(function (require, exports, module) {
     var LEFT_BUTTON = 1,
         MIDDLE_BUTTON = 2;
     
-    /** Each list item in the working set stores a references to the related document in the list item's data.  
-     *  Use listItem.data(_FILE_KEY) to get the document reference
+    /** 
+     * Each list item in the working set stores a references to the related document in the list item's data.  
+     *  Use `listItem.data(_FILE_KEY)` to get the document reference
+     * @type {string}
+     * @private
      */
     var _FILE_KEY = "file";
 
     /* 
      * Determines if context menus are registered
      * @private
+     * @return {boolean} true if the menus are registered, false if not
      */
     function _areContextMenusRegistered() {
         return _pane_view_list_cmenu && _pane_view_list_configuration_menu;
@@ -102,6 +106,29 @@ define(function (require, exports, module) {
         }
     }
     
+    /** 
+     * Updates the appearance of the list element based on the parameters provided.
+     * @private
+     * @param {!HTMLLIElement} listElement
+     * @param {?File} selectedFile
+     */
+    function _updateListItemSelection(listItem, selectedFile) {
+        var shouldBeSelected = (selectedFile && $(listItem).data(_FILE_KEY).fullPath === selectedFile.fullPath);
+        
+        ViewUtils.toggleClass($(listItem), "selected", shouldBeSelected);
+    }
+
+    /** 
+     * Determines if a file is dirty
+     * @private
+     * @param {!File} file - file to test
+     * @return {boolean} true if the file is dirty, false otherwise
+     */
+    function _isOpenAndDirty(file) {
+        // working set item might never have been opened; if so, then it's definitely not dirty
+        var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
+        return (docIfOpen && docIfOpen.isDirty);
+    }
     
     /* 
      * PaneViewListView constructor
@@ -146,30 +173,7 @@ define(function (require, exports, module) {
         $titleEl.text(title);
         this.updateOptionsButton();
     };
-    
-    /*
-     * retrieves the DOM element of the item matching the specified path
-     * @private
-     * @param {!string} fullPath - full path of the item to locate
-     * @return {HTMLLIItem} returns the DOM element of the item. null if one could not be found
-     */
-    PaneViewListView.prototype._findListItemFromPath = function (fullPath) {
-        var result = null;
 
-        if (fullPath) {
-            var items = this.$openFilesContainer.find("ul").children();
-            items.each(function () {
-                var $listItem = $(this);
-                if ($listItem.data(_FILE_KEY).fullPath === fullPath) {
-                    result = $listItem;
-                    return false; // breaks each
-                }
-            });
-        }
-
-        return result;
-    };
-    
     /**
      * Finds the listItem item assocated with the file. Returns null if not found.
      * @private
@@ -177,9 +181,20 @@ define(function (require, exports, module) {
      * @return {HTMLLIItem} returns the DOM element of the item. null if one could not be found
      */
     PaneViewListView.prototype._findListItemFromFile = function (file) {
+        var result = null;
+
         if (file) {
-            return this._findListItemFromPath(file.fullPath);
+            var items = this.$openFilesContainer.find("ul").children();
+            items.each(function () {
+                var $listItem = $(this);
+                if ($listItem.data(_FILE_KEY).fullPath === file.fullPath) {
+                    result = $listItem;
+                    return false; // breaks each
+                }
+            });
         }
+
+        return result;
     };
 
     /*
@@ -524,7 +539,7 @@ define(function (require, exports, module) {
         // Style the element
         $listItem.css("position", "relative").css("z-index", 1);
         
-        // Envent Handlers
+        // Event Handlers
         this.$openFilesContainer.on(self._makeEventName("mousemove"), function (e) {
             if (hasScroll) {
                 scroll(e);
@@ -577,30 +592,6 @@ define(function (require, exports, module) {
             ViewUtils.toggleClass($fileStatusIcon, "can-close", canClose);
         }
     };
-    
-    /** 
-     * Updates the appearance of the list element based on the parameters provided.
-     * @private
-     * @param {!HTMLLIElement} listElement
-     * @param {?File} selectedFile
-     */
-    function _updateListItemSelection(listItem, selectedFile) {
-        var shouldBeSelected = (selectedFile && $(listItem).data(_FILE_KEY).fullPath === selectedFile.fullPath);
-        
-        ViewUtils.toggleClass($(listItem), "selected", shouldBeSelected);
-    }
-
-    /** 
-     * Determines if a file is dirty
-     * @private
-     * @param {!File} file - file to test
-     * @return {boolean} true if the file is dirty, false otherwise
-     */
-    function _isOpenAndDirty(file) {
-        // working set item might never have been opened; if so, then it's definitely not dirty
-        var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
-        return (docIfOpen && docIfOpen.isDirty);
-    }
     
     /** 
      * Builds the UI for a new list item and inserts in into the end of the list
@@ -894,7 +885,7 @@ define(function (require, exports, module) {
      * @param {!jQuery} $container - the PaneViewListView's DOM parent node
      * @param {!string} paneId - the id of the pane the view is being created for
      */
-    function cratePaneViewListViewForPane($container, paneId) {
+    function createPaneViewListViewForPane($container, paneId) {
         // make sure the pane doesn't already have a view
         var index = _.findIndex(_views, function (paneViewListView) {
             return paneViewListView.paneId === paneId;
@@ -916,6 +907,6 @@ define(function (require, exports, module) {
     }
     
     // Public API
-    exports.cratePaneViewListViewForPane = cratePaneViewListViewForPane;
-    exports.refresh                      =  refresh;
+    exports.createPaneViewListViewForPane = createPaneViewListViewForPane;
+    exports.refresh                       =  refresh;
 });

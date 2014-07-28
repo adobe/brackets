@@ -92,7 +92,7 @@ define(function (require, exports, module) {
      * @constant {string} 
      * @private
      */
-    var _WORKSPACE_SORT_PREF = "currentSort";
+    var _LEGACY_SORT_PREF = "currentSort";
     
     /**
      * Retrieves a Sort object by id
@@ -102,6 +102,7 @@ define(function (require, exports, module) {
     function get(command) {
         var commandID;
         if (!command) {
+            console.error("Attempting to get a Sort method with a missing required parameter: command");
             return;
         }
         
@@ -157,9 +158,9 @@ define(function (require, exports, module) {
         _automaticSort = enable;
         PreferencesManager.setViewState("automaticSort", _automaticSort);
         CommandManager.get(Commands.CMD_SORT_PANE_VIEW_TOGGLE_AUTO).setChecked(_automaticSort);
-        _currentSort.setChecked(enable);
+        _currentSort.setChecked(_automaticSort);
         
-        if (enable) {
+        if (_automaticSort) {
             _currentSort.sort();
         } else {
             _removeListeners();
@@ -382,12 +383,13 @@ define(function (require, exports, module) {
      * Initialize default values for sorting preferences
      */
     PreferencesManager.stateManager.definePreference("automaticSort", "boolean", false);
-    PreferencesManager.convertPreferences(module, {_WORKSPACE_SORT_PREF: "user", "automaticSort": "user"}, true);
+    PreferencesManager.convertPreferences(module, {_LEGACY_SORT_PREF: "user", "automaticSort": "user"}, true);
     
     /** 
-     * default sort method
+     * Define a default sort method that's empty so that we
+     *   just convert and use the legacy sort method 
      */
-    PreferencesManager.stateManager.definePreference(_PANE_SORT_PREF, "string");
+    PreferencesManager.stateManager.definePreference(_PANE_SORT_PREF, "string", "");
     
     /*
      * initializes global sort method from preference settings or the default 
@@ -396,7 +398,7 @@ define(function (require, exports, module) {
         var sortMethod = PreferencesManager.getViewState(_PANE_SORT_PREF);
         
         if (!sortMethod) {
-            sortMethod = _convertSortPref(PreferencesManager.getViewState(_WORKSPACE_SORT_PREF));
+            sortMethod = _convertSortPref(PreferencesManager.getViewState(_LEGACY_SORT_PREF));
         }
 
         if (!sortMethod) {

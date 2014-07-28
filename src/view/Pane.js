@@ -124,8 +124,6 @@ define(function (require, exports, module) {
     
     
     /*
-     * Pane 
-     *
      * Pane Objects are constructed by the MainViewManager object when a Pane view is needed
      * @see {@link MainViewManager} for more information
      *
@@ -213,7 +211,7 @@ define(function (require, exports, module) {
     
     /**
      * Merges the another Pane object's contents into this Pane 
-     * @param {!Pane} Pane from which to copy 
+     * @param {!Pane} Other - Pane from which to copy 
      */
     Pane.prototype.mergeWith = function (other) {
         // hide the current views and show the interstitial page
@@ -265,7 +263,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the number of entries in the view file list
-     * @returns {!number} 
+     * @returns {number} 
      */
     Pane.prototype.getViewListSize = function () {
         return this._viewList.length;
@@ -284,7 +282,7 @@ define(function (require, exports, module) {
     /**
      * Returns the index of the item in the view file list 
      * @param {!string} fullPath the full path of the item to look for 
-     * @returns {!number} index of the item or -1 if not found
+     * @returns {number} index of the item or -1 if not found
      */
     Pane.prototype.findInViewList = function (fullPath) {
         return _.findIndex(this._viewList, function (file) {
@@ -397,7 +395,7 @@ define(function (require, exports, module) {
     /**
      * Determines if a file can be added to our file list
      * @private
-     * @param {!File} file
+     * @param {!File} file - file object to test
      * @return {boolean} true if it can be added, false if not
      */
     Pane.prototype._canAddFile = function (file) {
@@ -408,12 +406,12 @@ define(function (require, exports, module) {
     /**
      * Adds the given file to the end of the pane view list, if it is not already in the list
      * Does not change which document is currently open in the editor. Completes synchronously.
-     * @param {!File} file
+     * @param {!File} file - file to add
      * @param {number=} index of where to add the item
      * @return {number} index of where the item was added
      */
     Pane.prototype.addToViewList = function (file, index) {
-        var indexRequested = (index !== undefined && index !== null && index >= 0);
+        var indexRequested = (index !== undefined && index !== null && index >= 0 && index < this._viewList.length);
 
         this._addToViewList(file, {indexRequested: indexRequested, index: index});
         
@@ -449,7 +447,7 @@ define(function (require, exports, module) {
      * Removes the specifed file from all internal lists, destroys the view of the file (if there is one)
      *  and shows the interstitial page if the current view is destroyed
      * @private
-     * @param {!File} file
+     * @param {!File} file - file to remove
      * @return {!boolean} true if removed, false if the file was not found either in a list or view
      */
     Pane.prototype._removeFromViewList = function (file) {
@@ -493,8 +491,8 @@ define(function (require, exports, module) {
     /**
      * Removes the specifed file from all internal lists, destroys the view of the file (if there is one)
      *  and shows the interstitial page if the current view is destroyed
-     * @param {!File} file
-     * @return {!array.<File>} array of File objecgts removed 
+     * @param {!array.<File>}  list - files to remove
+     * @return {!array.<File>} array of File objects removed 
      */
     Pane.prototype.removeListFromViewList = function (list) {
         var self = this,
@@ -690,13 +688,9 @@ define(function (require, exports, module) {
      * @param {!View} view - the to show
      */
     Pane.prototype.showView = function (view) {
-        if (!view) {
-            return;
-        }
-        
         if (this._currentView && this._currentView === view) {
             this._currentView.setVisible(true);
-            this.updateLayout();
+            this.updateLayout(true);
             return;
         }
         
@@ -712,8 +706,7 @@ define(function (require, exports, module) {
         
         this._currentView = view;
         this._currentView.setVisible(true);
-        
-        this.updateLayout();
+        this.updateLayout(true);
         
         if (oldPath) {
             // Destroy any view that was currently shown
@@ -731,11 +724,11 @@ define(function (require, exports, module) {
     
     /**
      * Updates the layout causing the current view to redraw itself
-     * @param {Object=} hint - any redraw hint information to pass to the view
+     * @param {boolean} refresh - true to force a resize and refresh of the current view, false if just to resize
      */
-    Pane.prototype.updateLayout = function (hint) {
+    Pane.prototype.updateLayout = function (forceRefresh) {
         if (this._currentView) {
-            this._currentView.resizeToFit(hint);
+            this._currentView.resizeToFit(forceRefresh);
         }
     };
     

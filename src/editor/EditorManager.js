@@ -700,19 +700,14 @@ define(function (require, exports, module) {
     
     /**
      * file removed helper. Facilitates destroying editors no longer needed.
-     * @param {File|string} file - the file or filepath being removed
+     * @param {File} file - the file or filepath being removed
      */
     function _handleFileRemoved(file) {
         // There's one case where an editor should be disposed even though the current document
         // didn't change: removing a document from the working set (via the "X" button). (This may
         // also cover the case where the document WAS current, if the editor-swap happens before the
         // removal from the working set.
-        var doc;
-        if (typeof file === "string") {
-            doc = DocumentManager.getOpenDocumentForPath(file);
-        } else {
-            doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-        }
+        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
         
         if (doc) {
             MainViewManager.destroyEditorIfNotNeeded(doc);
@@ -722,7 +717,7 @@ define(function (require, exports, module) {
     /** 
      * file removed from pane handler.
      * @param {jQuery.Event} e
-     * @param {File|string|Array.<File>|Array.<string>} removedFiles - file, path or array of files or paths that are being removed
+     * @param {File|Array.<File>} removedFiles - file, path or array of files or paths that are being removed
      */
     function _handleRemoveFromPaneView(e, removedFiles) {
         if ($.isArray(removedFiles)) {

@@ -899,13 +899,6 @@ define(function (require, exports, module) {
     };
 
    /**
-    * Gets the document associated with this editor
-    */
-    Editor.prototype.getDocument = function () {
-        return this.document;
-    };
-    
-   /**
     * Gets the full path of the file being edited
     */
     Editor.prototype.getFullPath = function () {
@@ -2304,7 +2297,7 @@ define(function (require, exports, module) {
         this._lastEditorWidth = curWidth;
 
         if (forceRefresh) {
-            this.refreshAll(true);
+            this.refreshAll(forceRefresh);
         }
     };
     

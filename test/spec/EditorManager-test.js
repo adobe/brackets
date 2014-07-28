@@ -33,42 +33,40 @@ define(function (require, exports, module) {
         MainViewManager  = require("view/MainViewManager"),
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 
-    // TODO -- This is a workspace layout thing now so we need to repurpose this 
     describe("EditorManager", function () {
+        var pane, testEditor, testDoc, $fakeContentDiv, $fakeHolder;
+        beforeEach(function () {
+            // Normally the editor holder would be created inside a "content" div, which is
+            // used in the available height calculation. We create a fake content div just to
+            // hold the height, and we'll place the editor holder in it.
+            $fakeContentDiv = $("<div class='content'/>")
+                .css("height", "200px")
+                .appendTo(document.body);
 
+            $fakeHolder = SpecRunnerUtils.createMockElement()
+                                        .css("width", "1000px")
+                                        .attr("id", "hidden-editors")
+                                        .appendTo($fakeContentDiv);
+
+            pane = SpecRunnerUtils.createMockPane($fakeHolder);
+            testDoc = SpecRunnerUtils.createMockDocument("");
+        });
+        afterEach(function () {
+            $fakeHolder.remove();
+            $fakeHolder = null;
+
+            $fakeContentDiv.remove();
+            $fakeContentDiv = null;
+
+            SpecRunnerUtils.destroyMockEditor(testDoc);
+            testEditor = null;
+            testDoc = null;
+            pane = null;
+            EditorManager.resetViewStates();
+        });
+        
         describe("Create Editors", function () {
-            var pane, testEditor, testDoc, $root, $fakeContentDiv, $fakeHolder;
             
-            beforeEach(function () {
-                // Normally the editor holder would be created inside a "content" div, which is
-                // used in the available height calculation. We create a fake content div just to
-                // hold the height, and we'll place the editor holder in it.
-                $fakeContentDiv = $("<div class='content'/>")
-                    .css("height", "200px")
-                    .appendTo(document.body);
-                
-                $fakeHolder = SpecRunnerUtils.createMockElement()
-                                            .css("width", "1000px")
-                                            .attr("id", "hidden-editors")
-                                            .appendTo($fakeContentDiv);
-
-                pane = SpecRunnerUtils.createMockPane($fakeHolder);
-                testDoc = SpecRunnerUtils.createMockDocument("");
-            });
-            afterEach(function () {
-                $fakeHolder.remove();
-                $fakeHolder = null;
-
-                $fakeContentDiv.remove();
-                $fakeContentDiv = null;
-                
-                SpecRunnerUtils.destroyMockEditor(testDoc);
-                testEditor = null;
-                testDoc = null;
-                pane = null;
-                $root = null;
-                EditorManager.resetViewStates();
-            });
             it("should create a new editor for a document and add it to a pane", function () {
                 spyOn(pane, "addView");
                 EditorManager.doOpenDocument(testDoc, pane);
