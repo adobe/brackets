@@ -241,6 +241,10 @@
         
     }
 
+    .inline-widget .CodeMirror, .inline-widget .CodeMirror-gutters {
+        background: transparent;
+    }
+
     .related-container {
         background: #2c2c2c;
 
@@ -252,6 +256,8 @@
 
         .selection:before {
             border-left: @inline-triangle-size solid @dark-bc-inline-widget;
+            border-top: 9px solid transparent;
+            border-bottom: 9px solid transparent;
         }
 
         .related {
