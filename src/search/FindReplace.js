@@ -84,6 +84,8 @@ define(function (require, exports, module) {
         this.queryInfo = null;
         this.foundAny = false;
         this.marked = [];
+        this.resultSet = [];
+        this.matchIndex = null;
     }
 
     function getSearchState(cm) {
@@ -141,6 +143,49 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * Return the current match index if found in the result set or null if not found.
+     *
+     * @param {!Array.<>} resultSet The editor to search in
+     * @param {!{from: {line: number, ch: number}, to: {line: number, ch: number}}} cursor - the range of current match
+     * @return {number|null} The one-based index of current match if found or null if not found.
+     */
+    function _findCurrentMatchIndex(resultSet, cursor) {
+        var index = _.findIndex(resultSet, cursor);
+        return (index === -1) ? null : index + 1;
+    }
+    
+    /**
+     * @private
+     * Show the current match index by finding the cursor in the result set stored
+     * in the search state if the current match index is null. If not null, then adjust the 
+     * match index bassed on the search direction before showing it.
+     *
+     * @param {!SearchState} state The search state that has the array of search result
+     * @param {!{from: {line: number, ch: number}, to: {line: number, ch: number}}} cursor - the range of current match
+     * @param {!boolean} rev True if searching backwards
+     */
+    function _showMatchIndex(state, cursor, rev) {
+        if (state.matchIndex !== null) {
+            state.matchIndex = rev ? state.matchIndex - 1 : state.matchIndex + 1;
+            if (state.matchIndex === 0) {
+                state.matchIndex = state.marked.length;
+            } else if (state.matchIndex > state.marked.length) {
+                state.matchIndex = 1;
+            }
+        } else {
+            state.matchIndex = _findCurrentMatchIndex(state.resultSet, cursor);
+            state.resultSet = [];
+        }
+        
+        if (state.matchIndex) {
+            var matchIndexStr = StringUtils.format(Strings.FIND_MATCH_INDEX,
+                                                   state.matchIndex, state.marked.length);
+            findBar.showFindCount(matchIndexStr);
+        }
+    }
+       
+    /**
+     * @private
      * Returns the next match for the current query (from the search state) before/after the given position. Wraps around
      * the end of the document if no match is found before the end.
      *
@@ -169,6 +214,7 @@ define(function (require, exports, module) {
             return null;
         }
 
+        _showMatchIndex(state, cursor.pos, rev);
         return {start: cursor.from(), end: cursor.to()};
     }
 
@@ -400,6 +446,9 @@ define(function (require, exports, module) {
         state.marked.length = 0;
         
         ScrollTrackMarkers.clear();
+
+        state.resultSet = [];
+        state.matchIndex = null;
     }
 
     function clearSearch(cm) {
@@ -461,37 +510,31 @@ define(function (require, exports, module) {
             var cursor = getSearchCursor(cm, state);
             if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
                 // FUTURE: if last query was prefix of this one, could optimize by filtering last result set
-                var resultSet = [];
                 while (cursor.findNext()) {
-                    resultSet.push(cursor.pos);  // pos is unique obj per search result
+                    state.resultSet.push(cursor.pos);  // pos is unique obj per search result
                 }
                 
                 // Highlight all matches if there aren't too many
-                if (resultSet.length <= FIND_HIGHLIGHT_MAX) {
+                if (state.resultSet.length <= FIND_HIGHLIGHT_MAX) {
                     toggleHighlighting(editor, true);
                     
-                    resultSet.forEach(function (result) {
+                    state.resultSet.forEach(function (result) {
                         state.marked.push(cm.markText(result.from, result.to,
                              { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
                     });
-                    var scrollTrackPositions = resultSet.map(function (result) {
+                    var scrollTrackPositions = state.resultSet.map(function (result) {
                         return result.from;
                     });
                     
                     ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
                 }
                 
-                var countInfo;
-                if (resultSet.length === 0) {
-                    countInfo = Strings.FIND_NO_RESULTS;
-                } else if (resultSet.length === 1) {
-                    countInfo = Strings.FIND_RESULT_COUNT_SINGLE;
-                } else {
-                    countInfo = StringUtils.format(Strings.FIND_RESULT_COUNT, resultSet.length);
+                if (state.resultSet.length === 0) {
+                    findBar.showFindCount(Strings.FIND_NO_RESULTS);
                 }
-                findBar.showFindCount(countInfo);
-                state.foundAny = (resultSet.length > 0);
-                indicateHasMatches(resultSet.length);
+
+                state.foundAny = (state.resultSet.length > 0);
+                indicateHasMatches(state.resultSet.length);
                 
             } else {
                 // On huge documents, just look for first match & then stop
