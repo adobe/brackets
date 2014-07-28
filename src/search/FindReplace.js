@@ -214,7 +214,6 @@ define(function (require, exports, module) {
             return null;
         }
 
-        _showMatchIndex(state, cursor.pos, rev);
         return {start: cursor.from(), end: cursor.to()};
     }
 
@@ -430,6 +429,8 @@ define(function (require, exports, module) {
         cm.operation(function () {
             var nextMatch = _getNextMatch(editor, rev, pos);
             if (nextMatch) {
+                _showMatchIndex(getSearchState(editor._codeMirror),
+                                {from: nextMatch.start, to: nextMatch.end }, rev);
                 _selectAndScrollTo(editor, [nextMatch], true, preferNoScroll);
             } else {
                 cm.setCursor(editor.getCursorPos());  // collapses selection, keeping cursor in place to avoid scrolling
