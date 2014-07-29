@@ -100,7 +100,7 @@ define(function (require, exports, module) {
         // height of the modal bar so the code doesn't appear to shift if possible.
         MainViewManager.savePaneScrollState(MainViewManager.ALL_PANES);
         WorkspaceManager.recomputeLayout();  // changes available ht for editor area
-        MainViewManager.adjustPaneScrollState(MainViewManager.ALL_PANES, this.height());
+        MainViewManager.restoreAndAdjustPaneScrollState(MainViewManager.ALL_PANES, this.height());
     }
     
     /**
@@ -163,7 +163,7 @@ define(function (require, exports, module) {
         WorkspaceManager.recomputeLayout();  // changes available ht for editor area
         // restore scroll position of all vies
         if (restoreScrollPos) {
-            MainViewManager.adjustPaneScrollState(MainViewManager.ALL_PANES, -barHeight);
+            MainViewManager.restoreAndAdjustPaneScrollState(MainViewManager.ALL_PANES, -barHeight);
         }
     };
     

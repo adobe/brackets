@@ -359,35 +359,38 @@ define(function (require, exports, module) {
     function savePaneScrollState(paneId) {
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
-                _paneScrollStates[pane.id] = pane.getPaneScrollState();
+                _paneScrollStates[pane.id] = pane.getScrollState();
             });
         } else {
             var pane = _getPaneFromPaneId(paneId);
             if (pane) {
-                _paneScrollStates[pane.id] = pane.getPaneScrollState();
+                _paneScrollStates[pane.id] = pane.getScrollState();
             }
         }
     }
     
     /**
-     * Gets the scroll state from the cache and passes it in to the pane which passes it to the view
-     * to restore and apply the heightDelta. This is used primarily when a modal bar opens to keep the 
-     * editor from scrolling the current page out of view in order to maintain the appearance. 
+     * Restores scroll state from the cache and applies it to the current pane's view after a call to savePaneScrollState.
+     * The view implementation is responsible for applying or ignoring the heightDelta.
+     * This is used primarily when a modal bar opens to keep the  editor from scrolling the current page out
+     * of view in order to maintain the appearance. 
+     * The state is removed from the cache after calling this function.  
      * @param {!string} paneId - id of the pane in which to adjust the scroll state, ALL_PANES or FOCUSED_PANE
      * @param {!number} heightDelta - delta H to apply to the scroll state
+     * @seeAlso
      */
-    function adjustPaneScrollState(paneId, heightDelta) {
+    function restoreAndAdjustPaneScrollState(paneId, heightDelta) {
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
                 if (_paneScrollStates.hasOwnProperty(pane.id)) {
-                    pane.adjustPaneScrollState(_paneScrollStates[pane.id], heightDelta);
+                    pane.restoreAndAdjustScrollState(_paneScrollStates[pane.id], heightDelta);
                 }
             });
             _paneScrollStates = {};
         } else {
             var pane = _getPaneFromPaneId(paneId);
             if (pane && _paneScrollStates.hasOwnProperty(pane.id)) {
-                pane.adjustPaneScrollState(_paneScrollStates[pane.id], heightDelta);
+                pane.restoreAndAdjustScrollState(_paneScrollStates[pane.id], heightDelta);
                 delete _paneScrollStates[pane.id];
             }
         }
@@ -918,11 +921,17 @@ define(function (require, exports, module) {
      * @return {Pane} - the pane object of the pane 
      */
     function _createPaneIfNecessary(paneId) {
-        var pane;
+        var currentPane,
+            pane;
         
         if (!_paneViews.hasOwnProperty(paneId)) {
             pane = new Pane(paneId, _$container);
             _paneViews[paneId] = pane;
+            
+            currentPane = _getActivePane();
+            if (currentPane) {
+                pane._copyStylesFrom(currentPane);
+            }
             
             $(exports).triggerHandler("paneCreated", [pane.id]);
             
@@ -1042,10 +1051,6 @@ define(function (require, exports, module) {
      * @param {Object={noOpenNextFile:boolean}} optionsIn - options 
      */
     function doClose(paneId, file, optionsIn) {
-        if (!file) {
-            return;
-        }
-        
         if (paneId === ALL_PANES) {
             // search in the list of files in each pane's workingset list
             paneId = getPaneIdForPath(file.fullPath);
@@ -1064,7 +1069,7 @@ define(function (require, exports, module) {
                 //  so we don't need to do it again, so if we removedthe current view of the activated
                 //  pane and the new view is now null then we need to tell our listeners that it's null
                 //  otherwise this is handled in doOpen
-                if (oldFile.fullPath === file.fullPath && !pane.getCurrentlyViewedFile()) {
+                if (oldFile && oldFile.fullPath === file.fullPath && !pane.getCurrentlyViewedFile()) {
                     $(exports).triggerHandler("currentFileChanged", [pane.getCurrentlyViewedFile(), pane.id, oldFile, pane.id]);
                 }
             }
@@ -1413,7 +1418,7 @@ define(function (require, exports, module) {
     
     // Pane state
     exports.savePaneScrollState              = savePaneScrollState;
-    exports.adjustPaneScrollState            = adjustPaneScrollState;
+    exports.restoreAndAdjustPaneScrollState  = restoreAndAdjustPaneScrollState;
     
     // Traversal
     exports.beginTraversal                   = beginTraversal;

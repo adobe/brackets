@@ -115,7 +115,7 @@ define(function (require, exports, module) {
     
     /**
      * Registered inline-editor widget providers sorted descending by priority. 
-     * See {@link #registerInlineEditProvider()}.
+     * @see {@link #registerInlineEditProvider()}.
      * @type {Array.<{priority:number, provider:function(...)}>}
      * @private
      */
@@ -123,14 +123,15 @@ define(function (require, exports, module) {
     
     /**
      * Registered inline documentation widget providers sorted descending by priority.
-     * See {@link #registerInlineDocsProvider()}.
+     * @see {@link #registerInlineDocsProvider()}.
      * @type {Array.<{priority:number, provider:function(...)}>}
      * @private
      */
     var _inlineDocsProviders = [];
     
     /**
-     * Registered jump-to-definition providers. See {@link #registerJumpToDefProvider()}.
+     * Registered jump-to-definition providers. 
+     * @see {@link #registerJumpToDefProvider()}.
      * @private
      * @type {Array.<function(...)>}
      */

@@ -209,6 +209,26 @@ define(function (require, exports, module) {
     };
     
     
+   /**
+     * Copies the non-pane styles from another pane
+     * @private
+     * @param {!Pane} other - The pane with which to copy styles from
+     */
+    Pane.prototype._copyStylesFrom = function (other) {
+        var classes = other.$el.attr("class").split(/\s+/),
+            self = this;
+        
+        classes.forEach(function (className) {
+            switch (className) {
+            case "active-pane":
+            case "view-pane":
+                break;
+            default:
+                self.$el.addClass(className);
+            }
+        });
+    };
+    
     /**
      * Merges the another Pane object's contents into this Pane 
      * @param {!Pane} Other - Pane from which to copy 
@@ -923,7 +943,7 @@ define(function (require, exports, module) {
      * @return {!Object} scroll state - the current scroll state
      */
     
-    Pane.prototype.getPaneScrollState = function () {
+    Pane.prototype.getScrollState = function () {
         if (this._currentView) {
             return {scrollPos: this._currentView.getScrollPos()};
         }
@@ -934,7 +954,7 @@ define(function (require, exports, module) {
      * @param {!Object} state - the current scroll state
      * @param {!number} heightDelta - the amount to add or subtract from the state
      */
-    Pane.prototype.adjustPaneScrollState = function (state, heightDelta) {
+    Pane.prototype.restoreAndAdjustScrollState = function (state, heightDelta) {
         if (this._currentView && state && state.scrollPos) {
             this._currentView.adjustScrollPos(state.scrollPos, heightDelta);
         }
