@@ -541,7 +541,7 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Passa alla definizione",
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostra suggerimenti sul parametro",
     "NO_ARGUMENTS"                              : "<nessun parametro>",
-    "DETECTED_EXCLUSION_TITLE"                  : "Problema Interferenza File JavaScript",
+    "DETECTED_EXCLUSION_TITLE"                  : "Problema Conseguente File JavaScript",
     "DETECTED_EXCLUSION_INFO"                   : "Brackets ha dei problemi per elaborare il file:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> nel tuo progetto e rimuovi il file da jscodehints.detectedExclusions.",
     
     // extensions/default/JSLint
