@@ -902,6 +902,11 @@ define(function (require, exports, module) {
         var view,
             result = [],
             currentlyViewedPath = this.getCurrentlyViewedPath();
+
+        // Save the current view state first
+        if (this._currentView && this._currentView.hasOwnProperty("document")) {
+            EditorManager._saveEditorViewState(this._currentView);
+        }
         
         this._viewList.forEach(function (file) {
             // Do not persist untitled document paths
