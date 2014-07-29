@@ -424,9 +424,7 @@ define({
     "USE_THEME_SCROLLBARS"                 : "Usar scrollbars del tema",
     "FONT_SIZE"                            : "Tamaño de letra",
     "FONT_FAMILY"                          : "Tipo de letra",
-    "LINE_HEIGHT"                          : "Altura de la línea",
-    "GENERAL"                              : "General",
-    
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nueva regla",
     
@@ -590,4 +588,4 @@ define({
     "DOCS_MORE_LINK"                            : "Más"
 });
 
-/* Last translated for 2f5acd9c6fb21330cad0dae16e26bf659859583e */
+/* Last translated for 75c811dfa38164b7e9bd3921dd630d40720e9c2a */
