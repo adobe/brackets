@@ -274,6 +274,8 @@ define(function (require, exports, module) {
             })
         );
         
+        this.$editorHolder.toggleClass("show-line-padding", !this._getOption("showLineNumbers"));
+        
         // Create the CodeMirror instance
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
         this._codeMirror = new CodeMirror(container, {

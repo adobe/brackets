@@ -208,27 +208,6 @@ define(function (require, exports, module) {
         return name + ".pane" + this.paneId;
     };
     
-    
-   /**
-     * Copies the non-pane styles from another pane
-     * @private
-     * @param {!Pane} other - The pane with which to copy styles from
-     */
-    Pane.prototype._copyStylesFrom = function (other) {
-        var classes = other.$el.attr("class").split(/\s+/),
-            self = this;
-        
-        classes.forEach(function (className) {
-            switch (className) {
-            case "active-pane":
-            case "view-pane":
-                break;
-            default:
-                self.$el.addClass(className);
-            }
-        });
-    };
-    
     /**
      * Merges the another Pane object's contents into this Pane 
      * @param {!Pane} Other - Pane from which to copy 

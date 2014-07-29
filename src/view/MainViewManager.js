@@ -928,11 +928,6 @@ define(function (require, exports, module) {
             pane = new Pane(paneId, _$container);
             _paneViews[paneId] = pane;
             
-            currentPane = _getActivePane();
-            if (currentPane) {
-                pane._copyStylesFrom(currentPane);
-            }
-            
             $(exports).triggerHandler("paneCreated", [pane.id]);
             
             pane.$el.on("click.mainview", function () {
