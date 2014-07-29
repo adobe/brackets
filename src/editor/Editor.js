@@ -54,6 +54,8 @@
  *    - optionChange -- Triggered when an option for the editor is changed. The 2nd arg to the listener
  *      is a string containing the editor option that is changing. The 3rd arg, which can be any
  *      data type, is the new value for the editor option.
+ *    - beforeDestroy - Triggered before the object is about to dispose of all its internal state data 
+ *      so that listners can cache things like scroll pos, etc...
  *
  * The Editor also dispatches "change" events internally, but you should listen for those on
  * Documents, not Editors.
@@ -194,7 +196,7 @@ define(function (require, exports, module) {
      * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the (secret) "master"
      *          Editor for the Document. If false, this Editor will attach to the Document as a "slave"/
      *          secondary editor.
-     * @param {!jQueryObject} container  Container to add the editor to.
+     * @param {!jQueryObject|HTMLDomNode} container  Container to add the editor to.
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
      *          to display in this editor. Inclusive.
      */
@@ -345,7 +347,7 @@ define(function (require, exports, module) {
      * a read-only string-backed mode.
      */
     Editor.prototype.destroy = function () {
-        $(this).triggerHandler("destroy", [this]);
+        $(this).triggerHandler("beforeDestroy", [this]);
 
         // CodeMirror docs for getWrapperElement() say all you have to do is "Remove this from your
         // tree to delete an editor instance."
@@ -1773,7 +1775,7 @@ define(function (require, exports, module) {
         };
         
         // See if popover is clipped on any side
-        clip = ViewUtils.getElementClipSize(this.$editorHolder, popoverRect);
+        clip = ViewUtils.getElementClipSize($("#editor-holder"), popoverRect);
 
         // Prevent horizontal clipping
         if (clip.left > 0) {
@@ -2159,12 +2161,25 @@ define(function (require, exports, module) {
     Editor.prototype.getModeForDocument = function () {
         return this._codeMirror.getOption("mode");
     };
-    
+
     /**
      * The Document we're bound to
      * @type {!Document}
      */
     Editor.prototype.document = null;
+
+    /**
+     * The Editor's container
+     * @type {!jQuery}
+     */
+    Editor.prototype.$editorHolder = null;
+
+    /**
+     * The Editor's container
+     * @type {!jQuery}
+     */
+    Editor.prototype.lastEditorWidth = null;
+    
     
     /**
      * If true, we're in the middle of syncing to/from the Document. Used to ignore spurious change
@@ -2172,7 +2187,7 @@ define(function (require, exports, module) {
      * @type {!boolean}
      */
     Editor.prototype._duringSync = false;
-    
+
     /**
      * @private
      * NOTE: this is actually "semi-private": EditorManager also accesses this field... as well as
@@ -2274,6 +2289,7 @@ define(function (require, exports, module) {
 
     /** 
      * resizes the editor to fill its parent container
+     * should not be used on inline editors
      * @param {boolean=} forceRefresh - forces the editor to update its layout 
      *                                   even if it already matches the container's height / width
      */

@@ -55,12 +55,16 @@ define(function (require, exports, module) {
         
 
     /** 
+     * These are temporary internal commands and will go away once we have implemented
+     *  @Larz0's UI treatment
      * @const
      * @private
      */
     var CMD_ID_SPLIT_VERTICALLY = "cmd.splitVertically";
 
     /** 
+     * These are temporary internal commands and will go away once we have implemented
+     *  @Larz0's UI treatment
      * @const
      * @private
      */
@@ -254,7 +258,9 @@ define(function (require, exports, module) {
     function _getPaneIdFromContainer($container) {
         var paneId;
         _.forEach(_paneViews, function (pane) {
-            if (pane.$el === $container) {
+            // matching $el to $container doesn't always work 
+            //  i.e. if $container is the result of a query 
+            if (pane.$el.attr("id") === $container.attr("id")) {
                 paneId = pane.id;
                 return false;
             }
@@ -327,6 +333,21 @@ define(function (require, exports, module) {
                         forceFocusToActivePaneView();
                     }
                 }
+            } else {
+                // try to find a parent of an inline-editor that is a pane
+                var parents = $container.parents(".view-pane");
+                if (parents.length === 1) {
+                    $container = $(parents[0]);
+                    newPaneId = _getPaneIdFromContainer($container);
+                    if (newPaneId) {
+                        if (newPaneId !== _activePaneId) {
+                            // activate the pane which will put focus in the pane's doc
+                            setActivePaneId(newPaneId);
+                            // reset the focus to the inline editor
+                            current.focus();
+                        }
+                    }
+                }
             }
         }
     }
@@ -349,10 +370,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * reads the scroll state from the scroll state cache and passes it back to the pane to restore the 
-     * scroll state and applies the heightData to the scroll. This is used primarily when a modal bar
-     * is opened to keep the editor from scrolling the current page out of view in order to maintain the appearance
-     * that the difference in size isn't affecting the state of the current document
+     * Gets the scroll state from the cache and passes it in to the pane which passes it to the view
+     * to restore and apply the heightDelta. This is used primarily when a modal bar opens to keep the 
+     * editor from scrolling the current page out of view in order to maintain the appearance. 
      * @param {!string} paneId - id of the pane in which to adjust the scroll state, ALL_PANES or FOCUSED_PANE
      * @param {!number} heightDelta - delta H to apply to the scroll state
      */
@@ -1202,7 +1222,7 @@ define(function (require, exports, module) {
 
         // reset
         _doUnsplit();
-        EditorManager.resetViewStates();
+        EditorManager._resetViewStates();
         
         if (state) {
 

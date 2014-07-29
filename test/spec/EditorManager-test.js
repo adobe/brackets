@@ -62,7 +62,7 @@ define(function (require, exports, module) {
             testEditor = null;
             testDoc = null;
             pane = null;
-            EditorManager.resetViewStates();
+            EditorManager._resetViewStates();
         });
         
         describe("Create Editors", function () {
@@ -82,21 +82,21 @@ define(function (require, exports, module) {
                 expect(pane.addView.calls[0].args[1]).toEqual(editor);
             });
             it("should remember a file's view state", function () {
-                EditorManager.addViewStates({ a: "1234" });
-                expect(EditorManager.getViewState("a")).toEqual("1234");
+                EditorManager._addViewStates({ a: "1234" });
+                expect(EditorManager._getViewState("a")).toEqual("1234");
             });
             it("should extend the view state cache", function () {
-                EditorManager.addViewStates({ a: "1234" });
-                EditorManager.addViewStates({ b: "5678" });
-                expect(EditorManager.getViewState("a")).toEqual("1234");
-                expect(EditorManager.getViewState("b")).toEqual("5678");
+                EditorManager._addViewStates({ a: "1234" });
+                EditorManager._addViewStates({ b: "5678" });
+                expect(EditorManager._getViewState("a")).toEqual("1234");
+                expect(EditorManager._getViewState("b")).toEqual("5678");
             });
             it("should reset the view state cache", function () {
-                EditorManager.addViewStates({ a: "1234" });
-                EditorManager.addViewStates({ b: "5678" });
-                EditorManager.resetViewStates();
-                expect(EditorManager.getViewState("a")).toBeUndefined();
-                expect(EditorManager.getViewState("b")).toBeUndefined();
+                EditorManager._addViewStates({ a: "1234" });
+                EditorManager._addViewStates({ b: "5678" });
+                EditorManager._resetViewStates();
+                expect(EditorManager._getViewState("a")).toBeUndefined();
+                expect(EditorManager._getViewState("b")).toBeUndefined();
             });
         });
     });

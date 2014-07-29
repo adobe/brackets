@@ -497,6 +497,43 @@ define(function (require, exports, module) {
                     _$(EditorManager).off("fullEditorCreatedForDocument", handler);
                 });
             });
+            it("should activate pane when inline editor gains focus", function () {
+                var editor,
+                    inlineEditor,
+                    editors = {},
+                    handler = function (e, doc, editor, paneId) {
+                        editors[doc.file.name] = editor;
+                    };
+                
+                runs(function () {
+                    _$(EditorManager).on("fullEditorCreatedForDocument", handler);
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.html",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.css",
+                                                                            paneId: "second-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+
+                    // open inline editor at specified offset index
+                    var inlineEditorResult = SpecRunnerUtils.toggleQuickEditAtOffset(editors["test.html"], {line: 8, ch: 14});
+                    waitsForDone(inlineEditorResult, "inline editor opened", 1000);
+                });
+
+                runs(function () {
+                    MainViewManager.setActivePaneId("second-pane");
+                    inlineEditor = EditorManager.getInlineEditors(editors["test.html"])[0];
+                    inlineEditor.focus();
+                    expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
+                });
+            });
             it("should activate pane when pane is clicked", function () {
                 var activePaneChangedListener = jasmine.createSpy();
                 

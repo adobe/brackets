@@ -107,7 +107,7 @@ define(function (require, exports, module) {
     
     /**
      * Maps full path to scroll pos & cursor/selection info. Not kept up to date while an editor is current.
-     * Only updated when switching / closing editor, or when requested explicitly via _getViewState().
+     * Only updated when switching / closing editor, or when requested explicitly via __getViewState().
      * @type {Object.<string, ViewState>}
      * @private
      */
@@ -151,7 +151,11 @@ define(function (require, exports, module) {
      */
     function getCurrentFullEditor() {
         var currentPath = MainViewManager.getCurrentlyViewedPath(),
+            doc;
+        
+        if (currentPath) {
             doc = DocumentManager.getOpenDocumentForPath(currentPath);
+        }
         
         if (doc) {
             return doc._masterEditor;
@@ -180,7 +184,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _restoreEditorViewState(editor) {
-        // We want to ignore the current state of the editor, so don't call _getViewState()
+        // We want to ignore the current state of the editor, so don't call __getViewState()
         var viewState = _viewStateCache[editor.document.file.fullPath];
         if (viewState) {
             if (viewState.selection) {
@@ -201,7 +205,7 @@ define(function (require, exports, module) {
      * @param {!string} fullPath - path of the file to retrieve the view state
      * @return {ViewState} up-to-date view state for the given file, or null if file not open and no state cached 
      */
-    function getViewState(fullPath) {
+    function _getViewState(fullPath) {
         return _viewStateCache[fullPath];
     }
     
@@ -209,7 +213,7 @@ define(function (require, exports, module) {
      * Initializes the view state cache
      * @param {Array.<ViewState>} viewStates - serialized view state to initialize cache with
      */
-    function resetViewStates(viewStates) {
+    function _resetViewStates(viewStates) {
         _viewStateCache = viewStates || {};
     }
 
@@ -217,7 +221,7 @@ define(function (require, exports, module) {
      * Adds view states to the view state cache without destroying the existing data
      * @param {Array.<ViewState>} viewStates - serialized view state to append to the cache
      */
-    function addViewStates(viewStates) {
+    function _addViewStates(viewStates) {
         _viewStateCache = _.extend(_viewStateCache, viewStates);
     }
     
@@ -269,7 +273,7 @@ define(function (require, exports, module) {
             _notifyActiveEditorChanged(this);
         });
         
-        $(editor).on("destroy", function () {
+        $(editor).on("beforeDestroy", function () {
             _saveEditorViewState(editor);
         });
         
@@ -772,9 +776,9 @@ define(function (require, exports, module) {
     exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;
 
     // View State Cache Access
-    exports.getViewState                 = getViewState;
-    exports.resetViewStates              = resetViewStates;
-    exports.addViewStates                = addViewStates;
+    exports._getViewState                 = _getViewState;
+    exports._resetViewStates              = _resetViewStates;
+    exports._addViewStates                = _addViewStates;
     
     // Define public API
     exports.createInlineEditorForDocument = createInlineEditorForDocument;

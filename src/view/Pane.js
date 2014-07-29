@@ -853,7 +853,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * serializes from disk the pane state
+     * serializes the pane state
      * @param {!Object} state - the state to load 
      */
     Pane.prototype.loadState = function (state) {
@@ -881,7 +881,7 @@ define(function (require, exports, module) {
         /*
          * @todo: Implement a ViewStateManager
          */
-        EditorManager.addViewStates(viewStates);
+        EditorManager._addViewStates(viewStates);
         
         activeFile = activeFile || getInitialViewFilePath();
         
@@ -893,7 +893,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * serializes to disk the pane state
+     * serializes the pane state
      * @return {!Object} state - the state to save 
      */
     Pane.prototype.saveState = function () {
@@ -907,7 +907,7 @@ define(function (require, exports, module) {
                 result.push({
                     file: file.fullPath,
                     active: (file.fullPath === currentlyViewedPath),
-                    viewState:  EditorManager.getViewState(file.fullPath)
+                    viewState:  EditorManager._getViewState(file.fullPath)
                 });
             }
         });

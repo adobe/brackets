@@ -307,10 +307,7 @@ define(function (require, exports, module) {
             // Still need to make sure it's within project or working set
             // In getCandidateFiles(), this is covered by the baseline getAllFiles() itself
             if (file.fullPath.indexOf(ProjectManager.getProjectRoot().fullPath) !== 0) {
-                var inWorkingSet = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).some(function (wsFile) {
-                    return wsFile.fullPath === file.fullPath;
-                });
-                if (!inWorkingSet) {
+                if (MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, file.fullPath) === -1) {
                     return false;
                 }
             }
