@@ -699,7 +699,9 @@ define(function (require, exports, module) {
             oldPath = oldView ? oldView.getFullPath() : undefined;
         
         if (this._currentView) {
-            EditorManager._saveEditorViewState(this._currentView);
+            if (this._currentView.hasOwnProperty("document")) {
+                EditorManager._saveEditorViewState(this._currentView);
+            }
             this._currentView.setVisible(false);
         } else {
             this.showInterstitial(false);
