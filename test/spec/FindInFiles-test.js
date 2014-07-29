@@ -785,7 +785,7 @@ define(function (require, exports, module) {
             describe("when in-memory document changes", function () {
                 it("should update the results when a matching line is added, updating line numbers and adding the match", function () {
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, { fullPath: fullTestPath("foo.html") }));
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, { fullPath: fullTestPath("foo.html") }));
                     });
                     runs(function () {
                         var doc = DocumentManager.getOpenDocumentForPath(fullTestPath("foo.html")),
@@ -826,7 +826,7 @@ define(function (require, exports, module) {
 
                 it("should update the results when a matching line is deleted, updating line numbers and removing the match", function () {
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, { fullPath: fullTestPath("foo.html") }));
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, { fullPath: fullTestPath("foo.html") }));
                     });
                     runs(function () {
                         var doc = DocumentManager.getOpenDocumentForPath(fullTestPath("foo.html")),
@@ -863,7 +863,7 @@ define(function (require, exports, module) {
 
                 it("should replace matches in a portion of the document that was edited to include a new match", function () {
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, { fullPath: fullTestPath("foo.html") }));
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, { fullPath: fullTestPath("foo.html") }));
                     });
                     runs(function () {
                         var doc = DocumentManager.getOpenDocumentForPath(fullTestPath("foo.html")),
@@ -904,7 +904,7 @@ define(function (require, exports, module) {
 
                 it("should completely remove the document from the results list if all matches in the document are deleted", function () {
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, { fullPath: fullTestPath("foo.html") }));
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, { fullPath: fullTestPath("foo.html") }));
                     });
                     runs(function () {
                         var doc = DocumentManager.getOpenDocumentForPath(fullTestPath("foo.html")),
@@ -1272,10 +1272,10 @@ define(function (require, exports, module) {
 
                     // Open two of the documents we want to replace in memory.
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, { fullPath: testPath + "/css/foo.css" }), "opening document");
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, { fullPath: testPath + "/css/foo.css" }), "opening document");
                     });
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, { fullPath: testPath + "/foo.js" }), "opening document");
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, { fullPath: testPath + "/foo.js" }), "opening document");
                     });
 
                     // We can't use expectInMemoryFiles(), since this test requires everything to happen fully synchronously
@@ -1380,7 +1380,7 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, { fullPath: testPath + "/css/foo.css" }), "opening document");
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, { fullPath: testPath + "/css/foo.css" }), "opening document");
                     });
 
                     doTestWithErrors({
@@ -1407,7 +1407,7 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, {fullPath: testPath + "/css/foo.css"}), "add file to working set");
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, {fullPath: testPath + "/css/foo.css"}), "add file to working set");
                     });
 
                     doInMemoryTest({
@@ -1432,7 +1432,7 @@ define(function (require, exports, module) {
                     };
 
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, {fullPath: testPath + "/css/foo.css"}), "add file to working set");
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, {fullPath: testPath + "/css/foo.css"}), "add file to working set");
                     });
                     runs(function () {
                         var doc = DocumentManager.getOpenDocumentForPath(testPath + "/css/foo.css");
@@ -1554,7 +1554,7 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, {fullPath: testPath + "/bar.txt"}), "open file");
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, {fullPath: testPath + "/bar.txt"}), "open file");
                     });
 
                     doInMemoryTest({
@@ -1594,7 +1594,7 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, {fullPath: testPath + "/css/foo.css"}), "open file");
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, {fullPath: testPath + "/css/foo.css"}), "open file");
                     });
 
                     doInMemoryTest({
@@ -1920,7 +1920,7 @@ define(function (require, exports, module) {
                     it("should do single-file Replace All in an open file in the project", function () {
                         openTestProjectCopy(defaultSourcePath);
                         runs(function () {
-                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, { fullPath: testPath + "/foo.js" }), "open file");
+                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, { fullPath: testPath + "/foo.js" }), "open file");
                         });
                         runs(function () {
                             waitsForDone(CommandManager.execute(Commands.CMD_REPLACE), "open single-file replace bar");
@@ -1959,7 +1959,7 @@ define(function (require, exports, module) {
                         });
                         SpecRunnerUtils.loadProjectInTestWindow(blankProject);
                         runs(function () {
-                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, { fullPath: externalFilePath }), "open external file");
+                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, { fullPath: externalFilePath }), "open external file");
                         });
                         runs(function () {
                             waitsForDone(CommandManager.execute(Commands.CMD_REPLACE), "open single-file replace bar");
@@ -2094,7 +2094,7 @@ define(function (require, exports, module) {
                     it("should close the panel if a file is modified in memory", function () {
                         openTestProjectCopy(defaultSourcePath);
                         runs(function () {
-                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, { fullPath: testPath + "/foo.html" }), "open file");
+                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, { fullPath: testPath + "/foo.html" }), "open file");
                         });
                         openSearchBar(null, true);
                         executeReplace("foo", "bar");
@@ -2117,7 +2117,7 @@ define(function (require, exports, module) {
                         
                         openTestProjectCopy(defaultSourcePath);
                         runs(function () {
-                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, { fullPath: testPath + "/foo.html" }), "open file");
+                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, { fullPath: testPath + "/foo.html" }), "open file");
                         });
                         runs(function () {
                             doc = DocumentManager.getOpenDocumentForPath(testPath + "/foo.html");

@@ -39,7 +39,7 @@
  *      are complete. Doesn't fire when editor temporarily loses focus to a non-editor
  *      control (e.g. search toolbar or modal dialog, or window deactivation). Does
  *      fire when focus moves between inline editor and its full-size container.
- *      This event tracks `getActiveEditor()` changes, while DocumentManager's
+ *      This event tracks `getActiveEditor()` changes, while MainViewManagers's
  *      `currentFileChange` tracks `getCurrentFullEditor()` changes.
  *      The 2nd arg to the listener is which Editor became active; the 3rd arg is
  *      which Editor is deactivated as a result. Either one may be null.
@@ -274,7 +274,9 @@ define(function (require, exports, module) {
         });
         
         $(editor).on("beforeDestroy", function () {
-            _saveEditorViewState(editor);
+            if (editor.$editorHolder.is(":visible")) {
+                _saveEditorViewState(editor);
+            }
         });
         
         return editor;
@@ -312,7 +314,7 @@ define(function (require, exports, module) {
      * when the document is opened using Editor.switchContainers()
      * @param {!Document} doc - document to create a hidden editor for
      */
-    function createUnattachedMasterEditor(doc) {
+    function _createUnattachedMasterEditor(doc) {
         // attach to the hidden containers DOM node if necessary
         if (!_$hiddenEditorsContainer) {
             _$hiddenEditorsContainer = $("#hidden-editors");
@@ -427,13 +429,14 @@ define(function (require, exports, module) {
      * Document's master backing editor. The editor is not yet visible; 
      * Semi-private: should only be called within this module or by Document.
      * @param {!Document} document  Document whose main/full Editor to create
+     * @param {!Pane} pane  Pane in which the editor will be hosted
      */
     function _createFullEditorForDocument(document, pane) {
         // Create editor; make it initially invisible
         var editor = _createEditorForDocument(document, true, pane.$el);
         editor.setVisible(false);
         pane.addView(document.file.fullPath, editor);
-        $(exports).triggerHandler("fullEditorCreatedForDocument", [document, editor, pane.id]);
+        $(exports).triggerHandler("_fullEditorCreatedForDocument", [document, editor, pane.id]);
     }
  
     
@@ -633,12 +636,9 @@ define(function (require, exports, module) {
      * @return {?Editor}
      */
     function _getFocusedInlineEditor() {
-        var currentEditor = getCurrentFullEditor();
-        if (currentEditor) {
-            var focusedWidget = currentEditor.getFocusedInlineWidget();
-            if (focusedWidget instanceof InlineTextEditor) {
-                return focusedWidget.getFocusedEditor();
-            }
+        var focusedWidget = getFocusedInlineWidget();
+        if (focusedWidget instanceof InlineTextEditor) {
+            return focusedWidget.getFocusedEditor();
         }
         return null;
     }
@@ -775,10 +775,12 @@ define(function (require, exports, module) {
     exports._createFullEditorForDocument  = _createFullEditorForDocument;
     exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;
 
-    // View State Cache Access
+    // Internal Use only
     exports._getViewState                 = _getViewState;
     exports._resetViewStates              = _resetViewStates;
     exports._addViewStates                = _addViewStates;
+    exports._saveEditorViewState          = _saveEditorViewState;
+    exports._createUnattachedMasterEditor = _createUnattachedMasterEditor;
     
     // Define public API
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
@@ -786,7 +788,6 @@ define(function (require, exports, module) {
     exports.getInlineEditors              = getInlineEditors;
     exports.closeInlineWidget             = closeInlineWidget;
     exports.doOpenDocument                = doOpenDocument;
-    exports.createUnattachedMasterEditor  = createUnattachedMasterEditor;
     exports.canOpenFile                   = canOpenFile;
 
     // Convenience Methods

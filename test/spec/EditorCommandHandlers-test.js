@@ -131,7 +131,7 @@ define(function (require, exports, module) {
             var promise;
             
             runs(function () {
-                promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, {fullPath: testPath + "/test.html"});
+                promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, {fullPath: testPath + "/test.html"});
                 waitsForDone(promise, "Open into working set");
             });
             

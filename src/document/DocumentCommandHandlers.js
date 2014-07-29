@@ -1591,7 +1591,7 @@ define(function (require, exports, module) {
 
     // Register global commands
     CommandManager.register(Strings.CMD_FILE_OPEN,              Commands.FILE_OPEN, handleFileOpen);
-    CommandManager.register(Strings.CMD_ADD_TO_PANE_VIEW_LIST,  Commands.CMD_ADD_TO_PANE_VIEW_LIST, handleAddToPaneViewList);
+    CommandManager.register(Strings.CMD_ADD_TO_PANE_AND_OPEN,  Commands.CMD_ADD_TO_PANE_AND_OPEN, handleAddToPaneViewList);
     CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,      Commands.FILE_NEW_UNTITLED, handleFileNew);
     CommandManager.register(Strings.CMD_FILE_NEW,               Commands.FILE_NEW, handleFileNewInProject);
     CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,        Commands.FILE_NEW_FOLDER, handleNewFolderInProject);

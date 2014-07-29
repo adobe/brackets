@@ -407,7 +407,7 @@ define(function (require, exports, module) {
      * Adds the given file to the end of the pane view list, if it is not already in the list
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!File} file - file to add
-     * @param {number=} index of where to add the item
+     * @param {number=} index - position where to add the item
      * @return {number} index of where the item was added
      */
     Pane.prototype.addToViewList = function (file, index) {
@@ -491,8 +491,8 @@ define(function (require, exports, module) {
     /**
      * Removes the specifed file from all internal lists, destroys the view of the file (if there is one)
      *  and shows the interstitial page if the current view is destroyed
-     * @param {!array.<File>}  list - files to remove
-     * @return {!array.<File>} array of File objects removed 
+     * @param {!Array.<File>}  list - Array of files to remove
+     * @return {!Array.<File>} Array of File objects removed 
      */
     Pane.prototype.removeListFromViewList = function (list) {
         var self = this,
@@ -518,7 +518,7 @@ define(function (require, exports, module) {
      *  view of a file (a view that has been constructed and viewed but not added to the working set)
      *  then it will not be destroyed. To destroy all Views call doRemoveAllViews()
      * @param {!File} file
-     * @return {!array.<File>} array of File objecgts removed 
+     * @return {!Array.<File>} Array of File objecgts removed 
      */
     Pane.prototype.removeAllFromViewList = function () {
         var fileList = this.getViewList();
@@ -699,6 +699,7 @@ define(function (require, exports, module) {
             oldPath = oldView ? oldView.getFullPath() : undefined;
         
         if (this._currentView) {
+            EditorManager._saveEditorViewState(this._currentView);
             this._currentView.setVisible(false);
         } else {
             this.showInterstitial(false);

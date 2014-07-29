@@ -105,10 +105,11 @@ define(function (require, exports, module) {
     
     /** 
      * @private
-     * @return {$.Promise}
+     * @param {string=} paneId - the Pane to activate
      */
     function _activatePane(paneId) {
         if (paneId) {
+            
             MainViewManager.setActivePaneId(paneId);
         } else {
             MainViewManager.forceFocusToActivePaneView();
@@ -137,9 +138,9 @@ define(function (require, exports, module) {
     /** 
      * Opens a document if it's not open and selects the file in the UI corresponding to
      * fileSelectionFocus
-     * @param {!fullPath}
-     * @param {string} fileSelectionFocus (PANE_VIEW_LIST_VIEW || PROJECT_MANAGER)
-     * @param {string} paneId
+     * @param {!fullPath} fullPath - full path of the document to open
+     * @param {string} fileSelectionFocus - (PANE_VIEW_LIST_VIEW || PROJECT_MANAGER)
+     * @param {string} paneId - pane in which to open the document
      * @return {$.Promise}
      */
     function openAndSelectDocument(fullPath, fileSelectionFocus, paneId) {
@@ -188,14 +189,14 @@ define(function (require, exports, module) {
      */
     function addToPaneViewAndSelect(fullPath, paneId) {
         var result = new $.Deferred(),
-            promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST, {fullPath: fullPath,
+            promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, {fullPath: fullPath,
                                                                                   paneId: paneId});
 
         // This properly handles sending the right nofications in cases where the document
         // is already the current one. In that case we will want to notify with
         // documentSelectionFocusChange so the views change their selection
         promise.done(function (file) {
-            // CMD_ADD_TO_PANE_VIEW_LIST command sets the current document. Update the 
+            // CMD_ADD_TO_PANE_AND_OPEN command sets the current document. Update the 
             // selection focus only if doc is not null. When double-clicking on an
             // image file, we get a null doc here but we still want to keep _fileSelectionFocus
             // as PROJECT_MANAGER. Regardless of doc is null or not, call _activatePane

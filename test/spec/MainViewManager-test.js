@@ -473,7 +473,7 @@ define(function (require, exports, module) {
                     };
                 
                 runs(function () {
-                    _$(EditorManager).on("fullEditorCreatedForDocument", handler);
+                    _$(EditorManager).on("_fullEditorCreatedForDocument", handler);
                     MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
@@ -494,7 +494,7 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     editors = null;
-                    _$(EditorManager).off("fullEditorCreatedForDocument", handler);
+                    _$(EditorManager).off("_fullEditorCreatedForDocument", handler);
                 });
             });
             it("should activate pane when inline editor gains focus", function () {
@@ -506,7 +506,7 @@ define(function (require, exports, module) {
                     };
                 
                 runs(function () {
-                    _$(EditorManager).on("fullEditorCreatedForDocument", handler);
+                    _$(EditorManager).on("_fullEditorCreatedForDocument", handler);
                     MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
@@ -604,14 +604,14 @@ define(function (require, exports, module) {
                     MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.js",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/test.js",
                                                                                             paneId: "first-pane" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_VIEW_LIST);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.css",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/test.css",
                                                                                             paneId: "second-pane" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_VIEW_LIST);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
                 });
                 runs(function () {
                     expect(MainViewManager.getPaneViewListSize(MainViewManager.ALL_PANES)).toEqual(2);
@@ -623,9 +623,9 @@ define(function (require, exports, module) {
                     MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.js",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/test.js",
                                                                                             paneId: "second-pane" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_VIEW_LIST);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
                 });
                 runs(function () {
                     expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, testPath + "/test.js").paneId).toEqual("second-pane");
@@ -636,14 +636,14 @@ define(function (require, exports, module) {
                     MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.js",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/test.js",
                                                                                             paneId: "second-pane" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_VIEW_LIST);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.js",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/test.js",
                                                                                             paneId: "first-pane" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_VIEW_LIST);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
                 });
                 runs(function () {
                     expect(MainViewManager.getPaneIdForPath(testPath + "/test.js")).toEqual("second-pane");
@@ -654,14 +654,14 @@ define(function (require, exports, module) {
                     MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.js",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/test.js",
                                                                                             paneId: "second-pane" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_VIEW_LIST);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.css",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/test.css",
                                                                                             paneId: "first-pane" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_VIEW_LIST);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
                 });
                 runs(function () {
                     MainViewManager.doCloseAll("second-pane");
@@ -677,23 +677,23 @@ define(function (require, exports, module) {
                     MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.js",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/test.js",
                                                                                             paneId: "second-pane" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_VIEW_LIST);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.css",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/test.css",
                                                                                             paneId: "first-pane" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_VIEW_LIST);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
                 });
                 runs(function () {
                     MainViewManager.doClose("second-pane", { fullPath: testPath + "/test.js" });
                     expect(MainViewManager.getAllOpenFiles().length).toEqual(1);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.js",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/test.js",
                                                                                             paneId: "first-pane" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_VIEW_LIST);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
                 });
                 runs(function () {
                     expect(MainViewManager.getPaneIdForPath(getFileObject("test.js").fullPath)).toEqual("first-pane");
@@ -866,9 +866,9 @@ define(function (require, exports, module) {
             });
             it("should remove the view when removing a file from pane view list", function () {
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.js",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/test.js",
                                                                                             paneId: "first-pane" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_VIEW_LIST);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
                 });
 
                 runs(function () {
@@ -879,14 +879,14 @@ define(function (require, exports, module) {
             });
             it("should remove the view when removing a file from a pane view list", function () {
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.js",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/test.js",
                                                                                             paneId: "first-pane" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_VIEW_LIST);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.css",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/test.css",
                                                                                             paneId: "first-pane" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_VIEW_LIST);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
                 });
 
                 runs(function () {
@@ -926,14 +926,14 @@ define(function (require, exports, module) {
             
             it("should remove the view when removing files from a pane view list", function () {
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.js",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/test.js",
                                                                                             paneId: "first-pane" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_VIEW_LIST);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_VIEW_LIST,  { fullPath: testPath + "/test.css",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/test.css",
                                                                                             paneId: "first-pane" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_VIEW_LIST);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
                 });
 
                 runs(function () {

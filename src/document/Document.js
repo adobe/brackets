@@ -224,7 +224,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._ensureMasterEditor = function () {
         if (!this._masterEditor) {
-            EditorManager.createUnattachedMasterEditor(this);
+            EditorManager._createUnattachedMasterEditor(this);
         }
     };
     

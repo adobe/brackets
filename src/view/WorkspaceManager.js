@@ -31,9 +31,9 @@
  * currently available window size.
  * 
  * Events:
- * `editorAreaResize` When editor-holder's size changes for any reason (including panel show/hide panel resize, or the window resize).
- *              The 2nd arg is the new editor-holder height.
- *              The 3rd arg is a refreshHint flag for internal EditorManager use.
+ * `workspaceUpdateLayout` When workspace size changes for any reason (including panel show/hide panel resize, or the window resize).
+ *              The 2nd arg is the available workspace height.
+ *              The 3rd arg is a refreshHint flag for internal use (passed in to recomputeLayout)
  */
 define(function (require, exports, module) {
     "use strict";
@@ -66,7 +66,7 @@ define(function (require, exports, module) {
      * accounting for the current size of all visible panels, toolbar, & status bar.
      * @return {number}
      */
-    function calcEditorHeight() {
+    function calcAvailableHeight() {
         var availableHt = $windowContent.height();
         
         $editorHolder.siblings().each(function (i, elem) {
@@ -101,9 +101,9 @@ define(function (require, exports, module) {
      * 
      * @param {string=} refreshHint  One of "skip", "force", or undefined. See EditorManager docs.
      */
-    function triggerEditorResize(refreshHint) {
+    function triggerUpdateLayout(refreshHint) {
         // Find how much space is left for the editor
-        var editorAreaHeight = calcEditorHeight();
+        var editorAreaHeight = calcAvailableHeight();
         
         $editorHolder.height(editorAreaHeight);  // affects size of "not-editor" placeholder as well
         
@@ -122,10 +122,10 @@ define(function (require, exports, module) {
         
         // Immediately adjust editor's height, but skip the refresh since CodeMirror will call refresh()
         // itself when it sees the window resize event
-        // triggerEditorResize("skip");
+        // triggerUpdateLayout("skip");
 
         // FIXME (issue #4564) Workaround https://github.com/marijnh/CodeMirror/issues/1787
-        triggerEditorResize();
+        triggerUpdateLayout();
         
         if (!windowResizing) {
             windowResizing = true;
@@ -146,7 +146,7 @@ define(function (require, exports, module) {
     function listenToResize($panel) {
         // Update editor height when shown/hidden, & continuously as panel is resized
         $panel.on("panelCollapsed panelExpanded panelResizeUpdate", function () {
-            triggerEditorResize();
+            triggerUpdateLayout();
         });
         // Update max size of sibling panels when shown/hidden, & at *end* of resize gesture
         $panel.on("panelCollapsed panelExpanded panelResizeEnd", function () {
@@ -234,7 +234,7 @@ define(function (require, exports, module) {
      * @param {boolean} refreshHint true to refresh the editor, false if not
      */
     function recomputeLayout(refreshHint) {
-        triggerEditorResize(refreshHint);
+        triggerUpdateLayout(refreshHint);
         updateResizeLimits();
     }
     

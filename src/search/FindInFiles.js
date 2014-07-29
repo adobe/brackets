@@ -38,7 +38,6 @@ define(function (require, exports, module) {
         DocumentModule        = require("document/Document"),
         DocumentManager       = require("document/DocumentManager"),
         MainViewManager       = require("view/MainViewManager"),
-        WorkspaceManager      = require("view/WorkspaceManager"),
         FileSystem            = require("filesystem/FileSystem"),
         LanguageManager       = require("language/LanguageManager"),
         SearchModel           = require("search/SearchModel").SearchModel,

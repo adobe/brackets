@@ -267,7 +267,7 @@ define(function (require, exports, module) {
         this._dropdownEventHandler = new DropdownEventHandler($dropdown, this._onSelect.bind(this), this._onDropdownClose.bind(this));
         this._dropdownEventHandler.open();
 
-        window.document.body.addEventListener("click", this._onClickOutside, true);
+        window.document.body.addEventListener("mousedown", this._onClickOutside, true);
         $(WorkspaceManager).on("workspaceUpdateLayout", this.closeDropdown);
         
         // Manage focus
@@ -281,7 +281,7 @@ define(function (require, exports, module) {
      * was closed.
      */
     DropdownButton.prototype._onDropdownClose = function () {
-        window.document.body.removeEventListener("click", this._onClickOutside, true);
+        window.document.body.removeEventListener("mousedown", this._onClickOutside, true);
         $(WorkspaceManager).off("workspaceUpdateLayout", this.closeDropdown);
         
         // Restore focus to old pos, unless "select" handler changed it
