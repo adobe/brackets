@@ -511,6 +511,7 @@ define(function (require, exports, module) {
             var cursor = getSearchCursor(cm, state);
             if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
                 // FUTURE: if last query was prefix of this one, could optimize by filtering last result set
+                state.resultSet = [];
                 while (cursor.findNext()) {
                     state.resultSet.push(cursor.pos);  // pos is unique obj per search result
                 }
