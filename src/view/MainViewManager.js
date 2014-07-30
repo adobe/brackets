@@ -231,7 +231,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _getActivePane() {
-        return _getPane(_activePaneId);
+        return _getPane(FOCUSED_PANE);
     }
     
     
