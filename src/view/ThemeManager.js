@@ -265,7 +265,6 @@ define(function (require, exports, module) {
             }
 
             var cm = editor._codeMirror;
-            ThemeView.setDocumentMode(cm);
             ThemeView.updateThemes(cm);
         });
     }
