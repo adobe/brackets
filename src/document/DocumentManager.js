@@ -210,7 +210,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @deprecated Use MainViewManager.addListToPaneViewList() instead 
+     * @deprecated Use MainViewManager.addViews() instead 
      * Adds the given file list to the end of the working set list.
      * If a file in the list has its own custom viewer, then it 
      * is not added into the working set.
@@ -220,8 +220,8 @@ define(function (require, exports, module) {
      * @param {!Array.<File>} fileList
      */
     function addListToWorkingSet(fileList) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.addListToPaneViewList() instead of DocumentManager.addListToWorkingSet()", true);
-        MainViewManager.addListToPaneViewList(MainViewManager.FOCUSED_PANE, fileList);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.addViews() instead of DocumentManager.addListToWorkingSet()", true);
+        MainViewManager.addViews(MainViewManager.FOCUSED_PANE, fileList);
     }
     
     /**

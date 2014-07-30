@@ -340,7 +340,7 @@ define(function (require, exports, module) {
                         filteredPaths.forEach(function (file) {
                             filesToOpen.push(FileSystem.getFileForPath(file));
                         });
-                        MainViewManager.addListToPaneViewList(paneId, filesToOpen);
+                        MainViewManager.addViews(paneId, filesToOpen);
                         
                         _doOpen(filteredPaths[filteredPaths.length - 1], silent, paneId)
                             .done(function (file) {

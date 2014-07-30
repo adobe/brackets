@@ -630,7 +630,7 @@ define(function (require, exports, module) {
      * @param {!string} paneId - The id of the pane in which to add the file object to or FOCUSED_PANE
      * @param {!Array.<File>} fileList
      */
-    function addListToPaneViewList(paneId, fileList) {
+    function addViews(paneId, fileList) {
         var uniqueFileList,
             pane = _getPaneFromPaneId(paneId);
 
@@ -655,7 +655,7 @@ define(function (require, exports, module) {
         // Use the pane id of the first one in the list that couldn't be added as the pane id and recurse
         //  if we add more panes, then this will recurse until all items in the list are satisified
         if (unsolvedList.length) {
-            addListToPaneViewList(getPaneIdForPath(unsolvedList[0].fullPath), unsolvedList);
+            addViews(getPaneIdForPath(unsolvedList[0].fullPath), unsolvedList);
         }
     }
     
@@ -1554,7 +1554,7 @@ define(function (require, exports, module) {
     
     // PaneView Management
     exports.addView                = addView;
-    exports.addListToPaneViewList            = addListToPaneViewList;
+    exports.addViews            = addViews;
     exports.findViewOf               = findViewOf;
     exports.findViewOfAddedOrder     = findViewOfAddedOrder;
     exports.findViewOfMRUOrder       = findViewOfMRUOrder;
