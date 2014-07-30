@@ -248,7 +248,7 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensiones deshabilitadas",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "SOB",
-    "STATUSBAR_DEFAULT_LANG"                : "(defecto)",
+    "STATUSBAR_DEFAULT_LANG"                : "(por defecto)",
     
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "Problemas de {0}",
@@ -473,9 +473,9 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Gestor de extensiones",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "No se pudo acceder al registro de extensiones. Vuelve a intentarlo más tarde, por favor.",
-    "INSTALL_EXTENSION_DRAG"               : "Arrastrar el .zip acá ó",
+    "INSTALL_EXTENSION_DRAG"               : "Arrastrar el .zip aquí ó",
     "INSTALL_EXTENSION_DROP"               : "Soltar el .zip para instalarlo",
-    "INSTALL_EXTENSION_DROP_ERROR"         : "La instalación/actualización fue abortada por los siguientes errores:", 
+    "INSTALL_EXTENSION_DROP_ERROR"         : "La instalación/actualización fue abortada por los siguientes errores:",
     "INSTALL_FROM_URL"                     : "Instalar desde URL\u2026",
     "INSTALL_EXTENSION_VALIDATING"         : "Validando\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
@@ -489,8 +489,8 @@ define({
     "EXTENSION_ERROR"                      : "Error en la extensión",
     "EXTENSION_KEYWORDS"                   : "Palabras clave",
     "EXTENSION_INSTALLED"                  : "Instalada",
-    "EXTENSION_TRANSLATED_USER_LANG"       : "Traducida en los idiomas {0}, incluyendo el tuyo",
-    "EXTENSION_TRANSLATED_GENERAL"         : "Traducida en los idiomas {0}",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "Traducida a {0} idiomas, incluyendo el tuyo",
+    "EXTENSION_TRANSLATED_GENERAL"         : "Traducida a {0} idiomas",
     "EXTENSION_TRANSLATED_LANGS"           : "Esta extension fue traducida a los siguientes idiomas: {0}",
     "EXTENSION_UPDATE_INSTALLED"           : "La actualización de esta extensión se ha descargado y se instalará luego de recargar {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Buscar",
@@ -573,7 +573,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostrar sugerencias de parámetros",
     "NO_ARGUMENTS"                              : "<no hay parámetros>",
     "DETECTED_EXCLUSION_TITLE"                  : "Problema de inferencia con un archivo JavaScript",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets se encontró con problemas procesando:<br><br>{0}<br><br>Este archivo no volverá a ser procesado para las sugerencias de código y saltar a la definición. Para reactivarlo, abra <code>.brackets.json</code> en su proyecto y remueva el archivo de jscodehints.detectedExclusions.",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets se encontró con problemas procesando:<br><br>{0}<br><br>Este archivo no volverá a ser procesado para las sugerencias de código y saltar a la definición. Para reactivarlo, abra <code>.brackets.json</code> en su proyecto y elimine el archivo de jscodehints.detectedExclusions.",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
