@@ -466,7 +466,7 @@ define(function (require, exports, module) {
      * @param {!string} paneId - id of the pane in which to get the pane view list size, ALL_PANES or FOCUSED_PANE
      * @return {!number} the number of items in the specified pane 
      */
-    function getPaneViewListSize(paneId) {
+    function getViewCount(paneId) {
         var result = 0;
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
@@ -1558,7 +1558,7 @@ define(function (require, exports, module) {
     exports.findInPaneViewList               = findInPaneViewList;
     exports.findInPaneViewListAddedOrder     = findInPaneViewListAddedOrder;
     exports.findInPaneViewListMRUOrder       = findInPaneViewListMRUOrder;
-    exports.getPaneViewListSize              = getPaneViewListSize;
+    exports.getViewCount              = getViewCount;
     exports.getPaneViewList                  = getPaneViewList;
     exports.getAllOpenFiles                  = getAllOpenFiles;
     exports.removeAllFromPaneViewList        = removeAllFromPaneViewList;

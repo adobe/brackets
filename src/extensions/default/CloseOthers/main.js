@@ -79,7 +79,7 @@ define(function (require, exports, module) {
         
         if (file) {
             var targetIndex  = MainViewManager.findInPaneViewList(MainViewManager.FOCUSED_PANE, file.fullPath),
-                paneViewListSize = MainViewManager.getPaneViewListSize(MainViewManager.FOCUSED_PANE);
+                paneViewListSize = MainViewManager.getViewCount(MainViewManager.FOCUSED_PANE);
             
             if (targetIndex === paneViewListSize - 1) { // hide "Close Others Below" if the last file in Working Files is selected
                 CommandManager.get(closeBelow).setEnabled(false);
