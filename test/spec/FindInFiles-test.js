@@ -1503,7 +1503,7 @@ define(function (require, exports, module) {
                     });
 
                     runs(function () {
-                        var workingSet = MainViewManager.getPaneViewList(MainViewManager.ALL_PANES);
+                        var workingSet = MainViewManager.getViews(MainViewManager.ALL_PANES);
                         expect(workingSet.some(function (file) { return file.fullPath === openFilePath; })).toBe(true);
                         doc.releaseRef();
                     });

@@ -56,7 +56,7 @@ define(function (require, exports, module) {
      */
     function handleClose(mode) {
         var targetIndex  = MainViewManager.findInPaneViewList(MainViewManager.FOCUSED_PANE, MainViewManager.getCurrentlyViewedPath()),
-            paneViewList = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE),
+            paneViewList = MainViewManager.getViews(MainViewManager.FOCUSED_PANE),
             start        = (mode === closeBelow) ? (targetIndex + 1) : 0,
             end          = (mode === closeAbove) ? (targetIndex) : (paneViewList.length),
             files        = [],

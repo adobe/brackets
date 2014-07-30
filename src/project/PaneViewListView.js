@@ -294,7 +294,7 @@ define(function (require, exports, module) {
     PaneViewListView.prototype._checkForDuplicatesInWorkingTree = function () {
         var self = this,
             map = {},
-            fileList = MainViewManager.getPaneViewList(this.paneId);
+            fileList = MainViewManager.getViews(this.paneId);
 
         // We need to always clear current directories as files could be removed from working tree.
         this.$openFilesContainer.find("ul > li > a > span.directory").remove();
@@ -323,7 +323,7 @@ define(function (require, exports, module) {
      * @private
      */
     PaneViewListView.prototype._redraw = function () {
-        var fileList = MainViewManager.getPaneViewList(this.paneId),
+        var fileList = MainViewManager.getViews(this.paneId),
             paneId = MainViewManager.getActivePaneId();
         
         if (paneId === this.paneId) {
@@ -636,7 +636,7 @@ define(function (require, exports, module) {
      */
     PaneViewListView.prototype._rebuildViewList = function (forceRedraw) {
         var self = this,
-            fileList = MainViewManager.getPaneViewList(this.paneId);
+            fileList = MainViewManager.getViews(this.paneId);
 
         this.$openFilesContainer.find("ul").empty();
         

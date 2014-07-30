@@ -129,7 +129,7 @@ define(function (require, exports, module) {
 
 
         function runCloseOthers() {
-            var ws = MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE),
+            var ws = MainViewManager.getViews(MainViewManager.FOCUSED_PANE),
                 promise;
 
             if (ws.length > docSelectIndex) {
@@ -154,7 +154,7 @@ define(function (require, exports, module) {
             runCloseOthers();
             
             runs(function () {
-                expect(MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).length).toEqual(1);
+                expect(MainViewManager.getViews(MainViewManager.FOCUSED_PANE).length).toEqual(1);
             });
         });
 
@@ -165,7 +165,7 @@ define(function (require, exports, module) {
             runCloseOthers();
 
             runs(function () {
-                expect(MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).length).toEqual(3);
+                expect(MainViewManager.getViews(MainViewManager.FOCUSED_PANE).length).toEqual(3);
             });
         });
 
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
             runCloseOthers();
 
             runs(function () {
-                expect(MainViewManager.getPaneViewList(MainViewManager.FOCUSED_PANE).length).toEqual(2);
+                expect(MainViewManager.getViews(MainViewManager.FOCUSED_PANE).length).toEqual(2);
             });
         });
     });

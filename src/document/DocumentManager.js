@@ -155,12 +155,12 @@ define(function (require, exports, module) {
     
     /**
      * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
-     * @deprecated Use MainViewManager.getPaneViewList() instead
+     * @deprecated Use MainViewManager.getViews() instead
      * @return {Array.<File>}
      */
     function getWorkingSet() {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.getPaneViewList() instead of DocumentManager.getWorkingSet()", true);
-        return MainViewManager.getPaneViewList(MainViewManager.ALL_PANES);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.getViews() instead of DocumentManager.getWorkingSet()", true);
+        return MainViewManager.getViews(MainViewManager.ALL_PANES);
     }
 
     /**

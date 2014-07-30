@@ -131,7 +131,7 @@ define(function (require, exports, module) {
 
             /** @return {Array.<Document>} */
             function getOpenDocsFromPaneViewList() {
-                return MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).map(function (file) {
+                return MainViewManager.getViews(MainViewManager.ALL_PANES).map(function (file) {
                     return DocumentManager.getOpenDocumentForPath(file.fullPath);
                 });
             }
@@ -204,7 +204,7 @@ define(function (require, exports, module) {
                     expect(noLongerUntitledDocument.isUntitled()).toBe(false);
                     expect(noLongerUntitledDocument.file.fullPath).toEqual(newFilePath);
                     expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, newFilePath)).toNotEqual(-1);
-                    expect(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).length).toEqual(1);  // no remnant of untitled doc left
+                    expect(MainViewManager.getViews(MainViewManager.ALL_PANES).length).toEqual(1);  // no remnant of untitled doc left
 
                     // Verify file exists, & clean up
                     expectAndDelete(newFilePath);
@@ -270,7 +270,7 @@ define(function (require, exports, module) {
                     expect(noLongerUntitledDocument.isUntitled()).toBe(false);
                     expect(noLongerUntitledDocument.file.fullPath).toEqual(newFilePath);
                     expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, newFilePath)).toNotEqual(-1);
-                    expect(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).length).toEqual(1);  // no remnant of untitled doc left
+                    expect(MainViewManager.getViews(MainViewManager.ALL_PANES).length).toEqual(1);  // no remnant of untitled doc left
 
                     // Verify file exists, & clean up
                     expectAndDelete(newFilePath);
@@ -306,7 +306,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).length).toEqual(0);
+                    expect(MainViewManager.getViews(MainViewManager.ALL_PANES).length).toEqual(0);
                     
                     // Verify file exists, & clean up
                     expectAndDelete(newFilePath);
@@ -399,7 +399,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).length).toEqual(0);
+                    expect(MainViewManager.getViews(MainViewManager.ALL_PANES).length).toEqual(0);
                 });
             });
 
@@ -417,7 +417,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).length).toEqual(0);
+                    expect(MainViewManager.getViews(MainViewManager.ALL_PANES).length).toEqual(0);
                 });
             });
             
@@ -512,7 +512,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).length).toEqual(0);
+                    expect(MainViewManager.getViews(MainViewManager.ALL_PANES).length).toEqual(0);
                     
                     // Verify files exist & clean up
                     [0, 1, 2].forEach(function (i) {

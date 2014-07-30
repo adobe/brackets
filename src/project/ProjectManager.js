@@ -2096,7 +2096,7 @@ define(function (require, exports, module) {
         _getAllFilesCache().done(function (result) {
             // Add working set entries, if requested
             if (includeWorkingSet) {
-                MainViewManager.getPaneViewList(MainViewManager.ALL_PANES).forEach(function (file) {
+                MainViewManager.getViews(MainViewManager.ALL_PANES).forEach(function (file) {
                     if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
                         result.push(file);
                     }

@@ -946,7 +946,7 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function saveAll() {
-        return _saveFileList(MainViewManager.getPaneViewList(MainViewManager.ALL_PANES));
+        return _saveFileList(MainViewManager.getViews(MainViewManager.ALL_PANES));
     }
 
     /**

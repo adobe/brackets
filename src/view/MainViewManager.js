@@ -418,7 +418,7 @@ define(function (require, exports, module) {
      * @param {!string} paneId - id of the pane in which to get the view list, ALL_PANES or FOCUSED_PANE
      * @return {Array.<File>}
      */
-    function getPaneViewList(paneId) {
+    function getViews(paneId) {
         if (paneId === ALL_PANES) {
             var result = [];
             
@@ -443,7 +443,7 @@ define(function (require, exports, module) {
      * @return {array.<File>} the list of all open files in all open panes
      */
     function getAllOpenFiles() {
-        var result = getPaneViewList(ALL_PANES);
+        var result = getViews(ALL_PANES);
         _.forEach(_paneViews, function (pane) {
             var file = pane.getCurrentlyViewedFile();
             if (file) {
@@ -1559,7 +1559,7 @@ define(function (require, exports, module) {
     exports.findInPaneViewListAddedOrder     = findInPaneViewListAddedOrder;
     exports.findInPaneViewListMRUOrder       = findInPaneViewListMRUOrder;
     exports.getViewCount              = getViewCount;
-    exports.getPaneViewList                  = getPaneViewList;
+    exports.getViews                  = getViews;
     exports.getAllOpenFiles                  = getAllOpenFiles;
     exports.removeAllFromPaneViewList        = removeAllFromPaneViewList;
     exports.removeFromPaneViewList           = removeFromPaneViewList;
