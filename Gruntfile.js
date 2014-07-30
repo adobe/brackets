@@ -93,8 +93,7 @@ module.exports = function (grunt) {
                             'thirdparty/CodeMirror2/mode/{,*/}*',
                             'thirdparty/CodeMirror2/theme/{,*/}*',
                             'thirdparty/i18n/*.js',
-                            'thirdparty/text/*.js',
-                            'utils/Compatibility.js'
+                            'thirdparty/text/*.js'
                         ]
                     },
                     /* styles, fonts and images */
@@ -131,7 +130,7 @@ module.exports = function (grunt) {
                     optimize: 'uglify2',
                     // brackets.js should not be loaded until after polyfills defined in "utils/Compatibility"
                     // so explicitly include it in main.js 
-                    include: ["brackets"],
+                    include: ["utils/Compatibility", "brackets"],
                     // TODO: Figure out how to make sourcemaps work with grunt-usemin
                     // https://github.com/yeoman/grunt-usemin/issues/30
                     generateSourceMaps: true,
