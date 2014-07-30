@@ -111,7 +111,7 @@ define(function (require, exports, module) {
                     // file in the list, return. If this *is* the last file,
                     // always open it so it gets selected.
                     if (idx < filteredFiles.length - 1) {
-                        if (MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, path) !== -1) {
+                        if (MainViewManager.findViewOf(MainViewManager.ALL_PANES, path) !== -1) {
                             result.resolve();
                             return;
                         }

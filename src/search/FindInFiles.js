@@ -306,7 +306,7 @@ define(function (require, exports, module) {
             // Still need to make sure it's within project or working set
             // In getCandidateFiles(), this is covered by the baseline getAllFiles() itself
             if (file.fullPath.indexOf(ProjectManager.getProjectRoot().fullPath) !== 0) {
-                if (MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, file.fullPath) === -1) {
+                if (MainViewManager.findViewOf(MainViewManager.ALL_PANES, file.fullPath) === -1) {
                     return false;
                 }
             }

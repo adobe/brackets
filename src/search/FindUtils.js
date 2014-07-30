@@ -162,7 +162,7 @@ define(function (require, exports, module) {
         options = options || {};
         // If we're forcing files open, or if the document is in the working set but not actually open
         // yet, we want to open the file and do the replacement in memory.
-        if (!doc && (options.forceFilesOpen || MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, fullPath) !== -1)) {
+        if (!doc && (options.forceFilesOpen || MainViewManager.findViewOf(MainViewManager.ALL_PANES, fullPath) !== -1)) {
             return DocumentManager.getDocumentForPath(fullPath).then(function (newDoc) {
                 return _doReplaceInDocument(newDoc, matchInfo, replaceText, options.isRegexp);
             });

@@ -55,7 +55,7 @@ define(function (require, exports, module) {
      * @param {string} mode
      */
     function handleClose(mode) {
-        var targetIndex  = MainViewManager.findInPaneViewList(MainViewManager.FOCUSED_PANE, MainViewManager.getCurrentlyViewedPath()),
+        var targetIndex  = MainViewManager.findViewOf(MainViewManager.FOCUSED_PANE, MainViewManager.getCurrentlyViewedPath()),
             paneViewList = MainViewManager.getViews(MainViewManager.FOCUSED_PANE),
             start        = (mode === closeBelow) ? (targetIndex + 1) : 0,
             end          = (mode === closeAbove) ? (targetIndex) : (paneViewList.length),
@@ -78,7 +78,7 @@ define(function (require, exports, module) {
         var file = MainViewManager.getCurrentlyViewedFile();
         
         if (file) {
-            var targetIndex  = MainViewManager.findInPaneViewList(MainViewManager.FOCUSED_PANE, file.fullPath),
+            var targetIndex  = MainViewManager.findViewOf(MainViewManager.FOCUSED_PANE, file.fullPath),
                 paneViewListSize = MainViewManager.getViewCount(MainViewManager.FOCUSED_PANE);
             
             if (targetIndex === paneViewListSize - 1) { // hide "Close Others Below" if the last file in Working Files is selected

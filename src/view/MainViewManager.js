@@ -530,7 +530,7 @@ define(function (require, exports, module) {
      * @param {!string} fullPath - full path of the file to search for
      * @return {number} index, -1 if not found.
      */
-    function findInPaneViewList(paneId, fullPath) {
+    function findViewOf(paneId, fullPath) {
         return _doFindInViewList(paneId, fullPath, "findInViewList");
     }
     
@@ -540,7 +540,7 @@ define(function (require, exports, module) {
      * @param {!string} fullPath - full path of the file to search for
      * @return {number} index, -1 if not found.
      */
-    function findInPaneViewListAddedOrder(paneId, fullPath) {
+    function findViewOfAddedOrder(paneId, fullPath) {
         return _doFindInViewList(paneId, fullPath, "findInViewListAddedOrder");
     }
     
@@ -550,7 +550,7 @@ define(function (require, exports, module) {
      * @param {!string} fullPath - full path of the file to search for
      * @return {number} index, -1 if not found.
      */
-    function findInPaneViewListMRUOrder(paneId, fullPath) {
+    function findViewOfMRUOrder(paneId, fullPath) {
         return _doFindInViewList(paneId, fullPath, "findInViewListMRUOrder");
     }
 
@@ -561,7 +561,7 @@ define(function (require, exports, module) {
      */
     function getPaneIdForPath(fullPath) {
         // Search all working sets
-        var info = findInPaneViewList(ALL_PANES, fullPath);
+        var info = findViewOf(ALL_PANES, fullPath);
 
         // Look for a view that has not been added to a working set
         if (info === -1) {
@@ -597,7 +597,7 @@ define(function (require, exports, module) {
         var pane = _getPaneFromPaneId(paneId),
             existingPaneId = getPaneIdForPath(file.fullPath);
 
-        if (!pane || !EditorManager.canOpenFile(file.fullPath) || (findInPaneViewList(ALL_PANES, file.fullPath) !== -1)) {
+        if (!pane || !EditorManager.canOpenFile(file.fullPath) || (findViewOf(ALL_PANES, file.fullPath) !== -1)) {
             return;
         }
         
@@ -1284,7 +1284,7 @@ define(function (require, exports, module) {
         
         if (!paneId) {
             // No view of the document, it may be in a working set and not yet opened
-            var info = findInPaneViewList(ALL_PANES, document.file.fullPath);
+            var info = findViewOf(ALL_PANES, document.file.fullPath);
             if (info !== -1) {
                 pane = _paneViews[info.paneId];
             }
@@ -1555,9 +1555,9 @@ define(function (require, exports, module) {
     // PaneView Management
     exports.addToPaneViewList                = addToPaneViewList;
     exports.addListToPaneViewList            = addListToPaneViewList;
-    exports.findInPaneViewList               = findInPaneViewList;
-    exports.findInPaneViewListAddedOrder     = findInPaneViewListAddedOrder;
-    exports.findInPaneViewListMRUOrder       = findInPaneViewListMRUOrder;
+    exports.findViewOf               = findViewOf;
+    exports.findViewOfAddedOrder     = findViewOfAddedOrder;
+    exports.findViewOfMRUOrder       = findViewOfMRUOrder;
     exports.getViewCount              = getViewCount;
     exports.getViews                  = getViews;
     exports.getAllOpenFiles                  = getAllOpenFiles;

@@ -499,7 +499,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Verify document is not yet in working set
-                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, filePath)).toBe(-1);
+                    expect(MainViewManager.findViewOf(MainViewManager.ALL_PANES, filePath)).toBe(-1);
 
                     // Get list in panel
                     var $panelResults = $("#find-in-files-results table.bottom-panel-table tr");
@@ -511,7 +511,7 @@ define(function (require, exports, module) {
                     $firstHit.dblclick();
 
                     // Verify document is now in working set
-                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, filePath)).not.toBe(-1);
+                    expect(MainViewManager.findViewOf(MainViewManager.ALL_PANES, filePath)).not.toBe(-1);
                     waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
                 });
             });
@@ -527,7 +527,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Verify document is not yet in working set
-                    expect(MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, filePath)).toBe(-1);
+                    expect(MainViewManager.findViewOf(MainViewManager.ALL_PANES, filePath)).toBe(-1);
 
                     // Get list in panel
                     $panelResults = $("#find-in-files-results table.bottom-panel-table tr");

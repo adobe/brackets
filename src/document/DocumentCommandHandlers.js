@@ -766,7 +766,7 @@ define(function (require, exports, module) {
                         .openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
                 } else {
                     // If selection is in pane view list, replace orig item in place with the new file
-                    var info = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, doc.file.fullPath);
+                    var info = MainViewManager.findViewOf(MainViewManager.ALL_PANES, doc.file.fullPath);
                     
                     // Remove old file from pane view list; no redraw yet since there's a pause before the new file is opened
                     MainViewManager.removeFromPaneViewList(info.paneId, doc.file, true);
@@ -829,7 +829,7 @@ define(function (require, exports, module) {
                 // (Issue #4489) if we're saving an untitled document, go ahead and switch to this document
                 //   in the editor, so that if we're, for example, saving several files (ie. Save All),
                 //   then the user can visually tell which document we're currently prompting them to save.
-                var info = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, origPath);
+                var info = MainViewManager.findViewOf(MainViewManager.ALL_PANES, origPath);
                 
                 if (info !== -1) {
                     MainViewManager.open(info.paneId, doc.file);
