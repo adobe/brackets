@@ -165,17 +165,17 @@ define(function (require, exports, module) {
 
     /**
      * Returns the index of the file matching fullPath in the working set.
-     * @deprecated Use MainViewManager.findViewOf() instead
+     * @deprecated Use MainViewManager.findView() instead
      * @param {!string} fullPath
      * @return {number} index, -1 if not found
      */
     function findInWorkingSet(fullPath, list) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.findViewOf() instead of DocumentManager.findInWorkingSet()", true);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.findView() instead of DocumentManager.findInWorkingSet()", true);
         if (list) {
             DeprecationWarning.deprecationWarning("DocumentManager.findInWorkingSet() no longer supports an arbitrary array", true);
             return [];
         }
-        return MainViewManager.findViewOf(MainViewManager.FOCUSED_PANE, fullPath);
+        return MainViewManager.findView(MainViewManager.FOCUSED_PANE, fullPath);
     }
     
     /**

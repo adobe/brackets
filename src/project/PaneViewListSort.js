@@ -347,8 +347,8 @@ define(function (require, exports, module) {
     register(
         Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED,
         function (paneId, file1, file2) {
-            var index1 = MainViewManager.findViewOfAddedOrder(paneId, file1.fullPath),
-                index2 = MainViewManager.findViewOfAddedOrder(paneId, file2.fullPath);
+            var index1 = MainViewManager.findViewByAddedOrder(paneId, file1.fullPath),
+                index2 = MainViewManager.findViewByAddedOrder(paneId, file2.fullPath);
             
             return index1 - index2;
         },

@@ -495,7 +495,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "Open inline editor");
                 });
                 runs(function () {
-                    expect(MainViewManager.findViewOf(MainViewManager.FOCUSED_PANE, CSS_FILE)).toBe(-1);
+                    expect(MainViewManager.findView(MainViewManager.FOCUSED_PANE, CSS_FILE)).toBe(-1);
                     expect(DocumentManager.getOpenDocumentForPath(CSS_FILE)).toBeTruthy();
                     
                     // Force creation of master editor for CSS file

@@ -89,7 +89,7 @@ define(function (require, exports, module) {
         if (!_curDocChangedDueToMe) {
             // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
             perfTimerName = PerfUtils.markStart("FileViewController._onCurrentFileChanged():\t" + (file ? (file.fullPath) : "(no open file)"));
-            if (file && MainViewManager.findViewOf(paneId,  file.fullPath) !== -1) {
+            if (file && MainViewManager.findView(paneId,  file.fullPath) !== -1) {
                 _fileSelectionFocus = PANE_VIEW_LIST_VIEW;
             } else {
                 _fileSelectionFocus = PROJECT_MANAGER;
