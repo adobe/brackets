@@ -300,11 +300,11 @@ define(function (require, exports, module) {
     /**
      * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
      * return currentDocument itself if working set is length 1.
-     * @deprecated use MainViewManager.traversePaneViewListByMRU() instead
+     * @deprecated use MainViewManager.traverseViewsByMRU() instead
      */
     function getNextPrevFile(inc) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.traversePaneViewListByMRU() instead of DocumentManager.getNextPrevFile()", true);
-        var result = MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, inc);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.traverseViewsByMRU() instead of DocumentManager.getNextPrevFile()", true);
+        var result = MainViewManager.traverseViewsByMRU(inc);
         if (result) {
             return result.file;
         }

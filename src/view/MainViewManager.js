@@ -883,11 +883,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Traverses the list and returns the File object of the next item in the MRU order
+     * Get the next or previous file in the MRU list.
      * @param {!number} direction - Must be 1 or -1 to traverse forward or backward
-     * @return {?{file:File, paneId:string}} The File object of the next item in the travesal order or null if there isn't one.
+     * @return {?{file:File, paneId:string}} The File object of the next item in the travesal order or null if there aren't any files to traverse.
+     *                                        may return current file if there are no other files to traverse.
      */
-    function _traverseViewListByMRU(direction) {
+    function traverseViewsByMRU(direction) {
         var file = getCurrentlyViewedFile(),
             paneId = getActivePaneId(),
             index = _.findIndex(_fileList, function (record) {
@@ -910,7 +911,7 @@ define(function (require, exports, module) {
             return _fileList[index];
         }
         
-        // If no doc open or view list empty, there is no "next" file
+        // MRU list empty, there is no "next" file
         return null;
     }
     
@@ -922,14 +923,14 @@ define(function (require, exports, module) {
      * @return {?File} null if pane view list empty
      */
     function traversePaneViewListByMRU(paneId, direction) {
-//        var pane = _getPaneFromPaneId(paneId);
-//
-//        if (pane) {
-//            return pane.traverseViewListByMRU(direction);
-//        }
+        var pane = _getPaneFromPaneId(paneId);
+
+        if (pane) {
+            return pane.traverseViewListByMRU(direction);
+        }
         
         // If no doc open or pane view list empty, there is no "next" file
-        return _traverseViewListByMRU(direction);
+        return null;
     }
 
     /**
@@ -1565,7 +1566,6 @@ define(function (require, exports, module) {
     exports.removeListFromPaneViewList       = removeListFromPaneViewList;
     exports.sortPaneViewList                 = sortPaneViewList;
     exports.swapPaneViewListIndexes          = swapPaneViewListIndexes;
-    exports.traversePaneViewListByMRU        = traversePaneViewListByMRU;
     exports.focusActivePane                  = focusActivePane;
     
     // Pane state
@@ -1575,6 +1575,8 @@ define(function (require, exports, module) {
     // Traversal
     exports.beginTraversal                   = beginTraversal;
     exports.endTraversal                     = endTraversal;
+    exports.traverseViewsByMRU               = traverseViewsByMRU;
+    exports.traversePaneViewListByMRU        = traversePaneViewListByMRU;
     
     // PaneView Attributes
     exports.getActivePaneId                  = getActivePaneId;

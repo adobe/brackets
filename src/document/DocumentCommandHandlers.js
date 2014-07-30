@@ -1355,7 +1355,7 @@ define(function (require, exports, module) {
 
     /** Navigate to the next/previous (MRU) document. Don't update MRU order yet */
     function goNextPrevDoc(inc) {
-        var result = MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, inc);
+        var result = MainViewManager.traverseViewsByMRU(inc);
         if (result) {
             var file = result.file,
                 paneId = result.paneId;
