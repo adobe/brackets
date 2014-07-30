@@ -280,10 +280,7 @@ define(function (require, exports, module) {
      */
     function getCurrentlyViewedFile(paneId) {
         var pane = _getPane(paneId);
-        if (pane) {
-            return pane.getCurrentlyViewedFile();
-        }
-        return null;
+        return pane ? pane.getCurrentlyViewedFile() : null;
     }
  
     /**
