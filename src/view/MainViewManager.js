@@ -496,6 +496,20 @@ define(function (require, exports, module) {
         return result;
     }
 
+    function findAllViewsOf(fullPath) {
+        var index,
+            result = [];
+        
+        _.forEach(_paneViews, function (pane) {
+            index = pane.findInViewList(fullPath);
+            if (index >= 0) {
+                result.push({paneId: pane.id, index: index});
+            }
+        });
+        
+        return result;
+    }
+    
     /**
      * Gets the index of the file matching fullPath in the pane view list
      * @param {!string} paneId - id of the pane in which to search or ALL_PANES or FOCUSED_PANE
@@ -533,10 +547,10 @@ define(function (require, exports, module) {
      */
     function getPaneIdForPath(fullPath) {
         // Search all working sets
-        var info = findView(ALL_PANES, fullPath);
+        var info = findAllViewsOf(fullPath).shift();
 
         // Look for a view that has not been added to a working set
-        if (info === -1) {
+        if (!info) {
             _.forEach(_paneViews, function (pane) {
                 if (pane.getCurrentlyViewedPath() === fullPath) {
                     info = {paneId: pane.id};
@@ -544,8 +558,8 @@ define(function (require, exports, module) {
                 }
             });
         }
-
-        if (info === -1) {
+        
+        if (!info) {
             return null;
         }
 
@@ -1256,8 +1270,8 @@ define(function (require, exports, module) {
         
         if (!paneId) {
             // No view of the document, it may be in a working set and not yet opened
-            var info = findView(ALL_PANES, document.file.fullPath);
-            if (info !== -1) {
+            var info = findAllViewsOf(document.file.fullPath).shift();
+            if (info) {
                 pane = _paneViews[info.paneId];
             }
         }
