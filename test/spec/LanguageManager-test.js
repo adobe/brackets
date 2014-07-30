@@ -545,7 +545,7 @@ define(function (require, exports, module) {
 
                 var renameDeferred = $.Deferred();
                 runs(function () {
-                    MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, doc);
+                    MainViewManager.edit(MainViewManager.FOCUSED_PANE, doc);
                     javascript = LanguageManager.getLanguage("javascript");
                     
                     // sanity check language

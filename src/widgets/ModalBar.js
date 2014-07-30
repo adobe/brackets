@@ -79,7 +79,7 @@ define(function (require, exports, module) {
         // to the editor here, before opening up the new modal bar. This ensures that the old
         // focused item has time to react and close before the new modal bar is opened.
         // See bugs #4287 and #3424
-        MainViewManager.forceFocusToActivePaneView();
+        MainViewManager.focusActivePane();
         
         if (autoClose) {
             this._autoClose = true;
@@ -98,7 +98,7 @@ define(function (require, exports, module) {
         
         // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
         // height of the modal bar so the code doesn't appear to shift if possible.
-        MainViewManager.savePaneScrollState(MainViewManager.ALL_PANES);
+        MainViewManager.cachePaneScrollState(MainViewManager.ALL_PANES);
         WorkspaceManager.recomputeLayout();  // changes available ht for editor area
         MainViewManager.restoreAndAdjustPaneScrollState(MainViewManager.ALL_PANES, this.height());
     }
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
         //  adjusting for the height of the modal bar so the code doesn't appear to shift if possible.
         var barHeight = this.height();
         if (restoreScrollPos) {
-            MainViewManager.savePaneScrollState(MainViewManager.ALL_PANES);
+            MainViewManager.cachePaneScrollState(MainViewManager.ALL_PANES);
         }
         WorkspaceManager.recomputeLayout();  // changes available ht for editor area
         // restore scroll position of all vies
@@ -215,7 +215,7 @@ define(function (require, exports, module) {
             doRemove();
         }
         
-        MainViewManager.forceFocusToActivePaneView();
+        MainViewManager.focusActivePane();
 
         return result.promise();
     };

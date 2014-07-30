@@ -249,39 +249,39 @@ define(function (require, exports, module) {
         
     /**
      * closes all open files
-     * @deprecated Use MainViewManager.doCloseAll() instead
+     * @deprecated Use MainViewManager.closeAll() instead
      * Calling this discards any unsaved changes, so the UI should confirm with the user before calling this.
      */
     function closeAll() {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.doCloseAll() instead of DocumentManager.closeAll()", true);
-        MainViewManager.doCloseAll(MainViewManager.ALL_PANES);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.closeAll() instead of DocumentManager.closeAll()", true);
+        MainViewManager.closeAll(MainViewManager.ALL_PANES);
     }
 
     /**
      * closes the specified file file 
-     * @deprecated use MainViewManager.doClose() instead
+     * @deprecated use MainViewManager.close() instead
      * @param {!File} file
      */
     function closeFullEditor(file) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.doClose() instead of DocumentManager.closeFullEditor()", true);
-        return MainViewManager.doClose(MainViewManager.ALL_PANES, file);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.close() instead of DocumentManager.closeFullEditor()", true);
+        return MainViewManager.close(MainViewManager.ALL_PANES, file);
     }
     
     /**
      * opens the specified document for editing in the currently active pane
-     * @deprecated use MainViewManger.doEdit() instead
+     * @deprecated use MainViewManager.edit() instead
      * @param {!Document} document  The Document to make current. 
      */
     function setCurrentDocument(doc) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.doEdit() instead of DocumentManager.setCurrentDocument()", true);
-        var result = MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, doc);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.edit() instead of DocumentManager.setCurrentDocument()", true);
+        var result = MainViewManager.edit(MainViewManager.FOCUSED_PANE, doc);
         return result;
     }
 
     
     /**
      * freezes the Working Set MRU list 
-     * @deprecated use MainViewManger.beginTraversal() instead
+     * @deprecated use MainViewManager.beginTraversal() instead
      */
     function beginDocumentNavigation() {
         DeprecationWarning.deprecationWarning("Use MainViewManager.beginTraversal() instead of DocumentManager.beginDocumentNavigation()", true);
@@ -300,11 +300,15 @@ define(function (require, exports, module) {
     /**
      * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
      * return currentDocument itself if working set is length 1.
-     * @deprecated use MainViewManger.traversePaneViewListByMRU() instead
+     * @deprecated use MainViewManager.traversePaneViewListByMRU() instead
      */
     function getNextPrevFile(inc) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.traversePaneViewListByMRU() instead of DocumentManager.getNextPrevFile()", true);
-        return MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, inc);
+        var result = MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, inc);
+        if (result) {
+            return result.file;
+        }
+        return null;
     }
     
     /**

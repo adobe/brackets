@@ -472,7 +472,7 @@ define(function (require, exports, module) {
                                             
                                             // If we showed a dialog, restore focus to editor
                                             if (editConflicts.length > 0 || deleteConflicts.length > 0) {
-                                                MainViewManager.forceFocusToActivePaneView();
+                                                MainViewManager.focusActivePane();
                                             }
                                             
                                             // (Any errors that ocurred during presentConflicts() have already

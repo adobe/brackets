@@ -134,7 +134,7 @@ define(function (require, exports, module) {
 
             if (ws.length > docSelectIndex) {
                 DocumentManager.getDocumentForPath(ws[docSelectIndex].fullPath).done(function (doc) {
-                    MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, doc);
+                    MainViewManager.edit(MainViewManager.FOCUSED_PANE, doc);
                 });
 
                 runs(function () {

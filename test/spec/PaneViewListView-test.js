@@ -214,7 +214,7 @@ define(function (require, exports, module) {
                 doc1._markClean();
                 
                 // make the first one active
-                MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, doc0);
+                MainViewManager.edit(MainViewManager.FOCUSED_PANE, doc0);
 
                 // hover over and click on close icon of 2nd list item
                 var secondItem =  $($(".open-files-container > ul").children()[1]);

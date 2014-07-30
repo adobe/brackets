@@ -82,7 +82,7 @@ define(function (require, exports, module) {
                 // Call closeAll() directly. Some tests set a spy on the save as
                 // dialog preventing SpecRunnerUtils.closeAllFiles() from
                 // working properly.
-                testWindow.brackets.test.MainViewManager.doCloseAll(testWindow.brackets.test.MainViewManager.ALL_PANES);
+                testWindow.brackets.test.MainViewManager.closeAll(testWindow.brackets.test.MainViewManager.ALL_PANES);
             });
         });
         describe("openDocument ", function () {

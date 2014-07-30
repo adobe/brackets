@@ -471,8 +471,8 @@ define(function (require, exports, module) {
      * removed. For example, after a dialog with editable text is closed.
      */
     function focusEditor() {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.forceFocusToActivePaneView() instead of EditorManager.focusEditor().", true);
-        MainViewManager.forceFocusToActivePaneView();
+        DeprecationWarning.deprecationWarning("Use MainViewManager.focusActivePane() instead of EditorManager.focusEditor().", true);
+        MainViewManager.focusActivePane();
     }
     
     /**
@@ -481,23 +481,6 @@ define(function (require, exports, module) {
      */
     function resizeEditor() {
         DeprecationWarning.deprecationWarning("Use WorkspaceManager.recomputeLayout() instead of EditorManager.resizeEditor().", true);
-        WorkspaceManager.recomputeLayout();
-    }
-
-    /**
-     * Update the current CodeMirror editor's size. Must be called any time the contents of the editor area
-     * are swapped or any time the editor-holder area has changed height. EditorManager calls us in the swap
-     * case. WorkspaceManager calls us in the most common height-change cases (panel and/or window resize), but
-     * some other cases are handled by external code calling `WorkspaceManager.recomputeLayout()` (e.g. ModalBar hide/show).
-     * 
-     * @deprecated
-     * @param {number} editorAreaHt
-     * @param {string=} refreshFlag For internal use. Set to "force" to ensure the editor will refresh, 
-     *    "skip" to ensure the editor does not refresh, or leave undefined to let `_onEditorAreaResize()`
-     *    determine whether it needs to refresh.
-     */
-    function resize(editorAreaHt, refreshFlag) {
-        DeprecationWarning.deprecationWarning("Use EditorManager.resizeAllToFit() instead of EditorManager.resize().", true);
         WorkspaceManager.recomputeLayout();
     }
 
@@ -610,8 +593,8 @@ define(function (require, exports, module) {
      * @param {!Pane} pane - the pane to open the document in
      * @return {boolean} true if the file can be opened, false if not
      */
-    function doOpenDocument(doc, pane) {
-        var perfTimerName = PerfUtils.markStart("EditorManager.doOpenDocument():\t" + (!doc || doc.file.fullPath));
+    function openDocument(doc, pane) {
+        var perfTimerName = PerfUtils.markStart("EditorManager.openDocument():\t" + (!doc || doc.file.fullPath));
 
         if (doc && pane) {
             _showEditor(doc, pane);
@@ -788,7 +771,7 @@ define(function (require, exports, module) {
     exports.getFocusedInlineWidget        = getFocusedInlineWidget;
     exports.getInlineEditors              = getInlineEditors;
     exports.closeInlineWidget             = closeInlineWidget;
-    exports.doOpenDocument                = doOpenDocument;
+    exports.openDocument                  = openDocument;
     exports.canOpenFile                   = canOpenFile;
 
     // Convenience Methods

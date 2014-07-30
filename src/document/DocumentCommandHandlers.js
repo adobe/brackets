@@ -265,7 +265,7 @@ define(function (require, exports, module) {
             if (fullFilePath) {
                 // For performance, we do lazy checking of file existence, so it may be in pane view list
                 MainViewManager.removeFromPaneViewList(paneId, FileSystem.getFileForPath(fullFilePath));
-                MainViewManager.forceFocusToActivePaneView();
+                MainViewManager.focusActivePane();
             }
             result.reject();
         }
@@ -289,7 +289,7 @@ define(function (require, exports, module) {
             });
 
             var file = FileSystem.getFileForPath(fullPath);
-            MainViewManager.doOpen(paneId, file)
+            MainViewManager.open(paneId, file)
                 .done(function () {
                     result.resolve(file);
                 })
@@ -549,7 +549,7 @@ define(function (require, exports, module) {
         var defaultExtension = "";  // disable preference setting for now
         
         var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, defaultExtension);
-        MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, doc);
+        MainViewManager.edit(MainViewManager.FOCUSED_PANE, doc);
         
         return new $.Deferred().resolve(doc).promise();
     }
@@ -684,7 +684,7 @@ define(function (require, exports, module) {
             result.resolve(file);
         }
         result.always(function () {
-            MainViewManager.forceFocusToActivePaneView();
+            MainViewManager.focusActivePane();
         });
         return result.promise();
     }
@@ -832,7 +832,7 @@ define(function (require, exports, module) {
                 var info = MainViewManager.findInPaneViewList(MainViewManager.ALL_PANES, origPath);
                 
                 if (info !== -1) {
-                    MainViewManager.doOpen(info.paneId, doc.file);
+                    MainViewManager.open(info.paneId, doc.file);
                 }
 
                 // If the document is untitled, default to project root.
@@ -1014,7 +1014,7 @@ define(function (require, exports, module) {
         // utility function for handleFileClose: closes document & removes from pane view list
         function doClose(file) {
             if (!promptOnly) {
-                MainViewManager.doClose(paneId, file);
+                MainViewManager.close(paneId, file);
             }
         }
 
@@ -1098,12 +1098,12 @@ define(function (require, exports, module) {
                     }
                 });
             result.always(function () {
-                MainViewManager.forceFocusToActivePaneView();
+                MainViewManager.focusActivePane();
             });
         } else {
             // File is not open, or IS open but Document not dirty: close immediately
             doClose(file);
-            MainViewManager.forceFocusToActivePaneView();
+            MainViewManager.focusActivePane();
             result.resolve();
         }
         return promise;
@@ -1191,7 +1191,7 @@ define(function (require, exports, module) {
         result.done(function (listAfterSave) {
             listAfterSave = listAfterSave || list;
             if (!promptOnly) {
-                MainViewManager.doCloseList(MainViewManager.ALL_PANES, listAfterSave);
+                MainViewManager.closeList(MainViewManager.ALL_PANES, listAfterSave);
             }
         });
         
@@ -1355,10 +1355,14 @@ define(function (require, exports, module) {
 
     /** Navigate to the next/previous (MRU) document. Don't update MRU order yet */
     function goNextPrevDoc(inc) {
-        var file = MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, inc);
-        if (file) {
+        var result = MainViewManager.traversePaneViewListByMRU(MainViewManager.FOCUSED_PANE, inc);
+        if (result) {
+            var file = result.file,
+                paneId = result.paneId;
+            
             MainViewManager.beginTraversal();
-            CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
+            CommandManager.execute(Commands.FILE_OPEN, {fullPath: file.fullPath,
+                                                        paneId: paneId });
             
             // Listen for ending of Ctrl+Tab sequence
             if (!_addedNavKeyHandler) {

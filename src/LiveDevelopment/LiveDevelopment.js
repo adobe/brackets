@@ -1286,7 +1286,7 @@ define(function LiveDevelopment(require, exports, module) {
                 MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file);
 
                 if (!otherDocumentsInWorkingFiles) {
-                    MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, doc);
+                    MainViewManager.edit(MainViewManager.FOCUSED_PANE, doc);
                 }
             }
 

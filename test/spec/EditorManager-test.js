@@ -69,14 +69,14 @@ define(function (require, exports, module) {
             
             it("should create a new editor for a document and add it to a pane", function () {
                 spyOn(pane, "addView");
-                EditorManager.doOpenDocument(testDoc, pane);
+                EditorManager.openDocument(testDoc, pane);
                 expect(pane.addView).toHaveBeenCalled();
             });
             it("should use an existing editor for a document and show the editor", function () {
                 spyOn(pane, "addView");
                 spyOn(pane, "showView");
                 var editor = SpecRunnerUtils.createEditorInstance(testDoc, pane.$el);
-                EditorManager.doOpenDocument(testDoc, pane);
+                EditorManager.openDocument(testDoc, pane);
                 expect(pane.showView).toHaveBeenCalled();
                 expect(pane.addView).toHaveBeenCalled();
                 expect(pane.addView.calls[0].args[1]).toEqual(editor);

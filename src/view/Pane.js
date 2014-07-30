@@ -708,7 +708,7 @@ define(function (require, exports, module) {
         
         this._currentView = view;
         this._currentView.setVisible(true);
-        this.updateLayout(true);
+        this.updateLayout();
         
         if (oldPath) {
             // Destroy any view that was currently shown

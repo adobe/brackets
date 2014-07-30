@@ -162,8 +162,7 @@ define(function (require, exports, module) {
      * @type {Object.<string, Pane>} 
      * @private
      */
-    var _paneViews = {
-    };
+    var _paneViews = {};
     
     
     /**
@@ -171,8 +170,8 @@ define(function (require, exports, module) {
      * @type {Object.map<string, *>} 
      * @private
      */
-    var _paneScrollStates = {
-    };
+    var _paneScrollStates = {};
+    
     
     /**
      * flag indicating if traversing is currently taking place
@@ -183,6 +182,22 @@ define(function (require, exports, module) {
      * @private
      */
     var _traversingFileList = false;
+
+    /**
+     * The global MRU list (for traversing)
+     * @type {Array.<file:File, paneId:string>}
+     */
+    var _fileList = [];
+    
+    /**
+     * Makes a _filelist Entry
+     * @param {!File} File - the file
+     * @param {!string} paneId - the paneId
+     * @return {{file:File, paneId:string}}
+     */
+    function makeFileListEntry(file, paneId) {
+        return {file: file, paneId: paneId};
+    }
     
     /**
      * Retrieves the currently active Pane Id
@@ -223,7 +238,7 @@ define(function (require, exports, module) {
     /**
      * Forces focus to the current pane or the current pane's view
      */
-    function forceFocusToActivePaneView() {
+    function focusActivePane() {
         _getActivePane().focus();
     }
     
@@ -247,7 +262,7 @@ define(function (require, exports, module) {
             newPane.notifySetActive(true);
         }
         
-        forceFocusToActivePaneView();
+        focusActivePane();
     }
     
     /**
@@ -330,7 +345,7 @@ define(function (require, exports, module) {
                     var currentFile = getCurrentlyViewedFile();
                     if (currentFile !== current.getFile()) {
                         $(exports).triggerHandler("currentFileChanged", [current.getFile(), _activePaneId, currentFile, _activePaneId]);
-                        forceFocusToActivePaneView();
+                        focusActivePane();
                     }
                 }
             } else {
@@ -353,10 +368,11 @@ define(function (require, exports, module) {
     }
     
     /**
-     * caches the specified pane's current scroll state
+     * Caches the specified pane's current scroll state
+     * If there was already cached state for the specified pane, it is discarded and overwritten
      * @param {!string} paneId - id of the pane in which to cache the scroll state, ALL_PANES or FOCUSED_PANE
      */
-    function savePaneScrollState(paneId) {
+    function cachePaneScrollState(paneId) {
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
                 _paneScrollStates[pane.id] = pane.getScrollState();
@@ -370,7 +386,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Restores scroll state from the cache and applies it to the current pane's view after a call to savePaneScrollState.
+     * Restores scroll state from the cache and applies it to the current pane's view after a call to cachePaneScrollState.
      * The view implementation is responsible for applying or ignoring the heightDelta.
      * This is used primarily when a modal bar opens to keep the  editor from scrolling the current page out
      * of view in order to maintain the appearance. 
@@ -590,16 +606,25 @@ define(function (require, exports, module) {
             pane = _getPaneFromPaneId(existingPaneId);
         }
         
-        var result = pane.reorderItem(file, index, force);
+        var result = pane.reorderItem(file, index, force),
+            entry = makeFileListEntry(file, pane.id);
+
         if (result === pane.ITEM_FOUND_NEEDS_SORT) {
             $(exports).triggerHandler("paneViewListSort", [pane.id]);
         } else if (result === pane.ITEM_NOT_FOUND) {
             index = pane.addToViewList(file, index);
+
+            // Add to or update the position in MRU
+            if (pane.getCurrentlyViewedFile() === file) {
+                _fileList.unshift(entry);
+            } else {
+                _fileList.push(entry);
+            }
+
             $(exports).triggerHandler("paneViewListAdd", [file, index, pane.id]);
         }
     }
-            
-    
+
     /**
      * Adds the given file list to the end of the pane view list.
      * @param {!string} paneId - The id of the pane in which to add the file object to or FOCUSED_PANE
@@ -614,6 +639,11 @@ define(function (require, exports, module) {
         }
         
         uniqueFileList = pane.addListToViewList(fileList);
+        
+        uniqueFileList.forEach(function (file) {
+            _fileList.push(makeFileListEntry(file, pane.id));
+        });
+        
         $(exports).triggerHandler("paneViewListAddList", [uniqueFileList, pane.id]);
         
         //  find all of the files that could be added but were not added to the pane that was passed to us
@@ -633,16 +663,36 @@ define(function (require, exports, module) {
      * @todo
      * @private
      */
+    function _removeFileFromMRU(paneId, file) {
+        var index,
+            compare = function (record) {
+                return (record.file === file && record.paneId === paneId);
+            };
+        
+        // find and remove all instances
+        do {
+            index = _.findIndex(_fileList, compare);
+            if (index !== -1) {
+                _fileList.splice(index, 1);
+            }
+        } while (index !== -1);
+    }
+    
+    /**
+     * @todo
+     * @private
+     */
     function _removeFromPaneViewList(paneId, file, suppressRedraw) {
         var pane = _getPaneFromPaneId(paneId);
 
         if (pane && pane.removeFromViewList(file)) {
+            _removeFileFromMRU(pane.id, file);
             $(exports).triggerHandler("paneViewListRemove", [file, suppressRedraw, pane.id]);
         }
     }
     
     /**
-     * @see {link doClose()} use doClose instead
+     * @see {link close()} use close instead
      * Removes the specified file from the pane view list, if it was in the list. 
      *   Will show the interstitial page if the current file is closed 
      *       even if there are  other files in which to show
@@ -679,11 +729,14 @@ define(function (require, exports, module) {
             return;
         }
         
+        fileList.forEach(function (file) {
+            _removeFileFromMRU(pane.id, file);
+        });
         $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
     }
 
     /**
-     * @see {link doCloseList()} use doCloseList instead
+     * @see {link closeList()} use closeList instead
      * Removes the specified file list from the pane view list, if it was in the list. 
      *   Will show the interstitial page if the current file is closed 
      *       even if there are  other files in which to show
@@ -720,13 +773,18 @@ define(function (require, exports, module) {
         if (!fileList) {
             return;
         }
+        
+        fileList.forEach(function (file) {
+            _removeFileFromMRU(pane.id, file);
+        });
+        
+        
         $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
     }
     
     
-    
     /**
-     * @see {link doCloseAll()} use doCloseList instead
+     * @see {link closeAll()} use closeList instead
      * Removes the specified file list from the pane view list, if it was in the list. 
      *   Will show the interstitial page if the current file is closed 
      *       even if there are  other files in which to show
@@ -749,11 +807,39 @@ define(function (require, exports, module) {
      * @param {!File} file - File object to make most recent
      */
     function _makePaneViewMostRecent(paneId, file) {
-        var pane = _getPaneFromPaneId(paneId);
+        var index,
+            entry,
+            pane = _getPaneFromPaneId(paneId);
 
         if (pane && !_traversingFileList) {
             pane.makeViewMostRecent(file);
+        
+            index = _.findIndex(_fileList, function (record) {
+                return (record.file === file && record.paneId === paneId);
+            });
+
+            entry = makeFileListEntry(file, pane.id);
+
+            if (index !== -1) {
+                _fileList.splice(index, 1);
+                _fileList.unshift(entry);
+            }
         }
+    }
+    
+    function _removeDeletedFileFromMRU(e, fullPath) {
+        var index,
+            compare = function (record) {
+                return (record.file.fullPath === fullPath);
+            };
+        
+        // find and remove all instances
+        do {
+            index = _.findIndex(_fileList, compare);
+            if (index !== -1) {
+                _fileList.splice(index, 1);
+            }
+        } while (index !== -1);
     }
     
     /**
@@ -797,6 +883,38 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Traverses the list and returns the File object of the next item in the MRU order
+     * @param {!number} direction - Must be 1 or -1 to traverse forward or backward
+     * @return {?{file:File, paneId:string}} The File object of the next item in the travesal order or null if there isn't one.
+     */
+    function _traverseViewListByMRU(direction) {
+        var file = getCurrentlyViewedFile(),
+            paneId = getActivePaneId(),
+            index = _.findIndex(_fileList, function (record) {
+                return (record.file === file && record.paneId === paneId);
+            });
+        
+        if (index === -1) {
+            if (_fileList.length > 0) {
+                return _fileList[0];
+            }
+        } else if (_fileList.length > 1) {
+            // If doc is in view list, return next/prev item with wrap-around
+            index += direction;
+            if (index >= _fileList.length) {
+                index = 0;
+            } else if (index < 0) {
+                index = _fileList.length - 1;
+            }
+
+            return _fileList[index];
+        }
+        
+        // If no doc open or view list empty, there is no "next" file
+        return null;
+    }
+    
+    /**
      * Get the next or previous file in the pane view list, in MRU order (relative to currentDocument). May
      * return currentDocument itself if pane view list is length 1.
      * @param {!string} paneId this will identify which Pane with which the caller wants to traverse
@@ -804,14 +922,14 @@ define(function (require, exports, module) {
      * @return {?File} null if pane view list empty
      */
     function traversePaneViewListByMRU(paneId, direction) {
-        var pane = _getPaneFromPaneId(paneId);
-
-        if (pane) {
-            return pane.traverseViewListByMRU(direction);
-        }
+//        var pane = _getPaneFromPaneId(paneId);
+//
+//        if (pane) {
+//            return pane.traverseViewListByMRU(direction);
+//        }
         
         // If no doc open or pane view list empty, there is no "next" file
-        return null;
+        return _traverseViewListByMRU(direction);
     }
 
     /**
@@ -903,13 +1021,22 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("paneDestroyed", secondPane.id);
             $(exports).triggerHandler("paneViewListAddList", [fileList, firstPane.id]);
 
+            fileList.forEach(function (file) {
+                _fileList.forEach(function (record) {
+                    if (record.file === file) {
+                        record.paneId = firstPane.id;
+                    }
+                });
+            });
+            
+            
             _orientation = null;
             _updateLayout();
             _updateCommandState();
             $(exports).triggerHandler("paneLayoutChanged", [_orientation]);
 
             if (getCurrentlyViewedFile() !== lastViewed) {
-                exports.doOpen(firstPane.id, lastViewed);
+                exports.open(firstPane.id, lastViewed);
             }
         }
     }
@@ -962,7 +1089,7 @@ define(function (require, exports, module) {
      * @param {!Document} doc - document to edit
      * @param {Object={avoidPaneActivation:boolean}} optionsIn - options 
      */
-    function doEdit(paneId, doc, optionsIn) {
+    function edit(paneId, doc, optionsIn) {
         var currentPaneId = getPaneIdForPath(doc.file.fullPath),
             oldPane = _getActivePane(),
             oldFile = oldPane.getCurrentlyViewedFile(),
@@ -987,7 +1114,7 @@ define(function (require, exports, module) {
             addToPaneViewList(paneId, doc.file);
         }
         
-        EditorManager.doOpenDocument(doc, pane);
+        EditorManager.openDocument(doc, pane);
 
         if (pane.id === _activePaneId) {
             $(exports).triggerHandler("currentFileChanged", [doc.file, pane.id, oldFile, pane.id]);
@@ -1002,7 +1129,7 @@ define(function (require, exports, module) {
      * @param {!Document} doc - document to edit
      * @param {Object={avoidPaneActivation:boolean}} optionsIn - options 
      */
-    function doOpen(paneId, file, optionsIn) {
+    function open(paneId, file, optionsIn) {
         var result = new $.Deferred(),
             options = optionsIn || {};
         
@@ -1021,12 +1148,12 @@ define(function (require, exports, module) {
         }
         
         if (doc) {
-            doEdit(paneId, doc);
+            edit(paneId, doc);
             result.resolve(doc);
         } else if (EditorManager.canOpenFile(file.fullPath)) {
             DocumentManager.getDocumentForPath(file.fullPath)
                 .done(function (doc) {
-                    doEdit(paneId, doc);
+                    edit(paneId, doc);
                     result.resolve(doc);
                 })
                 .fail(function (fileError) {
@@ -1045,7 +1172,7 @@ define(function (require, exports, module) {
      * @param {!Document} doc - document to edit
      * @param {Object={noOpenNextFile:boolean}} optionsIn - options 
      */
-    function doClose(paneId, file, optionsIn) {
+    function close(paneId, file, optionsIn) {
         if (paneId === ALL_PANES) {
             // search in the list of files in each pane's workingset list
             paneId = getPaneIdForPath(file.fullPath);
@@ -1056,6 +1183,7 @@ define(function (require, exports, module) {
             options = optionsIn || {};
 
         if (pane.doRemoveView(file, !options.noOpenNextFile)) {
+            _removeFileFromMRU(pane.id, file);
             $(exports).triggerHandler("paneViewListRemove", [file, false, pane.id]);
             
             if (pane.id === _activePaneId) {
@@ -1063,7 +1191,7 @@ define(function (require, exports, module) {
                 //  to not do so is specified. That will trigger the currentFileChanged Event
                 //  so we don't need to do it again, so if we removedthe current view of the activated
                 //  pane and the new view is now null then we need to tell our listeners that it's null
-                //  otherwise this is handled in doOpen
+                //  otherwise this is handled in open
                 if (oldFile && oldFile.fullPath === file.fullPath && !pane.getCurrentlyViewedFile()) {
                     $(exports).triggerHandler("currentFileChanged", [pane.getCurrentlyViewedFile(), pane.id, oldFile, pane.id]);
                 }
@@ -1076,7 +1204,7 @@ define(function (require, exports, module) {
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Array.<File>} fileList - files to close
      */
-    function doCloseList(paneId, fileList) {
+    function closeList(paneId, fileList) {
         var closedList,
             currentFile = _getActivePane().getCurrentlyViewedFile(),
             currentFileClosed = currentFile ? (fileList.indexOf(currentFile) !== -1) : false;
@@ -1084,11 +1212,20 @@ define(function (require, exports, module) {
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
                 closedList = pane.doRemoveViews(fileList);
+                closedList.forEach(function (file) {
+                    _removeFileFromMRU(pane.id, file);
+                });
+
                 $(exports).triggerHandler("paneViewListRemoveList", [closedList, pane.id]);
             });
         } else {
             var pane = _getPaneFromPaneId(paneId);
             closedList = pane.doRemoveViews(fileList);
+            closedList.forEach(function (file) {
+                _removeFileFromMRU(pane.id, file);
+            });
+            
+            
             $(exports).triggerHandler("paneViewListRemoveList", [closedList, pane.id]);
         }
         
@@ -1101,19 +1238,26 @@ define(function (require, exports, module) {
      * Closes all files in the specified pane or panes
      * @param {!string} paneId - id of the pane in which to open the document
      */
-    function doCloseAll(paneId, options) {
+    function closeAll(paneId, options) {
         var fileList,
             currentFile = _getActivePane().getCurrentlyViewedFile();
         
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
                 fileList = pane.getViewList();
+                fileList.forEach(function (file) {
+                    _removeFileFromMRU(pane.id, file);
+                });
+                
                 pane.doRemoveAllViews();
                 $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
             });
         } else {
             var pane = _getPaneFromPaneId(paneId);
             fileList = pane.getViewList();
+            fileList.forEach(function (file) {
+                _removeFileFromMRU(pane.id, file);
+            });
             pane.doRemoveAllViews();
             $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
         }
@@ -1222,6 +1366,7 @@ define(function (require, exports, module) {
 
         // reset
         _doUnsplit();
+        _fileList = [];
         EditorManager._resetViewStates();
         
         if (state) {
@@ -1230,9 +1375,11 @@ define(function (require, exports, module) {
             _orientation = (panes.length > 1) ? state.orientation : null;
 
             _.forEach(state.panes, function (paneState, paneId) {
-                var pane = _createPaneIfNecessary(paneId);
-                promises.push(pane.loadState(paneState));
-                $(exports).triggerHandler("paneViewListAddList", [pane.getViewList(), pane.id]);
+                var pane = _createPaneIfNecessary(paneId),
+                    promise = pane.loadState(paneState);
+                
+                promises.push(promise);
+                
             });
         
             AsyncUtils.waitForAll(promises).then(function () {
@@ -1242,6 +1389,15 @@ define(function (require, exports, module) {
                 if (_orientation) {
                     $(exports).triggerHandler("paneLayoutChanged", _orientation);
                 }
+
+                _.forEach(_paneViews, function (pane) {
+                    var fileList = pane.getViewList();
+
+                    fileList.forEach(function (file) {
+                        _fileList.push(makeFileListEntry(file, pane.id));
+                    });
+                    $(exports).triggerHandler("paneViewListAddList", [fileList, pane.id]);
+                });
             });
         }
     }
@@ -1299,7 +1455,8 @@ define(function (require, exports, module) {
     $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
     $(WorkspaceManager).on("workspaceUpdateLayout",           _updateLayout);
     $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
-    
+    $(DocumentManager).on("pathDeleted",                      _removeDeletedFileFromMRU);
+
     /** 
      * handles the split vertically command
      * @private
@@ -1409,10 +1566,10 @@ define(function (require, exports, module) {
     exports.sortPaneViewList                 = sortPaneViewList;
     exports.swapPaneViewListIndexes          = swapPaneViewListIndexes;
     exports.traversePaneViewListByMRU        = traversePaneViewListByMRU;
-    exports.forceFocusToActivePaneView       = forceFocusToActivePaneView;
+    exports.focusActivePane                  = focusActivePane;
     
     // Pane state
-    exports.savePaneScrollState              = savePaneScrollState;
+    exports.cachePaneScrollState             = cachePaneScrollState;
     exports.restoreAndAdjustPaneScrollState  = restoreAndAdjustPaneScrollState;
     
     // Traversal
@@ -1429,11 +1586,11 @@ define(function (require, exports, module) {
     
     // Explicit stuff
     exports.destroyEditorIfNotNeeded         = destroyEditorIfNotNeeded;
-    exports.doEdit                           = doEdit;
-    exports.doOpen                           = doOpen;
-    exports.doClose                          = doClose;
-    exports.doCloseAll                       = doCloseAll;
-    exports.doCloseList                      = doCloseList;
+    exports.edit                             = edit;
+    exports.open                             = open;
+    exports.close                            = close;
+    exports.closeAll                         = closeAll;
+    exports.closeList                        = closeList;
     
     // Layout
     exports.setLayoutScheme                  = setLayoutScheme;

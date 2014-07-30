@@ -613,7 +613,7 @@ define(function (require, exports, module) {
     
                         var editor = EditorManager.getCurrentFullEditor();
                         editor.setCursorPos(line, character, true);
-                        MainViewManager.forceFocusToActivePaneView();
+                        MainViewManager.focusActivePane();
                     }
                 }
             });

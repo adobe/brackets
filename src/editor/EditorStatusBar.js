@@ -180,7 +180,7 @@ define(function (require, exports, module) {
         $indentWidthInput.off("blur keyup");
         
         // restore focus to the editor
-        MainViewManager.forceFocusToActivePaneView();
+        MainViewManager.focusActivePane();
         
         var valInt = parseInt(value, 10);
         if (Editor.getUseTabChar(fullPath)) {

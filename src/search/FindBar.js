@@ -241,7 +241,7 @@ define(function (require, exports, module) {
             self._modalBar = null;
             self._closed = true;
             FindBar._removeFindBar(self);
-            MainViewManager.forceFocusToActivePaneView();
+            MainViewManager.focusActivePane();
             $(self).trigger("close");
         });
         

@@ -230,7 +230,7 @@ define(function (require, exports, module) {
                         var newDoc = DocumentManager.getOpenDocumentForPath(firstPath);
                         // newDoc might be null if the replacement failed.
                         if (newDoc) {
-                            MainViewManager.doEdit(MainViewManager.FOCUSED_PANE, newDoc);
+                            MainViewManager.edit(MainViewManager.FOCUSED_PANE, newDoc);
                         }
                     }
                 }

@@ -112,7 +112,7 @@ define(function (require, exports, module) {
             
             MainViewManager.setActivePaneId(paneId);
         } else {
-            MainViewManager.forceFocusToActivePaneView();
+            MainViewManager.focusActivePane();
         }
         // If fullPath corresonds to the current doc being viewed then opening the file won't
         // trigger a currentFileChanged event, so we need to trigger a documentSelectionFocusChange 

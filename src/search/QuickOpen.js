@@ -373,7 +373,7 @@ define(function (require, exports, module) {
 
         if (doClose) {
             this.close();
-            MainViewManager.forceFocusToActivePaneView();
+            MainViewManager.focusActivePane();
         }
     };
 
