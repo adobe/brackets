@@ -1122,7 +1122,7 @@ define(function (require, exports, module) {
                     expect(EditorManager.getActiveEditor()).toEqual(null);
                     expect(EditorManager.getCurrentFullEditor()).toEqual(null);
                     expect(EditorManager.getFocusedEditor()).toEqual(null);
-                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(path);
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE)).toEqual(path);
                     var d = DocumentManager.getCurrentDocument();
                     expect(d).toEqual(null);
                 });

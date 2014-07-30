@@ -55,7 +55,7 @@ define(function (require, exports, module) {
      * @param {string} mode
      */
     function handleClose(mode) {
-        var targetIndex  = MainViewManager.findViewOf(MainViewManager.FOCUSED_PANE, MainViewManager.getCurrentlyViewedPath()),
+        var targetIndex  = MainViewManager.findViewOf(MainViewManager.FOCUSED_PANE, MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE)),
             paneViewList = MainViewManager.getViews(MainViewManager.FOCUSED_PANE),
             start        = (mode === closeBelow) ? (targetIndex + 1) : 0,
             end          = (mode === closeAbove) ? (targetIndex) : (paneViewList.length),
@@ -75,7 +75,7 @@ define(function (require, exports, module) {
      * Enable/Disable the menu items depending on which document is selected in the working set
      */
     function contextMenuOpenHandler() {
-        var file = MainViewManager.getCurrentlyViewedFile();
+        var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE);
         
         if (file) {
             var targetIndex  = MainViewManager.findViewOf(MainViewManager.FOCUSED_PANE, file.fullPath),

@@ -285,14 +285,15 @@ define(function (require, exports, module) {
     
     /**
      * Retrieves the currently viewed file of the pane specified by paneId
-     * @param {!string} paneId - the id of the pane in which to retrieve the currently viewed file
+     * @param {string=} paneId - the id of the pane in which to retrieve the currently viewed file
      * @return {?File} File object of the currently viewed file, null if there isn't one or undefined if there isn't a matching pane
      */
-    function getCurrentlyViewedFileForPane(paneId) {
+    function getCurrentlyViewedFile(paneId) {
         var pane = _getPaneFromPaneId(paneId);
         if (pane) {
             return pane.getCurrentlyViewedFile();
         }
+        return null;
     }
  
     /**
@@ -300,25 +301,9 @@ define(function (require, exports, module) {
      * @param {!string} paneId - the id of the pane in which to retrieve the currently viewed path
      * @return {?string} the path of the currently viewed file or null if there isn't one
      */
-    function getCurrentlyViewedPathForPane(paneId) {
-        var file = getCurrentlyViewedFileForPane(paneId);
+    function getCurrentlyViewedPath(paneId) {
+        var file = getCurrentlyViewedFile(paneId);
         return file ? file.fullPath : null;
-    }
-    
-    /**
-     * Retrieves the currently viewed file of the focused pane
-     * @return {?File} File object of the currently viewed file, null if there isn't one or undefined if there isn't a matching pane
-     */
-    function getCurrentlyViewedFile() {
-        return getCurrentlyViewedFileForPane(FOCUSED_PANE);
-    }
-    
-    /**
-     * Retrieves the currently viewed path of the focused pane
-     * @return {?string} the path of the currently viewed file or null if there isn't one
-     */
-    function getCurrentlyViewedPath() {
-        return getCurrentlyViewedPathForPane(FOCUSED_PANE);
     }
     
     /**
@@ -1601,8 +1586,6 @@ define(function (require, exports, module) {
     // Convenience
     exports.getCurrentlyViewedFile           = getCurrentlyViewedFile;
     exports.getCurrentlyViewedPath           = getCurrentlyViewedPath;
-    exports.getCurrentlyViewedFileForPane    = getCurrentlyViewedFileForPane;
-    exports.getCurrentlyViewedPathForPane    = getCurrentlyViewedPathForPane;
     
     // Constants
     exports.ALL_PANES                        = ALL_PANES;

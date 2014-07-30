@@ -97,7 +97,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var editor = EditorManager.getActiveEditor();
                     expect(editor.document.file.fullPath).toBe(jsFilePath);
-                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(jsFilePath);
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE)).toEqual(jsFilePath);
                 });
             });
 
@@ -111,7 +111,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var editor = EditorManager.getActiveEditor();
                     expect(editor).toBe(null);
-                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(path);
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE)).toEqual(path);
                 });
             });
 
@@ -126,7 +126,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var editor = EditorManager.getActiveEditor();
                     expect(editor).toBe(null);
-                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(lastImagePath);
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE)).toEqual(lastImagePath);
                 });
             });
             */

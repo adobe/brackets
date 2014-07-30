@@ -163,7 +163,7 @@ define(function (require, exports, module) {
         // If fullPath corresonds to the current doc being viewed then opening the file won't
         // trigger a currentFileChanged event, so we need to trigger a documentSelectionFocusChange 
         // in this case to signify the selection focus has changed even though the current document has not.
-        var currentPath = MainViewManager.getCurrentlyViewedPathForPane(paneId);
+        var currentPath = MainViewManager.getCurrentlyViewedPath(paneId);
         if (currentPath === fullPath) {
             _activatePane(paneId);
             result = (new $.Deferred()).resolve().promise();

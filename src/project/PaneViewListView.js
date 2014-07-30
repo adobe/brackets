@@ -217,7 +217,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        var file = MainViewManager.getCurrentlyViewedFileForPane(this.paneId);
+        var file = MainViewManager.getCurrentlyViewedFile(this.paneId);
 
         var $selectedFile = this._findListItemFromFile(file);
         if (!$selectedFile) {
@@ -601,7 +601,7 @@ define(function (require, exports, module) {
      */
     PaneViewListView.prototype._createNewListItem = function (file) {
         var self = this,
-            selectedFile = MainViewManager.getCurrentlyViewedFileForPane(this.paneId);
+            selectedFile = MainViewManager.getCurrentlyViewedFile(this.paneId);
 
         // Create new list item with a link
         var $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(file));
@@ -654,7 +654,7 @@ define(function (require, exports, module) {
      * @private
      */
     PaneViewListView.prototype._updateListSelection = function () {
-        var file = MainViewManager.getCurrentlyViewedFileForPane(this.paneId);
+        var file = MainViewManager.getCurrentlyViewedFile(this.paneId);
             
         // Iterate through working set list and update the selection on each
         var items = this.$openFilesContainer.find("ul").children().each(function () {

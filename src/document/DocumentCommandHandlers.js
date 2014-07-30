@@ -135,7 +135,7 @@ define(function (require, exports, module) {
      */
     function _updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
-            currentlyViewedPath = MainViewManager.getCurrentlyViewedPath(),
+            currentlyViewedPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE),
             windowTitle = brackets.config.app_title;
 
         if (!brackets.nativeMenus) {
@@ -210,7 +210,7 @@ define(function (require, exports, module) {
      * Handles currentFileChanged and filenameChanged events and updates the titlebar
      */
     function handleCurrentFileChange() {
-        var newFile = MainViewManager.getCurrentlyViewedFile();
+        var newFile = MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE);
         
         if (newFile) {
             var newDocument = DocumentManager.getOpenDocumentForPath(newFile.fullPath);
@@ -256,8 +256,8 @@ define(function (require, exports, module) {
         // TODO should be removed once bug is closed.
         // if we are already displaying a file do nothing but resolve immediately.
         // this fixes timing issues in test cases.
-        if (MainViewManager.getCurrentlyViewedPath() === fullPath) {
-            result.resolve(MainViewManager.getCurrentlyViewedFile());
+        if (MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE) === fullPath) {
+            result.resolve(MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE));
             return result.promise();
         }
         
@@ -344,7 +344,7 @@ define(function (require, exports, module) {
                         
                         _doOpen(filteredPaths[filteredPaths.length - 1], silent, paneId)
                             .done(function (file) {
-                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(MainViewManager.getCurrentlyViewedPathForPane(paneId));
+                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(MainViewManager.getCurrentlyViewedPath(paneId));
                             })
                             // Send the resulting document that was opened
                             .then(result.resolve, result.reject);
@@ -1022,7 +1022,7 @@ define(function (require, exports, module) {
         
         // Default to current document if doc is null
         if (!file) {
-            file = MainViewManager.getCurrentlyViewedFile();
+            file = MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE);
         }
         
         // No-op if called when nothing is open; TODO: (issue #273) should command be grayed out instead?
@@ -1384,7 +1384,7 @@ define(function (require, exports, module) {
 
     /** Show in File Tree command handler **/
     function handleShowInTree() {
-        ProjectManager.showInTree(MainViewManager.getCurrentlyViewedFile());
+        ProjectManager.showInTree(MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE));
     }
 
     /** Delete file command handler  **/

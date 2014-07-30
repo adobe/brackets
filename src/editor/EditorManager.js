@@ -151,7 +151,7 @@ define(function (require, exports, module) {
      * @return {?Editor} editor of the current view or null
      */
     function getCurrentFullEditor() {
-        var currentPath = MainViewManager.getCurrentlyViewedPath(),
+        var currentPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE),
             doc;
         
         if (currentPath) {
@@ -529,12 +529,29 @@ define(function (require, exports, module) {
      */
     function getCurrentlyViewedPath() {
         DeprecationWarning.deprecationWarning("Use MainViewManager.getCurrentlyViewedFile() instead of EditorManager.getCurrentlyViewedPath().", true);
-        var file = MainViewManager.getCurrentlyViewedFile();
-        return file ? file.fullPath : null;
+        
+        // We only want to return a path of a document object
+        // not other things like images, etc...
+        var currentPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE),
+            doc;
+        
+        if (currentPath) {
+            doc = DocumentManager.getOpenDocumentForPath(currentPath);
+        }
+        
+        if (doc) {
+            return currentPath;
+        }
+        
+        return null;
     }
     
+    /**
+     * @deprecated There is no equivelent API moving forward.  
+     * Use MainViewManager._initialize() from a unit test to create a Main View attached to a specific DOM element
+     */
     function setEditorHolder() {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.getCurrentlyViewedFile() instead of EditorManager.getCurrentlyViewedPath().", true);
+        DeprecationWarning.deprecationWarning("EditorManager.setEditorHolder has been deprecated without an equivelent API.  Use MainViewManager._initialize() to create a main view in specified DOM element from within a unit test", true);
     }
     
     /**

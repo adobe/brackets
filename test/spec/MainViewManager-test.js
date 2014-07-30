@@ -100,10 +100,10 @@ define(function (require, exports, module) {
             });
             it("should not be viewing anything", function () {
                 runs(function () {
-                    expect(MainViewManager.getCurrentlyViewedFile()).toEqual(null);
-                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(null);
-                    expect(MainViewManager.getCurrentlyViewedFileForPane("first-pane")).toEqual(null);
-                    expect(MainViewManager.getCurrentlyViewedPathForPane("first-pane")).toEqual(null);
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE)).toEqual(null);
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE)).toEqual(null);
+                    expect(MainViewManager.getCurrentlyViewedFile("first-pane")).toEqual(null);
+                    expect(MainViewManager.getCurrentlyViewedPath("first-pane")).toEqual(null);
                 });
             });
             it("Pane should not have a title", function () {
@@ -120,14 +120,14 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "MainViewManager.doOpen");
                 });
                 runs(function () {
-                    expect(MainViewManager.getCurrentlyViewedFile().name).toEqual("test.js");
-                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(testPath + "/test.js");
-                    expect(MainViewManager.getCurrentlyViewedFileForPane("first-pane").name).toEqual("test.js");
-                    expect(MainViewManager.getCurrentlyViewedPathForPane("first-pane")).toEqual(testPath + "/test.js");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE).name).toEqual("test.js");
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE)).toEqual(testPath + "/test.js");
+                    expect(MainViewManager.getCurrentlyViewedFile("first-pane").name).toEqual("test.js");
+                    expect(MainViewManager.getCurrentlyViewedPath("first-pane")).toEqual(testPath + "/test.js");
                     expect(MainViewManager.getViewCount(MainViewManager.ALL_PANES)).toEqual(0);
 
                     MainViewManager.close(MainViewManager.FOCUSED_PANE, { fullPath: testPath + "/test.js" });
-                    expect(MainViewManager.getCurrentlyViewedFile()).toEqual(null);
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE)).toEqual(null);
                     expect(MainViewManager.getViewCount(MainViewManager.ALL_PANES)).toEqual(0);
                 });
             });
@@ -140,14 +140,14 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "MainViewManager.doOpen");
                 });
                 runs(function () {
-                    expect(MainViewManager.getCurrentlyViewedFile().name).toEqual("test.js");
-                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(testPath + "/test.js");
-                    expect(MainViewManager.getCurrentlyViewedFileForPane("first-pane").name).toEqual("test.js");
-                    expect(MainViewManager.getCurrentlyViewedPathForPane("first-pane")).toEqual(testPath + "/test.js");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE).name).toEqual("test.js");
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE)).toEqual(testPath + "/test.js");
+                    expect(MainViewManager.getCurrentlyViewedFile("first-pane").name).toEqual("test.js");
+                    expect(MainViewManager.getCurrentlyViewedPath("first-pane")).toEqual(testPath + "/test.js");
                     expect(MainViewManager.getViewCount(MainViewManager.ALL_PANES)).toEqual(1);
 
                     MainViewManager.close(MainViewManager.FOCUSED_PANE, { fullPath: testPath + "/test.js" });
-                    expect(MainViewManager.getCurrentlyViewedFile()).toEqual(null);
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE)).toEqual(null);
                     expect(MainViewManager.getViewCount(MainViewManager.ALL_PANES)).toEqual(0);
                 });
             });
@@ -163,14 +163,14 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "MainViewManager.doEdit");
                 });
                 runs(function () {
-                    expect(MainViewManager.getCurrentlyViewedFile().name).toEqual("test.js");
-                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(testPath + "/test.js");
-                    expect(MainViewManager.getCurrentlyViewedFileForPane("first-pane").name).toEqual("test.js");
-                    expect(MainViewManager.getCurrentlyViewedPathForPane("first-pane")).toEqual(testPath + "/test.js");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE).name).toEqual("test.js");
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE)).toEqual(testPath + "/test.js");
+                    expect(MainViewManager.getCurrentlyViewedFile("first-pane").name).toEqual("test.js");
+                    expect(MainViewManager.getCurrentlyViewedPath("first-pane")).toEqual(testPath + "/test.js");
                     expect(MainViewManager.getViewCount(MainViewManager.ALL_PANES)).toEqual(0);
 
                     MainViewManager.close(MainViewManager.FOCUSED_PANE, { fullPath: testPath + "/test.js" });
-                    expect(MainViewManager.getCurrentlyViewedFile()).toEqual(null);
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE)).toEqual(null);
                     expect(MainViewManager.getViewCount(MainViewManager.ALL_PANES)).toEqual(0);
                 });
             });
@@ -180,7 +180,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "MainViewManager.doOpen");
                 });
                 runs(function () {
-                    expect(MainViewManager.getCurrentlyViewedFile().name).toEqual("test.js");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE).name).toEqual("test.js");
                     expect(MainViewManager.getViewCount(MainViewManager.ALL_PANES)).toEqual(0);
                 });
             });
@@ -196,7 +196,7 @@ define(function (require, exports, module) {
                     waitsForFail(promise, Commands.FILE_OPEN);
                 });
                 runs(function () {
-                    expect(MainViewManager.getCurrentlyViewedFile()).toBeFalsy();
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE)).toBeFalsy();
                 });
                 runs(function () {
                     MainViewManager.setActivePaneId("second-pane");
@@ -406,10 +406,10 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     MainViewManager.setActivePaneId("first-pane");
-                    expect(MainViewManager.getCurrentlyViewedFile().name).toEqual("test.js");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE).name).toEqual("test.js");
                     expect(EditorManager.getCurrentFullEditor().document.file.name).toEqual("test.js");
                     MainViewManager.setActivePaneId("second-pane");
-                    expect(MainViewManager.getCurrentlyViewedFile().name).toEqual("test.css");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE).name).toEqual("test.css");
                     expect(EditorManager.getCurrentFullEditor().document.file.name).toEqual("test.css");
                 });
             });
@@ -874,7 +874,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addView("first-pane", getFileObject("test.js"));
                     MainViewManager.removeAllViews(MainViewManager.ALL_PANES);
-                    expect(MainViewManager.getCurrentlyViewedPathForPane("first-pane")).toEqual(null);
+                    expect(MainViewManager.getCurrentlyViewedPath("first-pane")).toEqual(null);
                 });
             });
             it("should remove the view when removing a file from a pane view list", function () {
@@ -893,7 +893,7 @@ define(function (require, exports, module) {
                     MainViewManager.addViews("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
                     MainViewManager.removeView(MainViewManager.ALL_PANES, getFileObject("test.css"));
-                    expect(MainViewManager.getCurrentlyViewedPathForPane("first-pane")).toEqual(null);
+                    expect(MainViewManager.getCurrentlyViewedPath("first-pane")).toEqual(null);
                 });
             });
             it("should remove the file when removing from a targeted pane", function () {

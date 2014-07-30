@@ -143,7 +143,7 @@ define(function (require, exports, module) {
      * @return {?Document}
      */
     function getCurrentDocument() {
-        var file = MainViewManager.getCurrentlyViewedFile();
+        var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE);
         
         if (file) {
             return getOpenDocumentForPath(file.fullPath);
