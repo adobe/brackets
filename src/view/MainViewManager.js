@@ -226,20 +226,10 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Retrieves the Pane object for the given paneId
-     * @return {!Pane} the Pane object of the currently active pane. Cannot be null
-     * @private
-     */
-    function _getActivePane() {
-        return _getPane(FOCUSED_PANE);
-    }
-    
-    
-    /**
      * Forces focus to the current pane or the current pane's view
      */
     function focusActivePane() {
-        _getActivePane().focus();
+        _getPane(FOCUSED_PANE).focus();
     }
     
     
@@ -250,13 +240,13 @@ define(function (require, exports, module) {
     function setActivePaneId(newPaneId) {
         if (_paneViews.hasOwnProperty(newPaneId) && (newPaneId !== _activePaneId)) {
             var oldPaneId = _activePaneId,
-                oldPane = _getActivePane(),
+                oldPane = _getPane(FOCUSED_PANE),
                 newPane = _getPane(newPaneId);
             
             _activePaneId = newPaneId;
             
             $(exports).triggerHandler("activePaneChanged", [newPaneId, oldPaneId]);
-            $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), newPaneId, oldPane.getCurrentlyViewedFile(), oldPaneId]);
+            $(exports).triggerHandler("currentFileChanged", [_getPane(FOCUSED_PANE).getCurrentlyViewedFile(), newPaneId, oldPane.getCurrentlyViewedFile(), oldPaneId]);
             
             oldPane.notifySetActive(false);
             newPane.notifySetActive(true);
@@ -931,7 +921,7 @@ define(function (require, exports, module) {
      * Whatever file is current is bumped to the front of the MRU list.
      */
     function endTraversal() {
-        var pane = _getActivePane();
+        var pane = _getPane(FOCUSED_PANE);
         
         if (_traversingFileList) {
             _traversingFileList = false;
@@ -1077,7 +1067,7 @@ define(function (require, exports, module) {
      */
     function edit(paneId, doc, optionsIn) {
         var currentPaneId = getPaneIdForPath(doc.file.fullPath),
-            oldPane = _getActivePane(),
+            oldPane = _getPane(FOCUSED_PANE),
             oldFile = oldPane.getCurrentlyViewedFile(),
             options = optionsIn || {};
             
@@ -1192,7 +1182,7 @@ define(function (require, exports, module) {
      */
     function closeList(paneId, fileList) {
         var closedList,
-            currentFile = _getActivePane().getCurrentlyViewedFile(),
+            currentFile = _getPane(FOCUSED_PANE).getCurrentlyViewedFile(),
             currentFileClosed = currentFile ? (fileList.indexOf(currentFile) !== -1) : false;
 
         if (paneId === ALL_PANES) {
@@ -1216,7 +1206,7 @@ define(function (require, exports, module) {
         }
         
         if (currentFileClosed) {
-            $(exports).triggerHandler("currentFileChanged", [_getActivePane().getCurrentlyViewedFile(), _activePaneId, currentFile, _activePaneId]);
+            $(exports).triggerHandler("currentFileChanged", [_getPane(FOCUSED_PANE).getCurrentlyViewedFile(), _activePaneId, currentFile, _activePaneId]);
         }
     }
     
@@ -1226,7 +1216,7 @@ define(function (require, exports, module) {
      */
     function closeAll(paneId, options) {
         var fileList,
-            currentFile = _getActivePane().getCurrentlyViewedFile();
+            currentFile = _getPane(FOCUSED_PANE).getCurrentlyViewedFile();
         
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
