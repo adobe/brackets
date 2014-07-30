@@ -187,7 +187,7 @@ define(function (require, exports, module) {
      * The global MRU list (for traversing)
      * @type {Array.<file:File, paneId:string>}
      */
-    var _fileList = [];
+    var _mruList = [];
     
     /**
      * Makes a _filelist Entry
@@ -601,9 +601,9 @@ define(function (require, exports, module) {
 
             // Add to or update the position in MRU
             if (pane.getCurrentlyViewedFile() === file) {
-                _fileList.unshift(entry);
+                _mruList.unshift(entry);
             } else {
-                _fileList.push(entry);
+                _mruList.push(entry);
             }
 
             $(exports).triggerHandler("paneViewListAdd", [file, index, pane.id]);
@@ -626,7 +626,7 @@ define(function (require, exports, module) {
         uniqueFileList = pane.addListToViewList(fileList);
         
         uniqueFileList.forEach(function (file) {
-            _fileList.push(makeFileListEntry(file, pane.id));
+            _mruList.push(makeFileListEntry(file, pane.id));
         });
         
         $(exports).triggerHandler("paneViewListAddList", [uniqueFileList, pane.id]);
@@ -656,9 +656,9 @@ define(function (require, exports, module) {
         
         // find and remove all instances
         do {
-            index = _.findIndex(_fileList, compare);
+            index = _.findIndex(_mruList, compare);
             if (index !== -1) {
-                _fileList.splice(index, 1);
+                _mruList.splice(index, 1);
             }
         } while (index !== -1);
     }
@@ -799,15 +799,15 @@ define(function (require, exports, module) {
         if (pane && !_traversingFileList) {
             pane.makeViewMostRecent(file);
         
-            index = _.findIndex(_fileList, function (record) {
+            index = _.findIndex(_mruList, function (record) {
                 return (record.file === file && record.paneId === paneId);
             });
 
             entry = makeFileListEntry(file, pane.id);
 
             if (index !== -1) {
-                _fileList.splice(index, 1);
-                _fileList.unshift(entry);
+                _mruList.splice(index, 1);
+                _mruList.unshift(entry);
             }
         }
     }
@@ -820,9 +820,9 @@ define(function (require, exports, module) {
         
         // find and remove all instances
         do {
-            index = _.findIndex(_fileList, compare);
+            index = _.findIndex(_mruList, compare);
             if (index !== -1) {
-                _fileList.splice(index, 1);
+                _mruList.splice(index, 1);
             }
         } while (index !== -1);
     }
@@ -876,24 +876,24 @@ define(function (require, exports, module) {
     function traverseViewsByMRU(direction) {
         var file = getCurrentlyViewedFile(),
             paneId = getActivePaneId(),
-            index = _.findIndex(_fileList, function (record) {
+            index = _.findIndex(_mruList, function (record) {
                 return (record.file === file && record.paneId === paneId);
             });
         
         if (index === -1) {
-            if (_fileList.length > 0) {
-                return _fileList[0];
+            if (_mruList.length > 0) {
+                return _mruList[0];
             }
-        } else if (_fileList.length > 1) {
+        } else if (_mruList.length > 1) {
             // If doc is in view list, return next/prev item with wrap-around
             index += direction;
-            if (index >= _fileList.length) {
+            if (index >= _mruList.length) {
                 index = 0;
             } else if (index < 0) {
-                index = _fileList.length - 1;
+                index = _mruList.length - 1;
             }
 
-            return _fileList[index];
+            return _mruList[index];
         }
         
         // MRU list empty, there is no "next" file
@@ -1008,7 +1008,7 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("paneViewListAddList", [fileList, firstPane.id]);
 
             fileList.forEach(function (file) {
-                _fileList.forEach(function (record) {
+                _mruList.forEach(function (record) {
                     if (record.file === file) {
                         record.paneId = firstPane.id;
                     }
@@ -1352,7 +1352,7 @@ define(function (require, exports, module) {
 
         // reset
         _doUnsplit();
-        _fileList = [];
+        _mruList = [];
         EditorManager._resetViewStates();
         
         if (state) {
@@ -1380,7 +1380,7 @@ define(function (require, exports, module) {
                     var fileList = pane.getViewList();
 
                     fileList.forEach(function (file) {
-                        _fileList.push(makeFileListEntry(file, pane.id));
+                        _mruList.push(makeFileListEntry(file, pane.id));
                     });
                     $(exports).triggerHandler("paneViewListAddList", [fileList, pane.id]);
                 });
