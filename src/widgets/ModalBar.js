@@ -98,9 +98,9 @@ define(function (require, exports, module) {
         
         // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
         // height of the modal bar so the code doesn't appear to shift if possible.
-        MainViewManager.cachePaneScrollState(MainViewManager.ALL_PANES);
+        MainViewManager.cacheScrollState(MainViewManager.ALL_PANES);
         WorkspaceManager.recomputeLayout();  // changes available ht for editor area
-        MainViewManager.restoreAndAdjustPaneScrollState(MainViewManager.ALL_PANES, this.height());
+        MainViewManager.restoreAdjustedScrollState(MainViewManager.ALL_PANES, this.height());
     }
     
     /**
@@ -158,12 +158,12 @@ define(function (require, exports, module) {
         //  adjusting for the height of the modal bar so the code doesn't appear to shift if possible.
         var barHeight = this.height();
         if (restoreScrollPos) {
-            MainViewManager.cachePaneScrollState(MainViewManager.ALL_PANES);
+            MainViewManager.cacheScrollState(MainViewManager.ALL_PANES);
         }
         WorkspaceManager.recomputeLayout();  // changes available ht for editor area
         // restore scroll position of all vies
         if (restoreScrollPos) {
-            MainViewManager.restoreAndAdjustPaneScrollState(MainViewManager.ALL_PANES, -barHeight);
+            MainViewManager.restoreAdjustedScrollState(MainViewManager.ALL_PANES, -barHeight);
         }
     };
     

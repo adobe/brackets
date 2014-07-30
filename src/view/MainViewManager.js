@@ -344,7 +344,7 @@ define(function (require, exports, module) {
      * If there was already cached state for the specified pane, it is discarded and overwritten
      * @param {!string} paneId - id of the pane in which to cache the scroll state, ALL_PANES or FOCUSED_PANE
      */
-    function cachePaneScrollState(paneId) {
+    function cacheScrollState(paneId) {
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
                 _paneScrollStates[pane.id] = pane.getScrollState();
@@ -358,7 +358,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Restores scroll state from the cache and applies it to the current pane's view after a call to cachePaneScrollState.
+     * Restores scroll state from the cache and applies it to the current pane's view after a call to cacheScrollState.
      * The view implementation is responsible for applying or ignoring the heightDelta.
      * This is used primarily when a modal bar opens to keep the  editor from scrolling the current page out
      * of view in order to maintain the appearance. 
@@ -367,7 +367,7 @@ define(function (require, exports, module) {
      * @param {!number} heightDelta - delta H to apply to the scroll state
      * @seeAlso
      */
-    function restoreAndAdjustPaneScrollState(paneId, heightDelta) {
+    function restoreAdjustedScrollState(paneId, heightDelta) {
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
                 if (_paneScrollStates.hasOwnProperty(pane.id)) {
@@ -474,7 +474,7 @@ define(function (require, exports, module) {
      * @todo
      * @private
      */
-    function _doFindViewInPane(paneId, fullPath, method) {
+    function _doFindView(paneId, fullPath, method) {
         var result = -1;
         if (paneId === ALL_PANES) {
             var index;
@@ -503,7 +503,7 @@ define(function (require, exports, module) {
      * @return {number} index, -1 if not found.
      */
     function findViewOf(paneId, fullPath) {
-        return _doFindViewInPane(paneId, fullPath, "findInViewList");
+        return _doFindView(paneId, fullPath, "findInViewList");
     }
     
     /**
@@ -513,7 +513,7 @@ define(function (require, exports, module) {
      * @return {number} index, -1 if not found.
      */
     function findViewOfAddedOrder(paneId, fullPath) {
-        return _doFindViewInPane(paneId, fullPath, "findInViewListAddedOrder");
+        return _doFindView(paneId, fullPath, "findInViewListAddedOrder");
     }
     
     /**
@@ -523,7 +523,7 @@ define(function (require, exports, module) {
      * @return {number} index, -1 if not found.
      */
     function findViewOfMRUOrder(paneId, fullPath) {
-        return _doFindViewInPane(paneId, fullPath, "findInViewListMRUOrder");
+        return _doFindView(paneId, fullPath, "findInViewListMRUOrder");
     }
 
     /**
@@ -1541,8 +1541,8 @@ define(function (require, exports, module) {
     exports.focusActivePane                  = focusActivePane;
     
     // Pane state
-    exports.cachePaneScrollState             = cachePaneScrollState;
-    exports.restoreAndAdjustPaneScrollState  = restoreAndAdjustPaneScrollState;
+    exports.cacheScrollState             = cacheScrollState;
+    exports.restoreAdjustedScrollState  = restoreAdjustedScrollState;
     
     // Traversal
     exports.beginTraversal                   = beginTraversal;
