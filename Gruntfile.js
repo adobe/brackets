@@ -93,7 +93,8 @@ module.exports = function (grunt) {
                             'thirdparty/CodeMirror2/mode/{,*/}*',
                             'thirdparty/CodeMirror2/theme/{,*/}*',
                             'thirdparty/i18n/*.js',
-                            'thirdparty/text/*.js'
+                            'thirdparty/text/*.js',
+                            'utils/Compatibility.js'
                         ]
                     },
                     /* styles, fonts and images */
