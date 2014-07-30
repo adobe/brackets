@@ -333,8 +333,8 @@ define(function (require, exports, module) {
             var $container = current.getContainer(),
                 newPaneId = _getPaneIdFromContainer($container);
 
-            // Ignore active editor changes for inline editors
             if (newPaneId) {
+                // Editor is a full editor
                 if (newPaneId !== _activePaneId) {
                     // we just need to set the active pane in this case
                     //  it will dispatch the currentFileChanged message as well
@@ -349,7 +349,7 @@ define(function (require, exports, module) {
                     }
                 }
             } else {
-                // try to find a parent of an inline-editor that is a pane
+                // Editor is an inline editor, find the owning pane
                 var parents = $container.parents(".view-pane");
                 if (parents.length === 1) {
                     $container = $(parents[0]);
@@ -502,7 +502,7 @@ define(function (require, exports, module) {
      * @todo
      * @private
      */
-    function _doFindInViewList(paneId, fullPath, method) {
+    function _doFindViewInPane(paneId, fullPath, method) {
         var result = -1;
         if (paneId === ALL_PANES) {
             var index;
@@ -531,7 +531,7 @@ define(function (require, exports, module) {
      * @return {number} index, -1 if not found.
      */
     function findViewOf(paneId, fullPath) {
-        return _doFindInViewList(paneId, fullPath, "findInViewList");
+        return _doFindViewInPane(paneId, fullPath, "findInViewList");
     }
     
     /**
@@ -541,7 +541,7 @@ define(function (require, exports, module) {
      * @return {number} index, -1 if not found.
      */
     function findViewOfAddedOrder(paneId, fullPath) {
-        return _doFindInViewList(paneId, fullPath, "findInViewListAddedOrder");
+        return _doFindViewInPane(paneId, fullPath, "findInViewListAddedOrder");
     }
     
     /**
@@ -551,7 +551,7 @@ define(function (require, exports, module) {
      * @return {number} index, -1 if not found.
      */
     function findViewOfMRUOrder(paneId, fullPath) {
-        return _doFindInViewList(paneId, fullPath, "findInViewListMRUOrder");
+        return _doFindViewInPane(paneId, fullPath, "findInViewListMRUOrder");
     }
 
     /**
@@ -588,7 +588,7 @@ define(function (require, exports, module) {
      * @param {boolean=} forceRedraw - If true, a pane view list change notification is always sent
      *    (useful if suppressRedraw was used with removeFromPaneViewList() earlier)
      */
-    function addToPaneViewList(paneId, file, index, force) {
+    function addView(paneId, file, index, force) {
         if (!file) {
             return;
         }
@@ -1112,7 +1112,7 @@ define(function (require, exports, module) {
         // If file is untitled or otherwise not within project tree, add it to
         // working set right now (don't wait for it to become dirty)
         if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
-            addToPaneViewList(paneId, doc.file);
+            addView(paneId, doc.file);
         }
         
         EditorManager.openDocument(doc, pane);
@@ -1553,7 +1553,7 @@ define(function (require, exports, module) {
     exports._getPaneFromPaneId              = _getPaneFromPaneId;
     
     // PaneView Management
-    exports.addToPaneViewList                = addToPaneViewList;
+    exports.addView                = addView;
     exports.addListToPaneViewList            = addListToPaneViewList;
     exports.findViewOf               = findViewOf;
     exports.findViewOfAddedOrder     = findViewOfAddedOrder;

@@ -445,11 +445,11 @@ define(function (require, exports, module) {
         return handleFileOpen(commandData).done(function (doc) {
             // TODO: This will not work for images since they do not
             //          have document objects... 
-            // addToPaneViewList is synchronous
+            // addView is synchronous
             // When opening a file with a custom viewer, we get a null doc.
             // So check it before we add it to the pane view list.
             var paneId = (commandData && commandData.paneId) || MainViewManager.FOCUSED_PANE;
-            MainViewManager.addToPaneViewList(paneId, doc.file, commandData.index, commandData.forceRedraw);
+            MainViewManager.addView(paneId, doc.file, commandData.index, commandData.forceRedraw);
         });
     }
 

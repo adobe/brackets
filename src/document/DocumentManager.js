@@ -198,15 +198,15 @@ define(function (require, exports, module) {
     
     /**
      * Adds the given file to the end of the working set list.
-     * @deprecated Use MainViewManager.addToPaneViewList() instead 
+     * @deprecated Use MainViewManager.addView() instead 
      * @param {!File} file
      * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
      * @param {boolean=} forceRedraw  If true, a working set change notification is always sent
      *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
      */
     function addToWorkingSet(file, index, forceRedraw) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.addToPaneViewList() instead of DocumentManager.addToWorkingSet()", true);
-        MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, file, index, forceRedraw);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.addView() instead of DocumentManager.addToWorkingSet()", true);
+        MainViewManager.addView(MainViewManager.FOCUSED_PANE, file, index, forceRedraw);
     }
     
     /**
@@ -594,7 +594,7 @@ define(function (require, exports, module) {
         .on("_dirtyFlagChange", function (event, doc) {
             $(exports).triggerHandler("dirtyFlagChange", doc);
             if (doc.isDirty) {
-                MainViewManager.addToPaneViewList(MainViewManager.FOCUSED_PANE, doc.file);
+                MainViewManager.addView(MainViewManager.FOCUSED_PANE, doc.file);
             }
         })
         .on("_documentSaved", function (event, doc) {
