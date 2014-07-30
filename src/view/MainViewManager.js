@@ -213,7 +213,7 @@ define(function (require, exports, module) {
      * @return {?Pane} the Pane object or null if a pane object doesn't exist for the pane
      * @private
      */
-    function _getPaneFromPaneId(paneId) {
+    function _getPane(paneId) {
         if (!paneId || paneId === FOCUSED_PANE) {
             paneId = getActivePaneId();
         }
@@ -231,7 +231,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _getActivePane() {
-        return _getPaneFromPaneId(_activePaneId);
+        return _getPane(_activePaneId);
     }
     
     
@@ -251,7 +251,7 @@ define(function (require, exports, module) {
         if (_paneViews.hasOwnProperty(newPaneId) && (newPaneId !== _activePaneId)) {
             var oldPaneId = _activePaneId,
                 oldPane = _getActivePane(),
-                newPane = _getPaneFromPaneId(newPaneId);
+                newPane = _getPane(newPaneId);
             
             _activePaneId = newPaneId;
             
@@ -289,7 +289,7 @@ define(function (require, exports, module) {
      * @return {?File} File object of the currently viewed file, null if there isn't one or undefined if there isn't a matching pane
      */
     function getCurrentlyViewedFile(paneId) {
-        var pane = _getPaneFromPaneId(paneId);
+        var pane = _getPane(paneId);
         if (pane) {
             return pane.getCurrentlyViewedFile();
         }
@@ -363,7 +363,7 @@ define(function (require, exports, module) {
                 _paneScrollStates[pane.id] = pane.getScrollState();
             });
         } else {
-            var pane = _getPaneFromPaneId(paneId);
+            var pane = _getPane(paneId);
             if (pane) {
                 _paneScrollStates[pane.id] = pane.getScrollState();
             }
@@ -389,7 +389,7 @@ define(function (require, exports, module) {
             });
             _paneScrollStates = {};
         } else {
-            var pane = _getPaneFromPaneId(paneId);
+            var pane = _getPane(paneId);
             if (pane && _paneScrollStates.hasOwnProperty(pane.id)) {
                 pane.restoreAndAdjustScrollState(_paneScrollStates[pane.id], heightDelta);
                 delete _paneScrollStates[pane.id];
@@ -414,7 +414,7 @@ define(function (require, exports, module) {
             
             return result;
         } else {
-            var pane = _getPaneFromPaneId(paneId);
+            var pane = _getPane(paneId);
             if (pane) {
                 return pane.getViewList();
             }
@@ -458,7 +458,7 @@ define(function (require, exports, module) {
                 result += pane.getViewListSize();
             });
         } else {
-            var pane = _getPaneFromPaneId(paneId);
+            var pane = _getPane(paneId);
             if (pane) {
                 result += pane.getViewListSize();
             }
@@ -501,7 +501,7 @@ define(function (require, exports, module) {
             });
             
         } else {
-            var pane = _getPaneFromPaneId(paneId);
+            var pane = _getPane(paneId);
             if (pane) {
                 return pane[method].call(pane, fullPath);
             }
@@ -579,7 +579,7 @@ define(function (require, exports, module) {
         }
         
         // look for the file to have already been added to another pane
-        var pane = _getPaneFromPaneId(paneId),
+        var pane = _getPane(paneId),
             existingPaneId = getPaneIdForPath(file.fullPath);
 
         if (!pane || !EditorManager.canOpenFile(file.fullPath) || (findViewOf(ALL_PANES, file.fullPath) !== -1)) {
@@ -588,7 +588,7 @@ define(function (require, exports, module) {
         
         // if it's already open in another pane, then just use that pane
         if (existingPaneId && existingPaneId !== pane.id) {
-            pane = _getPaneFromPaneId(existingPaneId);
+            pane = _getPane(existingPaneId);
         }
         
         var result = pane.reorderItem(file, index, force),
@@ -617,7 +617,7 @@ define(function (require, exports, module) {
      */
     function addViews(paneId, fileList) {
         var uniqueFileList,
-            pane = _getPaneFromPaneId(paneId);
+            pane = _getPane(paneId);
 
         if (!pane) {
             return;
@@ -668,7 +668,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _removeView(paneId, file, suppressRedraw) {
-        var pane = _getPaneFromPaneId(paneId);
+        var pane = _getPane(paneId);
 
         if (pane && pane.removeFromViewList(file)) {
             _removeFileFromMRU(pane.id, file);
@@ -702,7 +702,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _removeViews(paneId, list) {
-        var pane = _getPaneFromPaneId(paneId),
+        var pane = _getPane(paneId),
             fileList;
         
         if (!pane) {
@@ -746,7 +746,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _removeAllViews(paneId) {
-        var pane = _getPaneFromPaneId(paneId),
+        var pane = _getPane(paneId),
             fileList;
 
         if (!pane) {
@@ -794,7 +794,7 @@ define(function (require, exports, module) {
     function _makePaneViewMostRecent(paneId, file) {
         var index,
             entry,
-            pane = _getPaneFromPaneId(paneId);
+            pane = _getPane(paneId);
 
         if (pane && !_traversingFileList) {
             pane.makeViewMostRecent(file);
@@ -847,7 +847,7 @@ define(function (require, exports, module) {
                 doSort(pane);
             });
         } else {
-            doSort(_getPaneFromPaneId(paneId));
+            doSort(_getPane(paneId));
         }
     }
 
@@ -858,7 +858,7 @@ define(function (require, exports, module) {
      * @param {!number} index2 - the index on the rigth
      */
     function swapPaneViewListIndexes(paneId, index1, index2) {
-        var pane = _getPaneFromPaneId(paneId);
+        var pane = _getPane(paneId);
 
         if (pane) {
             pane.swapViewListIndexes(index1, index2);
@@ -908,7 +908,7 @@ define(function (require, exports, module) {
      * @return {?File} null if pane view list empty
      */
     function traversePaneViewListByMRU(paneId, direction) {
-        var pane = _getPaneFromPaneId(paneId);
+        var pane = _getPane(paneId);
 
         if (pane) {
             return pane.traverseViewListByMRU(direction);
@@ -1088,7 +1088,7 @@ define(function (require, exports, module) {
             }
         }
         
-        var pane = _getPaneFromPaneId(paneId);
+        var pane = _getPane(paneId);
         
         if (!pane) {
             return;
@@ -1119,7 +1119,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             options = optionsIn || {};
         
-        if (!file || !_getPaneFromPaneId(paneId)) {
+        if (!file || !_getPane(paneId)) {
             return result.reject("bad argument");
         }
 
@@ -1164,7 +1164,7 @@ define(function (require, exports, module) {
             paneId = getPaneIdForPath(file.fullPath);
         }
 
-        var pane = _getPaneFromPaneId(paneId),
+        var pane = _getPane(paneId),
             oldFile = pane.getCurrentlyViewedFile(),
             options = optionsIn || {};
 
@@ -1205,7 +1205,7 @@ define(function (require, exports, module) {
                 $(exports).triggerHandler("paneViewListRemoveList", [closedList, pane.id]);
             });
         } else {
-            var pane = _getPaneFromPaneId(paneId);
+            var pane = _getPane(paneId);
             closedList = pane.doRemoveViews(fileList);
             closedList.forEach(function (file) {
                 _removeFileFromMRU(pane.id, file);
@@ -1239,7 +1239,7 @@ define(function (require, exports, module) {
                 $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
             });
         } else {
-            var pane = _getPaneFromPaneId(paneId);
+            var pane = _getPane(paneId);
             fileList = pane.getViewList();
             fileList.forEach(function (file) {
                 _removeFileFromMRU(pane.id, file);
@@ -1535,7 +1535,7 @@ define(function (require, exports, module) {
     
     // Unit Test Helpers
     exports._initialize                     = _initialize;
-    exports._getPaneFromPaneId              = _getPaneFromPaneId;
+    exports._getPane              = _getPane;
     
     // PaneView Management
     exports.addView                = addView;

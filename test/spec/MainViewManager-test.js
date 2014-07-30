@@ -74,7 +74,7 @@ define(function (require, exports, module) {
         });
         
         afterEach(function () {
-            MainViewManager.closeAll();
+            MainViewManager.closeAll(MainViewManager.ALL_PANES);
             testWindow              = null;
             CommandManager          = null;
             Commands                = null;
@@ -941,7 +941,7 @@ define(function (require, exports, module) {
                                                                          getFileObject("test.css")]);
                     MainViewManager.removeViews(MainViewManager.ALL_PANES, [getFileObject("test.js"),
                                                                                             getFileObject("test.css")]);
-                    expect(Object.keys(MainViewManager._getPaneFromPaneId("first-pane")._views).length).toEqual(0);
+                    expect(Object.keys(MainViewManager._getPane("first-pane")._views).length).toEqual(0);
                 });
             });
             it("should remove files from the pane view list", function () {
