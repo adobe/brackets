@@ -841,7 +841,7 @@ define(function (require, exports, module) {
                     MainViewManager.addView("first-pane", getFileObject("test.js"));
                     MainViewManager.addView("second-pane", getFileObject("test.css"));
                     MainViewManager.setActivePaneId("second-pane");
-                    MainViewManager.removeAllFromPaneViewList(MainViewManager.FOCUSED_PANE);
+                    MainViewManager.removeAllViews(MainViewManager.FOCUSED_PANE);
                     expect(MainViewManager.getViewCount("second-pane")).toEqual(0);
                     expect(MainViewManager.getViewCount("first-pane")).toEqual(1);
                 });
@@ -850,7 +850,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addView("first-pane", getFileObject("test.js"));
                     MainViewManager.addView("second-pane", getFileObject("test.css"));
-                    MainViewManager.removeAllFromPaneViewList("first-pane");
+                    MainViewManager.removeAllViews("first-pane");
                     expect(MainViewManager.getViewCount("second-pane")).toEqual(1);
                     expect(MainViewManager.getViewCount("first-pane")).toEqual(0);
                 });
@@ -859,7 +859,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addView("first-pane", getFileObject("test.js"));
                     MainViewManager.addView("second-pane", getFileObject("test.css"));
-                    MainViewManager.removeAllFromPaneViewList(MainViewManager.ALL_PANES);
+                    MainViewManager.removeAllViews(MainViewManager.ALL_PANES);
                     expect(MainViewManager.getViewCount("second-pane")).toEqual(0);
                     expect(MainViewManager.getViewCount("first-pane")).toEqual(0);
                 });
@@ -873,7 +873,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     MainViewManager.addView("first-pane", getFileObject("test.js"));
-                    MainViewManager.removeAllFromPaneViewList(MainViewManager.ALL_PANES);
+                    MainViewManager.removeAllViews(MainViewManager.ALL_PANES);
                     expect(MainViewManager.getCurrentlyViewedPathForPane("first-pane")).toEqual(null);
                 });
             });
@@ -892,7 +892,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addViews("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
-                    MainViewManager.removeFromPaneViewList(MainViewManager.ALL_PANES, getFileObject("test.css"));
+                    MainViewManager.removeView(MainViewManager.ALL_PANES, getFileObject("test.css"));
                     expect(MainViewManager.getCurrentlyViewedPathForPane("first-pane")).toEqual(null);
                 });
             });
@@ -900,7 +900,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addViews("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
-                    MainViewManager.removeFromPaneViewList("first-pane", getFileObject("test.css"));
+                    MainViewManager.removeView("first-pane", getFileObject("test.css"));
                     expect(MainViewManager.findViewOf(MainViewManager.ALL_PANES, getFileObject("test.css").fullPath)).toEqual(-1);
                 });
             });
@@ -909,7 +909,7 @@ define(function (require, exports, module) {
                     MainViewManager.addViews("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
                     MainViewManager.setActivePaneId("first-pane");
-                    MainViewManager.removeFromPaneViewList(MainViewManager.FOCUSED_PANE, getFileObject("test.js"));
+                    MainViewManager.removeView(MainViewManager.FOCUSED_PANE, getFileObject("test.js"));
                     expect(MainViewManager.findViewOf(MainViewManager.ALL_PANES, getFileObject("test.js").fullPath)).toEqual(-1);
                 });
             });
@@ -918,7 +918,7 @@ define(function (require, exports, module) {
                     MainViewManager.addViews("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
                     MainViewManager.setActivePaneId("first-pane");
-                    MainViewManager.removeFromPaneViewList(MainViewManager.ALL_PANES, getFileObject("test.js"));
+                    MainViewManager.removeView(MainViewManager.ALL_PANES, getFileObject("test.js"));
                     expect(MainViewManager.findViewOf(MainViewManager.ALL_PANES, getFileObject("test.js").fullPath)).toEqual(-1);
                 });
             });
@@ -939,7 +939,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addViews("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
-                    MainViewManager.removeListFromPaneViewList(MainViewManager.ALL_PANES, [getFileObject("test.js"),
+                    MainViewManager.removeViews(MainViewManager.ALL_PANES, [getFileObject("test.js"),
                                                                                             getFileObject("test.css")]);
                     expect(Object.keys(MainViewManager._getPaneFromPaneId("first-pane")._views).length).toEqual(0);
                 });
@@ -948,7 +948,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addViews("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
-                    MainViewManager.removeListFromPaneViewList(MainViewManager.ALL_PANES, [getFileObject("test.js"),
+                    MainViewManager.removeViews(MainViewManager.ALL_PANES, [getFileObject("test.js"),
                                                                                            getFileObject("test.css")]);
                     expect(MainViewManager.getViewCount("first-pane")).toEqual(0);
                 });
@@ -957,7 +957,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addViews("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
-                    MainViewManager.removeListFromPaneViewList(MainViewManager.ALL_PANES, [getFileObject("test.js"),
+                    MainViewManager.removeViews(MainViewManager.ALL_PANES, [getFileObject("test.js"),
                                                                                            getFileObject("test.css")]);
                     expect(MainViewManager.getViewCount("first-pane")).toEqual(0);
                 });
@@ -966,7 +966,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addViews("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
-                    MainViewManager.removeListFromPaneViewList("first-pane", [getFileObject("test.js"),
+                    MainViewManager.removeViews("first-pane", [getFileObject("test.js"),
                                                                               getFileObject("test.css")]);
                     expect(MainViewManager.getViewCount("first-pane")).toEqual(0);
                 });
@@ -976,7 +976,7 @@ define(function (require, exports, module) {
                     MainViewManager.addViews("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
                     MainViewManager.setActivePaneId("first-pane");
-                    MainViewManager.removeListFromPaneViewList(MainViewManager.FOCUSED_PANE, [getFileObject("test.js"),
+                    MainViewManager.removeViews(MainViewManager.FOCUSED_PANE, [getFileObject("test.js"),
                                                                                               getFileObject("test.css")]);
                     expect(MainViewManager.getViewCount("first-pane")).toEqual(0);
                 });
@@ -985,7 +985,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addView("first-pane", getFileObject("test.js"));
                     MainViewManager.addView("second-pane", getFileObject("test.css"));
-                    MainViewManager.removeListFromPaneViewList(MainViewManager.ALL_PANES, [getFileObject("test.js"),
+                    MainViewManager.removeViews(MainViewManager.ALL_PANES, [getFileObject("test.js"),
                                                                                            getFileObject("test.css")]);
                     expect(MainViewManager.getViewCount("first-pane")).toEqual(0);
                     expect(MainViewManager.getViewCount("second-pane")).toEqual(0);

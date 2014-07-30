@@ -226,25 +226,25 @@ define(function (require, exports, module) {
     
     /**
      * Removes the given file from the working set list, if it was in the list. 
-     * @deprecated Use MainViewManager.removeFromPaneViewList() instead 
+     * @deprecated Use MainViewManager.removeView() instead 
      * @param {!File} file
      * @param {boolean=} true to suppress redraw after removal
      */
     function removeFromWorkingSet(file, suppressRedraw) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.removeFromPaneViewList() instead of DocumentManager.removeFromWorkingSet()", true);
-        MainViewManager.removeFromPaneViewList(MainViewManager.ALL_PANES, file, suppressRedraw);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.removeView() instead of DocumentManager.removeFromWorkingSet()", true);
+        MainViewManager.removeView(MainViewManager.ALL_PANES, file, suppressRedraw);
     }
 
     
     /**
      * Removes a list of files from the working set and closes their respective editors
-     * @deprecated Use MainViewManager.removeListFromPaneViewList() instead
+     * @deprecated Use MainViewManager.removeViews() instead
      * @param {Array.<File>=} list of files to close and remove from the working set
      
      */
     function removeListFromWorkingSet(list) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.removeListFromPaneViewList() instead of DocumentManager.removeListFromWorkingSet()", true);
-        MainViewManager.removeListFromPaneViewList(MainViewManager.ALL_PANES, list);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.removeViews() instead of DocumentManager.removeListFromWorkingSet()", true);
+        MainViewManager.removeViews(MainViewManager.ALL_PANES, list);
     }
         
     /**

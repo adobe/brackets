@@ -586,7 +586,7 @@ define(function (require, exports, module) {
      * @param {!File} file - The File object to add
      * @param {number=} index - Position to add to list (defaults to last); -1 is ignored
      * @param {boolean=} forceRedraw - If true, a pane view list change notification is always sent
-     *    (useful if suppressRedraw was used with removeFromPaneViewList() earlier)
+     *    (useful if suppressRedraw was used with removeView() earlier)
      */
     function addView(paneId, file, index, force) {
         if (!file) {
@@ -682,7 +682,7 @@ define(function (require, exports, module) {
      * @todo
      * @private
      */
-    function _removeFromPaneViewList(paneId, file, suppressRedraw) {
+    function _removeView(paneId, file, suppressRedraw) {
         var pane = _getPaneFromPaneId(paneId);
 
         if (pane && pane.removeFromViewList(file)) {
@@ -700,13 +700,13 @@ define(function (require, exports, module) {
      * @param {!string} paneId - the  Pane with which the caller wants to remove, ALL_PANES or FOCUSED_PANE
      * @param {File} file - file to close 
      */
-    function removeFromPaneViewList(paneId, file, suppressRedraw) {
+    function removeView(paneId, file, suppressRedraw) {
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
-                _removeFromPaneViewList(pane.id, file, suppressRedraw);
+                _removeView(pane.id, file, suppressRedraw);
             });
         } else {
-            _removeFromPaneViewList(paneId, file, suppressRedraw);
+            _removeView(paneId, file, suppressRedraw);
         }
     }
     
@@ -716,7 +716,7 @@ define(function (require, exports, module) {
      * @param {Array.<File>} file list
      * @private
      */
-    function _removeListFromPaneViewList(paneId, list) {
+    function _removeViews(paneId, list) {
         var pane = _getPaneFromPaneId(paneId),
             fileList;
         
@@ -744,13 +744,13 @@ define(function (require, exports, module) {
      * @param {!string} paneId - the  Pane with which the caller wants to remove, ALL_PANES or FOCUSED_PANE
      * @param {Array.<File>} file list
      */
-    function removeListFromPaneViewList(paneId, list) {
+    function removeViews(paneId, list) {
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
-                _removeListFromPaneViewList(pane.id, list);
+                _removeViews(pane.id, list);
             });
         } else {
-            _removeListFromPaneViewList(paneId, list);
+            _removeViews(paneId, list);
         }
     }
         
@@ -760,7 +760,7 @@ define(function (require, exports, module) {
      * @param {!string} paneId - the id of the pane with which to remove all from
      * @private
      */
-    function _removeAllFromPaneViewList(paneId) {
+    function _removeAllViews(paneId) {
         var pane = _getPaneFromPaneId(paneId),
             fileList;
 
@@ -791,13 +791,13 @@ define(function (require, exports, module) {
      *   Does not prompt for unsaved changes
      * @param {!string} paneId - id of the pane to remove all, ALL_PANES or FOCUSED_PANE
      */
-    function removeAllFromPaneViewList(paneId) {
+    function removeAllViews(paneId) {
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
-                _removeAllFromPaneViewList(pane.id);
+                _removeAllViews(pane.id);
             });
         } else {
-            _removeAllFromPaneViewList(paneId);
+            _removeAllViews(paneId);
         }
     }
     
@@ -849,7 +849,7 @@ define(function (require, exports, module) {
      * @see {@link Pane.sortViewList()} for more information
      * @see {@link https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort|Sort Array - MDN}
      */
-    function sortPaneViewList(paneId, compareFn) {
+    function sortViews(paneId, compareFn) {
         var doSort = function (pane) {
             if (pane) {
                 pane.sortViewList(compareFn);
@@ -1561,10 +1561,10 @@ define(function (require, exports, module) {
     exports.getViewCount              = getViewCount;
     exports.getViews                  = getViews;
     exports.getAllOpenFiles                  = getAllOpenFiles;
-    exports.removeAllFromPaneViewList        = removeAllFromPaneViewList;
-    exports.removeFromPaneViewList           = removeFromPaneViewList;
-    exports.removeListFromPaneViewList       = removeListFromPaneViewList;
-    exports.sortPaneViewList                 = sortPaneViewList;
+    exports.removeAllViews        = removeAllViews;
+    exports.removeView           = removeView;
+    exports.removeViews       = removeViews;
+    exports.sortViews                 = sortViews;
     exports.swapPaneViewListIndexes          = swapPaneViewListIndexes;
     exports.focusActivePane                  = focusActivePane;
     
