@@ -46,6 +46,7 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     var DocumentManager     = require("document/DocumentManager"),
         DOMAgent            = require("LiveDevelopment/Agents/DOMAgent"),
+        EditorManager       = require("editor/EditorManager"),
         HighlightAgent      = require("LiveDevelopment/Agents/HighlightAgent"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
@@ -64,28 +65,18 @@ define(function HTMLDocumentModule(require, exports, module) {
         var self = this;
 
         this.doc = doc;
-        if (!editor) {
-            return;
+        if (this.doc) {
+            this.doc.addRef();
         }
+
         this.editor = editor;
         this._instrumentationEnabled = false;
         
-        // Performance optimization to use closures instead of Function.bind()
-        // to improve responsiveness during cursor movement and keyboard events
-        $(this.editor).on("cursorActivity.HTMLDocument", function (event, editor) {
-            self._onCursorActivity(event, editor);
-        });
-
-        $(this.editor).on("change.HTMLDocument", function (event, editor, change) {
-            self._onChange(event, editor, change);
-        });
+        this.onActiveEditorChange = this.onActiveEditorChange.bind(this);
+        $(EditorManager).on("activeEditorChange", this.onActiveEditorChange);
         
-        // Experimental code
-        if (LiveDevelopment.config.experimental) {
-            $(HighlightAgent).on("highlight.HTMLDocument", function (event, node) {
-                self._onHighlight(event, node);
-            });
-        }
+        // Attach now
+        this.attachToEditor(editor);
     };
     
     /**
@@ -93,7 +84,7 @@ define(function HTMLDocumentModule(require, exports, module) {
      * @param enabled {boolean} 
      */
     HTMLDocument.prototype.setInstrumentationEnabled = function setInstrumentationEnabled(enabled) {
-        if (enabled && !this._instrumentationEnabled) {
+        if (enabled && !this._instrumentationEnabled && this.editor) {
             HTMLInstrumentation.scanDocument(this.doc);
             HTMLInstrumentation._markText(this.editor);
         }
@@ -115,7 +106,7 @@ define(function HTMLDocumentModule(require, exports, module) {
      */
     HTMLDocument.prototype.getResponseData = function getResponseData(enabled) {
         var body;
-        if (this._instrumentationEnabled) {
+        if (this._instrumentationEnabled && this.editor) {
             body = HTMLInstrumentation.generateInstrumentedHTML(this.editor);
         }
         
@@ -126,11 +117,15 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Close the document */
     HTMLDocument.prototype.close = function close() {
-        if (!this.editor) {
-            return;
+        if (this.editor) {
+            $(this.editor).off(".HTMLDocument");
         }
 
-        $(this.editor).off(".HTMLDocument");
+        if (this.doc) {
+            this.doc.releaseRef();
+        }
+
+        $(EditorManager).off("activeEditorChange", this.onActiveEditorChange);
 
         // Experimental code
         if (LiveDevelopment.config.experimental) {
@@ -139,8 +134,53 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
     };
     
+    /** Attach new editor */
+    HTMLDocument.prototype.attachToEditor = function (editor) {
+        var self = this;
+        this.editor = editor;
+        
+        if (this.editor) {
+            // Performance optimization to use closures instead of Function.bind()
+            // to improve responsiveness during cursor movement and keyboard events
+            $(this.editor).on("cursorActivity.HTMLDocument", function (event, editor) {
+                self._onCursorActivity(event, editor);
+            });
+
+            $(this.editor).on("change.HTMLDocument", function (event, editor, change) {
+                self._onChange(event, editor, change);
+            });
+
+            // Experimental code
+            if (LiveDevelopment.config.experimental) {
+                $(HighlightAgent).on("highlight.HTMLDocument", function (event, node) {
+                    self._onHighlight(event, node);
+                });
+            }
+
+            if (this._instrumentationEnabled) {
+                // Update instrumentation for new editor
+                HTMLInstrumentation.scanDocument(this.doc);
+                HTMLInstrumentation._markText(this.editor);
+            }
+        }
+    };
+    
+    /** Detach current editor */
+    HTMLDocument.prototype.detachFromEditor = function () {
+        if (this.editor) {
+            HighlightAgent.hide();
+            $(this.editor).off(".HTMLDocument");
+            this._onHighlight();
+            this.editor = null;
+        }
+    };
+
     /** Update the highlight */
     HTMLDocument.prototype.updateHighlight = function () {
+        if (!this.editor) {
+            return;
+        }
+        
         var editor = this.editor,
             codeMirror = editor._codeMirror,
             ids = [];
@@ -292,6 +332,15 @@ define(function HTMLDocumentModule(require, exports, module) {
         //     DOMAgent.applyChange(from, to, text);
         //     change = change.next;
         // }
+    };
+
+    /** Triggered when the active editor changes */
+    HTMLDocument.prototype.onActiveEditorChange = function (event, newActive, oldActive) {
+        this.detachFromEditor();
+        
+        if (newActive && newActive.document === this.doc) {
+            this.attachToEditor(newActive);
+        }
     };
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */
