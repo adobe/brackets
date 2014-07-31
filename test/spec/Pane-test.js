@@ -112,21 +112,21 @@ define(function (require, exports, module) {
         });
         describe("View management", function () {
             beforeEach(function () {
-                myPane.addView(myView.getFullPath(), myView);
+                myPane.addView(myView);
             });
             it("should be added to pane's view map", function () {
                 expect(myPane._views[myView.getFullPath()]).toEqual(myView);
             });
             it("should show a view", function () {
                 spyOn(myView, "setVisible").andCallThrough();
-                spyOn(myView, "getFullPath").andCallThrough();
+                spyOn(myView, "getFile").andCallThrough();
                 spyOn(myView, "resizeToFit");
                 
                 myPane.showView(myView);
                 
                 expect(myView.setVisible).toHaveBeenCalled();
                 expect(myView.resizeToFit).toHaveBeenCalled();
-                expect(myView.getFullPath).toHaveBeenCalled();
+                expect(myView.getFile).toHaveBeenCalled();
                 expect(myView._visible).toBeTruthy();
             });
             it("should give focus to view", function () {
@@ -183,7 +183,7 @@ define(function (require, exports, module) {
                 var secondView = createMockView("second-view");
                 spyOn(myView, "destroy");
                 
-                myPane.addView(secondView.getFullPath(), secondView);
+                myPane.addView(secondView);
                 myPane.showView(myView);
                 myPane.showView(secondView);
                 
@@ -211,7 +211,7 @@ define(function (require, exports, module) {
                 myPane.addToViewList(myView.getFile());
                 
                 secondPane.addToViewList(secondView.getFile());
-                secondPane.addView(secondView.getFullPath(), secondView);
+                secondPane.addView(secondView);
                 
                 myPane.showView(myView);
                 secondPane.showView(secondView);
@@ -230,7 +230,7 @@ define(function (require, exports, module) {
                 
                 myPane.addToViewList(myView.getFile());
                 
-                secondPane.addView(secondView.getFullPath(), secondView);
+                secondPane.addView(secondView);
                 
                 myPane.showView(myView);
                 secondPane.showView(secondView);
@@ -246,7 +246,7 @@ define(function (require, exports, module) {
                 
                 myPane.addToViewList(myView.getFile());
                 
-                secondPane.addView(secondView.getFullPath(), secondView);
+                secondPane.addView(secondView);
                 
                 myPane.showView(myView);
                 secondPane.showView(secondView);
@@ -260,7 +260,7 @@ define(function (require, exports, module) {
                 var secondView = createMockView("second-view");
 
                 myPane.showView(myView);
-                myPane.addView(secondView.getFullPath(), secondView);
+                myPane.addView(secondView);
                 expect(myPane._currentView).toEqual(myView);
             });
             it("should switch views when removing view", function () {
@@ -272,7 +272,7 @@ define(function (require, exports, module) {
 
                 myPane.addToViewList(myView.getFile());
                 myPane.addToViewList(secondView.getFile());
-                myPane.addView(secondView.getFullPath(), secondView);
+                myPane.addView(secondView);
                 
                 myPane.showView(myView);
                 myPane.showView(secondView);
@@ -287,7 +287,7 @@ define(function (require, exports, module) {
 
                 myPane.addToViewList(myView.getFile());
                 myPane.addToViewList(secondView.getFile());
-                myPane.addView(secondView.getFullPath(), secondView);
+                myPane.addView(secondView);
                 
                 myPane.showView(myView);
                 myPane.showView(secondView);
@@ -301,7 +301,7 @@ define(function (require, exports, module) {
 
                 myPane.addToViewList(myView.getFile());
                 myPane.addToViewList(secondView.getFile());
-                myPane.addView(secondView.getFullPath(), secondView);
+                myPane.addView(secondView);
                 
                 myPane.showView(myView);
                 myPane.showView(secondView);
@@ -319,7 +319,7 @@ define(function (require, exports, module) {
             });
             it("should get removed from all lists", function () {
                 myPane.addToViewList(myView.getFile());
-                myPane.addView(myView.getFullPath(), myView);
+                myPane.addView(myView);
                 myPane.showView(myView);
                 myPane.removeFromViewList(myView.getFile());
 
@@ -428,7 +428,7 @@ define(function (require, exports, module) {
         });
         describe("Dispatch events", function () {
             beforeEach(function () {
-                myPane.addView(myView.getFullPath(), myView);
+                myPane.addView(myView);
             });
             it("should dispatch events when a file is removed", function () {
                 var gotEvent = false;

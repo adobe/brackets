@@ -903,14 +903,6 @@ define(function (require, exports, module) {
     };
 
    /**
-    * Gets the full path of the file being edited
-    */
-    Editor.prototype.getFullPath = function () {
-        return this.document.file.fullPath;
-    };
-    
-    
-   /**
     * Gets the file associated with this editor
     */
     Editor.prototype.getFile = function () {

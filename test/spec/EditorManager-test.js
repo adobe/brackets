@@ -79,7 +79,7 @@ define(function (require, exports, module) {
                 EditorManager.openDocument(testDoc, pane);
                 expect(pane.showView).toHaveBeenCalled();
                 expect(pane.addView).toHaveBeenCalled();
-                expect(pane.addView.calls[0].args[1]).toEqual(editor);
+                expect(pane.addView.calls[0].args[0]).toEqual(editor);
             });
             it("should remember a file's view state", function () {
                 EditorManager._addViewStates({ a: "1234" });

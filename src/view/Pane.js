@@ -40,95 +40,105 @@ define(function (require, exports, module) {
         paneTemplate        = require("text!htmlContent/pane.html");
     
     /**
-     * Called to get the full path of the view
-     * @callback getFullPathCallBack
-     * @return {!string} fullPath of the view
+     * Pane objects host views of files, editors, etc... 
+     * 
+     * To get a custom view, there are two components:
+     * 
+     *  1) A view provider (which will be implemented later
+     *  2) A view object
+     *
+     * View objects can be added to a pane and do not have to exist in the Pane object's view list.  
+     * These are "temporary views".  These views do not show up in the PaneViewList and, as such, 
+     * are not serialized with the Pane state and reconstituted when the pane is serialized from disk.
+     *
+     * These views are added by calling Pane.showView() and passing it the view object. The view 
+     * will be destroyed when the next view is shown, the pane is mereged with another pane or the "Close All"
+     * command is exectuted on the Pane.
+     *
+     * Pane Object Events:
+     * viewListChanged - triggered whenever there is a change the the pane's view state
+     *
+     * View Intereface:
+     *
+     * {
+     *      getFile: function () @return {!File} File object that belongs to the view (may return null)
+     *      setVisible: function(visible:boolean) - shows ore hides the view 
+     *      resizeToFit: function(forceRefresh:boolean) - tells the view to resize its content 
+     *      destroy: function() - called when the view is no longer needed. 
+     *      hasFocus:  function() - called to determine if the view has focus.  
+     *      childHasFocus: function() - called to determine if a child component of the view has focus.  
+     *      focus: function() - called to tell the view to take focus
+     *      getScrollPos: function() - called to get the current view scroll state. @return {Object=}
+     *      adjustScrollPos: function(state:Object=, heightDelta:number) - called to restore the scroll state and adjust the height by heightDelta
+     *      switchContainers: function($newContainer:jQuery} - called to reparent the view to a new container
+     *      getContainer: function() - called to get the current container @return {!jQuery} - the view's parent container
+     * }
+     *  
+     * getFile()
+     *
+     *  Called throughout the life of a View when the current file is queried by the system.  Can be NULL
+     *
+     * setVisible()
+     *
+     *  Called when the view is shown or hidden.  When temporary views are hidden their destroy() method is called.
+     *
+     * resizeToFit(forceRefresh:boolean)
+     *  
+     *  Called to notify the view that it should be resized to fit its parent container.  This may be called several times
+     *  or only once.  Views can ignore the forceRefresh flag. It is used for editor views to force a relayout of the editor 
+     *  which probably isn't necessary for most views.  Views should implement their html to be dynamic and not rely on this
+     *  function to be called whenever possible.
+     *
+     * hasFocus()
+     *
+     *  Called throughout the life of the View to determine if the view has focus.
+     *
+     * childHasFocus()
+     *
+     *  Called throughout the life of the View to determine if a child compontent of the view has focus.  If the view has no child
+     *  component then the view should just return false when this function is called.
+     *
+     * focus()
+     *
+     *  Called to tell the View to take focus.
+     * 
+     * getScrollPos()
+     * adjustScrollPos()
+     * 
+     *  The system at various times may want to save and restore the view's scroll position.  The data returned by getScrollPos() is 
+     *  specific to your view.  It will only be saved and passed back to adjustScrollPos() when the system wants the view to restore
+     *  its scroll position.
+     *
+     *  When Modal Bars are invoked, the system calls getScrollPos() so that the current scroll psotion of all visible Views can be cahced. 
+     *  Later, the cached scroll position data is passed to adjustScrollPos() along with a height delta.  The height delta is used to 
+     *  scroll the view so that it doesn't appear to have "jumped" when invoking a modal bar. 
+     *
+     *  Height delta will be a positivewhen the Modal Bar is being shown and negative number when the Modal Bar is being hidden.  
+     *  
+     * switchContainers($newContainer)
+     * 
+     *  called when a Pane is being merged with another Pane.  
+     * 
+     *      `view.$el.detach().appendTo($newContainer);`
+     *  
+     *
+     * getContainer()
+     *
+     *  Called to determine which Pane a View belongs to by MainViewManager.
+     *
+     *
      */
     
     /**
-     * Called to get the File object of the view
-     * @callback getFileCallBack
-     * @return {!File} File object that belongs to the view
+     * @typedef {getFile:function(), setVisible:function(visible:boolean), resizeToFit:function(forceRefresh:boolean), destroy:function(), hasFocus:function(), childHasFocus:function(), focus:function(), getScrollPos:function(),  adjustScrollPos:function(state:Object=, heightDelta:number), switchContainers: function($newContainer:jQuery}, getContainer: function()} View 
      */
-    
-    /**
-     * Called to change the show or hide the view
-     * @callback setVisibleCallBack
-     * @param {!boolean} true to show the view, false to hide it
-     */
-    
-    /**
-     * Called to let the view know that it needs to be resized and redrawn
-     * @callback resizeToFitCallBack
-     * @param {Object=} hint - hint data on how to redraw the view (can be null)
-     */
-
-    /**
-     * Called to destroy the view object so that it can remove its DOM node from the pane
-     * @callback destroyCallBack
-     */
-    
-    /**
-     * Called to determine if the view or child of the view has focus
-     * @callback hasFocusCallBack
-     * @return {!boolean} true if has focus, false otherwise
-     */
-    
-    /**
-     * Called to inform the view to give focus to its DOM element
-     * @callback focusCallBack
-     */
-    
-    /**
-     * Called to get the view's scroll state so that it can be cached and restored later
-     * view providers can return any data necessary to restore the scroll position from the cached data
-     * @callback getScrollPosCallback
-     * @return {*}
-     */
-
-    /**
-     * Called to restore the scrollPane state and adjust it with a given height delta
-     * @callback adjustScrollPosCallBack
-     * @param {*} scrollPos - the data cached when getScrollPos was called
-     * @param {!number} heightDelta - the height to add to the scroll pos data
-     */
-    
-    /**
-     * Called when a view is moved from one pane to another 
-     * @callback switchContainersCallBack
-     * @param {jQuery} $container - the new container for the view to move its DOM element in to
-     */
-    
-    /**
-     * Called to get the owning container of a view
-     * @callback getContainerCallBack
-     * @return {jQuery} the container for the view
-     */
-    
-    /**
-     * View interface
-     * @typedef {Object} View
-     * @property {getFullPathCallBack} getFullPath 
-     * @property {getFileCallBack} getFile 
-     * @property {setVisibleCallBack} setVisible 
-     * @property {resizeToFitCallBack} resizeToFit 
-     * @property {destroyCallBack} destroy 
-     * @property {hasFocusCallBack} hasFocus 
-     * @property {hasFocusCallBack} childHasFocus 
-     * @property {focusCallBack} focus 
-     * @property {getScrollPosCallback} getScrollPos 
-     * @property {adjustScrollPosCallBack} adjustScrollPos 
-     * @property {switchContainersCallBack} switchContainers 
-     * @property {getContainerCallBack} getContainer
-     */
-    
     
     /*
      * Pane Objects are constructed by the MainViewManager object when a Pane view is needed
      * @see {@link MainViewManager} for more information
      *
      * @constructor
-     * @param {!string} id - The id to use to identify this pane
+     * @param {@return {} id - The id to use to identify this pane
      * @param {!JQuery} $container - The parent $container to place the pane view
      */
     function Pane(id, $container) {
@@ -167,7 +177,7 @@ define(function (require, exports, module) {
     /**
      * id of the pane
      * @readonly
-     * @type {!string}
+     * @type {@return {}
      */
     Pane.prototype.id = null;
     
@@ -201,8 +211,8 @@ define(function (require, exports, module) {
    /**
      * Creates a pane event namespaced to this pane
      * @private
-     * @param {!string} name - the name of the event to namespace (pass an empty string to generate just the namespace key to pass to jQuery to turn off all events handled by this pane)
-     * @return {!string} an event namespaced to this pane
+     * @param {@return {} name - the name of the event to namespace (pass an empty string to generate just the namespace key to pass to jQuery to turn off all events handled by this pane)
+     * @return {string} an event namespaced to this pane
      */
     Pane.prototype._makeEventName = function (name) {
         return name + ".pane" + this.paneId;
@@ -226,10 +236,13 @@ define(function (require, exports, module) {
 
         // Copy the views
         _.forEach(other._views, function (view) {
-            if (other.findInViewList(view.getFullPath()) !== -1) {
-                // tell the view about their new home
+            
+            var file = view.getFile(),
+                fullPath = file && file.fullPath;
+            if (fullPath && other.findInViewList(fullPath) !== -1) {
+                // switch the container to this Pane
                 view.switchContainers(self.$el);
-                self._views[view.getFile().fullPath] = view;
+                self._views[fullPath] = view;
             } else {
                 // We don't copy temporary views so destroy them
                 viewsToDestroy.push(view);
@@ -280,7 +293,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the index of the item in the view file list 
-     * @param {!string} fullPath the full path of the item to look for 
+     * @param {@return {} fullPath the full path of the item to look for 
      * @returns {number} index of the item or -1 if not found
      */
     Pane.prototype.findInViewList = function (fullPath) {
@@ -291,7 +304,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the order in which the item was added
-     * @param {!string} fullPath the full path of the item to look for 
+     * @param {@return {} fullPath the full path of the item to look for 
      * @returns {number} order of the item or -1 if not found
      */
     Pane.prototype.findInViewListAddedOrder = function (fullPath) {
@@ -302,7 +315,7 @@ define(function (require, exports, module) {
     
    /**
      * Returns the order in which the item was last used
-     * @param {!string} fullPath the full path of the item to look for 
+     * @param {@return {} fullPath the full path of the item to look for 
      * @returns {number} order of the item or -1 if not found. 
      *      0 indicates most recently used, followed by 1 and so on...
      */
@@ -341,7 +354,7 @@ define(function (require, exports, module) {
      * @param {File} file - the file object of the item to reorder
      * @param {number=} index - the new position of the item
      * @param {boolean=} force - true to force the item into that position, false otherwise.  (Requires an index be requested)
-     * @return {!number} this function returns one of the following manifest constants:  
+     * @return {number} this function returns one of the following manifest constants:  
      *            ITEM_NOT_FOUND        : The request file object was not found   
      *            ITEM_FOUND_NO_SORT    : The request file object was found but it was already at the requested index   
      *            ITEM_FOUND_NEEDS_SORT : The request file object was found and moved to a new index and the list should be resorted   
@@ -447,7 +460,7 @@ define(function (require, exports, module) {
      *  and shows the interstitial page if the current view is destroyed
      * @private
      * @param {!File} file - file to remove
-     * @return {!boolean} true if removed, false if the file was not found either in a list or view
+     * @return {boolean} true if removed, false if the file was not found either in a list or view
      */
     Pane.prototype._removeFromViewList = function (file) {
         
@@ -480,7 +493,7 @@ define(function (require, exports, module) {
      * Removes the specifed file from all internal lists, destroys the view of the file (if there is one)
      *  and shows the interstitial page if the current view is destroyed
      * @param {!File} file
-     * @return {!boolean} true if removed, false if the file was not found either in a list or view
+     * @return {boolean} true if removed, false if the file was not found either in a list or view
      */
     Pane.prototype.removeFromViewList = function (file) {
         return this._removeFromViewList(file);
@@ -539,10 +552,10 @@ define(function (require, exports, module) {
     
     /**
      * @callback sortFunctionCallback
-     * @param {!string} the id of the pane object
+     * @param {@return {} the id of the pane object
      * @param {!File} The first item to compare
      * @param {!File} the second item to compare
-     * @return {!number} 0 if the two params are equal, -1 if the first is to come before the seond and 1 if the second comes before the first
+     * @return {number} 0 if the two params are equal, -1 if the first is to come before the seond and 1 if the second comes before the first
      */
     
     /**
@@ -557,7 +570,7 @@ define(function (require, exports, module) {
      * Swaps two items in the file view list (used while dragging items in the working set view)
      * @param {number} index1 - the index of the first item to swap
      * @param {number} index2 - the index of the second item to swap
-     * @return {!boolean} true 
+     * @return {boolean}} true 
      */
     Pane.prototype.swapViewListIndexes = function (index1, index2) {
         if (this._isViewListIndexInRange(index1) && this._isViewListIndexInRange(index2)) {
@@ -571,7 +584,7 @@ define(function (require, exports, module) {
     
     /**
      * Traverses the list and returns the File object of the next item in the MRU order
-     * @param {!number} direction - Must be 1 or -1 to traverse forward or backward
+     * @param {@return {}} direction - Must be 1 or -1 to traverse forward or backward
      * @param {string=} current - the fullPath of the item where traversal is to start. 
      *                              If this paramater is ommitted then the path of the current view is used.
      *                              If the current view is a temporary view then the first item in the MRU list is returned
@@ -584,10 +597,11 @@ define(function (require, exports, module) {
         }
 
         if (!current && this._currentView) {
-            current = this._currentView.getFullPath();
+            var file = this._currentView.getFile();
+            current = file && file.fullPath;
         }
         
-        var index = this.findInViewListMRUOrder(current);
+        var index = current ? this.findInViewListMRUOrder(current) : -1;
         if (index === -1) {
             // If doc not in view list, return most recent view list item
             if (this._viewListMRUOrder.length > 0) {
@@ -613,8 +627,8 @@ define(function (require, exports, module) {
      * Event handler when a file changes name
      * @private
      * @param {!JQuery.Event} e - jQuery event object
-     * @return {!string} oldname - path of the file that was renamed
-     * @return {!string} newname - the new path to the file
+     * @return {@return {} oldname - path of the file that was renamed
+     * @return {@return {} newname - the new path to the file
      */
     Pane.prototype._handleFileNameChange = function (e, oldname, newname) {
         // because we store the File objects then   we don't really need to 
@@ -640,7 +654,7 @@ define(function (require, exports, module) {
      * Event handler when a file is deleted
      * @private
      * @param {!JQuery.Event} e - jQuery event object
-     * @return {!string} fullPath - path of the file that was deleted
+     * @return {@return {} fullPath - path of the file that was deleted
      */
     Pane.prototype._handleFileDeleted = function (e, fullPath) {
         if (this.doRemoveView({fullPath: fullPath})) {
@@ -660,7 +674,7 @@ define(function (require, exports, module) {
     
     /**
      * retrieves the view object for the given path
-     * @param {!string} path - the fullPath of the view to retrieve
+     * @param {@return {} path - the fullPath of the view to retrieve
      * @return {boolean} show - show or hide the interstitial page
      */
     Pane.prototype.getViewForPath = function (path) {
@@ -669,11 +683,19 @@ define(function (require, exports, module) {
     
     /**
      * Adds a view to the pane
-     * @param {!string} path - the fullpath of the view object to add
+     * @param {@return {} path - the fullpath of the view object to add
      * @param {!View} view - the View object to add 
      * @param {boolean} show - true to show the view right away, false otherwise
      */
-    Pane.prototype.addView = function (path, view, show) {
+    Pane.prototype.addView = function (view, show) {
+        var file = view.getFile(),
+            path = file && file.fullPath;
+        
+        if (!path) {
+            console.error("cannot add a view that does not have a fullPath");
+            return;
+        }
+        
         this._views[path] = view;
         if (show) {
             this.showView(view);
@@ -693,9 +715,10 @@ define(function (require, exports, module) {
             return;
         }
         
-        var newPath = view.getFullPath(),
+        var file = view.getFile(),
+            newPath = file && file.fullPath,
             oldView = this._currentView,
-            oldPath = oldView ? oldView.getFullPath() : undefined;
+            oldPath = oldView && oldView.getFile() ? oldView.getFile().fullPath : null;
         
         if (this._currentView) {
             if (this._currentView.hasOwnProperty("document")) {
@@ -711,22 +734,26 @@ define(function (require, exports, module) {
         this.updateLayout();
         
         if (oldPath) {
-            // Destroy any view that was currently shown
-            //  that is not in the view pane list 
+            // The old view is a temporary view because it 
+            //  we not found in our view list
             if (this.findInViewList(oldPath) === -1) {
                 delete this._views[oldPath];
                 oldView.destroy();
             }
+        } else if (oldView) {
+            // Views that do not have a fullPath are always temporary views
+            //  which are destroyed after the view has been hidden
+            oldView.destroy();
         }
         
-        if ((this.findInViewList(newPath) !== -1) && (!this._views.hasOwnProperty(newPath))) {
+        if (newPath && (this.findInViewList(newPath) !== -1) && (!this._views.hasOwnProperty(newPath))) {
             console.error(newPath + " found in pane working set but pane.addView() has not been called for the view created for it");
         }
     };
     
     /**
      * Updates the layout causing the current view to redraw itself
-     * @param {boolean} refresh - true to force a resize and refresh of the current view, false if just to resize
+     * @param {boolean} forceRefresh - true to force a resize and refresh of the current view, false if just to resize
      */
     Pane.prototype.updateLayout = function (forceRefresh) {
         if (this._currentView) {
@@ -738,14 +765,17 @@ define(function (require, exports, module) {
      * Determines if the view can be disposed of
      * @private
      * @param {!View} view - the View object to test
-     * @return {!boolean} true if the view can be disposed, false if not
+     * @return {boolean}} true if the view can be disposed, false if not
      */
     Pane.prototype._isViewNeeded = function (view) {
-        if (!view) {
+        var file = view.getFile(),
+            path = file && file.fullPath,
+            currentPath = this.getCurrentlyViewedPath();
+        
+        if (!path) {
             return false;
         }
-        var path = view.getFullPath();
-        return ((this._currentView && this._currentView.getFullPath() === path) || (this.findInViewList(path) !== -1));
+        return ((this._currentView && currentPath === path) || (this.findInViewList(path) !== -1));
     };
     
     
@@ -772,7 +802,9 @@ define(function (require, exports, module) {
      */
     Pane.prototype.destroyViewIfNotNeeded = function (view) {
         if (view && !this._isViewNeeded(view)) {
-            delete this._views[view.getFullPath()];
+            var file = view.getFile(),
+                path = file && file.fullPath;
+            delete this._views[path];
             view.destroy();
         }
     };
@@ -781,8 +813,7 @@ define(function (require, exports, module) {
      * Destroys all views and resets the state of the pane
      */
     Pane.prototype.doRemoveAllViews = function () {
-        var self = this,
-            views = _.extend({}, this._views);
+        var views = _.extend({}, this._views);
         
         this._reset();
         
@@ -803,7 +834,7 @@ define(function (require, exports, module) {
     
     /**
      * Executes a FILE_OPEN command to open a file
-     * @param {!string} fullPath - path of the file to open
+     * @param {@return {} fullPath - path of the file to open
      * @return {jQuery.promise} promise that will resolve when the file is opened
      */
     Pane.prototype._execOpenFile = function (fullPath) {
@@ -814,7 +845,7 @@ define(function (require, exports, module) {
      * Destroys the requested view
      * @param {File} file - the file to close
      * @param {boolean} openNextFile - open the next in MRU order
-     * @return {!boolean} true if removed, false if the file was not found either in a list or view
+     * @return {boolean} true if removed, false if the file was not found either in a list or view
      */
     Pane.prototype.doRemoveView = function (file, openNextFile) {
         var nextFile = openNextFile && this.traverseViewListByMRU(1, file.fullPath);
@@ -936,7 +967,7 @@ define(function (require, exports, module) {
     /**
      * serializes from disk the pane state
      * @param {!Object} state - the current scroll state
-     * @param {!number} heightDelta - the amount to add or subtract from the state
+     * @param {@return {}} heightDelta - the amount to add or subtract from the state
      */
     Pane.prototype.restoreAndAdjustScrollState = function (state, heightDelta) {
         if (this._currentView && state && state.scrollPos) {

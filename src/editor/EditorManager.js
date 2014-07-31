@@ -436,7 +436,7 @@ define(function (require, exports, module) {
         // Create editor; make it initially invisible
         var editor = _createEditorForDocument(document, true, pane.$el);
         editor.setVisible(false);
-        pane.addView(document.file.fullPath, editor);
+        pane.addView(editor);
         $(exports).triggerHandler("_fullEditorCreatedForDocument", [document, editor, pane.id]);
     }
  
@@ -509,7 +509,7 @@ define(function (require, exports, module) {
         } else if (editor.getContainer() !== pane.$el) {
             // editor does exist but is not a child of the pane with which
             //  to show it so we need to add the view and switch the container of the editor
-            pane.addView(document.file.fullPath, editor);
+            pane.addView(editor);
             editor.switchContainers(pane.$el);
         }
 
