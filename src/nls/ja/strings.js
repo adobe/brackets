@@ -46,11 +46,11 @@ define({
 	"DIRECTORY_NAMES_LEDE": "ディレクトリ名",
 	"FILENAMES_LEDE": "ファイル名",
 	"FILENAME": "ファイル名",
-	"DIRECTORY_NAME": "!能=[7549927] Directory Name_=!",
+	"DIRECTORY_NAME": "ディレクトリ名",
     
 
     // Project error strings
-	"ERROR_LOADING_PROJECT": "!能=[6307135] Error Loading Project_=!",
+	"ERROR_LOADING_PROJECT": "プロジェクトを読み込む際にエラーが発生しました。",
 	"OPEN_DIALOG_ERROR": "「ファイルを開く」ダイアログを表示する際にエラーが発生しました。(エラー {0})",
 	"REQUEST_NATIVE_FILE_SYSTEM_ERROR": "ディレクトリ <span class='dialog-filename'>{0}</span> を読み込む際にエラーが発生しました。(エラー {1})",
 	"READ_DIRECTORY_ENTRIES_ERROR": "ディレクトリ <span class='dialog-filename'>{0}</span> の内容を読み込む際にエラーが発生しました。(エラー {1})",
@@ -63,10 +63,10 @@ define({
 	"ERROR_RELOADING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を再読込する際にエラーが発生しました。{1}",
 	"ERROR_SAVING_FILE_TITLE": "ファイルを保存する際にエラーが発生しました。",
 	"ERROR_SAVING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を保存する際にエラーが発生しました。{1}",
-	"ERROR_RENAMING_FILE_TITLE": "!能=[6484475] Error Renaming {0}_=!",
-	"ERROR_RENAMING_FILE": "!能=[6484474] An error occurred when trying to rename the {2} <span class='dialog-filename'>{0}</span>. {1}_=!",
-	"ERROR_DELETING_FILE_TITLE": "!能=[6967025] Error Deleting {0}_=!",
-	"ERROR_DELETING_FILE": "!能=[6967024] An error occurred when trying to delete the {2} <span class='dialog-filename'>{0}</span>. {1}_=!",
+	"ERROR_RENAMING_FILE_TITLE": "{0} の名前を変更する際にエラーが発生しました。",
+	"ERROR_RENAMING_FILE": "{2} <span class='dialog-filename'>{0}</span> の名前を変更する際にエラーが発生しました。{1}",
+	"ERROR_DELETING_FILE_TITLE": "{0} を削除する際にエラーが発生しました。",
+	"ERROR_DELETING_FILE": "{2} <span class='dialog-filename'>{0}</span> を削除する際にエラーが発生しました。{1}",
 	"INVALID_FILENAME_TITLE": "無効な{0}",
 	"INVALID_FILENAME_MESSAGE": "{0}にはシステムのすべての予約語、末尾のピリオド (.)、および次の文字を含めることはできません : <code class='emphasized'>{1}</code>",
 	"ENTRY_WITH_SAME_NAME_EXISTS": "<span class='dialog-filename'>{0}</span> という名前のファイルまたはディレクトリは既に存在します。",
@@ -167,7 +167,7 @@ define({
 	"FIND_REPLACE_TITLE_LABEL": "置換対象",
 	"FIND_REPLACE_TITLE_WITH": "置換後の文字列",
 	"FIND_TITLE_LABEL": "検索結果",
-	"FIND_TITLE_SUMMARY": "!能=[7575926] &mdash; {0} {1} {2} in {3}_=!",
+	"FIND_TITLE_SUMMARY": "&mdash; {0} {1} {2} ({3})",
 
     // Find in Files
 	"FIND_NUM_FILES": "{0} {1}",
@@ -185,7 +185,7 @@ define({
 	"REPLACE_IN_FILES_ERRORS_TITLE": "置換エラー",
 	"REPLACE_IN_FILES_ERRORS": "次のファイルは検索の後で変更されているか、書き込むことができないため、変更されていません。",
     
-	"ERROR_FETCHING_UPDATE_INFO_TITLE": "!能=[6313990] Error Getting Update Info_=!",
+	"ERROR_FETCHING_UPDATE_INFO_TITLE": "更新情報を取得する際にエラーが発生しました。",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "サーバーから最新の更新情報を取得する際にエラーが発生しました。インターネット接続を確認してリトライしてください。",
     
     // File exclusion filters
@@ -286,7 +286,7 @@ define({
 	"CMD_FILE_SAVE_ALL": "すべて保存",
 	"CMD_FILE_SAVE_AS": "名前を付けて保存\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "ライブプレビュー",
-	"CMD_RELOAD_LIVE_PREVIEW": "!能=[7629440] Force Reload Live Preview_=!",
+	"CMD_RELOAD_LIVE_PREVIEW": "ライブプレビューを強制的に再読込み",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
 	"CMD_FILE_DELETE": "削除",
@@ -356,7 +356,7 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
 	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
-	"CMD_THEMES": "!能=[7629441] Themes\u2026_=!",
+	"CMD_THEMES": "テーマ\u2026",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "ナビゲート",
@@ -420,8 +420,8 @@ define({
 	"BASEURL_ERROR_UNKNOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
     
     // Strings for themes-settings.html and themes-general.html
-	"CURRENT_THEME": "!能=[7629442] Current Theme_=!",
-	"USE_THEME_SCROLLBARS": "!能=[7629459] Use Theme Scrollbars_=!",
+	"CURRENT_THEME": "現在のテーマ",
+	"USE_THEME_SCROLLBARS": "テーマスクロールバーを使用",
 	"FONT_SIZE": "フォントサイズ",
 	"FONT_FAMILY": "フォントファミリー",
 	"LINE_HEIGHT": "行の高さ",
@@ -448,8 +448,8 @@ define({
 	"CANCELING_INSTALL": "キャンセルしています\u2026",
 	"CANCELING_HUNG": "インストールのキャンセルに時間がかかっています。内部エラーが発生した可能性があります。",
 	"INSTALL_CANCELED": "インストールはキャンセルされました。",
-	"VIEW_COMPLETE_DESCRIPTION": "!能=[7629460] View complete description_=!",
-	"VIEW_TRUNCATED_DESCRIPTION": "!能=[7629461] View truncated description_=!",
+	"VIEW_COMPLETE_DESCRIPTION": "詳細な説明を表示",
+	"VIEW_TRUNCATED_DESCRIPTION": "省略された説明を表示",
     // These must match the error codes in ExtensionsDomain.Errors.* :
 	"INVALID_ZIP_FILE": "ダウンロードされたコンテンツは有効な zip ファイルではありません。",
 	"INVALID_PACKAGE_JSON": "package.json ファイルは有効ではありません (エラーは {0} です)。",
@@ -475,11 +475,11 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
 	"EXTENSION_MANAGER_TITLE": "拡張機能マネージャー",
 	"EXTENSION_MANAGER_ERROR_LOAD": "拡張機能レジストリにアクセスできません。後でもう一度試してください。",
-	"INSTALL_EXTENSION_DRAG": "!能=[7629453] Drag .zip here or_=!",
-	"INSTALL_EXTENSION_DROP": "!能=[7629454] Drop .zip to install_=!",
-	"INSTALL_EXTENSION_DROP_ERROR": "!能=[7629455] Install/Update aborted due to the following errors:_=!",
+	"INSTALL_EXTENSION_DRAG": ".zip をここにドラッグするか、",
+	"INSTALL_EXTENSION_DROP": ".zip をドロップしてインストール",
+	"INSTALL_EXTENSION_DROP_ERROR": "次のエラーのため、インストール / アンインストールが中止されました :",
 	"INSTALL_FROM_URL": "URL からインストール\u2026",
-	"INSTALL_EXTENSION_VALIDATING": "!能=[7629456] Validating\u2026_=!",
+	"INSTALL_EXTENSION_VALIDATING": "検証中\u2026",
 	"EXTENSION_AUTHOR": "作成者",
 	"EXTENSION_DATE": "日付",
 	"EXTENSION_INCOMPATIBLE_NEWER": "この拡張機能には新しいバージョンの {APP_NAME} が必要です。",
@@ -490,9 +490,9 @@ define({
 	"EXTENSION_MORE_INFO": "詳細情報...",
 	"EXTENSION_ERROR": "拡張機能のエラー",
 	"EXTENSION_KEYWORDS": "キーワード",
-	"EXTENSION_TRANSLATED_USER_LANG": "!能=[7629448] Translated into {0} languages, including yours_=!",
-	"EXTENSION_TRANSLATED_GENERAL": "!能=[7629446] Translated into {0} languages_=!",
-	"EXTENSION_TRANSLATED_LANGS": "!能=[7629447] This extension has been translated into these languages: {0}_=!",
+	"EXTENSION_TRANSLATED_USER_LANG": "ご使用の言語を含む {0} 言語に翻訳されました",
+	"EXTENSION_TRANSLATED_GENERAL": "{0} 言語に翻訳されました",
+	"EXTENSION_TRANSLATED_LANGS": "この拡張機能はこれらの言語に翻訳されています : {0}",
 	"EXTENSION_INSTALLED": "インストール完了",
 	"EXTENSION_UPDATE_INSTALLED": "この拡張機能のアップデートがダウンロードされました。{APP_NAME} のリロード後にインストールされます。",
 	"EXTENSION_SEARCH_PLACEHOLDER": "検索",
@@ -574,8 +574,8 @@ define({
 	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
 	"CMD_SHOW_PARAMETER_HINT": "パラメーターヒントを表示",
 	"NO_ARGUMENTS": "<パラメーターがありません>",
-	"DETECTED_EXCLUSION_TITLE": "!能=[7629444] JavaScript File Inference Problem_=!",
-	"DETECTED_EXCLUSION_INFO": "!能=[7629443] Brackets ran into trouble processing:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> in your project and remove the file from jscodehints.detectedExclusions._=!",
+	"DETECTED_EXCLUSION_TITLE": "JavaScript ファイルの推論問題",
+	"DETECTED_EXCLUSION_INFO": "Brackets で処理中に問題が発生しました : <br><br>{0}<br><br>このファイルはコードヒントとしては処理されず、定義に移動します。これを戻すには、プロジェクトで <code>.brackets.json</code> を開いて jscodehints.detectedExclusions からファイルを削除してください。",
     
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",

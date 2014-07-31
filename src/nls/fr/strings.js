@@ -46,11 +46,11 @@ define({
 	"DIRECTORY_NAMES_LEDE": "noms de répertoires",
 	"FILENAMES_LEDE": "noms de fichiers",
 	"FILENAME": "Nom de fichier",
-	"DIRECTORY_NAME": "[7549927] !é=Directory Name=!",
+	"DIRECTORY_NAME": "Nom du répertoire",
     
 
     // Project error strings
-	"ERROR_LOADING_PROJECT": "[6307135] !é=Error Loading Project=!",
+	"ERROR_LOADING_PROJECT": "Erreur lors du chargement du projet",
 	"OPEN_DIALOG_ERROR": "Une erreur s’est produite lors de l’affichage de la boîte de dialogue Ouvrir. (Erreur {0})",
 	"REQUEST_NATIVE_FILE_SYSTEM_ERROR": "Une erreur s’est produite lors de la tentative de chargement du répertoire <span class='dialog-filename'>{0}</span>. (Erreur {1})",
 	"READ_DIRECTORY_ENTRIES_ERROR": "Une erreur s’est produite lors de la lecture du contenu du répertoire <span class='dialog-filename'>{0}</span>. (Erreur {1})",
@@ -63,10 +63,10 @@ define({
 	"ERROR_RELOADING_FILE": "Une erreur s’est produite lors de la tentative de rechargement du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"ERROR_SAVING_FILE_TITLE": "Erreur lors de l’enregistrement du fichier",
 	"ERROR_SAVING_FILE": "Une erreur s’est produite lors de la tentative d’enregistrement du fichier <span class='dialog-filename'>{0}</span>. {1}",
-	"ERROR_RENAMING_FILE_TITLE": "[6484475] !é=Error Renaming {0}=!",
-	"ERROR_RENAMING_FILE": "[6484474] !é=An error occurred when trying to rename the {2} <span class='dialog-filename'>{0}</span>. {1}=!",
-	"ERROR_DELETING_FILE_TITLE": "[6967025] !é=Error Deleting {0}=!",
-	"ERROR_DELETING_FILE": "[6967024] !é=An error occurred when trying to delete the {2} <span class='dialog-filename'>{0}</span>. {1}=!",
+	"ERROR_RENAMING_FILE_TITLE": "Erreur lors du changement de nom de {0}",
+	"ERROR_RENAMING_FILE": "Une erreur s’est produite lors de la tentative de changement de nom de l’élément {2} <span class='dialog-filename'>{0}</span>. {1}",
+	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression de {0}",
+	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression de l’élément {2} <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "{0} non valide",
 	"INVALID_FILENAME_MESSAGE": "Les {0} ne peuvent pas utiliser de termes réservés au système, finir par un point (.) ou contenir l’un des caractères suivants : <code class='emphasized'>{1}</code>",
 	"ENTRY_WITH_SAME_NAME_EXISTS": "Il existe déjà un fichier ou un répertoire portant le nom <span class='dialog-filename'>{0}</span>.",
@@ -167,7 +167,7 @@ define({
 	"FIND_REPLACE_TITLE_LABEL": "Remplacer",
 	"FIND_REPLACE_TITLE_WITH": "par",
 	"FIND_TITLE_LABEL": "Occurrences trouvées pour",
-	"FIND_TITLE_SUMMARY": "[7575926] !é=&mdash; {0} {1} {2} in {3}=!",
+	"FIND_TITLE_SUMMARY": "&mdash; {0} {1} {2} dans {3}",
 
     // Find in Files
 	"FIND_NUM_FILES": "{0} {1}",
@@ -185,7 +185,7 @@ define({
 	"REPLACE_IN_FILES_ERRORS_TITLE": "Erreurs de remplacement",
 	"REPLACE_IN_FILES_ERRORS": "Les fichiers suivants n’ont pas été traités car ils ont été modifiés après l’opération de recherche ou ne sont pas accessibles en écriture.",
     
-	"ERROR_FETCHING_UPDATE_INFO_TITLE": "[6313990] !é=Error Getting Update Info=!",
+	"ERROR_FETCHING_UPDATE_INFO_TITLE": "Erreur de récupération des informations de mise à jour",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
     
     // File exclusion filters
@@ -286,7 +286,7 @@ define({
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
 	"CMD_FILE_SAVE_AS": "Enregistrer sous\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "Aperçu en direct",
-	"CMD_RELOAD_LIVE_PREVIEW": "[7629440] !é=Force Reload Live Preview=!",
+	"CMD_RELOAD_LIVE_PREVIEW": "Forcer le rechargement de l’aperçu en direct",
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_FILE_DELETE": "Supprimer",
@@ -356,7 +356,7 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
 	"CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
-	"CMD_THEMES": "[7629441] !é=Themes\u2026=!",
+	"CMD_THEMES": "Thèmes\u2026",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "Naviguer",
@@ -420,9 +420,9 @@ define({
 	"BASEURL_ERROR_UNKNOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
     
     // Strings for themes-settings.html and themes-general.html
-	"CURRENT_THEME": "[7629442] !é=Current Theme=!",
-	"USE_THEME_SCROLLBARS": "[7629459] !é=Use Theme Scrollbars=!",
-	"FONT_SIZE": "Taille de police",
+	"CURRENT_THEME": "Thème actuel",
+	"USE_THEME_SCROLLBARS": "Utiliser les barres de défilement des thèmes",
+	"FONT_SIZE": "Taille de la police",
 	"FONT_FAMILY": "Famille de polices",
 	"LINE_HEIGHT": "Hauteur de ligne",
 	"GENERAL": "Général",
@@ -448,8 +448,8 @@ define({
 	"CANCELING_INSTALL": "Annulation en cours\u2026",
 	"CANCELING_HUNG": "L’annulation de l’installation prend beaucoup de temps. Il est possible qu’une erreur interne se soit produite.",
 	"INSTALL_CANCELED": "Installation annulée.",
-	"VIEW_COMPLETE_DESCRIPTION": "[7629460] !é=View complete description=!",
-	"VIEW_TRUNCATED_DESCRIPTION": "[7629461] !é=View truncated description=!",
+	"VIEW_COMPLETE_DESCRIPTION": "Voir la description complète",
+	"VIEW_TRUNCATED_DESCRIPTION": "Voir la description tronquée",
     // These must match the error codes in ExtensionsDomain.Errors.* :
 	"INVALID_ZIP_FILE": "Le contenu téléchargé n’est pas un fichier zip valide.",
 	"INVALID_PACKAGE_JSON": "Le fichier package.json n’est pas valide (erreur : {0}).",
@@ -475,11 +475,11 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
 	"EXTENSION_MANAGER_TITLE": "Le gestionnaire d'extensions",
 	"EXTENSION_MANAGER_ERROR_LOAD": "Impossible d’accéder au registre de l’extension. Réessayez ultérieurement.",
-	"INSTALL_EXTENSION_DRAG": "[7629453] !é=Drag .zip here or=!",
-	"INSTALL_EXTENSION_DROP": "[7629454] !é=Drop .zip to install=!",
-	"INSTALL_EXTENSION_DROP_ERROR": "[7629455] !é=Install/Update aborted due to the following errors:=!",
+	"INSTALL_EXTENSION_DRAG": "Faire glisser le fichier .zip ici ou",
+	"INSTALL_EXTENSION_DROP": "Déposer le fichier .zip pour lancer l’installation",
+	"INSTALL_EXTENSION_DROP_ERROR": "Installation/Mise à jour interrompue en raison des erreurs suivantes :",
 	"INSTALL_FROM_URL": "Installer à partir de l’URL\u2026",
-	"INSTALL_EXTENSION_VALIDATING": "[7629456] !é=Validating\u2026=!",
+	"INSTALL_EXTENSION_VALIDATING": "Validation en cours\u2026",
 	"EXTENSION_AUTHOR": "Auteur",
 	"EXTENSION_DATE": "Date",
 	"EXTENSION_INCOMPATIBLE_NEWER": "Cette extension nécessite une version plus récente de l’application {APP_NAME}.",
@@ -490,9 +490,9 @@ define({
 	"EXTENSION_MORE_INFO": "Plus d’infos...",
 	"EXTENSION_ERROR": "Erreur d’extension",
 	"EXTENSION_KEYWORDS": "Mots-clés",
-	"EXTENSION_TRANSLATED_USER_LANG": "[7629448] !é=Translated into {0} languages, including yours=!",
-	"EXTENSION_TRANSLATED_GENERAL": "[7629446] !é=Translated into {0} languages=!",
-	"EXTENSION_TRANSLATED_LANGS": "[7629447] !é=This extension has been translated into these languages: {0}=!",
+	"EXTENSION_TRANSLATED_USER_LANG": "Traduit en {0} langues, y compris la vôtre",
+	"EXTENSION_TRANSLATED_GENERAL": "Traduit en {0} langues",
+	"EXTENSION_TRANSLATED_LANGS": "Cette extension a été traduite dans les langues suivantes : {0}",
 	"EXTENSION_INSTALLED": "Installée",
 	"EXTENSION_UPDATE_INSTALLED": "Cette mise à jour d’extension a été téléchargée et va être installée une fois le rechargement de {APP_NAME} effectué.",
 	"EXTENSION_SEARCH_PLACEHOLDER": "Rechercher",
@@ -574,8 +574,8 @@ define({
 	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
 	"CMD_SHOW_PARAMETER_HINT": "Afficher l’indicateur de paramètre",
 	"NO_ARGUMENTS": "<aucun paramètre>",
-	"DETECTED_EXCLUSION_TITLE": "[7629444] !é=JavaScript File Inference Problem=!",
-	"DETECTED_EXCLUSION_INFO": "[7629443] !é=Brackets ran into trouble processing:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> in your project and remove the file from jscodehints.detectedExclusions.=!",
+	"DETECTED_EXCLUSION_TITLE": "Problème d’inférence de fichier Javascript",
+	"DETECTED_EXCLUSION_INFO": "Brackets a rencontré des problèmes lors du traitement :<br><br>{0}<br><br>La fonction d’accès aux définitions et les indicateurs de code de ce fichier ne seront plus traités. Pour réactiver cette fonctionnalité, ouvrez <code>.brackets.json</code> dans votre projet et supprimez le fichier de la section jscodehints.detectedExclusions.",
     
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
