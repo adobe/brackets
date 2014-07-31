@@ -367,7 +367,7 @@ define(function (require, exports, module) {
             selected        = $listItem.hasClass("selected"),
             prevSelected    = $prevListItem.hasClass("selected"),
             nextSelected    = $nextListItem.hasClass("selected"),
-            index           = MainViewManager.findView(MainViewManager.ALL_PANES, $listItem.data(_FILE_KEY).fullPath),
+            index           = MainViewManager.findView(self.paneId, $listItem.data(_FILE_KEY).fullPath),
             height          = $listItem.height(),
             startPageY      = event.pageY,
             listItemTop     = startPageY - $listItem.offset().top,

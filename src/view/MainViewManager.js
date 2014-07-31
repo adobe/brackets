@@ -1535,60 +1535,63 @@ define(function (require, exports, module) {
     _paneTitles[SECOND_PANE][HORIZONTAL] = Strings.BOTTOM;
     
     // Unit Test Helpers
-    exports._initialize                     = _initialize;
-    exports._getPane              = _getPane;
-    
-    // PaneView Management
-    exports.addView                = addView;
-    exports.addViews            = addViews;
-    exports.findView               = findView;
-    exports.findViewByAddedOrder     = findViewByAddedOrder;
-    exports.findViewByMruOrder       = findViewByMruOrder;
-    exports.getViewCount              = getViewCount;
-    exports.getViews                  = getViews;
-    exports.getAllOpenFiles                  = getAllOpenFiles;
-    exports.removeAllViews        = removeAllViews;
-    exports.removeView           = removeView;
-    exports.removeViews       = removeViews;
-    exports.sortViews                 = sortViews;
-    exports.swapPaneViewListIndexes          = swapPaneViewListIndexes;
-    exports.focusActivePane                  = focusActivePane;
+    exports._initialize                 = _initialize;
+    exports._getPane                    = _getPane;
+        
+    // PaneView Management  
+    exports.addView                     = addView;
+    exports.addViews                    = addViews;
+    exports.getViewCount                = getViewCount;
+    exports.getViews                    = getViews;
+    exports.removeAllViews              = removeAllViews;
+    exports.removeView                  = removeView;
+    exports.removeViews                 = removeViews;
+    exports.sortViews                   = sortViews;
+    exports.swapPaneViewListIndexes     = swapPaneViewListIndexes;
+    exports.focusActivePane             = focusActivePane;
     
     // Pane state
-    exports.cacheScrollState             = cacheScrollState;
+    exports.cacheScrollState            = cacheScrollState;
     exports.restoreAdjustedScrollState  = restoreAdjustedScrollState;
+
+    // Searching
+    exports.findView                    = findView;
+    exports.findViewByAddedOrder        = findViewByAddedOrder;
+    exports.findViewByMruOrder          = findViewByMruOrder;
+    exports.findAllViewsOf              = findAllViewsOf;
     
     // Traversal
-    exports.beginTraversal                   = beginTraversal;
-    exports.endTraversal                     = endTraversal;
-    exports.traverseViewsByMRU               = traverseViewsByMRU;
-    exports.traversePaneViewListByMRU        = traversePaneViewListByMRU;
+    exports.beginTraversal              = beginTraversal;
+    exports.endTraversal                = endTraversal;
+    exports.traverseViewsByMRU          = traverseViewsByMRU;
+    exports.traversePaneViewListByMRU   = traversePaneViewListByMRU;
     
     // PaneView Attributes
-    exports.getActivePaneId                  = getActivePaneId;
-    exports.setActivePaneId                  = setActivePaneId;
-    exports.getPaneIdList                    = getPaneIdList;
-    exports.getPaneTitle                     = getPaneTitle;
-    exports.getPaneCount                     = getPaneCount;
-    exports.getPaneIdForPath                 = getPaneIdForPath;
+    exports.getActivePaneId             = getActivePaneId;
+    exports.setActivePaneId             = setActivePaneId;
+    exports.getPaneIdList               = getPaneIdList;
+    exports.getPaneTitle                = getPaneTitle;
+    exports.getPaneCount                = getPaneCount;
+    exports.getPaneIdForPath            = getPaneIdForPath;
     
     // Explicit stuff
-    exports.destroyEditorIfNotNeeded         = destroyEditorIfNotNeeded;
-    exports.edit                             = edit;
-    exports.open                             = open;
-    exports.close                            = close;
-    exports.closeAll                         = closeAll;
-    exports.closeList                        = closeList;
+    exports.getAllOpenFiles             = getAllOpenFiles;
+    exports.destroyEditorIfNotNeeded    = destroyEditorIfNotNeeded;
+    exports.edit                        = edit;
+    exports.open                        = open;
+    exports.close                       = close;
+    exports.closeAll                    = closeAll;
+    exports.closeList                   = closeList;
     
     // Layout
-    exports.setLayoutScheme                  = setLayoutScheme;
-    exports.getLayoutScheme                  = getLayoutScheme;
+    exports.setLayoutScheme             = setLayoutScheme;
+    exports.getLayoutScheme             = getLayoutScheme;
     
     // Convenience
-    exports.getCurrentlyViewedFile           = getCurrentlyViewedFile;
-    exports.getCurrentlyViewedPath           = getCurrentlyViewedPath;
+    exports.getCurrentlyViewedFile      = getCurrentlyViewedFile;
+    exports.getCurrentlyViewedPath      = getCurrentlyViewedPath;
     
     // Constants
-    exports.ALL_PANES                        = ALL_PANES;
-    exports.FOCUSED_PANE                     = FOCUSED_PANE;
+    exports.ALL_PANES                   = ALL_PANES;
+    exports.FOCUSED_PANE                = FOCUSED_PANE;
 });

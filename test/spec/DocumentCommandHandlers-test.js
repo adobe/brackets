@@ -906,7 +906,7 @@ define(function (require, exports, module) {
             });
             
             it("should maintain order within Working Set after Save As", function () {
-                var index,
+                var views,
                     targetDoc;
 
                 runs(function () {
@@ -917,7 +917,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    index = MainViewManager.findView(MainViewManager.ALL_PANES, filePath);
+                    views = MainViewManager.findAllViewsOf(filePath);
                     targetDoc = DocumentManager.getOpenDocumentForPath(filePath);
                 });
 
@@ -941,7 +941,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // New file should appear in working set at old file's index; old file shouldn't appear at all
-                    expect(MainViewManager.findView(MainViewManager.ALL_PANES, newFilePath)).toEqual(index);
+                    expect(MainViewManager.findAllViewsOf(newFilePath)).toEqual(views);
                     expect(MainViewManager.findView(MainViewManager.ALL_PANES, filePath)).toEqual(-1);
 
                     // Verify file exists & clean it up
