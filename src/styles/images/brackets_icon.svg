@@ -1,21 +1,10 @@
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="120px" height="120px">
-	<defs>
-		<linearGradient id="frame" gradientUnits="userSpaceOnUse" x1="433.5" y1="-185" x2="433.5" y2="-277" gradientTransform="matrix(1 0 0 -1 -373.5 -177)">
-			<stop offset="0" stop-color="#29ABE2"/>
-			<stop offset="0.4757" stop-color="#28A9E1"/>
-			<stop offset="0.6639" stop-color="#23A2DC"/>
-			<stop offset="0.8012" stop-color="#1A96D4"/>
-			<stop offset="0.913" stop-color="#0E85C9"/>
-			<stop offset="1" stop-color="#0071BC"/>
-		</linearGradient>
-		<filter id="blur" x="-10" y="-10" width="12" height="12">
-			<feGaussianBlur in="SourceGraphic" stdDeviation="1"/>
-		</filter>
-	</defs>
-	<rect id="shadow" x="10" y="9" width="100" height="100" rx="20" ry="20" opacity=".5" filter="url(#blur)"/>
-	<rect x="10" y="58" width="100" height="50" rx="20" ry="20" fill="#115A91"/>
-	<rect x="10" y="8" width="100" height="92" rx="20" ry="20" fill="url(#frame)"/>
-	<rect x="22" y="20" width="76" height="68" rx="10" ry="10" fill="#fff"/>
-	<path id="shadow2" opacity=".5" transform="translate(0, 1)" filter="url(#blur)" d="M57,28v12H43v26h14v13H30V28H57zM90,28v51H63V66h15V40H63V28H90z"/>
-	<path id="brackets" fill="#4D4D4D" d="M57,28v12H43v26h14v13H30V28H57zM90,28v51H63V66h15V40H63V28H90z"/>
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Generator: Adobe Illustrator 18.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  viewBox="0 0 600 600" enable-background="new 0 0 848 600" xml:space="preserve" width="120px" height="120px">
+<rect x="0.5" fill="#1E4384" width="600" height="600"/>
+<polygon fill="#FFFFFF" points="37,300 299,38 561,300 299,562 "/>
+<polygon fill="#010101" points="129,300 299,130 469,300 299,470 "/>
+<polygon fill="#FFFFFF" points="243,300 299,244 355,300 299,356 "/>
+<rect x="282" y="169.4" transform="matrix(0.7071 0.7071 -0.7071 0.7071 298.3279 -125.7536)" fill="#FFFFFF" width="37.9" height="255.6"/>
 </svg>
