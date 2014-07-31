@@ -629,18 +629,20 @@ define(function (require, exports, module) {
      * @param text {!string} CSS text to extract from
      * @return {Array.<Object>} Array with objects specifying selectors.
      */
-    function extractAllSelectors(text) {
+    function extractAllSelectors(text, documentMode) {
         var selectors = [];
-        var mode = CodeMirror.getMode({indentUnit: 2}, "css");
+        var mode = CodeMirror.getMode({indentUnit: 2}, documentMode || "css");
         var state, lines, lineCount;
         var token, style, stream, line;
         var currentSelector = "";
+        var currentLevel = 0;
         var ruleStartChar = -1, ruleStartLine = -1;
         var selectorStartChar = -1, selectorStartLine = -1;
         var selectorGroupStartLine = -1, selectorGroupStartChar = -1;
         var declListStartLine = -1, declListStartChar = -1;
         var escapePattern = new RegExp("\\\\[^\\\\]+", "g");
         var validationPattern = new RegExp("\\\\([a-f0-9]{6}|[a-f0-9]{4}(\\s|\\\\|$)|[a-f0-9]{2}(\\s|\\\\|$)|.)", "i");
+        var _parseRule;
         
         // implement _firstToken()/_nextToken() methods to
         // provide a single stream of tokens
@@ -738,22 +740,44 @@ define(function (require, exports, module) {
             return true;
         }
 
-        function _parseSelector(start) {
+        function _getParentSelectors() {
+            var j;
+//            for (j = selectors.length - 1; j >= 0; j--) {
+//                if (selectors[j].level >= 0) {
+//                }
+//            }
+            return "";
+        }
+        
+        function _parseSelector(start, level) {
             
             currentSelector = "";
             selectorStartChar = start;
             selectorStartLine = line;
             
+            if (level > 0 && token === "{") {
+                if (!_nextTokenSkippingWhitespace()) {
+                    return false; // eof
+                }
+                selectorStartChar = stream.start;
+                selectorStartLine = line;
+            }
+            
             // Everything until the next ',' or '{' is part of the current selector
-            while (token !== "," && token !== "{") {
+            while ((token !== "," || state.state !== "block") && token !== "{") {
+                if (token === "}" && !currentSelector) {
+                    return false;
+                }
                 if (token === ";") {
                     currentSelector = "";
                 } else {
                     if (!currentSelector) {
-                        selectorStartChar = start;
+                        selectorStartChar = stream.start;
                         selectorStartLine = line;
                     }
-                    currentSelector += token;
+                    if (token.trim()) {
+                        currentSelector += token;
+                    }
                 }
                 if (!_nextTokenSkippingComments()) {
                     return false; // eof
@@ -782,6 +806,14 @@ define(function (require, exports, module) {
             var selectorStart = (stream.string.indexOf(currentSelector, selectorStartChar) !== -1) ? stream.string.indexOf(currentSelector, selectorStartChar - currentSelector.length) : startChar;
 
             if (currentSelector !== "") {
+                if (currentLevel < level) {
+                    currentLevel++;
+                }
+                if (ruleStartLine === -1) {
+                    ruleStartLine = line;
+                    ruleStartChar = stream.start - currentSelector.length;
+                }
+                var parentSelectors = _getParentSelectors();
                 selectors.push({selector: currentSelector,
                                 ruleStartLine: ruleStartLine,
                                 ruleStartChar: ruleStartChar,
@@ -791,7 +823,9 @@ define(function (require, exports, module) {
                                 selectorEndLine: line,
                                 selectorEndChar: selectorStart + currentSelector.length,
                                 selectorGroupStartLine: selectorGroupStartLine,
-                                selectorGroupStartChar: selectorGroupStartChar
+                                selectorGroupStartChar: selectorGroupStartChar,
+                                level: currentLevel,
+                                parentSelectors: parentSelectors
                                });
                 currentSelector = "";
             }
@@ -800,11 +834,11 @@ define(function (require, exports, module) {
             return true;
         }
         
-        function _parseSelectorList() {
+        function _parseSelectorList(level) {
             selectorGroupStartLine = (stream.string.indexOf(",") !== -1) ? line : -1;
             selectorGroupStartChar = stream.start;
 
-            if (!_parseSelector(stream.start)) {
+            if (!_parseSelector(stream.start, level)) {
                 return false;
             }
 
@@ -812,7 +846,7 @@ define(function (require, exports, module) {
                 if (!_nextTokenSkippingComments()) {
                     return false; // eof
                 }
-                if (!_parseSelector(stream.start)) {
+                if (!_parseSelector(stream.start, level)) {
                     return false;
                 }
             }
@@ -820,7 +854,7 @@ define(function (require, exports, module) {
             return true;
         }
 
-        function _parseDeclarationList() {
+        function _parseDeclarationList(level) {
 
             var j;
             declListStartLine = Math.min(line, lineCount - 1);
@@ -845,45 +879,62 @@ define(function (require, exports, module) {
                 selectorGroup = selectorGroup.trim();
             }
 
+            // assign this declaration list position and selector group to every selector on the stack
+            // that doesn't have a declaration list start and end line
+            for (j = selectors.length - 1; j >= 0; j--) {
+                if (selectors[j].level === level) {
+                    if (selectors[j].declListEndLine !== -1) {
+                        break;
+                    } else {
+                        selectors[j].declListStartLine = declListStartLine;
+                        selectors[j].declListStartChar = declListStartChar;
+                        if (selectorGroup) {
+                            selectors[j].selectorGroup = selectorGroup;
+                        }
+                    }
+                }
+            }
             // Since we're now in a declaration list, that means we also finished
             // parsing the whole selector group. Therefore, reset selectorGroupStartLine
             // so that next time we parse a selector we know it's a new group
-            selectorGroupStartLine = -1;
-            selectorGroupStartChar = -1;
-            ruleStartLine = -1;
-            ruleStartChar = -1;
-
-            // Skip everything until the next '}'
-            var unmatchedBraces = 0;
-            while (true) {
-                if (token === "{") {
-                    unmatchedBraces++;
-                } else if (token === "}") {
-                    unmatchedBraces--;
-                    if (unmatchedBraces === 0) {
-                        break;
+            var nested = true;
+            do {
+                selectorGroupStartLine = -1;
+                selectorGroupStartChar = -1;
+                ruleStartLine = -1;
+                ruleStartChar = -1;
+                if (!nested) {
+                    if (currentLevel > 0 && currentLevel === level) {
+                        currentLevel--;
+                        _nextToken();
                     }
                 }
-                if (!_nextTokenSkippingComments()) {
-                    break; // eof
-                }
-            }
+                nested = _parseRule(currentLevel + 1);
             
             // assign this declaration list position and selector group to every selector on the stack
             // that doesn't have a declaration list start and end line
             for (j = selectors.length - 1; j >= 0; j--) {
-                if (selectors[j].declListEndLine !== -1) {
-                    break;
-                } else {
-                    selectors[j].declListStartLine = declListStartLine;
-                    selectors[j].declListStartChar = declListStartChar;
-                    selectors[j].declListEndLine = line;
-                    selectors[j].declListEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
-                    if (selectorGroup) {
-                        selectors[j].selectorGroup = selectorGroup;
+                    if (selectors[j].level >= level && selectors[j].declListEndLine !== -1) {
+                        continue;
                     }
-                }
+//                    if (selectors[j].declListEndLine !== -1) {
+                    if (selectors[j].level < currentLevel) {
+                        break;
+                    }
+                    else if (selectors[j].declListEndLine !== -1) {
+                        return;
+                    } else {
+    //                    selectors[j].declListStartLine = declListStartLine;
+    //                    selectors[j].declListStartChar = declListStartChar;
+                        selectors[j].declListEndLine = line;
+                        selectors[j].declListEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
+    //                    if (selectorGroup) {
+    //                        selectors[j].selectorGroup = selectorGroup;
+    //                    }
+                    }
+//                }
             }
+            } while (currentLevel > 0 && currentLevel === level);
         }
         
         function includeCommentInNextRule() {
@@ -962,12 +1013,12 @@ define(function (require, exports, module) {
         }
 
         // parse a style rule
-        function _parseRule() {
-            if (!_parseSelectorList()) {
+        _parseRule = function (level) {
+            if (!_parseSelectorList(level)) {
                 return false;
             }
-
-            _parseDeclarationList();
+            
+            _parseDeclarationList(level);
         }
         
         function _parseRuleList(escapeToken) {
@@ -991,7 +1042,7 @@ define(function (require, exports, module) {
                         ruleStartChar = stream.start;
                         ruleStartLine = line;
                     }
-                    _parseRule();
+                    _parseRule(0);
                 }
                 
                 if (!_nextTokenSkippingWhitespace()) {
@@ -1046,8 +1097,8 @@ define(function (require, exports, module) {
      *      Array of objects containing the start and end line numbers (0-based, inclusive range) for each
      *      matched selector.
      */
-    function _findAllMatchingSelectorsInText(text, selector) {
-        var allSelectors = extractAllSelectors(text);
+    function _findAllMatchingSelectorsInText(text, selector, mode) {
+        var allSelectors = extractAllSelectors(text, mode);
         var result = [];
         var i;
         
@@ -1115,7 +1166,7 @@ define(function (require, exports, module) {
                 .done(function (doc) {
                     // Find all matching rules for the given CSS file's content, and add them to the
                     // overall search result
-                    var oneCSSFileMatches = _findAllMatchingSelectorsInText(doc.getText(), selector);
+                    var oneCSSFileMatches = _findAllMatchingSelectorsInText(doc.getText(), selector, doc.getLanguage().getMode());
                     _addSelectorsToResults(resultSelectors, oneCSSFileMatches, doc, 0);
                     
                     oneFileResult.resolve();
