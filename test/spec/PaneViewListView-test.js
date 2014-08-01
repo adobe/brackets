@@ -81,7 +81,7 @@ define(function (require, exports, module) {
             
             runs(function () {
                 // Initialize: register listeners
-                testWindow.$(MainViewManager).on("paneViewListAdd", function (event, addedFile) {
+                testWindow.$(MainViewManager).on("paneViewAdd", function (event, addedFile) {
                     paneViewListItemCount++;
                 });
             });
@@ -223,7 +223,7 @@ define(function (require, exports, module) {
                 expect(closeIcon.length).toBe(1);
                 
                 // simulate click
-                $(MainViewManager).on("paneViewListRemove", function (event, removedFile) {
+                $(MainViewManager).on("paneViewRemove", function (event, removedFile) {
                     didClose = true;
                 });
 

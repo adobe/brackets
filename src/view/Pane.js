@@ -133,7 +133,10 @@ define(function (require, exports, module) {
      *
      *  Called to determine which Pane a View belongs to by MainViewManager.
      *
-     *
+     * Events Dispatched from Pane Objects:
+     *  
+     *      viewListChanged - triggered whenver the interal view list has changed due to the handling of a File object event.
+     *          
      */
     
     /**

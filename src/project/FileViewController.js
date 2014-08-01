@@ -76,7 +76,7 @@ define(function (require, exports, module) {
     /** 
      * Change the doc selection to the working set when ever a new file is added to the working set
      */
-    $(MainViewManager).on("paneViewListAdd", function (event, addedFile) {
+    $(MainViewManager).on("paneViewAdd", function (event, addedFile) {
         _fileSelectionFocus = PANE_VIEW_LIST_VIEW;
         $(exports).triggerHandler("documentSelectionFocusChange");
     });

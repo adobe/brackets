@@ -122,9 +122,9 @@ define(function (require, exports, module) {
      *    DeprecationWarning.deprecateEvent($(exports), 
      *                                      $(MainViewManager), 
      *                                      "workingSetAdd", 
-     *                                      "paneViewListAdd", 
+     *                                      "paneViewAdd", 
      *                                      "DocumentManager.workingSetAdd", 
-     *                                      "MainViewManager.paneViewListAdd");
+     *                                      "MainViewManager.paneViewAdd");
      * ```
      *
      * @param {Object} outbound - the object with the old event to dispatch

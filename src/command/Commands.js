@@ -117,10 +117,10 @@ define(function (require, exports, module) {
 
     exports.CMD_ADD_TO_PANE_AND_OPEN   = "cmd.addToPaneAndOpen";          // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()
     
-    exports.CMD_SORT_PANE_VIEW_LIST_BY_ADDED  = "cmd.sortPaneViewListByAdded";    // PaneViewListSort.js          _handleSort()
-    exports.CMD_SORT_PANE_VIEW_LIST_BY_NAME   = "cmd.sortPaneViewListByName";     // PaneViewListSort.js          _handleSort()
-    exports.CMD_SORT_PANE_VIEW_LIST_BY_TYPE   = "cmd.sortPaneViewListByType";     // PaneViewListSort.js          _handleSort()
-    exports.CMD_SORT_PANE_VIEW_TOGGLE_AUTO    = "cmd.sortPaneViewToggleAuto";     // PaneViewListSort.js          _handleToggleAutoSort()
+    exports.CMD_SORT_PANE_VIEW_LIST_BY_ADDED  = "cmd.sortPaneViewListByAdded";    // paneViewSort.js          _handleSort()
+    exports.CMD_SORT_PANE_VIEW_LIST_BY_NAME   = "cmd.sortPaneViewListByName";     // paneViewSort.js          _handleSort()
+    exports.CMD_SORT_PANE_VIEW_LIST_BY_TYPE   = "cmd.sortPaneViewListByType";     // paneViewSort.js          _handleSort()
+    exports.CMD_SORT_PANE_VIEW_TOGGLE_AUTO    = "cmd.sortPaneViewToggleAuto";     // paneViewSort.js          _handleToggleAutoSort()
     
     // NAVIGATE
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";           // DocumentCommandHandlers.js   handleGoNextDoc()

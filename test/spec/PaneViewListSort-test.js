@@ -81,7 +81,7 @@ define(function (require, exports, module) {
             
             runs(function () {
                 // Initialize: register listeners
-                testWindow.$(MainViewManager).on("paneViewListAdd", function (event, addedFile) {
+                testWindow.$(MainViewManager).on("paneViewAdd", function (event, addedFile) {
                     paneViewListItemCount++;
                 });
             });

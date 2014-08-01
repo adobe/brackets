@@ -40,35 +40,35 @@
  * This module dispatches several events:
  *
  *    - activePaneChanged - When the active pane changes.  There will always be an active pane.
- *          (newPaneId:string, oldPaneId:string) 
+ *          (e, newPaneId:string, oldPaneId:string) 
  *    - currentFileChanged -- When the user has switched to another pane, file, document. When the user closes a view
  *      and there are no other views to show the current file will be null.  
- *          (newFile:File, newPaneId:string, oldFile:File, oldPaneId:string)
+ *          (e, newFile:File, newPaneId:string, oldFile:File, oldPaneId:string)
  *    - paneLayoutChanged -- When Orientation changes.
- *          (orientation:string)
+ *          (e, orientation:string)
  *    - paneCreated -- When a pane is created
- *          (paneId:string)
+ *          (e, paneId:string)
  *    - paneDestroyed -- When a pane is destroyed
- *          (paneId:string)
+ *          (e, paneId:string)
  *      
  *
  *    To listen for working set changes, you must listen to *all* of these events:
- *    - paneViewListAdd -- When a file is added to the working set 
- *          (fileAdded:File, index:number, paneId:string)
- *    - paneViewListAddList -- When multiple files are added to the working set 
- *          (fileAdded:Array.<File>, paneId:string)
- *    - paneViewListRemove -- When a file is removed from the working set 
- *          (fileRemoved:File, suppressRedraw:boolean, paneId:string)
- *    - paneViewListRemoveList -- When multiple files are removed from the working set 
- *          (filesRemoved:Array.<File>, paneId:string)
- *    - paneViewListSort -- When a pane's view array is reordered without additions or removals.
- *          (paneId:string)
- *    - paneViewListDisableAutoSorting -- When the working set is reordered by manually dragging a file. 
- *          (paneId:string) For Internal Use Only.
- *    - paneViewListUpdated -- When changes happen due to system events such as a file being deleted.
+ *    - paneViewAdd -- When a file is added to the working set 
+ *          (e, fileAdded:File, index:number, paneId:string)
+ *    - paneViewAddList -- When multiple files are added to the working set 
+ *          (e, fileAdded:Array.<File>, paneId:string)
+ *    - paneViewRemove -- When a file is removed from the working set 
+ *          (e, fileRemoved:File, suppressRedraw:boolean, paneId:string)
+ *    - paneViewRemoveList -- When multiple files are removed from the working set 
+ *          (e, filesRemoved:Array.<File>, paneId:string)
+ *    - paneViewSort -- When a pane's view array is reordered without additions or removals.
+ *          (e, paneId:string)
+ *    - paneViewUpdated -- When changes happen due to system events such as a file being deleted.
  *                              listeners should discard all working set info and rebuilt it from the pane 
  *                              by calling getViews()
- *          (paneId:string)
+ *          (e, paneId:string)
+ *    - _paneViewDisableAutoSort -- When the working set is reordered by manually dragging a file. 
+ *          (e, paneId:string) For Internal Use Only.
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(MainViewManager).on("eventname", handler);
@@ -634,7 +634,7 @@ define(function (require, exports, module) {
             entry = makeFileListEntry(file, pane.id);
 
         if (result === pane.ITEM_FOUND_NEEDS_SORT) {
-            $(exports).triggerHandler("paneViewListSort", [pane.id]);
+            $(exports).triggerHandler("paneViewSort", [pane.id]);
         } else if (result === pane.ITEM_NOT_FOUND) {
             index = pane.addToViewList(file, index);
 
@@ -645,7 +645,7 @@ define(function (require, exports, module) {
                 _mruList.push(entry);
             }
 
-            $(exports).triggerHandler("paneViewListAdd", [file, index, pane.id]);
+            $(exports).triggerHandler("paneViewAdd", [file, index, pane.id]);
         }
     }
 
@@ -668,7 +668,7 @@ define(function (require, exports, module) {
             _mruList.push(makeFileListEntry(file, pane.id));
         });
         
-        $(exports).triggerHandler("paneViewListAddList", [uniqueFileList, pane.id]);
+        $(exports).triggerHandler("paneViewAddList", [uniqueFileList, pane.id]);
         
         //  find all of the files that could be added but were not added to the pane that was passed to us
         var unsolvedList = fileList.filter(function (item) {
@@ -711,7 +711,7 @@ define(function (require, exports, module) {
 
         if (pane && pane.removeFromViewList(file)) {
             _removeFileFromMRU(pane.id, file);
-            $(exports).triggerHandler("paneViewListRemove", [file, suppressRedraw, pane.id]);
+            $(exports).triggerHandler("paneViewRemove", [file, suppressRedraw, pane.id]);
         }
     }
     
@@ -756,7 +756,7 @@ define(function (require, exports, module) {
         fileList.forEach(function (file) {
             _removeFileFromMRU(pane.id, file);
         });
-        $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
+        $(exports).triggerHandler("paneViewRemoveList", [fileList, pane.id]);
     }
 
     /**
@@ -803,7 +803,7 @@ define(function (require, exports, module) {
         });
         
         
-        $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
+        $(exports).triggerHandler("paneViewRemoveList", [fileList, pane.id]);
     }
     
     
@@ -877,7 +877,7 @@ define(function (require, exports, module) {
         var doSort = function (pane) {
             if (pane) {
                 pane.sortViewList(compareFn);
-                $(exports).triggerHandler("paneViewListSort", [pane.id]);
+                $(exports).triggerHandler("paneViewSort", [pane.id]);
             }
         };
         
@@ -901,8 +901,8 @@ define(function (require, exports, module) {
 
         if (pane) {
             pane.swapViewListIndexes(index1, index2);
-            $(exports).triggerHandler("paneViewListSort", [pane.id]);
-            $(exports).triggerHandler("paneViewListDisableAutoSorting", [pane.id]);
+            $(exports).triggerHandler("paneViewSort", [pane.id]);
+            $(exports).triggerHandler("_paneViewDisableAutoSort", [pane.id]);
         }
     }
     
@@ -1034,7 +1034,7 @@ define(function (require, exports, module) {
             
             firstPane.mergeWith(secondPane);
         
-            $(exports).triggerHandler("paneViewListRemoveList", [fileList, secondPane.id]);
+            $(exports).triggerHandler("paneViewRemoveList", [fileList, secondPane.id]);
 
             setActivePaneId(firstPane.id);
             
@@ -1044,7 +1044,7 @@ define(function (require, exports, module) {
             secondPane.destroy();
             delete _paneViews[SECOND_PANE];
             $(exports).triggerHandler("paneDestroyed", secondPane.id);
-            $(exports).triggerHandler("paneViewListAddList", [fileList, firstPane.id]);
+            $(exports).triggerHandler("paneViewAddList", [fileList, firstPane.id]);
 
             fileList.forEach(function (file) {
                 _mruList.forEach(function (record) {
@@ -1087,7 +1087,7 @@ define(function (require, exports, module) {
             });
 
             $(pane).on("viewListChanged.mainview", function () {
-                $(exports).triggerHandler("paneViewListUpdated", [pane.id]);
+                $(exports).triggerHandler("paneViewUpdated", [pane.id]);
             });
         }
         
@@ -1209,7 +1209,7 @@ define(function (require, exports, module) {
 
         if (pane.doRemoveView(file, !options.noOpenNextFile)) {
             _removeFileFromMRU(pane.id, file);
-            $(exports).triggerHandler("paneViewListRemove", [file, false, pane.id]);
+            $(exports).triggerHandler("paneViewRemove", [file, false, pane.id]);
             
             if (pane.id === _activePaneId) {
                 // when doRemoveView is called, it will open next file unless the option
@@ -1241,7 +1241,7 @@ define(function (require, exports, module) {
                     _removeFileFromMRU(pane.id, file);
                 });
 
-                $(exports).triggerHandler("paneViewListRemoveList", [closedList, pane.id]);
+                $(exports).triggerHandler("paneViewRemoveList", [closedList, pane.id]);
             });
         } else {
             var pane = _getPane(paneId);
@@ -1251,7 +1251,7 @@ define(function (require, exports, module) {
             });
             
             
-            $(exports).triggerHandler("paneViewListRemoveList", [closedList, pane.id]);
+            $(exports).triggerHandler("paneViewRemoveList", [closedList, pane.id]);
         }
         
         if (currentFileClosed) {
@@ -1275,7 +1275,7 @@ define(function (require, exports, module) {
                 });
                 
                 pane.doRemoveAllViews();
-                $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
+                $(exports).triggerHandler("paneViewRemoveList", [fileList, pane.id]);
             });
         } else {
             var pane = _getPane(paneId);
@@ -1284,7 +1284,7 @@ define(function (require, exports, module) {
                 _removeFileFromMRU(pane.id, file);
             });
             pane.doRemoveAllViews();
-            $(exports).triggerHandler("paneViewListRemoveList", [fileList, pane.id]);
+            $(exports).triggerHandler("paneViewRemoveList", [fileList, pane.id]);
         }
         
         if (paneId === _activePaneId || paneId === FOCUSED_PANE || paneId === ALL_PANES) {
@@ -1421,7 +1421,7 @@ define(function (require, exports, module) {
                     fileList.forEach(function (file) {
                         _mruList.push(makeFileListEntry(file, pane.id));
                     });
-                    $(exports).triggerHandler("paneViewListAddList", [fileList, pane.id]);
+                    $(exports).triggerHandler("paneViewAddList", [fileList, pane.id]);
                 });
             });
         }

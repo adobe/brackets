@@ -649,11 +649,11 @@ define(function (require, exports, module) {
      * process these events before the Extension Highlighter extension)
      */
     AppInit.extensionsLoaded(function () {
-        _deprecateEvent("workingSetAdd",         "paneViewListAdd");
-        _deprecateEvent("workingSetAddList",     "paneViewListAddList");
-        _deprecateEvent("workingSetRemove",      "paneViewListRemove");
-        _deprecateEvent("workingSetRemoveList",  "paneViewListRemoveList");
-        _deprecateEvent("workingSetSort",        "paneViewListSort");
+        _deprecateEvent("workingSetAdd",         "paneViewAdd");
+        _deprecateEvent("workingSetAddList",     "paneViewAddList");
+        _deprecateEvent("workingSetRemove",      "paneViewRemove");
+        _deprecateEvent("workingSetRemoveList",  "paneViewRemoveList");
+        _deprecateEvent("workingSetSort",        "paneViewSort");
     });
     
     PreferencesManager.convertPreferences(module, {"files_": "user"}, true, _checkPreferencePrefix);

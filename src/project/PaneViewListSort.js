@@ -78,7 +78,7 @@ define(function (require, exports, module) {
      * @constant {string} 
      * @private
      */
-    var _SORT_EVENT_NAMES = "paneViewListAdd paneViewListAddList";
+    var _SORT_EVENT_NAMES = "paneViewAdd paneViewAddList";
     
     /**
      * Preference name
@@ -177,7 +177,7 @@ define(function (require, exports, module) {
                 .on(_currentSort.getEvents(), function () {
                     _currentSort.sort();
                 })
-                .on("paneViewListDisableAutoSorting.sort", function () {
+                .on("_paneViewDisableAutoSort.sort", function () {
                     setAutomatic(false);
                 });
         }

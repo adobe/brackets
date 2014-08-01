@@ -35,12 +35,18 @@
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
  * This module dispatches the following events:
- *    - activeEditorChange --  Fires after the active editor (full or inline) changes and size/visibility
- *      are complete. Doesn't fire when editor temporarily loses focus to a non-editor
- *      control (e.g. search toolbar or modal dialog, or window deactivation). Does
- *      fire when focus moves between inline editor and its full-size container.
- *      This event tracks `getActiveEditor()` changes, while MainViewManagers's
- *      `currentFileChange` tracks `getCurrentFullEditor()` changes.
+ *    - activeEditorChange --  Fires after the active editor (full or inline). 
+ *
+ *      Doesn't fire when editor temporarily loses focus to a non-editor
+ *      control (e.g. search toolbar or modal dialog, or window deactivation). 
+ *
+ *      Does fire when focus moves between inline editor and its full-size container.
+ *
+ *      This event tracks `MainViewManagers's `currentFileChanged` event and all editor
+ *      objects "focus" event.
+ *
+ *          (e, editorGainingFocus:editor, editorLosingFocus:editor)
+ *
  *      The 2nd arg to the listener is which Editor became active; the 3rd arg is
  *      which Editor is deactivated as a result. Either one may be null.
  *      NOTE (#1257): `getFocusedEditor()` sometimes lags behind this event. Listeners
@@ -81,34 +87,9 @@ define(function (require, exports, module) {
     var _lastFocusedEditor = null;
     
     /**
-     * @typedef {Object} Coord
-     * @property {!number} x
-     * @property {!number} y
-     */
-     
-    /**
-     * @typedef {Object} LineChar
-     * @property {!number} line
-     * @property {!number} ch
-     */
-    
-    /**
-     * @typedef {Object} Selection
-     * @property {LineChar} start
-     * @property {LineChar} end
-     */
-    
-    
-    /**
-     * @typedef {Object} ViewState
-     * @property {Coord} scrollPos
-     * @property {Array.<Selection>} selections
-     */
-    
-    /**
      * Maps full path to scroll pos & cursor/selection info. Not kept up to date while an editor is current.
      * Only updated when switching / closing editor, or when requested explicitly via __getViewState().
-     * @type {Object.<string, ViewState>}
+     * @type {Object.<string,{scrollPos:{x:number, y:number},Array.<{start:{line:number, ch:number},end:{line:number, ch:number}>>}
      * @private
      */
     var _viewStateCache = {};
@@ -769,7 +750,7 @@ define(function (require, exports, module) {
     PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
 
     $(MainViewManager).on("currentFileChanged", _handleCurrentFileChanged);
-    $(MainViewManager).on("paneViewListRemove paneViewListRemoveList", _handleRemoveFromPaneView);
+    $(MainViewManager).on("paneViewRemove paneViewRemoveList", _handleRemoveFromPaneView);
 
     
     // For unit tests and internal use only

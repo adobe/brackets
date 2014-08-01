@@ -667,7 +667,7 @@ define(function (require, exports, module) {
     };
 
     /** 
-     * paneViewListAdd event handler
+     * paneViewAdd event handler
      * @private
      * @param {jQuery.Event} e - event object
      * @param {!File} fileAdded - the file that was added
@@ -681,7 +681,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * paneViewListAddList event handler
+     * paneViewAddList event handler
      * @private
      * @param {jQuery.Event} e - event object
      * @param {!Array.<File>} files - the files that were added
@@ -694,7 +694,7 @@ define(function (require, exports, module) {
     };
 
     /** 
-     * paneViewListRemove event handler
+     * paneViewRemove event handler
      * @private 
      * @param {jQuery.Event} e - event object
      * @param {!File} file - the file that was removed
@@ -721,7 +721,7 @@ define(function (require, exports, module) {
     };
 
     /** 
-     * paneViewListRemoveList event handler
+     * paneViewRemoveList event handler
      * @private
      * @param {jQuery.Event} e - event object
      * @param {!Array.<File>} files - the files that were removed
@@ -742,12 +742,12 @@ define(function (require, exports, module) {
     };
     
     /**
-     * paneViewListSort event handler
+     * paneViewSort event handler
      * @private
      * @param {jQuery.Event} e - event object
      * @param {!string} paneId - the id of the pane to sort
      */
-    PaneViewListView.prototype._handlePaneViewListSort = function (e, paneId) {
+    PaneViewListView.prototype._handlepaneViewSort = function (e, paneId) {
         if (!this.suppressSortRedraw && paneId === this.paneId) {
             this._rebuildViewList(true);
         }
@@ -768,12 +768,12 @@ define(function (require, exports, module) {
     };
     
     /**
-     * paneViewListUpdated event handler
+     * paneViewUpdated event handler
      * @private
      * @param {jQuery.Event} e - event object
      * @param {!string} paneId - the id of the pane to update
      */
-    PaneViewListView.prototype._handlePaneViewListUpdated = function (e, paneId) {
+    PaneViewListView.prototype._handlepaneViewUpdated = function (e, paneId) {
         if (this.paneId === paneId) {
             this._rebuildViewList(true);
         }
@@ -794,14 +794,14 @@ define(function (require, exports, module) {
         this.$openFilesList = this.$el.find("ul");
         
         // Register listeners
-        $(MainViewManager).on(this._makeEventName("paneViewListAdd"), _.bind(this._handleFileAdded, this));
-        $(MainViewManager).on(this._makeEventName("paneViewListAddList"), _.bind(this._handleFileListAdded, this));
-        $(MainViewManager).on(this._makeEventName("paneViewListRemove"), _.bind(this._handleFileRemoved, this));
-        $(MainViewManager).on(this._makeEventName("paneViewListRemoveList"), _.bind(this._handleRemoveList, this));
-        $(MainViewManager).on(this._makeEventName("paneViewListSort"), _.bind(this._handlePaneViewListSort, this));
+        $(MainViewManager).on(this._makeEventName("paneViewAdd"), _.bind(this._handleFileAdded, this));
+        $(MainViewManager).on(this._makeEventName("paneViewAddList"), _.bind(this._handleFileListAdded, this));
+        $(MainViewManager).on(this._makeEventName("paneViewRemove"), _.bind(this._handleFileRemoved, this));
+        $(MainViewManager).on(this._makeEventName("paneViewRemoveList"), _.bind(this._handleRemoveList, this));
+        $(MainViewManager).on(this._makeEventName("paneViewSort"), _.bind(this._handlepaneViewSort, this));
         $(MainViewManager).on(this._makeEventName("activePaneChanged"), _.bind(this._handleActivePaneChange, this));
         $(MainViewManager).on(this._makeEventName("paneLayoutChanged"), _.bind(this._handlePaneLayoutChange, this));
-        $(MainViewManager).on(this._makeEventName("paneViewListUpdated"), _.bind(this._handlePaneViewListUpdated, this));
+        $(MainViewManager).on(this._makeEventName("paneViewUpdated"), _.bind(this._handlepaneViewUpdated, this));
 
         $(DocumentManager).on(this._makeEventName("dirtyFlagChange"), _.bind(this._handleDirtyFlagChanged, this));
 
