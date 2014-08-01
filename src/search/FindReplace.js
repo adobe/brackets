@@ -48,7 +48,6 @@ define(function (require, exports, module) {
         FindUtils           = require("search/FindUtils"),
         FindInFilesUI       = require("search/FindInFilesUI"),
         ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
-        WorkspaceManager    = require("view/WorkspaceManager"),
         Resizer             = require("utils/Resizer"),
         StatusBar           = require("widgets/StatusBar"),
         PreferencesManager  = require("preferences/PreferencesManager"),
