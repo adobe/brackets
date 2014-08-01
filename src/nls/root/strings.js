@@ -515,7 +515,7 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {0} because it wasn't installed.",
     "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click on the Available tab above to get started.",
     "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "Be cautious when installing extensions from an unknown source.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "NOTE: These extensions may come from different authors than Brackets itself. Be cautious when installing extensions from an unknown source.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
