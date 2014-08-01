@@ -45,8 +45,8 @@ define(function (require, exports, module) {
      * Object with all default values that can be configure via the settings UI
      */
     var defaults = {
-        "customScrollbars": true,
-        "theme": "thor-light-theme"
+        "themeScrollbars": true,
+        "theme": "light-theme"
     };
 
 
@@ -70,7 +70,6 @@ define(function (require, exports, module) {
 
         result.fontFamily = ViewCommandHandlers.getFontFamily();
         result.fontSize   = ViewCommandHandlers.getFontSize();
-        result.lineHeight = ViewCommandHandlers.getLineHeight();
         return result;
     }
 
@@ -85,9 +84,13 @@ define(function (require, exports, module) {
         var $template       = $(Mustache.render(template, {"settings": currentSettings, "themes": themes, "Strings": Strings}));
 
         // Select the correct theme.
-        $template
-            .find("[value='" + currentSettings.theme + "']")
-            .attr("selected", "selected");
+        var $currentThemeOption = $template
+            .find("[value='" + currentSettings.theme + "']");
+        
+        if ($currentThemeOption.length === 0) {
+            $currentThemeOption = $template.find("[value='" + defaults.theme + "']");
+        }
+        $currentThemeOption.attr("selected", "selected");
 
         $template
             .find("[data-toggle=tab].default")
@@ -150,11 +153,11 @@ define(function (require, exports, module) {
      */
     function restore() {
         prefs.set("theme", defaults.theme);
-        prefs.set("customScrollbars", defaults.customScrollbars);
+        prefs.set("themeScrollbars", defaults.themeScrollbars);
     }
 
     prefs.definePreference("theme", "string", defaults.theme);
-    prefs.definePreference("customScrollbars", "boolean", defaults.customScrollbars);
+    prefs.definePreference("themeScrollbars", "boolean", defaults.themeScrollbars);
 
     exports._setThemes = setThemes;
     exports.restore    = restore;

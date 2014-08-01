@@ -21,20 +21,6 @@
 // Style definitions are from
 // https://github.com/chriskempson/tomorrow-theme/tree/master/Brackets
 
-
-// Brackets-specific default font and color definitions
-//@import url("brackets_colors.less");
-
-// Default theme -- all UI styling comes from variables in a theme
-// Themes can rely on variables defined above
-//@import url("brackets_theme_default.less");
-
-// Include Codemirror styling overrides so that we can overrides proper values
-// for the theme.  If you need to customize the tree, you also include jsTree.less
-// and even brackets_scrollbars.less
-//@import url("brackets_codemirror_override.less");
-
-
 /*
  * Brackets Default Theme
  *
@@ -50,44 +36,9 @@
 
 /* Define some variables used in multiple places */
 @background: #1d1f21;
-@foreground: #c5c8c6;
-@bc-color-step-size: 10%;
+@foreground: #ddd;
 
 /* Code Styling */
-
-/* Custom scrollbar colors */
-.platform-win & {
-    .CodeMirror-gutter-filler {
-        background-color: rgb(15, 15, 15);
-    }
-    // Note: when changing padding/margins, may need to adjust metrics in ScrollTrackMarkers.js
-
-    ::-webkit-scrollbar {
-        background-color: rgb(15, 15, 15);
-    }
-
-    ::-webkit-scrollbar-thumb {
-        box-shadow: 0 0 0 12px rgb(49, 49, 49) inset;
-    }
-    ::-webkit-scrollbar-thumb:hover,
-    ::-webkit-scrollbar-thumb:focus {
-        box-shadow: 0 0 0 12px rgb(89, 89, 89) inset;
-    }
-    ::-webkit-scrollbar-thumb:active {
-        box-shadow: 0 0 0 12px rgb(169, 169, 169) inset;
-    }
-}
-
-.platform-linux & {
-    ::-webkit-scrollbar-thumb {
-        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.24) inset;
-    }
-
-    ::-webkit-scrollbar-thumb:window-inactive {
-        box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.12) inset;
-    }
-}
-
 
 .CodeMirror, .CodeMirror-scroll {
     background-color: @background;
@@ -97,7 +48,7 @@
 .CodeMirror-focused .CodeMirror-activeline-background {
     background: #2f2f2f;
 }
-.show-line-padding .CodeMirror-focused .CodeMirror-activeline-background {
+&.show-line-padding .CodeMirror-focused .CodeMirror-activeline-background {
     box-shadow: inset 15px 0 0 0 #000;
 }
 
@@ -138,8 +89,8 @@
     border-right: none;
 }
 
-.CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt, .CodeMirror-linenumber {
-    color: #767676;
+.CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
+    color: #fff;
 }
 
 .CodeMirror .CodeMirror-selected {
@@ -169,4 +120,15 @@
 
 .inline-widget .CodeMirror, .inline-widget .CodeMirror-gutters {
     background: transparent;
+}
+
+/* Non-editor styling */
+
+#image-holder,
+#not-editor {
+    background-color: @background;
+}
+
+#image-holder {
+    color: @foreground;
 }

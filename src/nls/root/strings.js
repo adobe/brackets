@@ -429,7 +429,7 @@ define({
     
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Current Theme",
-    "CUSTOM_SCROLLBARS"                    : "Custom Scrollbars",
+    "USE_THEME_SCROLLBARS"                 : "Use Theme Scrollbars",
     "FONT_SIZE"                            : "Font Size",
     "FONT_FAMILY"                          : "Font Family",
     "LINE_HEIGHT"                          : "Line Height",
@@ -483,7 +483,7 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Extension Manager",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Unable to access the extension registry. Please try again later.",
-    "INSTALL_EXTENSION_DRAG"               : "Drag .zip in here or",
+    "INSTALL_EXTENSION_DRAG"               : "Drag .zip here or",
     "INSTALL_EXTENSION_DROP"               : "Drop .zip to install",
     "INSTALL_EXTENSION_DROP_ERROR"         : "Install/Update aborted due to the following errors:",
     "INSTALL_FROM_URL"                     : "Install from URL\u2026",
