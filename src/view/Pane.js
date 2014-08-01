@@ -391,7 +391,7 @@ define(function (require, exports, module) {
      * Adds the given file to the end of the pane view list, if it is not already in the list
      * @private
      * @param {!File} file
-     * @param {Object=} inPlace record with inPlance add data (index, indexRequested). Used internally
+     * @param {Object=} inPlace record with inPlace add data (index, indexRequested). Used internally
      */
     Pane.prototype._addToViewList = function (file, inPlace) {
         if (inPlace && inPlace.indexRequested) {
