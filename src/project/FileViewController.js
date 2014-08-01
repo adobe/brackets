@@ -158,7 +158,7 @@ define(function (require, exports, module) {
 
         _fileSelectionFocus = fileSelectionFocus;
 
-        paneId = (paneId || MainViewManager.FOCUSED_PANE);
+        paneId = (paneId || MainViewManager.ACTIVE_PANE);
         
         // If fullPath corresonds to the current doc being viewed then opening the file won't
         // trigger a currentFileChanged event, so we need to trigger a documentSelectionFocusChange 
@@ -184,7 +184,7 @@ define(function (require, exports, module) {
      * Opens the specified document if it's not already open, adds it to the working set,
      * and selects it in the PaneViewListView
      * @param {!fullPath}
-     * @param {string=} paneId - Pane in which to add the view.  If omitted, the command default is to use the FOCUSED_PANE 
+     * @param {string=} paneId - Pane in which to add the view.  If omitted, the command default is to use the ACTIVE_PANE 
      * @return {!$.Promise}
      */
     function addToPaneViewAndSelect(fullPath, paneId) {

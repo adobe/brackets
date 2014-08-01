@@ -1015,7 +1015,7 @@ define(function (require, exports, module) {
                     initInlineTest("test1.html", 0);
                     
                     runs(function () {
-                        var i = MainViewManager.findView(MainViewManager.FOCUSED_PANE, infos["test1.css"].fileEntry.fullPath);
+                        var i = MainViewManager.findView(MainViewManager.ACTIVE_PANE, infos["test1.css"].fileEntry.fullPath);
                         expect(i).toEqual(-1);
                     });
                 });
@@ -1038,7 +1038,7 @@ define(function (require, exports, module) {
                             inlineEditor.getCursorPos()
                         );
                         
-                        var i = MainViewManager.findView(MainViewManager.FOCUSED_PANE, infos["test1.css"].fileEntry.fullPath);
+                        var i = MainViewManager.findView(MainViewManager.ACTIVE_PANE, infos["test1.css"].fileEntry.fullPath);
                         expect(i).toEqual(1);
 
                         inlineEditor = null;
@@ -1064,7 +1064,7 @@ define(function (require, exports, module) {
                         );
                         
                         // activate the full editor
-                        MainViewManager.edit(MainViewManager.FOCUSED_PANE, cssDoc);
+                        MainViewManager.edit(MainViewManager.ACTIVE_PANE, cssDoc);
                         fullEditor = EditorManager.getCurrentFullEditor();
                         
                         // sanity check
@@ -1114,7 +1114,7 @@ define(function (require, exports, module) {
                         inlineEditor = hostEditor.getInlineWidgets()[0].editor;
                         
                         // activate the full editor
-                        MainViewManager.edit(MainViewManager.FOCUSED_PANE, cssDoc);
+                        MainViewManager.edit(MainViewManager.ACTIVE_PANE, cssDoc);
                         fullEditor = EditorManager.getCurrentFullEditor();
                         
                         // alias offsets to nice names
@@ -1509,7 +1509,7 @@ define(function (require, exports, module) {
                         inlineEditor = hostEditor.getInlineWidgets()[0].editor;
                         
                         // activate the full editor
-                        MainViewManager.edit(MainViewManager.FOCUSED_PANE, cssDoc);
+                        MainViewManager.edit(MainViewManager.ACTIVE_PANE, cssDoc);
                         fullEditor = EditorManager.getCurrentFullEditor();
                     });
                 });
@@ -1579,7 +1579,7 @@ define(function (require, exports, module) {
                         return testDoc;
                     };
                     
-                    testMainViewManager.edit(testMainViewManager.FOCUSED_PANE, testDoc);
+                    testMainViewManager.edit(testMainViewManager.ACTIVE_PANE, testDoc);
                 });
             });
             

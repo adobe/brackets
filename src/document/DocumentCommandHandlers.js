@@ -135,7 +135,7 @@ define(function (require, exports, module) {
      */
     function _updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
-            currentlyViewedPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE),
+            currentlyViewedPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE),
             windowTitle = brackets.config.app_title;
 
         if (!brackets.nativeMenus) {
@@ -210,7 +210,7 @@ define(function (require, exports, module) {
      * Handles currentFileChanged and filenameChanged events and updates the titlebar
      */
     function handleCurrentFileChange() {
-        var newFile = MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE);
+        var newFile = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
         
         if (newFile) {
             var newDocument = DocumentManager.getOpenDocumentForPath(newFile.fullPath);
@@ -244,7 +244,7 @@ define(function (require, exports, module) {
      * Creates a document and displays an editor for the specified file path.
      * @param {!string} fullPath
      * @param {boolean=} silent If true, don't show error message
-     * @param {string=} pane, must be a valid pane id or FOCUSED_PANE
+     * @param {string=} pane, must be a valid pane id or ACTIVE_PANE
      * @return {$.Promise} a jQuery promise that will either
      * - be resolved with a document for the specified file path or
      * - be rejected if the file can not be read.
@@ -256,8 +256,8 @@ define(function (require, exports, module) {
         // TODO should be removed once bug is closed.
         // if we are already displaying a file do nothing but resolve immediately.
         // this fixes timing issues in test cases.
-        if (MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE) === fullPath) {
-            result.resolve(MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE));
+        if (MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE) === fullPath) {
+            result.resolve(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE));
             return result.promise();
         }
         
@@ -319,7 +319,7 @@ define(function (require, exports, module) {
      */
     function _doOpenWithOptionalPath(fullPath, silent, paneId) {
         var result;
-        paneId = paneId || MainViewManager.FOCUSED_PANE;
+        paneId = paneId || MainViewManager.ACTIVE_PANE;
         if (!fullPath) {
             // Create placeholder deferred
             result = new $.Deferred();
@@ -391,13 +391,13 @@ define(function (require, exports, module) {
      * @param {{!fullPath:string}, {silent:boolean}, {paneId:string}} Params for FILE_OPEN command;
      * the fullPath string is of the form "path[:lineNumber[:columnNumber]]"
      * lineNumber and columnNumber are 1-origin: the very first line is line 1, and the very first column is column 1.
-     * paneId if omitted will be the FOCUSED_PANE
+     * paneId if omitted will be the ACTIVE_PANE
      * @return {$.Promise} a jQuery promise that will be resolved with a document object
      */
     function handleFileOpen(commandData) {
         var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
             silent = (commandData && commandData.silent) || false,
-            paneId = (commandData && commandData.paneId) || MainViewManager.FOCUSED_PANE,
+            paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE,
             result = new $.Deferred();
         
         _doOpenWithOptionalPath(fileInfo.path, silent, paneId)
@@ -448,7 +448,7 @@ define(function (require, exports, module) {
             // addView is synchronous
             // When opening a file with a custom viewer, we get a null doc.
             // So check it before we add it to the pane view list.
-            var paneId = (commandData && commandData.paneId) || MainViewManager.FOCUSED_PANE;
+            var paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
             MainViewManager.addView(paneId, doc.file, commandData.index, commandData.forceRedraw);
         });
     }
@@ -549,7 +549,7 @@ define(function (require, exports, module) {
         var defaultExtension = "";  // disable preference setting for now
         
         var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, defaultExtension);
-        MainViewManager.edit(MainViewManager.FOCUSED_PANE, doc);
+        MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
         
         return new $.Deferred().resolve(doc).promise();
     }
@@ -1002,7 +1002,7 @@ define(function (require, exports, module) {
         var file,
             promptOnly,
             _forceClose,
-            paneId = MainViewManager.FOCUSED_PANE;
+            paneId = MainViewManager.ACTIVE_PANE;
         
         if (commandData) {
             file        = commandData.file;
@@ -1022,7 +1022,7 @@ define(function (require, exports, module) {
         
         // Default to current document if doc is null
         if (!file) {
-            file = MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE);
+            file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
         }
         
         // No-op if called when nothing is open; TODO: (issue #273) should command be grayed out instead?
@@ -1384,7 +1384,7 @@ define(function (require, exports, module) {
 
     /** Show in File Tree command handler **/
     function handleShowInTree() {
-        ProjectManager.showInTree(MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE));
+        ProjectManager.showInTree(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE));
     }
 
     /** Delete file command handler  **/

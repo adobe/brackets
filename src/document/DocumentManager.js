@@ -143,7 +143,7 @@ define(function (require, exports, module) {
      * @return {?Document}
      */
     function getCurrentDocument() {
-        var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.FOCUSED_PANE);
+        var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
         
         if (file) {
             return getOpenDocumentForPath(file.fullPath);
@@ -175,7 +175,7 @@ define(function (require, exports, module) {
             DeprecationWarning.deprecationWarning("DocumentManager.findInWorkingSet() no longer supports an arbitrary array", true);
             return [];
         }
-        return MainViewManager.findView(MainViewManager.FOCUSED_PANE, fullPath);
+        return MainViewManager.findView(MainViewManager.ACTIVE_PANE, fullPath);
     }
     
     /**
@@ -206,7 +206,7 @@ define(function (require, exports, module) {
      */
     function addToWorkingSet(file, index, forceRedraw) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.addView() instead of DocumentManager.addToWorkingSet()", true);
-        MainViewManager.addView(MainViewManager.FOCUSED_PANE, file, index, forceRedraw);
+        MainViewManager.addView(MainViewManager.ACTIVE_PANE, file, index, forceRedraw);
     }
     
     /**
@@ -221,7 +221,7 @@ define(function (require, exports, module) {
      */
     function addListToWorkingSet(fileList) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.addViews() instead of DocumentManager.addListToWorkingSet()", true);
-        MainViewManager.addViews(MainViewManager.FOCUSED_PANE, fileList);
+        MainViewManager.addViews(MainViewManager.ACTIVE_PANE, fileList);
     }
     
     /**
@@ -274,7 +274,7 @@ define(function (require, exports, module) {
      */
     function setCurrentDocument(doc) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.edit() instead of DocumentManager.setCurrentDocument()", true);
-        var result = MainViewManager.edit(MainViewManager.FOCUSED_PANE, doc);
+        var result = MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
         return result;
     }
 
@@ -594,7 +594,7 @@ define(function (require, exports, module) {
         .on("_dirtyFlagChange", function (event, doc) {
             $(exports).triggerHandler("dirtyFlagChange", doc);
             if (doc.isDirty) {
-                MainViewManager.addView(MainViewManager.FOCUSED_PANE, doc.file);
+                MainViewManager.addView(MainViewManager.ACTIVE_PANE, doc.file);
             }
         })
         .on("_documentSaved", function (event, doc) {

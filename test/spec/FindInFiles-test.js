@@ -1468,7 +1468,7 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     runs(function () {
-                        MainViewManager.addView(MainViewManager.FOCUSED_PANE, FileSystem.getFileForPath(testPath + "/css/foo.css"));
+                        MainViewManager.addView(MainViewManager.ACTIVE_PANE, FileSystem.getFileForPath(testPath + "/css/foo.css"));
                     });
 
                     doInMemoryTest({

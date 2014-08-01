@@ -930,7 +930,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // save the file opened above to a different filename
-                    MainViewManager.edit(MainViewManager.FOCUSED_PANE, targetDoc);
+                    MainViewManager.edit(MainViewManager.ACTIVE_PANE, targetDoc);
                     spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
@@ -1122,7 +1122,7 @@ define(function (require, exports, module) {
                     expect(EditorManager.getActiveEditor()).toEqual(null);
                     expect(EditorManager.getCurrentFullEditor()).toEqual(null);
                     expect(EditorManager.getFocusedEditor()).toEqual(null);
-                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE)).toEqual(path);
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)).toEqual(path);
                     var d = DocumentManager.getCurrentDocument();
                     expect(d).toEqual(null);
                 });

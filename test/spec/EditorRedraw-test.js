@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         var testEditor, testDoc, $root;
         beforeEach(function () {
             testDoc = SpecRunnerUtils.createMockDocument("");
-            MainViewManager.edit(MainViewManager.FOCUSED_PANE, testDoc);
+            MainViewManager.edit(MainViewManager.ACTIVE_PANE, testDoc);
             testEditor = testDoc._masterEditor;
             $root = $(testEditor.getRootElement());
             WorkspaceManager._setMockDOM($("#mock-main-view"), testEditor.$editorHolder);

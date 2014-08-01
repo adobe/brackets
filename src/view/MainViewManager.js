@@ -28,14 +28,14 @@
  * MainViewManager Manages the arrangement of all open panes as well as provides the controller
  * logic behind all views in the MainView (e.g. ensuring that a file doesn't appear in 2 lists)
  *
- * Each pane contain one or more views wich are  are created by a view factory and inserted into a pane list. 
+ * Each pane contains one or more views wich are created by a view factory and inserted into a pane list. 
  * There may be several panes managed  by the MainViewManager with each pane containing a list of views.  
  * The panes are always visible and  the layout is determined by the MainViewManager and the user.  
  *
  * Currently we support only 2 panes.
  *
  * All of the PaneViewList APIs take a paneId Argument.  This can be an actual pane Id, ALL_PANES (in most cases) 
- * or FOCUSED_PANE. 
+ * or ACTIVE_PANE. ALL_PANES may not be supported for some APIs.  See the API for details.
  *
  * This module dispatches several events:
  *
@@ -122,24 +122,42 @@ define(function (require, exports, module) {
      */
     var OLD_PREFS_NAME      = "project.files";
     
-    /** @const **/
+    /** 
+     * Special paneId shortcut that can be used to specify that
+     * all panes should be targeted by the API.  
+     * Not all APIs support this constnant. 
+     * Check the API documentation before use.
+     * @const
+     */
     var ALL_PANES           = "ALL_PANES";
 
-    /** @const **/
-    var FOCUSED_PANE        = "FOCUSED_PANE";
+    /** 
+     * Special paneId shortcut that can be used to specify that
+     * the API should target the focused pane only.  
+     * All APIs support this shortcut.
+     * @const
+     */
+    var ACTIVE_PANE        = "ACTIVE_PANE";
         
     /** 
+     * Internal pane id
      * @const
      * @private
      */
     var FIRST_PANE          = "first-pane";
 
     /** 
+     * Internal pane id
      * @const
      * @private
      */
     var SECOND_PANE         = "second-pane";
     
+    /*
+     * NOTE: The following commands and constants will change 
+     *        when implementing the UX UI Treatment @larz0
+     */
+
     /** 
      * @const
      * @private
@@ -152,7 +170,6 @@ define(function (require, exports, module) {
      */
     var HORIZONTAL          = "HORIZONTAL";
     
-
     /**
      * Command Object for splitting vertically
      * @type {!Command}
@@ -254,7 +271,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _getPane(paneId) {
-        if (!paneId || paneId === FOCUSED_PANE) {
+        if (!paneId || paneId === ACTIVE_PANE) {
             paneId = getActivePaneId();
         }
         
@@ -269,7 +286,7 @@ define(function (require, exports, module) {
      * Focuses the current pane. If the current pane has a current view, then the pane will focus the view.
      */
     function focusActivePane() {
-        _getPane(FOCUSED_PANE).focus();
+        _getPane(ACTIVE_PANE).focus();
     }
     
     /**
@@ -279,13 +296,13 @@ define(function (require, exports, module) {
     function setActivePaneId(newPaneId) {
         if (_paneViews.hasOwnProperty(newPaneId) && (newPaneId !== _activePaneId)) {
             var oldPaneId = _activePaneId,
-                oldPane = _getPane(FOCUSED_PANE),
+                oldPane = _getPane(ACTIVE_PANE),
                 newPane = _getPane(newPaneId);
             
             _activePaneId = newPaneId;
             
             $(exports).triggerHandler("activePaneChanged", [newPaneId, oldPaneId]);
-            $(exports).triggerHandler("currentFileChanged", [_getPane(FOCUSED_PANE).getCurrentlyViewedFile(), newPaneId, oldPane.getCurrentlyViewedFile(), oldPaneId]);
+            $(exports).triggerHandler("currentFileChanged", [_getPane(ACTIVE_PANE).getCurrentlyViewedFile(), newPaneId, oldPane.getCurrentlyViewedFile(), oldPaneId]);
             
             oldPane.notifySetActive(false);
             newPane.notifySetActive(true);
@@ -381,7 +398,7 @@ define(function (require, exports, module) {
     /**
      * Caches the specified pane's current scroll state
      * If there was already cached state for the specified pane, it is discarded and overwritten
-     * @param {!string} paneId - id of the pane in which to cache the scroll state, ALL_PANES or FOCUSED_PANE
+     * @param {!string} paneId - id of the pane in which to cache the scroll state, ALL_PANES or ACTIVE_PANE
      */
     function cacheScrollState(paneId) {
         if (paneId === ALL_PANES) {
@@ -402,7 +419,7 @@ define(function (require, exports, module) {
      * This is used primarily when a modal bar opens to keep the  editor from scrolling the current page out
      * of view in order to maintain the appearance. 
      * The state is removed from the cache after calling this function.  
-     * @param {!string} paneId - id of the pane in which to adjust the scroll state, ALL_PANES or FOCUSED_PANE
+     * @param {!string} paneId - id of the pane in which to adjust the scroll state, ALL_PANES or ACTIVE_PANE
      * @param {!number} heightDelta - delta H to apply to the scroll state
      */
     function restoreAdjustedScrollState(paneId, heightDelta) {
@@ -425,7 +442,7 @@ define(function (require, exports, module) {
     
     /**
      * Retrieves the PaneViewList for the given PaneId
-     * @param {!string} paneId - id of the pane in which to get the view list, ALL_PANES or FOCUSED_PANE
+     * @param {!string} paneId - id of the pane in which to get the view list, ALL_PANES or ACTIVE_PANE
      * @return {Array.<File>}
      */
     function getViews(paneId) {
@@ -473,7 +490,7 @@ define(function (require, exports, module) {
     
     /**
      * Retrieves the size of the selected pane's view list
-     * @param {!string} paneId - id of the pane in which to get the pane view list size, ALL_PANES or FOCUSED_PANE
+     * @param {!string} paneId - id of the pane in which to get the pane view list size, ALL_PANES or ACTIVE_PANE
      * @return {!number} the number of items in the specified pane 
      */
     function getViewCount(paneId) {
@@ -550,7 +567,7 @@ define(function (require, exports, module) {
     
     /**
      * Gets the index of the file matching fullPath in the pane view list
-     * @param {!string} paneId - id of the pane in which to search or ALL_PANES or FOCUSED_PANE
+     * @param {!string} paneId - id of the pane in which to search or ALL_PANES or ACTIVE_PANE
      * @param {!string} fullPath - full path of the file to search for
      * @return {number} index, -1 if not found.
      */
@@ -560,7 +577,7 @@ define(function (require, exports, module) {
     
     /**
      * Gets the index of the file matching fullPath in the added order pane view list
-     * @param {!string} paneId - id of the pane in which to search or ALL_PANES or FOCUSED_PANE
+     * @param {!string} paneId - id of the pane in which to search or ALL_PANES or ACTIVE_PANE
      * @param {!string} fullPath - full path of the file to search for
      * @return {number} index, -1 if not found.
      */
@@ -570,7 +587,7 @@ define(function (require, exports, module) {
     
     /**
      * Gets the index of the file matching fullPath in the MRU order pane view list
-     * @param {!string} paneId - id of the pane in which to search or ALL_PANES or FOCUSED_PANE
+     * @param {!string} paneId - id of the pane in which to search or ALL_PANES or ACTIVE_PANE
      * @param {!string} fullPath - full path of the file to search for
      * @return {number} index, -1 if not found.
      */
@@ -606,7 +623,7 @@ define(function (require, exports, module) {
     
     /**
      * Adds the given file to the end of the pane view list, if it is not already in the list
-     * @param {!string} paneId - The id of the pane in which to add the file object to or FOCUSED_PANE
+     * @param {!string} paneId - The id of the pane in which to add the file object to or ACTIVE_PANE
      * @param {!File} file - The File object to add
      * @param {number=} index - Position to add to list (defaults to last); -1 is ignored
      * @param {boolean=} forceRedraw - If true, a pane view list change notification is always sent
@@ -651,7 +668,7 @@ define(function (require, exports, module) {
 
     /**
      * Adds the given file list to the end of the pane view list.
-     * @param {!string} paneId - The id of the pane in which to add the file object to or FOCUSED_PANE
+     * @param {!string} paneId - The id of the pane in which to add the file object to or ACTIVE_PANE
      * @param {!Array.<File>} fileList
      */
     function addViews(paneId, fileList) {
@@ -684,7 +701,10 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @todo
+     * Removes a file from the global MRU list. Future versions of this 
+     *  implementation may support the ALL_PANES constant but FOCUS_PANE is not allowed
+     * @param {!string} paneId - Must be a valid paneId (not a shortcut e.g. ALL_PANES)
+     @ @param {File} file The file object to remove.
      * @private
      */
     function _removeFileFromMRU(paneId, file) {
@@ -703,7 +723,11 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @todo
+     * Removes a file the specified pane
+     * @param {!string} paneId - Must be a valid paneId (not a shortcut e.g. ALL_PANES)
+     * @param {!File} file - the File to remove
+     * @param {boolean=} suppressRedraw - true to tell listeners not to redraw 
+     *          Use the suppressRedraw flag when calling this function along with many changes to prevent flicker
      * @private
      */
     function _removeView(paneId, file, suppressRedraw) {
@@ -721,7 +745,7 @@ define(function (require, exports, module) {
      *   Will show the interstitial page if the current file is closed 
      *       even if there are  other files in which to show
      *   Does not prompt for unsaved changes
-     * @param {!string} paneId - the  Pane with which the caller wants to remove, ALL_PANES or FOCUSED_PANE
+     * @param {!string} paneId - the  Pane with which the caller wants to remove, ALL_PANES or ACTIVE_PANE
      * @param {File} file - file to close 
      */
     function removeView(paneId, file, suppressRedraw) {
@@ -736,7 +760,7 @@ define(function (require, exports, module) {
     
     /**
      * Remove list helper
-     * @param {!string} paneId - the  Pane with which the caller wants to remove, ALL_PANES or FOCUSED_PANE
+     * @param {!string} paneId - the  Pane with which the caller wants to remove, ALL_PANES or ACTIVE_PANE
      * @param {Array.<File>} file list
      * @private
      */
@@ -765,7 +789,7 @@ define(function (require, exports, module) {
      *   Will show the interstitial page if the current file is closed 
      *       even if there are  other files in which to show
      *   Does not prompt for unsaved changes
-     * @param {!string} paneId - the  Pane with which the caller wants to remove, ALL_PANES or FOCUSED_PANE
+     * @param {!string} paneId - the  Pane with which the caller wants to remove, ALL_PANES or ACTIVE_PANE
      * @param {Array.<File>} file list
      */
     function removeViews(paneId, list) {
@@ -813,7 +837,7 @@ define(function (require, exports, module) {
      *   Will show the interstitial page if the current file is closed 
      *       even if there are  other files in which to show
      *   Does not prompt for unsaved changes
-     * @param {!string} paneId - id of the pane to remove all, ALL_PANES or FOCUSED_PANE
+     * @param {!string} paneId - id of the pane to remove all, ALL_PANES or ACTIVE_PANE
      */
     function removeAllViews(paneId) {
         if (paneId === ALL_PANES) {
@@ -827,7 +851,7 @@ define(function (require, exports, module) {
     
     /**
      * Makes the file the most recent for the selected pane's view list
-     * @param {!string} paneId - id of the pane to mae th file most recent or FOCUSED_PANE
+     * @param {!string} paneId - id of the pane to mae th file most recent or ACTIVE_PANE
      * @param {!File} file - File object to make most recent
      */
     function _makePaneViewMostRecent(paneId, file) {
@@ -868,7 +892,7 @@ define(function (require, exports, module) {
     
     /**
      * sorts the pane's view list 
-     * @param {!string} paneId - id of the pane to sort, ALL_PANES or FOCUSED_PANE
+     * @param {!string} paneId - id of the pane to sort, ALL_PANES or ACTIVE_PANE
      * @param {sortFunctionCallback} compareFn - callback to determine sort order (called on each item)
      * @see {@link Pane.sortViewList()} for more information
      * @see {@link https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort|Sort Array - MDN}
@@ -892,7 +916,7 @@ define(function (require, exports, module) {
 
     /**
      * Mutually exchanges the files at the indexes passed by parameters.
-     * @param {!string} paneId - id of the pane to swap indices or FOCUSED_PANE
+     * @param {!string} paneId - id of the pane to swap indices or ACTIVE_PANE
      * @param {!number} index1 - the index on the left
      * @param {!number} index2 - the index on the rigth
      */
@@ -970,7 +994,7 @@ define(function (require, exports, module) {
      * Whatever file is current is bumped to the front of the MRU list.
      */
     function endTraversal() {
-        var pane = _getPane(FOCUSED_PANE);
+        var pane = _getPane(ACTIVE_PANE);
         
         if (_traversingFileList) {
             _traversingFileList = false;
@@ -1116,7 +1140,7 @@ define(function (require, exports, module) {
      */
     function edit(paneId, doc, optionsIn) {
         var currentPaneId = getPaneIdForPath(doc.file.fullPath),
-            oldPane = _getPane(FOCUSED_PANE),
+            oldPane = _getPane(ACTIVE_PANE),
             oldFile = oldPane.getCurrentlyViewedFile(),
             options = optionsIn || {};
             
@@ -1231,7 +1255,7 @@ define(function (require, exports, module) {
      */
     function closeList(paneId, fileList) {
         var closedList,
-            currentFile = _getPane(FOCUSED_PANE).getCurrentlyViewedFile(),
+            currentFile = _getPane(ACTIVE_PANE).getCurrentlyViewedFile(),
             currentFileClosed = currentFile ? (fileList.indexOf(currentFile) !== -1) : false;
 
         if (paneId === ALL_PANES) {
@@ -1255,7 +1279,7 @@ define(function (require, exports, module) {
         }
         
         if (currentFileClosed) {
-            $(exports).triggerHandler("currentFileChanged", [_getPane(FOCUSED_PANE).getCurrentlyViewedFile(), _activePaneId, currentFile, _activePaneId]);
+            $(exports).triggerHandler("currentFileChanged", [_getPane(ACTIVE_PANE).getCurrentlyViewedFile(), _activePaneId, currentFile, _activePaneId]);
         }
     }
     
@@ -1265,7 +1289,7 @@ define(function (require, exports, module) {
      */
     function closeAll(paneId, options) {
         var fileList,
-            currentFile = _getPane(FOCUSED_PANE).getCurrentlyViewedFile();
+            currentFile = _getPane(ACTIVE_PANE).getCurrentlyViewedFile();
         
         if (paneId === ALL_PANES) {
             _.forEach(_paneViews, function (pane) {
@@ -1287,7 +1311,7 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("paneViewRemoveList", [fileList, pane.id]);
         }
         
-        if (paneId === _activePaneId || paneId === FOCUSED_PANE || paneId === ALL_PANES) {
+        if (paneId === _activePaneId || paneId === ACTIVE_PANE || paneId === ALL_PANES) {
             $(exports).triggerHandler("currentFileChanged", [null, _activePaneId, currentFile, _activePaneId]);
         }
         
@@ -1631,5 +1655,5 @@ define(function (require, exports, module) {
     
     // Constants
     exports.ALL_PANES                   = ALL_PANES;
-    exports.FOCUSED_PANE                = FOCUSED_PANE;
+    exports.ACTIVE_PANE                = ACTIVE_PANE;
 });

@@ -54,7 +54,7 @@ define(function (require, exports, module) {
     CommandManager.register("test-file-open", Commands.FILE_OPEN, function (fileInfo) {
         // Register a command for FILE_OPEN, which the jump to def code will call
         return DocumentManager.getDocumentForPath(fileInfo.fullPath).done(function (doc) {
-            MainViewManager.edit(MainViewManager.FOCUSED_PANE, doc);
+            MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
         });
     });
     

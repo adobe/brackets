@@ -128,11 +128,11 @@ define(function (require, exports, module) {
     
    
     /** 
-     * Retrieves the visible full-size Editor for the currently opened file in the FOCUSED_PANE
+     * Retrieves the visible full-size Editor for the currently opened file in the ACTIVE_PANE
      * @return {?Editor} editor of the current view or null
      */
     function getCurrentFullEditor() {
-        var currentPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE),
+        var currentPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE),
             doc;
         
         if (currentPath) {
@@ -513,7 +513,7 @@ define(function (require, exports, module) {
         
         // We only want to return a path of a document object
         // not other things like images, etc...
-        var currentPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE),
+        var currentPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE),
             doc;
         
         if (currentPath) {

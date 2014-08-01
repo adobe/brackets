@@ -206,7 +206,7 @@ define(function (require, exports, module) {
             var didClose = false;
             
             // make 2nd doc clean
-            var fileList = MainViewManager.getViews(MainViewManager.FOCUSED_PANE);
+            var fileList = MainViewManager.getViews(MainViewManager.ACTIVE_PANE);
 
             runs(function () {
                 var doc0 = DocumentManager.getOpenDocumentForPath(fileList[0].fullPath);
@@ -214,7 +214,7 @@ define(function (require, exports, module) {
                 doc1._markClean();
                 
                 // make the first one active
-                MainViewManager.edit(MainViewManager.FOCUSED_PANE, doc0);
+                MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc0);
 
                 // hover over and click on close icon of 2nd list item
                 var secondItem =  $($(".open-files-container > ul").children()[1]);
@@ -242,7 +242,7 @@ define(function (require, exports, module) {
         it("should remove dirty icon when file becomes clean", function () {
             runs(function () {
                 // check that dirty icon is removed when docs are cleaned
-                var fileList = MainViewManager.getViews(MainViewManager.FOCUSED_PANE);
+                var fileList = MainViewManager.getViews(MainViewManager.ACTIVE_PANE);
                 var doc0 = DocumentManager.getOpenDocumentForPath(fileList[0].fullPath);
                 doc0._markClean();
                 

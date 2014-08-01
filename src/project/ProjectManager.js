@@ -311,7 +311,7 @@ define(function (require, exports, module) {
     }
     
     function _documentSelectionFocusChange() {
-        var curFullPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE);
+        var curFullPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE);
         if (curFullPath && _hasFileSelectionFocus()) {
             var nodeFound = $("#project-files-container li").is(function (index) {
                 var $treeNode = $(this),
@@ -1834,9 +1834,9 @@ define(function (require, exports, module) {
         var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
         entry.rename(newName, function (err) {
             if (!err) {
-                if (MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE)) {
+                if (MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)) {
                     FileViewController.openAndSelectDocument(
-                        MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE),
+                        MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE),
                         FileViewController.getFileSelectionFocus()
                     );
                 }

@@ -1283,10 +1283,10 @@ define(function LiveDevelopment(require, exports, module) {
 
             if (doc && !doc._masterEditor) {
                 otherDocumentsInWorkingFiles = MainViewManager.getViews(MainViewManager.ALL_PANES).length;
-                MainViewManager.addView(MainViewManager.FOCUSED_PANE, doc.file);
+                MainViewManager.addView(MainViewManager.ACTIVE_PANE, doc.file);
 
                 if (!otherDocumentsInWorkingFiles) {
-                    MainViewManager.edit(MainViewManager.FOCUSED_PANE, doc);
+                    MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
                 }
             }
 

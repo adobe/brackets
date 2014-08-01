@@ -79,7 +79,7 @@ define(function (require, exports, module) {
             // create Editor instance (containing a CodeMirror instance)
             runs(function () {
                 testEditor = createMockEditor(testDocument);
-                MasterMainViewManager.edit(MasterMainViewManager.FOCUSED_PANE, testDocument);
+                MasterMainViewManager.edit(MasterMainViewManager.ACTIVE_PANE, testDocument);
             });
         }
         
@@ -337,7 +337,7 @@ define(function (require, exports, module) {
                 }, "Unable to open test document", 2000);
 
                 runs(function () {
-                    MainViewManager.edit(MainViewManager.FOCUSED_PANE, testDocument);
+                    MainViewManager.edit(MainViewManager.ACTIVE_PANE, testDocument);
                     testEditor = EditorManager.getCurrentFullEditor();
                     testEditor.setCursorPos({ line: 22, ch: 12 });
                     CommandManager.execute(Commands.SHOW_CODE_HINTS);

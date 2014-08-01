@@ -129,12 +129,12 @@ define(function (require, exports, module) {
 
 
         function runCloseOthers() {
-            var ws = MainViewManager.getViews(MainViewManager.FOCUSED_PANE),
+            var ws = MainViewManager.getViews(MainViewManager.ACTIVE_PANE),
                 promise;
 
             if (ws.length > docSelectIndex) {
                 DocumentManager.getDocumentForPath(ws[docSelectIndex].fullPath).done(function (doc) {
-                    MainViewManager.edit(MainViewManager.FOCUSED_PANE, doc);
+                    MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
                 });
 
                 runs(function () {
@@ -142,7 +142,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, cmdToRun);
                 });
                 runs(function () {
-                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.FOCUSED_PANE)).toEqual(ws[docSelectIndex].fullPath, "Path of document in editor after close others command should be the document that was selected");
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)).toEqual(ws[docSelectIndex].fullPath, "Path of document in editor after close others command should be the document that was selected");
                 });
             }
         }
@@ -154,7 +154,7 @@ define(function (require, exports, module) {
             runCloseOthers();
             
             runs(function () {
-                expect(MainViewManager.getViews(MainViewManager.FOCUSED_PANE).length).toEqual(1);
+                expect(MainViewManager.getViews(MainViewManager.ACTIVE_PANE).length).toEqual(1);
             });
         });
 
@@ -165,7 +165,7 @@ define(function (require, exports, module) {
             runCloseOthers();
 
             runs(function () {
-                expect(MainViewManager.getViews(MainViewManager.FOCUSED_PANE).length).toEqual(3);
+                expect(MainViewManager.getViews(MainViewManager.ACTIVE_PANE).length).toEqual(3);
             });
         });
 
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
             runCloseOthers();
 
             runs(function () {
-                expect(MainViewManager.getViews(MainViewManager.FOCUSED_PANE).length).toEqual(2);
+                expect(MainViewManager.getViews(MainViewManager.ACTIVE_PANE).length).toEqual(2);
             });
         });
     });

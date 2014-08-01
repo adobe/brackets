@@ -173,7 +173,7 @@ define(function GotoAgent(require, exports, module) {
         path = decodeURI(path);
         var promise = DocumentManager.getDocumentForPath(path);
         promise.done(function onDone(doc) {
-            MainViewManager.edit(MainViewManager.FOCUSED_PANE, doc);
+            MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
             if (location) {
                 openLocation(location, noFlash);
             }
