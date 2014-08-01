@@ -973,7 +973,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * serializes from disk the pane state
+     * tells the current view to restore its scroll state from cached data and apply a height delta
      * @param {Object=} state - the current scroll state
      * @param {number=} heightDelta - the amount to add or subtract from the state
      */
