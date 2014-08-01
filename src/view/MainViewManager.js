@@ -25,13 +25,53 @@
 /*global define, window, $, brackets */
 
 /**
- * MainViewManager Manages the arrangement of all open panes. Each panes contain one or more views wich are 
- * are created by a view factory and inserted into a pane list. There may be several panes managed
- * by the MainViewManager with each pane containing a list of views.  The panes are always visible and 
- * the layout is determined by the MainViewManager and the user.  Currently we support only 2 panes.
+ * MainViewManager Manages the arrangement of all open panes as well as provides the controller
+ * logic behind all views in the MainView (e.g. ensuring that a file doesn't appear in 2 lists)
+ *
+ * Each pane contain one or more views wich are  are created by a view factory and inserted into a pane list. 
+ * There may be several panes managed  by the MainViewManager with each pane containing a list of views.  
+ * The panes are always visible and  the layout is determined by the MainViewManager and the user.  
+ *
+ * Currently we support only 2 panes.
  *
  * All of the PaneViewList APIs take a paneId Argument.  This can be an actual pane Id, ALL_PANES (in most cases) 
  * or FOCUSED_PANE. 
+ *
+ * This module dispatches several events:
+ *
+ *    - activePaneChanged - When the active pane changes.  There will always be an active pane.
+ *          (newPaneId:string, oldPaneId:string) 
+ *    - currentFileChanged -- When the user has switched to another pane, file, document. When the user closes a view
+ *      and there are no other views to show the current file will be null.  
+ *          (newFile:File, newPaneId:string, oldFile:File, oldPaneId:string)
+ *    - paneLayoutChanged -- When Orientation changes.
+ *          (orientation:string)
+ *    - paneCreated -- When a pane is created
+ *          (paneId:string)
+ *    - paneDestroyed -- When a pane is destroyed
+ *          (paneId:string)
+ *      
+ *
+ *    To listen for working set changes, you must listen to *all* of these events:
+ *    - paneViewListAdd -- When a file is added to the working set 
+ *          (fileAdded:File, index:number, paneId:string)
+ *    - paneViewListAddList -- When multiple files are added to the working set 
+ *          (fileAdded:Array.<File>, paneId:string)
+ *    - paneViewListRemove -- When a file is removed from the working set 
+ *          (fileRemoved:File, suppressRedraw:boolean, paneId:string)
+ *    - paneViewListRemoveList -- When multiple files are removed from the working set 
+ *          (filesRemoved:Array.<File>, paneId:string)
+ *    - paneViewListSort -- When a pane's view array is reordered without additions or removals.
+ *          (paneId:string)
+ *    - paneViewListDisableAutoSorting -- When the working set is reordered by manually dragging a file. 
+ *          (paneId:string) For Internal Use Only.
+ *    - paneViewListUpdated -- When changes happen due to system events such as a file being deleted.
+ *                              listeners should discard all working set info and rebuilt it from the pane 
+ *                              by calling getViews()
+ *          (paneId:string)
+ *
+ * These are jQuery events, so to listen for them you do something like this:
+ *    $(MainViewManager).on("eventname", handler);
  *
  */
 define(function (require, exports, module) {
@@ -55,16 +95,16 @@ define(function (require, exports, module) {
         
 
     /** 
-     * These are temporary internal commands and will go away once we have implemented
-     *  @Larz0's UI treatment
+     * Temporary internal command 
+     *  May go away once we have implemented @Larz0's UI treatment
      * @const
      * @private
      */
     var CMD_ID_SPLIT_VERTICALLY = "cmd.splitVertically";
 
     /** 
-     * These are temporary internal commands and will go away once we have implemented
-     *  @Larz0's UI treatment
+     * Temporary internal command 
+     *  May go away once we have implemented @Larz0's UI treatment
      * @const
      * @private
      */
@@ -129,7 +169,7 @@ define(function (require, exports, module) {
     
     /**
      * localized pane titles 
-     * @type {Object.{FIRST_PANE|SECOND_PANE, <VERTICAL.string, HORIZONTAL.string}}}
+     * @type {Object.<FIRST_PANE|SECOND_PANE, <VERTICAL.string, HORIZONTAL.string>}}
      *  Localized string for first and second panes in the current orientation.  
      * @see {@link getPaneTitle()} for more information
      * @private
@@ -226,15 +266,14 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Forces focus to the current pane or the current pane's view
+     * Focuses the current pane. If the current pane has a current view, then the pane will focus the view.
      */
     function focusActivePane() {
         _getPane(FOCUSED_PANE).focus();
     }
     
-    
     /**
-     * Switch active pane to the id of the pane specified
+     * Switch active pane to the specified pane Id
      * @param {!string} paneId - the id of the pane to activate
      */
     function setActivePaneId(newPaneId) {
@@ -256,7 +295,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Retrieves the Pane ID for the container specified
+     * Retrieves the Pane ID for the specified container
      * @param {!jQuery} $container - the container of the item to fetch
      * @return {?string} the id of the pane that matches the container or undefined if a pane doesn't exist for that container
      */
@@ -274,7 +313,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Retrieves the currently viewed file of the pane specified by paneId
+     * Retrieves the currently viewed file of the specified paneId
      * @param {string=} paneId - the id of the pane in which to retrieve the currently viewed file
      * @return {?File} File object of the currently viewed file, null if there isn't one or undefined if there isn't a matching pane
      */
@@ -321,7 +360,7 @@ define(function (require, exports, module) {
                     }
                 }
             } else {
-                // Editor is an inline editor, find the owning pane
+                // Editor is an inline editor, find the parent pane
                 var parents = $container.parents(".view-pane");
                 if (parents.length === 1) {
                     $container = $(parents[0]);
@@ -365,7 +404,6 @@ define(function (require, exports, module) {
      * The state is removed from the cache after calling this function.  
      * @param {!string} paneId - id of the pane in which to adjust the scroll state, ALL_PANES or FOCUSED_PANE
      * @param {!number} heightDelta - delta H to apply to the scroll state
-     * @seeAlso
      */
     function restoreAdjustedScrollState(paneId, heightDelta) {
         if (paneId === ALL_PANES) {
@@ -482,7 +520,7 @@ define(function (require, exports, module) {
             _.forEach(_paneViews, function (pane) {
                 index = pane[method].call(pane, fullPath);
                 if (index >= 0) {
-                    result = {paneId: pane.id, index: index};
+                    result = index;
                     return false;
                 }
             });
@@ -1492,7 +1530,7 @@ define(function (require, exports, module) {
     
     /** 
      * Retrieves the current layout scheme
-     * @return {Object.{rows: number, columns: number}}
+     * @return {Object.<rows: number, columns: number>}
      */
     function getLayoutScheme() {
         var result = {

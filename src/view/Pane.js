@@ -45,20 +45,27 @@ define(function (require, exports, module) {
      * To get a custom view, there are two components:
      * 
      *  1) A view provider (which will be implemented later
-     *  2) A view object
+     *  2) A view object.
      *
-     * View objects can be added to a pane and do not have to exist in the Pane object's view list.  
-     * These are "temporary views".  These views do not show up in the PaneViewList and, as such, 
-     * are not serialized with the Pane state and reconstituted when the pane is serialized from disk.
+     * View objects are anonymous object that have a particular interface. 
      *
-     * These views are added by calling Pane.showView() and passing it the view object. The view 
+     * Views can be added to a pane but do not have to exist in the Pane object's view list.  
+     * Such views are "temporary views".  Temporary views are not serialized with the Pane state
+     * or reconstituted when the pane is serialized from disk.  They are destroyed at the earliest
+     * opportunity.
+     *
+     * Tempoary views are added by calling Pane.showView() and passing it the view object. The view 
      * will be destroyed when the next view is shown, the pane is mereged with another pane or the "Close All"
      * command is exectuted on the Pane.
+     *
+     * Views that have a longer life span are added by calling addView to associate the view with a 
+     * filename in the _views object.  These views are not destroyed until they are removed from the pane
+     * by calling one of the following: doRemoveView, removeFromViewList. removeListFromViewList, or removeAllFromViewList
      *
      * Pane Object Events:
      * viewListChanged - triggered whenever there is a change the the pane's view state
      *
-     * View Intereface:
+     * View Interface:
      *
      * {
      *      getFile: function () @return {!File} File object that belongs to the view (may return null)
@@ -130,7 +137,7 @@ define(function (require, exports, module) {
      */
     
     /**
-     * @typedef {getFile:function(), setVisible:function(visible:boolean), resizeToFit:function(forceRefresh:boolean), destroy:function(), hasFocus:function(), childHasFocus:function(), focus:function(), getScrollPos:function(),  adjustScrollPos:function(state:Object=, heightDelta:number), switchContainers: function($newContainer:jQuery}, getContainer: function()} View 
+     * @typedef {getFile:function():File=, setVisible:function(visible:boolean), resizeToFit:function(forceRefresh:boolean), destroy:function(), hasFocus:function():boolean, childHasFocus:function():boolean, focus:function(), getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number), switchContainers: function($newContainer:jQuery}, getContainer: function():!jQuery} View   
      */
     
     /*
@@ -138,7 +145,7 @@ define(function (require, exports, module) {
      * @see {@link MainViewManager} for more information
      *
      * @constructor
-     * @param {@return {} id - The id to use to identify this pane
+     * @param {!string} id - The id to use to identify this pane
      * @param {!JQuery} $container - The parent $container to place the pane view
      */
     function Pane(id, $container) {
@@ -210,8 +217,9 @@ define(function (require, exports, module) {
     
    /**
      * Creates a pane event namespaced to this pane
+     * (pass an empty string to generate just the namespace key to pass to jQuery to turn off all events handled by this pane)
      * @private
-     * @param {@return {} name - the name of the event to namespace (pass an empty string to generate just the namespace key to pass to jQuery to turn off all events handled by this pane)
+     * @param {!string} name - the name of the event to namespace 
      * @return {string} an event namespaced to this pane
      */
     Pane.prototype._makeEventName = function (name) {
@@ -293,7 +301,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the index of the item in the view file list 
-     * @param {@return {} fullPath the full path of the item to look for 
+     * @param {!string} fullPath the full path of the item to look for 
      * @returns {number} index of the item or -1 if not found
      */
     Pane.prototype.findInViewList = function (fullPath) {
@@ -304,7 +312,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the order in which the item was added
-     * @param {@return {} fullPath the full path of the item to look for 
+     * @param {!string} fullPath the full path of the item to look for 
      * @returns {number} order of the item or -1 if not found
      */
     Pane.prototype.findInViewListAddedOrder = function (fullPath) {
@@ -315,7 +323,7 @@ define(function (require, exports, module) {
     
    /**
      * Returns the order in which the item was last used
-     * @param {@return {} fullPath the full path of the item to look for 
+     * @param {!string} fullPath the full path of the item to look for 
      * @returns {number} order of the item or -1 if not found. 
      *      0 indicates most recently used, followed by 1 and so on...
      */
@@ -551,11 +559,8 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @callback sortFunctionCallback
-     * @param {@return {} the id of the pane object
-     * @param {!File} The first item to compare
-     * @param {!File} the second item to compare
-     * @return {number} 0 if the two params are equal, -1 if the first is to come before the seond and 1 if the second comes before the first
+     * Sorts items in the pane's view list
+     * @param {function(!string, !string):number} compareFn - the function used to compare items in the viewList
      */
     
     /**
@@ -584,11 +589,11 @@ define(function (require, exports, module) {
     
     /**
      * Traverses the list and returns the File object of the next item in the MRU order
-     * @param {@return {}} direction - Must be 1 or -1 to traverse forward or backward
+     * @param {!number} direction - Must be 1 or -1 to traverse forward or backward
      * @param {string=} current - the fullPath of the item where traversal is to start. 
      *                              If this paramater is ommitted then the path of the current view is used.
      *                              If the current view is a temporary view then the first item in the MRU list is returned
-     * @return {?File} The File object of the next item in the travesal order or null if there isn't one.
+     * @return {?File}  The File object of the next item in the travesal order or null if there isn't one.
      */
     Pane.prototype.traverseViewListByMRU = function (direction, current) {
         if (Math.abs(direction) !== 1) {
@@ -674,7 +679,7 @@ define(function (require, exports, module) {
     
     /**
      * retrieves the view object for the given path
-     * @param {@return {} path - the fullPath of the view to retrieve
+     * @param {!string}  path - the fullPath of the view to retrieve
      * @return {boolean} show - show or hide the interstitial page
      */
     Pane.prototype.getViewForPath = function (path) {
@@ -683,7 +688,6 @@ define(function (require, exports, module) {
     
     /**
      * Adds a view to the pane
-     * @param {@return {} path - the fullpath of the view object to add
      * @param {!View} view - the View object to add 
      * @param {boolean} show - true to show the view right away, false otherwise
      */
@@ -834,7 +838,7 @@ define(function (require, exports, module) {
     
     /**
      * Executes a FILE_OPEN command to open a file
-     * @param {@return {} fullPath - path of the file to open
+     * @param  {!string} fullPath - path of the file to open
      * @return {jQuery.promise} promise that will resolve when the file is opened
      */
     Pane.prototype._execOpenFile = function (fullPath) {
@@ -935,10 +939,11 @@ define(function (require, exports, module) {
             currentlyViewedPath = this.getCurrentlyViewedPath();
 
         // Save the current view state first
-        if (this._currentView && this._currentView.hasOwnProperty("document")) {
+        if (this._currentView) {
             EditorManager._saveEditorViewState(this._currentView);
         }
         
+        // walk the list of views and save
         this._viewList.forEach(function (file) {
             // Do not persist untitled document paths
             if (!(file instanceof InMemoryFile)) {
@@ -955,7 +960,7 @@ define(function (require, exports, module) {
     
     /**
      * gets the current view's scroll state data
-     * @return {!Object} scroll state - the current scroll state
+     * @return {Object=} scroll state - the current scroll state
      */
     
     Pane.prototype.getScrollState = function () {
@@ -966,8 +971,8 @@ define(function (require, exports, module) {
     
     /**
      * serializes from disk the pane state
-     * @param {!Object} state - the current scroll state
-     * @param {@return {}} heightDelta - the amount to add or subtract from the state
+     * @param {Object=} state - the current scroll state
+     * @param {number=} heightDelta - the amount to add or subtract from the state
      */
     Pane.prototype.restoreAndAdjustScrollState = function (state, heightDelta) {
         if (this._currentView && state && state.scrollPos) {

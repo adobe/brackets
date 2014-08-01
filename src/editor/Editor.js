@@ -274,6 +274,11 @@ define(function (require, exports, module) {
             })
         );
         
+        // When panes are created *after* the showLineNumbers option has been turned off
+        //  we need to apply the show-line-padding class or the text will be juxtaposed 
+        //  to the edge of the editor which makes it not easy to read.  The code below to handle
+        //  that the option change only applies the class to panes that have already been created
+        // This line ensures that the class is applied to any editor created after the fact
         this.$editorHolder.toggleClass("show-line-padding", !this._getOption("showLineNumbers"));
         
         // Create the CodeMirror instance
@@ -503,7 +508,6 @@ define(function (require, exports, module) {
     /**
      * @private
      * Handle Tab key press.
-     * @param {!CodeMirror} instance CodeMirror instance.
      */
     Editor.prototype._handleTabKey = function () {
         // Tab key handling is done as follows:
@@ -904,6 +908,8 @@ define(function (require, exports, module) {
 
    /**
     * Gets the file associated with this editor
+    * This is a required Pane-View interface method
+    * @return {!File} the file associated with this editor
     */
     Editor.prototype.getFile = function () {
         return this.document.file;
@@ -911,6 +917,7 @@ define(function (require, exports, module) {
     
     /**
      * gets the container
+    * This is a required Pane-View interface method
      * @return {!jQueryObject} container
      */
     Editor.prototype.getContainer = function () {
@@ -920,6 +927,7 @@ define(function (require, exports, module) {
     
     /**
      * reparents the Editor's DOM element to a new container
+     * This is a required Pane-View interface method
      * @return {!jQueryObject} newContainer - the new parent to append to.
      */
     Editor.prototype.switchContainers = function ($newContainer) {
@@ -937,7 +945,7 @@ define(function (require, exports, module) {
      *  selection that moves when you press shift+arrow), or "anchor" (the
      *  fixed side of the selection). Omitting the argument is the same as
      *  passing "head". A {line, ch} object will be returned.)
-     * @return !{line:number, ch:number}
+     * @return {!{line:number, ch:number}}
      */
     Editor.prototype.getCursorPos = function (expandTabs, which) {
         // Translate "start" and "end" to the official CM names (it actually
@@ -2503,6 +2511,7 @@ define(function (require, exports, module) {
      * @param {boolean} showLinePadding
      */
     Editor._toggleLinePadding = function (showLinePadding) {
+        // apply class to all pane DOM nodes
         var $holders = [];
         _instances.forEach(function (editor) {
             if ($holders.indexOf(editor.$editorHolder) === -1) {
