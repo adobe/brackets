@@ -122,14 +122,14 @@ define(function (require, exports, module) {
      */
     function _convertSortPref(sortMethod) {
         if (!sortMethod) {
-            return;
+            return null;
         }
         
         if (_sortPrefConversionMap.hasOwnProperty(sortMethod)) {
             sortMethod = _sortPrefConversionMap[sortMethod];
             PreferencesManager.setViewState(_PANE_SORT_PREF, sortMethod);
         } else {
-            sortMethod = undefined;
+            sortMethod = null;
         }
         
         return sortMethod;
