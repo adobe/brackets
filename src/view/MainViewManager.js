@@ -184,7 +184,7 @@ define(function (require, exports, module) {
     var _orientation = null;
     
     /**
-     * current orientation. May not be null
+     * current pane id. May not be null
      * @type {!string}
      * @private
      */
