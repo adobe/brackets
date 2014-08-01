@@ -683,22 +683,7 @@ define(function (require, exports, module) {
         
         return new $.Deferred().reject();
     }
-    
-    /**
-     * file removed helper. Facilitates destroying editors no longer needed.
-     * @param {File} file - the file or filepath being removed
-     */
-    function _handleFileRemoved(file) {
-        // There's one case where an editor should be disposed even though the current document
-        // didn't change: removing a document from the working set (via the "X" button). (This may
-        // also cover the case where the document WAS current, if the editor-swap happens before the
-        // removal from the working set.
-        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-        
-        if (doc) {
-            MainViewManager.destroyEditorIfNotNeeded(doc);
-        }
-    }
+
 
     /** 
      * file removed from pane handler.
@@ -706,12 +691,22 @@ define(function (require, exports, module) {
      * @param {File|Array.<File>} removedFiles - file, path or array of files or paths that are being removed
      */
     function _handleRemoveFromPaneView(e, removedFiles) {
+        var handleFileRemoved = function (file) {
+            var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+
+            if (doc) {
+                MainViewManager.destroyEditorIfNotNeeded(doc);
+            }
+        };
+        
+        // when files are removed from a pane then
+        //    we should destroy any unnecssary views
         if ($.isArray(removedFiles)) {
             removedFiles.forEach(function (removedFile) {
-                _handleFileRemoved(removedFile);
+                handleFileRemoved(removedFile);
             });
         } else {
-            _handleFileRemoved(removedFiles);
+            handleFileRemoved(removedFiles);
         }
     }
     
