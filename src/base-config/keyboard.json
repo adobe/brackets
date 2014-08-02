@@ -157,7 +157,14 @@
         "Ctrl-Shift-F"
     ],
     "cmd.replaceInFiles":  [
-        "Ctrl-Alt-Shift-F"
+        {
+            "key": "Ctrl-Shift-H"
+        },
+        {
+            "key": "Ctrl-Alt-Shift-F",
+            "platform": "mac"
+        }
+        
     ],
     "cmd.findNext":  [
         {
@@ -206,7 +213,14 @@
         }
     ],
     "view.hideSidebar":  [
-        "Ctrl-Shift-H"
+        {   
+            "key" : "Ctrl-Alt-H"
+        },
+        {
+            "key": "Ctrl-Shift-H",
+            "platform": "mac"
+        }
+        
     ],
     "view.increaseFontSize":  [
         {
