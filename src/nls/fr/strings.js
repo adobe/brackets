@@ -424,8 +424,6 @@ define({
 	"USE_THEME_SCROLLBARS": "Utiliser les barres de défilement des thèmes",
 	"FONT_SIZE": "Taille de la police",
 	"FONT_FAMILY": "Famille de polices",
-	"LINE_HEIGHT": "Hauteur de ligne",
-	"GENERAL": "Général",
 
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "Nouvelle règle",
