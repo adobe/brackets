@@ -27,7 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var currentDocMode, currentThemes = [];
+    var currentThemes = [];
 
     var _                  = require("thirdparty/lodash"),
         CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
@@ -74,22 +74,6 @@ define(function (require, exports, module) {
     }
 
 
-    /**
-     * Sets the document type in the DOM to enable styling per doc type
-     *
-     * @param {CodeMirror} cm is the CodeMirror instance currently loaded in the editor
-     * @return {string} current document type
-     */
-    function setDocumentMode(cm) {
-        var mode = cm.getDoc().getMode();
-        var docMode = mode && (mode.helperType || mode.name);
-        $("#editor-holder .CodeMirror").removeClass("doctype-" + currentDocMode).addClass("doctype-" + docMode);
-        currentDocMode = docMode; // Update docMode
-        return docMode;
-    }
-
-
     exports.updateScrollbars = updateScrollbars;
     exports.updateThemes     = updateThemes;
-    exports.setDocumentMode  = setDocumentMode;
 });

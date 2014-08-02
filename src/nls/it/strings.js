@@ -390,6 +390,13 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"        : "I caratteri speciali come '{0}' devono essere %-encodate.",
     "BASEURL_ERROR_UNKNOWN_ERROR"       : "Trovato un carattere sconosciuto durante l'analisi del URL di base",
     
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Tema attuale",
+    "USE_THEME_SCROLLBARS"                 : "Utilizzare le barre di scorrimento a tema",
+    "FONT_SIZE"                            : "Dimensioni carattere",
+    "FONT_FAMILY"                          : "Tipo di carattere",
+ 
+    
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nuova regola",
     
@@ -436,6 +443,9 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Manager delle Estensioni",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Impossibile accedere al registro delle estensioni. Riprova più tardi.",
+    "INSTALL_EXTENSION_DRAG"               : "Trascina .zip qui o",
+    "INSTALL_EXTENSION_DROP"               : "Rilascia .zip per l'installazione",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Installazione/Aggiornamento interrotto a causa dei seguenti errori:",
     "INSTALL_FROM_URL"                     : "Installo dall’indirizzo URL\u2026",
     "EXTENSION_AUTHOR"                     : "Autore",
     "EXTENSION_DATE"                       : "Data",
@@ -447,6 +457,9 @@ define({
     "EXTENSION_MORE_INFO"                  : "Più info...",
     "EXTENSION_ERROR"                      : "Errore di estensione",
     "EXTENSION_KEYWORDS"                   : "Parole chiave",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "Tradotto in {0} lingue, inclusa la tua",
+    "EXTENSION_TRANSLATED_GENERAL"         : "Tradotto in {0} lingue",
+    "EXTENSION_TRANSLATED_LANGS"           : "Questa estensione è stata tradotta in queste lingue: {0}",
     "EXTENSION_INSTALLED"                  : "Installata",
     "EXTENSION_UPDATE_INSTALLED"           : "Questo aggiornamento dell’estensione è stato scaricato e sarà installato dopo il riavvio di {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Cerca",
@@ -528,6 +541,8 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Passa alla definizione",
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostra suggerimenti sul parametro",
     "NO_ARGUMENTS"                              : "<nessun parametro>",
+    "DETECTED_EXCLUSION_TITLE"                  : "Problema Conseguente File JavaScript",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets ha dei problemi per elaborare il file:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> nel tuo progetto e rimuovi il file da jscodehints.detectedExclusions.",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -542,5 +557,5 @@ define({
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
 
-/* Last translation of: 46de60683124768aa7f074aa3168f99d23f6c016*/
+/* Last translation of: 2f5acd9c6fb21330cad0dae16e26bf659859583e*/
 

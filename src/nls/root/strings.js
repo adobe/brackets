@@ -432,8 +432,6 @@ define({
     "USE_THEME_SCROLLBARS"                 : "Use Theme Scrollbars",
     "FONT_SIZE"                            : "Font Size",
     "FONT_FAMILY"                          : "Font Family",
-    "LINE_HEIGHT"                          : "Line Height",
-    "GENERAL"                              : "General",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "New Rule",
