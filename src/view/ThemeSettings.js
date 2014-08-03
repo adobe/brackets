@@ -89,7 +89,7 @@ define(function (require, exports, module) {
             "themeOptions": themes,
             "fontSmoothingOptions": [{
                 "name": "antialiased",
-                "displayName": "Antialiased"
+                "displayName": "Antialiased (Default)"
             }, {
                 "name": "subpixel-antialiased",
                 "displayName": "Subpixel Antialiased"
@@ -99,7 +99,7 @@ define(function (require, exports, module) {
         // Select the correct theme.
         var $currentThemeOption = $template
             .find("[value='" + currentSettings.theme + "']");
-        
+
         if ($currentThemeOption.length === 0) {
             $currentThemeOption = $template.find("[value='" + defaults.theme + "']");
         }
@@ -109,7 +109,7 @@ define(function (require, exports, module) {
         $template
             .find("[value='" + currentSettings.fontSmoothing + "']")
             .attr("selected", "selected");
-        
+
         $template
             .find("[data-toggle=tab].default")
             .tab("show");
@@ -131,8 +131,7 @@ define(function (require, exports, module) {
 
                 if (attr === "theme") {
                     prefs.set(attr, $target.val());
-                }
-                else {
+                } else {
                     newSettings[attr] = $target.val();
                 }
             });
