@@ -8,9 +8,9 @@
                 <label class="control-label">{{Strings.CURRENT_THEME}}:</label>
                 <div class="controls">
                     <select>
-                        {{#themes}}
+                        {{#themeOptions}}
                         <option style="text-align:left;" value="{{name}}" data-target="theme">{{displayName}}</option>
-                        {{/themes}}
+                        {{/themeOptions}}
                     </select>
                 </div>
             </div>
@@ -40,6 +40,18 @@
                     <input type="text" data-target="fontFamily" value="{{settings.fontFamily}}">
                 </div>
             </div>
+
+            <div class="control-group">
+                <label class="control-label">{{Strings.FONT_SMOOTHING}}:</label>
+                <div class="controls">
+                    <select>
+                        {{#fontSmoothingOptions}}
+                        <option style="text-align:left;" value="{{name}}" data-target="fontSmoothing">{{displayName}}</option>
+                        {{/fontSmoothingOptions}}
+                    </select>
+                </div>
+            </div>
+        
         </form>
     </div>
     <div class="modal-footer">
