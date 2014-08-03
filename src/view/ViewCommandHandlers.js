@@ -386,6 +386,16 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Initializes the different settings that need to loaded
+     */
+    function init() {
+        _addDynamicFontFamily(prefs.get("fontFamily"));
+        _addDynamicFontSize(prefs.get("fontSize"));
+        _addDynamicFontSmoothing(prefs.get("fontSmoothing"));
+        _updateUI();
+    }
+
+    /**
      * Restores the font size using the saved style and migrates the old fontSizeAdjustment
      * view state to the new fontSize, when required
      */
@@ -543,14 +553,7 @@ define(function (require, exports, module) {
     $(DocumentManager).on("currentDocumentChange", _updateUI);
 
     // Update UI when Brackets finishes loading
-    AppInit.appReady(_updateUI);
-
-    // Adding a setTimeout because fontSmoothing just isn't properly retrieved.
-    setTimeout(function () {
-        _addDynamicFontFamily(prefs.get("fontFamily"));
-        _addDynamicFontSize(prefs.get("fontSize"));
-        _addDynamicFontSmoothing(prefs.get("fontSmoothing"));
-    }, 0);
+    AppInit.htmlReady(init);
 
     exports.restoreFontSize  = restoreFontSize;
     exports.restoreFonts     = restoreFonts;
