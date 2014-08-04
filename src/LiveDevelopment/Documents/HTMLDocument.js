@@ -80,8 +80,8 @@ define(function HTMLDocumentModule(require, exports, module) {
     };
     
     /**
-     * Enable instrumented HTML
-     * @param enabled {boolean} 
+     * Enable or disable instrumented HTML
+     * @param {boolean} enabled Whether to enable or disable
      */
     HTMLDocument.prototype.setInstrumentationEnabled = function setInstrumentationEnabled(enabled) {
         if (enabled && !this._instrumentationEnabled && this.editor) {
@@ -102,6 +102,7 @@ define(function HTMLDocumentModule(require, exports, module) {
     
     /**
      * Returns a JSON object with HTTP response overrides
+     * @param {boolean} enabled (Unused)
      * @return {{body: string}}
      */
     HTMLDocument.prototype.getResponseData = function getResponseData(enabled) {
@@ -115,7 +116,9 @@ define(function HTMLDocumentModule(require, exports, module) {
         };
     };
 
-    /** Close the document */
+    /**
+     * Close the document
+     */
     HTMLDocument.prototype.close = function close() {
         if (this.editor) {
             $(this.editor).off(".HTMLDocument");
@@ -134,7 +137,10 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
     };
     
-    /** Attach new editor */
+    /**
+     * Attach new editor
+     * @param {!Editor} editor The editor for this document
+     */
     HTMLDocument.prototype.attachToEditor = function (editor) {
         var self = this;
         this.editor = editor;
@@ -165,7 +171,9 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
     };
     
-    /** Detach current editor */
+    /**
+     * Detach current editor
+     */
     HTMLDocument.prototype.detachFromEditor = function () {
         if (this.editor) {
             HighlightAgent.hide();
@@ -175,7 +183,9 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
     };
 
-    /** Update the highlight */
+    /**
+     * Update the highlight
+     */
     HTMLDocument.prototype.updateHighlight = function () {
         if (!this.editor) {
             return;
@@ -205,7 +215,11 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Event Handlers *******************************************************/
 
-    /** Triggered on cursor activity by the editor */
+    /**
+     * Triggered on cursor activity by the editor
+     * @param {$.Event} event Event
+     * @param {!Editor} editor The editor for this document
+     */
     HTMLDocument.prototype._onCursorActivity = function (event, editor) {
         if (!this.editor) {
             return;
@@ -258,7 +272,12 @@ define(function HTMLDocumentModule(require, exports, module) {
         });
     };
 
-    /** Triggered on change by the editor */
+    /**
+     * Triggered on change by the editor
+     * @param {$.Event} event Event
+     * @param {!Editor} editor The editor for this document
+     * @param {Object} change CodeMirror editor change data
+     */
     HTMLDocument.prototype._onChange = function (event, editor, change) {
         // Make sure LiveHTML is turned on
         if (!this._instrumentationEnabled) {
@@ -334,7 +353,12 @@ define(function HTMLDocumentModule(require, exports, module) {
         // }
     };
 
-    /** Triggered when the active editor changes */
+    /**
+     * Triggered when the active editor changes
+     * @param {$.Event} event Event
+     * @param {!Editor} newActive The new active editor
+     * @param {!Editor} oldActive The old active editor
+     */
     HTMLDocument.prototype.onActiveEditorChange = function (event, newActive, oldActive) {
         this.detachFromEditor();
         
@@ -343,7 +367,11 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
     };
 
-    /** Triggered by the HighlightAgent to highlight a node in the editor */
+    /**
+     * Triggered by the HighlightAgent to highlight a node in the editor
+     * @param {$.Event} event Event
+     * @param {DOMElement} node Element to highlight
+     */
     HTMLDocument.prototype._onHighlight = function (event, node) {
         if (!node || !node.location || !this.editor) {
             if (this._highlight) {
