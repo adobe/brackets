@@ -66,7 +66,7 @@ define(function (require, exports, module) {
         
         // Filter and rank how good each match is
         var filteredList = $.map(selectorList, function (itemInfo) {
-            var searchResult = matcher.match(itemInfo.selector, query);
+            var searchResult = matcher.match(CSSUtils.getCompleteSelectors(itemInfo), query);
             if (searchResult) {
                 searchResult.selectorInfo = itemInfo;
             }

@@ -23,10 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, _parseRuleList: true */
-
-// JSLint Note: _parseRuleList() is cyclical dependency, not a global function.
-// It was added to this list to prevent JSLint warning about being used before being defined.
+/*global define, $ */
 
 /**
  * Set of utilities for simple parsing of CSS text.
@@ -605,6 +602,22 @@ define(function (require, exports, module) {
         return createInfo();
     }
     
+    function getCompleteSelectors(selectorInfo) {
+        if (selectorInfo.parentSelectors && _.isString(selectorInfo.parentSelectors)) {
+            var completeSelector = selectorInfo.parentSelectors,
+                ampersandIndex = selectorInfo.selector.indexOf("&");
+            if (ampersandIndex === -1) {
+                completeSelector += " ";
+                completeSelector += selectorInfo.selector;
+            } else {
+                completeSelector = selectorInfo.selector.replace("&", completeSelector);
+            }
+            return completeSelector;
+        }
+        
+        return selectorInfo.selector;
+    }
+    
     /**
      * Extracts all CSS selectors from the given text
      * Returns an array of selectors. Each selector is an object with the following properties:
@@ -642,7 +655,7 @@ define(function (require, exports, module) {
         var declListStartLine = -1, declListStartChar = -1;
         var escapePattern = new RegExp("\\\\[^\\\\]+", "g");
         var validationPattern = new RegExp("\\\\([a-f0-9]{6}|[a-f0-9]{4}(\\s|\\\\|$)|[a-f0-9]{2}(\\s|\\\\|$)|.)", "i");
-        var _parseRule;
+        var _parseRuleList;
         
         // implement _firstToken()/_nextToken() methods to
         // provide a single stream of tokens
@@ -716,10 +729,18 @@ define(function (require, exports, module) {
         }
 
         function _isStartComment() {
-            return (token.match(/^\/\*/));
+            return (/^\/[\/\*]/.test(token));
         }
         
         function _parseComment() {
+            // If it is a line comment, then do nothing and just return.
+            // A line comment is just one token and the caller always have to 
+            // find the next token by skipping the current token. So leaving 
+            // it for the caller to skip the current token.
+            //so that the caller an
+            if (/^\/\//.test(token)) {
+                return;
+            }
             while (!token.match(/\*\/$/)) {
                 if (!_nextToken()) {
                     break;
@@ -741,12 +762,31 @@ define(function (require, exports, module) {
         }
 
         function _getParentSelectors() {
-            var j;
-//            for (j = selectors.length - 1; j >= 0; j--) {
-//                if (selectors[j].level >= 0) {
-//                }
-//            }
-            return "";
+            var j,
+                prevLevel = currentLevel - 1,
+                parentSelectors = "",
+                parentArray = [];
+            for (j = selectors.length - 1; j >= 0; j--) {
+                if (selectors[j].declListEndLine !== -1 &&
+                        selectors[j].level < prevLevel) {
+                    break;
+                }
+                if (selectors[j].declListEndLine === -1 &&
+                        selectors[j].level === prevLevel) {
+                    if (parentSelectors) {
+                        parentArray.unshift(parentSelectors);
+                    }
+                    parentSelectors = getCompleteSelectors(selectors[j]);
+//                    parentSelectors = parentSelectors ? selectors[j].selector + " " + parentSelectors : selectors[j].selector;
+//                    return parentSelectors;
+//                    prevLevel--;
+                }
+            }
+            if (parentArray.length) {
+                parentArray.unshift(parentSelectors);
+                parentSelectors = parentArray.join(", ");
+            }
+            return parentSelectors;
         }
         
         function _parseSelector(start, level) {
@@ -775,13 +815,19 @@ define(function (require, exports, module) {
                         selectorStartChar = stream.start;
                         selectorStartLine = line;
                     }
-                    if (token.trim()) {
+                    if (/\S/.test(token) || /\S/.test(currentSelector)) {
                         currentSelector += token;
+//                    } else {
+//                        console.log(token);
                     }
                 }
                 if (!_nextTokenSkippingComments()) {
                     return false; // eof
                 }
+            }
+            
+            if (!currentSelector) {
+                return false;
             }
             
             // Unicode character replacement as defined in http://www.w3.org/TR/CSS21/syndata.html#characters
@@ -814,6 +860,7 @@ define(function (require, exports, module) {
                     ruleStartChar = stream.start - currentSelector.length;
                 }
                 var parentSelectors = _getParentSelectors();
+                console.log(parentSelectors + " -- " + currentSelector);
                 selectors.push({selector: currentSelector,
                                 ruleStartLine: ruleStartLine,
                                 ruleStartChar: ruleStartChar,
@@ -894,6 +941,7 @@ define(function (require, exports, module) {
                     }
                 }
             }
+            
             // Since we're now in a declaration list, that means we also finished
             // parsing the whole selector group. Therefore, reset selectorGroupStartLine
             // so that next time we parse a selector we know it's a new group
@@ -909,36 +957,35 @@ define(function (require, exports, module) {
                         _nextToken();
                     }
                 }
-                nested = _parseRule(currentLevel + 1);
+                nested = _parseRuleList(undefined, currentLevel + 1);
             
-            // assign this declaration list position and selector group to every selector on the stack
-            // that doesn't have a declaration list start and end line
-            for (j = selectors.length - 1; j >= 0; j--) {
+                // assign this declaration list position and selector group to every selector on the stack
+                // that doesn't have a declaration list start and end line
+                for (j = selectors.length - 1; j >= 0; j--) {
                     if (selectors[j].level >= level && selectors[j].declListEndLine !== -1) {
                         continue;
                     }
 //                    if (selectors[j].declListEndLine !== -1) {
                     if (selectors[j].level < currentLevel) {
                         break;
-                    }
-                    else if (selectors[j].declListEndLine !== -1) {
+                    } else if (selectors[j].declListEndLine !== -1) {
                         return;
                     } else {
-    //                    selectors[j].declListStartLine = declListStartLine;
-    //                    selectors[j].declListStartChar = declListStartChar;
+//                    selectors[j].declListStartLine = declListStartLine;
+//                    selectors[j].declListStartChar = declListStartChar;
                         selectors[j].declListEndLine = line;
                         selectors[j].declListEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
     //                    if (selectorGroup) {
     //                        selectors[j].selectorGroup = selectorGroup;
     //                    }
                     }
-//                }
-            }
+    //                }
+                }
             } while (currentLevel > 0 && currentLevel === level);
         }
         
         function includeCommentInNextRule() {
-            if (ruleStartChar !== -1) {
+            if (ruleStartChar !== -1)) {
                 return false;       // already included
             }
             if (stream.start > 0 && lines[line].substr(0, stream.start).indexOf("}") !== -1) {
@@ -1013,15 +1060,16 @@ define(function (require, exports, module) {
         }
 
         // parse a style rule
-        _parseRule = function (level) {
+        function _parseRule(level) {
             if (!_parseSelectorList(level)) {
                 return false;
             }
             
             _parseDeclarationList(level);
+            return true;
         }
         
-        function _parseRuleList(escapeToken) {
+        _parseRuleList = function (escapeToken, level) {
             
             while ((!escapeToken) || token !== escapeToken) {
                 if (_isStartAtRule()) {
@@ -1035,21 +1083,22 @@ define(function (require, exports, module) {
                         ruleStartLine = line;
                     }
                     _parseComment();
-    
                 } else {
                     // Otherwise, it's style rule
-                    if (ruleStartChar === -1) {
-                        ruleStartChar = stream.start;
-                        ruleStartLine = line;
+                    if (!_parseRule(level === undefined ? 0 : level)) {
+                        return false;
+                    } else if (level > 0) {
+                        return true;
                     }
-                    _parseRule(0);
                 }
                 
                 if (!_nextTokenSkippingWhitespace()) {
                     break;
                 }
             }
-        }
+            
+            return false;
+        };
         
         // Do parsing
 
@@ -1119,7 +1168,7 @@ define(function (require, exports, module) {
         
         var re = new RegExp(selector + "(\\[[^\\]]*\\]|:{1,2}[\\w-()]+|\\.[\\w-]+|#[\\w-]+)*\\s*$", classOrIdSelector ? "" : "i");
         allSelectors.forEach(function (entry) {
-            if (entry.selector.search(re) !== -1) {
+            if (entry.selector.search(re) !== -1 || entry.parentSelectors.search(re) !== -1) {
                 result.push(entry);
             } else if (!classOrIdSelector) {
                 // Special case for tag selectors - match "*" as the rightmost character
@@ -1131,7 +1180,6 @@ define(function (require, exports, module) {
         
         return result;
     }
-    
     
     /**
      * Converts the results of _findAllMatchingSelectorsInText() into a simpler bag of data and
@@ -1145,7 +1193,7 @@ define(function (require, exports, module) {
     function _addSelectorsToResults(resultSelectors, selectorsToAdd, sourceDoc, lineOffset) {
         selectorsToAdd.forEach(function (selectorInfo) {
             resultSelectors.push({
-                name: selectorInfo.selector,
+                name: getCompleteSelectors(selectorInfo),
                 document: sourceDoc,
                 lineStart: selectorInfo.ruleStartLine + lineOffset,
                 lineEnd: selectorInfo.declListEndLine + lineOffset,
@@ -1527,6 +1575,7 @@ define(function (require, exports, module) {
     exports.addRuleToDocument = addRuleToDocument;
     exports.consolidateRules = consolidateRules;
     exports.getRangeSelectors = getRangeSelectors;
+    exports.getCompleteSelectors = getCompleteSelectors;
 
     exports.SELECTOR = SELECTOR;
     exports.PROP_NAME = PROP_NAME;
