@@ -1511,11 +1511,11 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Restarts brackets
+     * Restarts brackets Handler
      * @param {boolean=} loadWithoutExtensions - true to restart without extensions, 
      *                                           otherwise extensions are loadeed as it is durning a typical boot
      */
-    function doReload(loadWithoutExtensions) {
+    function handleReload(loadWithoutExtensions) {
         var href    = window.location.href,
             params  = new UrlParams();
         
@@ -1547,15 +1547,9 @@ define(function (require, exports, module) {
         }, 100);
     }
 
-    /** Reload commnad handler **/
-    function handleReload() {
-        doReload();
-    }
 
     /** Reload Without Extensions commnad handler **/
-    function handleReloadWithoutExts() {
-        doReload(true);
-    }
+    var handleReloadWithoutExts = _.partial(handleReload, true);
 
     /** Do some initialization when the DOM is ready **/
     AppInit.htmlReady(function () {
