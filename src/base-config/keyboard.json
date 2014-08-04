@@ -164,7 +164,6 @@
             "key": "Ctrl-Alt-Shift-F",
             "platform": "mac"
         }
-        
     ],
     "cmd.findNext":  [
         {
@@ -220,7 +219,6 @@
             "key": "Ctrl-Shift-H",
             "platform": "mac"
         }
-        
     ],
     "view.increaseFontSize":  [
         {
