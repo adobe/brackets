@@ -178,7 +178,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         if (this.editor) {
             HighlightAgent.hide();
             $(this.editor).off(".HTMLDocument");
-            this._onHighlight();
+            this._removeHighlight();
             this.editor = null;
         }
     };
@@ -373,13 +373,11 @@ define(function HTMLDocumentModule(require, exports, module) {
      * @param {DOMElement} node Element to highlight
      */
     HTMLDocument.prototype._onHighlight = function (event, node) {
+        this._removeHighlight();
         if (!node || !node.location || !this.editor) {
-            if (this._highlight) {
-                this._highlight.clear();
-                delete this._highlight;
-            }
             return;
         }
+
         var codeMirror = this.editor._codeMirror;
         var to, from = codeMirror.posFromIndex(node.location);
         if (node.closeLocation) {
@@ -387,11 +385,19 @@ define(function HTMLDocumentModule(require, exports, module) {
         } else {
             to = node.location + node.length;
         }
+
         to = codeMirror.posFromIndex(to);
+        this._highlight = codeMirror.markText(from, to, { className: "highlight" });
+    };
+
+    /**
+     * Remove all highlighting
+     */
+    HTMLDocument.prototype._removeHighlight = function () {
         if (this._highlight) {
             this._highlight.clear();
+            this._highlight = null;
         }
-        this._highlight = codeMirror.markText(from, to, { className: "highlight" });
     };
 
     // Export the class
