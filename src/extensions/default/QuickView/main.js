@@ -679,7 +679,7 @@ define(function (require, exports, module) {
 
         // Prevent duplicate animation frame requests
         if (!animationRequest) {
-            animationRequest = window.webkitRequestAnimationFrame(processMouseMove);
+            animationRequest = window.requestAnimationFrame(processMouseMove);
         }
     }
 
