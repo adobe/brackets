@@ -12,10 +12,10 @@
 }
 
 @keyframes colorize {
-    0% {
+    from {
         -webkit-filter: grayscale(100%);
     }
-    100% {
+    to {
         -webkit-filter: grayscale(0%);
     }
 }

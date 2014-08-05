@@ -559,7 +559,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should open an inline editor when positioned on the invalid tag <100%>, but no content from @keyframes", function () {
+            it("should open an inline editor when positioned on the non standard html tag <to>, but no content from @keyframes", function () {
                 initInlineTest("test1.html", 18);
                 
                 runs(function () {
