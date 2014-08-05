@@ -78,7 +78,7 @@ define(function CSSAgent(require, exports, module) {
     /**
      * Get a style sheet for a url
      * @param {string} url
-     * @return {Array} Array of CSSStyleSheetHeaders
+     * @return {Array.<CSSStyleSheetHeader>}
      */
     function styleForURL(url) {
         var styleSheetId, styles = {};
@@ -107,15 +107,23 @@ define(function CSSAgent(require, exports, module) {
     /**
      * Reload a CSS style sheet from a document
      * @param {Document} document
+     * @param {?string=doc.getText()} new content of every stylesheet
      * @return {jQuery.Promise}
      */
-    function reloadCSSForDocument(doc) {
+    function reloadCSSForDocument(doc, newContent) {
         var styles = styleForURL(doc.url),
             styleSheetId,
             deferreds = [];
-        console.assert(styles, "Style Sheet for document not loaded: " + doc.url);
+
+        if (newContent === undefined) {
+            newContent = doc.getText();
+        }
         for (styleSheetId in styles) {
-            deferreds.push(Inspector.CSS.setStyleSheetText(styles[styleSheetId].styleSheetId, doc.getText()));
+            deferreds.push(Inspector.CSS.setStyleSheetText(styles[styleSheetId].styleSheetId, newContent));
+        }
+        if (!deferreds.length) {
+            console.error("Style Sheet for document not loaded: " + doc.url);
+            return new $.Deferred().reject().promise();
         }
         // return master deferred
         return $.when.apply($, deferreds);
@@ -127,15 +135,7 @@ define(function CSSAgent(require, exports, module) {
      * @return {jQuery.Promise}
      */
     function clearCSSForDocument(doc) {
-        var styles = styleForURL(doc.url),
-            styleSheetId,
-            deferreds = [];
-        console.assert(styles, "Style Sheet for document not loaded: " + doc.url);
-        for (styleSheetId in styles) {
-            deferreds.push(Inspector.CSS.setStyleSheetText(styles[styleSheetId].styleSheetId, ""));
-        }
-        // return master deferred
-        return $.when.apply($, deferreds);
+        return reloadCSSForDocument(doc, "");
     }
     
     /**
@@ -146,13 +146,14 @@ define(function CSSAgent(require, exports, module) {
     function _styleSheetAdded(event, res) {
         var url             = _canonicalize(res.header.sourceURL),
             existing        = styleForURL(res.header.sourceURL),
-            styleSheetId    = res.header.styleSheetId;
+            styleSheetId    = res.header.styleSheetId,
+            duplicate;
         
         // detect duplicates
-        existing = _.some(existing, function (styleSheet) {
+        duplicate = _.some(existing, function (styleSheet) {
             return styleSheet && styleSheet.styleSheetId === styleSheetId;
         });
-        if (existing) {
+        if (duplicate) {
             return;
         }
         

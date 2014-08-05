@@ -258,7 +258,7 @@ define(function CSSDocumentModule(require, exports, module) {
             var i, rule, from, to;
             for (i in res.matchedCSSRules) {
                 rule = res.matchedCSSRules[i];
-                if (rule.ruleId && styleSheetIds && styleSheetIds[rule.ruleId.styleSheetId]) {
+                if (rule.ruleId && styleSheetIds[rule.ruleId.styleSheetId]) {
                     from = codeMirror.posFromIndex(rule.selectorRange.start);
                     to = codeMirror.posFromIndex(rule.style.range.end);
                     this._highlight.push(codeMirror.markText(from, to, { className: "highlight" }));
