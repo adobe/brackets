@@ -250,12 +250,13 @@ define({
     "STATUSBAR_OVERWRITE"                   : "OVR",
     "STATUSBAR_INSOVR_TOOLTIP"              : "Click to toggle cursor between Insert (INS) and Overwrite (OVR) modes",
     "STATUSBAR_LANG_TOOLTIP"                : "Click to change file type",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Click to toggle report panel.",
     "STATUSBAR_DEFAULT_LANG"                : "(default)",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",
-    "SINGLE_ERROR"                          : "1 {0} Problem. Click to toggle report panel.",
-    "MULTIPLE_ERRORS"                       : "{1} {0} Problems. Click to toggle report panel.",
+    "SINGLE_ERROR"                          : "1 {0} Problem",
+    "MULTIPLE_ERRORS"                       : "{1} {0} Problems",
     "NO_ERRORS"                             : "No {0} problems found - good job!",
     "NO_ERRORS_MULTIPLE_PROVIDER"           : "No problems found - good job!",
     "LINT_DISABLED"                         : "Linting is disabled",

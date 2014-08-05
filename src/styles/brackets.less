@@ -1528,8 +1528,12 @@ textarea.exclusions-editor {
 
 #status-indicators #status-inspection {
     border: none;
-    cursor: pointer;
+    cursor: default;
     width: 13px;
+    
+    &.inspection-errors {
+        cursor: pointer;
+    }
 }
 
 .inspection-disabled {
