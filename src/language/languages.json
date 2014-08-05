@@ -232,6 +232,13 @@
         "fileExtensions": ["sh", "command", "bash"],
         "lineComment": ["#"]
     },
+    
+    "jade": {
+        "name": "Jade",
+        "mode": ["jade", "text/x-jade" ],
+        "fileExtensions": ["jade"],
+        "lineComment": ["//"]
+    },
   
     "image": {
         "name": "Image",
