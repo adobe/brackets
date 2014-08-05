@@ -75,7 +75,6 @@
     border-bottom: 2px solid #78B2F2;
 }
 
-
 span.cm-keyword {color: @accent-keyword;}
 span.cm-atom {color: @accent-atom;}
 span.cm-number {color: @accent-number;}
@@ -104,9 +103,9 @@ span.cm-minus {color: @accent-minus;}
 span.cm-plus {color: @accent-plus;}
 
 span.CodeMirror-matchingbracket {color: @accent-bracket !important; background-color: @matching-bracket;}
-span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
+span.CodeMirror-nonmatchingbracket {color: @accent-bracket;}
 
-.CodeMirror-cursors {
+div.CodeMirror-cursors {
     .CodeMirror-cursor {
         .code-cursor();
     }
@@ -175,6 +174,9 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
     /*font-size: 0.9em;*/  /* restore after SourceCodePro font fix? */
     padding: 0 @code-padding 0 10px;  /* left padding for project panel selection triangle */
 }
+.CodeMirror .CodeMirror-selected {
+    background: @selection-color-unfocused;
+}
 .CodeMirror-focused .CodeMirror-selected {
     background: @selection-color-focused;
 }
@@ -191,9 +193,9 @@ span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
     other than a vanilla .CodeMirror)
  */
 .CodeMirror {
-    div.CodeMirror-overwrite div.CodeMirror-cursor {
+    .CodeMirror-overwrite .CodeMirror-cursor {
         border-left: none !important;
-        border-bottom: 1px solid black !important;
+        border-bottom: 1px solid black;
         width: 1.2ex;
     }
     

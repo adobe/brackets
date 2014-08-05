@@ -40,7 +40,9 @@ define({
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} unterstützt derzeit nur UTF-8-kodierte Textdateien.",
     "FILE_EXISTS_ERR"                   : "Die Datei existiert bereits.",
     "FILE"                              : "Datei",
+    "FILE_TITLE"                        : "Datei",
     "DIRECTORY"                         : "Ordner",
+    "DIRECTORY_TITLE"                   : "Ordner",
     "DIRECTORY_NAMES_LEDE"              : "Ordnernamen",
     "FILENAMES_LEDE"                    : "Dateinamen",
     "FILENAME"                          : "Dateiname",
@@ -61,10 +63,10 @@ define({
     "ERROR_RELOADING_FILE"              : "Beim Laden der Änderungen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Fehler beim Speichern der Datei",
     "ERROR_SAVING_FILE"                 : "Beim Speichern der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "Fehler beim Umbenennen der Datei",
-    "ERROR_RENAMING_FILE"               : "Beim Umbenennen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
-    "ERROR_DELETING_FILE_TITLE"         : "Fehler beim Löschen der Datei",
-    "ERROR_DELETING_FILE"               : "Beim Löschen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "Fehler beim Umbenennen von {0}", // TODO: depends on {0} gender
+    "ERROR_RENAMING_FILE"               : "Beim Umbenennen von {2} <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}", // TODO: depends on {2} gender
+    "ERROR_DELETING_FILE_TITLE"         : "Fehler beim Löschen von {0}", // TODO: depends on {0} gender
+    "ERROR_DELETING_FILE"               : "Beim Löschen von {2} <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}", // TODO: depends on {2} gender
     "INVALID_FILENAME_TITLE"            : "Ungültiger {0}",
     "INVALID_FILENAME_MESSAGE"          : "{0} dürfen keine dem System vorbehaltenen Namen gebrauchen und nicht mit Punkten (.) enden oder die folgenden Zeichen enthalten: <span class='emphasized'>{1}</span>",
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "Eine Datei oder ein Ordner mit dem Namen <span class='dialog-filename'>{0}</span> existiert bereits.",
@@ -165,7 +167,7 @@ define({
     "FIND_REPLACE_TITLE_LABEL"          : "Ersetze",
     "FIND_REPLACE_TITLE_WITH"           : "mit",
     "FIND_TITLE_LABEL"                  : "",
-    "FIND_TITLE_SUMMARY"                : " gefunden &mdash; {0} {1} {2} in {3}",
+    "FIND_TITLE_SUMMARY"                : "gefunden &mdash; {0} {1} {2} in {3}",
 
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} {1}",
@@ -246,6 +248,7 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Erweiterungen deaktiviert",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_DEFAULT_LANG"                : "(Standard)",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Probleme",
@@ -283,6 +286,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
     "CMD_FILE_SAVE_AS"                    : "Speichern unter\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Live-Vorschau neu laden",
     "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
     "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
     "CMD_FILE_DELETE"                     : "Löschen",
@@ -352,6 +356,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatisch sortieren",
+    "CMD_THEMES"                          : "Designs\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigation",
@@ -414,6 +419,12 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie  \"{0}\" müssen %-kodiert werden.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
 
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Aktuelles Design",
+    "USE_THEME_SCROLLBARS"                 : "Scrollbars vom Design verwenden",
+    "FONT_SIZE"                            : "Schriftgröße",
+    "FONT_FAMILY"                          : "Schriftart",
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Neue Regel",
 
@@ -435,6 +446,8 @@ define({
     "CANCELING_INSTALL"                    : "Abgebrochen\u2026",
     "CANCELING_HUNG"                       : "Das Abbrechen der Installation nimmt bereits einige Minuten in Anspruch. Ein interner Fehler könnte aufgetreten sein.",
     "INSTALL_CANCELED"                     : "Installation abgebrochen.",
+    "VIEW_COMPLETE_DESCRIPTION"            : "Komplette Beschreibung anzeigen",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "Gekürzte Beschreibung anzeigen",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Der heruntergeladene Inhalt ist keine gültige ZIP-Datei.",
     "INVALID_PACKAGE_JSON"                 : "Die JSON-Paketdatei ist ungültig (Fehler: {0}).",
@@ -460,7 +473,11 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Erweiterungs-Verwaltung",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf den Order der Erweiterungen. Bitte später erneut versuchen.",
-    "INSTALL_FROM_URL"                     : "Von URL installieren\u2026",
+    "INSTALL_EXTENSION_DRAG"               : ".zip hierhin ziehen oder",
+    "INSTALL_EXTENSION_DROP"               : ".zip zum Installieren ablegen",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Das Installieren/Aktualisieren schlug fehl, da die folgenden Fehler aufgetreten sind:",
+    "INSTALL_FROM_URL"                     : "von URL installieren\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "Überprüfen\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Datum",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Diese Erweiterung benötigt eine neuere Version von {APP_NAME}.",
@@ -471,6 +488,9 @@ define({
     "EXTENSION_MORE_INFO"                  : "Mehr Informationen\u2026",
     "EXTENSION_ERROR"                      : "Erweiterungs-Fehler",
     "EXTENSION_KEYWORDS"                   : "Schlüsselwörter",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "In {0} Sprachen, inklusive Ihrer, übersetzt",
+    "EXTENSION_TRANSLATED_GENERAL"         : "In {0} Sprachen übersetzt",
+    "EXTENSION_TRANSLATED_LANGS"           : "Die Erweiterung wurde in diese Sprachen übersetzt: {0}",
     "EXTENSION_INSTALLED"                  : "Installiert",
     "EXTENSION_UPDATE_INSTALLED"           : "Dieses Erweiterungs-Update wurde heruntergeladen und wird installiert, wenn {APP_NAME} neu geladen wird.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Suchen",
@@ -552,12 +572,14 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Springe zur Definition",
     "CMD_SHOW_PARAMETER_HINT"                   : "Parameter-Hinweis anzeigen",
     "NO_ARGUMENTS"                              : "<keine Parameter>",
+    "DETECTED_EXCLUSION_TITLE"                  : "Problem mit einer JavaScript-Datei",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets hat Probleme damit, diese Datei zu verarbeiten:<br><br>{0}<br><br>Code-Vervollständigung und das Springen zur Definition werden für die Datei nicht mehr bereitgestellt. Öffnen Sie <code>.brackets.json</code> in diesem Projekt und entfernen Sie den Dateipfad von jscodehints.detectedExclusions, um diese Features zu reaktivieren.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
 
     // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                : "Schnelle Farbansicht",
+    "CMD_ENABLE_QUICK_VIEW"                     : "Schnelle Farbansicht",
 
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Zuletzt verwendete Projekte",
@@ -566,4 +588,4 @@ define({
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
 
-/* Last translated for 3a762c3cf91d6f65a5bb19aeb2056afacd777c71 */
+/* Last translated for 75c811dfa38164b7e9bd3921dd630d40720e9c2a */

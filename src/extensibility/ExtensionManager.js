@@ -140,10 +140,12 @@ define(function (require, exports, module) {
      * Verifies if an extension is a theme based on the presence of the field "theme"
      * in the package.json.  If it is a theme, then the theme file is just loaded by the
      * ThemeManager
+     *
+     * @param {string} id of the theme extension to load
      */
     function loadTheme(id) {
         var extension = extensions[id];
-        if ( extension.installInfo && extension.installInfo.metadata && extension.installInfo.metadata.theme ) {
+        if (extension.installInfo && extension.installInfo.metadata && extension.installInfo.metadata.theme) {
             ThemeManager.loadPackage(extension.installInfo);
         }
     }
@@ -371,11 +373,12 @@ define(function (require, exports, module) {
      * Updates an installed extension with the given package file.
      * @param {string} id of the extension
      * @param {string} packagePath path to the package file
+     * @param {boolean=} keepFile Flag to keep extension package file, default=false
      * @return {$.Promise} A promise that's resolved when the extension is updated or
      *     rejected with an error if there's a problem with the update.
      */
-    function update(id, packagePath) {
-        return Package.installUpdate(packagePath, id);
+    function update(id, packagePath, keepFile) {
+        return Package.installUpdate(packagePath, id, keepFile);
     }
 
     /**
@@ -384,8 +387,11 @@ define(function (require, exports, module) {
      */
     function cleanupUpdates() {
         Object.keys(_idsToUpdate).forEach(function (id) {
-            var filename = _idsToUpdate[id].localPath;
-            if (filename) {
+            var installResult = _idsToUpdate[id],
+                keepFile = installResult.keepFile,
+                filename = installResult.localPath;
+
+            if (filename && !keepFile) {
                 FileSystem.getFileForPath(filename).unlink();
             }
         });
@@ -459,7 +465,7 @@ define(function (require, exports, module) {
         if (!installationResult) {
             return;
         }
-        if (installationResult.localPath) {
+        if (installationResult.localPath && !installationResult.keepFile) {
             FileSystem.getFileForPath(installationResult.localPath).unlink();
         }
         delete _idsToUpdate[id];
@@ -511,7 +517,7 @@ define(function (require, exports, module) {
             Object.keys(_idsToUpdate),
             function (id) {
                 var installationResult = _idsToUpdate[id];
-                return update(installationResult.name, installationResult.localPath);
+                return update(installationResult.name, installationResult.localPath, installationResult.keepFile);
             }
         );
     }
@@ -569,6 +575,31 @@ define(function (require, exports, module) {
         }, []);
     }
 
+    /**
+     * Toggles between truncated and full length extension descriptions
+     * @param {string} id The id of the extension clicked
+     * @param {JQueryElement} $element The DOM element of the extension clicked
+     * @param {boolean} showFull true if full length description should be shown, false for shorten version.
+     */
+    function toggleDescription(id, $element, showFull) {
+        var description, linkTitle,
+            entry = extensions[id];
+
+        // Toggle between appropriate descriptions and link title,
+        // depending on if extension is installed or not
+        if (showFull) {
+            description = entry.installInfo ? entry.installInfo.metadata.description : entry.registryInfo.metadata.description;
+            linkTitle = Strings.VIEW_TRUNCATED_DESCRIPTION;
+        } else {
+            description = entry.installInfo ? entry.installInfo.metadata.shortdescription : entry.registryInfo.metadata.shortdescription;
+            linkTitle = Strings.VIEW_COMPLETE_DESCRIPTION;
+        }
+
+        $element.attr("data-toggle-desc", showFull ? "trunc-desc" : "expand-desc")
+                .attr("title", linkTitle)
+                .prev(".ext-full-description").html(description);
+    }
+
     // Listen to extension load and loadFailed events
     $(ExtensionLoader)
         .on("load", _handleExtensionLoad)
@@ -594,7 +625,7 @@ define(function (require, exports, module) {
     exports.updateExtensions        = updateExtensions;
     exports.getAvailableUpdates     = getAvailableUpdates;
     exports.cleanAvailableUpdates   = cleanAvailableUpdates;
-
+    exports.toggleDescription       = toggleDescription;
     exports.ENABLED       = ENABLED;
     exports.START_FAILED  = START_FAILED;
 

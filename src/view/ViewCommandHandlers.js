@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         KeyBindingManager   = require("command/KeyBindingManager"),
         Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
         ProjectManager      = require("project/ProjectManager"),
         EditorManager       = require("editor/EditorManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
@@ -45,12 +46,19 @@ define(function (require, exports, module) {
         ThemeSettings       = require("view/ThemeSettings"),
         AppInit             = require("utils/AppInit");
 
+    var prefs = PreferencesManager.getExtensionPrefs("fonts");
 
     /**
      * @const
      * @type {string}
      */
     var DYNAMIC_FONT_STYLE_ID = "codemirror-dynamic-fonts";
+
+    /**
+     * @const
+     * @type {string}
+     */
+    var DYNAMIC_FONT_FAMILY_ID = "codemirror-dynamic-font-family";
 
     /**
      * @const
@@ -71,58 +79,104 @@ define(function (require, exports, module) {
     /**
      * @const
      * @private
-     * The default font size used only to convert the old fontSizeAdjustment view state to the new fontSizeStyle
+     * The default font size used only to convert the old fontSizeAdjustment view state to the new fontSize
      * @type {number}
      */
     var DEFAULT_FONT_SIZE = 12;
 
+    /**
+     * @const
+     * @private
+     * The default font family
+     * @type {string}
+     */
+    var DEFAULT_FONT_FAMILY = "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace";
+
+    /**
+     * @private
+     * Removes style property from the DOM
+     * @param {string} propertyID is the id of the property to be removed
+     */
+    function _removeDynamicProperty(propertyID) {
+        $("#" + propertyID).remove();
+    }
+
+    /**
+     * @private
+     * Add the style property to the DOM
+     * @param {string} propertyID Is the property ID to be added
+     * @param {string} name Is the name of the style property
+     * @param {string} value Is the value of the style
+     * @param {boolean} important Is a flag to make the style property !important
+     */
+    function _addDynamicProperty(propertyID, name, value, important, cssRule) {
+        cssRule = cssRule || ".CodeMirror";
+        var $style   = $("<style type='text/css'></style>").attr("id", propertyID);
+        var styleStr = StringUtils.format("{0}: {1}{2}", name, value, important ? " !important" : "");
+        $style.html(cssRule + "{ " + styleStr + " }");
+
+        // Let's make sure we remove the already existing item from the DOM.
+        _removeDynamicProperty(propertyID);
+        $("head").append($style);
+    }
 
     /**
      * @private
      * Removes the styles used to update the font size
      */
     function _removeDynamicFontSize() {
-        $("#" + DYNAMIC_FONT_STYLE_ID).remove();
+        _removeDynamicProperty(DYNAMIC_FONT_STYLE_ID);
     }
 
     /**
      * @private
      * Add the styles used to update the font size
-     * @param {string} fontSizeStyle  A string with the font size and the size unit
+     * @param {string} fontSize  A string with the font size and the size unit
      */
-    function _addDynamicFontSize(fontSizeStyle) {
-        var style = $("<style type='text/css'></style>").attr("id", DYNAMIC_FONT_STYLE_ID);
-        style.html(".CodeMirror { font-size: " + fontSizeStyle   + " !important; }");
-        $("head").append(style);
+    function _addDynamicFontSize(fontSize) {
+        _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, "font-size", fontSize, true);
+    }
+
+    /**
+     * @private
+     * Removes the styles used to update the font family
+     */
+    function _removeDynamicFontFamily() {
+        _removeDynamicProperty(DYNAMIC_FONT_FAMILY_ID);
+    }
+
+    /**
+     * @private
+     * Add the styles used to update the font family
+     * @param {string} fontFamily  A string with the font family
+     */
+    function _addDynamicFontFamily(fontFamily) {
+        _addDynamicProperty(DYNAMIC_FONT_FAMILY_ID, "font-family", fontFamily);
     }
 
     /**
      * @private
      * Sets the font size and restores the scroll position as best as possible.
-     * @param {string=} fontSizeStyle  A string with the font size and the size unit
+     * @param {string=} fontSize  A string with the font size and the size unit
      */
-    function _setSizeAndRestoreScroll(fontSizeStyle) {
+    function _updateScroll(fontSize) {
         var editor      = EditorManager.getCurrentFullEditor(),
             oldWidth    = editor._codeMirror.defaultCharWidth(),
-            oldFontSize = $(".CodeMirror").css("font-size"),
-            newFontSize = "",
+            oldFontSize = prefs.get("fontSize"),
+            newFontSize = fontSize,
             delta       = 0,
             adjustment  = 0,
             scrollPos   = editor.getScrollPos(),
             line        = editor._codeMirror.lineAtHeight(scrollPos.y, "local");
 
-        _removeDynamicFontSize();
-        if (fontSizeStyle) {
-            _addDynamicFontSize(fontSizeStyle);
-        }
-        editor.refreshAll();
-
         delta = /em$/.test(oldFontSize) ? 10 : 1;
-        newFontSize = $(".CodeMirror").css("font-size");
         adjustment = parseInt((parseFloat(newFontSize) - parseFloat(oldFontSize)) * delta, 10);
 
+        // Only adjust the scroll position if there was any adjustments to the font size.
+        // Otherwise there will be unintended scrolling.
+        //
         if (adjustment) {
-            $(exports).triggerHandler("fontSizeChange", [adjustment, newFontSize]);
+            editor.refreshAll();
         }
 
         // Calculate the new scroll based on the old font sizes and scroll position
@@ -135,13 +189,80 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Font size setter to set the font size for the document editor
+     * @param {string} fontSize The font size with size unit as 'px' or 'em'
+     */
+    function setFontSize(fontSize) {
+        var oldValue = prefs.get("fontSize");
+
+        if (oldValue === fontSize) {
+            return;
+        }
+
+        _removeDynamicFontSize();
+        if (fontSize) {
+            _addDynamicFontSize(fontSize);
+        }
+
+        if (EditorManager.getCurrentFullEditor()) {
+            _updateScroll(fontSize);
+        }
+
+        $(exports).triggerHandler("fontSizeChange", [fontSize, oldValue]);
+        prefs.set("fontSize", fontSize);
+    }
+
+    /**
+     * Font size getter to get the current font size for the document editor
+     * @return {string} Font size with size unit as 'px' or 'em'
+     */
+    function getFontSize() {
+        return prefs.get("fontSize");
+    }
+
+
+    /**
+     * Font family setter to set the font family for the document editor
+     * @param {string} fontFamily The font family to be set.  It can be a string with multiple comma separated fonts
+     */
+    function setFontFamily(fontFamily) {
+        var editor = EditorManager.getCurrentFullEditor(),
+            oldValue = prefs.get("fontFamily");
+
+        if (oldValue === fontFamily) {
+            return;
+        }
+
+        _removeDynamicFontFamily();
+        if (fontFamily) {
+            _addDynamicFontFamily(fontFamily);
+        }
+
+        $(exports).triggerHandler("fontFamilyChange", [fontFamily, oldValue]);
+        prefs.set("fontFamily", fontFamily);
+
+        if (editor) {
+            editor.refreshAll();
+        }
+    }
+
+    /**
+     * Font family getter to get the currently configured font family for the document editor
+     * @return {string} The font family for the document editor
+     */
+    function getFontFamily() {
+        return prefs.get("fontFamily");
+    }
+
+
+    /**
      * @private
      * Increases or decreases the editor's font size.
      * @param {number} adjustment  Negative number to make the font smaller; positive number to make it bigger
      * @return {boolean} true if adjustment occurred, false if it did not occur
      */
     function _adjustFontSize(adjustment) {
-        var fsStyle   = $(".CodeMirror").css("font-size"),
+        var fsStyle   = prefs.get("fontSize"),
             validFont = /^[\d\.]+(px|em)$/;
 
         // Make sure that the font size is expressed in terms we can handle (px or em). If not, simply bail.
@@ -162,9 +283,7 @@ define(function (require, exports, module) {
             return false;
         }
 
-        _setSizeAndRestoreScroll(fsStr);
-        PreferencesManager.setViewState("fontSizeStyle", fsStr);
-
+        setFontSize(fsStr);
         return true;
     }
 
@@ -180,10 +299,8 @@ define(function (require, exports, module) {
 
     /** Restores the font size to the original size */
     function _handleRestoreFontSize() {
-        _setSizeAndRestoreScroll();
-        PreferencesManager.setViewState("fontSizeStyle");
+        setFontSize(DEFAULT_FONT_SIZE + "px");
     }
-
 
     /**
      * @private
@@ -207,11 +324,20 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Initializes the different settings that need to loaded
+     */
+    function init() {
+        _addDynamicFontFamily(prefs.get("fontFamily"));
+        _addDynamicFontSize(prefs.get("fontSize"));
+        _updateUI();
+    }
+
+    /**
      * Restores the font size using the saved style and migrates the old fontSizeAdjustment
-     * view state to the new fontSizeStyle, when required
+     * view state to the new fontSize, when required
      */
     function restoreFontSize() {
-        var fsStyle      = PreferencesManager.getViewState("fontSizeStyle"),
+        var fsStyle      = prefs.get("fontSize"),
             fsAdjustment = PreferencesManager.getViewState("fontSizeAdjustment");
 
         if (fsAdjustment) {
@@ -221,7 +347,7 @@ define(function (require, exports, module) {
             if (!fsStyle) {
                 // Migrate the old view state to the new one.
                 fsStyle = (DEFAULT_FONT_SIZE + fsAdjustment) + "px";
-                PreferencesManager.setViewState("fontSizeStyle", fsStyle);
+                prefs.set("fontSize", fsStyle);
             }
         }
 
@@ -231,6 +357,13 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Restores the font size and font family back to factory settings.
+     */
+    function restoreFonts() {
+        setFontFamily(DEFAULT_FONT_FAMILY);
+        setFontSize(DEFAULT_FONT_SIZE + "px");
+    }
 
 
     /**
@@ -324,6 +457,7 @@ define(function (require, exports, module) {
         ThemeSettings.showDialog();
     }
 
+
     /**
      * @private
      * Convert the old "fontSizeAdjustment" preference to the new view state.
@@ -348,11 +482,19 @@ define(function (require, exports, module) {
 
     PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewState);
 
+    prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px");
+    prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);
+
     // Update UI when opening or closing a document
     $(DocumentManager).on("currentDocumentChange", _updateUI);
 
     // Update UI when Brackets finishes loading
-    AppInit.appReady(_updateUI);
+    AppInit.appReady(init);
 
     exports.restoreFontSize = restoreFontSize;
+    exports.restoreFonts    = restoreFonts;
+    exports.getFontSize     = getFontSize;
+    exports.setFontSize     = setFontSize;
+    exports.getFontFamily   = getFontFamily;
+    exports.setFontFamily   = setFontFamily;
 });

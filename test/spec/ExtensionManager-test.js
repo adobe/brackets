@@ -50,6 +50,7 @@ define(function (require, exports, module) {
         FileSystem                = require("filesystem/FileSystem"),
         Strings                   = require("strings"),
         StringUtils               = require("utils/StringUtils"),
+        LocalizationUtils         = require("utils/LocalizationUtils"),
         mockRegistryText          = require("text!spec/ExtensionManager-test-files/mockRegistry.json"),
         mockRegistryForSearch     = require("text!spec/ExtensionManager-test-files/mockRegistryForSearch.json"),
         mockExtensionList         = require("text!spec/ExtensionManager-test-files/mockExtensionList.json"),
@@ -158,7 +159,6 @@ define(function (require, exports, module) {
         
         describe("ExtensionManager", function () {
             it("should download the extension list from the registry", function () {
-                var registry;
                 runs(function () {
                     waitsForDone(ExtensionManager.downloadRegistry(), "fetching registry");
                 });
@@ -172,7 +172,7 @@ define(function (require, exports, module) {
             });
             
             it("should trigger a registryUpdate event when updating the extension list from the registry", function () {
-                var registry, registryUpdateSpy;
+                var registryUpdateSpy;
                 runs(function () {
                     registryUpdateSpy = jasmine.createSpy();
                     $(ExtensionManager).on("registryUpdate", registryUpdateSpy);
@@ -257,7 +257,6 @@ define(function (require, exports, module) {
             it("should set the title for a legacy extension based on its folder name", function () {
                 mockLoadExtensions();
                 runs(function () {
-                    var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                     expect(ExtensionManager.extensions["mock-legacy-extension"].installInfo.metadata.title).toEqual("mock-legacy-extension");
                 });
             });
@@ -267,7 +266,6 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(ExtensionManager.extensions["mock-extension-1"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_DEFAULT);
                     expect(ExtensionManager.extensions["mock-extension-2"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_DEV);
-                    var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                     expect(ExtensionManager.extensions["mock-legacy-extension"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_USER);
                 });
             });
@@ -290,7 +288,6 @@ define(function (require, exports, module) {
                     mockLoadExtensions(["user/mock-legacy-extension"]);
                 });
                 runs(function () {
-                    var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                     expect(spy).toHaveBeenCalledWith(jasmine.any(Object), "mock-legacy-extension");
                 });
             });
@@ -693,7 +690,7 @@ define(function (require, exports, module) {
                     });
                     runs(function () {
                         expect(file.unlink).not.toHaveBeenCalled();
-                        expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
+                        expect(Package.installUpdate).toHaveBeenCalledWith(filename, id, undefined);
                     });
                 });
                 
@@ -708,7 +705,7 @@ define(function (require, exports, module) {
         });
         
         describe("ExtensionManagerView", function () {
-            var testWindow, view, model, fakeLoadDeferred, modelDisposed;
+            var view, model, fakeLoadDeferred, modelDisposed;
             
             // Sets up the view using the normal (mock) ExtensionManager data.
             function setupViewWithMockData(ModelClass) {
@@ -745,6 +742,7 @@ define(function (require, exports, module) {
                     var id = url.match(/fake-repository\.com\/([^\/]+)/)[1];
                     mockLoadExtensions(["user/" + id]);
                 });
+                spyOn(brackets, "getLocale").andReturn("en");
             });
                 
             
@@ -772,8 +770,7 @@ define(function (require, exports, module) {
                             
                             // Simple fields
                             [item.metadata.version,
-                                item.metadata.author && item.metadata.author.name,
-                                item.metadata.description]
+                                item.metadata.author && item.metadata.author.name]
                                 .forEach(function (value) {
                                     if (value) {
                                         expect(view).toHaveText(value);
@@ -784,13 +781,40 @@ define(function (require, exports, module) {
                             }
                             
                             // Array-valued fields
-                            [item.metadata.keywords, item.metadata.categories].forEach(function (arr) {
+                            [item.metadata.categories].forEach(function (arr) {
                                 if (arr) {
                                     arr.forEach(function (value) {
                                         expect(view).toHaveText(value);
                                     });
                                 }
                             });
+                        });
+                    });
+                });
+                
+                it("should display original description", function () {
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                    runs(function () {
+                        _.forEach(mockRegistry, function (item) {
+                            if (item.metadata.description) {
+                                if (StringUtils.truncate(item.metadata.description, 200) === undefined) {
+                                    expect(view).toHaveText(item.metadata.description);
+                                }
+                            }
+                        });
+                    });
+                });
+                
+                it("should display shortened description", function () {
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                    runs(function () {
+                        _.forEach(mockRegistry, function (item) {
+                            if (item.metadata.description) {
+                                var shortDescription = StringUtils.truncate(item.metadata.description, 200);
+                                if (shortDescription !== undefined) {
+                                    expect(view).toHaveText(shortDescription);
+                                }
+                            }
                         });
                     });
                 });
@@ -1191,8 +1215,7 @@ define(function (require, exports, module) {
                     mockLoadExtensions(["user/" + id]);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
-                        var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/user/" + id),
-                            $button = $("button.remove[data-extension-id='" + id + "']", view.$el);
+                        var $button = $("button.remove[data-extension-id='" + id + "']", view.$el);
                         $button.click();
                         expect(ExtensionManager.isMarkedForRemoval(id)).toBe(true);
                     });
@@ -1326,6 +1349,45 @@ define(function (require, exports, module) {
                         ExtensionManager.extensions["mock-extension"].installInfo.metadata.version =
                             ExtensionManager.extensions["mock-extension"].registryInfo.metadata.version;
                         expect(ExtensionManager.cleanAvailableUpdates(availableUpdates).length).toBe(0);
+                    });
+                });
+
+                // i18n info
+                it("should show correct i18n info if the extension is translated in user's lang", function () {
+                    var mockInstallInfo = { "mock-extension-4": { installInfo: mockRegistry["mock-extension-4"] } };
+                    mockInstallInfo["mock-extension-4"].installInfo.metadata.i18n = ["zh-cn", "foo", "en"];
+                    ExtensionManager._setExtensions(mockInstallInfo);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    runs(function () {
+                        var $extTranslated  = $(".ext-translated", view.$el),
+                            languages       = [LocalizationUtils.getLocalizedLabel("en"), "foo",  LocalizationUtils.getLocalizedLabel("zh-cn")];
+                        expect($extTranslated.length).toBe(1);
+                        expect($extTranslated.text()).toBe(StringUtils.format(Strings.EXTENSION_TRANSLATED_USER_LANG, languages.length));
+                        expect($extTranslated.attr("title")).toBe(StringUtils.format(Strings.EXTENSION_TRANSLATED_LANGS, languages.join(", ")));
+                    });
+                });
+                it("should show correct i18n info if the extension is translated in some other languages", function () {
+                    var mockInstallInfo = { "mock-extension-4": { installInfo: mockRegistry["mock-extension-4"] } };
+                    mockInstallInfo["mock-extension-4"].installInfo.metadata.i18n = ["zh-cn"];
+                    ExtensionManager._setExtensions(mockInstallInfo);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    runs(function () {
+                        var $extTranslated  = $(".ext-translated", view.$el),
+                            languages       = [LocalizationUtils.getLocalizedLabel("zh-cn")];
+                        expect($extTranslated.length).toBe(1);
+                        expect($extTranslated.text()).toBe(StringUtils.format(Strings.EXTENSION_TRANSLATED_GENERAL, languages.length));
+                        expect($extTranslated.attr("title")).toBe(StringUtils.format(Strings.EXTENSION_TRANSLATED_LANGS, languages.join(", ")));
+                    });
+                });
+                it("should not show i18n info if the extension isn't translated", function () {
+                    var mockInstallInfo = { "mock-extension-4": { installInfo: mockRegistry["mock-extension-4"] } };
+                    mockInstallInfo["mock-extension-4"].installInfo.metadata.i18n = [];
+                    ExtensionManager._setExtensions(mockInstallInfo);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    runs(function () {
+                        var $extTranslated  = $(".ext-translated", view.$el);
+                        expect($extTranslated.length).toBe(0);
+                        expect($extTranslated.attr("title")).toBe(undefined);
                     });
                 });
 
@@ -1463,7 +1525,7 @@ define(function (require, exports, module) {
                         });
                         waitsFor(function () { return didReload; }, "mock reload");
                         runs(function () {
-                            expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
+                            expect(Package.installUpdate).toHaveBeenCalledWith(filename, id, undefined);
                             expect(didClose).toBe(true);
                             expect(didReload).toBe(true);
                         });

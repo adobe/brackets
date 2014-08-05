@@ -48,19 +48,41 @@ define(function (require, exports, module) {
         Session              = require("Session"),
         Acorn                = require("thirdparty/acorn/acorn");
 
-    var session      = null,  // object that encapsulates the current session state
-        cachedCursor = null,  // last cursor of the current hinting session
-        cachedHints  = null,  // sorted hints for the current hinting session
-        cachedType   = null,  // describes the lookup type and the object context
-        cachedToken  = null,  // the token used in the current hinting session
-        matcher      = null,  // string matcher for hints
-        ignoreChange;         // can ignore next "change" event if true;
+    var session        = null,  // object that encapsulates the current session state
+        cachedCursor   = null,  // last cursor of the current hinting session
+        cachedHints    = null,  // sorted hints for the current hinting session
+        cachedType     = null,  // describes the lookup type and the object context
+        cachedToken    = null,  // the token used in the current hinting session
+        matcher        = null,  // string matcher for hints
+        jsHintsEnabled = true,  // preference setting to enable/disable the hint session
+        ignoreChange;           // can ignore next "change" event if true;
+
     
-    // Define the defaultExclusions which are files that are known to cause Tern to run out of control.
-    PreferencesManager.definePreference("jscodehints.defaultExclusions", "array", []);
+    // Define the detectedExclusions which are files that have been detected to cause Tern to run out of control.
+    PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", []);
     
     // This preference controls when Tern will time out when trying to understand files
-    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 5000);
+    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 10000);
+    
+    // This preference controls whether to create a session and process all JS files or not.
+    PreferencesManager.definePreference("codehint.JSHints", "boolean", true);
+
+    /**
+     * Check whether any of code hints preferences for JS Code Hints is disabled
+     * @return {boolean} enabled/disabled
+     */
+    function _areHintsEnabled() {
+        return (PreferencesManager.get("codehint.JSHints") !== false) &&
+            (PreferencesManager.get("showCodeHints") !== false);
+    }
+
+    PreferencesManager.on("change", "codehint.JSHints", function () {
+        jsHintsEnabled = _areHintsEnabled();
+    });
+    
+    PreferencesManager.on("change", "showCodeHints", function () {
+        jsHintsEnabled = _areHintsEnabled();
+    });
     
     /**
      * Sets the configuration, generally for testing/debugging use.
@@ -585,6 +607,10 @@ define(function (require, exports, module) {
             // always clean up cached scope and hint info
             resetCachedHintContext();
 
+            if (!jsHintsEnabled) {
+                return;
+            }
+            
             if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
                 initializeSession(editor, previousEditor);
                 $(editor)
