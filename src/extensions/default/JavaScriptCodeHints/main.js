@@ -563,7 +563,7 @@ define(function (require, exports, module) {
          * When the editor is changed, reset the hinting session and cached 
          * information, and reject any pending deferred requests.
          * 
-         * @param {Editor} editor - editor context to be initialized.
+         * @param {!Editor} editor - editor context to be initialized.
          * @param {?Editor} previousEditor - the previous editor.
          */
         function initializeSession(editor, previousEditor) {
@@ -575,10 +575,10 @@ define(function (require, exports, module) {
         }
 
         /*
-         * Install editor change listeners
+         * Connects to the given editor, creating a new Session & adding listeners
          * 
-         * @param {Editor} editor - editor context on which to listen for
-         *      changes
+         * @param {?Editor} editor - editor context on which to listen for
+         *      changes. If null, 'session' is cleared.
          * @param {?Editor} previousEditor - the previous editor
          */
         function installEditorListeners(editor, previousEditor) {

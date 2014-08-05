@@ -120,6 +120,12 @@
  *         isBinary: true    
  *     }); 
  * 
+ * 
+ * LanguageManager dispatches two events:
+ * 
+ *  - languageAdded -- When any new Language is added. 2nd arg is the new Language.
+ *  - languageModified -- When the attributes of a Language change, or when the Language gains or loses
+ *          file extension / filename mappings. 2nd arg is the modified Language.
  */
 define(function (require, exports, module) {
     "use strict";

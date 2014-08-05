@@ -171,7 +171,7 @@ define(function (require, exports, module) {
      * @param {boolean=} noWrap  Clip out of range index values instead of wrapping. Default false (wrap).
      */
     DropdownEventHandler.prototype._tryToSelect = function (index, direction, noWrap) {
-        // Wrap around if index out of bounds (>= len or < 0)
+        // Fix up 'index' if out of bounds (>= len or < 0)
         var len = this.$items.length;
         if (noWrap) {
             // Clip to stay in range (and set direction so we don't wrap in the recursion case either)
@@ -183,9 +183,10 @@ define(function (require, exports, module) {
                 direction = -1;
             }
         } else {
-            index = index % len;
+            // Wrap around to keep index in bounds
+            index %= len;
             if (index < 0) {
-                index = len + index;
+                index += len;
             }
         }
         
@@ -240,7 +241,7 @@ define(function (require, exports, module) {
         if (!this.selectionCallback || !this.$list || !$link) {
             return;
         }
-        if ($link.is(".disabled")) {
+        if ($link.hasClass("disabled")) {
             return;
         }
         
@@ -296,7 +297,7 @@ define(function (require, exports, module) {
 
                 // Only set selected if enabled & in view
                 // (dividers are already screened out since they don't have an "a" tag in them)
-                if (!$link.is(".disabled")) {
+                if (!$link.hasClass("disabled")) {
                     if (elementOffset.top < viewOffset.top + self.$list.height() && viewOffset.top <= elementOffset.top) {
                         self._setSelectedIndex(self.$items.index($item), false);
                     }

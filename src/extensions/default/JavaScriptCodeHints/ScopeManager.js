@@ -1137,7 +1137,7 @@ define(function (require, exports, module) {
          * Called each time a new editor becomes active.
          *
          * @param {Session} session - the active hinting session
-         * @param {Document} document - the document of the editor that has changed
+         * @param {!Document} document - the document of the editor that has changed
          * @param {?Document} previousDocument - the document of the editor is changing from
          */
         function handleEditorChange(session, document, previousDocument) {

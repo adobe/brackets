@@ -65,6 +65,9 @@ define(function (require, exports, module) {
      *
      * __deleted__ -- When the file for this document has been deleted. All views onto the document should
      * be closed. The document will no longer be editable or dispatch "change" events.
+     * 
+     * __languageChanged__ -- When the value of getLanguage() has changed. 2nd argument is the old value,
+     * 3rd argument is the new value.
      *
      * @constructor
      * @param {!File} file  Need not lie within the project.
