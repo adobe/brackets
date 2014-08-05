@@ -1170,7 +1170,7 @@ define(function (require, exports, module) {
         
         var re = new RegExp(selector + "(\\[[^\\]]*\\]|:{1,2}[\\w-()]+|\\.[\\w-]+|#[\\w-]+)*\\s*$", classOrIdSelector ? "" : "i");
         allSelectors.forEach(function (entry) {
-            if (entry.selector.search(re) !== -1 || entry.parentSelectors.search(re) !== -1) {
+            if (entry.selector.search(re) !== -1) {
                 result.push(entry);
             } else if (!classOrIdSelector) {
                 // Special case for tag selectors - match "*" as the rightmost character
