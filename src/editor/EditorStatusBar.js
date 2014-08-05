@@ -238,6 +238,7 @@ define(function (require, exports, module) {
      */
     function _initOverwriteMode(currentEditor) {
         currentEditor.toggleOverwrite($statusOverwrite.text() === Strings.STATUSBAR_OVERWRITE);
+        $statusOverwrite.attr("title", Strings.STATUSBAR_INSOVR_TOOLTIP);
     }
     
     /**
