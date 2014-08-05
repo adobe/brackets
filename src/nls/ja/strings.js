@@ -424,8 +424,6 @@ define({
 	"USE_THEME_SCROLLBARS": "テーマスクロールバーを使用",
 	"FONT_SIZE": "フォントサイズ",
 	"FONT_FAMILY": "フォントファミリー",
-	"LINE_HEIGHT": "行の高さ",
-	"GENERAL": "一般",
 
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "新規ルール",
