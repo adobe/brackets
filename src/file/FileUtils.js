@@ -149,6 +149,10 @@ define(function (require, exports, module) {
         return text.replace(findAnyEol, eolStr);
     }
 
+    /**
+     * @param {!FileSystemError} name
+     * @return {!string} User-friendly, localized error message
+     */
     function getFileErrorString(name) {
         // There are a few error codes that we have specific error messages for. The rest are
         // displayed with a generic "(error N)" message.
@@ -171,6 +175,11 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /**
+     * Shows an error dialog indicating that the given file could not be opened due to the given error
+     * @param {!FileSystemError} name
+     * @return {!Dialog}
+     */
     function showFileOpenError(name, path) {
         return Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,

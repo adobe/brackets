@@ -99,6 +99,7 @@ define(function (require, exports, module) {
      */
     function openDroppedFiles(files) {
         var errorFiles = [],
+            ERR_MULTIPLE_ITEMS_WITH_DIR = {},
             filteredFiles = filterFilesToOpen(files);
         
         return Async.doInParallel(filteredFiles, function (path, idx) {
@@ -122,8 +123,8 @@ define(function (require, exports, module) {
                         .done(function () {
                             result.resolve();
                         })
-                        .fail(function () {
-                            errorFiles.push(path);
+                        .fail(function (openErr) {
+                            errorFiles.push({path: path, error: openErr});
                             result.reject();
                         });
                 } else if (!err && item.isDirectory && filteredFiles.length === 1) {
@@ -137,7 +138,7 @@ define(function (require, exports, module) {
                             result.reject();
                         });
                 } else {
-                    errorFiles.push(path);
+                    errorFiles.push({path: path, error: err || ERR_MULTIPLE_ITEMS_WITH_DIR});
                     result.reject();
                 }
             });
@@ -145,14 +146,23 @@ define(function (require, exports, module) {
             return result.promise();
         }, false)
             .fail(function () {
+                function errorToString(err) {
+                    if (err === ERR_MULTIPLE_ITEMS_WITH_DIR) {
+                        return Strings.ERROR_MIXED_DRAGDROP;
+                    } else {
+                        return FileUtils.getFileErrorString(err);
+                    }
+                }
+
                 if (errorFiles.length > 0) {
                     var message = Strings.ERROR_OPENING_FILES;
                     
                     message += "<ul class='dialog-list'>";
-                    errorFiles.forEach(function (file) {
+                    errorFiles.forEach(function (info) {
                         message += "<li><span class='dialog-filename'>" +
-                            StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(file)) +
-                            "</span></li>";
+                            StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(info.path)) +
+                            "</span> - " + errorToString(info.error) +
+                            "</li>";
                     });
                     message += "</ul>";
                     

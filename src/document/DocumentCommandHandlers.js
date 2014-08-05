@@ -241,7 +241,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} a jQuery promise that will either
      * - be resolved with a document for the specified file path or
      * - be resolved without document, i.e. when an image is displayed or
-     * - be rejected if the file can not be read.
+     * - be rejected with FileSystemError if the file can not be read.
      */
     function doOpen(fullPath, silent) {
         var result = new $.Deferred();
@@ -255,7 +255,7 @@ define(function (require, exports, module) {
             return result.promise();
         }
         
-        function _cleanup(fullFilePath) {
+        function _cleanup(fileError, fullFilePath) {
             if (!fullFilePath || EditorManager.showingCustomViewerForPath(fullFilePath)) {
                 // We get here only after the user renames a file that makes it no longer belong to a
                 // custom viewer but the file is still showing in the current custom viewer. This only
@@ -270,21 +270,20 @@ define(function (require, exports, module) {
                 DocumentManager.removeFromWorkingSet(FileSystem.getFileForPath(fullFilePath));
                 EditorManager.focusEditor();
             }
-            result.reject();
+            result.reject(fileError);
         }
         function _showErrorAndCleanUp(fileError, fullFilePath) {
             if (silent) {
-                _cleanup(fullFilePath);
+                _cleanup(fileError, fullFilePath);
             } else {
                 FileUtils.showFileOpenError(fileError, fullFilePath).done(function () {
-                    _cleanup(fullFilePath);
+                    _cleanup(fileError, fullFilePath);
                 });
             }
         }
         
         if (!fullPath) {
-            console.error("doOpen() called without fullPath");
-            result.reject();
+            throw new Error("doOpen() called without fullPath");
         } else {
             var perfTimerName = PerfUtils.markStart("Open File:\t" + fullPath);
             result.always(function () {
