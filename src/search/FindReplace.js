@@ -548,7 +548,7 @@ define(function (require, exports, module) {
             initialQuery = findBar.getQueryInfo().query;
         } else {
             // Prepopulate with the current primary selection, if any
-            initialQuery = editor.getSelectionText();
+            initialQuery = editor.getSelectedText();
             
             // Eliminate newlines since we don't generally support searching across line boundaries (#2960)
             var newline = initialQuery.indexOf("\n");
