@@ -40,6 +40,7 @@ define(function (require, exports, module) {
      * changed when the Brackets window loses and regains focus. Does not
      * read timestamps of files on disk. Clients may optionally track file
      * timestamps on disk independently.
+     * @constructor
      */
     function ChangedDocumentTracker() {
         var self = this;

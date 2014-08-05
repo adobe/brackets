@@ -27,31 +27,31 @@
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
  *
- * # STARTING
+ * __STARTING__
  *
  * To start a session call `open`. This will read the currentDocument from brackets,
  * launch the LiveBrowser (currently Chrome) with the remote debugger port open,
  * establish the Inspector connection to the remote debugger, and finally load all
  * agents.
  *
- * # STOPPING
+ * __STOPPING__
  *
  * To stop a session call `close`. This will close the active browser window,
  * disconnect the Inspector, unload all agents, and clean up.
  *
- * # STATUS
+ * __STATUS__
  *
  * Status updates are dispatched as `statusChange` jQuery events. The status
  * is passed as the first parameter and the reason for the change as the second
  * parameter. Currently only the "Inactive" status supports the reason parameter.
  * The status codes are:
  *
- * -1: Error
- *  0: Inactive
- *  1: Connecting to the remote debugger
- *  2: Loading agents
- *  3: Active
- *  4: Out of sync
+ *     -1: Error
+ *      0: Inactive
+ *      1: Connecting to the remote debugger
+ *      2: Loading agents
+ *      3: Active
+ *      4: Out of sync
  *
  * The reason codes are:
  * - null (Unknown reason)
@@ -146,13 +146,22 @@ define(function LiveDevelopment(require, exports, module) {
         "highlight" : true
     };
 
-    // store the names (matching property names in the 'agent' object) of agents that we've loaded
+    /**
+     * Store the names (matching property names in the 'agent' object) of agents that we've loaded
+     * @type {string}
+     */
     var _loadedAgentNames = [];
 
-    /** @type {HTMLDocument} */
+    /**
+     * Live Preview current Document info
+     * @type {HTMLDocument}
+     */
     var _liveDocument;
     
-    /** @type {Object.<string: {HTMLDocument|CSSDocument}>} */
+    /**
+     * Related Live Documents
+     * @type {Object.<string: (HTMLDocument|CSSDocument)>}
+     */
     var _relatedDocuments = {};
     
     /**
@@ -367,8 +376,8 @@ define(function LiveDevelopment(require, exports, module) {
     /**
      * @private
      * Create a live version of a Brackets document
-     * @param {Document} doc
-     * @param {Editor} editor
+     * @param {Document} doc Current document
+     * @param {Editor} editor Current editor
      * @return {?(HTMLDocument|CSSDocument)}
      */
     function _createDocument(doc, editor) {
@@ -386,6 +395,18 @@ define(function LiveDevelopment(require, exports, module) {
         return liveDocument;
     }
 
+    /**
+     * @private
+     * Initialize `_liveDocument`.
+     * @param {Document} doc Current document
+     */
+    function _createLiveDocumentForFrame(doc) {
+        // create live document
+        doc._ensureMasterEditor();
+        _liveDocument = _createDocument(doc, doc._masterEditor);
+        _server.add(_liveDocument);
+    }
+    
     /** Enable an agent. Takes effect next time a connection is made. Does not affect
      *  current live development sessions.
      *
@@ -464,7 +485,9 @@ define(function LiveDevelopment(require, exports, module) {
         docPromise.done(function (doc) {
             if ((_classForDocument(doc) === CSSDocument) &&
                     (!_liveDocument || (doc !== _liveDocument.doc))) {
-                var liveDoc = _createDocument(doc);
+                // The doc may already have an editor (e.g. starting live preview from an css file),
+                // so pass the editor if any
+                var liveDoc = _createDocument(doc, doc._masterEditor);
                 if (liveDoc) {
                     _server.add(liveDoc);
                     _relatedDocuments[doc.url] = liveDoc;
@@ -912,6 +935,19 @@ define(function LiveDevelopment(require, exports, module) {
         return loadAgents();
     }
 
+    /** reload the live preview */
+    function reload() {
+        // Unload and reload agents before reloading the page
+        // Some agents (e.g. DOMAgent and RemoteAgent) require us to
+        // navigate to the page first before loading can complete.
+        // To accomodate this, we load all agents (in reconnect())
+        // and navigate in parallel.
+        reconnect();
+
+        // Reload HTML page
+        Inspector.Page.reload();
+    }
+
     /**
      * Close the connection and the associated window asynchronously
      * @return {jQuery.Promise} Resolves once the connection is closed
@@ -1153,13 +1189,6 @@ define(function LiveDevelopment(require, exports, module) {
         });
     }
 
-    function _createLiveDocumentForFrame(doc) {
-        // create live document
-        doc._ensureMasterEditor();
-        _liveDocument = _createDocument(doc, doc._masterEditor);
-        _server.add(_liveDocument);
-    }
-    
     // helper function that actually does the launch once we are sure we have
     // a doc and the server for that doc is up and running.
     function _doLaunchAfterServerReady(initialDoc) {
@@ -1359,15 +1388,7 @@ define(function LiveDevelopment(require, exports, module) {
             wasRequested    = agents.network && agents.network.wasURLRequested(documentUrl);
         
         if (wasRequested) {
-            // Unload and reload agents before reloading the page
-            // Some agents (e.g. DOMAgent and RemoteAgent) require us to
-            // navigate to the page first before loading can complete.
-            // To accomodate this, we load all agents (in reconnect())
-            // and navigate in parallel.
-            reconnect();
-
-            // Reload HTML page
-            Inspector.Page.reload();
+            reload();
         }
     }
 
@@ -1438,6 +1459,7 @@ define(function LiveDevelopment(require, exports, module) {
     exports.open                = open;
     exports.close               = close;
     exports.reconnect           = reconnect;
+    exports.reload              = reload;
     exports.enableAgent         = enableAgent;
     exports.disableAgent        = disableAgent;
     exports.getLiveDocForPath   = getLiveDocForPath;

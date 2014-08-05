@@ -32,9 +32,11 @@
  * To find out which languages we support by default, have a look at languages.json.
  *
  * To get access to an existing language, call getLanguage():
+ *
  *     var language = LanguageManager.getLanguage("<id>");
  *
  * To define your own languages, call defineLanguage():
+ *
  *     LanguageManager.defineLanguage("haskell", {
  *         name: "Haskell",
  *         mode: "haskell",
@@ -44,11 +46,13 @@
  *     });
  *
  * To use that language and its related mode, wait for the returned promise to be resolved:
+ *
  *     LanguageManager.defineLanguage("haskell", definition).done(function (language) {
  *         console.log("Language " + language.getName() + " is now available!");
  *     });
  *
  * The extension can also contain dots:
+ *
  *     LanguageManager.defineLanguage("literatecoffeescript", {
  *         name: "Literate CoffeeScript",
  *         mode: "coffeescript",
@@ -56,14 +60,17 @@
  *     }); 
  *
  * You can also specify file names:
+ *
  *     LanguageManager.defineLanguage("makefile", {
  *         name: "Make",
  *         mode: ["null", "text/plain"],
  *         fileNames: ["Makefile"]
  *     });
+ *
  * You can combine file names and extensions, or not define them at all.
  *
  * You can also refine an existing language:
+ *
  *     var language = LanguageManager.getLanguage("haskell");
  *     language.setLineCommentSyntax(["--"]);
  *     language.setBlockCommentSyntax("{-", "-}");
@@ -73,16 +80,19 @@
  * To find existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror2/mode
  * For instance, C++, C# and Java all use the clike (C-like) mode with different settings and a different MIME name.
  * You can refine the mode definition by specifying the MIME mode as well:
+ *
  *     LanguageManager.defineLanguage("csharp", {
  *         name: "C#",
  *         mode: ["clike", "text/x-csharp"],
  *         ...
  *     });
+ *
  * Defining the base mode is still necessary to know which file to load.
  * However, language.getMode() will return just the MIME mode if one was
  * specified.
  *
  * If you need to configure a mode, you can just create a new MIME mode and use that:
+ *
  *     CodeMirror.defineMIME("text/x-brackets-html", {
  *         "name": "htmlmixed",
  *         "scriptTypes": [{"matches": /\/x-handlebars-template|\/x-mustache/i,
@@ -103,6 +113,7 @@
  * Binary files do not require mode because modes are specific to CodeMirror, which
  * only handles text based file types.
  * To register a binary language the isBinary flag must be set, i.e.
+ *
  *     LanguageManager.defineLanguage("audio", {
  *         name: "Audio",
  *         fileExtensions: ["mp3", "wav", "aif", "aiff", "ogg"],
@@ -131,6 +142,7 @@ define(function (require, exports, module) {
         _baseFileExtensionToLanguageMap = {},
         _fileExtensionToLanguageMap     = Object.create(_baseFileExtensionToLanguageMap),
         _fileNameToLanguageMap          = {},
+        _filePathToLanguageMap          = {},
         _modeToLanguageMap              = {},
         _ready;
     
@@ -214,6 +226,28 @@ define(function (require, exports, module) {
 
         _modeToLanguageMap[mode] = language;
     }
+    
+    /**
+     * Adds a language mapping for the specified fullPath. If language is falsy (null or undefined), the mapping
+     * is removed.
+     *
+     * @param {!fullPath} fullPath absolute path of the file
+     * @param {?object} language language to associate the file with or falsy value to remove the existing mapping
+     */
+    function _setLanguageOverrideForPath(fullPath, language) {
+        if (!language) {
+            delete _filePathToLanguageMap[fullPath];
+        } else {
+            _filePathToLanguageMap[fullPath] = language;
+        }
+    }
+    
+    /**
+     * Resets all the language overrides for file paths. Used by unit tests only.
+     */
+    function _resetLanguageOverrides() {
+        _filePathToLanguageMap = {};
+    }
 
     /**
      * Resolves a language ID to a Language object.
@@ -237,14 +271,25 @@ define(function (require, exports, module) {
     /**
      * Resolves a file path to a Language object.
      * @param {!string} path Path to the file to find a language for
+     * @param {?boolean} ignoreOverride If set to true will cause the lookup to ignore any
+     *      overrides and return default binding. By default override is not ignored.
+     *
      * @return {Language} The language for the provided file type or the fallback language
      */
-    function getLanguageForPath(path) {
-        var fileName = FileUtils.getBaseName(path).toLowerCase(),
-            language = _fileNameToLanguageMap[fileName],
+    function getLanguageForPath(path, ignoreOverride) {
+        var fileName,
+            language = _filePathToLanguageMap[path],
             extension,
             parts;
-
+        
+        // if there's an override, return it
+        if (!ignoreOverride && language) {
+            return language;
+        }
+        
+        fileName = FileUtils.getBaseName(path).toLowerCase();
+        language = _fileNameToLanguageMap[fileName];
+        
         // If no language was found for the file name, use the file extension instead
         if (!language) {
             // Split the file name into parts:
@@ -292,6 +337,17 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns a map of all the languages currently defined in the LanguageManager. The key to
+     * the map is the language id and the value is the language object.
+     *
+     * @return {Object.<string, Language>} A map containing all of the
+     *      languages currently defined.
+     */
+    function getLanguages() {
+        return $.extend({}, _languages); // copy to prevent modification
+    }
+    
+    /**
      * Resolves a CodeMirror mode to a Language object.
      * @param {!string} mode CodeMirror mode
      * @return {Language} The language for the provided mode or the fallback language
@@ -329,8 +385,8 @@ define(function (require, exports, module) {
     
 
     /**
-     * @constructor
      * Model for a language.
+     * @constructor
      */
     function Language() {
         this._fileExtensions    = [];
@@ -340,31 +396,58 @@ define(function (require, exports, module) {
     }
     
     
-    /** @type {string} Identifier for this language */
+    /**
+     * Identifier for this language
+     * @type {string}
+     */
     Language.prototype._id = null;
     
-    /** @type {string} Human-readable name of this language */
+    /**
+     * Human-readable name of this language
+     * @type {string}
+     */
     Language.prototype._name = null;
     
-    /** @type {string} CodeMirror mode for this language */
+    /**
+     * CodeMirror mode for this language
+     * @type {string}
+     */
     Language.prototype._mode = null;
     
-    /** @type {Array.<string>} File extensions that use this language */
+    /**
+     * File extensions that use this language
+     * @type {Array.<string>}
+     */
     Language.prototype._fileExtensions = null;
     
-    /** @type {Array.<string>} File names for extensionless files that use this language */
+    /**
+     * File names for extensionless files that use this language
+     * @type {Array.<string>}
+     */
     Language.prototype._fileNames = null;
     
-    /** @type {Array.<string>} Line comment syntax */
+    /**
+     * Line comment syntax
+     * @type {Array.<string>}
+     */
     Language.prototype._lineCommentSyntax = null;
     
-    /** @type {Object.<string,Language>} Which language to use for what CodeMirror mode */
+    /**
+     * Which language to use for what CodeMirror mode
+     * @type {Object.<string,Language>}
+     */
     Language.prototype._modeToLanguageMap = null;
     
-    /** @type {{ prefix: string, suffix: string }} Block comment syntax */
+    /**
+     * Block comment syntax
+     * @type {{ prefix: string, suffix: string }}
+     */
     Language.prototype._blockCommentSyntax = null;
     
-    /** @type {boolean} Whether or not the language is binary */
+    /**
+     * Whether or not the language is binary
+     * @type {boolean}
+     */
     Language.prototype._isBinary = false;
     
     /**
@@ -893,15 +976,17 @@ define(function (require, exports, module) {
      * The preferences look like this in a prefs file:
      * 
      * Map *.foo to javascript, *.vm to html
-     * "language.fileExtensions": {
-     *     "foo": "javascript",
-     *     "vm": "html"
-     * }
+     * 
+     *     "language.fileExtensions": {
+     *         "foo": "javascript",
+     *         "vm": "html"
+     *     }
      * 
      * Map "Gemfile" to ruby:
-     * "language.fileNames": {
-     *     "Gemfile": "ruby"
-     * }
+     * 
+     *     "language.fileNames": {
+     *         "Gemfile": "ruby"
+     *     }
      */
     function _updateFromPrefs(pref) {
         var newMapping = PreferencesManager.get(pref) || {},
@@ -1013,13 +1098,19 @@ define(function (require, exports, module) {
     });
     
     // Private for unit tests
-    exports._EXTENSION_MAP_PREF     = _EXTENSION_MAP_PREF;
-    exports._NAME_MAP_PREF          = _NAME_MAP_PREF;
+    exports._EXTENSION_MAP_PREF         = _EXTENSION_MAP_PREF;
+    exports._NAME_MAP_PREF              = _NAME_MAP_PREF;
+    exports._resetLanguageOverrides     = _resetLanguageOverrides;
+    // Internal use only
+    // _setLanguageOverrideForPath is used by Document to help LanguageManager keeping track of
+    // in-document language overrides
+    exports._setLanguageOverrideForPath  = _setLanguageOverrideForPath;
     
     // Public methods
-    exports.ready                   = _ready;
-    exports.defineLanguage          = defineLanguage;
-    exports.getLanguage             = getLanguage;
-    exports.getLanguageForExtension = getLanguageForExtension;
-    exports.getLanguageForPath      = getLanguageForPath;
+    exports.ready                       = _ready;
+    exports.defineLanguage              = defineLanguage;
+    exports.getLanguage                 = getLanguage;
+    exports.getLanguageForExtension     = getLanguageForExtension;
+    exports.getLanguageForPath          = getLanguageForPath;
+    exports.getLanguages                = getLanguages;
 });

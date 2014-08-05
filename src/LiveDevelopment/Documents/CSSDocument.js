@@ -28,22 +28,23 @@
 /**
  * CSSDocument manages a single CSS source document
  *
- * # EDITING
+ * __EDITING__
  *
  * Editing the document will cause the style sheet to be reloaded via the
  * CSSAgent, which immediately updates the appearance of the rendered document.
  *
- * # HIGHLIGHTING
+ * __HIGHLIGHTING__
  *
  * CSSDocument supports highlighting nodes from the HighlightAgent and
  * highlighting all DOMNode corresponding to the rule at the cursor position
  * in the editor.
  *
- * # EVENTS
+ * __EVENTS__
  *
  * CSSDocument dispatches these events:
- *  deleted - When the file for the underlying Document has been deleted. The
- *      2nd argument to the listener will be this CSSDocument.
+ *
+ * - deleted -- When the file for the underlying Document has been deleted.
+ *   The 2nd argument to the listener will be this CSSDocument.
  */
 define(function CSSDocumentModule(require, exports, module) {
     "use strict";
@@ -55,9 +56,10 @@ define(function CSSDocumentModule(require, exports, module) {
         HighlightAgent  = require("LiveDevelopment/Agents/HighlightAgent"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector");
 
-    /** Constructor
-     *
-     * @param Document the source document from Brackets
+    /**
+     * @constructor
+     * @param {!Document} doc The source document from Brackets
+     * @param {!Editor} editor The editor for this document
      */
     var CSSDocument = function CSSDocument(doc, editor) {
         this.doc = doc;
@@ -92,9 +94,9 @@ define(function CSSDocumentModule(require, exports, module) {
     };
 
     /**
-     * @deprecated
      * CSSStyleSheetBody was removed in protocol 1.1. This method is unused in Brackets 36.
      * Get the browser version of the StyleSheet object
+     * @deprecated
      * @return {jQuery.promise}
      */
     CSSDocument.prototype.getStyleSheetFromBrowser = function getStyleSheetFromBrowser() {
@@ -195,7 +197,7 @@ define(function CSSDocumentModule(require, exports, module) {
     
     /**
      * Returns a JSON object with HTTP response overrides
-     * @returns {{body: string}}
+     * @return {{body: string}}
      */
     CSSDocument.prototype.getResponseData = function getResponseData(enabled) {
         return {

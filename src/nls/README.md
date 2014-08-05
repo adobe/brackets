@@ -12,9 +12,9 @@
 4. Copy the root `strings.js` file into your subfolder and start translating!
 5. Use the [UI walkthrough steps](https://github.com/adobe/brackets/wiki/Localization-Tests) to
    see strings in context.
-6. Add this comment ``/* Last translated for SHA_of_root_strings.js */`` at the end 
-   of your `strings.js` and replace `SHA_of_root_strings.js` with the actual SHA. You can 
-   copy the actual SHA in this [history page](https://github.com/adobe/brackets/commits/master/src/nls/root/strings.js)
+6. Add this comment ``/* Last translated for commit_SHA_of_root_strings.js */`` at the end 
+   of your `strings.js` and replace `commit_SHA_of_root_strings.js` with the actual SHA.
+   You can copy the actual SHA in this [history page](https://github.com/adobe/brackets/commits/master/src/nls/root/strings.js)
    by hovering on the one you used for this translation and click on Copy SHA button.
 7. Edit this file and update the list of languages below!
 
@@ -30,6 +30,9 @@ as an introduction to Brackets features. This project can be translated by
 providing a ``urls.js`` file that points to a localized directory under the
 ``samples`` folder at the root of the Brackets repository. See the French
 localization (`src/nls/fr/urls.js`) for an example.
+
+It is also recommended to add this comment ``<!-- Last translated for commit_SHA_of_root_index.html -->``
+at the end of your `index.html` and replace `commit_SHA_of_root_index.html` with the actual SHA.
 
 
 # How to modify *existing* translations
@@ -55,13 +58,16 @@ process. Please contribute changes one of these ways:
 The following languages have been contributed by the Brackets community:
 
 * Czech (cs)
+* Danish (da)
 * German (de)
 * Greek (el)
 * Spanish (es)
 * Persian-Farsi (fa-ir)
 * Finnish (fi)
+* Galician (gl)
 * Croatian (hr)
 * Hungarian (hu)
+* Indonesia (id)
 * Italian (it)
 * Korean (ko)
 * Norwegian (nb)
@@ -76,7 +82,7 @@ The following languages have been contributed by the Brackets community:
 * Swedish (sv)
 * Turkish (tr)
 * Simplified Chinese (zh-cn)
-* Indonesia (id)
+* Traditional Chinese (zh-tw)
 
 These translations _can be directly modified_ through our normal pull request
 process. Make sure that you also update the comment on the last line with the 
@@ -104,8 +110,9 @@ You will be taken to a New File page where you:
 
 1. Specify the file name as *language-id*/strings.js
 2. Paste in the contents of root/strings.js and edit strings for new language
-3. Add this comment `/* Last translated for SHA_of_root_strings.js */`
-at the end of your strings.js and replace `SHA_of_root_strings.js` with the actual SHA.
+3. Add this comment `/* Last translated for commit_SHA_of_root_strings.js */`
+at the end of your strings.js and replace `commit_SHA_of_root_strings.js` with the
+actual SHA.
 You can copy the actual SHA in this
 [history page](https://github.com/adobe/brackets/commits/master/src/nls/root/strings.js)
 by hovering on the one you used for this translation and click on Copy SHA button.
@@ -169,3 +176,5 @@ Some strings cannot be localized yet:
 * [Keyboard shortcuts](https://trello.com/c/4k2yalBd)
 * [Some native menus on Mac](https://trello.com/c/0IsE7q02) (hardcoded support only for English, French, Japanese)
 * Windows installer UI (hardcoded support only for English, Japanese - with some limitations)
+* Localized folder name of "Getting Started" has to be made of up basic English characters only, as described
+[here](https://github.com/adobe/brackets/pull/8332#issuecomment-48767847).

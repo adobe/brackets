@@ -72,10 +72,13 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_UNDO);
         menu.addMenuItem(Commands.EDIT_REDO);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_CUT);
-        menu.addMenuItem(Commands.EDIT_COPY);
-        menu.addMenuItem(Commands.EDIT_PASTE);
-        menu.addMenuDivider();
+        if (brackets.nativeMenus) {
+            // Native-only - can't programmatically trigger clipboard actions from JS menus
+            menu.addMenuItem(Commands.EDIT_CUT);
+            menu.addMenuItem(Commands.EDIT_COPY);
+            menu.addMenuItem(Commands.EDIT_PASTE);
+            menu.addMenuDivider();
+        }
         menu.addMenuItem(Commands.EDIT_SELECT_ALL);
         menu.addMenuItem(Commands.EDIT_SELECT_LINE);
         menu.addMenuItem(Commands.EDIT_SPLIT_SEL_INTO_LINES);
@@ -111,11 +114,15 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.CMD_FIND_IN_SELECTED);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.CMD_REPLACE);
+        menu.addMenuItem(Commands.CMD_REPLACE_IN_FILES);
+        menu.addMenuItem(Commands.CMD_REPLACE_IN_SELECTED);
         
         /*
          * View menu
          */
         menu = Menus.addMenu(Strings.VIEW_MENU, Menus.AppMenuBar.VIEW_MENU);
+        menu.addMenuItem(Commands.CMD_THEMES_OPEN_SETTINGS);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.VIEW_HIDE_SIDEBAR);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE);
@@ -209,6 +216,7 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         project_cmenu.addMenuDivider();
         project_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
+        project_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
         project_cmenu.addMenuDivider();
         project_cmenu.addMenuItem(Commands.FILE_REFRESH);
 
@@ -220,6 +228,7 @@ define(function (require, exports, module) {
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         working_set_cmenu.addMenuDivider();
         working_set_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
+        working_set_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
         working_set_cmenu.addMenuDivider();
         working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         

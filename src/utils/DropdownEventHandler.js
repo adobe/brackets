@@ -34,22 +34,22 @@ define(function (require, exports, module) {
         ViewUtils         = require("utils/ViewUtils");
     
     /**
-     * @constructor
      * Object to handle events for a dropdown list.
      *
      * DropdownEventHandler handles these events:
      *
      * Mouse:
-     *  click       - execute selection callback and dismiss list
-     *  mouseover   - highlight item
-     *  mouseleave  - remove mouse highlighting
+     * - click       - execute selection callback and dismiss list
+     * - mouseover   - highlight item
+     * - mouseleave  - remove mouse highlighting
      *
      * Keyboard:
-     *  Enter       - execute selection callback and dismiss list
-     *  Esc         - dismiss list
-     *  Up/Down     - change selection
-     *  PageUp/Down - change selection
+     * - Enter       - execute selection callback and dismiss list
+     * - Esc         - dismiss list
+     * - Up/Down     - change selection
+     * - PageUp/Down - change selection
      *
+     * @constructor
      * @param {jQueryObject} $list  associated list object
      * @param {Function} selectionCallback  function called when list item is selected.
      */
@@ -59,6 +59,7 @@ define(function (require, exports, module) {
         this.$items = $list.find("li");
         this.selectionCallback = selectionCallback;
         this.closeCallback = closeCallback;
+        this.scrolling = false;
         
         /**
          * @private
@@ -134,7 +135,9 @@ define(function (require, exports, module) {
      * Public close method
      */
     DropdownEventHandler.prototype.close = function () {
-        PopUpManager.removePopUp(this.$list);
+        if (this.$list) {
+            PopUpManager.removePopUp(this.$list);
+        }
     };
 
     /**
@@ -142,7 +145,7 @@ define(function (require, exports, module) {
      */
     DropdownEventHandler.prototype._cleanup = function () {
         if (this.$list) {
-            this.$list.off("click mouseover");
+            this.$list.off(".dropdownEventHandler");
         }
         if (this.closeCallback) {
             this.closeCallback();
@@ -262,10 +265,11 @@ define(function (require, exports, module) {
         if (this._selectedIndex !== -1) {
             var $item = this.$items.eq(this._selectedIndex);
 
+            $item.find("a").addClass("selected");
             if (scrollIntoView) {
+                this.scrolling = true;
                 ViewUtils.scrollElementIntoView(this.$list, $item, false);
             }
-            $item.find("a").addClass("selected");
         }
     };
 
@@ -276,10 +280,16 @@ define(function (require, exports, module) {
         var self = this;
         
         this.$list
-            .on("click", "a", function () {
+            .on("click.dropdownEventHandler", "a", function () {
                 self._clickHandler($(this));
             })
-            .on("mouseover", "a", function (e) {
+            .on("mouseover.dropdownEventHandler", "a", function (e) {
+                // Don't select item under mouse cursor when scrolling.
+                if (self.scrolling) {
+                    self.scrolling = false;
+                    return;
+                }
+                
                 var $link = $(e.currentTarget),
                     $item = $link.closest("li"),
                     viewOffset = self.$list.offset(),
@@ -292,6 +302,21 @@ define(function (require, exports, module) {
                     }
                 }
             });
+    };
+    
+    /**
+     * Re-register mouse event handlers
+     * @param {!jQueryObject} $list  newly updated list object
+     */
+    DropdownEventHandler.prototype.reRegisterMouseHandlers = function ($list) {
+        if (this.$list) {
+            this.$list.off(".dropdownEventHandler");
+            
+            this.$list = $list;
+            this.$items = $list.find("li");
+            
+            this._registerMouseEvents();
+        }
     };
 
     // Export public API

@@ -26,9 +26,9 @@
 /*global define, $, brackets */
 
 /**
- * @deprecated
  * This is a compatibility shim for legacy Brackets APIs that will be removed soon.
  * Use ProjectManager.getAllFiles() instead.
+ * @deprecated
  */
 define(function (require, exports, module) {
     "use strict";

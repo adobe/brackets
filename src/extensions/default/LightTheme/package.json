@@ -1,0 +1,13 @@
+{
+    "title": "Brackets Light (Default)",
+    "name": "light-theme",
+    "description": "Built-in light theme for Brackets",
+    "version": "0.42.0",
+    "author": "Miguel Castillo <mahchagnu@gmail.com>",
+    "engines": {
+        "brackets": ">=0.42.0"
+    },
+    "theme": {
+        "file": "main.less"
+    }
+}

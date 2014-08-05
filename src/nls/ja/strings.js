@@ -37,10 +37,12 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR": "対象ディレクトリは変更できません。",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
 	"CONTENTS_MODIFIED_ERR": "このファイルは {APP_NAME} 以外で変更されています。",
-	"UNSUPPORTED_ENCODING_ERR": "!能=[7527206] {APP_NAME} currently only supports UTF-8 encoded text files._=!",
+	"UNSUPPORTED_ENCODING_ERR": "{APP_NAME} は現在 UTF-8 でエンコードされたテキストファイルのみをサポートしています。",
 	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
 	"FILE": "ファイル",
+	"FILE_TITLE": "ファイル",
 	"DIRECTORY": "ディレクトリ",
+	"DIRECTORY_TITLE": "ディレクトリ",
 	"DIRECTORY_NAMES_LEDE": "ディレクトリ名",
 	"FILENAMES_LEDE": "ファイル名",
 	"FILENAME": "ファイル名",
@@ -48,35 +50,35 @@ define({
     
 
     // Project error strings
-	"ERROR_LOADING_PROJECT": "プロジェクトの読み込みに失敗しました。",
+	"ERROR_LOADING_PROJECT": "プロジェクトを読み込む際にエラーが発生しました。",
 	"OPEN_DIALOG_ERROR": "「ファイルを開く」ダイアログを表示する際にエラーが発生しました。(エラー {0})",
 	"REQUEST_NATIVE_FILE_SYSTEM_ERROR": "ディレクトリ <span class='dialog-filename'>{0}</span> を読み込む際にエラーが発生しました。(エラー {1})",
 	"READ_DIRECTORY_ENTRIES_ERROR": "ディレクトリ <span class='dialog-filename'>{0}</span> の内容を読み込む際にエラーが発生しました。(エラー {1})",
 
     // File open/save error string
-	"ERROR_OPENING_FILE_TITLE": "!能=[6307139] Error Opening File_=!",
+	"ERROR_OPENING_FILE_TITLE": "ファイルを開く際にエラーが発生しました。",
 	"ERROR_OPENING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を開く際にエラーが発生しました。{1}",
 	"ERROR_OPENING_FILES": "次のファイルを開くときにエラーが発生しました :",
-	"ERROR_RELOADING_FILE_TITLE": "!能=[6307142] Error Reloading Changes From Disk_=!",
+	"ERROR_RELOADING_FILE_TITLE": "ディスクから変更を再読み込みする際にエラーが発生しました。",
 	"ERROR_RELOADING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を再読込する際にエラーが発生しました。{1}",
-	"ERROR_SAVING_FILE_TITLE": "!能=[6307144] Error Saving File_=!",
+	"ERROR_SAVING_FILE_TITLE": "ファイルを保存する際にエラーが発生しました。",
 	"ERROR_SAVING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を保存する際にエラーが発生しました。{1}",
-	"ERROR_RENAMING_FILE_TITLE": "!能=[6484475] Error Renaming File_=!",
-	"ERROR_RENAMING_FILE": "ファイル <span class='dialog-filename'>{0}</span> の名前を変更する際にエラーが発生しました。{1}",
-	"ERROR_DELETING_FILE_TITLE": "ファイルの削除エラー",
-	"ERROR_DELETING_FILE": "ファイルを削除する際にエラーが発生しました <span class='dialog-filename'>{0}</span>。{1}",
+	"ERROR_RENAMING_FILE_TITLE": "{0} の名前を変更する際にエラーが発生しました。",
+	"ERROR_RENAMING_FILE": "{2} <span class='dialog-filename'>{0}</span> の名前を変更する際にエラーが発生しました。{1}",
+	"ERROR_DELETING_FILE_TITLE": "{0} を削除する際にエラーが発生しました。",
+	"ERROR_DELETING_FILE": "{2} <span class='dialog-filename'>{0}</span> を削除する際にエラーが発生しました。{1}",
 	"INVALID_FILENAME_TITLE": "無効な{0}",
-	"INVALID_FILENAME_MESSAGE": "{0}にはシステムのすべての予約語、末尾のピリオド (.)、および次の文字を含めることはできません : <code class='emphasized'>{1}</code>",
+	"INVALID_FILENAME_MESSAGE": "{0}にはシステムのすべての予約語、末尾のピリオド (.)、および次の文字を含めることはできません : <code class='emphasized'>{1}</code>",
 	"ENTRY_WITH_SAME_NAME_EXISTS": "<span class='dialog-filename'>{0}</span> という名前のファイルまたはディレクトリは既に存在します。",
-	"ERROR_CREATING_FILE_TITLE": "!能=[6307132] Error Creating {0}_=!",
+	"ERROR_CREATING_FILE_TITLE": "{0} を作成する際にエラーが発生しました。",
 	"ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span> を作成する際にエラーが発生しました。{2}",
 
     // Application preferences corrupt error strings
-	"ERROR_PREFS_CORRUPT_TITLE": "!能=[7510056] Error Reading Preferences_=!",
+	"ERROR_PREFS_CORRUPT_TITLE": "環境設定を読み込む際にエラーが発生しました。",
 	"ERROR_PREFS_CORRUPT": "環境設定ファイルが有効な JSON ではありません。ファイルが開かれます。フォーマットを修正してください。変更を反映するには、{APP_NAME} を再起動する必要があります。",
 
     // Application error strings
-	"ERROR_IN_BROWSER_TITLE": "!能=[6333033] Oops! {APP_NAME} Doesn't Run in Browsers Yet._=!",
+	"ERROR_IN_BROWSER_TITLE": "{APP_NAME} は、まだブラウザー上で実行されていません。",
 	"ERROR_IN_BROWSER": "{APP_NAME} は HTML で構築されていますが、デスクトップアプリとして実行することで、ローカルファイルを編集することができます。{APP_NAME} を実行するために、<b>github.com/adobe/brackets-shell</b> リポジトリのアプリケーションシェルを使用してください。",
     
     // ProjectManager max files error string
@@ -84,7 +86,7 @@ define({
 	"ERROR_MAX_FILES": "インデックス化できるファイルの最大数に達しました。インデックス内でファイルを見つける機能は正しく動作しないことがあります。",
 
     // Live Preview error strings
-	"ERROR_LAUNCHING_BROWSER_TITLE": "!能=[6307134] Error Launching Browser_=!",
+	"ERROR_LAUNCHING_BROWSER_TITLE": "ブラウザーの起動時にエラーが発生しました。",
 	"ERROR_CANT_FIND_CHROME": "Google Chrome ブラウザーが見つかりません。インストールされていることを確認してください。",
 	"ERROR_LAUNCHING_BROWSER": "ブラウザーの起動時にエラーが発生しました。(エラー {0})",
     
@@ -123,6 +125,7 @@ define({
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
     
     // Generic dialog/button labels
+	"DONE": "完了",
 	"OK": "OK",
 	"CANCEL": "キャンセル",
 	"DONT_SAVE": "保存しない",
@@ -132,13 +135,15 @@ define({
 	"DELETE": "削除",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
-        
+    
     // Find, Replace, Find in Files
 	"FIND_RESULT_COUNT": "{0} 件",
 	"FIND_RESULT_COUNT_SINGLE": "1 件",
 	"FIND_NO_RESULTS": "該当なし",
+	"FIND_QUERY_PLACEHOLDER": "検索\u2026",
 	"REPLACE_PLACEHOLDER": "\u2026 に置換",
-	"BUTTON_REPLACE_ALL": "すべて\u2026",
+	"BUTTON_REPLACE_ALL": "バッチ\u2026",
+	"BUTTON_REPLACE_ALL_IN_FILES": "置換\u2026",
 	"BUTTON_REPLACE": "置換",
 	"BUTTON_NEXT": "\u25B6",
 	"BUTTON_PREV": "\u25C0",
@@ -146,35 +151,40 @@ define({
 	"BUTTON_PREV_HINT": "前の候補に移動",
 	"BUTTON_CASESENSITIVE_HINT": "大文字と小文字を区別",
 	"BUTTON_REGEXP_HINT": "正規表現",
+	"REPLACE_WITHOUT_UNDO_WARNING_TITLE": "取り消し情報を保存せずに置換",
+	"REPLACE_WITHOUT_UNDO_WARNING": "{0} 個を超えるファイルを変更する必要があるため、{APP_NAME} によってディスク上の開かれていないファイルが変更されます。<br />これらのファイルで行った置換は取り消しできません。",
+	"BUTTON_REPLACE_WITHOUT_UNDO": "取り消し情報を保存せずに置換",
 
 	"OPEN_FILE": "ファイルを開く",
 	"SAVE_FILE_AS": "ファイルを保存",
 	"CHOOSE_FOLDER": "フォルダーを選択",
 
 	"RELEASE_NOTES": "リリースノート",
-	"NO_UPDATE_TITLE": "!能=[6310580] You're Up to Date!_=!",
+	"NO_UPDATE_TITLE": "最新バージョンです。",
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
 
-    // Replace All (in single file)
-	"FIND_REPLACE_TITLE_PART1": "「",
-	"FIND_REPLACE_TITLE_PART2": "」を「",
-	"FIND_REPLACE_TITLE_PART3": "」に置き換え &mdash; {2} {0} {1}",
+    // Find and Replace
+	"FIND_REPLACE_TITLE_LABEL": "置換対象",
+	"FIND_REPLACE_TITLE_WITH": "置換後の文字列",
+	"FIND_TITLE_LABEL": "検索結果",
+	"FIND_TITLE_SUMMARY": "&mdash; {0} {1} {2} ({3})",
 
     // Find in Files
-	"FIND_IN_FILES_TITLE_PART1": "「",
-	"FIND_IN_FILES_TITLE_PART2": "」の検索結果",
-	"FIND_IN_FILES_TITLE_PART3": "&mdash; {3}個の{4}内で {1}件{0}{2}",
+	"FIND_NUM_FILES": "{0} {1}",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
 	"FIND_IN_FILES_ZERO_FILES": "フィルターは {0}の全ファイルを除外します",
 	"FIND_IN_FILES_FILE": "ファイル",
 	"FIND_IN_FILES_FILES": "ファイル",
 	"FIND_IN_FILES_MATCH": "が見つかりました",
-	"FIND_IN_FILES_MATCHES": "が見つかりました",
+	"FIND_IN_FILES_MATCHES": "件見つかりました",
 	"FIND_IN_FILES_MORE_THAN": "以上",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
 	"FIND_IN_FILES_EXPAND_COLLAPSE": "Ctrl / Command キーをクリックしてすべて展開 / 折りたたみ",
+	"REPLACE_IN_FILES_ERRORS_TITLE": "置換エラー",
+	"REPLACE_IN_FILES_ERRORS": "次のファイルは検索の後で変更されているか、書き込むことができないため、変更されていません。",
+    
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "更新情報を取得する際にエラーが発生しました。",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "サーバーから最新の更新情報を取得する際にエラーが発生しました。インターネット接続を確認してリトライしてください。",
     
@@ -238,6 +248,7 @@ define({
 	"STATUSBAR_USER_EXTENSIONS_DISABLED": "拡張機能無効",
 	"STATUSBAR_INSERT": "INS",
 	"STATUSBAR_OVERWRITE": "OVR",
+	"STATUSBAR_DEFAULT_LANG": "(指定なし)",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} 個の問題",
@@ -275,6 +286,7 @@ define({
 	"CMD_FILE_SAVE_ALL": "すべて保存",
 	"CMD_FILE_SAVE_AS": "名前を付けて保存\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "ライブプレビュー",
+	"CMD_RELOAD_LIVE_PREVIEW": "ライブプレビューを強制的に再読込み",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
 	"CMD_FILE_DELETE": "削除",
@@ -313,7 +325,6 @@ define({
     // Search menu commands
 	"FIND_MENU": "検索",
 	"CMD_FIND": "検索",
-	"CMD_FIND_FIELD_PLACEHOLDER": "検索\u2026",
 	"CMD_FIND_NEXT": "次を検索",
 	"CMD_FIND_PREVIOUS": "前を検索",
 	"CMD_FIND_ALL_AND_SELECT": "すべて検索して選択",
@@ -323,6 +334,9 @@ define({
 	"CMD_FIND_IN_SELECTED": "選択したファイルまたはフォルダーを検索",
 	"CMD_FIND_IN_SUBTREE": "検索先\u2026",
 	"CMD_REPLACE": "置換",
+	"CMD_REPLACE_IN_FILES": "ファイルを横断して置換",
+	"CMD_REPLACE_IN_SELECTED": "選択したファイルまたはフォルダーで置換",
+	"CMD_REPLACE_IN_SUBTREE": "置換対象\u2026",
     
     // View menu commands
 	"VIEW_MENU": "表示",
@@ -342,6 +356,7 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
 	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
+	"CMD_THEMES": "テーマ\u2026",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "ナビゲート",
@@ -385,6 +400,7 @@ define({
 	"ABOUT": "このソフトウェアについて",
 	"CLOSE": "閉じる",
 	"ABOUT_TEXT_LINE1": "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+	"ABOUT_TEXT_BUILD_TIMESTAMP": "ビルドのタイムスタンプ : ",
 	"ABOUT_TEXT_LINE3": "Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
 	"ABOUT_TEXT_LINE4": "ドキュメントとソースコードは <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a> から入手できます。",
 	"ABOUT_TEXT_LINE5": "\u2764 および JavaScript を使用して次の人によって作成されました :",
@@ -403,6 +419,12 @@ define({
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
     
+    // Strings for themes-settings.html and themes-general.html
+	"CURRENT_THEME": "現在のテーマ",
+	"USE_THEME_SCROLLBARS": "テーマスクロールバーを使用",
+	"FONT_SIZE": "フォントサイズ",
+	"FONT_FAMILY": "フォントファミリー",
+
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "新規ルール",
     
@@ -424,6 +446,8 @@ define({
 	"CANCELING_INSTALL": "キャンセルしています\u2026",
 	"CANCELING_HUNG": "インストールのキャンセルに時間がかかっています。内部エラーが発生した可能性があります。",
 	"INSTALL_CANCELED": "インストールはキャンセルされました。",
+	"VIEW_COMPLETE_DESCRIPTION": "詳細な説明を表示",
+	"VIEW_TRUNCATED_DESCRIPTION": "省略された説明を表示",
     // These must match the error codes in ExtensionsDomain.Errors.* :
 	"INVALID_ZIP_FILE": "ダウンロードされたコンテンツは有効な zip ファイルではありません。",
 	"INVALID_PACKAGE_JSON": "package.json ファイルは有効ではありません (エラーは {0} です)。",
@@ -449,7 +473,11 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
 	"EXTENSION_MANAGER_TITLE": "拡張機能マネージャー",
 	"EXTENSION_MANAGER_ERROR_LOAD": "拡張機能レジストリにアクセスできません。後でもう一度試してください。",
+	"INSTALL_EXTENSION_DRAG": ".zip をここにドラッグするか、",
+	"INSTALL_EXTENSION_DROP": ".zip をドロップしてインストール",
+	"INSTALL_EXTENSION_DROP_ERROR": "次のエラーのため、インストール / アンインストールが中止されました :",
 	"INSTALL_FROM_URL": "URL からインストール\u2026",
+	"INSTALL_EXTENSION_VALIDATING": "検証中\u2026",
 	"EXTENSION_AUTHOR": "作成者",
 	"EXTENSION_DATE": "日付",
 	"EXTENSION_INCOMPATIBLE_NEWER": "この拡張機能には新しいバージョンの {APP_NAME} が必要です。",
@@ -460,6 +488,9 @@ define({
 	"EXTENSION_MORE_INFO": "詳細情報...",
 	"EXTENSION_ERROR": "拡張機能のエラー",
 	"EXTENSION_KEYWORDS": "キーワード",
+	"EXTENSION_TRANSLATED_USER_LANG": "ご使用の言語を含む {0} 言語に翻訳されました",
+	"EXTENSION_TRANSLATED_GENERAL": "{0} 言語に翻訳されました",
+	"EXTENSION_TRANSLATED_LANGS": "この拡張機能はこれらの言語に翻訳されています : {0}",
 	"EXTENSION_INSTALLED": "インストール完了",
 	"EXTENSION_UPDATE_INSTALLED": "この拡張機能のアップデートがダウンロードされました。{APP_NAME} のリロード後にインストールされます。",
 	"EXTENSION_SEARCH_PLACEHOLDER": "検索",
@@ -541,6 +572,8 @@ define({
 	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
 	"CMD_SHOW_PARAMETER_HINT": "パラメーターヒントを表示",
 	"NO_ARGUMENTS": "<パラメーターがありません>",
+	"DETECTED_EXCLUSION_TITLE": "JavaScript ファイルの推論問題",
+	"DETECTED_EXCLUSION_INFO": "Brackets で処理中に問題が発生しました : <br><br>{0}<br><br>このファイルはコードヒントとしては処理されず、定義に移動します。これを戻すには、プロジェクトで <code>.brackets.json</code> を開いて jscodehints.detectedExclusions からファイルを削除してください。",
     
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",

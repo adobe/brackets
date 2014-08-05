@@ -74,26 +74,49 @@ define(function (require, exports, module) {
             .on("click", this._onClick);
     }
     
-    /** @type {!Array.<*>} Items in dropdown list - may be changed any time dropdown isn't open */
+    /**
+     * Items in dropdown list - may be changed any time dropdown isn't open
+     * @type {!Array.<*>}
+     */
     DropdownButton.prototype.items = null;
     
-    /** @type {!jQueryObject} The clickable button. Available as soon as the DropdownButton is constructed. */
+    /**
+     * The clickable button. Available as soon as the DropdownButton is constructed.
+     * @type {!jQueryObject}
+     */
     DropdownButton.prototype.$button = null;
     
-    /** @type {?jQueryObject} The dropdown element. Only non-null while open. */
+    /**
+     * The dropdown element. Only non-null while open.
+     * @type {?jQueryObject}
+     */
     DropdownButton.prototype.$dropdown = null;
     
-    /** @type {?string} Extra CSS class(es) to apply to $dropdown */
+    /**
+     * Extra CSS class(es) to apply to $dropdown
+     * @type {?string}
+     */
     DropdownButton.prototype.dropdownExtraClasses = null;
     
-    /** @private @type {?HTMLElement} Where to restore focus when dropdown closed */
+    /**
+     * @private
+     * Where to restore focus when dropdown closed
+     * @type {?HTMLElement}
+     */
     DropdownButton.prototype._lastFocus = null;
     
-    /** @private @type {?DropdownEventHandler} Helper object for dropdown. Only non-null while open. */
+    /**
+     * @private
+     * Helper object for dropdown. Only non-null while open.
+     * @type {?DropdownEventHandler}
+     */
     DropdownButton.prototype._dropdownEventHandler = null;
     
     
-    /** @private Handle clicking button */
+    /**
+     * @private
+     * Handle clicking button
+     */
     DropdownButton.prototype._onClick = function (event) {
         if (!this.$button.hasClass("disabled")) {
             this.toggleDropdown();
@@ -150,10 +173,9 @@ define(function (require, exports, module) {
         // set up for any custom UI in the list.
         $(this).triggerHandler("listRendered", [parent]);
         
+        // Also need to re-register mouse event handlers with the updated list.
         if (this._dropdownEventHandler) {
-            // Re-create and re-attach event handlers for the new rendered list.
-            this._dropdownEventHandler = new DropdownEventHandler(parent, this._onSelect.bind(this), this._onDropdownClose.bind(this));
-            this._dropdownEventHandler.open();
+            this._dropdownEventHandler.reRegisterMouseHandlers(parent);
         }
         
         return parent;
@@ -206,7 +228,8 @@ define(function (require, exports, module) {
         Menus.closeAll();
         
         var $dropdown = $("<ul class='dropdown-menu dropdownbutton-popup' tabindex='-1'>")
-            .addClass(this.dropdownExtraClasses);  // (no-op if unspecified)
+            .addClass(this.dropdownExtraClasses)  // (no-op if unspecified)
+            .css("min-width", this.$button.outerWidth());  // do this before the clipping calcs below
         
         this.$dropdown = $dropdown;
         this._renderList(this.$dropdown)
@@ -237,8 +260,7 @@ define(function (require, exports, module) {
 
         $dropdown.css({
             left: posLeft,
-            top: posTop,
-            minWidth: this.$button.outerWidth()
+            top: posTop
         });
 
         // Attach event handlers
@@ -278,7 +300,10 @@ define(function (require, exports, module) {
         }
     };
     
-    /** @private Clicking outside the dropdown closes it */
+    /**
+     * @private
+     * Clicking outside the dropdown closes it
+     */
     DropdownButton.prototype._onClickOutside = function (event) {
         var $container = $(event.target).closest(".dropdownbutton-popup");
 

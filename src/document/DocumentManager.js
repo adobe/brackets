@@ -184,7 +184,7 @@ define(function (require, exports, module) {
      * @param {!string} fullPath
      * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
      *          use only.
-     * @returns {number} index
+     * @return {number} index
      */
     function findInWorkingSet(fullPath, list) {
         list = list || _workingSet;
@@ -198,7 +198,7 @@ define(function (require, exports, module) {
      * Returns the index of the file matching fullPath in _workingSetAddedOrder.
      * Returns -1 if not found.
      * @param {!string} fullPath
-     * @returns {number} index
+     * @return {number} index
      */
     function findInWorkingSetAddedOrder(fullPath) {
         return findInWorkingSet(fullPath, _workingSetAddedOrder);
@@ -474,9 +474,13 @@ define(function (require, exports, module) {
         if (_currentDocument === doc) {
             return;
         }
-
+        
         var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + doc.file.fullPath);
         
+        if (_currentDocument) {
+            $(_currentDocument).off("languageChanged.DocumentManager");
+        }
+
         // If file is untitled or otherwise not within project tree, add it to
         // working set right now (don't wait for it to become dirty)
         if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
@@ -491,6 +495,12 @@ define(function (require, exports, module) {
         // Make it the current document
         var previousDocument = _currentDocument;
         _currentDocument = doc;
+
+        // Proxy this doc's languageChange events as long as it's current
+        $(_currentDocument).on("languageChanged.DocumentManager", function (data) {
+            $(exports).trigger("currentDocumentLanguageChanged", data);
+        });
+        
         $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
         // (this event triggers EditorManager to actually switch editors in the UI)
         
@@ -735,23 +745,31 @@ define(function (require, exports, module) {
      * Differs from plain FileUtils.readAsText() in two ways: (a) line endings are still normalized
      * as in Document.getText(); (b) unsaved changes are returned if there are any.
      * 
-     * @param {!File} file
-     * @return {!string}
+     * @param {!File} file The file to get the text for.
+     * @param {boolean=} checkLineEndings Whether to return line ending information. Default false (slightly more efficient).
+     * @return {$.Promise} 
+     *     A promise that is resolved with three parameters:
+     *          contents - string: the document's text
+     *          timestamp - Date: the last time the document was changed on disk (might not be the same as the last time it was changed in memory)
+     *          lineEndings - string: the original line endings of the file, one of the FileUtils.LINE_ENDINGS_* constants;
+     *              will be null if checkLineEndings was false.
+     *     or rejected with a filesystem error.
      */
-    function getDocumentText(file) {
+    function getDocumentText(file, checkLineEndings) {
         var result = new $.Deferred(),
             doc = getOpenDocumentForPath(file.fullPath);
         if (doc) {
-            result.resolve(doc.getText());
+            result.resolve(doc.getText(), doc.diskTimestamp, checkLineEndings ? doc._lineEndings : null);
         } else {
-            file.read(function (err, contents) {
+            file.read(function (err, contents, stat) {
                 if (err) {
                     result.reject(err);
                 } else {
                     // Normalize line endings the same way Document would, but don't actually
                     // new up a Document (which entails a bunch of object churn).
+                    var originalLineEndings = checkLineEndings ? FileUtils.sniffLineEndings(contents) : null;
                     contents = DocumentModule.Document.normalizeText(contents);
-                    result.resolve(contents);
+                    result.resolve(contents, stat.mtime, originalLineEndings);
                 }
             });
         }

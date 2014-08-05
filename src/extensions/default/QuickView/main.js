@@ -164,7 +164,7 @@ define(function (require, exports, module) {
 
         // Check for gradient. -webkit-gradient() can have parens in parameters
         // nested 2 levels. Other gradients can only nest 1 level.
-        var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|\s)((repeating-)?linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-|\s)((repeating-)?radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
+        var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
             colorRegEx = new RegExp(ColorUtils.COLOR_REGEX);
 
         function areParensBalanced(str) {
@@ -429,9 +429,8 @@ define(function (require, exports, module) {
         }
         
         if (tokenString) {
-            // Strip quotes, if present
-            var quotesRegEx = /(\'|\")?([^(\'|\")]*)(\'|\")?/;
-            tokenString = tokenString.replace(quotesRegEx, "$2");
+            // Strip leading/trailing quotes, if present
+            tokenString = tokenString.replace(/(^['"])|(['"]$)/g, "");
             
             if (/^(data\:image)|(\.gif|\.png|\.jpg|\.jpeg|\.svg)$/i.test(tokenString)) {
                 var sPos, ePos;
