@@ -544,7 +544,7 @@ define(function (require, exports, module) {
 
                 var renameDeferred = $.Deferred();
                 runs(function () {
-                    DocumentManager.setCurrentDocument(doc);                    
+                    DocumentManager.setCurrentDocument(doc);
                     javascript = LanguageManager.getLanguage("javascript");
                     
                     // sanity check language

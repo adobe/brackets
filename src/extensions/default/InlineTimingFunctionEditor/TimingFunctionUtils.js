@@ -329,7 +329,7 @@ define(function (require, exports, module) {
             if (match && _validateCubicBezierParams(match)) {
                 return _tagMatch(match, BEZIER);
             } else { // this should not happen!
-                window.console.log("brackets-cubic-bezier: TimingFunctionUtils._getValidBezierParams created invalid code");
+                console.log("brackets-cubic-bezier: TimingFunctionUtils._getValidBezierParams created invalid code");
             }
         }
 
@@ -398,7 +398,7 @@ define(function (require, exports, module) {
             if (match && _validateStepsParams(match)) {
                 return _tagMatch(match, STEP);
             } else { // this should not happen!
-                window.console.log("brackets-steps: TimingFunctionUtils._getValidStepsParams created invalid code");
+                console.log("brackets-steps: TimingFunctionUtils._getValidStepsParams created invalid code");
             }
         }
 
