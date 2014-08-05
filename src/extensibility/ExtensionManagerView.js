@@ -30,14 +30,12 @@ define(function (require, exports, module) {
     
     var Strings                   = require("strings"),
         StringUtils               = require("utils/StringUtils"),
-        NativeApp                 = require("utils/NativeApp"),
         ExtensionManager          = require("extensibility/ExtensionManager"),
         registry_utils            = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
-        CommandManager            = require("command/CommandManager"),
-        Commands                  = require("command/Commands"),
+        LocalizationUtils         = require("utils/LocalizationUtils"),
         itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
-    
+
     /**
      * Creates a view enabling the user to install and manage extensions. Must be initialized
      * with initialize(). When the view is closed, dispose() must be called.
@@ -112,7 +110,7 @@ define(function (require, exports, module) {
      * The individual views for each item, keyed by the extension ID.
      */
     ExtensionManagerView.prototype._itemViews = null;
-    
+
     /**
      * @private
      * Attaches our event handlers. We wait to do this until we've fully fetched the extension list.
@@ -156,6 +154,10 @@ define(function (require, exports, module) {
                     ExtensionManager.markForRemoval($target.attr("data-extension-id"), true);
                 } else if ($target.hasClass("undo-update")) {
                     ExtensionManager.removeUpdate($target.attr("data-extension-id"));
+                } else if ($target.attr("data-toggle-desc") === "expand-desc") {
+                    ExtensionManager.toggleDescription($target.attr("data-extension-id"), $target, true);
+                } else if ($target.attr("data-toggle-desc") === "trunc-desc") {
+                    ExtensionManager.toggleDescription($target.attr("data-extension-id"), $target, false);
                 }
             })
             .on("click", "button.install", function (e) {
@@ -208,7 +210,11 @@ define(function (require, exports, module) {
             // (or registry is offline). These flags *should* always be ignored in that scenario, but just in case...
             context.isCompatible = context.isCompatibleLatest = true;
         }
-        
+
+        if (info.metadata.description !== undefined) {
+            info.metadata.shortdescription = StringUtils.truncate(info.metadata.description, 200);
+        }
+
         context.isMarkedForRemoval = ExtensionManager.isMarkedForRemoval(info.metadata.name);
         context.isMarkedForUpdate = ExtensionManager.isMarkedForUpdate(info.metadata.name);
         
@@ -216,6 +222,46 @@ define(function (require, exports, module) {
         context.showUpdateButton = context.updateAvailable && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
 
         context.allowInstall = context.isCompatible && !context.isInstalled;
+
+        if (Array.isArray(info.metadata.i18n) && info.metadata.i18n.length > 0) {
+            var lang      = brackets.getLocale(),
+                shortLang = lang.split("-")[0];
+
+            context.translated = true;
+            context.translatedLangs =
+                info.metadata.i18n.map(function (value) {
+                    return { name: LocalizationUtils.getLocalizedLabel(value), locale: value };
+                })
+                .sort(function (lang1, lang2) {
+                    // List users language first
+                    var locales         = [lang1.locale, lang2.locale],
+                        userLangIndex   = locales.indexOf(lang);
+                    if (userLangIndex > -1) {
+                        return userLangIndex;
+                    }
+                    userLangIndex = locales.indexOf(shortLang);
+                    if (userLangIndex > -1) {
+                        return userLangIndex;
+                    }
+
+                    return lang1.name.localeCompare(lang2.name);
+                })
+                .map(function (value) {
+                    return value.name;
+                })
+                .join(", ");
+            context.translatedLangs = StringUtils.format(Strings.EXTENSION_TRANSLATED_LANGS, context.translatedLangs);
+
+            // If the selected language is System Default, match both the short (2-char) language code
+            // and the long one
+            var translatedIntoUserLang =
+                (brackets.isLocaleDefault() && info.metadata.i18n.indexOf(shortLang) > -1) ||
+                info.metadata.i18n.indexOf(lang) > -1;
+            context.extensionTranslated = StringUtils.format(
+                translatedIntoUserLang ? Strings.EXTENSION_TRANSLATED_USER_LANG : Strings.EXTENSION_TRANSLATED_GENERAL,
+                info.metadata.i18n.length
+            );
+        }
 
         var isInstalledInUserFolder = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
         context.allowRemove = isInstalledInUserFolder;

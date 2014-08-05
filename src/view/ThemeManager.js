@@ -21,14 +21,11 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, regexp: true, nomen: true, indent: 4, maxerr: 50 */
 /*global $, define, require, less */
 
 define(function (require, exports, module) {
     "use strict";
-
-    // FontsCommandsManager will be going away soon when we add font size management in Brackets.
-    require("themes/FontCommandsManager");
 
     var _                  = require("thirdparty/lodash"),
         FileSystem         = require("filesystem/FileSystem"),
@@ -39,13 +36,14 @@ define(function (require, exports, module) {
         ThemeView          = require("view/ThemeView"),
         AppInit            = require("utils/AppInit"),
         PreferencesManager = require("preferences/PreferencesManager"),
-        prefs              = PreferencesManager.getExtensionPrefs("brackets-themes");
+        prefs              = PreferencesManager.getExtensionPrefs("themes");
 
     var loadedThemes    = {},
         currentTheme    = null,
+        styleNode       = $(ExtensionUtils.addEmbeddedStyleSheet("")),
         defaultTheme    = "thor-light-theme",
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
-        scrollbarsRegex = /::-webkit-scrollbar(?:[\s\S]*?)\{(?:[\s\S]*?)\}/mg,
+        scrollbarsRegex = /((?:[^}|,]*)::-webkit-scrollbar(?:[^{]*)[{](?:[^}]*?)[}])/mgi,
         stylesPath      = FileUtils.getNativeBracketsDirectoryPath() + "/styles/",
         validExtensions = ["css", "less"];
 
@@ -89,7 +87,7 @@ define(function (require, exports, module) {
         this.file        = file;
         this.name        = options.name  || (options.title || fileName).toLocaleLowerCase().replace(/[\W]/g, '-');
         this.displayName = options.title || toDisplayName(fileName);
-        this.dark        = options.theme && options.theme.dark === true;
+        this.dark        = options.theme !== undefined && options.theme.dark === true;
     }
 
 
@@ -109,7 +107,6 @@ define(function (require, exports, module) {
         // Go through and extract out scrollbar customizations so that we can
         // enable/disable via settings.
         content = content
-            .replace(commentRegex, "")
             .replace(scrollbarsRegex, function (match) {
                 scrollbar.push(match);
                 return "";
@@ -157,7 +154,7 @@ define(function (require, exports, module) {
             filename: fixPath(theme.file._path)
         });
 
-        parser.parse("#editor-holder {" + content + "}", function (err, tree) {
+        parser.parse("#editor-holder {" + content + "\n}", function (err, tree) {
             if (err) {
                 deferred.reject(err);
             } else {
@@ -198,7 +195,7 @@ define(function (require, exports, module) {
 
 
     /**
-     * Get all current theme objects that are loaded in the editor.
+     * Get current theme object that is loaded in the editor.
      *
      * @return {Theme} the current theme instance
      */
@@ -212,7 +209,7 @@ define(function (require, exports, module) {
 
 
     /**
-     * Gets all available themes that can be loaded in the editor.
+     * Gets all available themes
      * @return {Array.<Theme>} collection of all available themes
      */
     function getAllThemes() {
@@ -233,24 +230,17 @@ define(function (require, exports, module) {
         var theme = getCurrentTheme();
 
         var pending = theme && FileUtils.readAsText(theme.file)
+            .then(function (lessContent) {
+                return lessifyTheme(lessContent.replace(commentRegex, ""), theme);
+            })
             .then(function (content) {
                 var result = extractScrollbars(content);
                 theme.scrollbar = result.scrollbar;
                 return result.content;
             })
-            .then(function (content) {
-                return lessifyTheme(content, theme);
-            })
-            .then(function (style) {
-                return ExtensionUtils.addEmbeddedStyleSheet(style);
-            })
-            .then(function (styleNode) {
-                // Remove after the style has been applied to avoid weird flashes
-                if (theme.css) {
-                    $(theme.css).remove();
-                }
-
-                theme.css = styleNode;
+            .then(function (cssContent) {
+                $("body").toggleClass("dark", theme.dark);
+                styleNode.text(cssContent);
                 return theme;
             });
 
@@ -261,7 +251,7 @@ define(function (require, exports, module) {
     /**
      * Refresh current theme in the editor
      *
-     * @param {boolean} force is to force reload the current theme
+     * @param {boolean} force Forces a reload the current theme.  It reload the theme file.
      */
     function refresh(force) {
         if (force) {
@@ -275,7 +265,6 @@ define(function (require, exports, module) {
             }
 
             var cm = editor._codeMirror;
-            ThemeView.setDocumentMode(cm);
             ThemeView.updateThemes(cm);
         });
     }
@@ -330,28 +319,32 @@ define(function (require, exports, module) {
         return loadFile(fileName, themePackage.metadata);
     }
 
-    prefs.on("change", "customScrollbars", function () {
+
+    prefs.on("change", "theme", function () {
+        // Make sure we don't reprocess a theme that's already loaded
+        if (currentTheme && currentTheme.name === prefs.get("theme")) {
+            return;
+        }
+
+        // Refresh editor with the new theme
+        refresh(true);
+
+        // Process the scrollbars for the editor
+        ThemeView.updateScrollbars(getCurrentTheme());
+
+        // Expose event for theme changes
+        $(exports).trigger("themeChange", getCurrentTheme());
+    });
+
+    prefs.on("change", "themeScrollbars", function () {
         refresh();
         ThemeView.updateScrollbars(getCurrentTheme());
     });
 
-    prefs.on("change", "fontSize", function () {
-        refresh();
-        ThemeView.updateFontSize();
-    });
-
-    prefs.on("change", "lineHeight", function () {
-        refresh();
-        ThemeView.updateLineHeight();
-    });
-
-    prefs.on("change", "fontFamily", function () {
-        refresh();
-        ThemeView.updateFontFamily();
-    });
-
+    // Monitor file changes.  If the file that has changed is actually the currently loaded
+    // theme, then we just reload the theme.  This allows to live edit the theme
     FileSystem.on("change", function (evt, file) {
-        if (file.isDirectory) {
+        if (!file || file.isDirectory) {
             return;
         }
 
@@ -364,37 +357,6 @@ define(function (require, exports, module) {
         refresh();
     });
 
-
-    // We need to postpone setting the prefs on change event handler for themes
-    // to prevent flickering
-    AppInit.appReady(function () {
-        prefs.on("change", "theme", function () {
-            // Save the theme that's about to be replaced to allow for some transition to prevent flicker
-            var oldTheme = getCurrentTheme();
-
-            // Refresh editor with the new theme
-            refresh(true);
-
-            // Process the scrollbars for the editor
-            ThemeView.updateScrollbars(getCurrentTheme());
-
-            // Expose event for theme changes
-            $(exports).trigger("themeChange", getCurrentTheme());
-
-            // Delay removing the old style element to avoid flashes when transitioning between themes
-            if (oldTheme) {
-                setTimeout(function (theme) {
-                    if (theme.css) {
-                        $(theme.css).remove();
-                    }
-                }, 0, oldTheme);
-            }
-        });
-    });
-
-
-    ThemeView.updateFonts();
-    ThemeView.updateScrollbars();
 
     exports.refresh         = refresh;
     exports.loadFile        = loadFile;
