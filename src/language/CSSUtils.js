@@ -603,16 +603,23 @@ define(function (require, exports, module) {
     }
     
     function getCompleteSelectors(selectorInfo) {
-        if (selectorInfo.parentSelectors && _.isString(selectorInfo.parentSelectors)) {
-            var completeSelector = selectorInfo.parentSelectors,
+        if (selectorInfo.parentSelectors) {
+            var parentArray = selectorInfo.parentSelectors.split(", "),
+                completeSelectors = "",
                 ampersandIndex = selectorInfo.selector.indexOf("&");
-            if (ampersandIndex === -1) {
-                completeSelector += " ";
-                completeSelector += selectorInfo.selector;
-            } else {
-                completeSelector = selectorInfo.selector.replace("&", completeSelector);
-            }
-            return completeSelector;
+            _.forEach(parentArray, function (parent) {
+                if (completeSelectors.length) {
+                    completeSelectors += ", ";
+                }
+                if (ampersandIndex === -1) {
+                    completeSelectors += parent;
+                    completeSelectors += " ";
+                    completeSelectors += selectorInfo.selector;
+                } else {
+                    completeSelectors += selectorInfo.selector.replace("&", parent);
+                }
+            });
+            return completeSelectors;
         }
         
         return selectorInfo.selector;
@@ -733,11 +740,10 @@ define(function (require, exports, module) {
         }
         
         function _parseComment() {
-            // If it is a line comment, then do nothing and just return.
-            // A line comment is just one token and the caller always have to 
-            // find the next token by skipping the current token. So leaving 
+            // If it is a line comment, then do nothing and just return. Unlike block
+            // comment, a line comment is just one single token and the caller always  
+            // has to find the next token by skipping the current token. So leaving 
             // it for the caller to skip the current token.
-            //so that the caller an
             if (/^\/\//.test(token)) {
                 return;
             }
@@ -767,8 +773,7 @@ define(function (require, exports, module) {
                 parentSelectors = "",
                 parentArray = [];
             for (j = selectors.length - 1; j >= 0; j--) {
-                if (selectors[j].declListEndLine !== -1 &&
-                        selectors[j].level < prevLevel) {
+                if (selectors[j].level < prevLevel) {
                     break;
                 }
                 if (selectors[j].declListEndLine === -1 &&
@@ -777,9 +782,6 @@ define(function (require, exports, module) {
                         parentArray.unshift(parentSelectors);
                     }
                     parentSelectors = getCompleteSelectors(selectors[j]);
-//                    parentSelectors = parentSelectors ? selectors[j].selector + " " + parentSelectors : selectors[j].selector;
-//                    return parentSelectors;
-//                    prevLevel--;
                 }
             }
             if (parentArray.length) {
@@ -985,7 +987,7 @@ define(function (require, exports, module) {
         }
         
         function includeCommentInNextRule() {
-            if (ruleStartChar !== -1)) {
+            if (ruleStartChar !== -1) {
                 return false;       // already included
             }
             if (stream.start > 0 && lines[line].substr(0, stream.start).indexOf("}") !== -1) {
