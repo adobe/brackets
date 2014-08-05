@@ -88,7 +88,7 @@ define(function (require, exports, module) {
             if (event.type === "keydown") {
                 keyCode = event.keyCode;
     
-                if (keyCode === KeyEvent.DOM_VK_TAB || keyCode === KeyEvent.DOM_VK_CONTEXT_MENU) {
+                if (keyCode === KeyEvent.DOM_VK_TAB) {
                     self.close();
                 } else if (keyCode === KeyEvent.DOM_VK_UP) {
                     self._rotateSelection(-1);
