@@ -71,7 +71,10 @@ define(function NetworkAgent(require, exports, module) {
     // WebInspector Event: Page.frameNavigated
     function _onFrameNavigated(event, res) {
         // res = {frame}
-        _reset();
+        // Clear log when navigating to a new page, but not if an iframe was loaded
+        if (!res.frame.parentId) {
+            _reset();
+        }
         _logURL(res.frame.url);
     }
     

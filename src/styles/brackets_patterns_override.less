@@ -478,6 +478,13 @@ a:focus {
     &.dropdown-menu li a {
         padding: 1px 15px 1px 15px;
         color: @bc-black;
+        
+        &.disabled {
+            color: @bc-gray;
+            &:hover {
+                background: @bc-white;
+            }
+        }
     }
     
     &.dropdown-menu .stylesheet-link {
@@ -1394,6 +1401,10 @@ input[type="checkbox"]:focus {
     outline:none;
     border: 1px solid @tc-gray-component-focused-border;
     box-shadow: @tc-input-glow;
+}
+
+select {
+    border: 1px solid #b2b5b5;
 }
 
 input[type="checkbox"]:checked:before {

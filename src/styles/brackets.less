@@ -217,7 +217,7 @@ a, img {
     margin-right: 3px;
 }
 
-#indent-type:hover, #indent-width-label:hover {
+#status-overwrite:hover, #indent-type:hover, #indent-width-label:hover {
     text-decoration: underline;
 }
 
@@ -923,8 +923,8 @@ a, img {
         position: absolute;
         width: 0;
         height: 0;
-        border-top: @inline-triangle-size solid @inline-background-color-3;
-        border-bottom: @inline-triangle-size solid @inline-background-color-3;
+        border-top: @inline-triangle-size solid transparent;
+        border-bottom: @inline-triangle-size solid transparent;
         border-left: @inline-triangle-size solid @inline-background-color-1;
         margin-top: -@inline-triangle-size;
         top: 50%;
@@ -1323,32 +1323,22 @@ textarea.exclusions-editor {
 }
 
 
-// Search result highlighting - CodeMirror highlighting is pretty constrained. Highlights are
-// blended on TOP of the selection color. The "current" search result is indicated by selection,
-// so we want the selection visible underneath the highlight. To do this, the highlight must be
-// transparent; it has to look good atop both the selection color AND the regular text bg color.
+// Find/Replace result highlighting
 .CodeMirror-searching {
-    // Highlight color, overlaid on top of the .find-highlighting color
     background-color: @cm-match-highlight;
     box-shadow: @tc-small-shadow-bottom;
     color: @match-text !important;
-    &.searching-first {
+    &.searching-current-match {
+        background-color: @cm-current-match-highlight;
+    }
+    &.searching-first {  // first in a contiguous run of highlights
         border-top-left-radius: @tc-inline-border-radius;
         border-bottom-left-radius: @tc-inline-border-radius;
     }
-    &.searching-last {
+    &.searching-last {  // last in a contiguous run of highlights
         border-top-right-radius: @tc-inline-border-radius;
         border-bottom-right-radius: @tc-inline-border-radius;
     }
-}
-.CodeMirror.find-highlighting div.CodeMirror-selected,
-.CodeMirror .CodeMirror.find-highlighting div.CodeMirror-selected {
-    // Selection color while highlighting shown - ALWAYS has the .CodeMirror-searching color
-    // blended atop it.
-    // Note: the 2nd selector reflecting CM nesting is needed to override the similar rules in
-    // brackets_codemirror_override.less (see the note about #324).
-    background: @cm-current-match-highlight;
-    border-radius: @tc-inline-border-radius;
 }
 #find-counter {
     font-weight: @font-weight-semibold;
@@ -1540,6 +1530,10 @@ textarea.exclusions-editor {
     border: none;
     cursor: default;
     width: 13px;
+    
+    &.inspection-errors {
+        cursor: pointer;
+    }
 }
 
 .inspection-disabled {

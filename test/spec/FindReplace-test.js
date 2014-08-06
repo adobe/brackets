@@ -1136,8 +1136,32 @@ define(function (require, exports, module) {
                 twCommandManager.execute(Commands.CMD_FIND);
 
                 toggleRegexp(true);
-                enterSearchText(".*/");
+                enterSearchText(".*");
                 expectSelection({start: {line: 0, ch: 0}, end: {line: 0, ch: 18}});
+            });
+            
+            it("shouldn't freeze on /.*/ regexp", function () {
+                myEditor.setCursorPos(0, 0);
+
+                twCommandManager.execute(Commands.CMD_FIND);
+
+                toggleRegexp(true);
+                enterSearchText(".*");
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 0, ch: 18}});
+            });
+            
+            it("shouldn't freeze on regexp with 0-length matches", function () {
+                myEditor.setCursorPos(0, 0);
+
+                twCommandManager.execute(Commands.CMD_FIND);
+
+                // CodeMirror coerces all 0-length matches to 1 char
+                toggleRegexp(true);
+                enterSearchText("^");  // matches pos before start of every line, but 0-length match text
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 0, ch: 1}});
+                
+                enterSearchText("()"); // matches pos before every char, but 0-length match text
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 0, ch: 1}});
             });
         });
 
