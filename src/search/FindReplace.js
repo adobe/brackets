@@ -563,14 +563,7 @@ define(function (require, exports, module) {
             // Use the previous query. This can happen if the user switches from Find to Replace.
             initialQuery = findBar.getQueryInfo().query;
         } else {
-            // Prepopulate with the current primary selection, if any
-            initialQuery = editor.getSelectedText();
-            
-            // Eliminate newlines since we don't generally support searching across line boundaries (#2960)
-            var newline = initialQuery.indexOf("\n");
-            if (newline !== -1) {
-                initialQuery = initialQuery.substr(0, newline);
-            }
+            initialQuery = FindUtils.getInitialQueryFromSelection(editor);
         }
         
         // Close our previous find bar, if any. (The open() of the new findBar will
