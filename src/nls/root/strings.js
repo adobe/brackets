@@ -403,7 +403,7 @@ define({
     "RELAUNCH_CHROME"                      : "Relaunch Chrome",
     "ABOUT"                                : "About",
     "CLOSE"                                : "Close",
-    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "release {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_BUILD_TIMESTAMP"           : "build timestamp: ",
     "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",

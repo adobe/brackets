@@ -75,7 +75,7 @@ define(function (require, exports, module) {
     // an Object with the following fields:
     //
     //  {Number} buildNumber Number of the build
-    //  {String} versionString String representation of the build number (ie "Sprint 14")
+    //  {String} versionString String representation of the build number (ie "Release 0.40")
     //  {String} dateString Date of the build
     //  {String} releaseNotesURL URL of the release notes for this build
     //  {String} downloadURL URL to download this build

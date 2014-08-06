@@ -40,7 +40,7 @@ module.exports = function (grunt) {
             json = {};
 
         // count the number of commits for our version number
-        //     <major>.<sprint>.<patch>-<number of commits>
+        //     <major>.<minor>.<patch>-<number of commits>
         return qexec("git log --format=%h", opts).then(function (stdout) {
             json.commits = stdout.toString().match(/[0-9a-f]\n/g).length;
             

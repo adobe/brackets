@@ -1018,7 +1018,7 @@ define(function (require, exports, module) {
      * Finds all instances of the specified selector in "text".
      * Returns an Array of Objects with start and end properties.
      *
-     * For Sprint 4, we only support simple selectors. This function will need to change
+     * For now, we only support simple selectors. This function will need to change
      * dramatically to support full selectors.
      *
      * FUTURE: (JRB) It would be nice to eventually use the browser/jquery to do the selector evaluation.
@@ -1038,7 +1038,7 @@ define(function (require, exports, module) {
         var result = [];
         var i;
         
-        // For sprint 4 we only match the rightmost simple selector, and ignore 
+        // For now, we only match the rightmost simple selector, and ignore
         // attribute selectors and pseudo selectors
         var classOrIdSelector = selector[0] === "." || selector[0] === "#";
         var prefix = "";
@@ -1147,7 +1147,7 @@ define(function (require, exports, module) {
     
     /**
      * Return all rules matching the specified selector.
-     * For Sprint 4, we only look at the rightmost simple selector. For example, searching for ".foo" will 
+     * For now, we only look at the rightmost simple selector. For example, searching for ".foo" will
      * match these rules:
      *  .foo {}
      *  div .foo {}

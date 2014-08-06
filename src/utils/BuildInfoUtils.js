@@ -85,7 +85,7 @@ define(function (require, exports, module) {
         // Look for Git metadata on disk to load the SHAs for 'brackets'. Done on
         // startup instead of on demand because the version that's currently running is what was
         // loaded at startup (the src on disk may be updated to a different version later).
-        // Git metadata may be missing (e.g. in the per-sprint ZIP builds) - silently ignore if so.
+        // Git metadata may be missing (e.g. in the release builds) - silently ignore if so.
         var bracketsSrc = FileUtils.getNativeBracketsDirectoryPath();
         
         // Assumes Brackets is a standalone repo and not a submodule (prior to brackets-shell,
