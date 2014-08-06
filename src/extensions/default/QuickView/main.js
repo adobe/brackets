@@ -45,7 +45,6 @@ define(function (require, exports, module) {
         prefs                      = null,   // Preferences
         $previewContainer,                   // Preview container
         $previewContent,                     // Preview content holder
-        lastPos,                             // Last line/ch pos processed by handleMouseMove
         lastMousePos,                        // Last mouse position
         animationRequest;                    // Request for animation frame
     
@@ -574,8 +573,6 @@ define(function (require, exports, module) {
         // Find char mouse is over
         var pos = cm.coordsChar({left: lastMousePos.clientX, top: lastMousePos.clientY});
 
-        lastPos = pos;
-
         // No preview if mouse is past last char on line
         if (pos.ch >= editor.document.getLine(pos.line).length) {
             return;
@@ -585,8 +582,8 @@ define(function (require, exports, module) {
             popoverState = popover;
         } else {
             // Query providers and append to popoverState
-            token = cm.getTokenAt(lastPos, true);
-            popoverState = $.extend({}, popoverState, queryPreviewProviders(editor, lastPos, token));
+            token = cm.getTokenAt(pos, true);
+            popoverState = $.extend({}, popoverState, queryPreviewProviders(editor, pos, token));
         }
         
         if (popoverState && popoverState.start && popoverState.end) {
@@ -608,7 +605,7 @@ define(function (require, exports, module) {
             }
         }
     }
-    
+
     function processMouseMove() {
         animationRequest = null;
         
@@ -628,13 +625,8 @@ define(function (require, exports, module) {
                 var cm = editor._codeMirror,
                     pos = cm.coordsChar({left: lastMousePos.clientX, top: lastMousePos.clientY});
 
-                if (lastPos && lastPos.line === pos.line && lastPos.ch === pos.ch) {
-                    return;
-                }
-                lastPos = pos;
-
                 if (popoverState.start && popoverState.end &&
-                        editor.posWithinRange(pos, popoverState.start, popoverState.end, 1)) {
+                        editor.posWithinRange(pos, popoverState.start, popoverState.end, true)) {
 
                     // That one's still relevant - nothing more to do
                     return;
