@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, continue: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $ */
 
 /**
@@ -619,6 +619,14 @@ define(function (require, exports, module) {
                     completeSelectors += selectorInfo.selector.replace("&", parent);
                 }
             });
+
+            // Show parents with / separators.
+//            completeSelectors = selectorInfo.parentSelectors + " / ";
+//            if (selectorInfo.selectorGroup) {
+//                completeSelectors += selectorInfo.selectorGroup;
+//            } else {
+//                completeSelectors += selectorInfo.selector;
+//            }
             return completeSelectors;
         }
         
@@ -801,8 +809,6 @@ define(function (require, exports, module) {
                 if (!_nextTokenSkippingWhitespace()) {
                     return false; // eof
                 }
-                selectorStartChar = stream.start;
-                selectorStartLine = line;
             }
             
             // Everything until the next ',' or '{' is part of the current selector
@@ -814,6 +820,8 @@ define(function (require, exports, module) {
                     currentSelector = "";
                 } else {
                     if (!currentSelector) {
+                        selectorGroupStartLine = (stream.string.indexOf(",") !== -1) ? line : -1;
+                        selectorGroupStartChar = stream.start;
                         selectorStartChar = stream.start;
                         selectorStartLine = line;
                     }
