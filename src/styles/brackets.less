@@ -218,7 +218,7 @@ a, img {
     margin-right: 3px;
 }
 
-#indent-type:hover, #indent-width-label:hover {
+#status-overwrite:hover, #indent-type:hover, #indent-width-label:hover {
     text-decoration: underline;
 }
 
@@ -1532,6 +1532,10 @@ textarea.exclusions-editor {
     border: none;
     cursor: default;
     width: 13px;
+    
+    &.inspection-errors {
+        cursor: pointer;
+    }
 }
 
 .inspection-disabled {

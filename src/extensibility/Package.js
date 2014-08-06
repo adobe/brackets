@@ -41,7 +41,7 @@ define(function (require, exports, module) {
         NodeConnection       = require("utils/NodeConnection"),
         PreferencesManager   = require("preferences/PreferencesManager");
     
-    PreferencesManager.definePreference("proxy", "string");
+    PreferencesManager.definePreference("proxy", "string", undefined);
     
     var Errors = {
         ERROR_LOADING: "ERROR_LOADING",

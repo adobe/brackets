@@ -472,6 +472,13 @@ a:focus {
     &.dropdown-menu li a {
         padding: 1px 15px 1px 15px;
         color: @bc-menu-text;
+        
+        &.disabled {
+            color: @bc-gray;
+            &:hover {
+                background: @bc-white;
+            }
+        }
     }
     
     &.dropdown-menu .stylesheet-link {
