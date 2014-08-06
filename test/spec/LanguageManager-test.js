@@ -48,7 +48,7 @@ define(function (require, exports, module) {
         });
         
         afterEach(function () {
-            LanguageManager._resetLanguageOverrides();
+            LanguageManager._resetPathLanguageOverrides();
         });
         
         function defineLanguage(definition) {
@@ -707,7 +707,7 @@ define(function (require, exports, module) {
                 // make active
                 doc.addRef();
                 
-                doc.setLanguageOverride(phpLang);
+                LanguageManager.setLanguageOverrideForPath(doc.file.fullPath, phpLang);
                 
                 // language should change
                 expect(doc.getLanguage()).toBe(phpLang);
@@ -749,7 +749,7 @@ define(function (require, exports, module) {
                 // make active
                 doc.addRef();
                 
-                doc.setLanguageOverride(phpLang);
+                LanguageManager.setLanguageOverrideForPath(doc.file.fullPath, phpLang);
                 
                 // language should change
                 expect(doc.getLanguage()).toBe(phpLang);
@@ -758,7 +758,7 @@ define(function (require, exports, module) {
                 expect(spy.mostRecentCall.args[2]).toBe(phpLang);
                 expect(LanguageManager.getLanguageForPath(doc.file.fullPath)).toBe(phpLang);
                 
-                doc.setLanguageOverride(null);
+                LanguageManager.setLanguageOverrideForPath(doc.file.fullPath, null);
                 
                 // language should revert
                 expect(doc.getLanguage()).toBe(unknownLang);
@@ -779,7 +779,7 @@ define(function (require, exports, module) {
                 expect(LanguageManager.getLanguageForPath(doc.file.fullPath)).toBe(modifiedLanguage);
                 
                 // override again
-                doc.setLanguageOverride(phpLang);
+                LanguageManager.setLanguageOverrideForPath(doc.file.fullPath, phpLang);
                 
                 expect(doc.getLanguage()).toBe(phpLang);
                 expect(spy.callCount).toBe(4);
@@ -788,7 +788,7 @@ define(function (require, exports, module) {
                 expect(LanguageManager.getLanguageForPath(doc.file.fullPath)).toBe(phpLang);
                 
                 // remove override, should restore to modifiedLanguage
-                doc.setLanguageOverride(null);
+                LanguageManager.setLanguageOverrideForPath(doc.file.fullPath, null);
                 
                 expect(doc.getLanguage()).toBe(modifiedLanguage);
                 expect(spy.callCount).toBe(5);

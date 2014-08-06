@@ -65,6 +65,9 @@ define(function (require, exports, module) {
      *
      * __deleted__ -- When the file for this document has been deleted. All views onto the document should
      * be closed. The document will no longer be editable or dispatch "change" events.
+     * 
+     * __languageChanged__ -- When the value of getLanguage() has changed. 2nd argument is the old value,
+     * 3rd argument is the new value.
      *
      * @constructor
      * @param {!File} file  Need not lie within the project.
@@ -672,19 +675,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Overrides the default language of this document and sets it to the given
-     * language. This change is not persisted if the document is closed.
-     * @param {?Language} language The language to be set for this document; if
-     * null, the language will be set back to the default.
-     */
-    Document.prototype.setLanguageOverride = function (language) {
-        LanguageManager._setLanguageOverrideForPath(this.file.fullPath, language);
-        this._updateLanguage();
-    };
-
-    /**
-     * Updates the language according to the file extension. If the current
-     * language was forced (set manually by user), don't change it.
+     * Updates the language to match the current mapping given by LanguageManager
      */
     Document.prototype._updateLanguage = function () {
         var oldLanguage = this.language;

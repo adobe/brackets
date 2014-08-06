@@ -587,11 +587,27 @@ define(function (require, exports, module) {
                 });
 
                 openLiveDevelopmentAndWait();
- 
+
                 runs(function () {
                     expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_ACTIVE);
                     
                     var doc = DocumentManager.getOpenDocumentForPath(tempDir + "/simple1.html");
+                    expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
+                });
+            });
+            
+            it("should establish a browser connection for an opened xhtml file", function () {
+                //open a file
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["test.xhtml"]), "SpecRunnerUtils.openProjectFiles test.xhtml", 1000);
+                });
+
+                openLiveDevelopmentAndWait();
+
+                runs(function () {
+                    expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_ACTIVE);
+                    
+                    var doc = DocumentManager.getOpenDocumentForPath(tempDir + "/test.xhtml");
                     expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
                 });
             });

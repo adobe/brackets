@@ -50,7 +50,7 @@ define(function (require, exports, module) {
      */
     var _lastRunOptions;
     
-    prefs.definePreference("options", "object")
+    prefs.definePreference("options", "object", undefined)
         .on("change", function (e, data) {
             var options = prefs.get("options");
             if (!_.isEqual(options, _lastRunOptions)) {

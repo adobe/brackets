@@ -72,10 +72,13 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_UNDO);
         menu.addMenuItem(Commands.EDIT_REDO);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_CUT);
-        menu.addMenuItem(Commands.EDIT_COPY);
-        menu.addMenuItem(Commands.EDIT_PASTE);
-        menu.addMenuDivider();
+        if (brackets.nativeMenus) {
+            // Native-only - can't programmatically trigger clipboard actions from JS menus
+            menu.addMenuItem(Commands.EDIT_CUT);
+            menu.addMenuItem(Commands.EDIT_COPY);
+            menu.addMenuItem(Commands.EDIT_PASTE);
+            menu.addMenuDivider();
+        }
         menu.addMenuItem(Commands.EDIT_SELECT_ALL);
         menu.addMenuItem(Commands.EDIT_SELECT_LINE);
         menu.addMenuItem(Commands.EDIT_SPLIT_SEL_INTO_LINES);
