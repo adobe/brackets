@@ -602,31 +602,31 @@ define(function (require, exports, module) {
         return createInfo();
     }
     
-    function getCompleteSelectors(selectorInfo) {
+    function getCompleteSelectors(selectorInfo, useGroup) {
         if (selectorInfo.parentSelectors) {
             var parentArray = selectorInfo.parentSelectors.split(", "),
                 completeSelectors = "",
                 ampersandIndex = selectorInfo.selector.indexOf("&");
-            _.forEach(parentArray, function (parent) {
-                if (completeSelectors.length) {
-                    completeSelectors += ", ";
-                }
-                if (ampersandIndex === -1) {
-                    completeSelectors += parent;
-                    completeSelectors += " ";
-                    completeSelectors += selectorInfo.selector;
-                } else {
-                    completeSelectors += selectorInfo.selector.replace("&", parent);
-                }
-            });
+//            _.forEach(parentArray, function (parent) {
+//                if (completeSelectors.length) {
+//                    completeSelectors += ", ";
+//                }
+//                if (ampersandIndex === -1) {
+//                    completeSelectors += parent;
+//                    completeSelectors += " ";
+//                    completeSelectors += selectorInfo.selector;
+//                } else {
+//                    completeSelectors += selectorInfo.selector.replace("&", parent);
+//                }
+//            });
 
             // Show parents with / separators.
-//            completeSelectors = selectorInfo.parentSelectors + " / ";
-//            if (selectorInfo.selectorGroup) {
-//                completeSelectors += selectorInfo.selectorGroup;
-//            } else {
-//                completeSelectors += selectorInfo.selector;
-//            }
+            completeSelectors = selectorInfo.parentSelectors + " / ";
+            if (useGroup && selectorInfo.selectorGroup) {
+                completeSelectors += selectorInfo.selectorGroup;
+            } else {
+                completeSelectors += selectorInfo.selector;
+            }
             return completeSelectors;
         }
         
@@ -789,13 +789,13 @@ define(function (require, exports, module) {
                     if (parentSelectors) {
                         parentArray.unshift(parentSelectors);
                     }
-                    parentSelectors = getCompleteSelectors(selectors[j]);
+                    parentSelectors = getCompleteSelectors(selectors[j], true);
                 }
             }
-            if (parentArray.length) {
-                parentArray.unshift(parentSelectors);
-                parentSelectors = parentArray.join(", ");
-            }
+//            if (parentArray.length) {
+//                parentArray.unshift(parentSelectors);
+//                parentSelectors = parentArray.join(", ");
+//            }
             return parentSelectors;
         }
         
@@ -809,6 +809,7 @@ define(function (require, exports, module) {
                 if (!_nextTokenSkippingWhitespace()) {
                     return false; // eof
                 }
+                selectorGroupStartLine = -1;
             }
             
             // Everything until the next ',' or '{' is part of the current selector
@@ -820,8 +821,10 @@ define(function (require, exports, module) {
                     currentSelector = "";
                 } else {
                     if (!currentSelector) {
-                        selectorGroupStartLine = (stream.string.indexOf(",") !== -1) ? line : -1;
-                        selectorGroupStartChar = stream.start;
+                        if (selectorGroupStartLine === -1) {
+                            selectorGroupStartLine = (stream.string.indexOf(",") !== -1) ? line : -1;
+                            selectorGroupStartChar = stream.start;
+                        }
                         selectorStartChar = stream.start;
                         selectorStartLine = line;
                     }
@@ -1095,7 +1098,7 @@ define(function (require, exports, module) {
                     _parseComment();
                 } else {
                     // Otherwise, it's style rule
-                    if (!_parseRule(level === undefined ? 0 : level)) {
+                    if (!_parseRule(level === undefined ? 0 : level) && level > 0) {
                         return false;
                     } else if (level > 0) {
                         return true;
@@ -1107,7 +1110,7 @@ define(function (require, exports, module) {
                 }
             }
             
-            return false;
+            return true;
         };
         
         // Do parsing
