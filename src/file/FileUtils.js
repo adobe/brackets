@@ -387,7 +387,7 @@ define(function (require, exports, module) {
      * File extensions - hard-coded for now, but may want to make these preferences
      * @const {Array.<string>}
      */
-    var _staticHtmlFileExts = ["htm", "html"],
+    var _staticHtmlFileExts = ["htm", "html", "xhtml"],
         _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
 
     /**
