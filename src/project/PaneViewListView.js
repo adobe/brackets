@@ -382,6 +382,9 @@ define(function (require, exports, module) {
             interval        = false,
             moved           = false;
         
+        // Don't redraw the working set for the next events
+        self.suppressSortRedraw = true;
+        
         function drag(e) {
             var top = e.pageY - startPageY;
             
@@ -517,10 +520,9 @@ define(function (require, exports, module) {
                 if (addBottomShadow) {
                     ViewUtils.addScrollerShadow(self.$openFilesContainer[0], null, true);
                 }
-                
-                // The drag is done, so set back to the default
-                self.suppressSortRedraw = false;
             }
+            // The drag is done, so set back to the default
+            self.suppressSortRedraw = false;
         }
         
         
@@ -539,15 +541,17 @@ define(function (require, exports, module) {
         // Style the element
         $listItem.css("position", "relative").css("z-index", 1);
         
+        var $holder = $(window);
+        
         // Event Handlers
-        this.$openFilesContainer.on(self._makeEventName("mousemove"), function (e) {
+        $holder.on(self._makeEventName("mousemove"), function (e) {
             if (hasScroll) {
                 scroll(e);
             }
             drag(e);
         });
-        this.$openFilesContainer.on(self._makeEventName("mouseup") + " " + self._makeEventName("mouseleave"), function (e) {
-            self.$openFilesContainer.off(self._makeEventName(""));
+        $holder.on(self._makeEventName("mouseup"), function (e) {
+            $holder.off(self._makeEventName(""));
             drop();
         });
     };
