@@ -75,10 +75,13 @@
 
 /* Extra CSS */
 
-.CodeMirror.find-highlighting div.CodeMirror-selected,
-.CodeMirror .CodeMirror.find-highlighting div.CodeMirror-selected {
-    background: red;
+.CodeMirror-searching {
+    background-color: #d3cd69;
+    &.searching-current-match {
+        background-color: #f6a644;
+    }
 }
+
 
 .CodeMirror-cursor {
     border-left: 1px solid #c5c8c6 !important;
@@ -109,17 +112,6 @@
 .CodeMirror-overwrite .CodeMirror-cursor {
     border-left: none !important;
     border-bottom: 1px solid #fff;
-}
-
-/* Inline editor styling */
-
-.related-container .selection:before {
-    border-top: 9px solid transparent;
-    border-bottom: 9px solid transparent;
-}
-
-.inline-widget .CodeMirror, .inline-widget .CodeMirror-gutters {
-    background: transparent;
 }
 
 /* Non-editor styling */
