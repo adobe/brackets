@@ -626,9 +626,11 @@ define(function (require, exports, module) {
                     pos = cm.coordsChar({left: lastMousePos.clientX, top: lastMousePos.clientY});
 
                 if (popoverState.start && popoverState.end &&
-                        editor.posWithinRange(pos, popoverState.start, popoverState.end, true)) {
+                        editor.posWithinRange(pos, popoverState.start, popoverState.end, true) &&
+                        (pos.ch < editor.document.getLine(pos.line).length)) {
 
                     // That one's still relevant - nothing more to do
+                    // Note: posWithinRange() includes mouse past end of line, so need to check for that case
                     return;
                 }
             }
