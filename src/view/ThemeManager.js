@@ -83,7 +83,7 @@ define(function (require, exports, module) {
         // the name of the file to be unique
 
         this.file        = file;
-        this.name        = options.name  || (options.title || fileName.replace(/.[\w]+$/gi, '')).toLocaleLowerCase().replace(/[\W]/g, '-');
+        this.name        = options.name  || (options.title || fileName.replace(/\.[\w]+$/gi, '')).toLocaleLowerCase().replace(/[\W]/g, '-');
         this.displayName = options.title || toDisplayName(fileName);
         this.dark        = options.theme !== undefined && options.theme.dark === true;
     }
