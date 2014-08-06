@@ -167,7 +167,7 @@
     "multiple":           { "attribOption": [], "type": "flag" },
     "muted":              { "attribOption": [], "type": "flag" },
     "name":               { "attribOption": [] },
-    "meta/name":          { "attribOption": ["application-name", "author", "description", "generator", "Keywords"] },
+    "meta/name":          { "attribOption": ["application-name", "author", "description", "generator", "keywords"] },
     "novalidate":         { "attribOption": [], "type": "flag" },
     "open":               { "attribOption": [], "type": "flag" },
     "optimum":            { "attribOption": [] },

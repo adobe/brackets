@@ -248,6 +248,9 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensions Disabled",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Click to toggle cursor between Insert (INS) and Overwrite (OVR) modes",
+    "STATUSBAR_LANG_TOOLTIP"                : "Click to change file type",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Click to toggle report panel.",
     "STATUSBAR_DEFAULT_LANG"                : "(default)",
 
     // CodeInspection: errors/warnings
@@ -424,8 +427,6 @@ define({
     "USE_THEME_SCROLLBARS"                 : "Use Theme Scrollbars",
     "FONT_SIZE"                            : "Font Size",
     "FONT_FAMILY"                          : "Font Family",
-    "LINE_HEIGHT"                          : "Line Height",
-    "GENERAL"                              : "General",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "New Rule",
