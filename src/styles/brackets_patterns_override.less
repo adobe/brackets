@@ -1242,7 +1242,7 @@ input[type="color"],
     // Button Sizes
     &.large {
         font-size: (@baseFontSize + 1px);
-        .border-radius(@tc-control-border-radius);
+        .border-radius(@bc-border-radius);
     }
     &.small {
         font-size: (@baseFontSize - 1px);
@@ -1251,16 +1251,16 @@ input[type="color"],
 
 .btn-alt-quiet {
     border: 1px solid transparent;
-    border-radius: @tc-control-border-radius;
+    border-radius: @bc-border-radius;
     text-decoration: none;
     &:hover {
-        border: 1px solid @tc-alt-component-border;
-        box-shadow: @tc-button-alt-highlight;
+        border: 1px solid @bc-btn-border;
+        box-shadow: inset 0 1px 0 @bc-highlight;
     }
     &:active {
-        background: @tc-button-alt-down-background;
-        border: 1px solid @tc-alt-component-border;
-        box-shadow: @tc-call-to-action-down-shadow;
+        background: @bc-btn-bg-down-alt;
+        border: 1px solid @bc-btn-border;
+        box-shadow: inset 0 1px 0 @bc-shadow-small;
     }
 }
 
@@ -1270,8 +1270,8 @@ input[type="color"],
     font-weight: normal;
     line-height: 14px;
     &:focus {
-        border: 1px solid @tc-gray-component-focused-border;
-        box-shadow: @tc-button-highlight, @tc-input-glow;
+        border: 1px solid @bc-btn-border-focused;
+        box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
         outline: none;
     }
 }
@@ -1297,17 +1297,18 @@ input[type="color"],
 .table-striped tbody {
     tr:nth-child(odd) td,
     tr:nth-child(odd) th {
-        background-color: @tc-lighter-gray; // TopCoat palette
+        background-color: @bc-panel-bg-alt;
     }
     tr:nth-child(even) td,
     tr:nth-child(even) th {
-        background-color: @tc-gray-panel; // turn off bootstrap hover highlight
+        background-color: @bc-panel-bg; // turn off bootstrap hover highlight
     }
 }
 .row-highlight tbody {
     tr:hover td,
     tr:hover th {
-        background-color: @tc-highlight; // TopCoat palette
+        background-color: @bc-bg-highlight;
+        color: @bc-menu-text;
     }
 }
 
@@ -1320,7 +1321,7 @@ strong {
 /* Type */
 
 code {
-    color: @bc-black;
+    color: @bc-text;
     background-color: transparent;
 }
 
@@ -1344,7 +1345,7 @@ b,
 strong,
 dt,
 .label {
-    color: @tc-text;
+    color: @bc-text;
     font-weight: @font-weight-semibold;
 }
 
@@ -1355,13 +1356,13 @@ dt,
 
 .alert {
     text-shadow: none;
-    background-color: @tc-warning-background;
+    background-color: @bc-warning-bg;
     border: none;
 }
 .alert,
 .alert h4 {
     // Specified for the h4 to prevent conflicts of changing @headingsColor
-    color: @tc-warning-text;
+    color: @bc-warning-bg;
 }
 
 input[type="radio"],
@@ -1373,23 +1374,23 @@ input[type="checkbox"] {
     height: 13px;
     width: 13px;
     vertical-align: middle;
-    border: 1px solid @tc-gray-component-border;
+    border: 1px solid @bc-btn-border;
     border-radius: 3px;
-    background-color: @tc-button-background;
+    background-color: @bc-btn-bg;
     -webkit-appearance: none;
-    box-shadow: @tc-button-highlight;
+    box-shadow: inset 0 1px 0 @bc-highlight;
 }
 
 input[type="checkbox"]:active:not(:disabled) {
-    background-color: @tc-button-down-background;
-    box-shadow: @tc-button-down-shadow;
+    background-color: @bc-btn-bg-down;
+    box-shadow: inset 0 1px 0 @bc-shadow-small;
 }
 
 select:focus,
 input[type="checkbox"]:focus {
     outline:none;
-    border: 1px solid @tc-gray-component-focused-border;
-    box-shadow: @tc-input-glow;
+    border: 1px solid @bc-btn-border-focused;
+    box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
 }
 
 select {
@@ -1398,7 +1399,7 @@ select {
 
 input[type="checkbox"]:checked:before {
     font-weight: bold;
-    color: @tc-text;
+    color: @bc-text;
     content: '\2713';
     -webkit-margin-start: 0;
     position: relative;
@@ -1413,24 +1414,24 @@ code {
 
 
 .close {
-    color: #333;
+    color: @bc-text;
     text-shadow: none;
     opacity: 0.7;
     filter: alpha(opacity=70);
 }
 
 .close:hover {
-    color: #333;
+    color: @bc-text;
     opacity: 1;
     filter: alpha(opacity=100);
 }
 
 .dropdown-menu {
-    background-color: #fff;
-    color: #000;
+    background-color: @bc-menu-bg;
+    color: @bc-menu-text;
     
     .divider {
-        background-color: #eaeaea;
+        background-color: @bc-menu-separator;
         border: none;
     }
 }
