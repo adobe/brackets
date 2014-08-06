@@ -72,15 +72,7 @@ define(function (require, exports, module) {
      */
     function lintOneFile(text, fullPath) {
         // If a line contains only whitespace, remove the whitespace
-        // This should be doable with a regexp: text.replace(/\r[\x20|\t]+\r/g, "\r\r");,
-        // but that doesn't work.
-        var i, arr = text.split("\n");
-        for (i = 0; i < arr.length; i++) {
-            if (!arr[i].match(/\S/)) {
-                arr[i] = "";
-            }
-        }
-        text = arr.join("\n");
+        text = text.replace(/^[\x20\t\f]+$/gm, "");
         
         var options = prefs.get("options");
 
