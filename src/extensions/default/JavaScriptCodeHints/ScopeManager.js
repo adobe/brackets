@@ -1036,7 +1036,7 @@ define(function (require, exports, module) {
         /**
          *  Do the work to initialize a code hinting session.
          *
-         * @param {Session} session - the active hinting session
+         * @param {Session} session - the active hinting session (TODO: currently unused)
          * @param {!Document} document - the document the editor has changed to
          * @param {?Document} previousDocument - the document the editor has changed from
          */
@@ -1136,7 +1136,7 @@ define(function (require, exports, module) {
         /**
          * Called each time a new editor becomes active.
          *
-         * @param {Session} session - the active hinting session
+         * @param {Session} session - the active hinting session (TODO: currently unused by doEditorChange())
          * @param {!Document} document - the document of the editor that has changed
          * @param {?Document} previousDocument - the document of the editor is changing from
          */

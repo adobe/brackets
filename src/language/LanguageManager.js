@@ -1006,7 +1006,7 @@ define(function (require, exports, module) {
      *     }
      */
     function _updateFromPrefs(pref) {
-        var newMapping = PreferencesManager.get(pref) || {},
+        var newMapping = PreferencesManager.get(pref),
             newNames = Object.keys(newMapping),
             state = _prefState[pref],
             last = state.last,
@@ -1103,14 +1103,14 @@ define(function (require, exports, module) {
         // depends on FileUtils) here. Using the async form of require fixes this.
         require(["preferences/PreferencesManager"], function (pm) {
             PreferencesManager = pm;
-            _updateFromPrefs(_EXTENSION_MAP_PREF);
-            _updateFromPrefs(_NAME_MAP_PREF);
-            pm.definePreference(_EXTENSION_MAP_PREF, "object").on("change", function () {
+            pm.definePreference(_EXTENSION_MAP_PREF, "object", {}).on("change", function () {
                 _updateFromPrefs(_EXTENSION_MAP_PREF);
             });
-            pm.definePreference(_NAME_MAP_PREF, "object").on("change", function () {
+            pm.definePreference(_NAME_MAP_PREF, "object", {}).on("change", function () {
                 _updateFromPrefs(_NAME_MAP_PREF);
             });
+            _updateFromPrefs(_EXTENSION_MAP_PREF);
+            _updateFromPrefs(_NAME_MAP_PREF);
         });
     });
     
