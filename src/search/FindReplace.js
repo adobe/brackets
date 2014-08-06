@@ -85,7 +85,7 @@ define(function (require, exports, module) {
         this.foundAny = false;
         this.marked = [];
         this.resultSet = [];
-        this.matchIndex = null;
+        this.matchIndex = -1;
     }
 
     function getSearchState(cm) {
@@ -140,47 +140,29 @@ define(function (require, exports, module) {
             state.parsedQuery = parseQuery(queryInfo);
         }
     }
-
-    /**
-     * @private
-     * Return the current match index if found in the result set or null if not found.
-     *
-     * @param {!Array.<>} resultSet The editor to search in
-     * @param {!{from: {line: number, ch: number}, to: {line: number, ch: number}}} cursor - the range of current match
-     * @return {number|null} The one-based index of current match if found or null if not found.
-     */
-    function _findCurrentMatchIndex(resultSet, cursor) {
-        var index = _.findIndex(resultSet, cursor);
-        return (index === -1) ? null : index + 1;
-    }
     
     /**
      * @private
-     * Show the current match index by finding the cursor in the result set stored
-     * in the search state if the current match index is null. If not null, then adjust the 
-     * match index bassed on the search direction before showing it.
+     * Show the current match index by finding matchRange in the resultSet stored 
+     * in the search state.
      *
      * @param {!SearchState} state The search state that has the array of search result
-     * @param {!{from: {line: number, ch: number}, to: {line: number, ch: number}}} cursor - the range of current match
-     * @param {!boolean} rev True if searching backwards
+     * @param {!{from: {line: number, ch: number}, to: {line: number, ch: number}}} matchRange - the range of current match
      */
-    function _showMatchIndex(state, cursor, rev) {
-        if (state.matchIndex !== null) {
-            state.matchIndex = rev ? state.matchIndex - 1 : state.matchIndex + 1;
-            if (state.matchIndex === 0) {
-                state.matchIndex = state.marked.length;
-            } else if (state.matchIndex > state.marked.length) {
-                state.matchIndex = 1;
-            }
-        } else {
-            state.matchIndex = _findCurrentMatchIndex(state.resultSet, cursor);
-            state.resultSet = [];
+    function _updateFindBarWithMatchInfo(state, matchRange) {
+        // Bail if there is no result set.
+        if (!state.foundAny) {
+            return;
         }
         
-        if (state.matchIndex) {
-            var matchIndexStr = StringUtils.format(Strings.FIND_MATCH_INDEX,
-                                                   state.matchIndex, state.marked.length);
-            findBar.showFindCount(matchIndexStr);
+        if (findBar) {
+            state.matchIndex = _.findIndex(state.resultSet, matchRange);
+        
+            if (state.matchIndex !== -1) {
+                // Convert to 1-based by adding one before showing the index.
+                findBar.showFindCount(StringUtils.format(Strings.FIND_MATCH_INDEX,
+                                                        state.matchIndex + 1, state.marked.length));
+            }
         }
     }
        
@@ -429,8 +411,8 @@ define(function (require, exports, module) {
         cm.operation(function () {
             var nextMatch = _getNextMatch(editor, rev, pos);
             if (nextMatch) {
-                _showMatchIndex(getSearchState(editor._codeMirror),
-                                {from: nextMatch.start, to: nextMatch.end }, rev);
+                _updateFindBarWithMatchInfo(getSearchState(editor._codeMirror),
+                                            {from: nextMatch.start, to: nextMatch.end});
                 _selectAndScrollTo(editor, [nextMatch], true, preferNoScroll);
             } else {
                 cm.setCursor(editor.getCursorPos());  // collapses selection, keeping cursor in place to avoid scrolling
@@ -449,7 +431,7 @@ define(function (require, exports, module) {
         ScrollTrackMarkers.clear();
 
         state.resultSet = [];
-        state.matchIndex = null;
+        state.matchIndex = -1;
     }
 
     function clearSearch(cm) {
@@ -531,6 +513,10 @@ define(function (require, exports, module) {
                     ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
                 }
                 
+                // Here we only update find bar with no result. In the case of a match 
+                // a findNext() call is guaranteed to be followed by this function call,
+                // and findNext() in turn calls _updateFindBarWithMatchInfo() to show the 
+                // match index.
                 if (state.resultSet.length === 0) {
                     findBar.showFindCount(Strings.FIND_NO_RESULTS);
                 }
