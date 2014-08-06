@@ -238,6 +238,7 @@ define(function (require, exports, module) {
      */
     function _initOverwriteMode(currentEditor) {
         currentEditor.toggleOverwrite($statusOverwrite.text() === Strings.STATUSBAR_OVERWRITE);
+        $statusOverwrite.attr("title", Strings.STATUSBAR_INSOVR_TOOLTIP);
     }
     
     /**
@@ -332,6 +333,7 @@ define(function (require, exports, module) {
         languageSelect.dropdownExtraClasses = "dropdown-status-bar";
         languageSelect.$button.addClass("btn-status-bar");
         $("#status-language").append(languageSelect.$button);
+        languageSelect.$button.attr("title", Strings.STATUSBAR_LANG_TOOLTIP);
         
         // indentation event handlers
         $indentType.on("click", _toggleIndentType);

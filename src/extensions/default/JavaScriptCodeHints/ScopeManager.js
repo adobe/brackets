@@ -68,6 +68,7 @@ define(function (require, exports, module) {
 
     var MAX_HINTS           = 30,  // how often to reset the tern server
         LARGE_LINE_CHANGE   = 100,
+        LARGE_LINE_COUNT    = 10000,
         OFFSET_ZERO         = {line: 0, ch: 0};
     
     var config = {};
@@ -559,7 +560,7 @@ define(function (require, exports, module) {
             result = {type: MessageIds.TERN_FILE_INFO_TYPE_EMPTY,
                 name: path,
                 text: ""};
-        } else if (!preventPartialUpdates &&
+        } else if (!preventPartialUpdates && session.editor.lineCount() > LARGE_LINE_COUNT &&
                 (documentChanges.to - documentChanges.from < LARGE_LINE_CHANGE) &&
                 documentChanges.from <= start.line &&
                 documentChanges.to > end.line) {

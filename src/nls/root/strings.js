@@ -40,15 +40,17 @@ define({
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} currently only supports UTF-8 encoded text files.",
     "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
     "FILE"                              : "file",
+    "FILE_TITLE"                        : "File",
     "DIRECTORY"                         : "directory",
+    "DIRECTORY_TITLE"                   : "Directory",
     "DIRECTORY_NAMES_LEDE"              : "Directory names",
     "FILENAMES_LEDE"                    : "Filenames",
-    "FILENAME"                          : "filename",
-    "DIRECTORY_NAME"                    : "directory name",
+    "FILENAME"                          : "Filename",
+    "DIRECTORY_NAME"                    : "Directory Name",
     
 
     // Project error strings
-    "ERROR_LOADING_PROJECT"             : "Error loading project",
+    "ERROR_LOADING_PROJECT"             : "Error Loading Project",
     "OPEN_DIALOG_ERROR"                 : "An error occurred when showing the open file dialog. (error {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "An error occurred when trying to load the directory <span class='dialog-filename'>{0}</span>. (error {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "An error occurred when reading the contents of the directory <span class='dialog-filename'>{0}</span>. (error {1})",
@@ -61,10 +63,10 @@ define({
     "ERROR_RELOADING_FILE"              : "An error occurred when trying to reload the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Error Saving File",
     "ERROR_SAVING_FILE"                 : "An error occurred when trying to save the file <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "Error Renaming File",
-    "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_DELETING_FILE_TITLE"         : "Error Deleting File",
-    "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "Error Renaming {0}",
+    "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the {2} <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_DELETING_FILE_TITLE"         : "Error Deleting {0}",
+    "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the {2} <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Invalid {0}",
     "INVALID_FILENAME_MESSAGE"          : "{0} cannot use any system reserved words, end with dots (.) or use any of the following characters: <code class='emphasized'>{1}</code>",
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "A file or directory with the name <span class='dialog-filename'>{0}</span> already exists.",
@@ -183,7 +185,7 @@ define({
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Replace Errors",
     "REPLACE_IN_FILES_ERRORS"           : "The following files weren't modified because they changed after the search or couldn't be written.",
     
-    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
+    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error Getting Update Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
     
     // File exclusion filters
@@ -246,6 +248,9 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensions Disabled",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Click to toggle cursor between Insert (INS) and Overwrite (OVR) modes",
+    "STATUSBAR_LANG_TOOLTIP"                : "Click to change file type",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Click to toggle report panel.",
     "STATUSBAR_DEFAULT_LANG"                : "(default)",
 
     // CodeInspection: errors/warnings
@@ -419,11 +424,9 @@ define({
     
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Current Theme",
-    "CUSTOM_SCROLLBARS"                    : "Custom Scrollbars",
+    "USE_THEME_SCROLLBARS"                 : "Use Theme Scrollbars",
     "FONT_SIZE"                            : "Font Size",
     "FONT_FAMILY"                          : "Font Family",
-    "LINE_HEIGHT"                          : "Line Height",
-    "GENERAL"                              : "General",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "New Rule",
@@ -446,6 +449,8 @@ define({
     "CANCELING_INSTALL"                    : "Canceling\u2026",
     "CANCELING_HUNG"                       : "Canceling the install is taking a long time. An internal error may have occurred.",
     "INSTALL_CANCELED"                     : "Installation canceled.",
+    "VIEW_COMPLETE_DESCRIPTION"            : "View complete description",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "View truncated description",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "The downloaded content is not a valid zip file.",
     "INVALID_PACKAGE_JSON"                 : "The package.json file is not valid (error was: {0}).",
@@ -471,7 +476,11 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Extension Manager",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Unable to access the extension registry. Please try again later.",
+    "INSTALL_EXTENSION_DRAG"               : "Drag .zip here or",
+    "INSTALL_EXTENSION_DROP"               : "Drop .zip to install",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Install/Update aborted due to the following errors:",
     "INSTALL_FROM_URL"                     : "Install from URL\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "Validating\u2026",
     "EXTENSION_AUTHOR"                     : "Author",
     "EXTENSION_DATE"                       : "Date",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "This extension requires a newer version of {APP_NAME}.",
@@ -482,6 +491,9 @@ define({
     "EXTENSION_MORE_INFO"                  : "More info...",
     "EXTENSION_ERROR"                      : "Extension error",
     "EXTENSION_KEYWORDS"                   : "Keywords",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "Translated into {0} languages, including yours",
+    "EXTENSION_TRANSLATED_GENERAL"         : "Translated into {0} languages",
+    "EXTENSION_TRANSLATED_LANGS"           : "This extension has been translated into these languages: {0}",
     "EXTENSION_INSTALLED"                  : "Installed",
     "EXTENSION_UPDATE_INSTALLED"           : "This extension update has been downloaded and will be installed after {APP_NAME} reloads.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",

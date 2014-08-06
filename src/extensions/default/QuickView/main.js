@@ -427,9 +427,8 @@ define(function (require, exports, module) {
         }
         
         if (tokenString) {
-            // Strip quotes, if present
-            var quotesRegEx = /(\'|\")?([^(\'|\")]*)(\'|\")?/;
-            tokenString = tokenString.replace(quotesRegEx, "$2");
+            // Strip leading/trailing quotes, if present
+            tokenString = tokenString.replace(/(^['"])|(['"]$)/g, "");
             
             if (/^(data\:image)|(\.gif|\.png|\.jpg|\.jpeg|\.svg)$/i.test(tokenString)) {
                 var sPos, ePos;

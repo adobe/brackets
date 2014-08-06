@@ -27,64 +27,29 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var currentDocMode, currentThemes = [];
+    var currentThemes = [];
 
     var _                  = require("thirdparty/lodash"),
         CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
         PreferencesManager = require("preferences/PreferencesManager"),
-        prefs              = PreferencesManager.getExtensionPrefs("brackets-themes");
+        prefs              = PreferencesManager.getExtensionPrefs("themes");
+
+    var $scrollbars = $("<style id='scrollbars'>").appendTo("head");
 
 
-    var templates = {
-        $lineHeight: $("<style type='text/css' id='lineHeight'>").appendTo("head"),
-        $fontSize: $("<style type='text/css' id='fontSize'>").appendTo("head"),
-        $fontFamily: $("<style type='text/css' id='fontFamily'>").appendTo("head"),
-        $scrollbars: $("<style id='scrollbars'>").appendTo("head")
-    };
-
-
-    function clearFonts() {
-        // Remove this tag that is intefering with font settings set in this module
-        $("#codemirror-dynamic-fonts").remove();
-    }
-
-
-    function updateLineHeight() {
-        clearFonts();
-        var value = prefs.get("lineHeight");
-        templates.$lineHeight.text(".CodeMirror-lines{" + "line-height: " + value + "; }");
-    }
-
-
-    function updateFontSize() {
-        clearFonts();
-        var value = prefs.get("fontSize");
-        templates.$fontSize.text(".CodeMirror{" + "font-size: " + value + " !important; }");
-    }
-
-
-    function updateFontFamily() {
-        clearFonts();
-        var value = prefs.get("fontFamily");
-        templates.$fontFamily.text(".CodeMirror{" + "font-family: " + value + " !important; }");
-    }
-
-
-    function updateFonts() {
-        clearFonts();
-        updateLineHeight();
-        updateFontSize();
-        updateFontFamily();
-    }
-
-
+    /**
+     * Load scrollbar styling based on whether or not theme scrollbars are enabled.
+     *
+     * @param {ThemeManager.Theme} theme Is the theme object with the corresponding scrollbar style
+     *   to be updated
+     */
     function updateScrollbars(theme) {
         theme = theme || {};
-        if (prefs.get("customScrollbars")) {
+        if (prefs.get("themeScrollbars")) {
             var scrollbar = (theme.scrollbar || []).join(" ");
-            templates.$scrollbars.text(scrollbar || "");
+            $scrollbars.text(scrollbar || "");
         } else {
-            templates.$scrollbars.text("");
+            $scrollbars.text("");
         }
     }
 
@@ -109,29 +74,6 @@ define(function (require, exports, module) {
     }
 
 
-    /**
-     * Sets the document type in the DOM to enable styling per doc type
-     *
-     * @param {CodeMirror} cm is the CodeMirror instance currently loaded in the editor
-     * @return {string} current document type
-     */
-    function setDocumentMode(cm) {
-        var mode = cm.getDoc().getMode();
-        var docMode = mode && (mode.helperType || mode.name);
-        $("#editor-holder .CodeMirror").removeClass("doctype-" + currentDocMode).addClass("doctype-" + docMode);
-        currentDocMode = docMode; // Update docMode
-        return docMode;
-    }
-
-
-    //
-    // Expose API
-    //
-    exports.updateFonts      = updateFonts;
-    exports.updateLineHeight = updateLineHeight;
-    exports.updateFontSize   = updateFontSize;
-    exports.updateFontFamily = updateFontFamily;
     exports.updateScrollbars = updateScrollbars;
     exports.updateThemes     = updateThemes;
-    exports.setDocumentMode  = setDocumentMode;
 });
