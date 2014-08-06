@@ -237,7 +237,7 @@ define(function (require, exports, module) {
 
         function execColorMatch(editor, line, pos) {
             var colorMatch,
-                literalCheck;
+                ignoreNamedColors;
 
             function hyphenOnMatchBoundary(match, line) {
                 var beforeIndex, afterIndex;
@@ -255,7 +255,7 @@ define(function (require, exports, module) {
                 
                 return false;
             }
-            function checkForLiteral(match) {
+            function isNamedColor(match) {
                 if (match && match[0] && /^[a-z]+$/i.test(match[0])) { // only for color names, not for hex-/rgb-values
                     return true;
                 }
@@ -267,12 +267,12 @@ define(function (require, exports, module) {
                 if (!colorMatch) {
                     break;
                 }
-                if (literalCheck === undefined) {
+                if (ignoreNamedColors === undefined) {
                     var mode = TokenUtils.getModeAt(editor._codeMirror, pos).name;
-                    literalCheck = styleLanguages.indexOf(mode) === -1;
+                    ignoreNamedColors = styleLanguages.indexOf(mode) === -1;
                 }
             } while (hyphenOnMatchBoundary(colorMatch, line) ||
-                    (literalCheck && checkForLiteral(colorMatch)));
+                    (ignoreNamedColors && isNamedColor(colorMatch)));
 
             return colorMatch;
         }
