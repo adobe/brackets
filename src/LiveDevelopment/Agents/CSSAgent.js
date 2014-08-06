@@ -107,7 +107,7 @@ define(function CSSAgent(require, exports, module) {
     /**
      * Reload a CSS style sheet from a document
      * @param {Document} document
-     * @param {?string=doc.getText()} new content of every stylesheet
+     * @param {string=} newContent new content of every stylesheet. Defaults to doc.getText() if omitted
      * @return {jQuery.Promise}
      */
     function reloadCSSForDocument(doc, newContent) {

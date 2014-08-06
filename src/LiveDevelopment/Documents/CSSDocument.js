@@ -108,9 +108,18 @@ define(function CSSDocumentModule(require, exports, module) {
      * @return {jQuery.promise} Promise resolved with the text content of this CSS document
      */
     CSSDocument.prototype.getSourceFromBrowser = function getSourceFromBrowser() {
+        function getOnlyValue(obj) {
+            var key;
+            for (key in obj) {
+                if (_.has(obj, key)) {
+                    return obj[key];
+                }
+            }
+        }
+
         var deferred = new $.Deferred(),
             styleSheetHeader = this._getStyleSheetHeader(),
-            styleSheetId = styleSheetHeader[_.keys(styleSheetHeader)[0]].styleSheetId,
+            styleSheetId = getOnlyValue(styleSheetHeader).styleSheetId,
             inspectorPromise = Inspector.CSS.getStyleSheetText(styleSheetId);
         
         inspectorPromise.then(function (res) {
