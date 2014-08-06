@@ -71,7 +71,7 @@ define(function (require, exports, module) {
 
                 waitsForDone(promise, "theme with scrollbar and other css", 5000);
             });
-            
+
             it("should extract scrollbars from a theme with only scrollbars", function () {
                 var themeFile = FileSystem.getFileForPath(testFilePath + "/simple-scrollbars.css");
                 var promise = FileUtils.readAsText(themeFile).done(function (content) {
@@ -83,7 +83,7 @@ define(function (require, exports, module) {
 
                 waitsForDone(promise, "theme with only scrollbars", 5000);
             });
-            
+
             it("should be fine with an empty theme", function () {
                 var themeFile = FileSystem.getFileForPath(testFilePath + "/empty.css");
                 var promise = FileUtils.readAsText(themeFile).done(function (content) {
@@ -100,7 +100,7 @@ define(function (require, exports, module) {
         describe("Load themes", function () {
             it("should load a theme from a single CSS file", function () {
                 var promise = ThemeManager.loadFile(testFilePath + "/scrollbars.css").done(function (theme) {
-                    expect(theme.name).toEqual("scrollbars-css");
+                    expect(theme.name).toEqual("scrollbars");
                     expect(theme.displayName).toEqual("Scrollbars");
                 });
 

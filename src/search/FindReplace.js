@@ -84,6 +84,7 @@ define(function (require, exports, module) {
         this.queryInfo = null;
         this.foundAny = false;
         this.marked = [];
+        this.markedCurrent = null;
     }
 
     function getSearchState(cm) {
@@ -368,6 +369,13 @@ define(function (require, exports, module) {
         }
     }
 
+    /** Removes the current-match highlight, leaving all matches marked in the generic highlight style */
+    function clearCurrentMatchHighlight(cm, state) {
+        if (state.markedCurrent) {
+            state.markedCurrent.clear();
+        }
+    }
+    
     /**
      * Selects the next match (or prev match, if rev==true) starting from either the current position
      * (if pos unspecified) or the given position (if pos specified explicitly). The starting position
@@ -382,22 +390,30 @@ define(function (require, exports, module) {
     function findNext(editor, rev, preferNoScroll, pos) {
         var cm = editor._codeMirror;
         cm.operation(function () {
+            var state = getSearchState(cm);
+            clearCurrentMatchHighlight(cm, state);
+            
             var nextMatch = _getNextMatch(editor, rev, pos);
             if (nextMatch) {
                 _selectAndScrollTo(editor, [nextMatch], true, preferNoScroll);
+                state.markedCurrent = cm.markText(nextMatch.start, nextMatch.end,
+                     { className: "searching-current-match", startStyle: "searching-first", endStyle: "searching-last" });
             } else {
                 cm.setCursor(editor.getCursorPos());  // collapses selection, keeping cursor in place to avoid scrolling
             }
         });
     }
 
+    /** Clears all match highlights, including the current match */
     function clearHighlights(cm, state) {
         cm.operation(function () {
             state.marked.forEach(function (markedRange) {
                 markedRange.clear();
             });
+            clearCurrentMatchHighlight(cm, state);
         });
         state.marked.length = 0;
+        state.markedCurrent = null;
         
         ScrollTrackMarkers.clear();
     }

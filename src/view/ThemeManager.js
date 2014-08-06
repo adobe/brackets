@@ -79,13 +79,11 @@ define(function (require, exports, module) {
         options = options || {};
         var fileName = file.name;
 
-        // The name is used to map the loaded themes to the list in the settings dialog. So we want
-        // a unique name if one is not provided.  This is particularly important when loading just
-        // files where there is no other way to feed in meta data to provide unique names.  Say, there
-        // is a theme1.css and a theme1.less that are entirely different themes...
+        // Portip: If no options.name or options.title is provided, then we will rely solely on
+        // the name of the file to be unique
 
         this.file        = file;
-        this.name        = options.name  || (options.title || fileName).toLocaleLowerCase().replace(/[\W]/g, '-');
+        this.name        = options.name  || (options.title || fileName.replace(/.[\w]+$/gi, '')).toLocaleLowerCase().replace(/[\W]/g, '-');
         this.displayName = options.title || toDisplayName(fileName);
         this.dark        = options.theme !== undefined && options.theme.dark === true;
     }
@@ -154,7 +152,7 @@ define(function (require, exports, module) {
             filename: fixPath(theme.file._path)
         });
 
-        parser.parse("#editor-holder {" + content + "}", function (err, tree) {
+        parser.parse("#editor-holder {" + content + "\n}", function (err, tree) {
             if (err) {
                 deferred.reject(err);
             } else {
@@ -265,7 +263,6 @@ define(function (require, exports, module) {
             }
 
             var cm = editor._codeMirror;
-            ThemeView.setDocumentMode(cm);
             ThemeView.updateThemes(cm);
         });
     }
