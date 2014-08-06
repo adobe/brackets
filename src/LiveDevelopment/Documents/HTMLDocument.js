@@ -185,10 +185,6 @@ define(function HTMLDocumentModule(require, exports, module) {
      * Update the highlight
      */
     HTMLDocument.prototype.updateHighlight = function () {
-        if (!this.editor) {
-            return;
-        }
-        
         var editor = this.editor,
             codeMirror = editor._codeMirror,
             ids = [];
@@ -219,7 +215,7 @@ define(function HTMLDocumentModule(require, exports, module) {
      * @param {!Editor} editor The editor for this document
      */
     HTMLDocument.prototype._onCursorActivity = function (event, editor) {
-        if (!this.editor) {
+        if (this.editor !== editor) {
             return;
         }
         this.updateHighlight();
