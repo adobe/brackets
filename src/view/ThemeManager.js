@@ -81,9 +81,20 @@ define(function (require, exports, module) {
 
         // Portip: If no options.name or options.title is provided, then we will rely solely on
         // the name of the file to be unique
+        if (!options.name) {
+            if (options.title) {
+                options.name = options.title;
+            } else {
+                options.name = fileName.replace(/\.[\w]+$/, function (match) {
+                    return validExtensions.indexOf(match.substr(1)) === 0 ? '' : match;
+                });
+            }
+
+            options.name = options.name.toLocaleLowerCase().replace(/[\W]/g, '-');
+        }
 
         this.file        = file;
-        this.name        = options.name  || (options.title || fileName.replace(/\.[\w]+$/gi, '')).toLocaleLowerCase().replace(/[\W]/g, '-');
+        this.name        = options.name;
         this.displayName = options.title || toDisplayName(fileName);
         this.dark        = options.theme !== undefined && options.theme.dark === true;
     }
