@@ -80,7 +80,7 @@ define(function (require, exports, module) {
     /**
      * @param {string} query what the user is searching for
      * @param {StringMatch.StringMatcher} matcher object that caches search-in-progress data
-     * @returns {Array.<SearchResult>} sorted and filtered results that match the query
+     * @return {Array.<SearchResult>} sorted and filtered results that match the query
      */
     function search(query, matcher) {
         var functionList = matcher.functionList;

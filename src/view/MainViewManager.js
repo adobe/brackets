@@ -804,7 +804,7 @@ define(function (require, exports, module) {
         
    
     /**
-     * Removew All helper
+     * Remove All helper
      * @param {!string} paneId - the id of the pane with which to remove all from
      * @private
      */
@@ -1038,58 +1038,10 @@ define(function (require, exports, module) {
      * @private
      */
     function _updateCommandState() {
-        if (_cmdSplitVertically && _cmdSplitHorizontally) {
-            _cmdSplitVertically.setChecked(_orientation === VERTICAL);
-            _cmdSplitHorizontally.setChecked(_orientation === HORIZONTAL);
-        }
+        _cmdSplitVertically.setChecked(_orientation === VERTICAL);
+        _cmdSplitHorizontally.setChecked(_orientation === HORIZONTAL);
     }
     
-    /**
-     * Merges second pane into first pane and opens the current file
-     * @private
-     */
-    function _doUnsplit() {
-        if (_paneViews.hasOwnProperty(SECOND_PANE)) {
-            
-            var firstPane = _paneViews[FIRST_PANE],
-                secondPane = _paneViews[SECOND_PANE],
-                fileList = secondPane.getViewList(),
-                lastViewed = getCurrentlyViewedFile();
-            
-            firstPane.mergeWith(secondPane);
-        
-            $(exports).triggerHandler("paneViewRemoveList", [fileList, secondPane.id]);
-
-            setActivePaneId(firstPane.id);
-            
-            secondPane.$el.off(".mainview");
-            $(secondPane).off(".mainview");
-
-            secondPane.destroy();
-            delete _paneViews[SECOND_PANE];
-            $(exports).triggerHandler("paneDestroyed", secondPane.id);
-            $(exports).triggerHandler("paneViewAddList", [fileList, firstPane.id]);
-
-            fileList.forEach(function (file) {
-                _mruList.forEach(function (record) {
-                    if (record.file === file) {
-                        record.paneId = firstPane.id;
-                    }
-                });
-            });
-            
-            
-            _orientation = null;
-            _updateLayout();
-            _updateCommandState();
-            $(exports).triggerHandler("paneLayoutChanged", [_orientation]);
-
-            if (getCurrentlyViewedFile() !== lastViewed) {
-                exports.open(firstPane.id, lastViewed);
-            }
-        }
-    }
-
     /**
      * Creates a pane for paneId if one doesn't already exist
      * @param {!string} paneId - id of the pane to create
@@ -1173,9 +1125,10 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Opens a file in the specified pane
+     * Opens a file in the specified pane this can be used to open a file with a custom viewer
+     * or a document for editing.  If it's a document for editing, edit is called on the document object
      * @param {!string} paneId - id of the pane in which to open the document
-     * @param {!Document} doc - document to edit
+     * @param {!File} file - file to open
      * @param {Object={avoidPaneActivation:boolean}} optionsIn - options 
      */
     function open(paneId, file, optionsIn) {
@@ -1214,11 +1167,57 @@ define(function (require, exports, module) {
         
         return result;
     }
+    
+    /**
+     * Merges second pane into first pane and opens the current file
+     * @private
+     */
+    function _mergePanes() {
+        if (_paneViews.hasOwnProperty(SECOND_PANE)) {
+            
+            var firstPane = _paneViews[FIRST_PANE],
+                secondPane = _paneViews[SECOND_PANE],
+                fileList = secondPane.getViewList(),
+                lastViewed = getCurrentlyViewedFile();
+            
+            firstPane.mergeWith(secondPane);
+        
+            $(exports).triggerHandler("paneViewRemoveList", [fileList, secondPane.id]);
+
+            setActivePaneId(firstPane.id);
+            
+            secondPane.$el.off(".mainview");
+            $(secondPane).off(".mainview");
+
+            secondPane.destroy();
+            delete _paneViews[SECOND_PANE];
+            $(exports).triggerHandler("paneDestroyed", secondPane.id);
+            $(exports).triggerHandler("paneViewAddList", [fileList, firstPane.id]);
+
+            fileList.forEach(function (file) {
+                _mruList.forEach(function (record) {
+                    if (record.file === file) {
+                        record.paneId = firstPane.id;
+                    }
+                });
+            });
+            
+            
+            _orientation = null;
+            _updateLayout();
+            _updateCommandState();
+            $(exports).triggerHandler("paneLayoutChanged", [_orientation]);
+
+            if (getCurrentlyViewedFile() !== lastViewed) {
+                exports.open(firstPane.id, lastViewed);
+            }
+        }
+    }    
 
     /**
      * Closes a file in the specified pane or panes
      * @param {!string} paneId - id of the pane in which to open the document
-     * @param {!Document} doc - document to edit
+     * @param {!File} file - file to close
      * @param {Object={noOpenNextFile:boolean}} optionsIn - options 
      */
     function close(paneId, file, optionsIn) {
@@ -1315,7 +1314,7 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("currentFileChanged", [null, _activePaneId, currentFile, _activePaneId]);
         }
         
-        _doUnsplit();
+        _mergePanes();
     }
 
     
@@ -1414,7 +1413,7 @@ define(function (require, exports, module) {
         }
 
         // reset
-        _doUnsplit();
+        _mergePanes();
         _mruList = [];
         EditorManager._resetViewStates();
         
@@ -1512,7 +1511,7 @@ define(function (require, exports, module) {
      */
     function _handleSplitVertically() {
         if (_orientation === VERTICAL) {
-            _doUnsplit();
+            _mergePanes();
         } else {
             _doSplit(VERTICAL);
         }
@@ -1524,7 +1523,7 @@ define(function (require, exports, module) {
      */
     function _handleSplitHorizontially() {
         if (_orientation === HORIZONTAL) {
-            _doUnsplit();
+            _mergePanes();
         } else {
             _doSplit(HORIZONTAL);
         }
@@ -1543,7 +1542,7 @@ define(function (require, exports, module) {
         }
         
         if (rows === columns) {
-            _doUnsplit();
+            _mergePanes();
         } else if (rows > columns) {
             _doSplit(HORIZONTAL);
         } else {
@@ -1575,9 +1574,6 @@ define(function (require, exports, module) {
      * Add an app ready callback to register global commands. 
      */
     AppInit.appReady(function () {
-        _cmdSplitVertically = CommandManager.register("Split Vertically", CMD_ID_SPLIT_VERTICALLY,   _handleSplitVertically);
-        _cmdSplitHorizontally = CommandManager.register("Split Horizontally", CMD_ID_SPLIT_HORIZONTALLY, _handleSplitHorizontially);
-
         var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
         if (menu) {
             menu.addMenuDivider();
@@ -1589,6 +1585,10 @@ define(function (require, exports, module) {
     });
 
     // Init
+    _cmdSplitVertically = CommandManager.register("Split Vertically", CMD_ID_SPLIT_VERTICALLY,   _handleSplitVertically);
+    _cmdSplitHorizontally = CommandManager.register("Split Horizontally", CMD_ID_SPLIT_HORIZONTALLY, _handleSplitHorizontially);
+
+    
     _paneTitles[FIRST_PANE] = {};
     _paneTitles[SECOND_PANE] = {};
     _paneTitles[FIRST_PANE][VERTICAL] = Strings.LEFT;

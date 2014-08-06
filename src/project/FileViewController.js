@@ -217,7 +217,7 @@ define(function (require, exports, module) {
      * @return {!$.Promise}
      */
     function addToWorkingSetAndSelect(fullPath) {
-        DeprecationWarning.deprecationWarning("Use FileViweController.addToPaneViewAndSelect() instead of FileViweController.addToWorkingSetAndSelect().", true);
+        DeprecationWarning.deprecationWarning("Use FileViewController.addToPaneViewAndSelect() instead of FileViewController.addToWorkingSetAndSelect().", true);
         var result = new $.Deferred();
         addToPaneViewAndSelect(fullPath)
             .done(function (file) {
