@@ -68,8 +68,9 @@ define(function (require, exports, module) {
             result[key] = prefs.get(key);
         });
 
-        result.fontFamily = ViewCommandHandlers.getFontFamily();
-        result.fontSize   = ViewCommandHandlers.getFontSize();
+        result.fontFamily    = ViewCommandHandlers.getFontFamily();
+        result.fontSize      = ViewCommandHandlers.getFontSize();
+        result.fontSmoothing = ViewCommandHandlers.getFontSmoothing();
         return result;
     }
 
@@ -81,16 +82,33 @@ define(function (require, exports, module) {
         var newSettings     = {};
         var themes          = _.map(loadedThemes, function (theme) { return theme; });
         var template        = $("<div>").append($settings).html();
-        var $template       = $(Mustache.render(template, {"settings": currentSettings, "themes": themes, "Strings": Strings}));
+
+        var $template = $(Mustache.render(template, {
+            "Strings": Strings,
+            "settings": currentSettings,
+            "themeOptions": themes,
+            "fontSmoothingOptions": [{
+                "name": "antialiased",
+                "displayName": "Antialiased (Default)"
+            }, {
+                "name": "subpixel-antialiased",
+                "displayName": "Subpixel Antialiased"
+            }]
+        }));
 
         // Select the correct theme.
         var $currentThemeOption = $template
             .find("[value='" + currentSettings.theme + "']");
-        
+
         if ($currentThemeOption.length === 0) {
             $currentThemeOption = $template.find("[value='" + defaults.theme + "']");
         }
         $currentThemeOption.attr("selected", "selected");
+
+        // Select the proper font smoothing option
+        $template
+            .find("[value='" + currentSettings.fontSmoothing + "']")
+            .attr("selected", "selected");
 
         $template
             .find("[data-toggle=tab].default")
@@ -107,12 +125,14 @@ define(function (require, exports, module) {
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.val();
             })
-            .on("change", function () {
-                var $target = $(":selected", this);
+            .on("change", function (evt) {
+                var $target = $(":selected", evt.target);
                 var attr = $target.attr("data-target");
 
-                if (attr) {
+                if (attr === "theme") {
                     prefs.set(attr, $target.val());
+                } else {
+                    newSettings[attr] = $target.val();
                 }
             });
 

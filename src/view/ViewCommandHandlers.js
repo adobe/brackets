@@ -62,6 +62,12 @@ define(function (require, exports, module) {
 
     /**
      * @const
+     * @type {string}
+     */
+    var DYNAMIC_FONT_SMOOTHING_ID = "codemirror-dynamic-font-smoothing";
+
+    /**
+     * @const
      * @private
      * The smallest font size in pixels
      * @type {number}
@@ -91,6 +97,14 @@ define(function (require, exports, module) {
      * @type {string}
      */
     var DEFAULT_FONT_FAMILY = "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace";
+
+    /**
+     * @const
+     * @private
+     * Default font smoothing value
+     * @type {string}
+     */
+    var DEFAULT_FONT_SMOOTHING = "antialiased";
 
     /**
      * @private
@@ -152,6 +166,23 @@ define(function (require, exports, module) {
      */
     function _addDynamicFontFamily(fontFamily) {
         _addDynamicProperty(DYNAMIC_FONT_FAMILY_ID, "font-family", fontFamily);
+    }
+
+    /**
+     * @private
+     * Removes the styles used to update the font smoothing
+     */
+    function _removeDynamicFontSmoothing() {
+        _removeDynamicProperty(DYNAMIC_FONT_SMOOTHING_ID);
+    }
+
+    /**
+     * @private
+     * Add the styles used to update the font smoothing
+     * @param {string} fontSmoothing  A string with the font smoothing value
+     */
+    function _addDynamicFontSmoothing(fontSmoothing) {
+        _addDynamicProperty(DYNAMIC_FONT_SMOOTHING_ID, "-webkit-font-smoothing", fontSmoothing, false, "html, body");
     }
 
     /**
@@ -256,6 +287,37 @@ define(function (require, exports, module) {
 
 
     /**
+     * Sets the font smoothing (antiliasing)
+     *
+     * @param {string} fontSmoothing is the antiliasing value to be set.
+     */
+    function setFontSmoothing(fontSmoothing) {
+        var oldValue = prefs.get("fontSmoothing");
+
+        if (oldValue === fontSmoothing) {
+            return;
+        }
+
+        _removeDynamicFontSmoothing();
+        if (fontSmoothing) {
+            _addDynamicFontSmoothing(fontSmoothing);
+        }
+
+        prefs.set("fontSmoothing", fontSmoothing);
+    }
+
+
+    /**
+     * Gets the current font smoothing setting
+     *
+     * @return {string} Font smoothing value, which is generally "antialiased" or "subpixel-antialiased"
+     */
+    function getFontSmoothing() {
+        return prefs.get("fontSmoothing");
+    }
+
+
+    /**
      * @private
      * Increases or decreases the editor's font size.
      * @param {number} adjustment  Negative number to make the font smaller; positive number to make it bigger
@@ -329,6 +391,7 @@ define(function (require, exports, module) {
     function init() {
         _addDynamicFontFamily(prefs.get("fontFamily"));
         _addDynamicFontSize(prefs.get("fontSize"));
+        _addDynamicFontSmoothing(prefs.get("fontSmoothing"));
         _updateUI();
     }
 
@@ -482,19 +545,22 @@ define(function (require, exports, module) {
 
     PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewState);
 
-    prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px");
-    prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);
+    prefs.definePreference("fontSize",      "string", DEFAULT_FONT_SIZE + "px");
+    prefs.definePreference("fontFamily",    "string", DEFAULT_FONT_FAMILY);
+    prefs.definePreference("fontSmoothing", "string", DEFAULT_FONT_SMOOTHING);
 
     // Update UI when opening or closing a document
     $(DocumentManager).on("currentDocumentChange", _updateUI);
 
     // Update UI when Brackets finishes loading
-    AppInit.appReady(init);
+    AppInit.htmlReady(init);
 
-    exports.restoreFontSize = restoreFontSize;
-    exports.restoreFonts    = restoreFonts;
-    exports.getFontSize     = getFontSize;
-    exports.setFontSize     = setFontSize;
-    exports.getFontFamily   = getFontFamily;
-    exports.setFontFamily   = setFontFamily;
+    exports.restoreFontSize  = restoreFontSize;
+    exports.restoreFonts     = restoreFonts;
+    exports.getFontSize      = getFontSize;
+    exports.setFontSize      = setFontSize;
+    exports.getFontFamily    = getFontFamily;
+    exports.setFontFamily    = setFontFamily;
+    exports.setFontSmoothing = setFontSmoothing;
+    exports.getFontSmoothing = getFontSmoothing;
 });
