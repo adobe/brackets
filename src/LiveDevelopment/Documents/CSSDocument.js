@@ -115,16 +115,20 @@ define(function CSSDocumentModule(require, exports, module) {
                     return obj[key];
                 }
             }
+            return null;
         }
 
         var deferred = new $.Deferred(),
             styleSheetHeader = this._getStyleSheetHeader(),
-            styleSheetId = getOnlyValue(styleSheetHeader).styleSheetId,
-            inspectorPromise = Inspector.CSS.getStyleSheetText(styleSheetId);
+            styleSheet = getOnlyValue(styleSheetHeader);
         
-        inspectorPromise.then(function (res) {
-            deferred.resolve(res.text);
-        }, deferred.reject);
+        if (styleSheet) {
+            Inspector.CSS.getStyleSheetText(styleSheet.styleSheetId).then(function (res) {
+                deferred.resolve(res.text);
+            }, deferred.reject);
+        } else {
+            deferred.reject();
+        }
         
         return deferred.promise();
     };

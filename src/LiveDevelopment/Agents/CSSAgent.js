@@ -76,9 +76,9 @@ define(function CSSAgent(require, exports, module) {
     }
 
     /**
-     * Get a style sheet for a url
+     * Get the style sheets for a url
      * @param {string} url
-     * @return {Array.<CSSStyleSheetHeader>}
+     * @return {Object.<string, CSSStyleSheetHeader>}
      */
     function styleForURL(url) {
         var styleSheetId, styles = {};
