@@ -1277,6 +1277,11 @@ define(function (require, exports, module) {
             .done(function () {
                 _windowGoingAway = true;
                 
+                // Initialize a global promise list for long running ones.
+                // Each feature that has long running promises needs to listen to 
+                // "beforeAppClose" events and add them to this list.
+                brackets.app.longRunningPromises = [];
+                
                 // Give everyone a chance to save their state - but don't let any problems block
                 // us from quitting
                 try {
@@ -1286,8 +1291,11 @@ define(function (require, exports, module) {
                 }
                 
                 PreferencesManager.savePreferences();
+                brackets.app.longRunningPromises.push(PreferencesManager.finalize());
                 
-                PreferencesManager.finalize().always(postCloseHandler);
+                var identityFunc = function (promise) { return promise; };
+                Async.doSequentially(brackets.app.longRunningPromises, identityFunc, false)
+                    .always(postCloseHandler);
             })
             .fail(function () {
                 _windowGoingAway = false;
