@@ -119,6 +119,8 @@ define(function (require, exports, module) {
                 return "";
             }
         
+        } else if (queryInfo.isWholeWord) {
+            return new RegExp("\\b" + StringUtils.regexEscape(queryInfo.query) + "\\b", queryInfo.isCaseSensitive ? "" : "i");
         } else {
             return queryInfo.query;
         }

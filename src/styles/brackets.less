@@ -1184,7 +1184,7 @@ a, img {
         display: inline-block;
     }
 
-    #find-case-sensitive, #find-regexp {
+    #find-case-sensitive, #find-whole-word, #find-regexp {
         padding: 1px 5px;
     }
     .button-icon {  // icons must be nested inside button so we can apply padding w/o tiling icon
@@ -1200,7 +1200,13 @@ a, img {
     #find-case-sensitive.active .button-icon {
         .sprite-swap(0, 72px);
     }
-    #find-regexp.active, #find-case-sensitive.active {
+    #find-whole-word .button-icon {
+        .sprite-swap(0, 96px);
+    }
+    #find-whole-word.active .button-icon {
+        .sprite-swap(0, 120px);
+    }
+    #find-case-sensitive.active, #find-whole-word.active, #find-regexp.active {
         background-color: @tc-highlight;
     }
 
@@ -1217,7 +1223,7 @@ a, img {
     }
 
     // Make button pairs snug
-    #find-prev, #replace-yes, #find-case-sensitive {
+    #find-prev, #replace-yes, #find-case-sensitive, #find-whole-word {
         border-right: none;
         margin-right: 0;
     }
@@ -1234,13 +1240,17 @@ a, img {
     // Make find field snug with options buttons
     //    & replace snug with replace commands
     #find-what, #replace-with {
-        margin-right: 0px;
+        margin-right: 0;
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
     }
     #find-case-sensitive, #replace-yes {
         border-left: none;
-        margin-left: 0px;
+        margin-left: 0;
+        border-radius: 0;
+    }
+    #find-whole-word {
+        margin-left: 0;
         border-radius: 0;
     }
 }
