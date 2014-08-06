@@ -142,6 +142,7 @@ define(function (require, exports, module) {
         _baseFileExtensionToLanguageMap = {},
         _fileExtensionToLanguageMap     = Object.create(_baseFileExtensionToLanguageMap),
         _fileNameToLanguageMap          = {},
+        _filePathToLanguageMap          = {},
         _modeToLanguageMap              = {},
         _ready;
     
@@ -225,6 +226,28 @@ define(function (require, exports, module) {
 
         _modeToLanguageMap[mode] = language;
     }
+    
+    /**
+     * Adds a language mapping for the specified fullPath. If language is falsy (null or undefined), the mapping
+     * is removed.
+     *
+     * @param {!fullPath} fullPath absolute path of the file
+     * @param {?object} language language to associate the file with or falsy value to remove the existing mapping
+     */
+    function _setLanguageOverrideForPath(fullPath, language) {
+        if (!language) {
+            delete _filePathToLanguageMap[fullPath];
+        } else {
+            _filePathToLanguageMap[fullPath] = language;
+        }
+    }
+    
+    /**
+     * Resets all the language overrides for file paths. Used by unit tests only.
+     */
+    function _resetLanguageOverrides() {
+        _filePathToLanguageMap = {};
+    }
 
     /**
      * Resolves a language ID to a Language object.
@@ -248,14 +271,25 @@ define(function (require, exports, module) {
     /**
      * Resolves a file path to a Language object.
      * @param {!string} path Path to the file to find a language for
+     * @param {?boolean} ignoreOverride If set to true will cause the lookup to ignore any
+     *      overrides and return default binding. By default override is not ignored.
+     *
      * @return {Language} The language for the provided file type or the fallback language
      */
-    function getLanguageForPath(path) {
-        var fileName = FileUtils.getBaseName(path).toLowerCase(),
-            language = _fileNameToLanguageMap[fileName],
+    function getLanguageForPath(path, ignoreOverride) {
+        var fileName,
+            language = _filePathToLanguageMap[path],
             extension,
             parts;
-
+        
+        // if there's an override, return it
+        if (!ignoreOverride && language) {
+            return language;
+        }
+        
+        fileName = FileUtils.getBaseName(path).toLowerCase();
+        language = _fileNameToLanguageMap[fileName];
+        
         // If no language was found for the file name, use the file extension instead
         if (!language) {
             // Split the file name into parts:
@@ -300,6 +334,17 @@ define(function (require, exports, module) {
         }
         
         return language || _fallbackLanguage;
+    }
+    
+    /**
+     * Returns a map of all the languages currently defined in the LanguageManager. The key to
+     * the map is the language id and the value is the language object.
+     *
+     * @return {Object.<string, Language>} A map containing all of the
+     *      languages currently defined.
+     */
+    function getLanguages() {
+        return $.extend({}, _languages); // copy to prevent modification
     }
     
     /**
@@ -1053,13 +1098,19 @@ define(function (require, exports, module) {
     });
     
     // Private for unit tests
-    exports._EXTENSION_MAP_PREF     = _EXTENSION_MAP_PREF;
-    exports._NAME_MAP_PREF          = _NAME_MAP_PREF;
+    exports._EXTENSION_MAP_PREF         = _EXTENSION_MAP_PREF;
+    exports._NAME_MAP_PREF              = _NAME_MAP_PREF;
+    exports._resetLanguageOverrides     = _resetLanguageOverrides;
+    // Internal use only
+    // _setLanguageOverrideForPath is used by Document to help LanguageManager keeping track of
+    // in-document language overrides
+    exports._setLanguageOverrideForPath  = _setLanguageOverrideForPath;
     
     // Public methods
-    exports.ready                   = _ready;
-    exports.defineLanguage          = defineLanguage;
-    exports.getLanguage             = getLanguage;
-    exports.getLanguageForExtension = getLanguageForExtension;
-    exports.getLanguageForPath      = getLanguageForPath;
+    exports.ready                       = _ready;
+    exports.defineLanguage              = defineLanguage;
+    exports.getLanguage                 = getLanguage;
+    exports.getLanguageForExtension     = getLanguageForExtension;
+    exports.getLanguageForPath          = getLanguageForPath;
+    exports.getLanguages                = getLanguages;
 });

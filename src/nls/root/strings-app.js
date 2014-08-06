@@ -57,5 +57,6 @@ define({
     "LOCALE_SR"                                 : "Српски",
     "LOCALE_SV"                                 : "svenska",
     "LOCALE_TR"                                 : "Türkçe",
-    "LOCALE_ZH_CN"                              : "简体中文"
+    "LOCALE_ZH_CN"                              : "简体中文",
+    "LOCALE_ZH_TW"                              : "繁體中文"
 });

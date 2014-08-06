@@ -75,110 +75,110 @@
     border-bottom: 2px solid #78B2F2;
 }
 
+span.cm-keyword {color: @accent-keyword;}
+span.cm-atom {color: @accent-atom;}
+span.cm-number {color: @accent-number;}
+span.cm-def {color: @accent-def;}
+span.cm-variable {color: @accent-variable;}
+span.cm-variable-2 {color: @accent-variable-2;}
+span.cm-variable-3 {color: @accent-variable-3;}
+span.cm-property {color: @accent-property;}
+span.cm-operator {color: @accent-operator;}
+span.cm-comment {color: @accent-comment;}
+span.cm-string {color: @accent-string;}
+span.cm-string-2 {color: @accent-string-2;}
+span.cm-meta {color: @accent-meta;}
+span.cm-error {color: @accent-error;}
+span.cm-qualifier {color: @accent-qualifier;}
+span.cm-builtin {color: @accent-builtin;}
+span.cm-bracket {color: @accent-bracket;}
+span.cm-tag {color: @accent-tag;}
+span.cm-attribute {color: @accent-attribute;}
+span.cm-header {color: @accent-header;}
+span.cm-quote {color: @accent-quote;}
+span.cm-hr {color: @accent-hr;}
+span.cm-link {color: @accent-link; text-decoration: none;}
+span.cm-rangeinfo {color: @accent-rangeinfo;}
+span.cm-minus {color: @accent-minus;}
+span.cm-plus {color: @accent-plus;}
 
-.cm-s-default {
-    span.cm-keyword {color: @accent-keyword;}
-    span.cm-atom {color: @accent-atom;}
-    span.cm-number {color: @accent-number;}
-    span.cm-def {color: @accent-def;}
-    span.cm-variable {color: @accent-variable;}
-    span.cm-variable-2 {color: @accent-variable-2;}
-    span.cm-variable-3 {color: @accent-variable-3;}
-    span.cm-property {color: @accent-property;}
-    span.cm-operator {color: @accent-operator;}
-    span.cm-comment {color: @accent-comment;}
-    span.cm-string {color: @accent-string;}
-    span.cm-string-2 {color: @accent-string-2;}
-    span.cm-meta {color: @accent-meta;}
-    span.cm-error {color: @accent-error;}
-    span.cm-qualifier {color: @accent-qualifier;}
-    span.cm-builtin {color: @accent-builtin;}
-    span.cm-bracket {color: @accent-bracket;}
-    span.cm-tag {color: @accent-tag;}
-    span.cm-attribute {color: @accent-attribute;}
-    span.cm-header {color: @accent-header;}
-    span.cm-quote {color: @accent-quote;}
-    span.cm-hr {color: @accent-hr;}
-    span.cm-link {color: @accent-link; text-decoration: none;}
-    span.cm-rangeinfo {color: @accent-rangeinfo;}
-    span.cm-minus {color: @accent-minus;}
-    span.cm-plus {color: @accent-plus;}
-    
-    span.CodeMirror-matchingbracket {color: @accent-bracket !important; background-color: @matching-bracket;}
-    span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
+span.CodeMirror-matchingbracket {color: @accent-bracket !important; background-color: @matching-bracket;}
+span.CodeMirror-nonmatchingbracket {color: @accent-bracket;}
 
-    .CodeMirror-cursors {
-        .CodeMirror-cursor {
-            .code-cursor();
-        }
-
-        /* Ensure the cursor shows up in front of code spans with a background color
-         * (e.g. matchingbracket).
-         */
-        z-index: 3;
+div.CodeMirror-cursors {
+    .CodeMirror-cursor {
+        .code-cursor();
     }
 
-    .CodeMirror-lines {
-        padding: @code-padding 0;
-        
-        /* This is necessary for issue #2780. The logic for closing dropdowns depends on "click" events. Now
-         * that each line has a separate div element, there is a good chance that mouseDown and mouseUp events
-         * occur on different elements, which means a click event will not be sent. By disabling pointer events here,
-         * we are guaranteed that the mouse event will be captured by our parent div, and click events will 
-         * be dispatched.
-         */
-        pointer-events: none;
+    /* Ensure the cursor shows up in front of code spans with a background color
+     * (e.g. matchingbracket).
+     */
+    z-index: 3;
+}
+
+.CodeMirror-lines {
+    padding: @code-padding 0;
+
+    /* This is necessary for issue #2780. The logic for closing dropdowns depends on "click" events. Now
+     * that each line has a separate div element, there is a good chance that mouseDown and mouseUp events
+     * occur on different elements, which means a click event will not be sent. By disabling pointer events here,
+     * we are guaranteed that the mouse event will be captured by our parent div, and click events will 
+     * be dispatched.
+     */
+    pointer-events: none;
+}
+
+.CodeMirror-linewidget {
+    /* Re-enable pointer events for line widget. Pointer events are disabled for "CodeMirror-lines", which is the
+     * parent of line widgets, so they need to be explicitly re-enabled here in order for selection to work. */
+    pointer-events: auto;
+}
+
+.CodeMirror-gutters {
+    background-color: @background-color-3;
+    border-right: none;
+}
+
+.platform-mac {
+    .CodeMirror-scrollbar-filler {
+        background-image: url(images/scrollbar-mac-corner.png);
     }
-    
-    .CodeMirror-linewidget {
-        /* Re-enable pointer events for line widget. Pointer events are disabled for "CodeMirror-lines", which is the
-         * parent of line widgets, so they need to be explicitly re-enabled here in order for selection to work. */
-        pointer-events: auto;
+    .CodeMirror-gutter-filler {
+        background-image: url(images/scrollbar-mac-bg.png);
     }
-    
-    .CodeMirror-gutters {
+}
+.platform-win {
+    .CodeMirror-scrollbar-filler,
+    .CodeMirror-gutter-filler {
+        background-color: @win-scrollbar-track;
+        height: 12px !important;
+    }
+    .CodeMirror-scrollbar-filler {
+        width: 12px !important;
+    }
+}
+.platform-linux {
+    .CodeMirror-scrollbar-filler,
+    .CodeMirror-gutter-filler {
         background-color: @background-color-3;
-        border-right: none;
+        height: 12px !important;
     }
-    
-    .platform-mac & {
-        .CodeMirror-scrollbar-filler {
-            background-image: url(images/scrollbar-mac-corner.png);
-        }
-        .CodeMirror-gutter-filler {
-            background-image: url(images/scrollbar-mac-bg.png);
-        }
+    .CodeMirror-scrollbar-filler {
+        width: 12px !important;
     }
-    .platform-win & {
-        .CodeMirror-scrollbar-filler,
-        .CodeMirror-gutter-filler {
-            background-color: @win-scrollbar-track;
-            height: 12px !important;
-        }
-        .CodeMirror-scrollbar-filler {
-            width: 12px !important;
-        }
-    }
-    .platform-linux & {
-        .CodeMirror-scrollbar-filler,
-        .CodeMirror-gutter-filler {
-            background-color: @background-color-3;
-            height: 12px !important;
-        }
-        .CodeMirror-scrollbar-filler {
-            width: 12px !important;
-        }
-    }
-    
-    .CodeMirror-linenumber {
-        color: @accent-comment;
-        min-width: 2.5em;
-        /*font-size: 0.9em;*/  /* restore after SourceCodePro font fix? */
-        padding: 0 @code-padding 0 10px;  /* left padding for project panel selection triangle */
-    }
-    &.CodeMirror-focused .CodeMirror-selected {
-        background: @selection-color-focused;
-    }
+}
+
+.CodeMirror-linenumber {
+    color: @accent-comment;
+    min-width: 2.5em;
+    /*font-size: 0.9em;*/  /* restore after SourceCodePro font fix? */
+    padding: 0 @code-padding 0 10px;  /* left padding for project panel selection triangle */
+}
+.CodeMirror .CodeMirror-selected {
+    background: @selection-color-unfocused;
+}
+.CodeMirror-focused .CodeMirror-selected {
+    background: @selection-color-focused;
 }
 
 /*
@@ -193,9 +193,9 @@
     other than a vanilla .CodeMirror)
  */
 .CodeMirror {
-    div.CodeMirror-overwrite div.CodeMirror-cursor {
+    .CodeMirror-overwrite .CodeMirror-cursor {
         border-left: none !important;
-        border-bottom: 1px solid black !important;
+        border-bottom: 1px solid black;
         width: 1.2ex;
     }
     
@@ -216,10 +216,10 @@
         visibility: visible;
     }
     
-    .CodeMirror.cm-s-default .CodeMirror-selected {
+    .CodeMirror .CodeMirror-selected {
         background: @selection-color-unfocused;
     }
-    .CodeMirror.cm-s-default.CodeMirror-focused .CodeMirror-selected {
+    .CodeMirror.CodeMirror-focused .CodeMirror-selected {
         background: @selection-color-focused;
     }
     .CodeMirror .CodeMirror-gutters {

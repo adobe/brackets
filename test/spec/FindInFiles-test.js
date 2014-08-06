@@ -1230,6 +1230,29 @@ define(function (require, exports, module) {
                     });
                 });
 
+                it("should replace instances of regexp with 0-length matches on disk", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    doBasicTest({
+                        queryInfo:       {query: "^", isRegexp: true},
+                        numMatches:      55,
+                        replaceText:     "CHANGED",
+                        knownGoodFolder: "regexp-zero-length"
+                    });
+                });
+                
+                it("should replace instances of regexp with 0-length matches in memory", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    doInMemoryTest({
+                        queryInfo:       {query: "^", isRegexp: true},
+                        numMatches:      55,
+                        replaceText:     "CHANGED",
+                        knownGoodFolder:   "unchanged",
+                        forceFilesOpen:    true,
+                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder: "regexp-zero-length"
+                    });
+                });
+
                 it("should replace instances of a string in a project respecting CRLF line endings", function () {
                     openTestProjectCopy(defaultSourcePath, FileUtils.LINE_ENDINGS_CRLF);
                     doBasicTest({

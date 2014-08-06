@@ -40,7 +40,9 @@ define({
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} tukee tällä hetkellä vain UTF-8-koodattuja tekstitiedostoja.",
     "FILE_EXISTS_ERR"                   : "Tiedosto tai hakemisto on jo olemassa.",
     "FILE"                              : "tiedosto",
+    "FILE_TITLE"                        : "tiedosto",
     "DIRECTORY"                         : "hakemisto",
+    "DIRECTORY_TITLE"                   : "hakemisto",
     "DIRECTORY_NAMES_LEDE"              : "Hakemistojen nimet",
     "FILENAMES_LEDE"                    : "Tiedostonimet",
     "FILENAME"                          : "tiedostonimi",
@@ -61,10 +63,10 @@ define({
     "ERROR_RELOADING_FILE"              : "Tapahtui virhe yritettäessä päivittää tiedostoa <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Virhe tallennettaessa tiedostoa",
     "ERROR_SAVING_FILE"                 : "Tapahtui virhe yritettäessä tallentaa tiedostoa <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "Virhe nimettäessä tiedosto uudelleen",
-    "ERROR_RENAMING_FILE"               : "Tapahtui virhe yritettäessä nimetä uudelleen tiedostoa <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_DELETING_FILE_TITLE"         : "Virhe poistettaessa tiedostoa",
-    "ERROR_DELETING_FILE"               : "Tapahtui virhe yritettäessä poistaa tiedosto <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "Virhe nimettäessä {0}a uudelleen",
+    "ERROR_RENAMING_FILE"               : "Tapahtui virhe yritettäessä nimetä uudelleen {2}a <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_DELETING_FILE_TITLE"         : "Virhe poistettaessa {0}a",
+    "ERROR_DELETING_FILE"               : "Tapahtui virhe yritettäessä poistaa {2} <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Virheellinen {0}",
     "INVALID_FILENAME_MESSAGE"          : "{0} ei voi käyttää mitään järjestelmän varaamia sanoja, päättyä pisteeseen (.) tai käyttää mitään seuraavista merkeistä: <code class='emphasized'>{1}</code>",
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "Tiedosto tai hakemisto nimellä <span class='dialog-filename'>{0}</span> on jo olemassa.",
@@ -165,7 +167,7 @@ define({
     "FIND_REPLACE_TITLE_LABEL"          : "Korvaa",
     "FIND_REPLACE_TITLE_WITH"           : "merkkijonolla",
     "FIND_TITLE_LABEL"                  : "löytyi",
-    "FIND_TITLE_SUMMARY"                : " &mdash; {0} {1} {2} kohteessa {3}",
+    "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} kohteessa {3}",
 
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} {1}",
@@ -179,7 +181,7 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Yli ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
-    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Paina Ctrl/Cmd laajentaaksesi/pienentääksesi kaikki",
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Paina Ctrl/Cmd laajentaaksesi tai pienentääksesi kaikki",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Korvausvirheet",
     "REPLACE_IN_FILES_ERRORS"           : "Seuraavia tiedostoja ei muokattu, koska ne muuttuivat haun jälkeen tai niihin ei voitu kirjoittaa.",
 
@@ -246,6 +248,7 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Laajennukset poistettu käytöstä",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_DEFAULT_LANG"                : "(oletus)",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0}-ongelmat",
@@ -283,6 +286,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Tallenna kaikki",
     "CMD_FILE_SAVE_AS"                    : "Tallenna nimellä\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Esikatselu",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Pakota esikatselun päivitys",
     "CMD_PROJECT_SETTINGS"                : "Projektin asetukset\u2026",
     "CMD_FILE_RENAME"                     : "Nimeä uudelleen",
     "CMD_FILE_DELETE"                     : "Poista",
@@ -352,6 +356,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Järjestä nimen mukaan",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Järjestä tyypin mukaan",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automaattinen järjestys",
+    "CMD_THEMES"                          : "Teemat\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Siirry",
@@ -396,11 +401,11 @@ define({
     "CLOSE"                                : "Sulje",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_BUILD_TIMESTAMP"           : "koontiversion aikaleima: ",
-    "ABOUT_TEXT_LINE3"                     : "Ilmoitukset ja ehdot liittyen kolmannen osapuolen ohjelmistoihin sijaitsevat osoitteessa <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> ja yhdistetään viitteisiin tässä.",
+    "ABOUT_TEXT_LINE3"                     : "Kolmannen osapuolen ohjelmistoihin liittyvät ilmoitukset ja ehdot sijaitsevat osoitteessa <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> ja yhdistetään viitteisiin tässä.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentaatio ja lähdekoodi osoitteessa <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "He tekivät tämän \u2764:lla ja JavaScriptillä:",
     "ABOUT_TEXT_LINE6"                     : "Monet ihmiset (mutta meillä on ongelmia ladata näitä tietoja nyt).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Sovellusalustan dokumentaatio ja sovellusalustan graafinen logo on lisensoitu Creative Commons Attribution -lisenssillä, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform -dokumentit ja graafinen Web Platform -logo on lisensoitu Creative Commons Attribution -lisenssillä, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME}ista on saatavilla uusi versio! Napsauta tästä saadaksesi lisätietoja.",
     "UPDATE_AVAILABLE_TITLE"               : "Päivitys saatavilla",
     "UPDATE_MESSAGE"                       : "Hei, {APP_NAME}ista on saatavilla uusi versio. Tässä on joitakin uusista ominaisuuksista:",
@@ -411,8 +416,16 @@ define({
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Esikatselu ei tue {0}-protokollaa. Käytä joko http: tai https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL-osoite ei voi sisältää hakuparametreja, kuten ”{0}”.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei voi sisältää ristikkomerkkejä, kuten ”{0}”.",
-    "BASEURL_ERROR_INVALID_CHAR"           : "Erikoismerkit, kuten ’{0}’, täytyy olla %-koodattu.",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Erikoismerkkkien, kuten ’{0}’, täytyy olla %-koodattu.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Tuntematon virhe URL-osoitteen jäsentämisessä",
+
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Nykyinen teema",
+    "USE_THEME_SCROLLBARS"                 : "Käytä teeman vierityspalkkeja",
+    "FONT_SIZE"                            : "Kirjasimen koko",
+    "FONT_FAMILY"                          : "Kirjasinperhe",
+    "LINE_HEIGHT"                          : "Rivikorkeus",
+    "GENERAL"                              : "Yleinen",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Uusi sääntö",
@@ -421,20 +434,22 @@ define({
     "INSTALL"                              : "Asenna",
     "UPDATE"                               : "Päivitä",
     "REMOVE"                               : "Poista",
-    "OVERWRITE"                            : "Ylikirjoita",
-    "CANT_REMOVE_DEV"                      : "Laajennukset, jotka ovat ”dev”-kansiossa, on poistettava käsin.",
+    "OVERWRITE"                            : "Korvaa",
+    "CANT_REMOVE_DEV"                      : "Kansion ”dev” laajennukset on poistettava käsin.",
     "CANT_UPDATE"                          : "Laajennus ei ole yhteensopiva tämän {APP_NAME}-version kanssa.",
-    "CANT_UPDATE_DEV"                      : "Laajennuksia, jotka ovat ”dev”-kansiossa, ei voida päivittää automaattisesti.",
+    "CANT_UPDATE_DEV"                      : "Kansion ”dev” laajennuksia ei voida päivittää automaattisesti.",
     "INSTALL_EXTENSION_TITLE"              : "Asenna laajennus",
     "UPDATE_EXTENSION_TITLE"               : "Päivitä laajennus",
     "INSTALL_EXTENSION_LABEL"              : "Laajennuksen URL-osoite",
-    "INSTALL_EXTENSION_HINT"               : "Laajennuksen zip-tiedoston URL-osoite tai GitHub-repo",
+    "INSTALL_EXTENSION_HINT"               : "Laajennuksen zip-tiedoston URL-osoite tai GitHub-varasto",
     "INSTALLING_FROM"                      : "Asennetaan laajennus kohteesta {0}\u2026",
     "INSTALL_SUCCEEDED"                    : "Asennus on valmis!",
     "INSTALL_FAILED"                       : "Asennus epäonnistui.",
     "CANCELING_INSTALL"                    : "Peruutetaan\u2026",
-    "CANCELING_HUNG"                       : "Asennuksen peruutus kestää pitkään. On voinut tapahtua sisäinen virhe.",
-    "INSTALL_CANCELED"                     : "Asennus peruutettu.",
+    "CANCELING_HUNG"                       : "Asennuksen peruutus kestää pitkään. On saattanut tapahtua sisäinen virhe.",
+    "INSTALL_CANCELED"                     : "Asennus on peruutettu.",
+    "VIEW_COMPLETE_DESCRIPTION"            : "Näytä täysi kuvaus",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "Näytä katkaistu kuvaus",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Ladattu sisältö ei ole kelvollinen zip-tiedosto.",
     "INVALID_PACKAGE_JSON"                 : "Tiedosto package.json on virheellinen. (virhe: {0}).",
@@ -442,7 +457,7 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} on virheellinen paketin nimi.",
     "MISSING_PACKAGE_VERSION"              : "Tiedostolle package.json ei ole määritelty paketin versiota.",
     "INVALID_VERSION_NUMBER"               : "Paketin versionumero ({0}) on virheellinen.",
-    "INVALID_BRACKETS_VERSION"             : "{APP_NAME}-sovelluksen yhteensopivuuden merkkijono ({0}) on virheellinen.",
+    "INVALID_BRACKETS_VERSION"             : "{APP_NAME}in yhteensopivuuden merkkijono ({0}) on virheellinen.",
     "DISALLOWED_WORDS"                     : "Sanat ({1}) eivät ole sallittuja {0} kentässä.",
     "API_NOT_COMPATIBLE"                   : "Laajennus ei ole yhteensopiva tämän {APP_NAME}-version kanssa. Se on asennettu kelpaamattomien laajennusten kansioon.",
     "MISSING_MAIN"                         : "Paketissa ei ole main.js-tiedostoa.",
@@ -460,7 +475,11 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Laajennusten hallinta",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Virhe käytettäessä laajennusten rekisteriä. Yritä myöhemmin uudelleen.",
+    "INSTALL_EXTENSION_DRAG"               : "Vedä .zip-tiedosto tänne tai",
+    "INSTALL_EXTENSION_DROP"               : "Pudota .zip-tiedosto asentaaksesi",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Asennus tai päivitys keskeytyi seuraaviin virheisiin:",
     "INSTALL_FROM_URL"                     : "Asenna URL-osoitteesta\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "Vahvistetaan\u2026",
     "EXTENSION_AUTHOR"                     : "Tekijä",
     "EXTENSION_DATE"                       : "Päivämäärä",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Tämä laajennus vaatii uudemman {APP_NAME}-version.",
@@ -471,15 +490,18 @@ define({
     "EXTENSION_MORE_INFO"                  : "Lisätietoja\u2026",
     "EXTENSION_ERROR"                      : "Laajennusvirhe",
     "EXTENSION_KEYWORDS"                   : "Avainsanat",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "Käännetty {0} kielelle, sisältäen kielesi",
+    "EXTENSION_TRANSLATED_GENERAL"         : "Käännetty {0} kielelle",
+    "EXTENSION_TRANSLATED_LANGS"           : "Tämä laajennus on käännetty näille kielille: {0}",
     "EXTENSION_INSTALLED"                  : "Asennettu",
     "EXTENSION_UPDATE_INSTALLED"           : "Tämä laajennuksen päivitys on ladattu ja asennetaan {APP_NAME}in latauduttua uudelleen.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Haku",
     "EXTENSION_MORE_INFO_LINK"             : "Lisää",
     "BROWSE_EXTENSIONS"                    : "Selaa laajennuksia",
     "EXTENSION_MANAGER_REMOVE"             : "Poista laajennus",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Yhden tai useamman laajennuksen poistaminen epäonnistui: {0}. {APP_NAME} latautuu vielä uudelleen.",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Yhden tai useamman laajennuksen poistaminen epäonnistui: {0}. {APP_NAME} latautuu silti uudelleen.",
     "EXTENSION_MANAGER_UPDATE"             : "Päivitä laajennus",
-    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Yhden tai useamman laajennuksen päivittäminen epäonnistui: {0}. {APP_NAME} latautuu vielä uudelleen.",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Yhden tai useamman laajennuksen päivittäminen epäonnistui: {0}. {APP_NAME} latautuu silti uudelleen.",
     "MARKED_FOR_REMOVAL"                   : "Merkitty poistettavaksi",
     "UNDO_REMOVE"                          : "Kumoa",
     "MARKED_FOR_UPDATE"                    : "Merkitty päivitettäväksi",
@@ -552,12 +574,14 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Hyppää määrittelyyn",
     "CMD_SHOW_PARAMETER_HINT"                   : "Näytä parametrivihje",
     "NO_ARGUMENTS"                              : "<ei parametreja>",
+    "DETECTED_EXCLUSION_TITLE"                  : "JavaScript-tiedoston päättelyongelma",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets ajautui vaikeuksiin käsittelyssä:<br><br>{0}<br><br>Tätä tiedostoa ei enää käsitellä koodivihjeet- ja hypää määritelyyn -toimintoja varten. Ottaaksesi tämän takaisin käyttöön avaa <code>.brackets.json</code> projektissasi ja poista tiedosto kohdasta jscodehints.detectedExclusions.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
 
     // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                     : "Pikanäkymä osoittaessa",
+    "CMD_ENABLE_QUICK_VIEW"                     : "Pikanäkymä osoitettaessa",
 
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Viimeisimmät projektit",
@@ -565,3 +589,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Lue lisää"
 });
+
+/* Last translated for b67eadbd2b8f51d7131b0fd8223b49cf6473a8a0 */

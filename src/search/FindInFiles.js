@@ -130,6 +130,11 @@ define(function (require, exports, module) {
                 queryExpr.lastIndex = 0;
                 break;
             }
+            
+            // Pathological regexps like /^/ return 0-length matches. Ensure we make progress anyway
+            if (totalMatchLength === 0) {
+                queryExpr.lastIndex++;
+            }
         }
 
         return matches;

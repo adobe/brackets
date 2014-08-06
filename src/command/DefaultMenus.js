@@ -72,10 +72,13 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_UNDO);
         menu.addMenuItem(Commands.EDIT_REDO);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_CUT);
-        menu.addMenuItem(Commands.EDIT_COPY);
-        menu.addMenuItem(Commands.EDIT_PASTE);
-        menu.addMenuDivider();
+        if (brackets.nativeMenus) {
+            // Native-only - can't programmatically trigger clipboard actions from JS menus
+            menu.addMenuItem(Commands.EDIT_CUT);
+            menu.addMenuItem(Commands.EDIT_COPY);
+            menu.addMenuItem(Commands.EDIT_PASTE);
+            menu.addMenuDivider();
+        }
         menu.addMenuItem(Commands.EDIT_SELECT_ALL);
         menu.addMenuItem(Commands.EDIT_SELECT_LINE);
         menu.addMenuItem(Commands.EDIT_SPLIT_SEL_INTO_LINES);
@@ -118,6 +121,8 @@ define(function (require, exports, module) {
          * View menu
          */
         menu = Menus.addMenu(Strings.VIEW_MENU, Menus.AppMenuBar.VIEW_MENU);
+        menu.addMenuItem(Commands.CMD_THEMES_OPEN_SETTINGS);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.VIEW_HIDE_SIDEBAR);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE);
