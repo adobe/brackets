@@ -286,7 +286,7 @@ define(function (require, exports, module) {
                 HighlightAgentModule.load();
                 
                 // module spies
-                spyOn(CSSAgentModule, "styleForURL").andReturn("");
+                spyOn(CSSAgentModule, "styleForURL").andReturn([]);
                 spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return new $.Deferred().resolve(); });
                 spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
                 spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
@@ -642,6 +642,10 @@ define(function (require, exports, module) {
                 doOneTest("simple1Query.html", "simple1.css");
             });
             
+            it("should push changes after loading an iframe", function () {
+                doOneTest("simple1iframe.html", "simple1.css");
+            });
+
             it("should push in memory css changes made before the session starts", function () {
                 var localText,
                     browserText;
@@ -766,6 +770,10 @@ define(function (require, exports, module) {
                     // Verify that we still have modified text
                     expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
+            });
+
+            it("should push changes to the iframes' css file", function () {
+                doOneTest("simple1iframe.html", "iframe.css");
             });
         });
         
