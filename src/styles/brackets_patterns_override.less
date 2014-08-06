@@ -1139,84 +1139,85 @@ input[type="color"],
 .btn:focus,
 .btn.disabled,
 .btn[disabled] {
-    background-color: @tc-button-background;
+    background-color: @bc-btn-bg;
+    color: @bc-text;
 }
 
 .btn.primary:hover,
 .btn.primary:focus,
 .btn.primary.disabled,
 .btn.primary[disabled] {
-    background-color: @tc-call-to-action;
+    background-color: @bc-primary-btn-bg;
 }
 
 .btn {
     // Button Base
     background-image: none;
 
-    background-color: @tc-button-background;
-    color: @tc-text;
+    background-color: @bc-btn-bg;
+    color: @bc-text;
     cursor: default;
     font-size: (@baseFontSize + 1);
     font-weight: @font-weight-semibold;
     line-height: normal;
-    border: 1px solid @tc-gray-component-border;
-    .border-radius(@tc-control-border-radius);
-    box-shadow: @tc-button-highlight;
+    border: 1px solid @bc-btn-border;
+    .border-radius(@bc-border-radius);
+    box-shadow: inset 0 1px @bc-highlight;
     -webkit-font-smoothing: antialiased;
     text-shadow: none;
 
 
     &:hover {
-        background-color: @tc-button-background;
-        color: @tc-text;
+        background-color: @bc-btn-bg;
+        color: @bc-text;
     }
 
     // Focus state for keyboard and accessibility
     &:focus {
-        border: 1px solid @tc-gray-component-focused-border;
-        box-shadow: @tc-button-highlight, @tc-input-glow;
-        color: @tc-text;
+        border: 1px solid @bc-btn-border-focused;
+        box-shadow: inset 0 1px 0 @bc-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
+        color: @bc-text;
         outline: none;
     }
 
     // Active and Disabled states
     &.active:not([disabled]) {
         background-image: none;
-        background-color: @tc-highlight;
-        box-shadow: @tc-button-down-shadow;
-        color: @tc-link;
+        background-color: @bc-btn-bg-down;
+        box-shadow: inset 0 1px 0 @bc-shadow-small;
+        color: @bc-text-alt;
     }
     
     &:active:not([disabled]) {
         background-image: none;
-        background-color: @tc-button-down-background;
-        box-shadow: @tc-button-down-shadow;
-        color: @tc-text;
+        background-color: @bc-btn-bg-down;
+        box-shadow: inset 0 1px 0 @bc-shadow-small;
+        color: @bc-text;
     }
 
     &.disabled, &[disabled] {
-        opacity: @tc-disabled-opacity;
+        opacity: @bc-disabled-opacity;
     }
 
     // Primary Button Type
     &.primary {
         background-image: none;
-        background-color: @tc-call-to-action;
-        border: 1px solid  @tc-call-to-action-border;
-        box-shadow: @tc-call-to-action-highlight;
-        color: @tc-call-to-action-text;
+        background-color: @bc-primary-btn-bg;
+        border: 1px solid  @bc-primary-btn-border;
+        box-shadow: inset 0 1px 0 @bc-highlight;
+        color: @bc-text-alt;
         text-shadow: none;
         &.active,
         &:active {
             background-image: none;
-            background-color: @tc-call-to-action-down;
-            box-shadow: @tc-call-to-action-down-shadow;
-            color: @tc-call-to-action-text;
+            background-color: @bc-primary-btn-bg-down;
+            box-shadow: inset 0 1px 0 @bc-shadow-small;
+            color: @bc-text-alt;
         }
 
         &:focus {
-            border: 1px solid @tc-call-to-action-border;
-            box-shadow: @tc-call-to-action-highlight, @tc-input-glow;
+            border: 1px solid @bc-btn-border-focused;
+            box-shadow: inset 0 1px 0 @bc-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
             outline: none;
         }
     }
