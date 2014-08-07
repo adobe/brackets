@@ -248,7 +248,11 @@ define({
 	"STATUSBAR_USER_EXTENSIONS_DISABLED": "拡張機能無効",
 	"STATUSBAR_INSERT": "INS",
 	"STATUSBAR_OVERWRITE": "OVR",
+	"STATUSBAR_INSOVR_TOOLTIP": "クリックして挿入 (INS) モードと上書き (OVR) モード間のカーソルを切り替え",
+	"STATUSBAR_LANG_TOOLTIP": "クリックしてファイルタイプを変更",
+	"STATUSBAR_CODE_INSPECTION_TOOLTIP": "{0}。クリックしてレポートパネルを切り替えます。",
 	"STATUSBAR_DEFAULT_LANG": "(指定なし)",
+	"STATUSBAR_SET_DEFAULT_LANG": ".{0} ファイルのデフォルトとして設定",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} 個の問題",

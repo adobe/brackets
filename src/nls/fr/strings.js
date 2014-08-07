@@ -248,7 +248,11 @@ define({
 	"STATUSBAR_USER_EXTENSIONS_DISABLED": "Extensions désactivées",
 	"STATUSBAR_INSERT": "INS",
 	"STATUSBAR_OVERWRITE": "RFP",
+	"STATUSBAR_INSOVR_TOOLTIP": "Cliquez pour faire passer le curseur du mode Insertion (INS) au mode Remplacement (RFP) ou inversement",
+	"STATUSBAR_LANG_TOOLTIP": "Cliquez pour modifier le type de fichier",
+	"STATUSBAR_CODE_INSPECTION_TOOLTIP": "{0}. Cliquez pour afficher/masquer le panneau des rapports.",
 	"STATUSBAR_DEFAULT_LANG": "(valeur par défaut)",
+	"STATUSBAR_SET_DEFAULT_LANG": "Utiliser par défaut pour les fichiers .{0}",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} problèmes",
