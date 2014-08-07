@@ -87,8 +87,9 @@ define(function (require, exports, module) {
             } else {
                 // Remove the file extension when the filename is used as the theme name. This is to
                 // follow CodeMirror conventions where themes are just a CSS file and the filename
-                // (without the extension) is used to build CSS rules.
-                options.name = FileUtils.getFilenameWithoutExtension(fileName);
+                // (without the extension) is used to build CSS rules.  Also handle removing .min
+                // in case the ".min" is part of the file name.
+                options.name = FileUtils.getFilenameWithoutExtension(fileName).replace(/\.min$/, "");
             }
 
             // We do a bit of string treatment here to make sure we generate theme names that can be
