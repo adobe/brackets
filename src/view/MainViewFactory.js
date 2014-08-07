@@ -38,7 +38,7 @@ define(function (require, exports, module) {
      */
     var _factories = [];
     
-    function addViewFactory(factory) {
+    function registerViewFactory(factory) {
         _factories.push(factory);
     }
     
@@ -53,6 +53,6 @@ define(function (require, exports, module) {
         return result;
     }
     
-    exports.addViewFactory          = addViewFactory;
+    exports.registerViewFactory     = registerViewFactory;
     exports.findSuitableFactoryFor  = findSuitableFactoryFor;
 });
