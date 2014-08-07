@@ -145,19 +145,35 @@ define(function (require, exports, module) {
     /**
      * @private
      * Show the current match index by finding matchRange in the resultSet stored 
-     * in the search state.
+     * in the search state if this is the first call for a new search query. For
+     * subsequent calls, just compare matchRange with the next match in the resultSet
+     * based on the search direction and show the next match if they are the same. 
+     * If not, then find the match index by searching matchRange in the entire resultSet.
      *
      * @param {!SearchState} state The search state that has the array of search result
      * @param {!{from: {line: number, ch: number}, to: {line: number, ch: number}}} matchRange - the range of current match
+     * @param {!boolean} rev true if searching backwards
      */
-    function _updateFindBarWithMatchInfo(state, matchRange) {
+    function _updateFindBarWithMatchInfo(state, matchRange, rev) {
         // Bail if there is no result set.
         if (!state.foundAny) {
             return;
         }
         
         if (findBar) {
-            state.matchIndex = _.findIndex(state.resultSet, matchRange);
+            if (state.matchIndex === -1) {
+                state.matchIndex = _.findIndex(state.resultSet, matchRange);
+            } else {
+                state.matchIndex = rev ? state.matchIndex - 1 : state.matchIndex + 1;
+                // Adjust matchIndex for modulo wraparound
+                state.matchIndex = (state.matchIndex + state.resultSet.length) % state.resultSet.length;
+                
+                // Confirm that we find the right matchIndex. If not, then search 
+                // matchRange in the entire resultSet.
+                if (!_.isEqual(state.resultSet[state.matchIndex], matchRange)) {
+                    state.matchIndex = _.findIndex(state.resultSet, matchRange);
+                }
+            }
         
             if (state.matchIndex !== -1) {
                 // Convert to 1-based by adding one before showing the index.
@@ -423,7 +439,7 @@ define(function (require, exports, module) {
             var nextMatch = _getNextMatch(editor, rev, pos);
             if (nextMatch) {
                 _updateFindBarWithMatchInfo(getSearchState(editor._codeMirror),
-                                            {from: nextMatch.start, to: nextMatch.end});
+                                            {from: nextMatch.start, to: nextMatch.end}, rev);
                 _selectAndScrollTo(editor, [nextMatch], true, preferNoScroll);
                 state.markedCurrent = cm.markText(nextMatch.start, nextMatch.end,
                      { className: "searching-current-match", startStyle: "searching-first", endStyle: "searching-last" });
