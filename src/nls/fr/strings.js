@@ -248,7 +248,11 @@ define({
 	"STATUSBAR_USER_EXTENSIONS_DISABLED": "Extensions désactivées",
 	"STATUSBAR_INSERT": "INS",
 	"STATUSBAR_OVERWRITE": "RFP",
+	"STATUSBAR_INSOVR_TOOLTIP": "[7634404] !é=Click to toggle cursor between Insert (INS) and Overwrite (OVR) modes=!",
+	"STATUSBAR_LANG_TOOLTIP": "[7634405] !é=Click to change file type=!",
+	"STATUSBAR_CODE_INSPECTION_TOOLTIP": "[7634403] !é={0}. Click to toggle report panel.=!",
 	"STATUSBAR_DEFAULT_LANG": "(valeur par défaut)",
+	"STATUSBAR_SET_DEFAULT_LANG": "[7634406] !é=Set as Default for .{0} Files=!",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} problèmes",
