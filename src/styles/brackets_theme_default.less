@@ -150,25 +150,10 @@
  * Eventually, these will likely be replaced by full-featured UI themes.
  */
 
-@dark-bc-bg-highlight: #1671db;
-@dark-bc-highlight: rgba(255, 255, 255, 0.06);
-@dark-bc-text: #ddd;
-@dark-bc-highlight-hard: rgba(255, 255, 255, 0.1);
-@dark-bc-btn-bg: #3f3f3f;
-@dark-bc-btn-bg-down: #222;
-@dark-bc-btn-border: #202020;
-@dark-bc-btn-border-focused: #2893ef;
-@dark-bc-btn-border-focused-glow: transparent;
-@dark-bc-shadow: rgba(0, 0, 0, 0.24);
-@dark-bc-shadow-small: rgba(0, 0, 0, 0.06);
-@dark-bc-shadow-medium: rgba(0, 0, 0, 0.12);
-@dark-bc-input-bg: #555;
-@dark-bc-inline-widget: #1b1b1b;
-
 .dark {
     .inline-widget {
         color: @dark-bc-text;
-        background-color: @dark-bc-inline-widget;
+        background-color: @dark-bc-bg-inline-widget;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
@@ -211,12 +196,12 @@
         }
 
         .close {
-            color: #ddd;
+            color: @dark-bc-text;
         }
             
         .CodeMirror-scroll {
             .CodeMirror-linenumbers {
-                background-color: @dark-bc-inline-widget;
+                background-color: @dark-bc-bg-inline-widget;
             }
         }            
         
@@ -227,34 +212,34 @@
     }
 
     .related-container {
-        background: #2c2c2c;
+        background: @dark-bc-panel-bg;
 
         .selection {
-            background: #494a4b;
-            border-top: 1px solid rgba(0, 0, 0, 0.06);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            background: @dark-bc-panel-bg-selected;
+            border-top: 1px solid @dark-bc-shadow-small;
+            border-bottom: 1px solid @dark-bc-highlight;
         }
 
         .selection:before {
-            border-left: @inline-triangle-size solid @dark-bc-inline-widget;
+            border-left: @inline-triangle-size solid @dark-bc-bg-inline-widget;
         }
 
         .related {
             li {
-                color: #fff;
+                color: @dark-bc-text-alt;
 
                 .related-file {
-                    color: #bbb;
+                    color: @dark-bc-text-thin-quiet;
                 }
             }
 
             .selected {
-                color: #fff;
+                color: @dark-bc-text-alt;
             }
         }
 
         .inline-editor-message {
-            color: #bbb;
+            color: @dark-bc-text-thin-quiet;
         }
     }
     
