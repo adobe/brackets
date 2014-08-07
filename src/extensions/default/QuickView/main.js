@@ -748,7 +748,7 @@ define(function (require, exports, module) {
     $previewContent = $previewContainer.find(".preview-content");
     
     // Load our stylesheet
-    ExtensionUtils.loadStyleSheet(module, "QuickView.css");
+    ExtensionUtils.loadStyleSheet(module, "QuickView.less");
     
     // Register command
     CommandManager.register(Strings.CMD_ENABLE_QUICK_VIEW, CMD_ENABLE_QUICK_VIEW, toggleEnableQuickView);
