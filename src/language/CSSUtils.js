@@ -805,13 +805,6 @@ define(function (require, exports, module) {
             selectorStartChar = start;
             selectorStartLine = line;
             
-            if (level > 0 && token === "{") {
-                if (!_nextTokenSkippingWhitespace()) {
-                    return false; // eof
-                }
-                selectorGroupStartLine = -1;
-            }
-            
             // Everything until the next ',' or '{' is part of the current selector
             while ((token !== "," || state.state !== "block") && token !== "{") {
                 if (token === "}" && !currentSelector) {
@@ -830,8 +823,6 @@ define(function (require, exports, module) {
                     }
                     if (/\S/.test(token) || /\S/.test(currentSelector)) {
                         currentSelector += token;
-//                    } else {
-//                        console.log(token);
                     }
                 }
                 if (!_nextTokenSkippingComments()) {
@@ -955,20 +946,28 @@ define(function (require, exports, module) {
                 }
             }
             
-            // Since we're now in a declaration list, that means we also finished
-            // parsing the whole selector group. Therefore, reset selectorGroupStartLine
-            // so that next time we parse a selector we know it's a new group
             var nested = true;
             do {
+                // Since we're now in a declaration list, that means we also finished
+                // parsing the whole selector group. Therefore, reset selectorGroupStartLine
+                // so that next time we parse a selector we know it's a new group
                 selectorGroupStartLine = -1;
                 selectorGroupStartChar = -1;
                 ruleStartLine = -1;
                 ruleStartChar = -1;
+
                 if (!nested) {
                     if (currentLevel > 0 && currentLevel === level) {
                         currentLevel--;
-                        _nextToken();
+                        // Skip past '}'
+                        if (token === "}") {
+                            _nextTokenSkippingWhitespace();
+                        }
                     }
+                }
+                // Skip past '{' before parsing nested rule list.
+                if (token === "{") {
+                    _nextTokenSkippingWhitespace();
                 }
                 nested = _parseRuleList(undefined, currentLevel + 1);
             
@@ -978,21 +977,14 @@ define(function (require, exports, module) {
                     if (selectors[j].level >= level && selectors[j].declListEndLine !== -1) {
                         continue;
                     }
-//                    if (selectors[j].declListEndLine !== -1) {
                     if (selectors[j].level < currentLevel) {
                         break;
                     } else if (selectors[j].declListEndLine !== -1) {
                         return;
                     } else {
-//                    selectors[j].declListStartLine = declListStartLine;
-//                    selectors[j].declListStartChar = declListStartChar;
                         selectors[j].declListEndLine = line;
                         selectors[j].declListEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
-    //                    if (selectorGroup) {
-    //                        selectors[j].selectorGroup = selectorGroup;
-    //                    }
                     }
-    //                }
                 }
             } while (currentLevel > 0 && currentLevel === level);
         }
@@ -1011,7 +1003,7 @@ define(function (require, exports, module) {
             return (token.match(/^@/));
         }
         
-        function _parseAtRule() {
+        function _parseAtRule(level) {
 
             // reset these fields to ignore comments preceding @rules
             ruleStartLine = -1;
@@ -1037,7 +1029,7 @@ define(function (require, exports, module) {
                 }
 
                 // Parse rules until we see '}'
-                _parseRuleList("}");
+                _parseRuleList("}", level);
 
             } else if (token.match(/@(charset|import|namespace)/i)) {
                 
@@ -1087,7 +1079,7 @@ define(function (require, exports, module) {
             while ((!escapeToken) || token !== escapeToken) {
                 if (_isStartAtRule()) {
                     // @rule
-                    _parseAtRule();
+                    _parseAtRule(level);
     
                 } else if (_isStartComment()) {
                     // comment - make this part of style rule
@@ -1096,6 +1088,10 @@ define(function (require, exports, module) {
                         ruleStartLine = line;
                     }
                     _parseComment();
+                } else if (stream.string.indexOf(";") !== -1) {
+                    while (token !== ";") {
+                        _nextTokenSkippingWhitespace();
+                    }
                 } else {
                     // Otherwise, it's style rule
                     if (!_parseRule(level === undefined ? 0 : level) && level > 0) {
