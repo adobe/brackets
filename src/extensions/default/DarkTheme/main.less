@@ -75,10 +75,13 @@
 
 /* Extra CSS */
 
-.CodeMirror.find-highlighting div.CodeMirror-selected,
-.CodeMirror .CodeMirror.find-highlighting div.CodeMirror-selected {
-    background: red;
+.CodeMirror-searching {
+    background-color: #d3cd69;
+    &.searching-current-match {
+        background-color: #f6a644;
+    }
 }
+
 
 .CodeMirror-cursor {
     border-left: 1px solid #c5c8c6 !important;

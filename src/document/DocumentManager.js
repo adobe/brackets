@@ -644,7 +644,7 @@ define(function (require, exports, module) {
      * 
      * Extensions that listen to the new event (paneViewXXX events) are 
      * always added to the end so this effectively puts the legacy events 
-     * at the end of the event list. This prevents extensiosn from 
+     * at the end of the event list. This prevents extensions from 
      * handling the event too soon. (e.g.  paneViewListView needs to 
      * process these events before the Extension Highlighter extension)
      */
@@ -663,7 +663,7 @@ define(function (require, exports, module) {
         PreferencesManager.fileChanged(doc.file.fullPath);
     });
     
-    $(MainViewManager).on("currentFileChanged", function (e, newFile, newPaneId, oldFile, oldPaneId) {
+    $(MainViewManager).on("currentFileChange", function (e, newFile, newPaneId, oldFile, oldPaneId) {
         var newDoc = null,
             oldDoc = null;
 
@@ -681,7 +681,7 @@ define(function (require, exports, module) {
         
         var count = DeprecationWarning.getEventHandlerCount(exports, "currentDocumentChange");
         if (count > 0) {
-            DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChanged' instead.", true);
+            DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChange' instead.", true);
         }
         
         $(exports).triggerHandler("currentDocumentChange", [newDoc, oldDoc]);

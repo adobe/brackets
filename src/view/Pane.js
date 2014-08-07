@@ -63,7 +63,7 @@ define(function (require, exports, module) {
      * by calling one of the following: doRemoveView, removeFromViewList. removeListFromViewList, or removeAllFromViewList
      *
      * Pane Object Events:
-     * viewListChanged - triggered whenever there is a change the the pane's view state
+     * viewListChange - triggered whenever there is a change the the pane's view state
      *
      * View Interface:
      *
@@ -135,7 +135,7 @@ define(function (require, exports, module) {
      *
      * Events Dispatched from Pane Objects:
      *  
-     *      viewListChanged - triggered whenver the interal view list has changed due to the handling of a File object event.
+     *      viewListChange - triggered whenver the interal view list has changed due to the handling of a File object event.
      *          
      */
     
@@ -152,35 +152,41 @@ define(function (require, exports, module) {
      * @param {!JQuery} $container - The parent $container to place the pane view
      */
     function Pane(id, $container) {
-        this._id = id;
         this._reset();
         
         // Setup the container and the element we're inserting
-        this._$container = $container;
-        this._$el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id);
+        var $el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id);
         
         // Listen to document events so we can update ourself
         $(DocumentManager).on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
         $(DocumentManager).on(this._makeEventName("pathDeleted"), _.bind(this._handleFileDeleted, this));
 
         // Make these properties read only
-        this.__defineGetter__("id", function () {
-            return this._id;
+        Object.defineProperty(this,  "id", {
+            get: function () {
+                return id;
+            },
+            set: function () {
+                console.error("cannot change the id of a working pane");
+            }
         });
-        this.__defineSetter__("id", function () {
-            console.error("cannot change the id of a working pane");
+
+        Object.defineProperty(this,  "$el", {
+            get: function () {
+                return $el;
+            },
+            set: function () {
+                console.error("cannot change the DOM node of a working pane");
+            }
         });
-        this.__defineGetter__("$el", function () {
-            return this._$el;
-        });
-        this.__defineSetter__("$el", function () {
-            console.error("cannot change the DOM of a working pane");
-        });
-        this.__defineGetter__("$container", function () {
-            return this.$_container;
-        });
-        this.__defineSetter__("$container", function () {
-            console.error("cannot change the DOM of a working pane");
+
+        Object.defineProperty(this,  "$container", {
+            get: function () {
+                return $container;
+            },
+            set: function () {
+                console.error("cannot change the DOM node of a working pane");
+            }
         });
     }
 
@@ -278,7 +284,7 @@ define(function (require, exports, module) {
     
    /**
      * Returns a copy of the view file list
-     * @returns {!Array.<File>} 
+     * @return {!Array.<File>} 
      */
     Pane.prototype.getViewList = function () {
         return _.clone(this._viewList);
@@ -286,7 +292,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the number of entries in the view file list
-     * @returns {number} 
+     * @return {number} 
      */
     Pane.prototype.getViewListSize = function () {
         return this._viewList.length;
@@ -305,7 +311,7 @@ define(function (require, exports, module) {
     /**
      * Returns the index of the item in the view file list 
      * @param {!string} fullPath the full path of the item to look for 
-     * @returns {number} index of the item or -1 if not found
+     * @return {number} index of the item or -1 if not found
      */
     Pane.prototype.findInViewList = function (fullPath) {
         return _.findIndex(this._viewList, function (file) {
@@ -316,7 +322,7 @@ define(function (require, exports, module) {
     /**
      * Returns the order in which the item was added
      * @param {!string} fullPath the full path of the item to look for 
-     * @returns {number} order of the item or -1 if not found
+     * @return {number} order of the item or -1 if not found
      */
     Pane.prototype.findInViewListAddedOrder = function (fullPath) {
         return _.findIndex(this._viewListAddedOrder, function (file) {
@@ -327,7 +333,7 @@ define(function (require, exports, module) {
    /**
      * Returns the order in which the item was last used
      * @param {!string} fullPath the full path of the item to look for 
-     * @returns {number} order of the item or -1 if not found. 
+     * @return {number} order of the item or -1 if not found. 
      *      0 indicates most recently used, followed by 1 and so on...
      */
     Pane.prototype.findInViewListMRUOrder = function (fullPath) {
@@ -654,7 +660,7 @@ define(function (require, exports, module) {
         
         // dispatch the change event
         if (dispatchEvent) {
-            $(this).triggerHandler("viewListChanged");
+            $(this).triggerHandler("viewListChange");
         }
     };
 
@@ -666,7 +672,7 @@ define(function (require, exports, module) {
      */
     Pane.prototype._handleFileDeleted = function (e, fullPath) {
         if (this.doRemoveView({fullPath: fullPath})) {
-            $(this).triggerHandler("viewListChanged");
+            $(this).triggerHandler("viewListChange");
         }
     };
     

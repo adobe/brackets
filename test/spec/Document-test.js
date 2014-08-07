@@ -399,9 +399,8 @@ define(function (require, exports, module) {
                     
                     $(doc).off("change", changeListener);
                     $(DocumentManager).off("dirtyFlagChange", dirtyFlagListener);
+                    doc = null;
                 });
-                
-                doc = null;
             });
         });
         

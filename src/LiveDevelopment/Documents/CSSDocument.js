@@ -108,13 +108,27 @@ define(function CSSDocumentModule(require, exports, module) {
      * @return {jQuery.promise} Promise resolved with the text content of this CSS document
      */
     CSSDocument.prototype.getSourceFromBrowser = function getSourceFromBrowser() {
+        function getOnlyValue(obj) {
+            var key;
+            for (key in obj) {
+                if (_.has(obj, key)) {
+                    return obj[key];
+                }
+            }
+            return null;
+        }
+
         var deferred = new $.Deferred(),
-            styleSheetId = this._getStyleSheetHeader().styleSheetId,
-            inspectorPromise = Inspector.CSS.getStyleSheetText(styleSheetId);
+            styleSheetHeader = this._getStyleSheetHeader(),
+            styleSheet = getOnlyValue(styleSheetHeader);
         
-        inspectorPromise.then(function (res) {
-            deferred.resolve(res.text);
-        }, deferred.reject);
+        if (styleSheet) {
+            Inspector.CSS.getStyleSheetText(styleSheet.styleSheetId).then(function (res) {
+                deferred.resolve(res.text);
+            }, deferred.reject);
+        } else {
+            deferred.reject();
+        }
         
         return deferred.promise();
     };
@@ -252,12 +266,12 @@ define(function CSSDocumentModule(require, exports, module) {
         Inspector.CSS.getMatchedStylesForNode(node.nodeId, function onGetMatchesStyles(res) {
             // res = {matchedCSSRules, pseudoElements, inherited}
             var codeMirror = this.editor._codeMirror,
-                styleSheetId = this._getStyleSheetHeader().styleSheetId;
+                styleSheetIds = this._getStyleSheetHeader();
 
             var i, rule, from, to;
             for (i in res.matchedCSSRules) {
                 rule = res.matchedCSSRules[i];
-                if (rule.ruleId && rule.ruleId.styleSheetId === styleSheetId) {
+                if (rule.ruleId && styleSheetIds[rule.ruleId.styleSheetId]) {
                     from = codeMirror.posFromIndex(rule.selectorRange.start);
                     to = codeMirror.posFromIndex(rule.style.range.end);
                     this._highlight.push(codeMirror.markText(from, to, { className: "highlight" }));

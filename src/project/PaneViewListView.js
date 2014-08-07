@@ -159,7 +159,7 @@ define(function (require, exports, module) {
     };
     
     /*
-     * PaneLayoutChanged event listener
+     * paneLayoutChange event listener
      * @private
      */
     PaneViewListView.prototype._handlePaneLayoutChange = function () {
@@ -346,7 +346,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * ActivePaneChanged event handler
+     * activePaneChange event handler
      * @private
      */
     PaneViewListView.prototype._handleActivePaneChange = function () {
@@ -381,6 +381,9 @@ define(function (require, exports, module) {
             addBottomShadow = false,
             interval        = false,
             moved           = false;
+        
+        // Don't redraw the working set for the next events
+        self.suppressSortRedraw = true;
         
         function drag(e) {
             var top = e.pageY - startPageY;
@@ -517,10 +520,9 @@ define(function (require, exports, module) {
                 if (addBottomShadow) {
                     ViewUtils.addScrollerShadow(self.$openFilesContainer[0], null, true);
                 }
-                
-                // The drag is done, so set back to the default
-                self.suppressSortRedraw = false;
             }
+            // The drag is done, so set back to the default
+            self.suppressSortRedraw = false;
         }
         
         
@@ -539,15 +541,17 @@ define(function (require, exports, module) {
         // Style the element
         $listItem.css("position", "relative").css("z-index", 1);
         
+        var $holder = $(window);
+        
         // Event Handlers
-        this.$openFilesContainer.on(self._makeEventName("mousemove"), function (e) {
+        $holder.on(self._makeEventName("mousemove"), function (e) {
             if (hasScroll) {
                 scroll(e);
             }
             drag(e);
         });
-        this.$openFilesContainer.on(self._makeEventName("mouseup") + " " + self._makeEventName("mouseleave"), function (e) {
-            self.$openFilesContainer.off(self._makeEventName(""));
+        $holder.on(self._makeEventName("mouseup"), function (e) {
+            $holder.off(self._makeEventName(""));
             drop();
         });
     };
@@ -768,12 +772,12 @@ define(function (require, exports, module) {
     };
     
     /**
-     * paneViewUpdated event handler
+     * paneViewUpdate event handler
      * @private
      * @param {jQuery.Event} e - event object
      * @param {!string} paneId - the id of the pane to update
      */
-    PaneViewListView.prototype._handlepaneViewUpdated = function (e, paneId) {
+    PaneViewListView.prototype._handlepaneViewUpdate = function (e, paneId) {
         if (this.paneId === paneId) {
             this._rebuildViewList(true);
         }
@@ -799,9 +803,9 @@ define(function (require, exports, module) {
         $(MainViewManager).on(this._makeEventName("paneViewRemove"), _.bind(this._handleFileRemoved, this));
         $(MainViewManager).on(this._makeEventName("paneViewRemoveList"), _.bind(this._handleRemoveList, this));
         $(MainViewManager).on(this._makeEventName("paneViewSort"), _.bind(this._handlepaneViewSort, this));
-        $(MainViewManager).on(this._makeEventName("activePaneChanged"), _.bind(this._handleActivePaneChange, this));
-        $(MainViewManager).on(this._makeEventName("paneLayoutChanged"), _.bind(this._handlePaneLayoutChange, this));
-        $(MainViewManager).on(this._makeEventName("paneViewUpdated"), _.bind(this._handlepaneViewUpdated, this));
+        $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
+        $(MainViewManager).on(this._makeEventName("paneLayoutChange"), _.bind(this._handlePaneLayoutChange, this));
+        $(MainViewManager).on(this._makeEventName("paneViewUpdate"), _.bind(this._handlepaneViewUpdate, this));
 
         $(DocumentManager).on(this._makeEventName("dirtyFlagChange"), _.bind(this._handleDirtyFlagChanged, this));
 
@@ -865,9 +869,9 @@ define(function (require, exports, module) {
     };
     
     /**
-     * paneDestroyed event handler
+     * paneDestroy event handler
      */
-    $(MainViewManager).on("paneDestroyed", function (e, paneId) {
+    $(MainViewManager).on("paneDestroy", function (e, paneId) {
         var index = _.findIndex(_views, function (paneViewListView) {
             return paneViewListView.paneId === paneId;
         });

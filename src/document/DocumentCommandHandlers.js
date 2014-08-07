@@ -207,7 +207,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Handles currentFileChanged and filenameChanged events and updates the titlebar
+     * Handles currentFileChange and filenameChanged events and updates the titlebar
      */
     function handleCurrentFileChange() {
         var newFile = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
@@ -1619,7 +1619,7 @@ define(function (require, exports, module) {
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
     $(DocumentManager).on("fileNameChange", handleCurrentFileChange);
-    $(MainViewManager).on("currentFileChanged", handleCurrentFileChange);
+    $(MainViewManager).on("currentFileChange", handleCurrentFileChange);
 
     // Reset the untitled document counter before changing projects
     $(ProjectManager).on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });

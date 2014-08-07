@@ -42,7 +42,7 @@
  *
  *      Does fire when focus moves between inline editor and its full-size container.
  *
- *      This event tracks `MainViewManagers's `currentFileChanged` event and all editor
+ *      This event tracks `MainViewManagers's `currentFileChange` event and all editor
  *      objects "focus" event.
  *
  *          (e, editorGainingFocus:editor, editorLosingFocus:editor)
@@ -227,11 +227,17 @@ define(function (require, exports, module) {
 	
     /**
      * Current File Changed handler
+     * MainViewManager dispatches a "currentFileChange" event whenever the currently viewed 
+     * file changes.  Which could mean that the previously viewed file has been closed or a 
+     * non-editor view (image) has been given focus.  _notifyAcitveEditorChanged is also hooked 
+     * up to editor.focus to handle focus events for editors which handles changing focus between
+     * two editors but, because editormanager maintains  a "_lastFocusedEditor" state, we have to
+     * "nullify" that state whenever the focus goes to a non-editor or when the current editor is closed
      * @private
      * @param {!jQuery.Event} e - event
      * @param {?File} file - current file (can be null)
      */
-    function _handleCurrentFileChanged(e, file) {
+    function _handlecurrentFileChange(e, file) {
         var doc = file ? DocumentManager.getOpenDocumentForPath(file.fullPath) : null;
         _notifyActiveEditorChanged(doc ? doc._masterEditor : null);
     }
@@ -264,6 +270,119 @@ define(function (require, exports, module) {
         return editor;
     }
     
+ /**
+     * @private
+     * Finds an inline widget provider from the given list that can offer a widget for the current cursor
+     * position, and once the widget has been created inserts it into the editor.
+     *
+     * @param {!Editor} editor The host editor
+     * @param {Array.<{priority:number, provider:function(...)}>} providers 
+     *      prioritized list of providers
+     * @param {string=} defaultErrorMsg Default message to display if no providers return non-null
+     * @return {$.Promise} a promise that will be resolved when an InlineWidget 
+     *      is created or rejected if no inline providers have offered one.
+     */
+    function _openInlineWidget(editor, providers, defaultErrorMsg) {
+        PerfUtils.markStart(PerfUtils.INLINE_WIDGET_OPEN);
+        
+        // Run through inline-editor providers until one responds
+        var pos = editor.getCursorPos(),
+            inlinePromise,
+            i,
+            result = new $.Deferred(),
+            errorMsg,
+            providerRet;
+        
+        // Query each provider in priority order. Provider may return:
+        // 1. `null` to indicate it does not apply to current cursor position
+        // 2. promise that should resolve to an InlineWidget
+        // 3. string which indicates provider does apply to current cursor position,
+        //    but reason it could not create InlineWidget
+        //
+        // Keep looping until a provider is found. If a provider is not found,
+        // display highest priority error message that was found, otherwise display
+        // default error message
+        for (i = 0; i < providers.length && !inlinePromise; i++) {
+            var provider = providers[i].provider;
+            providerRet = provider(editor, pos);
+            if (providerRet) {
+                if (providerRet.hasOwnProperty("done")) {
+                    inlinePromise = providerRet;
+                } else if (!errorMsg && typeof (providerRet) === "string") {
+                    errorMsg = providerRet;
+                }
+            }
+        }
+
+        // Use default error message if none other provided
+        errorMsg = errorMsg || defaultErrorMsg;
+        
+        // If one of them will provide a widget, show it inline once ready
+        if (inlinePromise) {
+            inlinePromise.done(function (inlineWidget) {
+                editor.addInlineWidget(pos, inlineWidget).done(function () {
+                    PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
+                    result.resolve();
+                });
+            }).fail(function () {
+                // terminate timer that was started above
+                PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
+                editor.displayErrorMessageAtCursor(errorMsg);
+                result.reject();
+            });
+        } else {
+            // terminate timer that was started above
+            PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
+            editor.displayErrorMessageAtCursor(errorMsg);
+            result.reject();
+        }
+        
+        return result.promise();
+    }
+    
+    
+    /**
+     * Closes any focused inline widget. Else, asynchronously asks providers to create one.
+     *
+     * @param {Array.<{priority:number, provider:function(...)}>} providers 
+     *   prioritized list of providers
+     * @param {string=} errorMsg Default message to display if no providers return non-null
+     * @return {!Promise} A promise resolved with true if an inline widget is opened or false
+     *   when closed. Rejected if there is neither an existing widget to close nor a provider
+     *   willing to create a widget (or if no editor is open).
+     */
+    function _toggleInlineWidget(providers, errorMsg) {
+        var result = new $.Deferred();
+        
+        var currentEditor = getCurrentFullEditor();
+        
+        if (currentEditor) {
+            var inlineWidget = currentEditor.getFocusedInlineWidget();
+            
+            if (inlineWidget) {
+                // an inline widget's editor has focus, so close it
+                PerfUtils.markStart(PerfUtils.INLINE_WIDGET_CLOSE);
+                inlineWidget.close().done(function () {
+                    PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_CLOSE);
+                    // return a resolved promise to CommandManager
+                    result.resolve(false);
+                });
+            } else {
+                // main editor has focus, so create an inline editor
+                _openInlineWidget(currentEditor, providers, errorMsg).done(function () {
+                    result.resolve(true);
+                }).fail(function () {
+                    result.reject();
+                });
+            }
+        } else {
+            // Can not open an inline editor without a host editor
+            result.reject();
+        }
+        
+        return result.promise();
+    }
+    
     /**
      * Inserts a prioritized provider object into the array in sorted (descending) order.
      * @private
@@ -287,7 +406,7 @@ define(function (require, exports, module) {
         array.splice(index, 0, prioritizedProvider);
     }
     
-        
+    
     /**
      * Creates a hidden, unattached master editor that is needed when a document is created for the 
      * sole purpose of creating an inline editor so operations that require a master editor can be performed
@@ -663,28 +782,59 @@ define(function (require, exports, module) {
     function getActiveEditor() {
         return _lastFocusedEditor;
     }
+
     
-    
-    /**
-     * Closes any focused inline widget. Else, asynchronously asks providers to create one.
-     *
-     * @param {Array.<{priority:number, provider:function(...)}>} providers 
-     *   prioritized list of providers
-     * @param {string=} errorMsg Default message to display if no providers return non-null
-     * @return {!Promise} A promise resolved with true if an inline widget is opened or false
-     *   when closed. Rejected if there is neither an existing widget to close nor a provider
-     *   willing to create a widget (or if no editor is open).
+  /**
+     * Asynchronously asks providers to handle jump-to-definition.
+     * @return {!Promise} Resolved when the provider signals that it's done; rejected if no
+     *      provider responded or the provider that responded failed.
      */
-    function _toggleInlineWidget(providers, errorMsg) {
-        var currentEditor = getCurrentFullEditor();
-        if (currentEditor) {
-            return currentEditor.toggleInlineWidget(providers, errorMsg);
+    function _doJumpToDef() {
+        var providers = _jumpToDefProviders;
+        var promise,
+            i,
+            result = new $.Deferred();
+        
+        var editor = getActiveEditor();
+        
+        if (editor) {
+            return editor.jumpToDefinition(_jumpToDefProviders);
+        }
+        if (editor) {
+            var pos = editor.getCursorPos();
+
+            PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
+            
+            // Run through providers until one responds
+            for (i = 0; i < providers.length && !promise; i++) {
+                var provider = providers[i];
+                promise = provider(editor, pos);
+            }
+
+            // Will one of them will provide a result?
+            if (promise) {
+                promise.done(function () {
+                    PerfUtils.addMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+                    result.resolve();
+                }).fail(function () {
+                    // terminate timer that was started above
+                    PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+                    result.reject();
+                });
+            } else {
+                // terminate timer that was started above
+                PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+                result.reject();
+            }
+            
+        } else {
+            result.reject();
         }
         
-        return new $.Deferred().reject();
+        return result.promise();
     }
-
-
+    
+    
     /** 
      * file removed from pane handler.
      * @param {jQuery.Event} e
@@ -709,21 +859,7 @@ define(function (require, exports, module) {
             handleFileRemoved(removedFiles);
         }
     }
-    
-    /**
-     * Asynchronously asks providers to handle jump-to-definition.
-     * @return {!Promise} Resolved when the provider signals that it's done; rejected if no
-     *      provider responded or the provider that responded failed.
-     */
-    function _doJumpToDef() {
-        var editor = getActiveEditor();
-        
-        if (editor) {
-            return editor.jumpToDefinition(_jumpToDefProviders);
-        }
 
-        return new $.Deferred().reject();
-    }
     
     // File-based preferences handling
     $(exports).on("activeEditorChange", function (e, current) {
@@ -744,7 +880,7 @@ define(function (require, exports, module) {
     // Create PerfUtils measurement
     PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
 
-    $(MainViewManager).on("currentFileChanged", _handleCurrentFileChanged);
+    $(MainViewManager).on("currentFileChange", _handlecurrentFileChange);
     $(MainViewManager).on("paneViewRemove paneViewRemoveList", _handleRemoveFromPaneView);
 
     

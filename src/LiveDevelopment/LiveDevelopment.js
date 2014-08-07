@@ -1328,7 +1328,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * @private
-     * MainViewManager.currentFileChanged event handler. 
+     * MainViewManager.currentFileChange event handler. 
      */
     function _onFileChanged() {
         var doc = _getCurrentDocument();
@@ -1430,7 +1430,7 @@ define(function LiveDevelopment(require, exports, module) {
         $(CSSAgent).on("styleSheetAdded.livedev", _styleSheetAdded);
         
         $(MainViewManager)
-            .on("currentFileChanged", _onFileChanged);
+            .on("currentFileChange", _onFileChanged);
         $(DocumentManager)
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);

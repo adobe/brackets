@@ -55,7 +55,7 @@
  *      is a string containing the editor option that is changing. The 3rd arg, which can be any
  *      data type, is the new value for the editor option.
  *    - beforeDestroy - Triggered before the object is about to dispose of all its internal state data 
- *      so that listners can cache things like scroll pos, etc...
+ *      so that listeners can cache things like scroll pos, etc...
  *
  * The Editor also dispatches "change" events internally, but you should listen for those on
  * Documents, not Editors.
@@ -1634,44 +1634,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Closes any focused inline widget. Else, asynchronously asks providers to create one.
-     *
-     * @param {Array.<{priority:number, provider:function(...)}>} providers 
-     *   prioritized list of providers
-     * @param {string=} errorMsg Default message to display if no providers return non-null
-     * @return {!Promise} A promise resolved with true if an inline widget is opened or false
-     *   when closed. Rejected if there is neither an existing widget to close nor a provider
-     *   willing to create a widget (or if no editor is open).
-     */
-    Editor.prototype.toggleInlineWidget = function (providers, errorMsg) {
-        var result = new $.Deferred(),
-            inlineWidget = this.getFocusedInlineWidget();
-            
-        if (inlineWidget) {
-            // an inline widget's editor has focus, so close it
-            PerfUtils.markStart(PerfUtils.INLINE_WIDGET_CLOSE);
-            inlineWidget.close().done(function () {
-                PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_CLOSE);
-                // return a resolved promise to CommandManager
-                result.resolve(false);
-            });
-        } else {
-            // main editor has focus, so create an inline editor
-            PerfUtils.markStart(PerfUtils.INLINE_WIDGET_OPEN);
-
-            this.openInlineWidget(providers, errorMsg).done(function () {
-                PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
-                result.resolve(true);
-            }).fail(function () {
-                PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
-                result.reject();
-            });
-        }
-        
-        return result.promise();
-    };
-
-    /**
      * Returns a list of all inline widgets currently open in this editor. Each entry contains the
      * inline's id, and the data parameter that was passed to addInlineWidget().
      * @return {!Array.<{id:number, data:Object}>}
@@ -1837,74 +1799,6 @@ define(function (require, exports, module) {
         return $(scroller).offset().top - scroller.scrollTop + topPadding;
     };
 
-    
-    /**
-     * @private
-     * Finds an inline widget provider from the given list that can offer a widget for the current cursor
-     * position, and once the widget has been created inserts it into the editor.
-     *
-     * @param {!Editor} editor The host editor
-     * @param {Array.<{priority:number, provider:function(...)}>} providers 
-     *      prioritized list of providers
-     * @param {string=} defaultErrorMsg Default message to display if no providers return non-null
-     * @return {$.Promise} a promise that will be resolved when an InlineWidget 
-     *      is created or rejected if no inline providers have offered one.
-     */
-    Editor.prototype.openInlineWidget = function (providers, defaultErrorMsg) {
-        // Run through inline-editor providers until one responds
-        var pos = this.getCursorPos(),
-            inlinePromise,
-            i,
-            result = new $.Deferred(),
-            errorMsg,
-            providerRet,
-            self = this;
-            
-        
-        // Query each provider in priority order. Provider may return:
-        // 1. `null` to indicate it does not apply to current cursor position
-        // 2. promise that should resolve to an InlineWidget
-        // 3. string which indicates provider does apply to current cursor position,
-        //    but reason it could not create InlineWidget
-        //
-        // Keep looping until a provider is found. If a provider is not found,
-        // display highest priority error message that was found, otherwise display
-        // default error message
-        for (i = 0; i < providers.length && !inlinePromise; i++) {
-            var provider = providers[i].provider;
-            providerRet = provider(this, pos);
-            if (providerRet) {
-                if (providerRet.hasOwnProperty("done")) {
-                    inlinePromise = providerRet;
-                } else if (!errorMsg && typeof (providerRet) === "string") {
-                    errorMsg = providerRet;
-                }
-            }
-        }
-
-        // Use default error message if none other provided
-        errorMsg = errorMsg || defaultErrorMsg;
-        
-        // If one of them will provide a widget, show it inline once ready
-        if (inlinePromise) {
-            inlinePromise.done(function (inlineWidget) {
-                self.addInlineWidget(pos, inlineWidget).done(function () {
-                    result.resolve();
-                });
-            }).fail(function () {
-                // terminate timer that was started above
-                self.displayErrorMessageAtCursor(errorMsg);
-                result.reject();
-            });
-        } else {
-            // terminate timer that was started above
-            this.displayErrorMessageAtCursor(errorMsg);
-            result.reject();
-        }
-        
-        return result.promise();
-    };
-    
     /**
      * Sets the height of an inline widget in this editor.
      * @param {!InlineWidget} inlineWidget The widget whose height should be set.
@@ -2319,41 +2213,6 @@ define(function (require, exports, module) {
         }
     };
     
-    /** 
-     * finds a jump to definition provider that can respond to the current cursor 
-     *  and construct an instance of the provider's jump to def object if one is found
-     * @param {Array.<Providers>} providers - jump to def providers
-     */
-    Editor.prototype.jumpToDefinition = function (providers) {
-        var i,
-            promise,
-            pos = this.getCursorPos(),
-            result = new $.Deferred();
-
-        PerfUtils.addMeasurement(PerfUtils.JUMP_TO_DEFINITION);
-        
-        // Run through providers until one responds
-        for (i = 0; i < providers.length && !promise; i++) {
-            var provider = providers[i];
-            promise = provider(this, pos);
-        }
-
-        // Will one of them will provide a result?
-        if (promise) {
-            promise.done(function () {
-                PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
-                result.resolve();
-            }).fail(function () {
-                PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
-                result.reject();
-            });
-        } else {
-            PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
-            result.reject();
-        }
-        
-        return result.promise();
-    };
     
     // Global settings that affect Editor instances that share the same preference locations
 

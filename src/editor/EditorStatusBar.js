@@ -32,18 +32,20 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var _                   = require("thirdparty/lodash"),
-        AnimationUtils      = require("utils/AnimationUtils"),
-        AppInit             = require("utils/AppInit"),
-        DropdownButton      = require("widgets/DropdownButton").DropdownButton,
-        EditorManager       = require("editor/EditorManager"),
+    var _                            = require("thirdparty/lodash"),
+        AnimationUtils               = require("utils/AnimationUtils"),
+        AppInit                      = require("utils/AppInit"),
+        DropdownButton               = require("widgets/DropdownButton").DropdownButton,
+        EditorManager                = require("editor/EditorManager"),
         MainViewManager     = require("view/MainViewManager"),
-        Editor              = require("editor/Editor").Editor,
-        KeyEvent            = require("utils/KeyEvent"),
-        LanguageManager     = require("language/LanguageManager"),
-        StatusBar           = require("widgets/StatusBar"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+        Editor                       = require("editor/Editor").Editor,
+        FileUtils                    = require("file/FileUtils"),
+        KeyEvent                     = require("utils/KeyEvent"),
+        LanguageManager              = require("language/LanguageManager"),
+        PreferencesManager           = require("preferences/PreferencesManager"),
+        StatusBar                    = require("widgets/StatusBar"),
+        Strings                      = require("strings"),
+        StringUtils                  = require("utils/StringUtils");
     
     /* StatusBar indicators */
     var languageSelect, // this is a DropdownButton instance
@@ -53,6 +55,9 @@ define(function (require, exports, module) {
         $indentWidthLabel,
         $indentWidthInput,
         $statusOverwrite;
+    
+    /** Special list item for the 'set as default' gesture in language switcher dropdown */
+    var LANGUAGE_SET_AS_DEFAULT = {};
     
     
     /**
@@ -239,6 +244,7 @@ define(function (require, exports, module) {
      */
     function _initOverwriteMode(currentEditor) {
         currentEditor.toggleOverwrite($statusOverwrite.text() === Strings.STATUSBAR_OVERWRITE);
+        $statusOverwrite.attr("title", Strings.STATUSBAR_INSOVR_TOOLTIP);
     }
     
     /**
@@ -301,6 +307,9 @@ define(function (require, exports, module) {
         
         languageSelect.items = languages;
         
+        // Add option to top of menu for persisting the override
+        languageSelect.items.unshift("---");
+        languageSelect.items.unshift(LANGUAGE_SET_AS_DEFAULT);
     }
     
     /**
@@ -317,8 +326,14 @@ define(function (require, exports, module) {
         
         languageSelect      = new DropdownButton("", [], function (item, index) {
             var document = EditorManager.getActiveEditor().document,
-                defaultLang = LanguageManager.getLanguageForPath(document.file.fullPath, true),
-                html = _.escape(item.getName());
+                defaultLang = LanguageManager.getLanguageForPath(document.file.fullPath, true);
+            
+            if (item === LANGUAGE_SET_AS_DEFAULT) {
+                var label = _.escape(StringUtils.format(Strings.STATUSBAR_SET_DEFAULT_LANG, FileUtils.getSmartFileExtension(document.file.fullPath)));
+                return { html: label, enabled: document.getLanguage() !== defaultLang };
+            }
+            
+            var html = _.escape(item.getName());
             
             // Show indicators for currently selected & default languages for the current file
             if (item === defaultLang) {
@@ -333,6 +348,7 @@ define(function (require, exports, module) {
         languageSelect.dropdownExtraClasses = "dropdown-status-bar";
         languageSelect.$button.addClass("btn-status-bar");
         $("#status-language").append(languageSelect.$button);
+        languageSelect.$button.attr("title", Strings.STATUSBAR_LANG_TOOLTIP);
         
         // indentation event handlers
         $indentType.on("click", _toggleIndentType);
@@ -362,13 +378,22 @@ define(function (require, exports, module) {
         $indentWidthInput.focus(function () { $indentWidthInput.select(); });
 
         // Language select change handler
-        $(languageSelect).on("select", function (e, lang, index) {
+        $(languageSelect).on("select", function (e, lang) {
             var document = EditorManager.getActiveEditor().document,
-                fullPath = document.file.fullPath,
-                defaultLang = LanguageManager.getLanguageForPath(fullPath, true);
-            // if default language selected, don't "force" it
-            // (passing in null will reset the force flag)
-            document.setLanguageOverride(lang === defaultLang ? null : lang);
+                fullPath = document.file.fullPath;
+            
+            if (lang === LANGUAGE_SET_AS_DEFAULT) {
+                // Set file's current language in preferences as a file extension override (only enabled if not default already)
+                var fileExtensionMap = PreferencesManager.get("language.fileExtensions");
+                fileExtensionMap[FileUtils.getSmartFileExtension(fullPath)] = document.getLanguage().getId();
+                PreferencesManager.set("language.fileExtensions", fileExtensionMap);
+                
+            } else {
+                // Set selected language as a path override for just this one file (not persisted)
+                var defaultLang = LanguageManager.getLanguageForPath(fullPath, true);
+                // if default language selected, pass null to clear the override
+                LanguageManager.setLanguageOverrideForPath(fullPath, lang === defaultLang ? null : lang);
+            }
         });
 
         $statusOverwrite.on("click", _updateEditorOverwriteMode);

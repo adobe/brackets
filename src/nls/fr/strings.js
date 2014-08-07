@@ -248,7 +248,11 @@ define({
 	"STATUSBAR_USER_EXTENSIONS_DISABLED": "Extensions désactivées",
 	"STATUSBAR_INSERT": "INS",
 	"STATUSBAR_OVERWRITE": "RFP",
+	"STATUSBAR_INSOVR_TOOLTIP": "Cliquez pour faire passer le curseur du mode Insertion (INS) au mode Remplacement (RFP) ou inversement",
+	"STATUSBAR_LANG_TOOLTIP": "Cliquez pour modifier le type de fichier",
+	"STATUSBAR_CODE_INSPECTION_TOOLTIP": "{0}. Cliquez pour afficher/masquer le panneau des rapports.",
 	"STATUSBAR_DEFAULT_LANG": "(valeur par défaut)",
+	"STATUSBAR_SET_DEFAULT_LANG": "Utiliser par défaut pour les fichiers .{0}",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} problèmes",
@@ -424,8 +428,6 @@ define({
 	"USE_THEME_SCROLLBARS": "Utiliser les barres de défilement des thèmes",
 	"FONT_SIZE": "Taille de la police",
 	"FONT_FAMILY": "Famille de polices",
-	"LINE_HEIGHT": "Hauteur de ligne",
-	"GENERAL": "Général",
 
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "Nouvelle règle",

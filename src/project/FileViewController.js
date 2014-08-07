@@ -58,7 +58,7 @@ define(function (require, exports, module) {
         DeprecationWarning  = require("utils/DeprecationWarning");
 
     /** 
-     * Tracks whether a "currentFileChanged" notification occured due to a call to 
+     * Tracks whether a "currentFileChange" notification occured due to a call to 
      * openAndSelectDocument.
      * @see FileviewController.openAndSelectDocument
      * @private 
@@ -84,11 +84,11 @@ define(function (require, exports, module) {
     /** 
       * Update the file selection focus whenever the contents of the editor area change
       */
-    $(MainViewManager).on("currentFileChanged", function (event, file, paneId) {
+    $(MainViewManager).on("currentFileChange", function (event, file, paneId) {
         var perfTimerName;
         if (!_curDocChangedDueToMe) {
             // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
-            perfTimerName = PerfUtils.markStart("FileViewController._onCurrentFileChanged():\t" + (file ? (file.fullPath) : "(no open file)"));
+            perfTimerName = PerfUtils.markStart("FileViewController._oncurrentFileChange():\t" + (file ? (file.fullPath) : "(no open file)"));
             if (file && MainViewManager.findView(paneId,  file.fullPath) !== -1) {
                 _fileSelectionFocus = PANE_VIEW_LIST_VIEW;
             } else {
@@ -115,7 +115,7 @@ define(function (require, exports, module) {
             MainViewManager.focusActivePane();
         }
         // If fullPath corresonds to the current doc being viewed then opening the file won't
-        // trigger a currentFileChanged event, so we need to trigger a documentSelectionFocusChange 
+        // trigger a currentFileChange event, so we need to trigger a documentSelectionFocusChange 
         // in this case to signify the selection focus has changed even though the current document has not.
         $(exports).triggerHandler("documentSelectionFocusChange");
     }
@@ -153,7 +153,7 @@ define(function (require, exports, module) {
 
         // Opening files are asynchronous and we want to know when this function caused a file
         // to open so that _fileSelectionFocus is set appropriatly. _curDocChangedDueToMe is set here
-        // and checked in the currentFileChanged handler
+        // and checked in the currentFileChange handler
         _curDocChangedDueToMe = true;
 
         _fileSelectionFocus = fileSelectionFocus;
@@ -161,7 +161,7 @@ define(function (require, exports, module) {
         paneId = (paneId || MainViewManager.ACTIVE_PANE);
         
         // If fullPath corresonds to the current doc being viewed then opening the file won't
-        // trigger a currentFileChanged event, so we need to trigger a documentSelectionFocusChange 
+        // trigger a currentFileChange event, so we need to trigger a documentSelectionFocusChange 
         // in this case to signify the selection focus has changed even though the current document has not.
         var currentPath = MainViewManager.getCurrentlyViewedPath(paneId);
         if (currentPath === fullPath) {
@@ -217,7 +217,7 @@ define(function (require, exports, module) {
      * @return {!$.Promise}
      */
     function addToWorkingSetAndSelect(fullPath) {
-        DeprecationWarning.deprecationWarning("Use FileViweController.addToPaneViewAndSelect() instead of FileViweController.addToWorkingSetAndSelect().", true);
+        DeprecationWarning.deprecationWarning("Use FileViewController.addToPaneViewAndSelect() instead of FileViewController.addToWorkingSetAndSelect().", true);
         var result = new $.Deferred();
         addToPaneViewAndSelect(fullPath)
             .done(function (file) {
