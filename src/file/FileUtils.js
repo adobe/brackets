@@ -427,12 +427,11 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
      * Get the file name without the extension.
      * @param {string} filename File name of a file or directory
      * @return {string} Returns the file name without the extension
      */
-    function _getFilenameWithoutExtension(filename) {
+    function getFilenameWithoutExtension(filename) {
         var index = filename.lastIndexOf(".");
         return index === -1 ? filename : filename.slice(0, index);
     }
@@ -452,8 +451,8 @@ define(function (require, exports, module) {
             cmpNames;
         
         if (brackets.platform === "win") {
-            filename1 = _getFilenameWithoutExtension(filename1);
-            filename2 = _getFilenameWithoutExtension(filename2);
+            filename1 = getFilenameWithoutExtension(filename1);
+            filename2 = getFilenameWithoutExtension(filename2);
         }
         cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase(), undefined, {numeric: true});
         
@@ -516,6 +515,7 @@ define(function (require, exports, module) {
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getBaseName                    = getBaseName;
     exports.getRelativeFilename            = getRelativeFilename;
+    exports.getFilenameWithoutExtension    = getFilenameWithoutExtension;
     exports.getFileExtension               = getFileExtension;
     exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;
