@@ -81,6 +81,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
+        MainViewFactory     = require("view/MainViewFactory"),
         Menus               = require("command/Menus"),
         Commands            = require("command/Commands"),
         EditorManager       = require("editor/EditorManager"),
@@ -1162,7 +1163,11 @@ define(function (require, exports, module) {
                     result.reject(fileError);
                 });
         } else {
-            result.reject("custom viewers not yet implemented with split view. check back later.");
+            var factory = MainViewFactory.findSuitableFactoryFor(file.fullPath);
+            
+            if (!factory) {
+                result.reject("There isn't a registered file viewer that can view " + file.fullPath);
+            }
         }
         
         return result;
@@ -1212,7 +1217,7 @@ define(function (require, exports, module) {
                 exports.open(firstPane.id, lastViewed);
             }
         }
-    }    
+    }
 
     /**
      * Closes a file in the specified pane or panes
