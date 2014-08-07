@@ -689,8 +689,8 @@ define(function (require, exports, module) {
                         waitsForDone(ExtensionManager.updateExtensions());
                     });
                     runs(function () {
-                        expect(file.unlink).not.toHaveBeenCalled();
-                        expect(Package.installUpdate).toHaveBeenCalledWith(filename, id, undefined);
+                        expect(file.unlink).toHaveBeenCalled();
+                        expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
                     });
                 });
                 
@@ -702,6 +702,131 @@ define(function (require, exports, module) {
                     });
                 });
             });
+        });
+                
+        describe("Local File Install", function () {
+            var didReload;
+
+            function clickOk() {
+                var $okBtn = $(".install-extension-dialog.instance .dialog-button[data-button-id='ok']");
+                $okBtn.click();
+            }
+
+            beforeEach(function () {
+                // Mock reloading the app so we don't actually reload :)
+                didReload = false;
+                spyOn(CommandManager, "execute").andCallFake(function (id) {
+                    if (id === Commands.APP_RELOAD) {
+                        didReload = true;
+                    } else {
+                        CommandManager.execute.apply(this, arguments);
+                    }
+                });
+            });
+
+            it("should set flag to keep local files for new installs", function () {
+                var id = "mock-extension",
+                    filename = "/path/to/downloaded/file.zip",
+                    file = FileSystem.getFileForPath(filename),
+                    result;
+
+                runs(function () {
+                    spyOn(file, "unlink");
+                    
+                    // Mock install
+                    var d = $.Deferred().resolve({});
+                    spyOn(Package, "installFromPath").andReturn(d.promise());
+
+                    var promise = InstallExtensionDialog.installUsingDialog(file);
+                    promise.done(function (_result) {
+                        result = _result;
+                    });
+
+                    clickOk();
+                    waitsForDone(promise);
+                });
+
+                runs(function () {
+                    expect(Package.installFromPath).toHaveBeenCalledWith(filename);
+                    expect(result.keepFile).toBe(true);
+                    expect(file.unlink).not.toHaveBeenCalled();
+                });
+            });
+
+            it("should set flag to keep local files for updates", function () {
+                var id = "mock-extension",
+                    filename = "/path/to/downloaded/file.zip",
+                    file = FileSystem.getFileForPath(filename),
+                    result,
+                    dialogDeferred = new $.Deferred(),
+                    updatePromise,
+                    $mockDlg,
+                    didClose;
+
+                // Mock update
+                var installResult = {
+                    installationStatus: Package.InstallationStatuses.NEEDS_UPDATE,
+                    name: id,
+                    localPath: filename
+                };
+
+                // Mock dialog
+                spyOn(Dialogs, "showModalDialog").andCallFake(function () {
+                    $mockDlg = $("<div/>");
+                    didClose = false;
+
+                    return {
+                        getElement: function () { return $mockDlg; },
+                        close: function () { didClose = true; }
+                    };
+                });
+
+                spyOn(file, "unlink");
+                
+                // Mock installs to avoid calling into node ExtensionManagerDomain
+                spyOn(Package, "installFromPath").andCallFake(function () {
+                    return new $.Deferred().resolve(installResult).promise();
+                });
+                spyOn(Package, "installUpdate").andCallFake(function () {
+                    return new $.Deferred().resolve(installResult).promise();
+                });
+
+                runs(function () {
+                    // Mimic drag and drop
+                    InstallExtensionDialog.updateUsingDialog(file)
+                        .done(function (_result) {
+                            result = _result;
+                            
+                            // Mark for update
+                            ExtensionManager.updateFromDownload(result);
+                            
+                            dialogDeferred.resolve();
+                        })
+                        .fail(dialogDeferred.reject);
+
+                    clickOk();
+                    waitsForDone(dialogDeferred.promise(), "InstallExtensionDialog.updateUsingDialog");
+                });
+
+                runs(function () {
+                    // InstallExtensionDialog should set keepFile=true
+                    expect(result.keepFile).toBe(true);
+                    
+                    // Run update, creates dialog DIALOG_ID_CHANGE_EXTENSIONS
+                    ExtensionManagerDialog._performChanges();
+                    $mockDlg.triggerHandler("buttonClick", Dialogs.DIALOG_BTN_OK);
+                });
+                
+                waitsFor(function () {
+                    return didClose;
+                }, "DIALOG_ID_CHANGE_EXTENSIONS closed");
+
+                runs(function () {
+                    expect(file.unlink).not.toHaveBeenCalled();
+                    expect(didReload).toBe(true);
+                });
+            });
+
         });
         
         describe("ExtensionManagerView", function () {
@@ -1525,7 +1650,7 @@ define(function (require, exports, module) {
                         });
                         waitsFor(function () { return didReload; }, "mock reload");
                         runs(function () {
-                            expect(Package.installUpdate).toHaveBeenCalledWith(filename, id, undefined);
+                            expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
                             expect(didClose).toBe(true);
                             expect(didReload).toBe(true);
                         });
