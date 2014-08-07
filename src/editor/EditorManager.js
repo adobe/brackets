@@ -227,6 +227,12 @@ define(function (require, exports, module) {
 	
     /**
      * Current File Changed handler
+     * MainViewManager dispatches a "currentFileChange" event whenever the currently viewed 
+     * file changes.  Which could mean that the previously viewed file has been closed or a 
+     * non-editor view (image) has been given focus.  _notifyAcitveEditorChanged is also hooked 
+     * up to editor.focus to handle focus events for editors which handles changing focus between
+     * two editors but, because editormanager maintains  a "_lastFocusedEditor" state, we have to
+     * "nullify" that state whenever the focus goes to a non-editor or when the current editor is closed
      * @private
      * @param {!jQuery.Event} e - event
      * @param {?File} file - current file (can be null)
