@@ -810,7 +810,7 @@ define(function (require, exports, module) {
                 if (token === "}" && !currentSelector) {
                     return false;
                 }
-                if (token === ";") {
+                if (token === ";" || (state.state === "prop")) {
                     currentSelector = "";
                 } else {
                     if (!currentSelector) {
@@ -979,12 +979,12 @@ define(function (require, exports, module) {
                     }
                     if (selectors[j].level < currentLevel) {
                         break;
-                    } else if (selectors[j].declListEndLine !== -1) {
-                        return;
-                    } else {
-                        selectors[j].declListEndLine = line;
-                        selectors[j].declListEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
                     }
+                    if (selectors[j].declListEndLine !== -1) {
+                        return;
+                    }
+                    selectors[j].declListEndLine = line;
+                    selectors[j].declListEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
                 }
             } while (currentLevel > 0 && currentLevel === level);
         }
