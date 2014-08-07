@@ -79,17 +79,20 @@ define(function (require, exports, module) {
         options = options || {};
         var fileName = file.name;
 
-        // Portip: If no options.name or options.title is provided, then we will rely solely on
-        // the name of the file to be unique
+        // If no options.name is provided, then we derive the name of the theme from whichever we find
+        // first, the options.title or the filename.
         if (!options.name) {
             if (options.title) {
                 options.name = options.title;
             } else {
-                options.name = fileName.replace(/\.[\w]+$/, function (match) {
-                    return validExtensions.indexOf(match.substr(1)) === 0 ? '' : match;
-                });
+                // Remove the file extension when the filename is used as the theme name. This is to
+                // follow CodeMirror conventions where themes are just a CSS file and the filename
+                // (wihtout the extension) is used to build CSS rules.
+                options.name = FileUtils.getFilenameWithoutExtension(fileName);
             }
 
+            // We do a bit of string treatment here to make sure we generate theme names that can be
+            // used as a CSS class names by CodeMirror.
             options.name = options.name.toLocaleLowerCase().replace(/[\W]/g, '-');
         }
 
