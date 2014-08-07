@@ -63,7 +63,7 @@ define(function (require, exports, module) {
      * by calling one of the following: doRemoveView, removeFromViewList. removeListFromViewList, or removeAllFromViewList
      *
      * Pane Object Events:
-     * viewListChanged - triggered whenever there is a change the the pane's view state
+     * viewListChange - triggered whenever there is a change the the pane's view state
      *
      * View Interface:
      *
@@ -135,7 +135,7 @@ define(function (require, exports, module) {
      *
      * Events Dispatched from Pane Objects:
      *  
-     *      viewListChanged - triggered whenver the interal view list has changed due to the handling of a File object event.
+     *      viewListChange - triggered whenver the interal view list has changed due to the handling of a File object event.
      *          
      */
     
@@ -660,7 +660,7 @@ define(function (require, exports, module) {
         
         // dispatch the change event
         if (dispatchEvent) {
-            $(this).triggerHandler("viewListChanged");
+            $(this).triggerHandler("viewListChange");
         }
     };
 
@@ -672,7 +672,7 @@ define(function (require, exports, module) {
      */
     Pane.prototype._handleFileDeleted = function (e, fullPath) {
         if (this.doRemoveView({fullPath: fullPath})) {
-            $(this).triggerHandler("viewListChanged");
+            $(this).triggerHandler("viewListChange");
         }
     };
     

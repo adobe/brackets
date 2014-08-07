@@ -39,16 +39,16 @@
  *
  * This module dispatches several events:
  *
- *    - activePaneChanged - When the active pane changes.  There will always be an active pane.
+ *    - activePaneChange - When the active pane changes.  There will always be an active pane.
  *          (e, newPaneId:string, oldPaneId:string) 
- *    - currentFileChanged -- When the user has switched to another pane, file, document. When the user closes a view
+ *    - currentFileChange -- When the user has switched to another pane, file, document. When the user closes a view
  *      and there are no other views to show the current file will be null.  
  *          (e, newFile:File, newPaneId:string, oldFile:File, oldPaneId:string)
- *    - paneLayoutChanged -- When Orientation changes.
+ *    - paneLayoutChange -- When Orientation changes.
  *          (e, orientation:string)
- *    - paneCreated -- When a pane is created
+ *    - paneCreate -- When a pane is created
  *          (e, paneId:string)
- *    - paneDestroyed -- When a pane is destroyed
+ *    - paneDestroy -- When a pane is destroyed
  *          (e, paneId:string)
  *      
  *
@@ -63,7 +63,7 @@
  *          (e, filesRemoved:Array.<File>, paneId:string)
  *    - paneViewSort -- When a pane's view array is reordered without additions or removals.
  *          (e, paneId:string)
- *    - paneViewUpdated -- When changes happen due to system events such as a file being deleted.
+ *    - paneViewUpdate -- When changes happen due to system events such as a file being deleted.
  *                              listeners should discard all working set info and rebuilt it from the pane 
  *                              by calling getViews()
  *          (e, paneId:string)
@@ -301,8 +301,8 @@ define(function (require, exports, module) {
             
             _activePaneId = newPaneId;
             
-            $(exports).triggerHandler("activePaneChanged", [newPaneId, oldPaneId]);
-            $(exports).triggerHandler("currentFileChanged", [_getPane(ACTIVE_PANE).getCurrentlyViewedFile(), newPaneId, oldPane.getCurrentlyViewedFile(), oldPaneId]);
+            $(exports).triggerHandler("activePaneChange", [newPaneId, oldPaneId]);
+            $(exports).triggerHandler("currentFileChange", [_getPane(ACTIVE_PANE).getCurrentlyViewedFile(), newPaneId, oldPane.getCurrentlyViewedFile(), oldPaneId]);
             
             oldPane.notifySetActive(false);
             newPane.notifySetActive(true);
@@ -365,14 +365,14 @@ define(function (require, exports, module) {
                 // Editor is a full editor
                 if (newPaneId !== _activePaneId) {
                     // we just need to set the active pane in this case
-                    //  it will dispatch the currentFileChanged message as well
+                    //  it will dispatch the currentFileChange message as well
                     //  as dispatching other events when the active pane changes
                     setActivePaneId(newPaneId);
                 } else {
                     // TODO: This may not be necessary anymore
                     var currentFile = getCurrentlyViewedFile();
                     if (currentFile !== current.getFile()) {
-                        $(exports).triggerHandler("currentFileChanged", [current.getFile(), _activePaneId, currentFile, _activePaneId]);
+                        $(exports).triggerHandler("currentFileChange", [current.getFile(), _activePaneId, currentFile, _activePaneId]);
                         focusActivePane();
                     }
                 }
@@ -1056,14 +1056,14 @@ define(function (require, exports, module) {
             pane = new Pane(paneId, _$container);
             _paneViews[paneId] = pane;
             
-            $(exports).triggerHandler("paneCreated", [pane.id]);
+            $(exports).triggerHandler("paneCreate", [pane.id]);
             
             pane.$el.on("click.mainview", function () {
                 setActivePaneId(pane.id);
             });
 
-            $(pane).on("viewListChanged.mainview", function () {
-                $(exports).triggerHandler("paneViewUpdated", [pane.id]);
+            $(pane).on("viewListChange.mainview", function () {
+                $(exports).triggerHandler("paneViewUpdate", [pane.id]);
             });
         }
         
@@ -1080,7 +1080,7 @@ define(function (require, exports, module) {
         _orientation = orientation;
         _updateLayout();
         _updateCommandState();
-        $(exports).triggerHandler("paneLayoutChanged", [_orientation]);
+        $(exports).triggerHandler("paneLayoutChange", [_orientation]);
         
     }
     
@@ -1118,7 +1118,7 @@ define(function (require, exports, module) {
         EditorManager.openDocument(doc, pane);
 
         if (pane.id === _activePaneId) {
-            $(exports).triggerHandler("currentFileChanged", [doc.file, pane.id, oldFile, pane.id]);
+            $(exports).triggerHandler("currentFileChange", [doc.file, pane.id, oldFile, pane.id]);
         }
 
         _makePaneViewMostRecent(paneId, doc.file);
@@ -1191,7 +1191,7 @@ define(function (require, exports, module) {
 
             secondPane.destroy();
             delete _paneViews[SECOND_PANE];
-            $(exports).triggerHandler("paneDestroyed", secondPane.id);
+            $(exports).triggerHandler("paneDestroy", secondPane.id);
             $(exports).triggerHandler("paneViewAddList", [fileList, firstPane.id]);
 
             fileList.forEach(function (file) {
@@ -1206,7 +1206,7 @@ define(function (require, exports, module) {
             _orientation = null;
             _updateLayout();
             _updateCommandState();
-            $(exports).triggerHandler("paneLayoutChanged", [_orientation]);
+            $(exports).triggerHandler("paneLayoutChange", [_orientation]);
 
             if (getCurrentlyViewedFile() !== lastViewed) {
                 exports.open(firstPane.id, lastViewed);
@@ -1236,12 +1236,12 @@ define(function (require, exports, module) {
             
             if (pane.id === _activePaneId) {
                 // when doRemoveView is called, it will open next file unless the option
-                //  to not do so is specified. That will trigger the currentFileChanged Event
+                //  to not do so is specified. That will trigger the currentFileChange Event
                 //  so we don't need to do it again, so if we removedthe current view of the activated
                 //  pane and the new view is now null then we need to tell our listeners that it's null
                 //  otherwise this is handled in open
                 if (oldFile && oldFile.fullPath === file.fullPath && !pane.getCurrentlyViewedFile()) {
-                    $(exports).triggerHandler("currentFileChanged", [pane.getCurrentlyViewedFile(), pane.id, oldFile, pane.id]);
+                    $(exports).triggerHandler("currentFileChange", [pane.getCurrentlyViewedFile(), pane.id, oldFile, pane.id]);
                 }
             }
         }
@@ -1278,7 +1278,7 @@ define(function (require, exports, module) {
         }
         
         if (currentFileClosed) {
-            $(exports).triggerHandler("currentFileChanged", [_getPane(ACTIVE_PANE).getCurrentlyViewedFile(), _activePaneId, currentFile, _activePaneId]);
+            $(exports).triggerHandler("currentFileChange", [_getPane(ACTIVE_PANE).getCurrentlyViewedFile(), _activePaneId, currentFile, _activePaneId]);
         }
     }
     
@@ -1311,7 +1311,7 @@ define(function (require, exports, module) {
         }
         
         if (paneId === _activePaneId || paneId === ACTIVE_PANE || paneId === ALL_PANES) {
-            $(exports).triggerHandler("currentFileChanged", [null, _activePaneId, currentFile, _activePaneId]);
+            $(exports).triggerHandler("currentFileChange", [null, _activePaneId, currentFile, _activePaneId]);
         }
         
         _mergePanes();
@@ -1435,7 +1435,7 @@ define(function (require, exports, module) {
                 _updateLayout();
                 _updateCommandState();
                 if (_orientation) {
-                    $(exports).triggerHandler("paneLayoutChanged", _orientation);
+                    $(exports).triggerHandler("paneLayoutChange", _orientation);
                 }
 
                 _.forEach(_paneViews, function (pane) {

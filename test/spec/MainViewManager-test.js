@@ -262,27 +262,27 @@ define(function (require, exports, module) {
                 });
             });
         });
-        describe("currentFileChanged event handlers", function () {
-            it("should fire currentFileChanged event", function () {
-                var currentFileChangedListener = jasmine.createSpy();
+        describe("currentFileChange event handlers", function () {
+            it("should fire currentFileChange event", function () {
+                var currentFileChangeListener = jasmine.createSpy();
 
                 runs(function () {
-                    _$(MainViewManager).on("currentFileChanged", currentFileChangedListener);
-                    expect(currentFileChangedListener.callCount).toBe(0);
+                    _$(MainViewManager).on("currentFileChange", currentFileChangeListener);
+                    expect(currentFileChangeListener.callCount).toBe(0);
                     promise = MainViewManager.open(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, "MainViewManager.doOpen");
                 });
                 runs(function () {
-                    expect(currentFileChangedListener.callCount).toBe(1);
-                    expect(currentFileChangedListener.calls[0].args[1].name).toEqual("test.js");
-                    expect(currentFileChangedListener.calls[0].args[2]).toEqual("first-pane");
+                    expect(currentFileChangeListener.callCount).toBe(1);
+                    expect(currentFileChangeListener.calls[0].args[1].name).toEqual("test.js");
+                    expect(currentFileChangeListener.calls[0].args[2]).toEqual("first-pane");
                     MainViewManager.closeAll(MainViewManager.ALL_PANES);
-                    expect(currentFileChangedListener.callCount).toBe(2);
-                    expect(currentFileChangedListener.calls[1].args[1]).toEqual(null);
-                    _$(MainViewManager).off("currentFileChanged", currentFileChangedListener);
+                    expect(currentFileChangeListener.callCount).toBe(2);
+                    expect(currentFileChangeListener.calls[1].args[1]).toEqual(null);
+                    _$(MainViewManager).off("currentFileChange", currentFileChangeListener);
                 });
             });
-            it("DocumentManager should listen to currentFileChanged events", function () {
+            it("DocumentManager should listen to currentFileChange events", function () {
                 runs(function () {
                     promise = MainViewManager.open(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, "MainViewManager.doOpen");
@@ -294,7 +294,7 @@ define(function (require, exports, module) {
                     expect(DocumentManager.getCurrentDocument()).toBe(null);
                 });
             });
-            it("EditorManager should listen to currentFileChanged events", function () {
+            it("EditorManager should listen to currentFileChange events", function () {
                 runs(function () {
                     promise = MainViewManager.open(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, "MainViewManager.doOpen");
@@ -309,12 +309,12 @@ define(function (require, exports, module) {
         });
         describe("Splitting Views", function () {
             it("should create a new pane", function () {
-                var paneCreatedListener = jasmine.createSpy(),
-                    paneLayoutChangedListener = jasmine.createSpy();
+                var paneCreateListener = jasmine.createSpy(),
+                    paneLayoutChangeListener = jasmine.createSpy();
                     
                 runs(function () {
-                    _$(MainViewManager).on("paneCreated", paneCreatedListener);
-                    _$(MainViewManager).on("paneLayoutChanged", paneLayoutChangedListener);
+                    _$(MainViewManager).on("paneCreate", paneCreateListener);
+                    _$(MainViewManager).on("paneLayoutChange", paneLayoutChangeListener);
                 });
                 runs(function () {
                     MainViewManager.setLayoutScheme(1, 2);
@@ -325,15 +325,15 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getPaneIdList()[1]).toEqual("second-pane");
                     expect(MainViewManager.getAllOpenFiles().length).toEqual(0);
                     
-                    expect(paneCreatedListener.callCount).toBe(1);
-                    expect(paneLayoutChangedListener.callCount).toBe(1);
+                    expect(paneCreateListener.callCount).toBe(1);
+                    expect(paneLayoutChangeListener.callCount).toBe(1);
                     
-                    expect(paneCreatedListener.calls[0].args[1]).toEqual("second-pane");
-                    expect(paneLayoutChangedListener.calls[0].args[1]).toEqual("VERTICAL");
+                    expect(paneCreateListener.calls[0].args[1]).toEqual("second-pane");
+                    expect(paneLayoutChangeListener.calls[0].args[1]).toEqual("VERTICAL");
                 });
                 runs(function () {
-                    _$(MainViewManager).off("paneCreated", paneCreatedListener);
-                    _$(MainViewManager).off("paneLayoutChanged", paneLayoutChangedListener);
+                    _$(MainViewManager).off("paneCreate", paneCreateListener);
+                    _$(MainViewManager).off("paneLayoutChange", paneLayoutChangeListener);
                 });
             });
             it("should should show interstitial page", function () {
@@ -348,12 +348,12 @@ define(function (require, exports, module) {
                 });
             });
             it("should destroy a pane", function () {
-                var paneDestroyedListener = jasmine.createSpy(),
-                    paneLayoutChangedListener = jasmine.createSpy();
+                var paneDestroyListener = jasmine.createSpy(),
+                    paneLayoutChangeListener = jasmine.createSpy();
                     
                 runs(function () {
-                    _$(MainViewManager).on("paneDestroyed", paneDestroyedListener);
-                    _$(MainViewManager).on("paneLayoutChanged", paneLayoutChangedListener);
+                    _$(MainViewManager).on("paneDestroy", paneDestroyListener);
+                    _$(MainViewManager).on("paneLayoutChange", paneLayoutChangeListener);
                 });
                 runs(function () {
                     MainViewManager.setLayoutScheme(1, 2);
@@ -371,15 +371,15 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getPaneIdList().length).toEqual(1);
                     expect(MainViewManager.getPaneIdList()[0]).toEqual("first-pane");
 
-                    expect(paneDestroyedListener.callCount).toBe(1);
-                    expect(paneLayoutChangedListener.callCount).toBe(2);
+                    expect(paneDestroyListener.callCount).toBe(1);
+                    expect(paneLayoutChangeListener.callCount).toBe(2);
                     
-                    expect(paneDestroyedListener.calls[0].args[1]).toEqual("second-pane");
-                    expect(paneLayoutChangedListener.calls[1].args[1]).toBeFalsy();
+                    expect(paneDestroyListener.calls[0].args[1]).toEqual("second-pane");
+                    expect(paneLayoutChangeListener.calls[1].args[1]).toBeFalsy();
                 });
                 runs(function () {
-                    _$(MainViewManager).off("paneDestroyed", paneDestroyedListener);
-                    _$(MainViewManager).off("paneLayoutChanged", paneLayoutChangedListener);
+                    _$(MainViewManager).off("paneDestroy", paneDestroyListener);
+                    _$(MainViewManager).off("paneLayoutChange", paneLayoutChangeListener);
                 });
             });
             it("should show two files", function () {
@@ -535,10 +535,10 @@ define(function (require, exports, module) {
                 });
             });
             it("should activate pane when pane is clicked", function () {
-                var activePaneChangedListener = jasmine.createSpy();
+                var activePaneChangeListener = jasmine.createSpy();
                 
                 runs(function () {
-                    _$(MainViewManager).on("activePaneChanged", activePaneChangedListener);
+                    _$(MainViewManager).on("activePaneChange", activePaneChangeListener);
                 });
                 runs(function () {
                     MainViewManager.setLayoutScheme(1, 2);
@@ -550,9 +550,9 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
                 });
                 runs(function () {
-                    expect(activePaneChangedListener.callCount).toBe(2);
+                    expect(activePaneChangeListener.callCount).toBe(2);
                 });
-                _$(MainViewManager).off("activePaneChanged", activePaneChangedListener);
+                _$(MainViewManager).off("activePaneChange", activePaneChangeListener);
             });
             it("should enforce bounds", function () {
                 runs(function () {
@@ -567,15 +567,15 @@ define(function (require, exports, module) {
                 });
             });
             it("should toggle layout", function () {
-                var paneLayoutChangedListener = jasmine.createSpy();
+                var paneLayoutChangeListener = jasmine.createSpy();
                 
                 runs(function () {
-                    _$(MainViewManager).on("paneLayoutChanged", paneLayoutChangedListener);
+                    _$(MainViewManager).on("paneLayoutChange", paneLayoutChangeListener);
                 });
                 runs(function () {
                     MainViewManager.setLayoutScheme(1, 2);
                     expect(MainViewManager.getLayoutScheme()).toEqual({rows: 1, columns: 2});
-                    expect(paneLayoutChangedListener.calls[0].args[1]).toEqual("VERTICAL");
+                    expect(paneLayoutChangeListener.calls[0].args[1]).toEqual("VERTICAL");
                 });
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
@@ -590,12 +590,12 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.setLayoutScheme(2, 1);
                     expect(MainViewManager.getLayoutScheme()).toEqual({rows: 2, columns: 1});
-                    expect(paneLayoutChangedListener.calls[1].args[1]).toEqual("HORIZONTAL");
+                    expect(paneLayoutChangeListener.calls[1].args[1]).toEqual("HORIZONTAL");
                 });
                 runs(function () {
-                    expect(paneLayoutChangedListener.callCount).toBe(2);
+                    expect(paneLayoutChangeListener.callCount).toBe(2);
                 });
-                _$(MainViewManager).off("paneLayoutChanged", paneLayoutChangedListener);
+                _$(MainViewManager).off("paneLayoutChange", paneLayoutChangeListener);
             });
         });
         describe("Targeted Pane API tests", function () {

@@ -663,7 +663,7 @@ define(function (require, exports, module) {
         PreferencesManager.fileChanged(doc.file.fullPath);
     });
     
-    $(MainViewManager).on("currentFileChanged", function (e, newFile, newPaneId, oldFile, oldPaneId) {
+    $(MainViewManager).on("currentFileChange", function (e, newFile, newPaneId, oldFile, oldPaneId) {
         var newDoc = null,
             oldDoc = null;
 
@@ -681,7 +681,7 @@ define(function (require, exports, module) {
         
         var count = DeprecationWarning.getEventHandlerCount(exports, "currentDocumentChange");
         if (count > 0) {
-            DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChanged' instead.", true);
+            DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChange' instead.", true);
         }
         
         $(exports).triggerHandler("currentDocumentChange", [newDoc, oldDoc]);

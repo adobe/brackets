@@ -706,7 +706,7 @@ define(function (require, exports, module) {
         }
     }
 
-    $(MainViewManager).on("currentFileChanged", _handleFileChanged);
+    $(MainViewManager).on("currentFileChange", _handleFileChanged);
 
     CommandManager.register(Strings.CMD_FIND,                   Commands.CMD_FIND,                  _launchFind);
     CommandManager.register(Strings.CMD_FIND_NEXT,              Commands.CMD_FIND_NEXT,             _findNext);

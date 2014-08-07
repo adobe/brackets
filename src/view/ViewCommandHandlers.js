@@ -487,7 +487,7 @@ define(function (require, exports, module) {
     prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);
 
     // Update UI when opening or closing a document
-    $(MainViewManager).on("currentFileChanged", _updateUI);
+    $(MainViewManager).on("currentFileChange", _updateUI);
 
     // Update UI when Brackets finishes loading
     AppInit.appReady(init);

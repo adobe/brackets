@@ -166,7 +166,7 @@ define(function (require, exports, module) {
         }
         
         // wire up an event handler to monitor when panes are created
-        $(MainViewManager).on("paneCreated", function (evt, paneId) {
+        $(MainViewManager).on("paneCreate", function (evt, paneId) {
             PaneViewListView.createPaneViewListViewForPane($paneViewListContainer, paneId);
         });
         

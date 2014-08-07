@@ -476,7 +476,7 @@ define(function (require, exports, module) {
         if (_enabled) {
             // register our event listeners
             $(MainViewManager)
-                .on("currentFileChanged.codeInspection", function () {
+                .on("currentFileChange.codeInspection", function () {
                     run();
                 });
             $(DocumentManager)

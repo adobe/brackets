@@ -433,7 +433,7 @@ define(function (require, exports, module) {
             it("should dispatch events when a file is removed", function () {
                 var gotEvent = false;
                 
-                $(myPane).on("viewListChanged.test", function () {
+                $(myPane).on("viewListChange.test", function () {
                     gotEvent = true;
                 });
                 
@@ -447,7 +447,7 @@ define(function (require, exports, module) {
             it("should dispatch events when file is renamed", function () {
                 var gotEvent = false;
                 
-                $(myPane).on("viewListChanged.test", function () {
+                $(myPane).on("viewListChange.test", function () {
                     gotEvent = true;
                 });
                 

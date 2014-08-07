@@ -42,7 +42,7 @@
  *
  *      Does fire when focus moves between inline editor and its full-size container.
  *
- *      This event tracks `MainViewManagers's `currentFileChanged` event and all editor
+ *      This event tracks `MainViewManagers's `currentFileChange` event and all editor
  *      objects "focus" event.
  *
  *          (e, editorGainingFocus:editor, editorLosingFocus:editor)
@@ -237,7 +237,7 @@ define(function (require, exports, module) {
      * @param {!jQuery.Event} e - event
      * @param {?File} file - current file (can be null)
      */
-    function _handleCurrentFileChanged(e, file) {
+    function _handlecurrentFileChange(e, file) {
         var doc = file ? DocumentManager.getOpenDocumentForPath(file.fullPath) : null;
         _notifyActiveEditorChanged(doc ? doc._masterEditor : null);
     }
@@ -880,7 +880,7 @@ define(function (require, exports, module) {
     // Create PerfUtils measurement
     PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
 
-    $(MainViewManager).on("currentFileChanged", _handleCurrentFileChanged);
+    $(MainViewManager).on("currentFileChange", _handlecurrentFileChange);
     $(MainViewManager).on("paneViewRemove paneViewRemoveList", _handleRemoveFromPaneView);
 
     
