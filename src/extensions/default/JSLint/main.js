@@ -71,8 +71,8 @@ define(function (require, exports, module) {
      * a gold star when no errors are found.
      */
     function lintOneFile(text, fullPath) {
-        // If a line contains only whitespace, remove the whitespace
-        text = text.replace(/^[\x20\t\f]+$/gm, "");
+        // If a line contains only whitespace (here spaces or tabs), remove the whitespace
+        text = text.replace(/^[ \t]+$/gm, "");
         
         var options = prefs.get("options");
 
