@@ -87,12 +87,12 @@ define(function (require, exports, module) {
             } else {
                 // Remove the file extension when the filename is used as the theme name. This is to
                 // follow CodeMirror conventions where themes are just a CSS file and the filename
-                // (wihtout the extension) is used to build CSS rules.
+                // (without the extension) is used to build CSS rules.
                 options.name = FileUtils.getFilenameWithoutExtension(fileName);
             }
 
             // We do a bit of string treatment here to make sure we generate theme names that can be
-            // used as a CSS class names by CodeMirror.
+            // used as a CSS class name by CodeMirror.
             options.name = options.name.toLocaleLowerCase().replace(/[\W]/g, '-');
         }
 

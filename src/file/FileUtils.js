@@ -427,7 +427,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
      * Get the file name without the extension.
      * @param {string} filename File name of a file or directory
      * @return {string} Returns the file name without the extension
