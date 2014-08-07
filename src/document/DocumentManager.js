@@ -644,7 +644,7 @@ define(function (require, exports, module) {
      * 
      * Extensions that listen to the new event (paneViewXXX events) are 
      * always added to the end so this effectively puts the legacy events 
-     * at the end of the event list. This prevents extensiosn from 
+     * at the end of the event list. This prevents extensions from 
      * handling the event too soon. (e.g.  paneViewListView needs to 
      * process these events before the Extension Highlighter extension)
      */

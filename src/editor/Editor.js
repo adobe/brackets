@@ -55,7 +55,7 @@
  *      is a string containing the editor option that is changing. The 3rd arg, which can be any
  *      data type, is the new value for the editor option.
  *    - beforeDestroy - Triggered before the object is about to dispose of all its internal state data 
- *      so that listners can cache things like scroll pos, etc...
+ *      so that listeners can cache things like scroll pos, etc...
  *
  * The Editor also dispatches "change" events internally, but you should listen for those on
  * Documents, not Editors.
