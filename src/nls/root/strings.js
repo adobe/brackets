@@ -137,8 +137,7 @@ define({
     "BUTTON_NO"                         : "No",
     
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} results",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 result",
+    "FIND_MATCH_INDEX"                  : "{0} of {1}",
     "FIND_NO_RESULTS"                   : "No results",
     "FIND_QUERY_PLACEHOLDER"            : "Find\u2026",
     "REPLACE_PLACEHOLDER"               : "Replace with\u2026",
