@@ -210,9 +210,9 @@ define({
      */
     "STATUSBAR_CURSOR_POSITION"             : "Linea {0}, Colonna {1}",
     "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Selezionata {0} colonna",
-    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selezionare {0} colonne",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selezionate {0} colonne",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Selezionata {0} linea",
-    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selezionare {0} linee",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selezionate {0} linee",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Clicca per passare alla indentazione a spazi",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Clicca per passare alla indentazione a tabulazione",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Clicca per cambiare il numero di spazi usati per l’indentazione",
@@ -348,7 +348,7 @@ define({
     "CMD_CHECK_FOR_UPDATE"              : "Controlla aggiornamenti",
     "CMD_HOW_TO_USE_BRACKETS"           : "Come usare {APP_NAME}",
     "CMD_FORUM"                         : "Forum di {APP_NAME}",
-    "CMD_RELEASE_NOTES"                 : "Note del lancio",
+    "CMD_RELEASE_NOTES"                 : "Note del rilascio",
     "CMD_REPORT_AN_ISSUE"               : "Segnala un problema",
     "CMD_SHOW_EXTENSIONS_FOLDER"        : "Mostra cartella estensioni",
     "CMD_HOMEPAGE"                      : "Sito WEB di {APP_TITLE}",
@@ -557,5 +557,5 @@ define({
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
 
-/* Last translation of: 2f5acd9c6fb21330cad0dae16e26bf659859583e*/
+/* Last translation of: e04798f182d2833a077e4e110b781e071c997c51*/
 
