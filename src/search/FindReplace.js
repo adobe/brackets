@@ -152,9 +152,9 @@ define(function (require, exports, module) {
      *
      * @param {!SearchState} state The search state that has the array of search result
      * @param {!{from: {line: number, ch: number}, to: {line: number, ch: number}}} matchRange - the range of current match
-     * @param {!boolean} rev true if searching backwards
+     * @param {!boolean} searchBackwards true if searching backwards
      */
-    function _updateFindBarWithMatchInfo(state, matchRange, rev) {
+    function _updateFindBarWithMatchInfo(state, matchRange, searchBackwards) {
         // Bail if there is no result set.
         if (!state.foundAny) {
             return;
@@ -164,7 +164,7 @@ define(function (require, exports, module) {
             if (state.matchIndex === -1) {
                 state.matchIndex = _.findIndex(state.resultSet, matchRange);
             } else {
-                state.matchIndex = rev ? state.matchIndex - 1 : state.matchIndex + 1;
+                state.matchIndex = searchBackwards ? state.matchIndex - 1 : state.matchIndex + 1;
                 // Adjust matchIndex for modulo wraparound
                 state.matchIndex = (state.matchIndex + state.resultSet.length) % state.resultSet.length;
                 
@@ -189,23 +189,23 @@ define(function (require, exports, module) {
      * the end of the document if no match is found before the end.
      *
      * @param {!Editor} editor The editor to search in
-     * @param {boolean} rev True to search backwards
+     * @param {boolean} searchBackwards true to search backwards
      * @param {{line: number, ch: number}=} pos The position to start from. Defaults to the current primary selection's
      *      head cursor position.
      * @param {boolean=} wrap Whether to wrap the search around if we hit the end of the document. Default true.
      * @return {?{start: {line: number, ch: number}, end: {line: number, ch: number}}} The range for the next match, or
      *      null if there is no match.
      */
-    function _getNextMatch(editor, rev, pos, wrap) {
+    function _getNextMatch(editor, searchBackwards, pos, wrap) {
         var cm = editor._codeMirror;
         var state = getSearchState(cm);
-        var cursor = getSearchCursor(cm, state, pos || editor.getCursorPos(false, rev ? "start" : "end"));
+        var cursor = getSearchCursor(cm, state, pos || editor.getCursorPos(false, searchBackwards ? "start" : "end"));
 
-        state.lastMatch = cursor.find(rev);
+        state.lastMatch = cursor.find(searchBackwards);
         if (!state.lastMatch && wrap !== false) {
             // If no result found before hitting edge of file, try wrapping around
-            cursor = getSearchCursor(cm, state, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
-            state.lastMatch = cursor.find(rev);
+            cursor = getSearchCursor(cm, state, searchBackwards ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
+            state.lastMatch = cursor.find(searchBackwards);
         }
         if (!state.lastMatch) {
             // No result found, period: clear selection & bail
@@ -420,26 +420,26 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Selects the next match (or prev match, if rev==true) starting from either the current position
+     * Selects the next match (or prev match, if searchBackwards==true) starting from either the current position
      * (if pos unspecified) or the given position (if pos specified explicitly). The starting position
      * need not be an existing match. If a new match is found, sets to state.lastMatch either the regex
      * match result, or simply true for a plain-string match. If no match found, sets state.lastMatch
      * to false.
      * @param {!Editor} editor
-     * @param {?boolean} rev
+     * @param {?boolean} searchBackwards
      * @param {?boolean} preferNoScroll
      * @param {?Pos} pos
      */
-    function findNext(editor, rev, preferNoScroll, pos) {
+    function findNext(editor, searchBackwards, preferNoScroll, pos) {
         var cm = editor._codeMirror;
         cm.operation(function () {
             var state = getSearchState(cm);
             clearCurrentMatchHighlight(cm, state);
             
-            var nextMatch = _getNextMatch(editor, rev, pos);
+            var nextMatch = _getNextMatch(editor, searchBackwards, pos);
             if (nextMatch) {
                 _updateFindBarWithMatchInfo(getSearchState(editor._codeMirror),
-                                            {from: nextMatch.start, to: nextMatch.end}, rev);
+                                            {from: nextMatch.start, to: nextMatch.end}, searchBackwards);
                 _selectAndScrollTo(editor, [nextMatch], true, preferNoScroll);
                 state.markedCurrent = cm.markText(nextMatch.start, nextMatch.end,
                      { className: "searching-current-match", startStyle: "searching-first", endStyle: "searching-last" });
@@ -640,8 +640,8 @@ define(function (require, exports, module) {
             .on("queryChange.FindReplace", function (e) {
                 handleQueryChange(editor, state);
             })
-            .on("doFind.FindReplace", function (e, rev) {
-                findNext(editor, rev);
+            .on("doFind.FindReplace", function (e, searchBackwards) {
+                findNext(editor, searchBackwards);
             })
             .on("close.FindReplace", function (e) {
                 // Clear highlights but leave search state in place so Find Next/Previous work after closing
@@ -659,12 +659,12 @@ define(function (require, exports, module) {
     
     /**
      * If no search pending, opens the Find dialog. If search bar already open, moves to
-     * next/prev result (depending on 'rev')
+     * next/prev result (depending on 'searchBackwards')
      */
-    function doSearch(editor, rev) {
+    function doSearch(editor, searchBackwards) {
         var state = getSearchState(editor._codeMirror);
         if (state.parsedQuery) {
-            findNext(editor, rev);
+            findNext(editor, searchBackwards);
             return;
         }
         
