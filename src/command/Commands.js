@@ -115,6 +115,7 @@ define(function (require, exports, module) {
     exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";      // EditorOptionHandlers.js      _getToggler()
     exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";        // EditorOptionHandlers.js      _getToggler()
 
+    // @TODO == THIS IS WRONG!
     exports.CMD_ADD_TO_PANE_AND_OPEN   = "cmd.addToPaneAndOpen";          // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()
     
     exports.CMD_SORT_PANE_VIEW_LIST_BY_ADDED  = "cmd.sortPaneViewListByAdded";    // paneViewSort.js          _handleSort()
@@ -161,6 +162,9 @@ define(function (require, exports, module) {
     exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";       // DocumentCommandHandlers.js   handleBeforeMenuPopup()
     
     // DEPRECATED: Working Set Commands
+
+    // TODO: Implement a command handler for this 
+    //          that calls the handleAddToPaneViewListAndOpen or whatever, translates the result and issues a deprecation warning.
     DeprecationWarning.deprecateConstant(exports, "FILE_ADD_TO_WORKING_SET",    "CMD_ADD_TO_PANE_AND_OPEN");
     DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_ADDED",   "CMD_SORT_PANE_VIEW_LIST_BY_ADDED");
     DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_NAME",    "CMD_SORT_PANE_VIEW_LIST_BY_NAME");

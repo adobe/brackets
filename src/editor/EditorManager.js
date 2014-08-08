@@ -154,6 +154,10 @@ define(function (require, exports, module) {
      * @param {!Editor} editor - editor to cache data for
      */
     function _saveEditorViewState(editor) {
+        if (!editor.hasOwnProperty("document")) {
+            // @todo - image viewers come through here 
+            return;
+        }
         _viewStateCache[editor.document.file.fullPath] = {
             selections: editor.getSelections(),
             scrollPos: editor.getScrollPos()

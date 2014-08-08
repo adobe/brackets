@@ -414,7 +414,7 @@ define(function (require, exports, module) {
                     EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1, fileInfo.column - 1, true);
                 }
                 
-                result.resolve(DocumentManager.getOpenDocumentForPath(file.fullPath));
+                result.resolve(file);
             })
             .fail(function () {
                 result.reject();
@@ -442,14 +442,10 @@ define(function (require, exports, module) {
      * @return {$.Promise} a jQuery promise that will be resolved with a document object
      */
     function handleAddToPaneViewList(commandData) {
-        return handleFileOpen(commandData).done(function (doc) {
-            // TODO: This will not work for images since they do not
-            //          have document objects... 
-            // addView is synchronous
-            // When opening a file with a custom viewer, we get a null doc.
-            // So check it before we add it to the pane view list.
+        return handleFileOpen(commandData).done(function (file) {
+            
             var paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
-            MainViewManager.addView(paneId, doc.file, commandData.index, commandData.forceRedraw);
+            MainViewManager.addView(paneId, file, commandData.index, commandData.forceRedraw);
         });
     }
 
@@ -1589,7 +1585,7 @@ define(function (require, exports, module) {
 
     // Register global commands
     CommandManager.register(Strings.CMD_FILE_OPEN,              Commands.FILE_OPEN, handleFileOpen);
-    CommandManager.register(Strings.CMD_ADD_TO_PANE_AND_OPEN,  Commands.CMD_ADD_TO_PANE_AND_OPEN, handleAddToPaneViewList);
+    CommandManager.register(Strings.CMD_ADD_TO_PANE_AND_OPEN,   Commands.CMD_ADD_TO_PANE_AND_OPEN, handleAddToPaneViewList);
     CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,      Commands.FILE_NEW_UNTITLED, handleFileNew);
     CommandManager.register(Strings.CMD_FILE_NEW,               Commands.FILE_NEW, handleFileNewInProject);
     CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,        Commands.FILE_NEW_FOLDER, handleNewFolderInProject);

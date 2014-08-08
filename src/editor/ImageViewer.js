@@ -28,64 +28,234 @@ define(function (require, exports, module) {
     "use strict";
     
     var DocumentManager     = require("document/DocumentManager"),
-        EditorManager       = require("editor/EditorManager"),
         ImageHolderTemplate = require("text!htmlContent/image-holder.html"),
         WorkspaceManager    = require("view/WorkspaceManager"),
         ProjectManager      = require("project/ProjectManager"),
+        LanguageManager     = require("language/LanguageManager"),
         MainViewFactory     = require("view/MainViewFactory"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         FileSystem          = require("filesystem/FileSystem"),
-        FileUtils           = require("file/FileUtils");
+        FileUtils           = require("file/FileUtils"),
+        _                   = require("thirdparty/lodash");
     
-    var _naturalWidth = 0,
-        _naturalHeight = 0,
-        _scale = 100,
-        _scaleDivInfo = null;   // coordinates of hidden scale sticker
-    
-    /** Update the scale element, i.e. on resize 
-     *  @param {!string} currentWidth actual width of image in view
-     */
-    function _updateScale(currentWidth) {
-        if (currentWidth && currentWidth < _naturalWidth) {
-            _scale = currentWidth / _naturalWidth * 100;
-            $("#img-scale").text(Math.floor(_scale) + "%")
-                // Keep the position of the image scale div relative to the image.
-                .css("left", $("#img-preview").position().left + 5)
-                .show();
-        } else {
-            // Reset everything related to the image scale sticker before hiding it.
-            _scale = 100;
-            _scaleDivInfo = null;
-            $("#img-scale").text("").hide();
-        }
-    }
-    
-    function _hideGuidesAndTip() {
-        $("#img-tip").hide();
-        $(".img-guide").hide();
-    }
-    
-    /** handle editor resize event, i.e. update scale sticker */
-    function _onEditorAreaResize() {
-        _hideGuidesAndTip();
-        _updateScale($("#img-preview").width());
-    }
         
+    /**
+     * sign off listeners when editor manager closes
+     * the image viewer
+     */
+    
+    function ImageView(file, $container) {
+        this.$container = $container;
+        this.file = file;
+        this.$view = $(Mustache.render(ImageHolderTemplate, {fullPath: file.fullPath}));
+        
+        $container.append(this.$view);
+
+        this._naturalWidth = 0;
+        this._naturalHeight = 0;
+        this._scale = 100;           // 100%
+        this._scaleDivInfo = null;   // coordinates of hidden scale sticker
+        
+        this.relPath = ProjectManager.makeProjectRelativeIfPossible(this.file.fullPath);
+
+        this.$imagePath = this.$view.find(".image-path");
+        this.$imagePreview = this.$view.find(".image-preview");
+        this.$imageData = this.$view.find(".image-data");
+
+        this.$image = this.$view.find(".image");
+        this.$imageTip = this.$view.find(".image-tip");
+        this.$imageGuide = this.$view.find(".image-guide");
+        this.$imageScale = this.$view.find(".image-scale");
+        this.$x_value = this.$view.find(".x-value");
+        this.$y_value = this.$view.find(".y-value");
+        this.$horzGuide = this.$view.find(".horz-guide");
+        this.$vertGuide = this.$view.find(".vert-guide");
+        
+        this.$imagePath.text(this.relPath).attr("title", this.relPath);
+        this.$imagePreview.on("load", _.bind(this._onImageLoaded, this));
+    }
+
     /**
      * Update file name if necessary
      */
-    function _onFileNameChange(e, oldName, newName) {
-        var oldRelPath = ProjectManager.makeProjectRelativeIfPossible(oldName),
-            currentPath = $("#img-path").text();
-
-        if (currentPath === oldRelPath) {
-            var newRelName = ProjectManager.makeProjectRelativeIfPossible(newName);
-            $("#img-path").text(newRelName)
-                .attr("title", newRelName);
+    ImageView.prototype._onFilenameChange = function (e, oldPath, newPath) {
+        if (this.file.fullPath === oldPath) {
+            this.file.fullPath = newPath;
+            this.relPath = ProjectManager.makeProjectRelativeIfPossible(newPath);
+            this.$imagePath.text(this.relPath).attr("title", this.relPath);
         }
-    }
+    };
 
+    ImageView.prototype._onImageLoaded = function (e) {
+        // add dimensions and size
+        this._naturalWidth = e.currentTarget.naturalWidth;
+        this._naturalHeight = e.currentTarget.naturalHeight;
+        
+        var extension = FileUtils.getFileExtension(this.file.fullPath);
+        var dimensionString = this._naturalWidth + " &times; " + this._naturalHeight + " " + Strings.UNIT_PIXELS;
+        
+        if (extension === "ico") {
+            dimensionString += " (" + Strings.IMAGE_VIEWER_LARGEST_ICON + ")";
+        }
+        
+        // get image size
+        var self = this,
+            file = FileSystem.getFileForPath(this.file.fullPath);
+        
+        file.stat(function (err, stat) {
+            if (err) {
+                self.$imageData.html(dimensionString);
+            } else {
+                var sizeString = "";
+                if (stat.size) {
+                    sizeString = " &mdash; " + StringUtils.prettyPrintBytes(stat.size, 2);
+                }
+                var dimensionAndSize = dimensionString + sizeString;
+                self.$imageData.html(dimensionAndSize)
+                        .attr("title", dimensionAndSize
+                                    .replace("&times;", "x")
+                                    .replace("&mdash;", "-"));
+            }
+        });
+        
+        // make sure we always show the right file name
+        $(DocumentManager).on("fileNameChange", _.bind(this._onFilenameChange, this));
+       
+        this.$imageTip.hide();
+        this.$imageGuide.hide();
+        
+        // @todo -- Can't this just be this.$imagePreview.on("mousemove", handler) ?
+        this.$image.on("mousemove.ImageView", ".image-preview", _.bind(this._showImageTip, this))
+        // @todo -- Can't this just be this.$imagePreview.on("mouseleave", handler) ?
+                   .on("mouseleave.ImageView", ".image-preview", _.bind(this._hideImageTip, this));
+
+        this._updateScale();
+    };
+    
+    
+    ImageView.prototype._updateScale = function () {
+        var currentWidth = this.$imagePreview.width();
+        
+        if (currentWidth && currentWidth < this._naturalWidth) {
+            this._scale = currentWidth / this._naturalWidth * 100;
+            this.$imageScale.text(Math.floor(this._scale) + "%")
+                // Keep the position of the image scale div relative to the image.
+                .css("left", this.$imagePreview.position().left + 5)
+                .show();
+        } else {
+            // Reset everything related to the image scale sticker before hiding it.
+            this._scale = 100;
+            this._scaleDivInfo = null;
+            this.$imageScale.text("").hide();
+        }
+    };
+        
+        
+    /**
+     * Show image coordinates under the mouse cursor
+     *
+     * @param {MouseEvent} e mouse move event
+     */
+    ImageView.prototype._showImageTip = function (e) {
+        // Don't show image tip if this._scale is close to zero.
+        // since we won't have enough room to show tip anyway.
+        if (Math.floor(this._scale) === 0) {
+            return;
+        }
+        
+        var x                   = Math.round(e.offsetX * 100 / this._scale),
+            y                   = Math.round(e.offsetY * 100 / this._scale),
+            $target             = $(e.target),
+            imagePos            = this.$imagePreview.position(),
+            left                = e.offsetX + imagePos.left,
+            top                 = e.offsetY + imagePos.top,
+            width               = this.$imagePreview.width(),
+            height              = this.$imagePreview.height(),
+            windowWidth         = $(window).width(),
+            fourDigitImageWidth = this._naturalWidth.toString().length === 4,
+            
+            // @todo -- seems a bit strange that we're computing sizes
+            //          using magic numbers
+            
+            infoWidth1          = 112,    // info div width 96px + vertical toolbar width 16px
+            infoWidth2          = 120,    // info div width 104px (for 4-digit image width) + vertical toolbar width 16px
+            tipOffsetX          = 10,     // adjustment for info div left from x coordinate of cursor
+            tipOffsetY          = -54,    // adjustment for info div top from y coordinate of cursor
+            tipMinusOffsetX1    = -82,    // for less than 4-digit image width
+            tipMinusOffsetX2    = -90;    // for 4-digit image width 
+        
+        // Check whether we're getting mousemove events beyond the image boundaries due to a browser bug 
+        // or the rounding calculation above for a scaled image. For example, if an image is 120 px wide,
+        // we should get mousemove events in the range of 0 <= x < 120, but not 120 or more. If we get 
+        // a value beyond the range, then simply handle the event as if it were a mouseleave.
+        if (x < 0 || x >= this._naturalWidth || y < 0 || y >= this._naturalHeight) {
+            this._hideImageTip(e);
+            this.$imagePreview.css("cursor", "auto");
+            return;
+        }
+        
+        this.$imagePreview.css("cursor", "none");
+        
+        this._handleMouseEnterOrExitScaleSticker(left, top);
+        
+        // Check whether to show the image tip on the left.
+        if ((e.pageX + infoWidth1) > windowWidth ||
+                (fourDigitImageWidth && (e.pageX + infoWidth2) > windowWidth)) {
+            tipOffsetX = fourDigitImageWidth ? tipMinusOffsetX2 : tipMinusOffsetX1;
+        }
+        
+        this.$x_value.text(x + "px");
+        this.$y_value.text(y + "px");
+
+        this.$imageTip.css({
+            left: left + tipOffsetX,
+            top: top + tipOffsetY
+        }).show();
+        
+        this.$horzGuide.css({
+            left: imagePos.left,
+            top: top,
+            width: width - 1
+        }).show();
+        
+        this.$vertGuide.css({
+            left: left,
+            top: imagePos.top,
+            height: height - 1
+        }).show();
+    };
+    
+    /**
+     * Hide image coordinates info tip
+     *
+     * @param {MouseEvent} e mouse leave event
+     */
+    ImageView.prototype._hideImageTip = function (e) {
+        var $target   = $(e.target),
+            targetPos = $target.position(),
+            imagePos  = this.$imagePreview.position(),
+            right     = imagePos.left + this.$imagePreview.width(),
+            bottom    = imagePos.top + this.$imagePreview.height(),
+            x         = targetPos.left + e.offsetX,
+            y         = targetPos.top + e.offsetY;
+        
+        // Hide image tip and guides only if the cursor is outside of the image.
+        if (x < imagePos.left || x >= right ||
+                y < imagePos.top || y >= bottom) {
+            this._hideGuidesAndTip();
+            if (this._scaleDivInfo) {
+                this._scaleDivInfo = null;
+                this.$imageScale.show();
+            }
+        }
+    };
+    
+    ImageView.prototype._hideGuidesAndTip = function () {
+        this.$imageTip.hide();
+        this.$imageGuide.hide();
+    };
+    
     /**
      * Check mouse entering/exiting the scale sticker. 
      * Hide it when entering and show it again when exiting.
@@ -93,21 +263,21 @@ define(function (require, exports, module) {
      * @param {number} offsetX mouse offset from the left of the previewing image
      * @param {number} offsetY mouseoffset from the top of the previewing image
      */
-    function _handleMouseEnterOrExitScaleSticker(offsetX, offsetY) {
-        var imagePos       = $("#img-preview").position(),
-            scaleDivPos    = $("#img-scale").position(),
-            imgWidth       = $("#img-preview").width(),
-            imgHeight      = $("#img-preview").height(),
+    ImageView.prototype._handleMouseEnterOrExitScaleSticker = function (offsetX, offsetY) {
+        var imagePos       = this.$imagePreview.position(),
+            scaleDivPos    = this.$imageScale.position(),
+            imgWidth       = this.$imagePreview.width(),
+            imgHeight      = this.$imagePreview.height(),
             scaleDivLeft,
             scaleDivTop,
             scaleDivRight,
             scaleDivBottom;
         
-        if (_scaleDivInfo) {
-            scaleDivLeft   = _scaleDivInfo.left;
-            scaleDivTop    = _scaleDivInfo.top;
-            scaleDivRight  = _scaleDivInfo.right;
-            scaleDivBottom = _scaleDivInfo.bottom;
+        if (this._scaleDivInfo) {
+            scaleDivLeft   = this._scaleDivInfo.left;
+            scaleDivTop    = this._scaleDivInfo.top;
+            scaleDivRight  = this._scaleDivInfo.right;
+            scaleDivBottom = this._scaleDivInfo.bottom;
             
             if ((imgWidth + imagePos.left) < scaleDivRight) {
                 scaleDivRight = imgWidth + imagePos.left;
@@ -120,17 +290,17 @@ define(function (require, exports, module) {
         } else {
             scaleDivLeft   = scaleDivPos.left;
             scaleDivTop    = scaleDivPos.top;
-            scaleDivRight  = $("#img-scale").width() + scaleDivLeft;
-            scaleDivBottom = $("#img-scale").height() + scaleDivTop;
+            scaleDivRight  = this.$imageScale.width() + scaleDivLeft;
+            scaleDivBottom = this.$imageScale.height() + scaleDivTop;
         }
         
-        if (_scaleDivInfo) {
+        if (this._scaleDivInfo) {
             // See whether the cursor is no longer inside the hidden scale div.
             // If so, show it again.
             if ((offsetX < scaleDivLeft || offsetX > scaleDivRight) ||
                     (offsetY < scaleDivTop || offsetY > scaleDivBottom)) {
-                _scaleDivInfo = null;
-                $("#img-scale").show();
+                this._scaleDivInfo = null;
+                this.$imageScale.show();
             }
         } else if ((offsetX >= scaleDivLeft && offsetX <= scaleDivRight) &&
                 (offsetY >= scaleDivTop && offsetY <= scaleDivBottom)) {
@@ -139,189 +309,90 @@ define(function (require, exports, module) {
             if (offsetX < (imagePos.left + imgWidth) &&
                     offsetY < (imagePos.top + imgHeight)) {
                 // Remember image scale div coordinates before hiding it.
-                _scaleDivInfo = {left: scaleDivPos.left,
+                this._scaleDivInfo = {left: scaleDivPos.left,
                                  top: scaleDivPos.top,
                                  right: scaleDivRight,
                                  bottom: scaleDivBottom};
-                $("#img-scale").hide();
+                this.$imageScale.hide();
             }
         }
+    };
+
+    // Pane View Interface
+
+    ImageView.prototype.getFile = function () {
+        return this.file;
+    };
+    
+    ImageView.prototype.setVisible = function (visible) {
+        this.$view.css("display", visible ? "block" : "none");
+    };
+    
+    ImageView.prototype.resizeToFit = function () {
+        this._hideGuidesAndTip();
+        
+        var pos = this.$container.position(),
+            iWidth = this.$container.innerWidth(),
+            iHeight = this.$container.innerHeight(),
+            oWidth = this.$container.outerWidth(),
+            oHeight = this.$container.outerHeight();
+            
+        // $view is position absolute so 
+        //  we have to update the height and width
+        this.$view.css({top: pos.top + ((oHeight - iHeight) / 2),
+                        left: pos.left + ((oWidth - iWidth) / 2),
+                        width: iWidth,
+                        height: iHeight});
+        this._updateScale(this.$imagePreview.width());
+    };
+
+    ImageView.prototype.destroy = function () {
+        $(DocumentManager).off("fileNameChange", _.bind(this._onFilenameChange, this));
+        this.$image.off(".ImageView");
+        this.$view.remove();
+    };
+    
+    ImageView.prototype.hasFocus = function () {
+        return this.$view.has(":focus");
+    };
+
+    ImageView.prototype.childHasFocus = function () {
+        return false; // we have no children to receive focus
+    };
+    
+    ImageView.prototype.focus = function () {
+        this.$view.focus();
+    };
+
+    ImageView.prototype.getScrollPos = function () {
+    };
+
+    ImageView.prototype.adjustScrollPos = function () {
+    };
+
+    ImageView.prototype.switchContainers = function ($container) {
+        this.$view.detach().appendTo($container);
+        this.$container = $container;
+    };
+    
+    ImageView.prototype.getContainer = function () {
+        return this.$container;
+    };
+    
+    
+    function _createImageViewOf(file, pane) {
+        var view = new ImageView(file, pane.$el);
+        pane.addView(view, true);
+        return new $.Deferred().resolve().promise();
     }
     
-    /**
-     * Hide image coordinates info tip
-     *
-     * @param {MouseEvent} e mouse leave event
-     */
-    function _hideImageTip(e) {
-        var $target   = $(e.target),
-            targetPos = $target.position(),
-            imagePos  = $("#img-preview").position(),
-            right     = imagePos.left + $("#img-preview").width(),
-            bottom    = imagePos.top + $("#img-preview").height(),
-            x         = targetPos.left + e.offsetX,
-            y         = targetPos.top + e.offsetY;
-        
-        // Hide image tip and guides only if the cursor is outside of the image.
-        if (x < imagePos.left || x >= right ||
-                y < imagePos.top || y >= bottom) {
-            _hideGuidesAndTip();
-            if (_scaleDivInfo) {
-                _scaleDivInfo = null;
-                $("#img-scale").show();
-            }
+    MainViewFactory.registerViewFactory({
+        canOpenFile: function (fullPath) {
+            var lang = LanguageManager.getLanguageForPath(fullPath);
+            return (lang.getId() === "image");
+        },
+        openFile: function (file, pane) {
+            return _createImageViewOf(file, pane);
         }
-    }
-
-    /**
-     * Show image coordinates under the mouse cursor
-     *
-     * @param {MouseEvent} e mouse move event
-     */
-    function _showImageTip(e) {
-        // Don't show image tip if _scale is close to zero.
-        // since we won't have enough room to show tip anyway.
-        if (Math.floor(_scale) === 0) {
-            return;
-        }
-        
-        var x                   = Math.round(e.offsetX * 100 / _scale),
-            y                   = Math.round(e.offsetY * 100 / _scale),
-            $target             = $(e.target),
-            imagePos            = $("#img-preview").position(),
-            left                = e.offsetX + imagePos.left,
-            top                 = e.offsetY + imagePos.top,
-            width               = $("#img-preview").width(),
-            height              = $("#img-preview").height(),
-            windowWidth         = $(window).width(),
-            fourDigitImageWidth = _naturalWidth.toString().length === 4,
-            infoWidth1          = 112,    // info div width 96px + vertical toolbar width 16px
-            infoWidth2          = 120,    // info div width 104px (for 4-digit image width) + vertical toolbar width 16px
-            tipOffsetX          = 10,     // adjustment for info div left from x coordinate of cursor
-            tipOffsetY          = -54,    // adjustment for info div top from y coordinate of cursor
-            tipMinusOffsetX1    = -82,    // for less than 4-digit image width
-            tipMinusOffsetX2    = -90;    // for 4-digit image width 
-        
-        // Check whether we're getting mousemove events beyond the image boundaries due to a browser bug 
-        // or the rounding calculation above for a scaled image. For example, if an image is 120 px wide,
-        // we should get mousemove events in the range of 0 <= x < 120, but not 120 or more. If we get 
-        // a value beyond the range, then simply handle the event as if it were a mouseleave.
-        if (x < 0 || x >= _naturalWidth || y < 0 || y >= _naturalHeight) {
-            _hideImageTip(e);
-            $("#img-preview").css("cursor", "auto");
-            return;
-        }
-        
-        $("#img-preview").css("cursor", "none");
-        
-        _handleMouseEnterOrExitScaleSticker(left, top);
-        
-        // Check whether to show the image tip on the left.
-        if ((e.pageX + infoWidth1) > windowWidth ||
-                (fourDigitImageWidth && (e.pageX + infoWidth2) > windowWidth)) {
-            tipOffsetX = fourDigitImageWidth ? tipMinusOffsetX2 : tipMinusOffsetX1;
-        }
-        
-        $("#x-value").text(x + "px");
-        $("#y-value").text(y + "px");
-
-        $("#img-tip").css({
-            left: left + tipOffsetX,
-            top: top + tipOffsetY
-        }).show();
-        
-        $("#horiz-guide").css({
-            left: imagePos.left,
-            top: top,
-            width: width - 1
-        }).show();
-        
-        $("#vert-guide").css({
-            left: left,
-            top: imagePos.top,
-            height: height - 1
-        }).show();
-    }
-        
-    /**
-     * sign off listeners when editor manager closes
-     * the image viewer
-     */
-    function onRemove() {
-        $(WorkspaceManager).off("workspaceUpdateLayout", _onEditorAreaResize);
-        $(DocumentManager).off("fileNameChange", _onFileNameChange);
-        $("#img").off("mousemove", "#img-preview", _showImageTip)
-                 .off("mouseleave", "#img-preview", _hideImageTip);
-    }
-
-    /**
-     * Perform decorations on the view that require loading the image in the browser,
-     * i.e. getting actual and natural width and height andplacing the scale sticker
-     * @param {!string} fullPath Path to the image file
-     * @param {!jQueryObject} $editorHolder The DOM element to append the view to.
-     */
-    function render(fullPath, $editorHolder) {
-        var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath),
-            $customViewer = $(Mustache.render(ImageHolderTemplate, {fullPath: fullPath}));
-
-        // place DOM node to hold image
-        $editorHolder.append($customViewer);
-
-        _scale = 100;   // initialize to 100
-        _scaleDivInfo = null;
-        
-        $("#img-path").text(relPath)
-                .attr("title", relPath);
-        $("#img-preview").on("load", function () {
-            // add dimensions and size
-            _naturalWidth = this.naturalWidth;
-            _naturalHeight = this.naturalHeight;
-            var ext = FileUtils.getFileExtension(fullPath);
-            var dimensionString = _naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
-            if (ext === "ico") {
-                dimensionString += " (" + Strings.IMAGE_VIEWER_LARGEST_ICON + ")";
-            }
-            // get image size
-            var file = FileSystem.getFileForPath(fullPath);
-            file.stat(function (err, stat) {
-                if (err) {
-                    $("#img-data").html(dimensionString);
-                } else {
-                    var sizeString = "";
-                    if (stat.size) {
-                        sizeString = " &mdash; " + StringUtils.prettyPrintBytes(stat.size, 2);
-                    }
-                    var dimensionAndSize = dimensionString + sizeString;
-                    $("#img-data").html(dimensionAndSize)
-                        .attr("title", dimensionAndSize
-                                        .replace("&times;", "x")
-                                        .replace("&mdash;", "-"));
-                }
-            });
-            $("#image-holder").show();
-            
-            // listen to resize to  update the scale sticker
-            $(WorkspaceManager).on("workspaceUpdateLayout", _onEditorAreaResize);
-            
-            // make sure we always show the right file name
-            $(DocumentManager).on("fileNameChange", _onFileNameChange);
-
-            $("#img-tip").hide();
-            $(".img-guide").hide();
-            $("#img").on("mousemove", "#img-preview", _showImageTip)
-                     .on("mouseleave", "#img-preview", _hideImageTip);
-
-            _updateScale($(this).width());
-
-        });
-        return $customViewer;
-    }
-    
-    EditorManager.registerCustomViewer("image", {
-        render: render,
-        onRemove: onRemove
     });
-    
-    exports.render   = render;
-    exports.onRemove = onRemove;
 });

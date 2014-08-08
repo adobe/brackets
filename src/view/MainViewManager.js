@@ -1133,13 +1133,15 @@ define(function (require, exports, module) {
      * @param {Object={avoidPaneActivation:boolean}} optionsIn - options 
      */
     function open(paneId, file, optionsIn) {
-        var result = new $.Deferred(),
+        var oldPane = _getPane(ACTIVE_PANE),
+            oldFile = oldPane.getCurrentlyViewedFile(),
+            result = new $.Deferred(),
             options = optionsIn || {};
         
         if (!file || !_getPane(paneId)) {
             return result.reject("bad argument");
         }
-
+        
         var doc = DocumentManager.getOpenDocumentForPath(file.fullPath),
             currentPaneId = getPaneIdForPath(file.fullPath);
 
@@ -1153,20 +1155,43 @@ define(function (require, exports, module) {
         if (doc) {
             edit(paneId, doc);
             result.resolve(doc);
-        } else if (EditorManager.canOpenFile(file.fullPath)) {
-            DocumentManager.getDocumentForPath(file.fullPath)
-                .done(function (doc) {
-                    edit(paneId, doc);
-                    result.resolve(doc);
-                })
-                .fail(function (fileError) {
-                    result.reject(fileError);
-                });
         } else {
             var factory = MainViewFactory.findSuitableFactoryFor(file.fullPath);
             
             if (!factory) {
-                result.reject("There isn't a registered file viewer that can view " + file.fullPath);
+                // @todo - EditorManager.canOpenFile needs to check isBinary
+                if (EditorManager.canOpenFile(file.fullPath)) {
+                    DocumentManager.getDocumentForPath(file.fullPath)
+                        .done(function (doc) {
+                            edit(paneId, doc);
+                            result.resolve(doc);
+                        })
+                        .fail(function (fileError) {
+                            result.reject(fileError);
+                        });
+                }
+            } else {
+                var pane = _getPane(paneId),
+                    view = pane.getViewForPath(file.fullPath);
+                
+                if (view) {
+                    pane.showView(view);
+                    if (pane.id === _activePaneId) {
+                        $(exports).triggerHandler("currentFileChange", [file, pane.id, oldFile, pane.id]);
+                    }
+                    result.resolve(file);
+                } else {
+                    factory.openFile(file, pane)
+                        .done(function () {
+                            if (pane.id === _activePaneId) {
+                                $(exports).triggerHandler("currentFileChange", [file, pane.id, oldFile, pane.id]);
+                            }
+                            result.resolve(file);
+                        })
+                        .fail(function (fileError) {
+                            result.reject(fileError);
+                        });
+                }
             }
         }
         

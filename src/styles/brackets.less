@@ -284,137 +284,140 @@ a, img {
         width: 100%;
         border: solid rgba(9, 9, 9, .05) 2px;
         box-sizing: border-box;
+        
+        /* Image Preview */
+        .image-view {
+            overflow: hidden;
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            bottom: 0px;
+            left: 0px;
+            text-align: center;
+            display: none;
+            .image-centering {
+                display: inline-block;
+                vertical-align: middle;
+                margin-top: -50px; /* Offset as vertical align takes image metadata into account */
+                max-width: 90%;
+                max-height: 90%;
+            }
+            .image-data {
+                font-weight: @font-weight-semibold;
+            }
+        }
+
+        .image-view:before {
+            content: '';
+            display: inline-block;
+            height: 100%;
+            margin-right: -0.25em; /* Adjusts for spacing */
+            vertical-align: middle;
+        }
+
+        .image-preview {
+            background: url(images/preview_bg.png);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.36);
+            max-height: 90%;
+        }
+
+        .image-header {
+            display: block;
+            width: 100%;
+            height: 38px;
+            margin-bottom: 15px;
+        }
+
+        .image-data,
+        .image-path {
+            text-align: left;
+            .user-select(text);
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .image-data::selection,
+        .image-path::selection {
+            background: @selection-color-focused;
+        }
+
+        .image {
+            position: relative;
+        }
+
+        .image-guide,
+        .image-tip, 
+        .image-scale {
+            pointer-events: none;
+        }
+
+        .image-scale {
+            display: block;
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 40px;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .image-tip {
+            display: block;
+            position: absolute;
+            text-align: left;
+            white-space: nowrap;
+            padding: 6px 9px;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.8);
+            font-size: 11px;
+            font-family: SourceCodePro;
+            line-height: 13px;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.24);
+        }
+
+        .x-value,
+        .y-value {
+            text-align: right;
+        }
+
+        .tip-container {
+            border: 0;
+        }
+
+        .horz-guide {
+            background-image: url("images/horizontal-dash.svg");
+            background-repeat: repeat-x;
+            width: 8px;
+            height: 1px;
+        }
+
+        .vert-guide {
+            background-image: url("images/vertical-dash.svg");
+            background-repeat: repeat-y;
+            width: 1px;
+            height: 8px;
+        }
+
+        .horz-guide,
+        .vert-guide {
+            position: absolute;
+            display: block;
+        }    
+
+        
     }
 
     .active-pane {
         border: solid rgba(0,0,255, .2) 2px;
         box-sizing: border-box;
     }  
-    
-    /* Image Preview */
-    #image-holder {
-        overflow: hidden;
-        position: absolute;
-        top: 0px;
-        right: 0px;
-        bottom: 0px;
-        left: 0px;
-        text-align: center;
-        display: none;
-        #img-centering {
-            display: inline-block;
-            vertical-align: middle;
-            margin-top: -50px; /* Offset as vertical align takes image metadata into account */
-            max-width: 90%;
-            max-height: 90%;
-        }
-        #img-data {
-            font-weight: @font-weight-semibold;
-        }
-    }
-
-    #image-holder:before {
-        content: '';
-        display: inline-block;
-        height: 100%;
-        margin-right: -0.25em; /* Adjusts for spacing */
-        vertical-align: middle;
-    }
-
-    #img-preview {
-        background: url(images/preview_bg.png);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.36);
-        max-height: 90%;
-    }
-
-    #img-header {
-        display: block;
-        width: 100%;
-        height: 38px;
-        margin-bottom: 15px;
-    }
-
-    #img-data,
-    #img-path {
-        text-align: left;
-        .user-select(text);
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-    }
-
-    #img-data::selection,
-    #img-path::selection {
-        background: @selection-color-focused;
-    }
-
-    #img {
-        position: relative;
-    }
-
-    .img-guide,
-    #img-tip, 
-    #img-scale {
-        pointer-events: none;
-    }
-    
-    #img-scale {
-        display: block;
-        position: absolute;
-        top: 5px;
-        left: 5px;
-        width: 40px;
-        text-align: center;
-        background-color: rgba(0, 0, 0, 0.8);
-        color: #fff;
-        border-radius: 3px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    }
-
-    #img-tip {
-        display: block;
-        position: absolute;
-        text-align: left;
-        white-space: nowrap;
-        padding: 6px 9px;
-        color: #fff;
-        background-color: rgba(0, 0, 0, 0.8);
-        font-size: 11px;
-        font-family: SourceCodePro;
-        line-height: 13px;
-        border-radius: 3px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.24);
-    }
-
-    #x-value,
-    #y-value {
-        text-align: right;
-    }
-
-    .tip-container {
-        border: 0;
-    }
-
-    #horiz-guide {
-        background-image: url("images/horizontal-dash.svg");
-        background-repeat: repeat-x;
-        width: 8px;
-        height: 1px;
-    }
-
-    #vert-guide {
-        background-image: url("images/vertical-dash.svg");
-        background-repeat: repeat-y;
-        width: 1px;
-        height: 8px;
-    }
-
-    #horiz-guide,
-    #vert-guide {
-        position: absolute;
-        display: block;
-    }
 }
+
 
 .vert-resizer {
     position: absolute;
