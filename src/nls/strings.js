@@ -38,12 +38,16 @@ define(function (require, exports, module) {
     module.exports = {
         root: true,
         "cs": true,
+        "da": true,
         "de": true,
         "el": true,
+        "en-gb": true,
         "es": true,
         "fa-ir": true,
         "fi": true,
         "fr": true,
+        "gl": true,
+        "hr": true,
         "hu": true,
         "id": true,
         "it": true,
@@ -60,6 +64,7 @@ define(function (require, exports, module) {
         "sr": true,
         "sv": true,
         "tr": true,
-        "zh-cn": true
+        "zh-cn": true,
+        "zh-tw": true
     };
 });

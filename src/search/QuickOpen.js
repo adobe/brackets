@@ -48,13 +48,22 @@ define(function (require, exports, module) {
         StringMatch         = require("utils/StringMatch");
     
     
-    /** @const {RegExp} The regular expression to check the cursor position */
+    /**
+     * The regular expression to check the cursor position
+     * @const {RegExp}
+     */
     var CURSOR_POS_EXP = new RegExp(":([^,]+)?(,(.+)?)?");
     
-    /** @type Array.<QuickOpenPlugin> */
+    /**
+     * List of plugins
+     * @type {Array.<QuickOpenPlugin>}
+     */
     var plugins = [];
 
-    /** @type {QuickOpenPlugin} */
+    /**
+     * Current plugin
+     * @type {QuickOpenPlugin}
+     */
     var currentPlugin = null;
 
     /** @type {Array.<File>} */
@@ -664,11 +673,16 @@ define(function (require, exports, module) {
             onCommit: this._handleItemSelect,
             onHighlight: this._handleItemHighlight
         });
+
+        // Return files that are non-binary, or binary files that have a custom viewer
+        function _filter(file) {
+            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() || EditorManager.getCustomViewerForPath(file.fullPath);
+        }
         
         // Start prefetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
         // caches are out of date, this list might take some time to asynchronously build, forcing searchFileList() to wait. In the
-        // meantime we show our old, stale fileList (unless the user has switched projects).
-        fileListPromise = ProjectManager.getAllFiles(true)
+        // meantime we show our old, stale fileList (unless the user has switched projects and we cleared it).
+        fileListPromise = ProjectManager.getAllFiles(_filter, true)
             .done(function (files) {
                 fileList = files;
                 fileListPromise = null;

@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
@@ -27,35 +27,37 @@
 
 /**
  * The ExtensionManager fetches/caches the extension registry and provides
- * information about the status of installed extensions. ExtensionManager raises the 
+ * information about the status of installed extensions. ExtensionManager raises the
  * following events:
- *     statusChange - indicates that an extension has been installed/uninstalled or
- *         its status has otherwise changed. Second parameter is the id of the
- *         extension.
- *     registryUpdate - indicates that an existing extension was synchronized
- *         with new data from the registry.
+ * - statusChange - indicates that an extension has been installed/uninstalled or
+ *   its status has otherwise changed. Second parameter is the id of the
+ *   extension.
+ * - registryUpdate - indicates that an existing extension was synchronized
+ *   with new data from the registry.
  */
-
 define(function (require, exports, module) {
     "use strict";
-    
-    var FileUtils        = require("file/FileUtils"),
+
+    var _                = require("thirdparty/lodash"),
+        FileUtils        = require("file/FileUtils"),
         Package          = require("extensibility/Package"),
         Async            = require("utils/Async"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
+        ExtensionUtils   = require("utils/ExtensionUtils"),
         FileSystem       = require("filesystem/FileSystem"),
         Strings          = require("strings"),
-        StringUtils      = require("utils/StringUtils");
-    
+        StringUtils      = require("utils/StringUtils"),
+        ThemeManager     = require("view/ThemeManager");
+
     // semver.browser is an AMD-compatible module
     var semver = require("extensibility/node/node_modules/semver/semver.browser");
-    
+
     /**
      * Extension status constants.
      */
     var ENABLED      = "enabled",
         START_FAILED = "startFailed";
-    
+
     /**
      * Extension location constants.
      */
@@ -63,13 +65,13 @@ define(function (require, exports, module) {
         LOCATION_DEV     = "dev",
         LOCATION_USER    = "user",
         LOCATION_UNKNOWN = "unknown";
-    
+
     /**
      * @private
      * @type {Object.<string, {metadata: Object, path: string, status: string}>}
-     * The set of all known extensions, both from the registry and locally installed. 
-     * The keys are either "name" from package.json (for extensions that have package metadata) 
-     * or the last segment of local file paths (for installed legacy extensions 
+     * The set of all known extensions, both from the registry and locally installed.
+     * The keys are either "name" from package.json (for extensions that have package metadata)
+     * or the last segment of local file paths (for installed legacy extensions
      * with no package metadata). The fields of each record are:
      *     registryInfo: object containing the info for this id from the main registry (containing metadata, owner,
      *         and versions). This will be null for legacy extensions.
@@ -81,13 +83,13 @@ define(function (require, exports, module) {
      *         status: the current status, one of the status constants above
      */
     var extensions = {};
-    
+
     /**
      * Requested changes to the installed extensions.
      */
     var _idsToRemove = [],
         _idsToUpdate = [];
-        
+
     /**
      * @private
      * Synchronizes the information between the public registry and the installed
@@ -98,24 +100,56 @@ define(function (require, exports, module) {
      */
     function synchronizeEntry(id) {
         var entry = extensions[id];
-        
+
         // Do nothing if we only have one set of data
         if (!entry || !entry.installInfo || !entry.registryInfo) {
             return;
         }
-        
+
         entry.installInfo.owner = entry.registryInfo.owner;
-        if (entry.installInfo.metadata && entry.installInfo.metadata.version && semver.lt(entry.installInfo.metadata.version, entry.registryInfo.metadata.version)) {
+
+        // Assume false
+        entry.installInfo.updateAvailable   = false;
+        entry.registryInfo.updateAvailable  = false;
+        entry.installInfo.updateCompatible  = false;
+        entry.registryInfo.updateCompatible = false;
+
+        var currentVersion = entry.installInfo.metadata ? entry.installInfo.metadata.version : null;
+        if (currentVersion && semver.lt(currentVersion, entry.registryInfo.metadata.version)) {
             // Note: available update may still be incompatible; we check for this when rendering the Update button in ExtensionManagerView._renderItem()
-            entry.registryInfo.updateAvailable = true;
-            entry.installInfo.updateAvailable = true;
-        } else {
-            entry.installInfo.updateAvailable = false;
-            entry.registryInfo.updateAvailable = false;
+            entry.registryInfo.updateAvailable  = true;
+            entry.installInfo.updateAvailable   = true;
+            // Calculate updateCompatible to check if there's an update for current version of Brackets
+            var lastCompatibleVersionInfo = _.findLast(entry.registryInfo.versions, function (versionInfo) {
+                return semver.satisfies(brackets.metadata.apiVersion, versionInfo.brackets);
+            });
+            if (lastCompatibleVersionInfo && lastCompatibleVersionInfo.version && semver.lt(currentVersion, lastCompatibleVersionInfo.version)) {
+                entry.installInfo.updateCompatible        = true;
+                entry.registryInfo.updateCompatible       = true;
+                entry.installInfo.lastCompatibleVersion   = lastCompatibleVersionInfo.version;
+                entry.registryInfo.lastCompatibleVersion  = lastCompatibleVersionInfo.version;
+            }
         }
 
         $(exports).triggerHandler("registryUpdate", [id]);
     }
+
+
+    /**
+     * @private
+     * Verifies if an extension is a theme based on the presence of the field "theme"
+     * in the package.json.  If it is a theme, then the theme file is just loaded by the
+     * ThemeManager
+     *
+     * @param {string} id of the theme extension to load
+     */
+    function loadTheme(id) {
+        var extension = extensions[id];
+        if (extension.installInfo && extension.installInfo.metadata && extension.installInfo.metadata.theme) {
+            ThemeManager.loadPackage(extension.installInfo);
+        }
+    }
+
 
     /**
      * @private
@@ -137,7 +171,7 @@ define(function (require, exports, module) {
         _idsToRemove = [];
         _idsToUpdate = [];
     }
-    
+
     /**
      * Downloads the registry of Brackets extensions and stores the information in our
      * extension info.
@@ -160,6 +194,7 @@ define(function (require, exports, module) {
                     extensions[id].registryInfo = data[id];
                     synchronizeEntry(id);
                 });
+                $(exports).triggerHandler("registryDownload");
                 result.resolve();
             })
             .fail(function () {
@@ -167,32 +202,8 @@ define(function (require, exports, module) {
             });
         return result.promise();
     }
-    
-    /**
-     * @private
-     * Loads the package.json file in the given extension folder.
-     * @param {string} folder The extension folder.
-     * @return {$.Promise} A promise object that is resolved with the parsed contents of the package.json file,
-     *     or rejected if there is no package.json or the contents are not valid JSON.
-     */
-    function _loadPackageJson(folder) {
-        var file = FileSystem.getFileForPath(folder + "/package.json"),
-            result = new $.Deferred();
-        FileUtils.readAsText(file)
-            .done(function (text) {
-                try {
-                    var json = JSON.parse(text);
-                    result.resolve(json);
-                } catch (e) {
-                    result.reject();
-                }
-            })
-            .fail(function () {
-                result.reject();
-            });
-        return result.promise();
-    }
-    
+
+
     /**
      * @private
      * When an extension is loaded, fetches the package.json and stores the extension in our map.
@@ -228,17 +239,18 @@ define(function (require, exports, module) {
                 status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
             };
             synchronizeEntry(id);
+            loadTheme(id);
             $(exports).triggerHandler("statusChange", [id]);
         }
-        
-        _loadPackageJson(path)
+
+        ExtensionUtils.loadPackageJson(path)
             .done(function (metadata) {
                 setData(metadata.name, metadata);
             })
             .fail(function () {
                 // If there's no package.json, this is a legacy extension. It was successfully loaded,
                 // but we don't have an official ID or metadata for it, so we just create an id and
-                // "title" for it (which is the last segment of its pathname) 
+                // "title" for it (which is the last segment of its pathname)
                 // and record that it's enabled.
                 var match = path.match(/\/([^\/]+)$/),
                     name = (match && match[1]) || path,
@@ -246,7 +258,7 @@ define(function (require, exports, module) {
                 setData(name, metadata);
             });
     }
-        
+
     /**
      * Determines if the given versions[] entry is compatible with the given Brackets API version, and if not
      * specifies why.
@@ -280,7 +292,7 @@ define(function (require, exports, module) {
         }
         return result;
     }
-    
+
     /**
      * Finds the newest version of the entry that is compatible with the given Brackets API version, if any.
      * @param {Object} entry The registry entry to check.
@@ -299,10 +311,10 @@ define(function (require, exports, module) {
             }
             return fallback;
         }
-        
+
         var i = entry.versions.length - 1,
             latestInfo = getCompatibilityInfoForVersion(entry.versions[i], apiVersion);
-        
+
         if (latestInfo.isCompatible) {
             latestInfo.isLatestVersion = true;
             return latestInfo;
@@ -316,12 +328,12 @@ define(function (require, exports, module) {
                     return compatInfo;
                 }
             }
-            
+
             // No version is compatible, so just return info for the latest version
             return latestInfo;
         }
     }
-    
+
     /**
      * Given an extension id and version number, returns the URL for downloading that extension from
      * the repository. Does not guarantee that the extension exists at that URL.
@@ -332,7 +344,7 @@ define(function (require, exports, module) {
     function getExtensionURL(id, version) {
         return StringUtils.format(brackets.config.extension_url, id, version);
     }
-    
+
     /**
      * Removes the installed extension with the given id.
      * @param {string} id The id of the extension to remove.
@@ -356,16 +368,21 @@ define(function (require, exports, module) {
         }
         return result.promise();
     }
-    
+
     /**
      * Updates an installed extension with the given package file.
      * @param {string} id of the extension
      * @param {string} packagePath path to the package file
+     * @param {boolean=} keepFile Flag to keep extension package file, default=false
      * @return {$.Promise} A promise that's resolved when the extension is updated or
      *     rejected with an error if there's a problem with the update.
      */
-    function update(id, packagePath) {
-        return Package.installUpdate(packagePath, id);
+    function update(id, packagePath, keepFile) {
+        return Package.installUpdate(packagePath, id).done(function () {
+            if (!keepFile) {
+                FileSystem.getFileForPath(packagePath).unlink();
+            }
+        });
     }
 
     /**
@@ -374,14 +391,17 @@ define(function (require, exports, module) {
      */
     function cleanupUpdates() {
         Object.keys(_idsToUpdate).forEach(function (id) {
-            var filename = _idsToUpdate[id].localPath;
-            if (filename) {
+            var installResult = _idsToUpdate[id],
+                keepFile = installResult.keepFile,
+                filename = installResult.localPath;
+
+            if (filename && !keepFile) {
                 FileSystem.getFileForPath(filename).unlink();
             }
         });
         _idsToUpdate = {};
     }
-    
+
     /**
      * Unmarks all extensions marked for removal.
      */
@@ -402,7 +422,7 @@ define(function (require, exports, module) {
         }
         $(exports).triggerHandler("statusChange", [id]);
     }
-    
+
     /**
      * Returns true if an extension is marked for removal.
      * @param {string} id The id of the extension to check.
@@ -411,7 +431,7 @@ define(function (require, exports, module) {
     function isMarkedForRemoval(id) {
         return !!(_idsToRemove[id]);
     }
-    
+
     /**
      * Returns true if there are any extensions marked for removal.
      * @return {boolean} true if there are extensions to remove
@@ -419,7 +439,7 @@ define(function (require, exports, module) {
     function hasExtensionsToRemove() {
         return Object.keys(_idsToRemove).length > 0;
     }
-    
+
     /**
      * If a downloaded package appears to be an update, mark the extension for update.
      * If an extension was previously marked for removal, marking for update will
@@ -427,6 +447,10 @@ define(function (require, exports, module) {
      * @param {Object} installationResult info about the install provided by the Package.download function
      */
     function updateFromDownload(installationResult) {
+        if (installationResult.keepFile === undefined) {
+            installationResult.keepFile = false;
+        }
+        
         var installationStatus = installationResult.installationStatus;
         if (installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
                 installationStatus === Package.InstallationStatuses.NEEDS_UPDATE ||
@@ -438,7 +462,7 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("statusChange", [id]);
         }
     }
-    
+
     /**
      * Removes the mark for an extension to be updated on restart. Also deletes the
      * downloaded package file.
@@ -449,13 +473,13 @@ define(function (require, exports, module) {
         if (!installationResult) {
             return;
         }
-        if (installationResult.localPath) {
+        if (installationResult.localPath && !installationResult.keepFile) {
             FileSystem.getFileForPath(installationResult.localPath).unlink();
         }
         delete _idsToUpdate[id];
         $(exports).triggerHandler("statusChange", [id]);
     }
-    
+
     /**
      * Returns true if an extension is marked for update.
      * @param {string} id The id of the extension to check.
@@ -464,7 +488,7 @@ define(function (require, exports, module) {
     function isMarkedForUpdate(id) {
         return !!(_idsToUpdate[id]);
     }
-    
+
     /**
      * Returns true if there are any extensions marked for update.
      * @return {boolean} true if there are extensions to update
@@ -472,7 +496,7 @@ define(function (require, exports, module) {
     function hasExtensionsToUpdate() {
         return Object.keys(_idsToUpdate).length > 0;
     }
-    
+
     /**
      * Removes extensions previously marked for removal.
      * @return {$.Promise} A promise that's resolved when all extensions are removed, or rejected
@@ -488,7 +512,7 @@ define(function (require, exports, module) {
             }
         );
     }
-    
+
     /**
      * Updates extensions previously marked for update.
      * @return {$.Promise} A promise that's resolved when all extensions are updated, or rejected
@@ -501,44 +525,124 @@ define(function (require, exports, module) {
             Object.keys(_idsToUpdate),
             function (id) {
                 var installationResult = _idsToUpdate[id];
-                return update(installationResult.name, installationResult.localPath);
+                return update(installationResult.name, installationResult.localPath, installationResult.keepFile);
             }
         );
     }
-    
+
+    /**
+     * Gets an array of extensions that are currently installed and can be updated to a new version
+     * @return {Array.<{id: string, installVersion: string, registryVersion: string}>}
+     *     where id = extensionId
+     *     installVersion = currently installed version of extension
+     *     registryVersion = latest version compatible with current Brackets
+     */
+    function getAvailableUpdates() {
+        var result = [];
+        Object.keys(extensions).forEach(function (extensionId) {
+            var extensionInfo = extensions[extensionId];
+            // skip extensions that are not installed or are not in the registry
+            if (!extensionInfo.installInfo || !extensionInfo.registryInfo) {
+                return;
+            }
+            if (extensionInfo.registryInfo.updateCompatible) {
+                result.push({
+                    id: extensionId,
+                    installVersion: extensionInfo.installInfo.metadata.version,
+                    registryVersion: extensionInfo.registryInfo.lastCompatibleVersion
+                });
+            }
+        });
+        return result;
+    }
+
+    /**
+     * Takes the array returned from getAvailableUpdates() as an input and removes those entries
+     * that are no longer current - when currently installed version of an extension
+     * is equal or newer than registryVersion returned by getAvailableUpdates().
+     * This function is designed to work without the necessity to download extension registry
+     * @param {Array.<{id: string, installVersion: string, registryVersion: string}>} updates
+     *     previous output of getAvailableUpdates()
+     * @return {Array.<{id: string, installVersion: string, registryVersion: string}>}
+     *     filtered input as function description
+     */
+    function cleanAvailableUpdates(updates) {
+        return updates.reduce(function (arr, updateInfo) {
+            var extDefinition = extensions[updateInfo.id];
+            if (!extDefinition || !extDefinition.installInfo) {
+                // extension has been uninstalled in the meantime
+                return arr;
+            }
+
+            var installedVersion = extDefinition.installInfo.metadata.version;
+            if (semver.lt(installedVersion, updateInfo.registryVersion)) {
+                arr.push(updateInfo);
+            }
+
+            return arr;
+        }, []);
+    }
+
+    /**
+     * Toggles between truncated and full length extension descriptions
+     * @param {string} id The id of the extension clicked
+     * @param {JQueryElement} $element The DOM element of the extension clicked
+     * @param {boolean} showFull true if full length description should be shown, false for shorten version.
+     */
+    function toggleDescription(id, $element, showFull) {
+        var description, linkTitle,
+            entry = extensions[id];
+
+        // Toggle between appropriate descriptions and link title,
+        // depending on if extension is installed or not
+        if (showFull) {
+            description = entry.installInfo ? entry.installInfo.metadata.description : entry.registryInfo.metadata.description;
+            linkTitle = Strings.VIEW_TRUNCATED_DESCRIPTION;
+        } else {
+            description = entry.installInfo ? entry.installInfo.metadata.shortdescription : entry.registryInfo.metadata.shortdescription;
+            linkTitle = Strings.VIEW_COMPLETE_DESCRIPTION;
+        }
+
+        $element.attr("data-toggle-desc", showFull ? "trunc-desc" : "expand-desc")
+                .attr("title", linkTitle)
+                .prev(".ext-full-description").html(description);
+    }
+
     // Listen to extension load and loadFailed events
     $(ExtensionLoader)
         .on("load", _handleExtensionLoad)
         .on("loadFailed", _handleExtensionLoad);
 
     // Public exports
-    exports.downloadRegistry = downloadRegistry;
-    exports.getCompatibilityInfo = getCompatibilityInfo;
-    exports.getExtensionURL = getExtensionURL;
-    exports.remove = remove;
-    exports.update = update;
-    exports.extensions = extensions;
-    exports.cleanupUpdates = cleanupUpdates;
-    exports.markForRemoval = markForRemoval;
-    exports.isMarkedForRemoval = isMarkedForRemoval;
-    exports.unmarkAllForRemoval = unmarkAllForRemoval;
-    exports.hasExtensionsToRemove = hasExtensionsToRemove;
-    exports.updateFromDownload = updateFromDownload;
-    exports.removeUpdate = removeUpdate;
-    exports.isMarkedForUpdate = isMarkedForUpdate;
-    exports.hasExtensionsToUpdate = hasExtensionsToUpdate;
-    exports.removeMarkedExtensions = removeMarkedExtensions;
-    exports.updateExtensions = updateExtensions;
-    
-    exports.ENABLED = ENABLED;
-    exports.START_FAILED = START_FAILED;
-    
-    exports.LOCATION_DEFAULT = LOCATION_DEFAULT;
-    exports.LOCATION_DEV = LOCATION_DEV;
-    exports.LOCATION_USER = LOCATION_USER;
-    exports.LOCATION_UNKNOWN = LOCATION_UNKNOWN;
+    exports.downloadRegistry        = downloadRegistry;
+    exports.getCompatibilityInfo    = getCompatibilityInfo;
+    exports.getExtensionURL         = getExtensionURL;
+    exports.remove                  = remove;
+    exports.update                  = update;
+    exports.extensions              = extensions;
+    exports.cleanupUpdates          = cleanupUpdates;
+    exports.markForRemoval          = markForRemoval;
+    exports.isMarkedForRemoval      = isMarkedForRemoval;
+    exports.unmarkAllForRemoval     = unmarkAllForRemoval;
+    exports.hasExtensionsToRemove   = hasExtensionsToRemove;
+    exports.updateFromDownload      = updateFromDownload;
+    exports.removeUpdate            = removeUpdate;
+    exports.isMarkedForUpdate       = isMarkedForUpdate;
+    exports.hasExtensionsToUpdate   = hasExtensionsToUpdate;
+    exports.removeMarkedExtensions  = removeMarkedExtensions;
+    exports.updateExtensions        = updateExtensions;
+    exports.getAvailableUpdates     = getAvailableUpdates;
+    exports.cleanAvailableUpdates   = cleanAvailableUpdates;
+    exports.toggleDescription       = toggleDescription;
+    exports.ENABLED       = ENABLED;
+    exports.START_FAILED  = START_FAILED;
+
+    exports.LOCATION_DEFAULT  = LOCATION_DEFAULT;
+    exports.LOCATION_DEV      = LOCATION_DEV;
+    exports.LOCATION_USER     = LOCATION_USER;
+    exports.LOCATION_UNKNOWN  = LOCATION_UNKNOWN;
 
     // For unit testing only
-    exports._reset = _reset;
-    exports._setExtensions = _setExtensions;
+    exports._reset          = _reset;
+    exports._setExtensions  = _setExtensions;
 });

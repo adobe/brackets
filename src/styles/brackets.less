@@ -158,28 +158,50 @@ a, img {
     white-space: nowrap;
 
     > div {
-        border-left: 1px solid rgba(0, 0, 0, 0.1);
+        &:not(.spinner) {
+            border-left: 1px solid rgba(0, 0, 0, 0.1);
+        }
         float: right;
         padding: 0 10px;
     }
     .spinner {  // spinner is tiny & usually invisible; reduce margin so gap is less glaring
-        border: none;
         margin: 6px 10px;
         padding: 0;
     }
 
     #status-language {
         border-right: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 0px;
+        margin: 0px;
     }
-}
-
-@-webkit-keyframes spinner-sprites-12 {
-      0% { background-position:    0px 0px; }
-    100% { background-position: -120px 0px; }
-}
-@-webkit-keyframes spinner-sprites-36 {
-      0% { background-position:    0px 0px; }
-    100% { background-position: -360px 0px; }
+    
+    /* dropdown button styling */
+    .btn-status-bar {
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        font: inherit;
+        height: inherit;
+        line-height: inherit;
+        margin: 0;
+        padding: 0 20px 0 10px;
+        vertical-align: top;
+        width: auto;
+        cursor: pointer;
+        border-radius: 0;
+        box-shadow: none;
+        text-shadow: none;
+        
+        &:focus {
+            outline: 0;
+        }
+        &[disabled] {
+            cursor: inherit;
+            background: none;
+            text-decoration: none;
+        }
+    }
+    
 }
 
 #status-indent > * {
@@ -195,7 +217,7 @@ a, img {
     margin-right: 3px;
 }
 
-#indent-type:hover, #indent-width-label:hover {
+#status-overwrite:hover, #indent-type:hover, #indent-width-label:hover {
     text-decoration: underline;
 }
 
@@ -227,7 +249,6 @@ a, img {
 #status-overwrite {
     transition: background-color 3s;
     background-color: rgba(120, 178, 242, 0);
-    color: rgb(69, 69, 69);
     cursor: pointer;
 }
 
@@ -311,10 +332,11 @@ a, img {
     }
 
     .img-guide,
-    #img-preview {
-        cursor: none;
+    #img-tip, 
+    #img-scale {
+        pointer-events: none;
     }
-
+    
     #img-scale {
         display: block;
         position: absolute;
@@ -450,8 +472,8 @@ a, img {
         vertical-align: baseline;
     }
 
-    .file-section > td {
-        padding-left: 5px;
+    .file-section > .checkbox-column {
+        width: 15px;
     }
 
     .line-number {
@@ -508,7 +530,10 @@ a, img {
 }
 
 #toolbar-extension-manager {
-    .sprite-icon(0, 0, 24px, 24px, "images/topcoat-plugin-20.svg");
+    .sprite-icon(0, 0, 24px, 24px, "images/extension-manager-sprite.svg");
+    &.updatesAvailable {
+        .sprite-icon(0, 24px, 24px, 24px, "images/extension-manager-sprite.svg");
+    }
 }
 
 /* Project panel */
@@ -841,7 +866,7 @@ a, img {
     }
 
     .CodeMirror-scroll {
-        background-color: transparent;
+        background-color: transparent !important;
 
         .CodeMirror-linenumbers {
             background-color: @tc-lighter-gray;
@@ -898,8 +923,8 @@ a, img {
         position: absolute;
         width: 0;
         height: 0;
-        border-top: @inline-triangle-size solid @inline-background-color-3;
-        border-bottom: @inline-triangle-size solid @inline-background-color-3;
+        border-top: @inline-triangle-size solid transparent;
+        border-bottom: @inline-triangle-size solid transparent;
         border-left: @inline-triangle-size solid @inline-background-color-1;
         margin-top: -@inline-triangle-size;
         top: 50%;
@@ -971,7 +996,7 @@ a, img {
 
 /* Find in Files results panel - temporary UI, to be replaced with a richer search feature later */
 
-#search-results .title, #replace-all-results .title {
+.search-results .title {
     .sane-box-model;
     padding-right: 20px;
     width: 100%;
@@ -988,7 +1013,7 @@ a, img {
         .flex-item(0, 0);
     }
     .pagination-col {
-        .flex-item(1, 0);
+        .flex-item(0, 0);
         min-width: 100px;
         word-spacing: 0;
     }
@@ -1037,7 +1062,8 @@ a, img {
     }
 }
 
-#search-results .disclosure-triangle, #problems-panel .disclosure-triangle {
+.search-results .disclosure-triangle,
+#problems-panel .disclosure-triangle {
     .jstree-sprite;
     display: inline-block;
     &.expanded {
@@ -1082,14 +1108,10 @@ a, img {
     }
 
     &.offscreen {
-        -webkit-transform: translate(0, -44px);
-        transform: translate(0, -44px);
+        -webkit-transform: translate(0, -100%);
+        transform: translate(0, -100%);
         transition: -webkit-transform 266ms cubic-bezier(0, 0.56, 0, 1);
         transition: transform 266ms cubic-bezier(0, 0.56, 0, 1);
-
-        body:not(.has-appshell-menus) & {
-            top: 37px;
-        }
     }
 
     input {
@@ -1118,6 +1140,7 @@ a, img {
             left: 5px;
             top: 24px;
             min-width: 291px + 2px;  // to align with search field above it
+            z-index: 1; // to appear above any controls that wrap below
 
             background-color: @bc-error;
             color: @bc-white;
@@ -1140,9 +1163,21 @@ a, img {
         }
     }
 
+    .find-input-group {
+        display: inline-block;
+    }
     #find-group, #replace-group {
         display: inline-block;
         white-space: nowrap;
+    }
+    #replace-group.has-scope {
+        // If scope controls are showing, force the replace controls to a second line.
+        display: block;
+    }
+    
+    .scope-group {
+        display: inline-block;
+        margin-left: 10px;
     }
 
     .message, .no-results-message {
@@ -1191,6 +1226,10 @@ a, img {
         border-bottom-left-radius: 0;
         margin-left: 0;
     }
+    #replace-all.solo {
+        border-left: none;
+        margin-left: 0px;
+    }
 
     // Make find field snug with options buttons
     //    & replace snug with replace commands
@@ -1207,51 +1246,99 @@ a, img {
 }
 
 // File exclusion filter (used only in Find in Files search bar, for now)
-.filter-picker {
-    display: inline-block;
-    margin-left: 8px;
-    button {
-        margin-left: 8px;
-    }
+.filter-trash-icon {
+    position: absolute;
+    left: 7px;
+    width: 16px;
+    height: 16px;
+    font-size: 20px;
+    color: rgba(0, 0, 0, 0.5);
+    line-height: 15px;
+    text-align: center;
+    visibility: hidden;
+}
+
+.filter-trash-icon:hover {
+    color: rgba(0, 0, 0, 1);
+}
+
+.filter-edit-icon {
+    float: right;
+    width: 13px;
+    height: 13px;
+    background-image: url("images/edit-icon.svg");
+    background-repeat: no-repeat;
+    opacity: 0.5;
+    visibility: hidden;
+    position: relative;
+    top: 2px;
+    right: -4px;
+}
+
+.filter-edit-icon:hover {
+    opacity: 1;
+}
+
+li:hover .filter-trash-icon,
+li:hover .filter-edit-icon {
+    visibility: visible;
+}
+
+.recent-filter-name {
+    margin-left: 12px;
+}
+
+.recent-filter-patterns {
+    color: @tc-light-weight-quiet-text;
+    padding-right: 52px;
+}
+
+button.file-filter-picker {
+    margin-left: 10px;
 }
 
 // File exclusion filter editor dialog
+input.exclusions-name {
+    display: block;
+    width: 100%;
+    height: 30px;
+    box-sizing: border-box; // needed for width: 100% since it has padding
+    margin-top: 12px;
+    margin-bottom: 0;
+}
 textarea.exclusions-editor {
     display: block;
-    width: 547px;
-    height: 160px;
-    margin-top: 12px;
+    width: 100%;
+    height: 120px;
+    box-sizing: border-box; // needed for width: 100% since it has padding
+    margin-top: 5px;
     margin-bottom: 0;
     .code-font();
 }
+.exclusions-filecount {
+    margin: 12px 0 -14px 0;
+    padding: 4px 8px;
+    background-color: @tc-highlight;
+    border-radius: @tc-control-border-radius;
+}
 
 
-// Search result highlighting - CodeMirror highlighting is pretty constrained. Highlights are
-// blended on TOP of the selection color. The "current" search result is indicated by selection,
-// so we want the selection visible underneath the highlight. To do this, the highlight must be
-// transparent; it has to look good atop both the selection color AND the regular text bg color.
+// Find/Replace result highlighting
 .CodeMirror-searching {
-    // Highlight color, overlaid on top of the .find-highlighting color
     background-color: @cm-match-highlight;
     box-shadow: @tc-small-shadow-bottom;
     color: @match-text !important;
-    &.searching-first {
+    &.searching-current-match {
+        background-color: @cm-current-match-highlight;
+    }
+    &.searching-first {  // first in a contiguous run of highlights
         border-top-left-radius: @tc-inline-border-radius;
         border-bottom-left-radius: @tc-inline-border-radius;
     }
-    &.searching-last {
+    &.searching-last {  // last in a contiguous run of highlights
         border-top-right-radius: @tc-inline-border-radius;
         border-bottom-right-radius: @tc-inline-border-radius;
     }
-}
-.CodeMirror.find-highlighting div.CodeMirror-selected,
-.CodeMirror .CodeMirror.find-highlighting div.CodeMirror-selected {
-    // Selection color while highlighting shown - ALWAYS has the .CodeMirror-searching color
-    // blended atop it.
-    // Note: the 2nd selector reflecting CM nesting is needed to override the similar rules in
-    // brackets_codemirror_override.less (see the note about #324).
-    background: @cm-current-match-highlight;
-    border-radius: @tc-inline-border-radius;
 }
 #find-counter {
     font-weight: @font-weight-semibold;
@@ -1362,42 +1449,72 @@ textarea.exclusions-editor {
 
 .spinner {
     display: inline-block;
-    vertical-align: middle;
-    margin-top: -2px;
-    width: 12px;
-    height: 12px;
-    background: url("images/spinner_small_sprites12.png") no-repeat;
+    box-sizing: border-box;
+    width: 14px;
+    height: 14px;
+    border-left: 3px solid #78B2F2;
+    border-right: 3px solid #78B2F2;
+    overflow: hidden;
+    position: relative;
     visibility: hidden;
 
+    &:before,
+    &:after {
+        border-left: 3px solid #78B2F2;
+        border-right: 3px solid #78B2F2;
+        box-sizing: border-box;
+        content: "";
+        display: block;
+        position: absolute;
+        width: 100%;
+        height: 3px;
+        left: 0;
+    }
+    &:before {
+        top: 0;
+    }
+    &:after {
+        bottom: 0;
+    }
+
     &.spin {
-        -webkit-animation: spinner-sprites-12 1.2s steps(10) infinite;
+        -webkit-animation: spinner-rotateplane 1.2s infinite ease-in-out;
+        animation: spinner-rotateplane 1.2s infinite ease-in-out;
         visibility: visible;
     }
 
     &.large {
         width: 36px;
         height: 36px;
-        margin-top: 0;
-        background: url("images/spinner_large_sprites36.png") no-repeat;
+        border-left: 9px solid #78B2F2;
+        border-right: 9px solid #78B2F2;
 
-        &.spin {
-            -webkit-animation: spinner-sprites-36 1.2s steps(10) infinite;
+        &:before,
+        &:after {
+            border-left: 7px solid #78B2F2;
+            border-right: 7px solid #78B2F2;
+            height: 9px;
         }
     }
-}
-// Retina versions
-@media only screen and (-webkit-min-device-pixel-ratio: 2),
-       only screen and (min-device-pixel-ratio: 2) {
-    .spinner {
-        background-image: url("images/spinner_small_sprites12@2x.png");
-        background-size: 120px 12px;
-
-        &.large {
-            background: url("images/spinner_large_sprites36@2x.png") no-repeat;
-            background-size: 360px 36px;
-        }
+    
+    &.inline {
+        margin-left: 8px;
+        position: relative;
+        top: 3px;
     }
 }
+
+@-webkit-keyframes spinner-rotateplane {
+    0% { -webkit-transform: perspective(120px) }
+    50% { -webkit-transform: perspective(120px) rotateY(180deg) }
+    100% { -webkit-transform: perspective(120px) rotateY(180deg)  rotateX(180deg) }
+}
+@keyframes spinner-rotateplane {
+    0% { -webkit-transform: perspective(120px) rotateX(0deg) rotateY(0deg); transform: perspective(120px) rotateX(0deg) rotateY(0deg); }
+    50% { -webkit-transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); }
+    100% { -webkit-transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); }
+}
+
 
 
 /* Problems panel & CodeInspection status bar indicator */
@@ -1406,6 +1523,10 @@ textarea.exclusions-editor {
     border: none;
     cursor: default;
     width: 13px;
+    
+    &.inspection-errors {
+        cursor: pointer;
+    }
 }
 
 .inspection-disabled {
@@ -1464,10 +1585,6 @@ label input {
     color: @live-preview-sync-error-color !important;
 }
 
-.install-extension-dialog .spinner {
-    margin-left: 10px;
-}
-
 /* Quick Edit, Quick Docs */
 .popover-message {
     position: absolute;
@@ -1519,4 +1636,85 @@ label input {
         -webkit-transform: scale(1);
         transform: scale(1);
     }
+}
+
+.emphasized {
+    font-weight: 900;
+    font-size: 1.01em;
+}
+
+/* Extension Manager */
+#install-drop-zone {
+    background-color: transparent;
+    box-shadow: initial;
+    font-weight: normal;
+    border-style: dashed;
+    position: relative;
+}
+
+#install-drop-zone .install-from-url {
+    cursor: pointer;
+}
+
+#install-drop-zone-mask {
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    
+    padding: 1px;
+    width: 100%;
+    height: 100%;
+    display: none;
+    
+    cursor: copy;
+}
+
+#install-drop-zone.drop #install-drop-zone-mask {
+    display: block;
+}
+
+#install-drop-zone.drop {
+    background: @tc-call-to-action;
+    box-shadow: initial;
+    font-weight: normal;
+    border: 1px solid @tc-call-to-action;
+    color: @tc-call-to-action-text;
+    text-shadow: none;
+}
+
+.install-drag-message {
+    display: none;
+}
+
+.install-drop-message {
+    display: none;
+}
+
+.install-validating-message {
+    display: none;
+}
+
+#install-drop-zone.drag .install-drag-message {
+    display: inline;
+}
+
+#install-drop-zone.drop .install-drop-message {
+    display: inline;
+}
+
+#install-drop-zone.validating .install-validating-message {
+    display: inline;
+}
+
+.theme-settings td {
+    padding: 2px;
+}
+
+.theme-settings .modal-body {
+    min-height: 300px;
+    max-height: 300px;
+}
+
+.theme-settings .label {
+    padding: 4px !important;
 }

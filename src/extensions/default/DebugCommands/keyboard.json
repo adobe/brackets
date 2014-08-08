@@ -20,10 +20,6 @@
     "reloadWithoutUserExts":  [
         {
             "key": "Shift-F5"
-        },
-        {
-            "key": "Cmd-Shift-R",
-            "platform": "mac"
         }
     ]
 }

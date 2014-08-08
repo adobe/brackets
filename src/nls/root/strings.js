@@ -37,40 +37,48 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
     "CONTENTS_MODIFIED_ERR"             : "The file has been modified outside of {APP_NAME}.",
+    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} currently only supports UTF-8 encoded text files.",
     "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
     "FILE"                              : "file",
+    "FILE_TITLE"                        : "File",
     "DIRECTORY"                         : "directory",
+    "DIRECTORY_TITLE"                   : "Directory",
+    "DIRECTORY_NAMES_LEDE"              : "Directory names",
+    "FILENAMES_LEDE"                    : "Filenames",
+    "FILENAME"                          : "Filename",
+    "DIRECTORY_NAME"                    : "Directory Name",
+    
 
     // Project error strings
-    "ERROR_LOADING_PROJECT"             : "Error loading project",
+    "ERROR_LOADING_PROJECT"             : "Error Loading Project",
     "OPEN_DIALOG_ERROR"                 : "An error occurred when showing the open file dialog. (error {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "An error occurred when trying to load the directory <span class='dialog-filename'>{0}</span>. (error {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "An error occurred when reading the contents of the directory <span class='dialog-filename'>{0}</span>. (error {1})",
 
     // File open/save error string
-    "ERROR_OPENING_FILE_TITLE"          : "Error opening file",
+    "ERROR_OPENING_FILE_TITLE"          : "Error Opening File",
     "ERROR_OPENING_FILE"                : "An error occurred when trying to open the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_OPENING_FILES"               : "An error occurred when trying to open the following files:",
-    "ERROR_RELOADING_FILE_TITLE"        : "Error reloading changes from disk",
+    "ERROR_RELOADING_FILE_TITLE"        : "Error Reloading Changes From Disk",
     "ERROR_RELOADING_FILE"              : "An error occurred when trying to reload the file <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_SAVING_FILE_TITLE"           : "Error saving file",
+    "ERROR_SAVING_FILE_TITLE"           : "Error Saving File",
     "ERROR_SAVING_FILE"                 : "An error occurred when trying to save the file <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "Error renaming file",
-    "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_DELETING_FILE_TITLE"         : "Error deleting file",
-    "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}",
-    "INVALID_FILENAME_TITLE"            : "Invalid {0} name",
-    "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: {0} or use any system reserved words.",
-    "FILE_ALREADY_EXISTS"               : "The {0} <span class='dialog-filename'>{1}</span> already exists.",
-    "ERROR_CREATING_FILE_TITLE"         : "Error creating {0}",
+    "ERROR_RENAMING_FILE_TITLE"         : "Error Renaming {0}",
+    "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the {2} <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_DELETING_FILE_TITLE"         : "Error Deleting {0}",
+    "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the {2} <span class='dialog-filename'>{0}</span>. {1}",
+    "INVALID_FILENAME_TITLE"            : "Invalid {0}",
+    "INVALID_FILENAME_MESSAGE"          : "{0} cannot use any system reserved words, end with dots (.) or use any of the following characters: <code class='emphasized'>{1}</code>",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "A file or directory with the name <span class='dialog-filename'>{0}</span> already exists.",
+    "ERROR_CREATING_FILE_TITLE"         : "Error Creating {0}",
     "ERROR_CREATING_FILE"               : "An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application preferences corrupt error strings
-    "ERROR_PREFS_CORRUPT_TITLE"         : "Error reading preferences",
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Error Reading Preferences",
     "ERROR_PREFS_CORRUPT"               : "Your preferences file is not valid JSON. The file will be opened so that you can correct the format. You will need to restart {APP_NAME} for the changes to take effect.",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",
+    "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} Doesn't Run in Browsers Yet.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-shell</b> repo to run {APP_NAME}.",
     
     // ProjectManager max files error string
@@ -78,7 +86,7 @@ define({
     "ERROR_MAX_FILES"                   : "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.",
 
     // Live Preview error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error launching browser",
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error Launching Browser",
     "ERROR_CANT_FIND_CHROME"            : "The Google Chrome browser could not be found. Please make sure it is installed.",
     "ERROR_LAUNCHING_BROWSER"           : "An error occurred when launching the browser. (error {0})",
     
@@ -117,6 +125,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
     
     // Generic dialog/button labels
+    "DONE"                              : "Done",
     "OK"                                : "OK",
     "CANCEL"                            : "Cancel",
     "DONT_SAVE"                         : "Don't Save",
@@ -126,13 +135,15 @@ define({
     "DELETE"                            : "Delete",
     "BUTTON_YES"                        : "Yes",
     "BUTTON_NO"                         : "No",
-        
+    
     // Find, Replace, Find in Files
     "FIND_RESULT_COUNT"                 : "{0} results",
     "FIND_RESULT_COUNT_SINGLE"          : "1 result",
     "FIND_NO_RESULTS"                   : "No results",
+    "FIND_QUERY_PLACEHOLDER"            : "Find\u2026",
     "REPLACE_PLACEHOLDER"               : "Replace with\u2026",
-    "BUTTON_REPLACE_ALL"                : "All\u2026",
+    "BUTTON_REPLACE_ALL"                : "Batch\u2026",
+    "BUTTON_REPLACE_ALL_IN_FILES"       : "Replace\u2026",
     "BUTTON_REPLACE"                    : "Replace",
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
@@ -140,26 +151,29 @@ define({
     "BUTTON_PREV_HINT"                  : "Previous Match",
     "BUTTON_CASESENSITIVE_HINT"         : "Match Case",
     "BUTTON_REGEXP_HINT"                : "Regular Expression",
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Replace Without Undo",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Because more than {0} files need to be changed, {APP_NAME} will modify unopened files on disk.<br />You won't be able to undo replacements in those files.",
+    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Replace Without Undo",
 
     "OPEN_FILE"                         : "Open File",
     "SAVE_FILE_AS"                      : "Save File",
     "CHOOSE_FOLDER"                     : "Choose a folder",
 
     "RELEASE_NOTES"                     : "Release Notes",
-    "NO_UPDATE_TITLE"                   : "You're up to date!",
+    "NO_UPDATE_TITLE"                   : "You're Up to Date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
 
-    // Replace All (in single file)
-    "FIND_REPLACE_TITLE_PART1"          : "Replace \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" with \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+    // Find and Replace
+    "FIND_REPLACE_TITLE_LABEL"          : "Replace",
+    "FIND_REPLACE_TITLE_WITH"           : "with",
+    "FIND_TITLE_LABEL"                  : "Found",
+    "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} in {3}",
 
     // Find in Files
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" found",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
+    "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
+    "FIND_IN_FILES_ZERO_FILES"          : "Filter excludes all files {0}",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
@@ -168,27 +182,37 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click to expand/collapse all",
-    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
+    "REPLACE_IN_FILES_ERRORS_TITLE"     : "Replace Errors",
+    "REPLACE_IN_FILES_ERRORS"           : "The following files weren't modified because they changed after the search or couldn't be written.",
+    
+    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error Getting Update Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
     
     // File exclusion filters
-    "NO_FILE_FILTER"                    : "Exclude files\u2026",
+    "NEW_FILE_FILTER"                   : "New Exclusion Set\u2026",
+    "CLEAR_FILE_FILTER"                 : "Don't Exclude Files",
+    "NO_FILE_FILTER"                    : "No Files Excluded",
+    "EXCLUDE_FILE_FILTER"               : "Exclude {0}",
     "EDIT_FILE_FILTER"                  : "Edit\u2026",
-    "FILE_FILTER_DIALOG"                : "Edit Filter",
-    "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>globs</a>. Enter each string on a new line.",
-    "FILE_FILTER_LIST_PREFIX"           : "except",
+    "FILE_FILTER_DIALOG"                : "Edit Exclusion Set",
+    "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>wildcards</a>. Enter each string on a new line.",
+    "FILTER_NAME_PLACEHOLDER"           : "Name this exclusion set (optional)",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "and {0} more",
+    "FILTER_COUNTING_FILES"             : "Counting files\u2026",
+    "FILTER_FILE_COUNT"                 : "Allows {0} of {1} files {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Allows all {0} files {1}",
 
     // Quick Edit
-    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "No Quick Edit provider found for current cursor position",
-    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Quick Edit: place cursor in class name",
-    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Quick Edit: place cursor in id name",
-    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: place cursor in tag name, class name, or id name",
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "No Quick Edit available for current cursor position",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Quick Edit: place cursor on a single class name",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Quick Edit: incomplete class attribute",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Quick Edit: incomplete id attribute",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: place cursor in tag, class, or id",
     "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS Timing Function Quick Edit: invalid syntax",
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: place cursor in function name",
 
     // Quick Docs
-    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "No Quick Docs provider found for current cursor position",
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "No Quick Docs available for current cursor position",
 
     /**
      * ProjectManager
@@ -224,6 +248,11 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensions Disabled",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Click to toggle cursor between Insert (INS) and Overwrite (OVR) modes",
+    "STATUSBAR_LANG_TOOLTIP"                : "Click to change file type",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Click to toggle report panel.",
+    "STATUSBAR_DEFAULT_LANG"                : "(default)",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Set as Default for .{0} Files",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",
@@ -234,6 +263,8 @@ define({
     "LINT_DISABLED"                         : "Linting is disabled",
     "NO_LINT_AVAILABLE"                     : "No linter available for {0}",
     "NOTHING_TO_LINT"                       : "Nothing to lint",
+    "LINTER_TIMED_OUT"                      : "{0} has timed out after waiting for {1} ms",
+    "LINTER_FAILED"                         : "{0} terminated with error: {1}",
     
     
     /**
@@ -259,6 +290,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_FILE_SAVE_AS"                    : "Save As\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Force Reload Live Preview",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_FILE_DELETE"                     : "Delete",
@@ -281,16 +313,6 @@ define({
     "CMD_SPLIT_SEL_INTO_LINES"            : "Split Selection into Lines",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "Add Cursor to Next Line",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "Add Cursor to Previous Line",
-    "CMD_FIND"                            : "Find",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Find\u2026",
-    "CMD_FIND_IN_FILES"                   : "Find in Files",
-    "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
-    "CMD_FIND_NEXT"                       : "Find Next",
-    "CMD_FIND_PREVIOUS"                   : "Find Previous",
-    "CMD_FIND_ALL_AND_SELECT"             : "Find All and Select",
-    "CMD_ADD_NEXT_MATCH"                  : "Add Next Match to Selection",
-    "CMD_SKIP_CURRENT_MATCH"              : "Skip and Add Next Match",
-    "CMD_REPLACE"                         : "Replace",
     "CMD_INDENT"                          : "Indent",
     "CMD_UNINDENT"                        : "Unindent",
     "CMD_DUPLICATE"                       : "Duplicate",
@@ -303,6 +325,22 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Open Line Below",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
     "CMD_SHOW_CODE_HINTS"                 : "Show Code Hints",
+    
+    // Search menu commands
+    "FIND_MENU"                           : "Find",
+    "CMD_FIND"                            : "Find",
+    "CMD_FIND_NEXT"                       : "Find Next",
+    "CMD_FIND_PREVIOUS"                   : "Find Previous",
+    "CMD_FIND_ALL_AND_SELECT"             : "Find All and Select",
+    "CMD_ADD_NEXT_MATCH"                  : "Add Next Match to Selection",
+    "CMD_SKIP_CURRENT_MATCH"              : "Skip and Add Next Match",
+    "CMD_FIND_IN_FILES"                   : "Find in Files",
+    "CMD_FIND_IN_SELECTED"                : "Find in Selected File/Folder",
+    "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
+    "CMD_REPLACE"                         : "Replace",
+    "CMD_REPLACE_IN_FILES"                : "Replace in Files",
+    "CMD_REPLACE_IN_SELECTED"             : "Replace in Selected File/Folder",
+    "CMD_REPLACE_IN_SUBTREE"              : "Replace in\u2026",
     
     // View menu commands
     "VIEW_MENU"                           : "View",
@@ -322,6 +360,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatic Sort",
+    "CMD_THEMES"                          : "Themes\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigate",
@@ -345,10 +384,12 @@ define({
     "HELP_MENU"                           : "Help",
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
     "CMD_HOW_TO_USE_BRACKETS"             : "How to Use {APP_NAME}",
-    "CMD_SUPPORT"                         : "Support for Using {APP_NAME}",
+    "CMD_SUPPORT"                         : "{APP_NAME} Support",
+    "CMD_SUGGEST"                         : "Suggest a Feature",
     "CMD_RELEASE_NOTES"                   : "Release Notes",
-    "CMD_GET_INVOLVED"                    : "Hacking on Brackets",
+    "CMD_GET_INVOLVED"                    : "Get Involved",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
+    "CMD_HOMEPAGE"                        : "{APP_TITLE} Homepage",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Open Preferences File",
@@ -363,6 +404,7 @@ define({
     "ABOUT"                                : "About",
     "CLOSE"                                : "Close",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_BUILD_TIMESTAMP"           : "build timestamp: ",
     "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Made with \u2764 and JavaScript by:",
@@ -381,6 +423,12 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unknown error parsing Base URL",
     
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Current Theme",
+    "USE_THEME_SCROLLBARS"                 : "Use Theme Scrollbars",
+    "FONT_SIZE"                            : "Font Size",
+    "FONT_FAMILY"                          : "Font Family",
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "New Rule",
     
@@ -402,6 +450,8 @@ define({
     "CANCELING_INSTALL"                    : "Canceling\u2026",
     "CANCELING_HUNG"                       : "Canceling the install is taking a long time. An internal error may have occurred.",
     "INSTALL_CANCELED"                     : "Installation canceled.",
+    "VIEW_COMPLETE_DESCRIPTION"            : "View complete description",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "View truncated description",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "The downloaded content is not a valid zip file.",
     "INVALID_PACKAGE_JSON"                 : "The package.json file is not valid (error was: {0}).",
@@ -427,7 +477,11 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Extension Manager",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Unable to access the extension registry. Please try again later.",
+    "INSTALL_EXTENSION_DRAG"               : "Drag .zip here or",
+    "INSTALL_EXTENSION_DROP"               : "Drop .zip to install",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Install/Update aborted due to the following errors:",
     "INSTALL_FROM_URL"                     : "Install from URL\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "Validating\u2026",
     "EXTENSION_AUTHOR"                     : "Author",
     "EXTENSION_DATE"                       : "Date",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "This extension requires a newer version of {APP_NAME}.",
@@ -438,6 +492,9 @@ define({
     "EXTENSION_MORE_INFO"                  : "More info...",
     "EXTENSION_ERROR"                      : "Extension error",
     "EXTENSION_KEYWORDS"                   : "Keywords",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "Translated into {0} languages, including yours",
+    "EXTENSION_TRANSLATED_GENERAL"         : "Translated into {0} languages",
+    "EXTENSION_TRANSLATED_LANGS"           : "This extension has been translated into these languages: {0}",
     "EXTENSION_INSTALLED"                  : "Installed",
     "EXTENSION_UPDATE_INSTALLED"           : "This extension update has been downloaded and will be installed after {APP_NAME} reloads.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
@@ -480,6 +537,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
+    "ERRORS"                                    : "Errors",
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
     "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
@@ -490,6 +548,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Enable Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
     "CMD_RESTART_NODE"                          : "Restart Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",
@@ -517,6 +576,8 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
     "NO_ARGUMENTS"                              : "<no parameters>",
+    "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets ran into trouble processing:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> in your project and remove the file from jscodehints.detectedExclusions.",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",

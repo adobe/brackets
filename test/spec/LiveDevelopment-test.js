@@ -179,7 +179,7 @@ define(function (require, exports, module) {
         
     describe("Inspector", function () {
         
-        this.category = "integration";
+        this.category = "livepreview";
 
         it("should return a ready socket on Inspector.connect and close the socket on Inspector.disconnect", function () {
             var id  = Math.floor(Math.random() * 100000),
@@ -232,6 +232,8 @@ define(function (require, exports, module) {
 
     describe("URL Mapping", function () {
 
+        this.category = "livepreview";
+
         it("should validate base urls", function () {
             expect(PreferencesDialogs._validateBaseUrl("http://localhost"))
                 .toBe("");
@@ -264,6 +266,8 @@ define(function (require, exports, module) {
     
     describe("HighlightAgent", function () {
         
+        this.category = "livepreview";
+
         describe("Highlighting elements in browser from a CSS rule", function () {
             
             var testDocument,
@@ -282,7 +286,7 @@ define(function (require, exports, module) {
                 HighlightAgentModule.load();
                 
                 // module spies
-                spyOn(CSSAgentModule, "styleForURL").andReturn("");
+                spyOn(CSSAgentModule, "styleForURL").andReturn([]);
                 spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return new $.Deferred().resolve(); });
                 spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
                 spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
@@ -514,7 +518,7 @@ define(function (require, exports, module) {
 
     describe("Live Development", function () {
         
-        this.category = "integration";
+        this.category = "livepreview";
 
         beforeFirst(function () {
             SpecRunnerUtils.createTempDirectory();
@@ -583,11 +587,27 @@ define(function (require, exports, module) {
                 });
 
                 openLiveDevelopmentAndWait();
- 
+
                 runs(function () {
                     expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_ACTIVE);
                     
                     var doc = DocumentManager.getOpenDocumentForPath(tempDir + "/simple1.html");
+                    expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
+                });
+            });
+            
+            it("should establish a browser connection for an opened xhtml file", function () {
+                //open a file
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["test.xhtml"]), "SpecRunnerUtils.openProjectFiles test.xhtml", 1000);
+                });
+
+                openLiveDevelopmentAndWait();
+
+                runs(function () {
+                    expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_ACTIVE);
+                    
+                    var doc = DocumentManager.getOpenDocumentForPath(tempDir + "/test.xhtml");
                     expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
                 });
             });
@@ -622,6 +642,10 @@ define(function (require, exports, module) {
                 doOneTest("simple1Query.html", "simple1.css");
             });
             
+            it("should push changes after loading an iframe", function () {
+                doOneTest("simple1iframe.html", "simple1.css");
+            });
+
             it("should push in memory css changes made before the session starts", function () {
                 var localText,
                     browserText;
@@ -746,6 +770,10 @@ define(function (require, exports, module) {
                     // Verify that we still have modified text
                     expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
+            });
+
+            it("should push changes to the iframes' css file", function () {
+                doOneTest("simple1iframe.html", "iframe.css");
             });
         });
         
@@ -937,6 +965,9 @@ define(function (require, exports, module) {
     });
 
     describe("Servers", function () {
+
+        this.category = "livepreview";
+
         // Define testing parameters, files do not need to exist on disk
         // File paths used in tests:
         //  * file1 - file inside  project
@@ -997,6 +1028,9 @@ define(function (require, exports, module) {
     });
     
     describe("Default HTML Document", function () {
+
+        this.category = "livepreview";
+
         var brackets,
             LiveDevelopment,
             ProjectManager,
@@ -1030,6 +1064,7 @@ define(function (require, exports, module) {
         }
 
         describe("Find static page for Live Development", function () {
+
             it("should return the same HTML document like the currently open document", function () {
                 var promise,
                     document,
@@ -1202,6 +1237,7 @@ define(function (require, exports, module) {
         });
 
         describe("Find dynamic page for Live Development", function () {
+
             it("should return the same index.php document like the currently opened document", function () {
                 var promise,
                     document,

@@ -128,6 +128,9 @@ module.exports = function (grunt) {
                     // `name` and `out` is set by grunt-usemin
                     baseUrl: 'src',
                     optimize: 'uglify2',
+                    // brackets.js should not be loaded until after polyfills defined in "utils/Compatibility"
+                    // so explicitly include it in main.js 
+                    include: ["utils/Compatibility", "brackets"],
                     // TODO: Figure out how to make sourcemaps work with grunt-usemin
                     // https://github.com/yeoman/grunt-usemin/issues/30
                     generateSourceMaps: true,
@@ -200,6 +203,8 @@ module.exports = function (grunt) {
                 'test/**/*.js',
                 '!test/perf/*-files/**/*.js',
                 '!test/spec/*-files/**/*.js',
+                '!test/spec/*-known-goods/**/*.js',
+                '!test/spec/FindReplace-test-files-*/**/*.js',
                 '!test/smokes/**',
                 '!test/temp/**',
                 '!test/thirdparty/**',
@@ -246,6 +251,7 @@ module.exports = function (grunt) {
                 specs : '<%= meta.specs %>',
                 /* Keep in sync with test/SpecRunner.html dependencies */
                 vendor : [
+                    'test/polyfills.js', /* For reference to why this polyfill is needed see Issue #7951. The need for this should go away once the version of phantomjs gets upgraded to 2.0 */
                     'src/thirdparty/jquery-2.1.0.min.js',
                     'src/thirdparty/CodeMirror2/lib/codemirror.js',
                     'src/thirdparty/CodeMirror2/lib/util/dialog.js',
@@ -254,7 +260,7 @@ module.exports = function (grunt) {
                     'src/thirdparty/CodeMirror2/addon/selection/active-line.js',
                     'src/thirdparty/mustache/mustache.js',
                     'src/thirdparty/path-utils/path-utils.min',
-                    'src/thirdparty/less-1.4.2.min.js'
+                    'src/thirdparty/less-1.7.0.min.js'
                 ],
                 helpers : [
                     'test/spec/PhantomHelper.js'

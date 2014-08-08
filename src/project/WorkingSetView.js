@@ -44,7 +44,10 @@ define(function (require, exports, module) {
         ViewUtils             = require("utils/ViewUtils");
     
     
-    /** @const @type {number} Constants for event.which values */
+    /**
+     * Constants for event.which values
+     * @enum {number}
+     */
     var LEFT_BUTTON = 1,
         MIDDLE_BUTTON = 2;
     
@@ -218,7 +221,7 @@ define(function (require, exports, module) {
      * Starts the drag and drop working set view reorder.
      * @private
      * @param {!Event} event - jQuery event
-     * @paran {!HTMLLIElement} $listItem - jQuery element
+     * @param {!HTMLLIElement} $listItem - jQuery element
      * @param {?bool} fromClose - true if reorder was called from the close icon
      */
     function _reorderListItem(event, $listItem, fromClose) {
@@ -241,6 +244,9 @@ define(function (require, exports, module) {
             addBottomShadow = false,
             interval        = false,
             moved           = false;
+        
+        // Don't redraw the working set for the next events
+        _suppressSortRedraw = true;
         
         function drag(e) {
             var top = e.pageY - startPageY;
@@ -301,9 +307,6 @@ define(function (require, exports, module) {
             if (!moved && Math.abs(top) > 3) {
                 Menus.closeAll();
                 moved = true;
-                
-                // Don't redraw the working set for the next events
-                _suppressSortRedraw = true;
             }
         }
         
@@ -374,10 +377,10 @@ define(function (require, exports, module) {
                 if (addBottomShadow) {
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
-                
-                // The drag is done, so set back to the default
-                _suppressSortRedraw = false;
             }
+            
+            // The drag is done, so set back to the default
+            _suppressSortRedraw = false;
         }
         
         
@@ -395,16 +398,17 @@ define(function (require, exports, module) {
         
         // Style the element
         $listItem.css("position", "relative").css("z-index", 1);
-                
+        
         // Envent Handlers
-        $openFilesContainer.on("mousemove.workingSet", function (e) {
+        var $holder = $(window);
+        $holder.on("mousemove.workingSet", function (e) {
             if (hasScroll) {
                 scroll(e);
             }
             drag(e);
         });
-        $openFilesContainer.on("mouseup.workingSet mouseleave.workingSet", function (e) {
-            $openFilesContainer.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
+        $holder.on("mouseup.workingSet", function (e) {
+            $holder.off(".workingSet");
             drop();
         });
     }

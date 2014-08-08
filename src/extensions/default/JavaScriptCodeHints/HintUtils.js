@@ -97,11 +97,12 @@ define(function (require, exports, module) {
      *  Determine if hints should be displayed for the given key.
      *
      * @param {string} key - key entered by the user
+     * @param {boolean} showOnDot - show hints on dot (".").
      * @return {boolean} true if the hints should be shown for the key,
      * false otherwise.
      */
-    function hintableKey(key) {
-        return (key === null || key === "." || maybeIdentifier(key));
+    function hintableKey(key, showOnDot) {
+        return (key === null || (showOnDot && key === ".") || maybeIdentifier(key));
     }
     
     /*

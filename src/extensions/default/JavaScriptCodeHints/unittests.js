@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         EditorManager        = brackets.getModule("editor/EditorManager"),
         FileSystem           = brackets.getModule("filesystem/FileSystem"),
         FileUtils            = brackets.getModule("file/FileUtils"),
+        PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         SpecRunnerUtils      = brackets.getModule("spec/SpecRunnerUtils"),
         UnitTestReporter     = brackets.getModule("test/UnitTestReporter"),
         JSCodeHints          = require("main"),
@@ -841,10 +842,11 @@ define(function (require, exports, module) {
             });
             
             it("should list matching property names", function () {
-                var start = { line: 12, ch: 10 };
+                var cursor1 = { line: 12, ch: 0 },
+                    cursor2 = { line: 12, ch: 6 };
                 
-                testDoc.replaceRange("param", start, start);
-                testEditor.setCursorPos(start);
+                testDoc.replaceRange("paramB", cursor1, cursor1);
+                testEditor.setCursorPos(cursor2);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
                     hintsPresentExact(hintObj, ["paramB1", "paramB2"]);
@@ -1278,6 +1280,27 @@ define(function (require, exports, module) {
                 });
             });
 
+            // Test `jscodehints.noHintsOnDot` preference
+            it("should consider dot a hintable key based on preference", function () {
+                var noHintsOnDot = PreferencesManager.get("jscodehints.noHintsOnDot");
+
+                testEditor.setCursorPos({ line: 44, ch: 10 });
+
+                // Default is falsey
+                expect(noHintsOnDot).toBeFalsy();
+
+                // Should get hints after dot
+                expectHints(JSCodeHints.jsHintProvider, ".");
+
+                // Set preference to true
+                PreferencesManager.set("jscodehints.noHintsOnDot", true);
+
+                // Should no longer get hints after dot
+                expectNoHints(JSCodeHints.jsHintProvider, ".");
+
+                // Set preference back to original value (converted to boolean)
+                PreferencesManager.set("jscodehints.noHintsOnDot", !!noHintsOnDot);
+            });
         });
         
         describe("JavaScript Code Hinting in a HTML file", function () {
@@ -1409,7 +1432,8 @@ define(function (require, exports, module) {
             });
 
             // Test reading multiple files and subdirectories
-            it("should handle reading all files when modules not used", function () {
+            // Turned for per #7646
+            xit("should handle reading all files when modules not used", function () {
                 var start = { line: 8, ch: 8 };
 
                 runs(function () {

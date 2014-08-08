@@ -34,18 +34,26 @@ define({
     "GENERIC_ERROR"                     : "(Fehler {0})",
     "NOT_FOUND_ERR"                     : "Die Datei konnte nicht gefunden werden.",
     "NOT_READABLE_ERR"                  : "Die Datei konnte nicht gelesen werden.",
-    "NO_MODIFICATION_ALLOWED_ERR"       : "Das Ziel-Verzeichnis kann nicht verändert werden.",
+    "NO_MODIFICATION_ALLOWED_ERR"       : "Der Ziel-Ordner kann nicht verändert werden.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Die Berechtigungen erlauben Ihnen nicht, Veränderungen vorzunehmen.",
     "CONTENTS_MODIFIED_ERR"             : "Die Datei wurde außerhalb von {APP_NAME} verändert.",
+    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} unterstützt derzeit nur UTF-8-kodierte Textdateien.",
     "FILE_EXISTS_ERR"                   : "Die Datei existiert bereits.",
     "FILE"                              : "Datei",
-    "DIRECTORY"                         : "Verzeichnis",
+    "FILE_TITLE"                        : "Datei",
+    "DIRECTORY"                         : "Ordner",
+    "DIRECTORY_TITLE"                   : "Ordner",
+    "DIRECTORY_NAMES_LEDE"              : "Ordnernamen",
+    "FILENAMES_LEDE"                    : "Dateinamen",
+    "FILENAME"                          : "Dateiname",
+    "DIRECTORY_NAME"                    : "Ordnername",
+
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Fehler beim Laden des Projekts",
     "OPEN_DIALOG_ERROR"                 : "Fehler beim Erstellen des Datei-Öffnen-Dialogs. (Fehler {0})",
-    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Fehler beim Lesen des Verzeichnisses <span class='dialog-filename'>{0}</span>. (Fehler {1})",
-    "READ_DIRECTORY_ENTRIES_ERROR"      : "Fehler beim Lesen der Verzeichnisinhalte von <span class='dialog-filename'>{0}</span>. (Fehler {1})",
+    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Fehler beim Lesen des Ordners <span class='dialog-filename'>{0}</span>. (Fehler {1})",
+    "READ_DIRECTORY_ENTRIES_ERROR"      : "Fehler beim Lesen der Ordnerinhalte von <span class='dialog-filename'>{0}</span>. (Fehler {1})",
 
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Fehler beim Öffnen der Datei",
@@ -55,13 +63,13 @@ define({
     "ERROR_RELOADING_FILE"              : "Beim Laden der Änderungen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Fehler beim Speichern der Datei",
     "ERROR_SAVING_FILE"                 : "Beim Speichern der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "Fehler beim Umbenennen der Datei",
-    "ERROR_RENAMING_FILE"               : "Beim Umbenennen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
-    "ERROR_DELETING_FILE_TITLE"         : "Fehler beim Löschen der Datei",
-    "ERROR_DELETING_FILE"               : "Beim Löschen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}",
-    "INVALID_FILENAME_TITLE"            : "Ungültiger {0}name",
-    "INVALID_FILENAME_MESSAGE"          : "Dateinamen dürfen folgende Zeichen nicht enthalten: {0} Auch dürfen keine vom System reservierten Wörter vorkommen.",
-    "FILE_ALREADY_EXISTS"               : "{0} <span class='dialog-filename'>{1}</span> existiert bereits.", // TODO: depends on {0} gender
+    "ERROR_RENAMING_FILE_TITLE"         : "Fehler beim Umbenennen von {0}", // TODO: depends on {0} gender
+    "ERROR_RENAMING_FILE"               : "Beim Umbenennen von {2} <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}", // TODO: depends on {2} gender
+    "ERROR_DELETING_FILE_TITLE"         : "Fehler beim Löschen von {0}", // TODO: depends on {0} gender
+    "ERROR_DELETING_FILE"               : "Beim Löschen von {2} <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}", // TODO: depends on {2} gender
+    "INVALID_FILENAME_TITLE"            : "Ungültiger {0}",
+    "INVALID_FILENAME_MESSAGE"          : "{0} dürfen keine dem System vorbehaltenen Namen gebrauchen und nicht mit Punkten (.) enden oder die folgenden Zeichen enthalten: <span class='emphasized'>{1}</span>",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "Eine Datei oder ein Ordner mit dem Namen <span class='dialog-filename'>{0}</span> existiert bereits.",
     "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen von {0}", // TODO: depends on {0} gender
     "ERROR_CREATING_FILE"               : "Beim Erstellen von {0} <span class='dialog-filename'>{1}</span> ist ein Fehler aufgetreten: {2}", // TODO: depends on {0} gender
 
@@ -117,6 +125,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Wollen Sie die Änderungen beibehalten?",
 
     // Generic dialog/button labels
+    "DONE"                              : "Fertig",
     "OK"                                : "OK",
     "CANCEL"                            : "Abbrechen",
     "DONT_SAVE"                         : "Nicht speichern",
@@ -131,8 +140,10 @@ define({
     "FIND_RESULT_COUNT"                 : "{0} Ergebnisse",
     "FIND_RESULT_COUNT_SINGLE"          : "1 Ergebnis",
     "FIND_NO_RESULTS"                   : "Keine Ergebnisse",
+    "FIND_QUERY_PLACEHOLDER"            : "Suchen\u2026",
     "REPLACE_PLACEHOLDER"               : "Ersetzen mit\u2026",
-    "BUTTON_REPLACE_ALL"                : "Alle\u2026",
+    "BUTTON_REPLACE_ALL"                : "Mehrere\u2026",
+    "BUTTON_REPLACE_ALL_IN_FILES"       : "Ersetzen\u2026",
     "BUTTON_REPLACE"                    : "Ersetzen",
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
@@ -140,44 +151,68 @@ define({
     "BUTTON_PREV_HINT"                  : "Vorheriger Treffer",
     "BUTTON_CASESENSITIVE_HINT"         : "Groß-/Kleinschreibung beachten",
     "BUTTON_REGEXP_HINT"                : "Regulärer Ausdruck",
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Endgültiges Ersetzen",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Da mehr als {0} Dateien geändert werden, wird {APP_NAME} ungeöffnete Dateien auf der Festplatte verändern.<br />Das Ersetzen kann in diesen Dateien nicht mehr rückgängig gemacht werden.",
+    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Endgültig ersetzen",
 
     "OPEN_FILE"                         : "Datei öffnen",
     "SAVE_FILE_AS"                      : "Datei speichern",
     "CHOOSE_FOLDER"                     : "Ordner wählen",
 
-    "RELEASE_NOTES"                     : "Release-Notes",
+    "RELEASE_NOTES"                     : "Versionshinweise",
     "NO_UPDATE_TITLE"                   : "Sie sind auf dem Laufenden!",
     "NO_UPDATE_MESSAGE"                 : "Sie führen die neuste Version von {APP_NAME} aus.",
 
-    // Replace All (in single file)
-    "FIND_REPLACE_TITLE_PART1"          : "\"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" durch \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" ersetzen &mdash; {2} {0} {1}",
+    // Find and Replace
+    "FIND_REPLACE_TITLE_LABEL"          : "Ersetze",
+    "FIND_REPLACE_TITLE_WITH"           : "mit",
+    "FIND_TITLE_LABEL"                  : "",
+    "FIND_TITLE_SUMMARY"                : "gefunden &mdash; {0} {1} {2} in {3}",
 
     // Find in Files
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" gefunden",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
+    "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_NO_SCOPE"            : "in Projekt",
+    "FIND_IN_FILES_NO_SCOPE"            : "im Projekt",
+    "FIND_IN_FILES_ZERO_FILES"          : "Der Filter schließt alle Dateien {0} aus",
     "FIND_IN_FILES_FILE"                : "Datei",
     "FIND_IN_FILES_FILES"               : "Dateien",
     "FIND_IN_FILES_MATCH"               : "Treffer",
     "FIND_IN_FILES_MATCHES"             : "Treffer",
     "FIND_IN_FILES_MORE_THAN"           : "Über ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Strg/Cmd + Klick, um alle aus-/einzuklappen",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Strg/Cmd + Klick, um alle aus-/einzuklappen",
+    "REPLACE_IN_FILES_ERRORS_TITLE"     : "Fehler beim Ersetzen",
+    "REPLACE_IN_FILES_ERRORS"           : "Die folgenden Dateien wurden nicht verändert, weil sie nach der Suche geändert wurden oder nicht geschrieben werden konnten.",
+
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
 
     // File exclusion filters
-    "NO_FILE_FILTER"                    : "Dateien ausschließen\u2026",
+    "NEW_FILE_FILTER"                   : "Neuer Filter\u2026",
+    "CLEAR_FILE_FILTER"                 : "Keine Dateien ausschließen",
+    "NO_FILE_FILTER"                    : "Keine Dateien werden ausgeschlossen",
+    "EXCLUDE_FILE_FILTER"               : "Schließe {0} aus",
     "EDIT_FILE_FILTER"                  : "Bearbeiten\u2026",
     "FILE_FILTER_DIALOG"                : "Filter bearbeiten",
-    "FILE_FILTER_INSTRUCTIONS"          : "Schließe Dateien und Ordner aus, auf die einer der folgenden Pfade / Teilpfade oder <a href='{0}' title='{0}'>Globs</a> zutrifft. Nutze für jeden Pfad eine neue Zeile.",
-    "FILE_FILTER_LIST_PREFIX"           : "ausgenommen",
+    "FILE_FILTER_INSTRUCTIONS"          : "Schließe Dateien und Ordner aus, auf die einer der folgenden Pfade / Teilpfade oder <a href='{0}' title='{0}'>Platzhalter</a> zutrifft. Nutze für jeden Pfad eine neue Zeile.",
+    "FILTER_NAME_PLACEHOLDER"           : "Benenne diesen Filter (optional)",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "und {0} weitere",
+    "FILTER_COUNTING_FILES"             : "Dateien werden gezählt\u2026",
+    "FILTER_FILE_COUNT"                 : "Lässt {0} von {1} Dateien {2} zu",
+    "FILTER_FILE_COUNT_ALL"             : "Lässt alle {0} Dateien {1} zu",
+
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Es wurde kein Editor für Schnelles Bearbeiten für die aktuelle Cursorposition gefunden",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Quick Edit: Setzen Sie den Cursor auf einen einzigen Klassennamen",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Quick Edit: Unvollständiges Klassenattribut",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Quick Edit: Unvollständiges ID-Attribut",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: Setzen Sie den Cursor auf einen Tag, eine Klasse oder eine ID",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS Timing Function Quick Edit: Syntax nicht korrekt",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: Setzen Sie den Cursor auf einen Funktionsnamen",
+
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Die Schnell-Dokumentation ist für die aktuelle Cursorposition nicht verfügbar",
 
     /**
      * ProjectManager
@@ -201,6 +236,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 {0} Spalten ausgewählt",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 {0} Zeile ausgewählt",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 {0} Zeilen ausgewählt",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} Auswahlen",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Klicken, um Einrückung auf Leerzeichen umzuschalten",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Klicken, um Einrückung auf Tabs umzuschalten",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Klicken, um die Anzahl Leerzeichen beim Einrücken zu ändern",
@@ -212,6 +248,7 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Erweiterungen deaktiviert",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_DEFAULT_LANG"                : "(Standard)",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Probleme",
@@ -222,6 +259,8 @@ define({
     "LINT_DISABLED"                         : "Das Linten ist nicht aktiviert",
     "NO_LINT_AVAILABLE"                     : "Es ist kein Linter für {0} verfügbar",
     "NOTHING_TO_LINT"                       : "Es gibt nichts zum Linten",
+    "LINTER_TIMED_OUT"                      : "{0} hat die Zeitbegrenzung von {1} ms überschritten",
+    "LINTER_FAILED"                         : "{0} hat mit einer Fehlermeldung abgebrochen: {1}",
 
 
     /**
@@ -247,6 +286,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
     "CMD_FILE_SAVE_AS"                    : "Speichern unter\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Live-Vorschau neu laden",
     "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
     "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
     "CMD_FILE_DELETE"                     : "Löschen",
@@ -266,13 +306,9 @@ define({
     "CMD_PASTE"                           : "Einfügen",
     "CMD_SELECT_ALL"                      : "Alles auswählen",
     "CMD_SELECT_LINE"                     : "Zeile auswählen",
-    "CMD_FIND"                            : "Suchen",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Suchen\u2026",
-    "CMD_FIND_IN_FILES"                   : "Im Projekt suchen",
-    "CMD_FIND_IN_SUBTREE"                 : "Suchen in\u2026",
-    "CMD_FIND_NEXT"                       : "Weitersuchen (vorwärts)",
-    "CMD_FIND_PREVIOUS"                   : "Weitersuchen (rückwärts)",
-    "CMD_REPLACE"                         : "Ersetzen",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Auswahl in Zeilen aufteilen",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Cursor zur nächsten Zeile hinzufügen",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Cursor zur vorherigen Zeile hinzufügen",
     "CMD_INDENT"                          : "Einrücken",
     "CMD_UNINDENT"                        : "Ausrücken",
     "CMD_DUPLICATE"                       : "Duplizieren",
@@ -285,6 +321,22 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Zeile darunter öffnen",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Klammern automatisch schließen",
     "CMD_SHOW_CODE_HINTS"                 : "Code-Vervollständigung anzeigen",
+
+    // Search menu commands
+    "FIND_MENU"                           : "Suchen",
+    "CMD_FIND"                            : "Suchen",
+    "CMD_FIND_NEXT"                       : "Weitersuchen (vorwärts)",
+    "CMD_FIND_PREVIOUS"                   : "Weitersuchen (rückwärts)",
+    "CMD_FIND_ALL_AND_SELECT"             : "Alle suchen und auswählen",
+    "CMD_ADD_NEXT_MATCH"                  : "Nächsten Treffer zur Auswahl hinzufügen",
+    "CMD_SKIP_CURRENT_MATCH"              : "Überspringen und nächsten Treffer hinzufügen",
+    "CMD_FIND_IN_FILES"                   : "Im Projekt suchen",
+    "CMD_FIND_IN_SELECTED"                : "Suchen in ausgewählter Datei/Ordner",
+    "CMD_FIND_IN_SUBTREE"                 : "Suchen in\u2026",
+    "CMD_REPLACE"                         : "Ersetzen",
+    "CMD_REPLACE_IN_FILES"                : "Im Projekt ersetzen",
+    "CMD_REPLACE_IN_SELECTED"             : "Ersetzen in ausgewählter Datei/Ordner",
+    "CMD_REPLACE_IN_SUBTREE"              : "Ersetzen in\u2026",
 
     // View menu commands
     "VIEW_MENU"                           : "Ansicht",
@@ -304,6 +356,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatisch sortieren",
+    "CMD_THEMES"                          : "Designs\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigation",
@@ -327,10 +380,12 @@ define({
     "HELP_MENU"                           : "Hilfe",
     "CMD_CHECK_FOR_UPDATE"                : "Nach Updates suchen",
     "CMD_HOW_TO_USE_BRACKETS"             : "So verwendet man {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME}-Forum",
+    "CMD_SUPPORT"                         : "{APP_NAME}-Support",
+    "CMD_SUGGEST"                         : "Ein Feature vorschlagen",
     "CMD_RELEASE_NOTES"                   : "Versionshinweise",
-    "CMD_REPORT_AN_ISSUE"                 : "Ein Problem melden",
+    "CMD_GET_INVOLVED"                    : "Mach mit",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
+    "CMD_HOMEPAGE"                        : "{APP_NAME}-Homepage",
     "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
     "CMD_ABOUT"                           : "Über {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Einstellungsdatei öffnen",
@@ -345,6 +400,7 @@ define({
     "ABOUT"                                : "Über",
     "CLOSE"                                : "Schließen",
     "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_BUILD_TIMESTAMP"           : "Zeitpunkt des Builds: ",
     "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> und sind hier durch Bezugnahme eingeschlossen.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Gemacht mit \u2764 und JavaScript von:",
@@ -362,6 +418,12 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Die Basis-URL kann keine Hashes wie \"{0}\" enthalten.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie  \"{0}\" müssen %-kodiert werden.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
+
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Aktuelles Design",
+    "USE_THEME_SCROLLBARS"                 : "Scrollbars vom Design verwenden",
+    "FONT_SIZE"                            : "Schriftgröße",
+    "FONT_FAMILY"                          : "Schriftart",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Neue Regel",
@@ -384,6 +446,8 @@ define({
     "CANCELING_INSTALL"                    : "Abgebrochen\u2026",
     "CANCELING_HUNG"                       : "Das Abbrechen der Installation nimmt bereits einige Minuten in Anspruch. Ein interner Fehler könnte aufgetreten sein.",
     "INSTALL_CANCELED"                     : "Installation abgebrochen.",
+    "VIEW_COMPLETE_DESCRIPTION"            : "Komplette Beschreibung anzeigen",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "Gekürzte Beschreibung anzeigen",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Der heruntergeladene Inhalt ist keine gültige ZIP-Datei.",
     "INVALID_PACKAGE_JSON"                 : "Die JSON-Paketdatei ist ungültig (Fehler: {0}).",
@@ -408,8 +472,12 @@ define({
     "UNKNOWN_ERROR"                        : "Unbekannter (interner) Fehler.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Erweiterungs-Verwaltung",
-    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf das Verzeichnis der Erweiterungen. Bitte später erneut versuchen.",
-    "INSTALL_FROM_URL"                     : "Von URL installieren\u2026",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf den Order der Erweiterungen. Bitte später erneut versuchen.",
+    "INSTALL_EXTENSION_DRAG"               : ".zip hierhin ziehen oder",
+    "INSTALL_EXTENSION_DROP"               : ".zip zum Installieren ablegen",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Das Installieren/Aktualisieren schlug fehl, da die folgenden Fehler aufgetreten sind:",
+    "INSTALL_FROM_URL"                     : "von URL installieren\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "Überprüfen\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Datum",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Diese Erweiterung benötigt eine neuere Version von {APP_NAME}.",
@@ -420,6 +488,9 @@ define({
     "EXTENSION_MORE_INFO"                  : "Mehr Informationen\u2026",
     "EXTENSION_ERROR"                      : "Erweiterungs-Fehler",
     "EXTENSION_KEYWORDS"                   : "Schlüsselwörter",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "In {0} Sprachen, inklusive Ihrer, übersetzt",
+    "EXTENSION_TRANSLATED_GENERAL"         : "In {0} Sprachen übersetzt",
+    "EXTENSION_TRANSLATED_LANGS"           : "Die Erweiterung wurde in diese Sprachen übersetzt: {0}",
     "EXTENSION_INSTALLED"                  : "Installiert",
     "EXTENSION_UPDATE_INSTALLED"           : "Dieses Erweiterungs-Update wurde heruntergeladen und wird installiert, wenn {APP_NAME} neu geladen wird.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Suchen",
@@ -451,6 +522,9 @@ define({
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Es gibt keine CSS-Regeln, die zu Ihrer Auswahl passen.<br> Klicken Sie auf \"Neue Regel\", um eine neue Regel zu erstellen.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Es gibt keine Stylesheets in Ihrem Projekt.<br>Erstellen Sie eines, um CSS-Regeln hinzuzufügen.",
 
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "größtes",
+
     /**
      * Unit names
      */
@@ -459,6 +533,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
+    "ERRORS"                                    : "Fehler",
     "CMD_SHOW_DEV_TOOLS"                        : "Entwicklungswerkzeuge zeigen",
     "CMD_REFRESH_WINDOW"                        : "Mit Erweiterungen neu laden",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Ohne Erweiterungen neu laden",
@@ -469,6 +544,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Node-Debugger aktivieren",
     "CMD_LOG_NODE_STATE"                        : "Node-Status in Konsole anzeigen",
     "CMD_RESTART_NODE"                          : "Node neu starten",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Zeige Fehler in der Statusleiste",
 
     "LANGUAGE_TITLE"                            : "Sprache wechseln",
     "LANGUAGE_MESSAGE"                          : "Sprache:",
@@ -496,12 +572,14 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Springe zur Definition",
     "CMD_SHOW_PARAMETER_HINT"                   : "Parameter-Hinweis anzeigen",
     "NO_ARGUMENTS"                              : "<keine Parameter>",
+    "DETECTED_EXCLUSION_TITLE"                  : "Problem mit einer JavaScript-Datei",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets hat Probleme damit, diese Datei zu verarbeiten:<br><br>{0}<br><br>Code-Vervollständigung und das Springen zur Definition werden für die Datei nicht mehr bereitgestellt. Öffnen Sie <code>.brackets.json</code> in diesem Projekt und entfernen Sie den Dateipfad von jscodehints.detectedExclusions, um diese Features zu reaktivieren.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
 
     // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                : "Schnelle Farbansicht",
+    "CMD_ENABLE_QUICK_VIEW"                     : "Schnelle Farbansicht",
 
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Zuletzt verwendete Projekte",
@@ -509,3 +587,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
+
+/* Last translated for 75c811dfa38164b7e9bd3921dd630d40720e9c2a */

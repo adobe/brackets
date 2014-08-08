@@ -52,7 +52,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @deprecated
+     * @deprecated Use lodash `escape()` instead.
      */
     function htmlEscape(str) {
         console.warn("StringUtils.htmlEscape is deprecated. Use _.escape instead.");
@@ -169,12 +169,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Convert number of bytes into human readable format. 
+     * Converts number of bytes into human readable format.
      * If param bytes is negative it returns the number without any changes.
      *
-     * @param number bytes     Number of bytes to convert
-     * @param number precision Number of digits after the decimal separator
-     * @return string
+     * @param {number} bytes     Number of bytes to convert
+     * @param {number} precision Number of digits after the decimal separator
+     * @return {string}
      */
     function prettyPrintBytes(bytes, precision) {
         var kilobyte = 1024,
@@ -197,7 +197,27 @@ define(function (require, exports, module) {
         
         return returnVal;
     }
-        
+    
+    /**
+     * Truncate strings to specified length.
+     * @param {string} str Text to be truncated.
+     * @param {number} len Length to which text should be limited.
+     * @return {string} Returns truncated text only if it was changed.
+     */
+    function truncate(str, len) {
+        // Truncate the description if it is too long
+        if (str.length > len) {
+            str = str.substr(0, len);
+
+            // To prevent awkward addition of ellipsis, try to truncate
+            // at the end of the last whole word
+            var lastSpaceChar = str.lastIndexOf(" ");
+            if (lastSpaceChar < len && lastSpaceChar > -1) {
+                str = str.substr(0, lastSpaceChar);
+            }
+            return str;
+        }
+    }
 
     // Define public API
     exports.format              = format;
@@ -210,4 +230,5 @@ define(function (require, exports, module) {
     exports.breakableUrl        = breakableUrl;
     exports.endsWith            = endsWith;
     exports.prettyPrintBytes    = prettyPrintBytes;
+    exports.truncate            = truncate;
 });

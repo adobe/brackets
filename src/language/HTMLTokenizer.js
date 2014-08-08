@@ -142,8 +142,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @constructor
      * A simple HTML tokenizer. See the description of nextToken() for usage details.
+     * @constructor
      * @param {string} text The HTML document to tokenize.
      */
     function Tokenizer(text) {

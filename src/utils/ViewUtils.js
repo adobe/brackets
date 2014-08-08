@@ -397,7 +397,7 @@ define(function (require, exports, module) {
             ext = FileUtils.getSmartFileExtension(name),
             i = name.lastIndexOf("." + ext);
         
-        if (i >= 0) {
+        if (i > 0) {
             // Escape all HTML-sensitive characters in filename.
             name = _.escape(name.substring(0, i)) + "<span class='extension'>" + _.escape(name.substring(i)) + "</span>";
         } else {

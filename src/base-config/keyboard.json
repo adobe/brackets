@@ -26,6 +26,11 @@
     "file.liveFilePreview":  [
         "Ctrl-Alt-P"
     ],
+    "file.reloadLivePreview": [
+        {
+            "key": "Ctrl-Shift-R"
+        }
+    ],
     "file.previewHighlight":  [
         "Ctrl-Shift-C"
     ],
@@ -78,58 +83,6 @@
         {
             "key": "Shift-Alt-Down",
             "displayKey": "Shift-Alt-↓"
-        }
-    ],
-    "edit.find":  [
-        "Ctrl-F"
-    ],
-    "edit.findInFiles":  [
-        "Ctrl-Shift-F"
-    ],
-    "edit.findNext":  [
-        {
-            "key": "F3"
-        },
-        {
-            "key": "Cmd-G",
-            "platform": "mac"
-        }
-    ],
-    "edit.findPrevious":  [
-        {
-            "key": "Shift-F3"
-        },
-        {
-            "key": "Cmd-Shift-G",
-            "platform": "mac"
-        }
-    ],
-    "edit.findAllAndSelect": [
-        {
-            "key": "Alt-F3"
-        },
-        {
-            "key": "Cmd-Ctrl-G",
-            "platform": "mac"
-        }
-    ],
-    "edit.addNextMatch": [
-        {
-            "key": "Ctrl-B"
-        }
-    ],
-    "edit.skipCurrentMatch": [
-        {
-            "key": "Ctrl-Shift-B"
-        }
-    ],
-    "edit.replace":  [
-        {
-            "key": "Ctrl-H"
-        },
-        {
-            "key": "Cmd-Alt-F",
-            "platform": "mac"
         }
     ],
     "edit.indent":  [
@@ -197,8 +150,75 @@
             "platform": "mac"
         }
     ],
+    "cmd.find":  [
+        "Ctrl-F"
+    ],
+    "cmd.findInFiles":  [
+        "Ctrl-Shift-F"
+    ],
+    "cmd.replaceInFiles":  [
+        {
+            "key": "Ctrl-Shift-H"
+        },
+        {
+            "key": "Ctrl-Alt-Shift-F",
+            "platform": "mac"
+        }
+    ],
+    "cmd.findNext":  [
+        {
+            "key": "F3"
+        },
+        {
+            "key": "Cmd-G",
+            "platform": "mac"
+        }
+    ],
+    "cmd.findPrevious":  [
+        {
+            "key": "Shift-F3"
+        },
+        {
+            "key": "Cmd-Shift-G",
+            "platform": "mac"
+        }
+    ],
+    "cmd.findAllAndSelect": [
+        {
+            "key": "Alt-F3"
+        },
+        {
+            "key": "Cmd-Ctrl-G",
+            "platform": "mac"
+        }
+    ],
+    "cmd.addNextMatch": [
+        {
+            "key": "Ctrl-B"
+        }
+    ],
+    "cmd.skipCurrentMatch": [
+        {
+            "key": "Ctrl-Shift-B"
+        }
+    ],
+    "cmd.replace":  [
+        {
+            "key": "Ctrl-H"
+        },
+        {
+            "key": "Cmd-Alt-F",
+            "platform": "mac"
+        }
+    ],
     "view.hideSidebar":  [
-        "Ctrl-Shift-H"
+        {   
+            "key" : "Ctrl-Alt-H"
+        },
+        {
+            "key": "Ctrl-Shift-H",
+            "platform": "mac"
+        }
     ],
     "view.increaseFontSize":  [
         {

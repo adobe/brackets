@@ -51,7 +51,6 @@ a:hover {
 a:focus {
     color: @tc-link-hover;
     outline: 0;
-    border-radius: 3px;
     box-shadow: @tc-input-glow;
     text-decoration: none;
 }
@@ -117,6 +116,12 @@ a:focus {
         text-align: left;
         > li {
             float: left;
+        }
+        .dropdown-menu {
+            //max-height: calc(~"100vh - 34px"); doesn't seem to work...
+            max-height: 90vh;
+            overflow-y: auto;
+            -webkit-animation: none;
         }
     }
     .title {
@@ -459,7 +464,7 @@ a:focus {
     &.dropdown-menu {
         border: none;
         border-radius: @tc-control-border-radius;
-        padding: 0;
+        padding: 5px 0;
         position: absolute;
         display: block;
         box-shadow: @tc-dropdown-shadow;
@@ -472,6 +477,14 @@ a:focus {
     
     &.dropdown-menu li a {
         padding: 1px 15px 1px 15px;
+        color: @bc-black;
+        
+        &.disabled {
+            color: @bc-gray;
+            &:hover {
+                background: @bc-white;
+            }
+        }
     }
     
     &.dropdown-menu .stylesheet-link {
@@ -483,8 +496,57 @@ a:focus {
         color: @bc-black !important;
     }
 
+    &.dropdown-menu a {
+        &::before {
+            position: absolute;
+            left: 10px;
+            text-align: center;
+            content: "✓";
+            display: none;
+        }
+        /* toggle checkmark visibility */
+        &.checked::before {
+            display: inline-block;
+        }
+    }
+    
+    &.dropdown-menu a:hover {
+        /* toggle checkmark visibility */
+        &.checked::before {
+            display: none;
+        }
+    }
+
     &.dropdown-menu a:not(.selected):hover {
-         background: none;
+        background: none;
+    }
+
+    .divider {
+        margin: 5px 1px;
+    }
+
+}
+
+/* Status bar language picker's DropdownButton */
+.dropdownbutton-popup.dropdown-status-bar {
+    -webkit-transform-origin: 0 100%;
+    height: auto;
+    max-height: 80%;
+    
+    // Improve how bottom of the dropdown joins with top of status bar button
+    margin-top: -6px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    
+    li a .default-language {
+        font-style: italic;
+        color: @tc-quiet-text;
+    }
+
+    li a .checked-language::before {
+        content: "✓";
+        margin-left: -11px;
+        margin-right: 3px;
     }
 }
 
@@ -704,12 +766,14 @@ a[href^="http"] {
     }
     .update-text {
         // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
-        margin: 0 10px 0 123px;
+        margin-left: 130px;
+
+        padding-top: 20px;
+        max-height: 280px;
+        overflow: auto;
 
         .update-info {
-            max-height: 200px;
-            overflow: auto;
-
+            margin-right: 10px;
             // Enable text selection
             cursor: auto;
             .user-select(text);
@@ -914,7 +978,7 @@ a[href^="http"] {
                 .user-select(text);
                 cursor: text;
             }
-            .ext-keywords {
+            .ext-translated {
                 color: @tc-input-placeholder-text;
             }
             .muted {
@@ -964,28 +1028,27 @@ a[href^="http"] {
     }
     .about-text {
         // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
-        margin: 0 10px 0 123px;
+        margin-left: 130px;
+        overflow: auto;
 
         #about-build-number {
             color: @tc-light-weight-quiet-text;
         }
         .about-info {
             max-height: 300px;
-            overflow: auto;
+            margin-right: 10px;
         }
         .about-contributors {
             min-height: 100px;
+            padding-bottom: 13px;
 
             a {
                 text-decoration: none;
             }
-        }
-        .about-contributors img {
-            opacity: 0;
-            -webkit-transition: opacity 1s;
-            -moz-transition: opacity 1s;
-            -o-transition: opacity 1s;
-            transition: opacity 1s;
+            img {
+                opacity: 0;
+                transition: opacity 1s;
+            }
         }
     }
 
@@ -993,7 +1056,7 @@ a[href^="http"] {
         font-weight: normal;
         font-size: 25px;
         margin-bottom: -4px;
-        margin-top: 3px;
+        margin-top: 13px;
     }
     .dialog-message {
         font-size: 14px;
@@ -1112,6 +1175,8 @@ input[type="color"],
     .border-radius(@tc-control-border-radius);
     box-shadow: @tc-button-highlight;
     -webkit-font-smoothing: antialiased;
+    text-shadow: none;
+
 
     &:hover {
         background-color: @tc-button-background;
@@ -1127,7 +1192,13 @@ input[type="color"],
     }
 
     // Active and Disabled states
-    &.active:not([disabled]),
+    &.active:not([disabled]) {
+        background-image: none;
+        background-color: @tc-highlight;
+        box-shadow: @tc-button-down-shadow;
+        color: @tc-link;
+    }
+    
     &:active:not([disabled]) {
         background-image: none;
         background-color: @tc-button-down-background;
@@ -1325,10 +1396,15 @@ input[type="checkbox"]:active:not(:disabled) {
     box-shadow: @tc-button-down-shadow;
 }
 
+select:focus,
 input[type="checkbox"]:focus {
     outline:none;
     border: 1px solid @tc-gray-component-focused-border;
     box-shadow: @tc-input-glow;
+}
+
+select {
+    border: 1px solid #b2b5b5;
 }
 
 input[type="checkbox"]:checked:before {
@@ -1341,3 +1417,41 @@ input[type="checkbox"]:checked:before {
     top: -7px;
     font-size: 16px;
 }
+
+code {
+    border: none;
+}
+
+
+.close {
+    color: #333;
+    text-shadow: none;
+    opacity: 0.7;
+    filter: alpha(opacity=70);
+}
+
+.close:hover {
+    color: #333;
+    opacity: 1;
+    filter: alpha(opacity=100);
+}
+
+.dropdown-menu {
+    background-color: #fff;
+    color: #000;
+    
+    .divider {
+        background-color: #eaeaea;
+        border: none;
+    }
+}
+
+.form-horizontal {
+    .controls {
+        margin-left: 170px;
+        
+        input[type='checkbox'] {
+             margin-top: 8px;
+         }
+     }
+ }

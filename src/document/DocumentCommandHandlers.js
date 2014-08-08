@@ -62,26 +62,58 @@ define(function (require, exports, module) {
      * Handlers for commands related to document handling (opening, saving, etc.)
      */
 
-    /** @type {jQueryObject} Container for label shown above editor; must be an inline element */
+    /**
+     * Container for label shown above editor; must be an inline element
+     * @type {jQueryObject}
+     */
     var _$title = null;
-    /** @type {jQueryObject} Container for dirty dot; must be an inline element */
+
+    /**
+     * Container for dirty dot; must be an inline element
+     * @type {jQueryObject}
+     */
     var _$dirtydot = null;
-    /** @type {jQueryObject} Container for _$title; need not be an inline element */
+
+    /**
+     * Container for _$title; need not be an inline element
+     * @type {jQueryObject}
+     */
     var _$titleWrapper = null;
-    /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
+
+    /**
+     * Label shown above editor for current document: filename and potentially some of its path
+     * @type {string}
+     */
     var _currentTitlePath = null;
-    /** @type {string} String template for window title. Use emdash on mac only. */
+
+    /**
+     * String template for window title. Use emdash on mac only.
+     * @type {string}
+     */
     var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} - {1}" : "{0} \u2014 {1}";
 
-    /** @type {jQueryObject} Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize */
+    /**
+     * Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize
+     * @type {jQueryObject}
+     */
     var _$titleContainerToolbar = null;
-    /** @type {Number} Last known height of _$titleContainerToolbar */
+
+    /**
+     * Last known height of _$titleContainerToolbar
+     * @type {number}
+     */
     var _lastToolbarHeight = null;
 
-    /** @type {Number} index to use for next, new Untitled document */
+    /**
+     * index to use for next, new Untitled document
+     * @type {number}
+     */
     var _nextUntitledIndexToUse = 1;
 
-    /** @type {boolean} prevents reentrancy of browserReload() */
+    /**
+     * prevents reentrancy of browserReload()
+     * @type {boolean}
+     */
     var _isReloading = false;
 
     /** Unique token used to indicate user-driven cancellation of Save As (as opposed to file IO error) */
@@ -89,7 +121,10 @@ define(function (require, exports, module) {
 
     PreferencesManager.definePreference("defaultExtension", "string", "");
 
-    /** @type {function} JSLint workaround for circular dependency */
+    /**
+     * JSLint workaround for circular dependency
+     * @type {function}
+     */
     var handleFileSaveAs;
 
     function updateTitle() {
@@ -666,10 +701,13 @@ define(function (require, exports, module) {
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
      * @param {Document} doc
-     * @return {$.Promise} a Promise that's resolved when done, or rejected with a FileSystemError if the
-     *      file cannot be read (after showing an error dialog to the user).
+     * @param {boolean=} suppressError If true, then a failure to read the file will be ignored and the
+     *      resulting promise will be resolved rather than rejected.
+     * @return {$.Promise} a Promise that's resolved when done, or (if suppressError is false) 
+     *      rejected with a FileSystemError if the file cannot be read (after showing an error 
+     *      dialog to the user).
      */
-    function doRevert(doc) {
+    function doRevert(doc, suppressError) {
         var result = new $.Deferred();
         
         FileUtils.readAsText(doc.file)
@@ -678,10 +716,14 @@ define(function (require, exports, module) {
                 result.resolve();
             })
             .fail(function (error) {
-                FileUtils.showFileOpenError(error, doc.file.fullPath)
-                    .done(function () {
-                        result.reject(error);
-                    });
+                if (suppressError) {
+                    result.resolve();
+                } else {
+                    FileUtils.showFileOpenError(error, doc.file.fullPath)
+                        .done(function () {
+                            result.reject(error);
+                        });
+                }
             });
         
         return result.promise();
@@ -1070,13 +1112,19 @@ define(function (require, exports, module) {
                         // copy of whatever's on disk.
                         doClose(file);
                         
-                        // Only reload from disk if we've executed the Close for real,
-                        // *and* if at least one other view still exists
-                        if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.fullPath)) {
-                            doRevert(doc)
-                                .then(result.resolve, result.reject);
-                        } else {
+                        // Only reload from disk if we've executed the Close for real.
+                        if (promptOnly) {
                             result.resolve();
+                        } else {
+                            // Even if there are no listeners attached to the document at this point, we want
+                            // to do the revert anyway, because clients who are listening to the global documentChange
+                            // event from the Document module (rather than attaching to the document directly),
+                            // such as the Find in Files panel, should get a change event. However, in that case,
+                            // we want to ignore errors during the revert, since we don't want a failed revert
+                            // to throw a dialog if the document isn't actually open in the UI.
+                            var suppressError = !DocumentManager.getOpenDocumentForPath(file.fullPath);
+                            doRevert(doc, suppressError)
+                                .then(result.resolve, result.reject);
                         }
                     }
                 });
@@ -1096,8 +1144,9 @@ define(function (require, exports, module) {
      * @param {!Array.<FileEntry>} list
      * @param {boolean} promptOnly
      * @param {boolean} clearCurrentDoc
+     * @param {boolean} _forceClose Whether to force all the documents to close even if they have unsaved changes. For unit testing only.
      */
-    function _closeList(list, promptOnly, clearCurrentDoc) {
+    function _closeList(list, promptOnly, clearCurrentDoc, _forceClose) {
         var result      = new $.Deferred(),
             unsavedDocs = [];
         
@@ -1108,8 +1157,8 @@ define(function (require, exports, module) {
             }
         });
         
-        if (unsavedDocs.length === 0) {
-            // No unsaved changes, so we can proceed without a prompt
+        if (unsavedDocs.length === 0 || _forceClose) {
+            // No unsaved changes or we want to ignore them, so we can proceed without a prompt
             result.resolve();
             
         } else if (unsavedDocs.length === 1) {
@@ -1125,17 +1174,7 @@ define(function (require, exports, module) {
             
         } else {
             // Multiple unsaved files: show a single bulk prompt listing all files
-            var message = Strings.SAVE_CLOSE_MULTI_MESSAGE;
-            
-            message += "<ul class='dialog-list'>";
-            unsavedDocs.forEach(function (doc) {
-                var fullPath = doc.file.fullPath;
-                
-                message += "<li><span class='dialog-filename'>";
-                message += StringUtils.breakableUrl(_shortTitleForDocument(doc));
-                message += "</span></li>";
-            });
-            message += "</ul>";
+            var message = Strings.SAVE_CLOSE_MULTI_MESSAGE + FileUtils.makeDialogFileList(_.map(unsavedDocs, _shortTitleForDocument));
             
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
@@ -1193,14 +1232,17 @@ define(function (require, exports, module) {
     /**
      * Closes all open documents; equivalent to calling handleFileClose() for each document, except
      * that unsaved changes are confirmed once, in bulk.
-     * @param {?{promptOnly: boolean}}  If true, only displays the relevant confirmation UI and does NOT
+     * @param {?{promptOnly: boolean, _forceClose: boolean}}
+     *          If promptOnly is true, only displays the relevant confirmation UI and does NOT
      *          actually close any documents. This is useful when chaining close-all together with
      *          other user prompts that may be cancelable.
+     *          If _forceClose is true, forces the files to close with no confirmation even if dirty. 
+     *          Should only be used for unit test cleanup.
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
         return _closeList(DocumentManager.getWorkingSet(),
-                                    (commandData && commandData.promptOnly), true).done(function () {
+                                    (commandData && commandData.promptOnly), true, (commandData && commandData._forceClose)).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager._closeCustomViewer();
             }
@@ -1245,7 +1287,7 @@ define(function (require, exports, module) {
                 
                 PreferencesManager.savePreferences();
                 
-                postCloseHandler();
+                PreferencesManager.finalize().always(postCloseHandler);
             })
             .fail(function () {
                 _windowGoingAway = false;
@@ -1280,10 +1322,7 @@ define(function (require, exports, module) {
             },
             function () {
                 // if fail, tell the app to abort any pending quit operation.
-                // TODO: remove this if statement when we move to the new CEF3 shell
-                if (brackets.app.abortQuit) {
-                    brackets.app.abortQuit();
-                }
+                brackets.app.abortQuit();
             }
         );
     }
@@ -1311,10 +1350,7 @@ define(function (require, exports, module) {
             },
             function () {
                 // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
-                // TODO: remove this if statement when we move to the new CEF3 shell
-                if (brackets.app.abortQuit) {
-                    brackets.app.abortQuit();
-                }
+                brackets.app.abortQuit();
             }
         );
     }

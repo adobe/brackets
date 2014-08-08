@@ -7,6 +7,19 @@
 {{5}}    color: #f00;
 {{6}} }{{3}}
 {{7}}
+{{8}}.bar {
+        background-image: url(fu.bar);
+}
+
+@keyframes colorize {
+    from {
+        -webkit-filter: grayscale(100%);
+    }
+    to {
+        -webkit-filter: grayscale(0%);
+    }
+}
+
 {{2}}#myDiv {
     display: block;
 }
