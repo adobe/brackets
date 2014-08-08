@@ -1022,7 +1022,9 @@ define(function (require, exports, module) {
                 }
 
                 // Parse rules until we see '}'
-                _parseRuleList("}", level);
+                // Treat media rule as one nested level by 
+                // calling _parseRuleList with next level.
+                _parseRuleList("}", level + 1);
 
             } else if (token.match(/@(charset|import|namespace|include|extend)/i)) {
                 
