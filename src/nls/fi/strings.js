@@ -137,8 +137,7 @@ define({
     "BUTTON_NO"                         : "Ei",
 
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} tulosta",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 tulos",
+    "FIND_MATCH_INDEX"                  : "{0} / {1}",
     "FIND_NO_RESULTS"                   : "Ei tuloksia",
     "FIND_QUERY_PLACEHOLDER"            : "Etsi\u2026",
     "REPLACE_PLACEHOLDER"               : "Korvaa merkkijonolla\u2026",
@@ -517,7 +516,7 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Laajennusta {0} ei voida poistaa, koska sitä ei ole asennettu.",
     "NO_EXTENSIONS"                        : "Laajennuksia ei ole vielä asennettu.<br>Napsauta Saatavilla-välilehteä yläpuolelta aloittaaksesi.",
     "NO_EXTENSION_MATCHES"                 : "Ei hakuasi vastaavia laajennuksia.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "Ole varovainen asentaessasi laajennuksia tuntemattomasta lähteestä.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "HUOMAUTUS: Nämä laajennukset voivat olla peräisin eri lähteistä kuin {APP_NAME} itse. Laajennuksia ei ole tarkastettu, ja niillä on täydet paikalliset oikeudet. Ole varovainen asentaessasi laajennuksia tuntemattomasta lähteestä.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Asennettu",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Saatavilla",
     "EXTENSIONS_UPDATES_TITLE"             : "Päivitykset",
@@ -592,4 +591,4 @@ define({
     "DOCS_MORE_LINK"                            : "Lue lisää"
 });
 
-/* Last translated for 90398b4f604291bd99d25f11bde130db108bb465 */
+/* Last translated for 884ee8414fa7d7dad0cb85b062573e65b3a827a0 */
