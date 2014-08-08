@@ -362,7 +362,7 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                : "Build sperimentale",
     "DEVELOPMENT_BUILD"                 : "Build di sviluppo",
-    "CMD_SUGGEST"                       : "Suggerisci una feature",
+    "CMD_SUGGEST"                       : "Suggerisci una funzionalità",
     "CMD_SUPPORT"                       : "Supporto per {APP_NAME}",
     "RELOAD_FROM_DISK"                  : "Ricarica dal disco",
     "CMD_GET_INVOLVED"                  : "Far parte",
