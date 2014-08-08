@@ -28,27 +28,28 @@ define(function (require, exports, module) {
     "use strict";
     
     var DocumentManager     = require("document/DocumentManager"),
-        ImageHolderTemplate = require("text!htmlContent/image-holder.html"),
-        WorkspaceManager    = require("view/WorkspaceManager"),
+        ImageViewTemplate   = require("text!htmlContent/image-view.html"),
         ProjectManager      = require("project/ProjectManager"),
         LanguageManager     = require("language/LanguageManager"),
         MainViewFactory     = require("view/MainViewFactory"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
-        FileSystem          = require("filesystem/FileSystem"),
         FileUtils           = require("file/FileUtils"),
         _                   = require("thirdparty/lodash");
     
         
-    /**
-     * sign off listeners when editor manager closes
-     * the image viewer
+    /*
+     * ImageView objects are constructed when a view of an image is opened in a pane
+     * @see {@link Pane} for more information about where ImageViews are rendered
+     * 
+     * @constructor
+     * @param {!File} file - The image file object to render
+     * @param {!jQuery} container - The container to render the image view in
      */
-    
     function ImageView(file, $container) {
         this.$container = $container;
         this.file = file;
-        this.$view = $(Mustache.render(ImageHolderTemplate, {fullPath: file.fullPath}));
+        this.$view = $(Mustache.render(ImageViewTemplate, {fullPath: file.fullPath}));
         
         $container.append(this.$view);
 
@@ -77,16 +78,32 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Update file name if necessary
+     * DocumentManger.fileNameChange handler - when an image is renamed, we must 
+     * update the view
+     * 
+     * @param {jQuery.event} e - event
+     * @param {!string} oldPath - the name of the file that's changing changing 
+     * @param {!string} newPath - the name of the file that's changing changing 
+     * @private
      */
     ImageView.prototype._onFilenameChange = function (e, oldPath, newPath) {
-        if (this.file.fullPath === oldPath) {
-            this.file.fullPath = newPath;
+        /* 
+         * File objects are already updated when the event is triggered
+         * so we just need to see if the file has the same path as our image
+         */
+        if (this.file.fullPath === newPath) {
             this.relPath = ProjectManager.makeProjectRelativeIfPossible(newPath);
             this.$imagePath.text(this.relPath).attr("title", this.relPath);
         }
     };
 
+    /**
+     * <img>.on("load") handler - updates content of the image view 
+     *                            initializes computed values 
+     *                            installs event handlers
+     * @param {Event} e - event
+     * @private
+     */
     ImageView.prototype._onImageLoaded = function (e) {
         // add dimensions and size
         this._naturalWidth = e.currentTarget.naturalWidth;
@@ -100,10 +117,9 @@ define(function (require, exports, module) {
         }
         
         // get image size
-        var self = this,
-            file = FileSystem.getFileForPath(this.file.fullPath);
+        var self = this;
         
-        file.stat(function (err, stat) {
+        this.file.stat(function (err, stat) {
             if (err) {
                 self.$imageData.html(dimensionString);
             } else {
@@ -133,7 +149,10 @@ define(function (require, exports, module) {
         this._updateScale();
     };
     
-    
+    /*
+     * Update the scale element
+     * @private
+     */
     ImageView.prototype._updateScale = function () {
         var currentWidth = this.$imagePreview.width();
         
@@ -154,8 +173,8 @@ define(function (require, exports, module) {
         
     /**
      * Show image coordinates under the mouse cursor
-     *
-     * @param {MouseEvent} e mouse move event
+     * @param {Event} e - event
+     * @private
      */
     ImageView.prototype._showImageTip = function (e) {
         // Don't show image tip if this._scale is close to zero.
@@ -228,8 +247,8 @@ define(function (require, exports, module) {
     
     /**
      * Hide image coordinates info tip
-     *
-     * @param {MouseEvent} e mouse leave event
+     * @param {Event} e - event 
+     * @private
      */
     ImageView.prototype._hideImageTip = function (e) {
         var $target   = $(e.target),
@@ -262,6 +281,7 @@ define(function (require, exports, module) {
      *
      * @param {number} offsetX mouse offset from the left of the previewing image
      * @param {number} offsetY mouseoffset from the top of the previewing image
+     * @private
      */
     ImageView.prototype._handleMouseEnterOrExitScaleSticker = function (offsetX, offsetY) {
         var imagePos       = this.$imagePreview.position(),
@@ -318,17 +338,30 @@ define(function (require, exports, module) {
         }
     };
 
-    // Pane View Interface
+    /*
+     * View Interface functions
+     */
 
+    /* 
+     * Retrieves the file object for this view
+     * return {!File} the file object for this view
+     */
     ImageView.prototype.getFile = function () {
         return this.file;
     };
     
+    /* 
+     * Shows/Hides the view
+     * @param {boolean} visible - true to show, false to hide
+     */
     ImageView.prototype.setVisible = function (visible) {
-        this.$view.css("display", visible ? "block" : "none");
+        this.$view.css("display", (!!visible) ? "block" : "none");
     };
     
-    ImageView.prototype.resizeToFit = function () {
+    /* 
+     * Updates the layout of the view
+     */
+    ImageView.prototype.updateLayout = function () {
         this._hideGuidesAndTip();
         
         var pos = this.$container.position(),
@@ -337,8 +370,8 @@ define(function (require, exports, module) {
             oWidth = this.$container.outerWidth(),
             oHeight = this.$container.outerHeight();
             
-        // $view is position absolute so 
-        //  we have to update the height and width
+        // $view is "position:absolute" so 
+        //  we have to update the height, width and position
         this.$view.css({top: pos.top + ((oHeight - iHeight) / 2),
                         left: pos.left + ((oWidth - iWidth) / 2),
                         width: iWidth,
@@ -346,46 +379,82 @@ define(function (require, exports, module) {
         this._updateScale(this.$imagePreview.width());
     };
 
+    /* 
+     * Destroys the view
+     */
     ImageView.prototype.destroy = function () {
         $(DocumentManager).off("fileNameChange", _.bind(this._onFilenameChange, this));
         this.$image.off(".ImageView");
         this.$view.remove();
     };
     
+    /* 
+     * Determines if the view has focus
+     */
     ImageView.prototype.hasFocus = function () {
         return this.$view.has(":focus");
     };
 
+    /* 
+     * Determines if a child of the view has focus
+     */
     ImageView.prototype.childHasFocus = function () {
-        return false; // we have no children to receive focus
+        // we have no children to receive focus
+        return false;
     };
     
+    /* 
+     * Gives focus to the view
+     */
     ImageView.prototype.focus = function () {
         this.$view.focus();
     };
 
+    /* 
+     * Required interface - does nothing 
+     * @returns {undefined}
+     */
     ImageView.prototype.getScrollPos = function () {
     };
 
+    /* 
+     * Required interface - does nothing 
+     */
     ImageView.prototype.adjustScrollPos = function () {
     };
 
+    /* 
+     * Reparents the view 
+     * @param {!jQuery} $container - the new parent
+     */
     ImageView.prototype.switchContainers = function ($container) {
         this.$view.detach().appendTo($container);
         this.$container = $container;
     };
     
+    /* 
+     * Retrieves the parent container
+     * @return {!jQuery} parent
+     */
     ImageView.prototype.getContainer = function () {
         return this.$container;
     };
     
-    
+    /* 
+     * Creates an image view object and adds it to the specified pane
+     * @param {!File} file - the file to create an image of
+     * @param {!Pane} pane - the pane in which to host the view
+     * @return {!ImageView} view
+     */
     function _createImageViewOf(file, pane) {
         var view = new ImageView(file, pane.$el);
         pane.addView(view, true);
         return new $.Deferred().resolve().promise();
     }
-    
+
+    /* 
+     * Initialization, register our view factory
+     */
     MainViewFactory.registerViewFactory({
         canOpenFile: function (fullPath) {
             var lang = LanguageManager.getLanguageForPath(fullPath);

@@ -2189,7 +2189,7 @@ define(function (require, exports, module) {
      * @param {boolean=} forceRefresh - forces the editor to update its layout 
      *                                   even if it already matches the container's height / width
      */
-    Editor.prototype.resizeToFit = function (forceRefresh) {
+    Editor.prototype.updateLayout = function (forceRefresh) {
         var curRoot = this.getRootElement(),
             curWidth = $(curRoot).width(),
             editorAreaHt = this.$editorHolder.height();

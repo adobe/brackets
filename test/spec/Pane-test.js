@@ -57,7 +57,7 @@ define(function (require, exports, module) {
                 setVisible : function (visible) {
                     this._visible = visible;
                 },
-                resizeToFit: function (hint) {
+                updateLayout: function (hint) {
                 },
                 destroy: function () {
                 },
@@ -120,12 +120,12 @@ define(function (require, exports, module) {
             it("should show a view", function () {
                 spyOn(myView, "setVisible").andCallThrough();
                 spyOn(myView, "getFile").andCallThrough();
-                spyOn(myView, "resizeToFit");
+                spyOn(myView, "updateLayout");
                 
                 myPane.showView(myView);
                 
                 expect(myView.setVisible).toHaveBeenCalled();
-                expect(myView.resizeToFit).toHaveBeenCalled();
+                expect(myView.updateLayout).toHaveBeenCalled();
                 expect(myView.getFile).toHaveBeenCalled();
                 expect(myView._visible).toBeTruthy();
             });

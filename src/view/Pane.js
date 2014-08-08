@@ -69,8 +69,8 @@ define(function (require, exports, module) {
      *
      * {
      *      getFile: function () @return {!File} File object that belongs to the view (may return null)
-     *      setVisible: function(visible:boolean) - shows ore hides the view 
-     *      resizeToFit: function(forceRefresh:boolean) - tells the view to resize its content 
+     *      setVisible: function(visible:boolean) - shows or hides the view 
+     *      updateLayout: function(forceRefresh:boolean) - tells the view to do ignore any cached layout data and do a complete layout of its content 
      *      destroy: function() - called when the view is no longer needed. 
      *      hasFocus:  function() - called to determine if the view has focus.  
      *      childHasFocus: function() - called to determine if a child component of the view has focus.  
@@ -89,7 +89,7 @@ define(function (require, exports, module) {
      *
      *  Called when the view is shown or hidden.  When temporary views are hidden their destroy() method is called.
      *
-     * resizeToFit(forceRefresh:boolean)
+     * updateLayout(forceRefresh:boolean)
      *  
      *  Called to notify the view that it should be resized to fit its parent container.  This may be called several times
      *  or only once.  Views can ignore the forceRefresh flag. It is used for editor views to force a relayout of the editor 
@@ -140,7 +140,7 @@ define(function (require, exports, module) {
      */
     
     /**
-     * @typedef {getFile:function():File=, setVisible:function(visible:boolean), resizeToFit:function(forceRefresh:boolean), destroy:function(), hasFocus:function():boolean, childHasFocus:function():boolean, focus:function(), getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number), switchContainers: function($newContainer:jQuery}, getContainer: function():!jQuery} View   
+     * @typedef {getFile:function():File=, setVisible:function(visible:boolean), updateLayout:function(forceRefresh:boolean), destroy:function(), hasFocus:function():boolean, childHasFocus:function():boolean, focus:function(), getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number), switchContainers: function($newContainer:jQuery}, getContainer: function():!jQuery} View   
      */
     
     /*
@@ -770,7 +770,7 @@ define(function (require, exports, module) {
      */
     Pane.prototype.updateLayout = function (forceRefresh) {
         if (this._currentView) {
-            this._currentView.resizeToFit(forceRefresh);
+            this._currentView.updateLayout(forceRefresh);
         }
     };
     

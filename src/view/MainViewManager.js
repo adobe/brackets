@@ -527,7 +527,11 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @todo
+     * Finds a view in a working set for the specified path
+     * @param {!string} paneId - Can Be ALL_PANES
+     * @param {!string} fullPath - Path of the file to locate
+     * @param {!string} method - The search method ("findInViewList", "findInViewListAddedOrder", "findInViewListMRUOrder")
+     * @return {number} the index of the item in the first pane where the file was located or -1 if not found
      * @private
      */
     function _doFindView(paneId, fullPath, method) {
