@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         ImageHolderTemplate = require("text!htmlContent/image-holder.html"),
         WorkspaceManager    = require("view/WorkspaceManager"),
         ProjectManager      = require("project/ProjectManager"),
+        MainViewFactory     = require("view/MainViewFactory"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         FileSystem          = require("filesystem/FileSystem"),

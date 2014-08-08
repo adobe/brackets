@@ -38,13 +38,26 @@ define(function (require, exports, module) {
      */
     var _factories = [];
     
+    /**
+     * Registers a view factory
+     * @param {!Factory} factory - the view factory to register
+     */
     function registerViewFactory(factory) {
         _factories.push(factory);
     }
     
+    /**
+     * Finds a factory that can open the specified file
+     * @param {!string} fullPath - the file to open
+     * @return {?Factory} A factory that can create a view for the path or undefined if there isn't one.
+     */
     function findSuitableFactoryFor(fullPath) {
         var result;
         _factories.forEach(function (factory) {
+            // This could get more complex in the future by searching in this order
+            //  1) a factory that can open the file by fullPath
+            //  2) a factory that can open the file by name
+            //  3) a factory that can open the file by filetype
             if (factory.canOpenFile(fullPath)) {
                 result = factory;
                 return true;
@@ -53,6 +66,9 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /* 
+     * Public API
+     */
     exports.registerViewFactory     = registerViewFactory;
     exports.findSuitableFactoryFor  = findSuitableFactoryFor;
 });

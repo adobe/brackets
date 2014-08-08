@@ -60,6 +60,7 @@ define(function (require, exports, module) {
     require("spec/LanguageManager-test");
     require("spec/LiveDevelopment-test");
     require("spec/LowLevelFileIO-test");
+    require("spec/MainViewFactory-test");
     require("spec/MainViewManager-test");
     require("spec/Menu-test");
     require("spec/MultiRangeInlineEditor-test");
