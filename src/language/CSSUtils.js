@@ -654,7 +654,8 @@ define(function (require, exports, module) {
          declListStartChar:        column in line where the declaration list for the rule starts
          declListEndLine:          line where the declaration list for the rule ends
          declListEndChar:          column in the line where the declaration list for the rule ends
-     * @param text {!string} CSS text to extract from
+     * @param {!string} text CSS text to extract from
+     * @param {!string} documentMode language mode of the document that text belongs to
      * @return {Array.<Object>} Array with objects specifying selectors.
      */
     function extractAllSelectors(text, documentMode) {
@@ -777,26 +778,17 @@ define(function (require, exports, module) {
 
         function _getParentSelectors() {
             var j,
-                prevLevel = currentLevel - 1,
-                parentSelectors = "",
-                parentArray = [];
+                prevLevel = currentLevel - 1;
             for (j = selectors.length - 1; j >= 0; j--) {
                 if (selectors[j].level < prevLevel) {
                     break;
                 }
                 if (selectors[j].declListEndLine === -1 &&
                         selectors[j].level === prevLevel) {
-                    if (parentSelectors) {
-                        parentArray.unshift(parentSelectors);
-                    }
-                    parentSelectors = getCompleteSelectors(selectors[j], true);
+                    return getCompleteSelectors(selectors[j], true);
                 }
             }
-//            if (parentArray.length) {
-//                parentArray.unshift(parentSelectors);
-//                parentSelectors = parentArray.join(", ");
-//            }
-            return parentSelectors;
+            return "";
         }
         
         function _parseSelector(start, level) {
@@ -811,6 +803,7 @@ define(function (require, exports, module) {
                     return false;
                 }
                 if (token === ";" || (state.state === "prop")) {
+                    // Clear currentSelector if we're in a property.
                     currentSelector = "";
                 } else {
                     if (!currentSelector) {
@@ -1031,7 +1024,7 @@ define(function (require, exports, module) {
                 // Parse rules until we see '}'
                 _parseRuleList("}", level);
 
-            } else if (token.match(/@(charset|import|namespace)/i)) {
+            } else if (token.match(/@(charset|import|namespace|include|extend)/i)) {
                 
                 // This code handles @rules in this format:
                 //   @rule ... ;
@@ -1088,8 +1081,15 @@ define(function (require, exports, module) {
                         ruleStartLine = line;
                     }
                     _parseComment();
-                } else if (stream.string.indexOf(";") !== -1) {
-                    while (token !== ";") {
+                } else if (state.state !== "top" && state.state !== "block" &&
+                            stream.string.indexOf(";") !== -1) {
+                    // Skip the property.
+                    while (state.state !== "block" && token !== ";") {
+                        // If there is a '{' or '}' or a comment before the ';',
+                        // then don't skip.
+                        if (token === "{" || token === "}" || style === "comment") {
+                            break;
+                        }
                         _nextTokenSkippingWhitespace();
                     }
                 } else {
@@ -1149,8 +1149,9 @@ define(function (require, exports, module) {
      * jquery and ask what matches. If the node that the user's cursor is in comes back from jquery, then 
      * we know the selector applies.
      *
-     * @param text {!string} CSS text to search
-     * @param selector {!string} selector to search for
+     * @param {!string} text CSS text to search
+     * @param {!string} selector selector to search for
+     * @param {!string} mode language mode of the document that text belongs to
      * @return {Array.<{selectorGroupStartLine:number, declListEndLine:number, selector:string}>}
      *      Array of objects containing the start and end line numbers (0-based, inclusive range) for each
      *      matched selector.
