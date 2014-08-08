@@ -35,7 +35,7 @@ define(function (require, exports, module) {
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         LocalizationUtils         = require("utils/LocalizationUtils"),
         itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
-    
+
     /**
      * Creates a view enabling the user to install and manage extensions. Must be initialized
      * with initialize(). When the view is closed, dispose() must be called.
@@ -110,7 +110,7 @@ define(function (require, exports, module) {
      * The individual views for each item, keyed by the extension ID.
      */
     ExtensionManagerView.prototype._itemViews = null;
-    
+
     /**
      * @private
      * Attaches our event handlers. We wait to do this until we've fully fetched the extension list.
@@ -154,6 +154,10 @@ define(function (require, exports, module) {
                     ExtensionManager.markForRemoval($target.attr("data-extension-id"), true);
                 } else if ($target.hasClass("undo-update")) {
                     ExtensionManager.removeUpdate($target.attr("data-extension-id"));
+                } else if ($target.attr("data-toggle-desc") === "expand-desc") {
+                    ExtensionManager.toggleDescription($target.attr("data-extension-id"), $target, true);
+                } else if ($target.attr("data-toggle-desc") === "trunc-desc") {
+                    ExtensionManager.toggleDescription($target.attr("data-extension-id"), $target, false);
                 }
             })
             .on("click", "button.install", function (e) {
@@ -206,7 +210,11 @@ define(function (require, exports, module) {
             // (or registry is offline). These flags *should* always be ignored in that scenario, but just in case...
             context.isCompatible = context.isCompatibleLatest = true;
         }
-        
+
+        if (info.metadata.description !== undefined) {
+            info.metadata.shortdescription = StringUtils.truncate(info.metadata.description, 200);
+        }
+
         context.isMarkedForRemoval = ExtensionManager.isMarkedForRemoval(info.metadata.name);
         context.isMarkedForUpdate = ExtensionManager.isMarkedForUpdate(info.metadata.name);
         

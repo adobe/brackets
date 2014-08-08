@@ -51,7 +51,6 @@ a:hover {
 a:focus {
     color: @tc-link-hover;
     outline: 0;
-    border-radius: 3px;
     box-shadow: @tc-input-glow;
     text-decoration: none;
 }
@@ -479,6 +478,13 @@ a:focus {
     &.dropdown-menu li a {
         padding: 1px 15px 1px 15px;
         color: @bc-black;
+        
+        &.disabled {
+            color: @bc-gray;
+            &:hover {
+                background: @bc-white;
+            }
+        }
     }
     
     &.dropdown-menu .stylesheet-link {
@@ -972,9 +978,6 @@ a[href^="http"] {
                 .user-select(text);
                 cursor: text;
             }
-            .ext-keywords {
-                color: @tc-input-placeholder-text;
-            }
             .ext-translated {
                 color: @tc-input-placeholder-text;
             }
@@ -1172,6 +1175,8 @@ input[type="color"],
     .border-radius(@tc-control-border-radius);
     box-shadow: @tc-button-highlight;
     -webkit-font-smoothing: antialiased;
+    text-shadow: none;
+
 
     &:hover {
         background-color: @tc-button-background;
@@ -1391,10 +1396,15 @@ input[type="checkbox"]:active:not(:disabled) {
     box-shadow: @tc-button-down-shadow;
 }
 
+select:focus,
 input[type="checkbox"]:focus {
     outline:none;
     border: 1px solid @tc-gray-component-focused-border;
     box-shadow: @tc-input-glow;
+}
+
+select {
+    border: 1px solid #b2b5b5;
 }
 
 input[type="checkbox"]:checked:before {
@@ -1406,6 +1416,34 @@ input[type="checkbox"]:checked:before {
     left: 2px;
     top: -7px;
     font-size: 16px;
+}
+
+code {
+    border: none;
+}
+
+
+.close {
+    color: #333;
+    text-shadow: none;
+    opacity: 0.7;
+    filter: alpha(opacity=70);
+}
+
+.close:hover {
+    color: #333;
+    opacity: 1;
+    filter: alpha(opacity=100);
+}
+
+.dropdown-menu {
+    background-color: #fff;
+    color: #000;
+    
+    .divider {
+        background-color: #eaeaea;
+        border: none;
+    }
 }
 
 .form-horizontal {

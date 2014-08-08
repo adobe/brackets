@@ -21,14 +21,11 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, regexp: true, nomen: true, indent: 4, maxerr: 50 */
 /*global $, define, require, less */
 
 define(function (require, exports, module) {
     "use strict";
-
-    // FontsCommandsManager will be going away soon when we add font size management in Brackets.
-    require("themes/FontCommandsManager");
 
     var _                  = require("thirdparty/lodash"),
         FileSystem         = require("filesystem/FileSystem"),
@@ -46,7 +43,7 @@ define(function (require, exports, module) {
         styleNode       = $(ExtensionUtils.addEmbeddedStyleSheet("")),
         defaultTheme    = "thor-light-theme",
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
-        scrollbarsRegex = /::-webkit-scrollbar(?:[\s\S]*?)\{(?:[\s\S]*?)\}/mg,
+        scrollbarsRegex = /((?:[^}|,]*)::-webkit-scrollbar(?:[^{]*)[{](?:[^}]*?)[}])/mgi,
         stylesPath      = FileUtils.getNativeBracketsDirectoryPath() + "/styles/",
         validExtensions = ["css", "less"];
 
@@ -82,15 +79,13 @@ define(function (require, exports, module) {
         options = options || {};
         var fileName = file.name;
 
-        // The name is used to map the loaded themes to the list in the settings dialog. So we want
-        // a unique name if one is not provided.  This is particularly important when loading just
-        // files where there is no other way to feed in meta data to provide unique names.  Say, there
-        // is a theme1.css and a theme1.less that are entirely different themes...
+        // Portip: If no options.name or options.title is provided, then we will rely solely on
+        // the name of the file to be unique
 
         this.file        = file;
-        this.name        = options.name  || (options.title || fileName).toLocaleLowerCase().replace(/[\W]/g, '-');
+        this.name        = options.name  || (options.title || fileName.replace(/.[\w]+$/gi, '')).toLocaleLowerCase().replace(/[\W]/g, '-');
         this.displayName = options.title || toDisplayName(fileName);
-        this.dark        = options.theme && options.theme.dark === true;
+        this.dark        = options.theme !== undefined && options.theme.dark === true;
     }
 
 
@@ -110,7 +105,6 @@ define(function (require, exports, module) {
         // Go through and extract out scrollbar customizations so that we can
         // enable/disable via settings.
         content = content
-            .replace(commentRegex, "")
             .replace(scrollbarsRegex, function (match) {
                 scrollbar.push(match);
                 return "";
@@ -158,7 +152,7 @@ define(function (require, exports, module) {
             filename: fixPath(theme.file._path)
         });
 
-        parser.parse("#editor-holder {" + content + "}", function (err, tree) {
+        parser.parse("#editor-holder {" + content + "\n}", function (err, tree) {
             if (err) {
                 deferred.reject(err);
             } else {
@@ -234,15 +228,16 @@ define(function (require, exports, module) {
         var theme = getCurrentTheme();
 
         var pending = theme && FileUtils.readAsText(theme.file)
+            .then(function (lessContent) {
+                return lessifyTheme(lessContent.replace(commentRegex, ""), theme);
+            })
             .then(function (content) {
                 var result = extractScrollbars(content);
                 theme.scrollbar = result.scrollbar;
                 return result.content;
             })
-            .then(function (lessContent) {
-                return lessifyTheme(lessContent, theme);
-            })
             .then(function (cssContent) {
+                $("body").toggleClass("dark", theme.dark);
                 styleNode.text(cssContent);
                 return theme;
             });
@@ -268,7 +263,6 @@ define(function (require, exports, module) {
             }
 
             var cm = editor._codeMirror;
-            ThemeView.setDocumentMode(cm);
             ThemeView.updateThemes(cm);
         });
     }
@@ -340,30 +334,15 @@ define(function (require, exports, module) {
         $(exports).trigger("themeChange", getCurrentTheme());
     });
 
-    prefs.on("change", "customScrollbars", function () {
+    prefs.on("change", "themeScrollbars", function () {
         refresh();
         ThemeView.updateScrollbars(getCurrentTheme());
-    });
-
-    prefs.on("change", "fontSize", function () {
-        refresh();
-        ThemeView.updateFontSize();
-    });
-
-    prefs.on("change", "lineHeight", function () {
-        refresh();
-        ThemeView.updateLineHeight();
-    });
-
-    prefs.on("change", "fontFamily", function () {
-        refresh();
-        ThemeView.updateFontFamily();
     });
 
     // Monitor file changes.  If the file that has changed is actually the currently loaded
     // theme, then we just reload the theme.  This allows to live edit the theme
     FileSystem.on("change", function (evt, file) {
-        if (file.isDirectory) {
+        if (!file || file.isDirectory) {
             return;
         }
 
@@ -376,9 +355,6 @@ define(function (require, exports, module) {
         refresh();
     });
 
-
-    ThemeView.updateFonts();
-    ThemeView.updateScrollbars();
 
     exports.refresh         = refresh;
     exports.loadFile        = loadFile;

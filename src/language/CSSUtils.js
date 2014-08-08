@@ -791,6 +791,23 @@ define(function (require, exports, module) {
             return "";
         }
         
+        function _skipToClosingBracket() {
+            var unmatchedBraces = 0;
+            while (true) {
+                if (token === "{") {
+                    unmatchedBraces++;
+                } else if (token === "}") {
+                    unmatchedBraces--;
+                    if (unmatchedBraces === 0) {
+                        return;
+                    }
+                }
+                if (!_nextTokenSkippingComments()) {
+                    return; // eof
+                }
+            }
+        }
+
         function _parseSelector(start, level) {
             
             currentSelector = "";
@@ -1042,20 +1059,8 @@ define(function (require, exports, module) {
                 // This code handle @rules that use this format:
                 //    @rule ... { ... }
                 // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
-                // Skip everything until the next '}'
-                while (true) {
-                    if (token === "{") {
-                        unmatchedBraces++;
-                    } else if (token === "}") {
-                        unmatchedBraces--;
-                        if (unmatchedBraces === 0) {
-                            return;
-                        }
-                    }
-                    if (!_nextTokenSkippingComments()) {
-                        return; // eof
-                    }
-                }
+                // Skip everything including nested braces until the next matching '}'
+                _skipToClosingBracket();
             }
         }
 

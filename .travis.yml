@@ -5,7 +5,6 @@ before_script:
   - npm install -g grunt-cli
   - npm install -g jasmine-node
 notifications:
-  irc: "chat.freenode.net#brackets"
   webhooks:
     urls:
       - https://webhooks.gitter.im/e/9c767842144fd24d26a5

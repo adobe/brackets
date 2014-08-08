@@ -1599,7 +1599,7 @@ define(function (require, exports, module) {
                 makeEditor(content, true);
                 myEditor.setSelection({line: 1, ch: 0}, {line: 3, ch: 1});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 2}, end: {line: 3, ch: 2}, reversed: false});
+                expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 0}, end: {line: 3, ch: 2}, reversed: false});
                 
                 var lines = content.split("\n");
                 for (i = 1; i <= 3; i++) {
