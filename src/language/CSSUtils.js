@@ -607,18 +607,6 @@ define(function (require, exports, module) {
             var parentArray = selectorInfo.parentSelectors.split(", "),
                 completeSelectors = "",
                 ampersandIndex = selectorInfo.selector.indexOf("&");
-//            _.forEach(parentArray, function (parent) {
-//                if (completeSelectors.length) {
-//                    completeSelectors += ", ";
-//                }
-//                if (ampersandIndex === -1) {
-//                    completeSelectors += parent;
-//                    completeSelectors += " ";
-//                    completeSelectors += selectorInfo.selector;
-//                } else {
-//                    completeSelectors += selectorInfo.selector.replace("&", parent);
-//                }
-//            });
 
             // Show parents with / separators.
             completeSelectors = selectorInfo.parentSelectors + " / ";
