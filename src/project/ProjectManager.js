@@ -2062,7 +2062,7 @@ define(function (require, exports, module) {
             
             getProjectRoot().visit(allFilesVisitor, function (err) {
                 if (err) {
-                    deferred.reject();
+                    deferred.reject(err);
                     _allFilesCachePromise = null;
                 } else {
                     deferred.resolve(allFiles);
@@ -2097,31 +2097,35 @@ define(function (require, exports, module) {
         var filteredFilesDeferred = new $.Deferred();
         
         // First gather all files in project proper
-        _getAllFilesCache().done(function (result) {
-            // Add working set entries, if requested
-            if (includeWorkingSet) {
-                DocumentManager.getWorkingSet().forEach(function (file) {
-                    if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
-                        result.push(file);
-                    }
-                });
-            }
-            
-            // Filter list, if requested
-            if (filter) {
-                result = result.filter(filter);
-            }
-            
-            // If a done handler attached to the returned filtered files promise
-            // throws an exception that isn't handled here then it will leave
-            // _allFilesCachePromise in an inconsistent state such that no
-            // additional done handlers will ever be called!
-            try {
-                filteredFilesDeferred.resolve(result);
-            } catch (e) {
-                console.warn("Unhandled exception in getAllFiles handler: ", e);
-            }
-        });
+        _getAllFilesCache()
+            .done(function (result) {
+                // Add working set entries, if requested
+                if (includeWorkingSet) {
+                    DocumentManager.getWorkingSet().forEach(function (file) {
+                        if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
+                            result.push(file);
+                        }
+                    });
+                }
+
+                // Filter list, if requested
+                if (filter) {
+                    result = result.filter(filter);
+                }
+
+                // If a done handler attached to the returned filtered files promise
+                // throws an exception that isn't handled here then it will leave
+                // _allFilesCachePromise in an inconsistent state such that no
+                // additional done handlers will ever be called!
+                try {
+                    filteredFilesDeferred.resolve(result);
+                } catch (e) {
+                    console.warn("Unhandled exception in getAllFiles handler: ", e);
+                }
+            })
+            .fail(function (err) {
+                filteredFilesDeferred.reject(err);
+            });
         
         return filteredFilesDeferred.promise();
     }
