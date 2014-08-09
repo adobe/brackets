@@ -812,16 +812,8 @@ define(function (require, exports, module) {
                 if (token === ";" || (state.state === "prop")) {
                     // Clear currentSelector if we're in a property.
                     currentSelector = "";
-                } else {
-                    if (!currentSelector) {
-                        if (selectorGroupStartLine === -1) {
-                            selectorGroupStartLine = (stream.string.indexOf(",") !== -1) ? line : -1;
-                            selectorGroupStartChar = stream.start;
-                        }
-                    }
-                    if (/\S/.test(token) || /\S/.test(currentSelector)) {
-                        currentSelector += token;
-                    }
+                } else if (/\S/.test(token) || /\S/.test(currentSelector)) {
+                    currentSelector += token;
                 }
                 if (!_nextTokenSkippingComments()) {
                     return false; // eof
