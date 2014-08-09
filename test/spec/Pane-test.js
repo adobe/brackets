@@ -256,6 +256,27 @@ define(function (require, exports, module) {
                 
                 secondPane.destroy();
             });
+            it("should hide current view when merging", function () {
+                var secondView = createMockView("second-view"),
+                    secondPane = createMockPane("second-pane");
+                
+                myPane.addToViewList(myView.getFile());
+                
+                secondPane.addToViewList(secondView.getFile());
+                secondPane.addView(secondView);
+                
+                myPane.addView(myView, true);
+                secondPane.addView(secondView, true);
+                
+                spyOn(secondView, "setVisible");
+                
+                myPane.mergeWith(secondPane);
+                
+                expect(secondView.setVisible).toHaveBeenCalled();
+                expect(secondView.setVisible.calls[0].args[0]).toBeFalsy();
+
+                secondPane.destroy();
+            });
             it("should not switch views when adding another view", function () {
                 var secondView = createMockView("second-view");
 
