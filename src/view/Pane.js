@@ -241,6 +241,9 @@ define(function (require, exports, module) {
      */
     Pane.prototype.mergeWith = function (other) {
         // hide the current views and show the interstitial page
+        if (other._currentView) {
+            other._currentView.setVisible(false);
+        }
         other.showInterstitial(true);
         
         // Copy the File lists

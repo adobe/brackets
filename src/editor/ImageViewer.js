@@ -66,7 +66,7 @@ define(function (require, exports, module) {
 
         this.$image = this.$view.find(".image");
         this.$imageTip = this.$view.find(".image-tip");
-        this.$imageGuide = this.$view.find(".image-guide");
+        this.$imageGuides = this.$view.find(".image-guide");
         this.$imageScale = this.$view.find(".image-scale");
         this.$x_value = this.$view.find(".x-value");
         this.$y_value = this.$view.find(".y-value");
@@ -139,7 +139,7 @@ define(function (require, exports, module) {
         $(DocumentManager).on("fileNameChange", _.bind(this._onFilenameChange, this));
        
         this.$imageTip.hide();
-        this.$imageGuide.hide();
+        this.$imageGuides.hide();
         
         // @todo -- Can't this just be this.$imagePreview.on("mousemove", handler) ?
         this.$image.on("mousemove.ImageView", ".image-preview", _.bind(this._showImageTip, this))
@@ -272,7 +272,7 @@ define(function (require, exports, module) {
     
     ImageView.prototype._hideGuidesAndTip = function () {
         this.$imageTip.hide();
-        this.$imageGuide.hide();
+        this.$imageGuides.hide();
     };
     
     /**
@@ -464,4 +464,10 @@ define(function (require, exports, module) {
             return _createImageViewOf(file, pane);
         }
     });
+    
+    /* 
+     * This is for extensions that want to create a 
+     * view factory based on ImageViewer
+     */
+    exports.ImageView = ImageView;
 });

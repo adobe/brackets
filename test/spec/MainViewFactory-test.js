@@ -27,51 +27,131 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var MainViewFactory          = require("view/MainViewFactory");
+    var MainViewFactory          = require("view/MainViewFactory"),
+        SpecRunnerUtils          = require("spec/SpecRunnerUtils");
 
     describe("MainViewFactory", function () {
         this.category = "mainview";
-
-        function createMockFactory() {
-            return {
-                canOpenFile: function (fullPath) {
-                    if (fullPath === "blah") {
-                        return true;
-                    }
-                    
-                    return false;
-                }
-            };
-        }
         
-        it("should register a factory", function () {
-            runs(function () {
-                var factory = createMockFactory();
-                spyOn(factory, "canOpenFile");
+        var CommandManager,          // loaded from brackets.test
+            Commands,                // loaded from brackets.test
+            DocumentManager,         // loaded from brackets.test
+            EditorManager,           // loaded from brackets.test
+            MainViewManager,         // loaded from brackets.test
+            ProjectManager,          // loaded from brackets.test
+            FileSystem,              // loaded from brackets.test
+            Dialogs;                 // loaded from brackets.test
 
-                MainViewFactory.registerViewFactory(factory);
-                MainViewFactory.findSuitableFactoryFor();
-                expect(factory.canOpenFile).toHaveBeenCalled();
+        var testPath = SpecRunnerUtils.getTestPath("/spec/MainViewFactory-test-files"),
+            testFile = testPath + "/test.js",
+            testWindow,
+            _$,
+            promise;
+
+        var getFileObject = function (name) {
+            return FileSystem.getFileForPath(testPath + "/" + name);
+        };
+        
+        beforeEach(function () {
+            runs(function () {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                    testWindow = w;
+                    _$ = testWindow.$;
+
+                    // Load module instances from brackets.test
+                    CommandManager          = testWindow.brackets.test.CommandManager;
+                    Commands                = testWindow.brackets.test.Commands;
+                    DocumentManager         = testWindow.brackets.test.DocumentManager;
+                    EditorManager           = testWindow.brackets.test.EditorManager;
+                    MainViewManager         = testWindow.brackets.test.MainViewManager;
+                    ProjectManager          = testWindow.brackets.test.ProjectManager;
+                    FileSystem              = testWindow.brackets.test.FileSystem;
+                    Dialogs                 = testWindow.brackets.test.Dialogs;
+                });
+            });
+            runs(function () {
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
         });
-        it("should find a factory", function () {
-            runs(function () {
-                var factory = createMockFactory();
-                spyOn(factory, "canOpenFile").andCallThrough();
-
-                MainViewFactory.registerViewFactory(factory);
-                var result = MainViewFactory.findSuitableFactoryFor("blah");
-
-                expect(factory.canOpenFile.calls[0].args[0]).toEqual("blah");
-                expect(result).toBe(factory);
+        
+        afterEach(function () {
+            MainViewManager.closeAll(MainViewManager.ALL_PANES);
+            testWindow              = null;
+            CommandManager          = null;
+            Commands                = null;
+            DocumentManager         = null;
+            EditorManager           = null;
+            ProjectManager          = null;
+            FileSystem              = null;
+            SpecRunnerUtils.closeTestWindow();
+        });
+        
+        describe("Opening and closing Images", function () {
+            it("should open an image", function () {
+                runs(function () {
+                    promise = MainViewManager.open(MainViewManager.ACTIVE_PANE, getFileObject("/images/events.jpg"));
+                    waitsForDone(promise, "MainViewManager.doOpen");
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("events.jpg");
+                    // should not have been added to the working set
+                    expect(MainViewManager.getViewCount(MainViewManager.ALL_PANES)).toEqual(0);
+                });
+            });
+            it("should open an image", function () {
+                runs(function () {
+                    promise = MainViewManager.open(MainViewManager.ACTIVE_PANE, getFileObject("/images/events.jpg"));
+                    waitsForDone(promise, "MainViewManager.doOpen");
+                });
+                runs(function () {
+                    MainViewManager.close(MainViewManager.ACTIVE_PANE, getFileObject("/images/events.jpg"));
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
+                    expect(MainViewManager.getViewCount(MainViewManager.ALL_PANES)).toEqual(0);
+                });
+            });
+            it("should add an image to the working set", function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/images/events.jpg" });
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("events.jpg");
+                    expect(MainViewManager.getViewCount(MainViewManager.ALL_PANES)).toEqual(1);
+                    expect(MainViewManager.findView(MainViewManager.ACTIVE_PANE, testPath + "/images/events.jpg")).not.toEqual(-1);
+                });
             });
         });
-        it("should not find a factory", function () {
-            runs(function () {
-                var factory = createMockFactory();
-                MainViewFactory.registerViewFactory(factory);
-                var result = MainViewFactory.findSuitableFactoryFor("blahblah");
-                expect(result).toBeFalsy();
+        describe("Managing Image Views", function () {
+            it("Image Views should Reparent", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/images/events.jpg",
+                                                                                            paneId: "first-pane"});
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/images/lrg_logo.jpg",
+                                                                                            paneId: "second-pane"});
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/images/specials.jpg",
+                                                                                            paneId: "second-pane"});
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/images/lrg_hero.jpg",
+                                                                                            paneId: "second-pane"});
+                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
+                });
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 1);
+                    expect(MainViewManager.getPaneIdForPath(testPath + "/images/events.jpg")).toEqual("first-pane");
+                    expect(MainViewManager.getPaneIdForPath(testPath + "/images/lrg_logo.jpg")).toEqual("first-pane");
+                    expect(MainViewManager.getPaneIdForPath(testPath + "/images/specials.jpg")).toEqual("first-pane");
+                    expect(MainViewManager.getPaneIdForPath(testPath + "/images/lrg_hero.jpg")).toEqual("first-pane");
+                });
             });
         });
     });
