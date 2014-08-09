@@ -782,7 +782,9 @@ define(function (require, exports, module) {
         function _skipToClosingBracket() {
             var unmatchedBraces = 0;
             while (true) {
-                if (token === "{") {
+                // Use regexp to detect '{' so that something like
+                // #{$class} in scss files won't be missed.
+                if (/\{$/.test(token)) {
                     unmatchedBraces++;
                 } else if (token === "}") {
                     unmatchedBraces--;
@@ -803,7 +805,7 @@ define(function (require, exports, module) {
             selectorStartLine = line;
             
             // Everything until the next ',' or '{' is part of the current selector
-            while ((token !== "," || state.state !== "block") && token !== "{") {
+            while (token !== "," && token !== "{") {
                 if (token === "}" && !currentSelector) {
                     return false;
                 }
@@ -816,8 +818,6 @@ define(function (require, exports, module) {
                             selectorGroupStartLine = (stream.string.indexOf(",") !== -1) ? line : -1;
                             selectorGroupStartChar = stream.start;
                         }
-                        selectorStartChar = stream.start;
-                        selectorStartLine = line;
                     }
                     if (/\S/.test(token) || /\S/.test(currentSelector)) {
                         currentSelector += token;
@@ -1043,7 +1043,6 @@ define(function (require, exports, module) {
                 }
                 
             } else {
-                var unmatchedBraces = 0;
                 // This code handle @rules that use this format:
                 //    @rule ... { ... }
                 // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
