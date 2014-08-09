@@ -602,11 +602,17 @@ define(function (require, exports, module) {
         return createInfo();
     }
     
+    /**
+     * Return a string that shows the literal parent hierarchy of the selector
+     * in selectorInfo.
+     *
+     * @param {!SelectorInfo} selectorInfo SelectorInfo object with `selector`, `selectorGroup`, `parentSelectors` and other properties
+     * @param {boolean=} useGroup true to append selectorGroup instead of selector
+     * @return {string} the literal parent hierarchy of the selector
+     */
     function getCompleteSelectors(selectorInfo, useGroup) {
         if (selectorInfo.parentSelectors) {
-            var parentArray = selectorInfo.parentSelectors.split(", "),
-                completeSelectors = "",
-                ampersandIndex = selectorInfo.selector.indexOf("&");
+            var completeSelectors = "";
 
             // Show parents with / separators.
             completeSelectors = selectorInfo.parentSelectors + " / ";
@@ -642,6 +648,8 @@ define(function (require, exports, module) {
          declListStartChar:        column in line where the declaration list for the rule starts
          declListEndLine:          line where the declaration list for the rule ends
          declListEndChar:          column in the line where the declaration list for the rule ends
+         level:                    the level of the current selector
+         parentSelectors:          all ancestor selectors separated with '/' if the current selector is a nested one 
      * @param {!string} text CSS text to extract from
      * @param {!string} documentMode language mode of the document that text belongs to
      * @return {Array.<Object>} Array with objects specifying selectors.
@@ -670,7 +678,7 @@ define(function (require, exports, module) {
                 if (line >= lineCount) {
                     return false;
                 }
-                if (currentSelector.match(/\S/)) {
+                if (/\S/.test(currentSelector)) {
                     // If we are in a current selector and starting a newline,
                     // make sure there is whitespace in the selector
                     currentSelector += " ";
@@ -712,7 +720,7 @@ define(function (require, exports, module) {
             if (!_firstToken()) {
                 return false;
             }
-            while (!token.match(/\S/)) {
+            while (!/\S/.test(token)) {
                 if (!_nextToken()) {
                     return false;
                 }
@@ -724,7 +732,7 @@ define(function (require, exports, module) {
             if (!_nextToken()) {
                 return false;
             }
-            while (!token.match(/\S/)) {
+            while (!/\S/.test(token)) {
                 if (!_nextToken()) {
                     return false;
                 }
@@ -733,6 +741,7 @@ define(function (require, exports, module) {
         }
 
         function _isStartComment() {
+            // Also check for line comments used in LESS and SASS.
             return (/^\/[\/\*]/.test(token));
         }
         
@@ -744,7 +753,7 @@ define(function (require, exports, module) {
             if (/^\/\//.test(token)) {
                 return;
             }
-            while (!token.match(/\*\/$/)) {
+            while (!/\*\/$/.test(token)) {
                 if (!_nextToken()) {
                     break;
                 }
@@ -764,21 +773,6 @@ define(function (require, exports, module) {
             return true;
         }
 
-        function _getParentSelectors() {
-            var j,
-                prevLevel = currentLevel - 1;
-            for (j = selectors.length - 1; j >= 0; j--) {
-                if (selectors[j].level < prevLevel) {
-                    break;
-                }
-                if (selectors[j].declListEndLine === -1 &&
-                        selectors[j].level === prevLevel) {
-                    return getCompleteSelectors(selectors[j], true);
-                }
-            }
-            return "";
-        }
-        
         function _skipToClosingBracket() {
             var unmatchedBraces = 0;
             while (true) {
@@ -798,6 +792,16 @@ define(function (require, exports, module) {
             }
         }
 
+        function _getParentSelectors() {
+            var j;
+            for (j = selectors.length - 1; j >= 0; j--) {
+                if (selectors[j].declListEndLine === -1 && selectors[j].level < currentLevel) {
+                    return getCompleteSelectors(selectors[j], true);
+                }
+            }
+            return "";
+        }
+        
         function _parseSelector(start, level) {
             
             currentSelector = "";
@@ -806,10 +810,12 @@ define(function (require, exports, module) {
             
             // Everything until the next ',' or '{' is part of the current selector
             while (token !== "," && token !== "{") {
-                if (token === "}" && !currentSelector) {
+                if (token === "}" &&
+                        (!currentSelector || /: /.test(currentSelector))) {
+                    // Either empty currentSelector or currentSelector is a CSS property
                     return false;
                 }
-                if (token === ";" || (state.state === "prop")) {
+                if (token === ";") {
                     // Clear currentSelector if we're in a property.
                     currentSelector = "";
                 } else if (/\S/.test(token) || /\S/.test(currentSelector)) {
@@ -854,7 +860,6 @@ define(function (require, exports, module) {
                     ruleStartChar = stream.start - currentSelector.length;
                 }
                 var parentSelectors = _getParentSelectors();
-                console.log(parentSelectors + " -- " + currentSelector);
                 selectors.push({selector: currentSelector,
                                 ruleStartLine: ruleStartLine,
                                 ruleStartChar: ruleStartChar,
@@ -961,8 +966,8 @@ define(function (require, exports, module) {
                 }
                 nested = _parseRuleList(undefined, currentLevel + 1);
             
-                // assign this declaration list position and selector group to every selector on the stack
-                // that doesn't have a declaration list start and end line
+                // assign this declaration list position to every selector on the stack
+                // that doesn't have a declaration list end line
                 for (j = selectors.length - 1; j >= 0; j--) {
                     if (selectors[j].level >= level && selectors[j].declListEndLine !== -1) {
                         continue;
@@ -990,7 +995,7 @@ define(function (require, exports, module) {
         }
         
         function _isStartAtRule() {
-            return (token.match(/^@/));
+            return (/^@/.test(token));
         }
         
         function _parseAtRule(level) {
@@ -1003,7 +1008,7 @@ define(function (require, exports, module) {
             selectorGroupStartLine = -1;
             selectorGroupStartChar = -1;
             
-            if (token.match(/@media/i)) {
+            if (/@media/i.test(token)) {
                 // @media rule holds a rule list
                 
                 // Skip everything until the opening '{'
@@ -1018,12 +1023,16 @@ define(function (require, exports, module) {
                     return; // eof
                 }
 
+                if (currentLevel <= level) {
+                    currentLevel++;
+                }
+
                 // Parse rules until we see '}'
                 // Treat media rule as one nested level by 
                 // calling _parseRuleList with next level.
-                _parseRuleList("}", level + 1);
+                _parseRuleList("}", currentLevel + 1);
 
-            } else if (token.match(/@(charset|import|namespace|include|extend)/i)) {
+            } else if (/@(charset|import|namespace|include|extend)/i.test(token)) {
                 
                 // This code handles @rules in this format:
                 //   @rule ... ;
@@ -1082,9 +1091,14 @@ define(function (require, exports, module) {
                     // Otherwise, it's style rule
                     if (!_parseRule(level === undefined ? 0 : level) && level > 0) {
                         return false;
-                    } else if (level > 0) {
+                    }
+                    if (level > 0) {
                         return true;
                     }
+                    // Clear ruleStartChar and ruleStartLine in case we have a comment 
+                    // at the end of previous rule in level 0.
+                    ruleStartChar = -1;
+                    ruleStartLine = -1;
                 }
                 
                 if (!_nextTokenSkippingWhitespace()) {
