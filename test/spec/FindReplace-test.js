@@ -328,6 +328,9 @@ define(function (require, exports, module) {
             }
             expect(myEditor.getSelection()).toEqual(sel);
         }
+        function expectMatchIndex(index) {
+            expect(myEditor._codeMirror._searchState.matchIndex).toEqual(index);
+        }
         function expectHighlightedMatches(selections, expectedDOMHighlightCount) {
             var cm = myEditor._codeMirror;
             var searchState = cm._searchState;
@@ -492,20 +495,25 @@ define(function (require, exports, module) {
                 enterSearchText("foo");
                 expectHighlightedMatches(fooExpectedMatches);
                 expectSelection(fooExpectedMatches[0]);
+                expectMatchIndex(0);
                 expect(myEditor.centerOnCursor.calls.length).toEqual(1);
 
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[1]);
+                expectMatchIndex(1);
                 expect(myEditor.centerOnCursor.calls.length).toEqual(2);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[2]);
+                expectMatchIndex(2);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[3]);
+                expectMatchIndex(3);
                 expectHighlightedMatches(fooExpectedMatches);  // no change in highlights
 
                 // wraparound
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[0]);
+                expectMatchIndex(0);
                 expect(myEditor.centerOnCursor.calls.length).toEqual(5);
             });
             
@@ -517,20 +525,25 @@ define(function (require, exports, module) {
                 enterSearchText("Foo");
                 expectHighlightedMatches(fooExpectedMatches);
                 expectSelection(fooExpectedMatches[0]);
+                expectMatchIndex(0);
                 expect(myEditor.centerOnCursor.calls.length).toEqual(1);
 
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[1]);
+                expectMatchIndex(1);
                 expect(myEditor.centerOnCursor.calls.length).toEqual(2);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[2]);
+                expectMatchIndex(2);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[3]);
+                expectMatchIndex(3);
                 expectHighlightedMatches(fooExpectedMatches);  // no change in highlights
 
                 // wraparound
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[0]);
+                expectMatchIndex(0);
                 expect(myEditor.centerOnCursor.calls.length).toEqual(5);
             });
             
@@ -543,16 +556,20 @@ define(function (require, exports, module) {
                 enterSearchText("Foo");
                 expectHighlightedMatches(capitalFooSelections);
                 expectSelection(capitalFooSelections[0]);
+                expectMatchIndex(0);
                 
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(capitalFooSelections[1]);
+                expectMatchIndex(1);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(capitalFooSelections[2]);
+                expectMatchIndex(2);
                 // note the lowercase "foo()" is NOT matched
                 
                 // wraparound
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(capitalFooSelections[0]);
+                expectMatchIndex(0);
             });
             
             it("should have a scroll track marker for every match", function () {
@@ -577,13 +594,16 @@ define(function (require, exports, module) {
                 enterSearchText("Foo");
                 expectHighlightedMatches(fooExpectedMatches);
                 expectSelection(fooExpectedMatches[0]);
+                expectMatchIndex(0);
                 
                 toggleCaseSensitive(true);
                 expectHighlightedMatches(capitalFooSelections);
                 expectSelection(capitalFooSelections[0]);
+                expectMatchIndex(0);
 
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(capitalFooSelections[1]);
+                expectMatchIndex(1);
             });
             
             
@@ -779,11 +799,13 @@ define(function (require, exports, module) {
                     {start: {line: LINE_FIRST_REQUIRE + 2, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 34}}
                 ];
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
                 expectHighlightedMatches(expectedSelections);
                 
                 enterSearchText("bar");
                 
                 expectSelection(barExpectedMatches[0]);  // selection one line earlier than previous selection
+                expectMatchIndex(0);
                 expectHighlightedMatches(barExpectedMatches);
             });
             
@@ -794,14 +816,17 @@ define(function (require, exports, module) {
                 
                 enterSearchText("foo");
                 expectSelection(fooExpectedMatches[0]);
+                expectMatchIndex(0);
                 
                 // get search highlight down below where the "bar" match will be
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[2]);
+                expectMatchIndex(2);
                 
                 enterSearchText("bar");
                 expectSelection(barExpectedMatches[0]);
+                expectMatchIndex(0);
             });
             
             it("should use empty initial query for single cursor selection", function () {
@@ -845,6 +870,7 @@ define(function (require, exports, module) {
                 ];
                 expectHighlightedMatches(requireExpectedMatches);
                 expectSelection(requireExpectedMatches[1]);  // cursor was below 1st match, so 2nd match is selected
+                expectMatchIndex(1);
                 
                 enterSearchText("require(");
                 requireExpectedMatches.shift();  // first result no longer matches
@@ -853,6 +879,7 @@ define(function (require, exports, module) {
                 requireExpectedMatches[2].end.ch++;
                 expectHighlightedMatches(requireExpectedMatches, 3);  // in a new file, JS isn't color coded, so there's only one span each
                 expectSelection(requireExpectedMatches[0]);
+                expectMatchIndex(0);
             });
             
             it("should collapse selection when appending to prepopulated text causes no result", function () {
@@ -889,6 +916,7 @@ define(function (require, exports, module) {
                     {start: {line: LINE_FIRST_REQUIRE + 2, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 34}}
                 ];
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
                 expectHighlightedMatches(expectedSelections);
                 
                 enterSearchText("baz\"");
@@ -896,6 +924,7 @@ define(function (require, exports, module) {
                     {start: {line: LINE_FIRST_REQUIRE + 2, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 35}}
                 ];
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
                 expectHighlightedMatches(expectedSelections);
             });
         });
@@ -975,17 +1004,22 @@ define(function (require, exports, module) {
                 enterSearchText("Ba.");
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
                 
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(expectedSelections[1]);
+                expectMatchIndex(1);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(expectedSelections[2]);
+                expectMatchIndex(2);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(expectedSelections[3]);
+                expectMatchIndex(3);
                 
                 // wraparound
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
             });
             
              
@@ -1035,6 +1069,7 @@ define(function (require, exports, module) {
                 ];
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
             });
             
             it("should support case-sensitive regexp", function () {
@@ -1050,6 +1085,7 @@ define(function (require, exports, module) {
                 enterSearchText("f.o");
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
             });
             
             it("should support case-insensitive regexp", function () {
@@ -1068,6 +1104,7 @@ define(function (require, exports, module) {
                 enterSearchText("f.o");
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
             });
 
             it("shouldn't choke on invalid regexp", function () {
@@ -1136,6 +1173,7 @@ define(function (require, exports, module) {
                     enterSearchText("foo");
                     
                     expectSelection(fooExpectedMatches[0]);
+                    expectMatchIndex(0);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
                     expect(tw$("#replace-yes").is(":enabled")).toBe(true);
                     
@@ -1143,6 +1181,7 @@ define(function (require, exports, module) {
                     
                     tw$("#replace-yes").click();
                     expectSelection(fooExpectedMatches[1]);
+                    expectMatchIndex(0);
                     
                     myEditor.setSelection(fooExpectedMatches[0].start, fooExpectedMatches[0].end);
                     expect(/bar/i.test(myEditor.getSelectedText())).toBe(true);
@@ -1156,6 +1195,7 @@ define(function (require, exports, module) {
                     enterReplaceText("bar");
                     
                     expectSelection(fooExpectedMatches[0]);
+                    expectMatchIndex(0);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
                     
                     // Skip first
@@ -1163,6 +1203,7 @@ define(function (require, exports, module) {
                     tw$("#find-next").click();
                     
                     expectSelection(fooExpectedMatches[1]);
+                    expectMatchIndex(1);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
                     // Replace second
@@ -1170,6 +1211,7 @@ define(function (require, exports, module) {
                     tw$("#replace-yes").click();
                     
                     expectSelection(fooExpectedMatches[2]);
+                    expectMatchIndex(1);
                     
                     myEditor.setSelection(fooExpectedMatches[0].start, fooExpectedMatches[0].end);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
@@ -1184,11 +1226,13 @@ define(function (require, exports, module) {
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     enterSearchText("foo");
                     expectSelection(fooExpectedMatches[0]);
+                    expectMatchIndex(0);
                     
                     enterReplaceText("bar");
                     
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     expectSelection(fooExpectedMatches[1]);
+                    expectMatchIndex(0);
                     
                     myEditor.setSelection(fooExpectedMatches[0].start, fooExpectedMatches[0].end);
                     expect(/bar/i.test(myEditor.getSelectedText())).toBe(true);
