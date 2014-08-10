@@ -759,6 +759,14 @@ define(function (require, exports, module) {
                 }
             }
         }
+        
+        function _maybeProperty() {
+            return (stream.string.indexOf(";") !== -1 &&
+                    ((state.state !== "top" && state.state !== "block") ||
+                    // Check for vendor-specific property prefixes (like -webkit-)
+                    // which have state.state === "block"
+                    /-[a-zA-Z]+-/.test(token)));
+        }
 
         function _nextTokenSkippingComments() {
             if (!_nextToken()) {
@@ -810,12 +818,13 @@ define(function (require, exports, module) {
             
             // Everything until the next ',' or '{' is part of the current selector
             while (token !== "," && token !== "{") {
-                if (token === "}" &&
-                        (!currentSelector || /: /.test(currentSelector))) {
+                if (token === "}" && (!currentSelector || /:\s*\S/.test(currentSelector))) {
                     // Either empty currentSelector or currentSelector is a CSS property
                     return false;
                 }
-                if (token === ";") {
+                if (token === ";" ||
+                        // Make sure that something like `> li > a {` is not identified as a property
+                        (state.state === "prop" && !/\{/.test(stream.string))) {
                     // Clear currentSelector if we're in a property.
                     currentSelector = "";
                 } else if (/\S/.test(token) || /\S/.test(currentSelector)) {
@@ -1076,12 +1085,11 @@ define(function (require, exports, module) {
                         ruleStartLine = line;
                     }
                     _parseComment();
-                } else if (state.state !== "top" && state.state !== "block" &&
-                            stream.string.indexOf(";") !== -1) {
+                } else if (_maybeProperty()) {
                     // Skip the property.
-                    while (state.state !== "block" && token !== ";") {
+                    while (token !== ";") {
                         // If there is a '{' or '}' or a comment before the ';',
-                        // then don't skip.
+                        // then stop skipping.
                         if (token === "{" || token === "}" || style === "comment") {
                             break;
                         }
