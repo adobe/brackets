@@ -190,7 +190,8 @@ define(function (require, exports, module) {
             lineExp     = _createLineExpressions(prefixes, blockPrefix, blockSuffix),
             startLine   = sel.start.line,
             endLine     = sel.end.line,
-            editGroup   = [];
+            editGroup   = [],
+            chPos       = 0;
 
         // In full-line selection, cursor pos is start of next line - but don't want to modify that line
         if (sel.end.ch === 0) {
@@ -205,9 +206,11 @@ define(function (require, exports, module) {
             updateSelection        = false;
         
         if (containsNotLineComment) {
-            // Comment out - prepend the first prefix to each line
+            // Comment out - prepend the first prefix to each line                                    
             for (i = startLine; i <= endLine; i++) {
-                editGroup.push({text: prefixes[0], start: {line: i, ch: 0}});
+                // For each line we need to determine the position where de comment prefix should be inserted
+                chPos = _getPrefixPos(doc.language.getId(), doc.getLine(i));
+                editGroup.push({text: prefixes[0], start: {line: i, ch: chPos}});
             }
 
             // Make sure tracked selections include the prefix that was added at start of range
@@ -236,6 +239,27 @@ define(function (require, exports, module) {
         }
         return {edit: editGroup, selection: trackedSels};
     }
+    
+    
+    /**
+     * @private
+     * Given a line to be commented it will determine where the comment prefix position is.
+     * 
+     * @param {string} language id
+     * @param {string} line to be commented
+     * @return {integer}
+     */
+    function _getPrefixPos(language, line) {                        
+        if (language === "jade") {
+            // Determine the position of the first non white space character
+            var re = new RegExp("\\S");
+            return line.indexOf(re.exec(line));
+        }
+        
+        // Default will zero
+        return 0;
+    }
+    
     
     /**
      * @private
