@@ -760,14 +760,6 @@ define(function (require, exports, module) {
             }
         }
         
-        function _maybeProperty() {
-            return (stream.string.indexOf(";") !== -1 &&
-                    ((state.state !== "top" && state.state !== "block") ||
-                    // Check for vendor-specific property prefixes (like -webkit-)
-                    // which have state.state === "block"
-                    /-[a-zA-Z]+-/.test(token)));
-        }
-
         function _nextTokenSkippingComments() {
             if (!_nextToken()) {
                 return false;
@@ -781,21 +773,47 @@ define(function (require, exports, module) {
             return true;
         }
 
-        function _skipToClosingBracket() {
-            var unmatchedBraces = 0;
+        function _maybeProperty() {
+            return (stream.string.indexOf(";") !== -1 &&
+                    (state.state !== "top" && state.state !== "block"));
+        }
+
+        function _skipProperty() {
+            while (token !== ";") {
+                // If there is a '{' or '}' or a comment before the ';',
+                // then stop skipping.
+                if (token === "{" || token === "}" || style === "comment") {
+                    return;
+                }
+                _nextTokenSkippingWhitespace();
+            }
+        }
+        
+        function _skipToClosingBracket(startChar) {
+            var bracketPairs = { "{": "}",
+                                 "[": "]",
+                                 "(": ")" },
+                skippedText = "",
+                unmatchedBraces = 0;
+            if (!startChar) {
+                startChar = "{";
+            }
             while (true) {
                 // Use regexp to detect '{' so that something like
                 // #{$class} in scss files won't be missed.
-                if (/\{$/.test(token)) {
+                if ((startChar === "{" && /\{$/.test(token)) || startChar === token) {
                     unmatchedBraces++;
-                } else if (token === "}") {
+                } else if (token === bracketPairs[startChar]) {
                     unmatchedBraces--;
                     if (unmatchedBraces === 0) {
-                        return;
+                        skippedText += token;
+                        return skippedText;
                     }
                 }
+                skippedText += token;
+                
                 if (!_nextTokenSkippingComments()) {
-                    return; // eof
+                    return skippedText; // eof
                 }
             }
         }
@@ -827,6 +845,11 @@ define(function (require, exports, module) {
                         (state.state === "prop" && !/\{/.test(stream.string))) {
                     // Clear currentSelector if we're in a property.
                     currentSelector = "";
+                } else if (token === "(" && /,/.test(stream.string)) {
+                    // Collect everything inside the parentheses as a whole chunk so that
+                    // commas inside the parentheses won't be identified as selector separators
+                    // by while loop.
+                    currentSelector += _skipToClosingBracket("(");
                 } else if (/\S/.test(token) || /\S/.test(currentSelector)) {
                     currentSelector += token;
                 }
@@ -1057,7 +1080,7 @@ define(function (require, exports, module) {
                 //    @rule ... { ... }
                 // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
                 // Skip everything including nested braces until the next matching '}'
-                _skipToClosingBracket();
+                _skipToClosingBracket("{");
             }
         }
 
@@ -1087,14 +1110,7 @@ define(function (require, exports, module) {
                     _parseComment();
                 } else if (_maybeProperty()) {
                     // Skip the property.
-                    while (token !== ";") {
-                        // If there is a '{' or '}' or a comment before the ';',
-                        // then stop skipping.
-                        if (token === "{" || token === "}" || style === "comment") {
-                            break;
-                        }
-                        _nextTokenSkippingWhitespace();
-                    }
+                    _skipProperty();
                 } else {
                     // Otherwise, it's style rule
                     if (!_parseRule(level === undefined ? 0 : level) && level > 0) {
