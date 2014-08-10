@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, continue: true, indent: 4, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $ */
 
 /**
@@ -1001,17 +1001,13 @@ define(function (require, exports, module) {
                 // assign this declaration list position to every selector on the stack
                 // that doesn't have a declaration list end line
                 for (j = selectors.length - 1; j >= 0; j--) {
-                    if (selectors[j].level >= level && selectors[j].declListEndLine !== -1) {
-                        continue;
-                    }
                     if (selectors[j].level < currentLevel) {
                         break;
                     }
-                    if (selectors[j].declListEndLine !== -1) {
-                        return;
+                    if (selectors[j].declListEndLine === -1) {
+                        selectors[j].declListEndLine = line;
+                        selectors[j].declListEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
                     }
-                    selectors[j].declListEndLine = line;
-                    selectors[j].declListEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
                 }
             } while (currentLevel > 0 && currentLevel === level);
         }
@@ -1027,7 +1023,8 @@ define(function (require, exports, module) {
         }
         
         function _isStartAtRule() {
-            return (/^@/.test(token));
+            // Exclude @mixin from at-rule so that we can parse it like a normal rule list
+            return (/^@/.test(token) && !/^@mixin/i.test(token));
         }
         
         function _parseAtRule(level) {
@@ -1063,6 +1060,10 @@ define(function (require, exports, module) {
                 // Treat media rule as one nested level by 
                 // calling _parseRuleList with next level.
                 _parseRuleList("}", currentLevel + 1);
+
+                if (currentLevel > 0) {
+                    currentLevel--;
+                }
 
             } else if (/@(charset|import|namespace|include|extend)/i.test(token)) {
                 
