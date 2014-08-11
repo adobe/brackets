@@ -197,8 +197,8 @@ define(function (require, exports, module) {
                     href,
                     $links = viewer.$htmlContent.find("a:not(.close)");
                 
-                // 7 links in description.html, 1 "more info" link in template
-                expect($links.length).toBe(8);
+                // 8 links in description.html, 1 "more info" link in template
+                expect($links.length).toBe(9);
                 
                 $links.each(function (i, anchor) {
                     $a = $(anchor);
