@@ -76,9 +76,14 @@ define(function (require, exports, module) {
         this.$wrapperDiv.find("a").each(function (index, elem) {
             var $elem = $(elem);
             var url = $elem.attr("href");
-            if (url && url.substr(0, 4) !== "http") {
-                // URLs in JSON data are relative
-                url = "http://docs.webplatform.org" + (url.charAt(0) !== "/" ? "/" : "") + url;
+            if (url) {
+                if (url.indexOf("#") === 0) {
+                    // Anchors in JSON data are relative to page URL
+                    url = templateVars.url + url;
+                } else if (url.substr(0, 4) !== "http") {
+                    // URLs in JSON data are relative
+                    url = "http://docs.webplatform.org" + (url.indexOf("/") !== 0 ? "/" : "") + url;
+                }
                 $elem.attr("href", url);
             }
             $elem.attr("title", url);
