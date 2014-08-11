@@ -178,7 +178,7 @@ define(function (require, exports, module) {
             if (state.matchIndex !== -1) {
                 // Convert to 1-based by adding one before showing the index.
                 findBar.showFindCount(StringUtils.format(Strings.FIND_MATCH_INDEX,
-                                                        state.matchIndex + 1, state.marked.length));
+                                                        state.matchIndex + 1, state.resultSet.length));
             }
         }
     }
