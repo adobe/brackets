@@ -1231,6 +1231,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var myEditor = EditorManager.getActiveEditor();
+                    // turn off word-wrap
                     myEditor._codeMirror.setOption("lineWrapping", false);
                     myEditor.document.setText("ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd some really long line");
                     myEditor.setCursorPos(1, 1);
@@ -1240,7 +1241,7 @@ define(function (require, exports, module) {
                         sp = se.scrollLeft,
                         $se = _$(se);
 
-                    // some rediculous number will scroll all the way over to the ldft
+                    // really big number -- will scroll all the end of the line
                     $se.scrollLeft(99999999);
                     expect(sp).toEqual(se.scrollLeft);
                 });
