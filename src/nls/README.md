@@ -154,7 +154,7 @@ pull request which will send you an e-mail notification.
 
 ### Updating Existing Branch and Pull Request
 
-If you need to make changes to an exsiting branch, 
+If you need to make changes to an existing branch, 
 you should make updates in the `patch-1` branch in your github fork of brackets
 so all of your changes for this update are in a single branch.
 Creating a new branch for every update makes it difficult for core team
