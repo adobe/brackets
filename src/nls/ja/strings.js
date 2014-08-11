@@ -137,8 +137,7 @@ define({
 	"BUTTON_NO": "いいえ",
     
     // Find, Replace, Find in Files
-	"FIND_RESULT_COUNT": "{0} 件",
-	"FIND_RESULT_COUNT_SINGLE": "1 件",
+	"FIND_MATCH_INDEX": "{0} / {1}",
 	"FIND_NO_RESULTS": "該当なし",
 	"FIND_QUERY_PLACEHOLDER": "検索\u2026",
 	"REPLACE_PLACEHOLDER": "\u2026 に置換",
@@ -248,7 +247,11 @@ define({
 	"STATUSBAR_USER_EXTENSIONS_DISABLED": "拡張機能無効",
 	"STATUSBAR_INSERT": "INS",
 	"STATUSBAR_OVERWRITE": "OVR",
+	"STATUSBAR_INSOVR_TOOLTIP": "クリックして挿入 (INS) モードと上書き (OVR) モード間のカーソルを切り替え",
+	"STATUSBAR_LANG_TOOLTIP": "クリックしてファイルタイプを変更",
+	"STATUSBAR_CODE_INSPECTION_TOOLTIP": "{0}。クリックしてレポートパネルを切り替えます。",
 	"STATUSBAR_DEFAULT_LANG": "(指定なし)",
+	"STATUSBAR_SET_DEFAULT_LANG": ".{0} ファイルのデフォルトとして設定",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} 個の問題",
@@ -513,7 +516,7 @@ define({
 	"EXTENSION_NOT_INSTALLED": "インストールされていなかったため、拡張機能 {0} を削除できませんでした。",
 	"NO_EXTENSIONS": "インストールされている拡張機能はまだありません。<br>上の「入手可能」タブをクリックしてインストールしてください。",
 	"NO_EXTENSION_MATCHES": "検索条件に一致する拡張機能がありません。",
-	"REGISTRY_SANITY_CHECK_WARNING": "不明なソースから拡張機能をインストールするときは十分に注意してください。",
+	"REGISTRY_SANITY_CHECK_WARNING": "注意 : これらの拡張機能の作成元が {APP_NAME} 以外である可能性があります。拡張機能はレビューされず、ローカルアクセス権が一杯です。不明なソースから拡張機能をインストールするときは十分に注意してください。",
 	"EXTENSIONS_INSTALLED_TITLE": "インストール済み",
 	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
 	"EXTENSIONS_UPDATES_TITLE": "アップデート",

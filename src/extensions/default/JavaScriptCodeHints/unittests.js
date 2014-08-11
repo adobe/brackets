@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         EditorManager        = brackets.getModule("editor/EditorManager"),
         FileSystem           = brackets.getModule("filesystem/FileSystem"),
         FileUtils            = brackets.getModule("file/FileUtils"),
+        PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         SpecRunnerUtils      = brackets.getModule("spec/SpecRunnerUtils"),
         UnitTestReporter     = brackets.getModule("test/UnitTestReporter"),
         JSCodeHints          = require("main"),
@@ -1279,6 +1280,27 @@ define(function (require, exports, module) {
                 });
             });
 
+            // Test `jscodehints.noHintsOnDot` preference
+            it("should consider dot a hintable key based on preference", function () {
+                var noHintsOnDot = PreferencesManager.get("jscodehints.noHintsOnDot");
+
+                testEditor.setCursorPos({ line: 44, ch: 10 });
+
+                // Default is falsey
+                expect(noHintsOnDot).toBeFalsy();
+
+                // Should get hints after dot
+                expectHints(JSCodeHints.jsHintProvider, ".");
+
+                // Set preference to true
+                PreferencesManager.set("jscodehints.noHintsOnDot", true);
+
+                // Should no longer get hints after dot
+                expectNoHints(JSCodeHints.jsHintProvider, ".");
+
+                // Set preference back to original value (converted to boolean)
+                PreferencesManager.set("jscodehints.noHintsOnDot", !!noHintsOnDot);
+            });
         });
         
         describe("JavaScript Code Hinting in a HTML file", function () {
@@ -1564,9 +1586,9 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(preferences.getExcludedDirectories()).toBeNull();
+                    expect(preferences.getExcludedDirectories()).toEqual(/node_modules/);
                     expect(preferences.getExcludedFiles().source).
-                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$/.source);
+                        toBe(/^require.*\.js$|^jquery.*\.js$/.source);
                     expect(preferences.getMaxFileCount()).toBe(100);
                     expect(preferences.getMaxFileSize()).toBe(512 * 1024);
                 });
@@ -1581,9 +1603,9 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(preferences.getExcludedDirectories()).toBeNull();
+                    expect(preferences.getExcludedDirectories()).toEqual(/node_modules/);
                     expect(preferences.getExcludedFiles().source).
-                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$/.source);
+                        toBe(/^require.*\.js$|^jquery.*\.js$/.source);
                     expect(preferences.getMaxFileCount()).toBe(100);
                     expect(preferences.getMaxFileSize()).toBe(512 * 1024);
                 });
