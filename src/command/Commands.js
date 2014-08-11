@@ -163,9 +163,10 @@ define(function (require, exports, module) {
     
     // DEPRECATED: Working Set Commands
 
+    exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";       // Deprecated through DocumentCommandHandlers.js handleFileAddToWorkingSet
+    
     // @todo - Implement a command handler for this 
     //          that calls the handleAddToPaneViewListAndOpen or whatever, translates the result and issues a deprecation warning.
-    DeprecationWarning.deprecateConstant(exports, "FILE_ADD_TO_WORKING_SET",    "CMD_ADD_TO_PANE_AND_OPEN");
     DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_ADDED",   "CMD_SORT_PANE_VIEW_LIST_BY_ADDED");
     DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_NAME",    "CMD_SORT_PANE_VIEW_LIST_BY_NAME");
     DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_TYPE",    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE");

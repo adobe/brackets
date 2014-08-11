@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     var AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
+        DeprecationWarning  = require("utils/DeprecationWarning"),
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
@@ -387,7 +388,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Opens the given file and makes it the current document. Does NOT add it to the pane view list.
+     * Opens the given file and makes it the current file. Does NOT add it to the pane view list.
      * @param {{!fullPath:string}, {silent:boolean}, {paneId:string}} Params for FILE_OPEN command;
      * the fullPath string is of the form "path[:lineNumber[:columnNumber]]"
      * lineNumber and columnNumber are 1-origin: the very first line is line 1, and the very first column is column 1.
@@ -435,11 +436,11 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Opens the given file, makes it the current document, AND adds it to the pane view list
+     * Opens the given file, makes it the current file, AND adds it to the pane view list
      * only if the file does not have a custom viewer.
      * @param {!{fullPath:string, index:number=, forceRedraw:boolean, paneId:string=}} commandData  File to open; optional position in
      *   pane view list list (defaults to last); optional flag to force pane view list redraw
-     * @return {$.Promise} a jQuery promise that will be resolved with a document object
+     * @return {$.Promise} a jQuery promise that will be resolved with a file object
      */
     function handleAddToPaneViewList(commandData) {
         return handleFileOpen(commandData).done(function (file) {
@@ -449,6 +450,36 @@ define(function (require, exports, module) {
         });
     }
 
+    /**
+     * Opens the given file, makes it the current document, AND adds it to the pane view list
+     * only if the file does not have a custom viewer.
+     * @param {!{fullPath:string, index:number=, forceRedraw:boolean, paneId:string=}} commandData  File to open; optional position in
+     *   pane view list list (defaults to last); optional flag to force pane view list redraw
+     * @return {$.Promise} a jQuery promise that will be resolved with a document object
+     */
+    function handleFileAddToWorkingSet(commandData) {
+        // This is a legacy deprecated command that 
+        //  will use the new command and resolve with a document
+        //  as the legacy command would only support.
+        DeprecationWarning.deprecationWarning("Commands.FILE_ADD_TO_WORKING_SET has been deprecatied.  Use Commands.CMD_ADD_TO_PANE_AND_OPEN instead.");
+        var result = new $.Deferred();
+        
+        handleAddToPaneViewList(commandData)
+            .done(function (file) {
+                // if we succeeded with an open file
+                //  then we need to resolve that to a document.
+                //  getOpenDocumentForPath will return null if there isn't a 
+                //  supporting document for that file (e.g. an image)
+                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                result.resolve(doc);
+            })
+            .fail(function () {
+                result.reject();
+            });
+        
+        return result.promise();
+    }
+    
     /**
      * @private
      * Ensures the suggested file name doesn't already exit.
@@ -1583,6 +1614,9 @@ define(function (require, exports, module) {
         showInOS    = Strings.CMD_SHOW_IN_FINDER;
     }
 
+    // Deprecated commands
+    CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET, Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
+    
     // Register global commands
     CommandManager.register(Strings.CMD_FILE_OPEN,              Commands.FILE_OPEN, handleFileOpen);
     CommandManager.register(Strings.CMD_ADD_TO_PANE_AND_OPEN,   Commands.CMD_ADD_TO_PANE_AND_OPEN, handleAddToPaneViewList);

@@ -160,7 +160,13 @@ define(function (require, exports, module) {
      */
     function getWorkingSet() {
         DeprecationWarning.deprecationWarning("Use MainViewManager.getViews() instead of DocumentManager.getWorkingSet()", true);
-        return MainViewManager.getViews(MainViewManager.ALL_PANES);
+        return MainViewManager.getViews(MainViewManager.ALL_PANES)
+            .filter(function (file) {
+                // Document.file objects were added to Working Sets
+                //  so filter the result set from the new API
+                //  for those files who have document objects
+                return getOpenDocumentForPath(file.fullPath);
+            });
     }
 
     /**
