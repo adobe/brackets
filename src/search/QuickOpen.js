@@ -878,7 +878,7 @@ define(function (require, exports, module) {
 
         // Return files that are non-binary, or binary files that have a custom viewer
         function _filter(file) {
-            return MainViewFactory.findSuitableFactoryFor(file.fullPath) || EditorManager.canOpenFile(file.fullPath);
+            return MainViewManager.canOpenFile(file);
         }
         
         // Start fetching the file list, which will be needed the first time the user enters

@@ -330,6 +330,25 @@ define(function (require, exports, module) {
         return paneId;
     }
     
+    /** 
+     * Determines if a file can be opened
+     * @param {!File} file - file object to test
+     * @return (boolean} true if the file can be opened, false if not
+     */
+    function canOpenPath(fullPath) {
+        return (EditorManager.canOpenFile(fullPath) ||
+                !!MainViewFactory.findSuitableFactoryFor(fullPath));
+    }
+    
+    /** 
+     * Determines if a file can be opened
+     * @param {!File} file - file object to test
+     * @return (boolean} true if the file can be opened, false if not
+     */
+    function canOpenFile(file) {
+        return canOpenPath(file.fullPath);
+    }
+    
     /**
      * Retrieves the currently viewed file of the specified paneId
      * @param {string=} paneId - the id of the pane in which to retrieve the currently viewed file
@@ -635,15 +654,11 @@ define(function (require, exports, module) {
      *    (useful if suppressRedraw was used with removeView() earlier)
      */
     function addView(paneId, file, index, force) {
-        if (!file) {
-            return;
-        }
-        
         // look for the file to have already been added to another pane
         var pane = _getPane(paneId),
             existingPaneId = getPaneIdForPath(file.fullPath);
 
-        if (!pane || !EditorManager.canOpenFile(file.fullPath) || (findView(ALL_PANES, file.fullPath) !== -1)) {
+        if (!pane || !canOpenFile(file) || (findView(ALL_PANES, file.fullPath) !== -1)) {
             return;
         }
         
@@ -1163,7 +1178,6 @@ define(function (require, exports, module) {
             var factory = MainViewFactory.findSuitableFactoryFor(file.fullPath);
             
             if (!factory) {
-                // @todo - EditorManager.canOpenFile needs to check isBinary
                 if (EditorManager.canOpenFile(file.fullPath)) {
                     DocumentManager.getDocumentForPath(file.fullPath)
                         .done(function (doc) {
@@ -1187,6 +1201,9 @@ define(function (require, exports, module) {
                 } else {
                     factory.openFile(file, pane)
                         .done(function () {
+                            if (!ProjectManager.isWithinProject(file.fullPath)) {
+                                addView(paneId, file);
+                            }
                             if (pane.id === _activePaneId) {
                                 $(exports).triggerHandler("currentFileChange", [file, pane.id, oldFile, pane.id]);
                             }
@@ -1526,18 +1543,6 @@ define(function (require, exports, module) {
             _updateLayout();
         }
     }
-    
-    // Setup a ready event to initialize ourself
-    AppInit.htmlReady(function () {
-        _initialize($("#editor-holder"));
-    });
-    
-    // Event handlers
-    $(ProjectManager).on("projectOpen",                       _loadViewState);
-    $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
-    $(WorkspaceManager).on("workspaceUpdateLayout",           _updateLayout);
-    $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
-    $(DocumentManager).on("pathDeleted",                      _removeDeletedFileFromMRU);
 
     /** 
      * handles the split vertically command
@@ -1617,7 +1622,22 @@ define(function (require, exports, module) {
         
         _updateCommandState();
     });
-
+    
+    /**
+     * Setup a ready event to initialize ourself
+     */
+    AppInit.htmlReady(function () {
+        _initialize($("#editor-holder"));
+    });
+    
+    // Event handlers
+    $(ProjectManager).on("projectOpen",                       _loadViewState);
+    $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
+    $(WorkspaceManager).on("workspaceUpdateLayout",           _updateLayout);
+    $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
+    $(DocumentManager).on("pathDeleted",                      _removeDeletedFileFromMRU);
+    
+    
     // Init
     _cmdSplitVertically = CommandManager.register("Split Vertically", CMD_ID_SPLIT_VERTICALLY,   _handleSplitVertically);
     _cmdSplitHorizontally = CommandManager.register("Split Horizontally", CMD_ID_SPLIT_HORIZONTALLY, _handleSplitHorizontially);
@@ -1671,6 +1691,8 @@ define(function (require, exports, module) {
     exports.getPaneIdForPath            = getPaneIdForPath;
     
     // Explicit stuff
+    exports.canOpenFile                 = canOpenFile;
+    exports.canOpenPath                 = canOpenPath;
     exports.getAllOpenFiles             = getAllOpenFiles;
     exports.destroyEditorIfNotNeeded    = destroyEditorIfNotNeeded;
     exports.edit                        = edit;

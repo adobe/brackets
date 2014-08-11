@@ -39,20 +39,18 @@ define(function (require, exports, module) {
         FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
-        StringUtils     = require("utils/StringUtils"),
-        MainViewFactory = require("view/MainViewFactory");
+        StringUtils     = require("utils/StringUtils");
     
     /**
      * Return an array of files excluding all files without a registered viewer. 
      *
-     * @param {Array.<string>} files Array of files to filter before opening.
-     * @return {Array.<string>}
+     * @param {Array.<string>} paths - filenames to filter before opening.
+     * @return {Array.<string>} paths which can actually be opened (may be empty)
      */
-    function filterFilesToOpen(files) {
+    function filterFilesToOpen(paths) {
         // Filter out file in which we have no registered viewer
-        var filteredFiles = files.filter(function (file) {
-            return !MainViewFactory.findSuitableFactoryFor(file.fullPath) &&
-                    !EditorManager.canOpenFile(file.fullPath);
+        var filteredFiles = paths.filter(function (fullPath) {
+            return MainViewManager.canOpenPath(fullPath);
         });
         
         return filteredFiles;

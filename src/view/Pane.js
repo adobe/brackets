@@ -432,7 +432,7 @@ define(function (require, exports, module) {
      */
     Pane.prototype._canAddFile = function (file) {
         return ((this._views.hasOwnProperty(file.fullPath) && this.findInViewList(file.fullPath) === -1) ||
-                    (EditorManager.canOpenFile(file.fullPath) && !MainViewManager.getPaneIdForPath(file.fullPath)));
+                    (MainViewManager.canOpenFile(file) && !MainViewManager.getPaneIdForPath(file.fullPath)));
     };
                 
     /**
