@@ -137,7 +137,7 @@ define({
 	"BUTTON_NO": "いいえ",
     
     // Find, Replace, Find in Files
-	"FIND_MATCH_INDEX": "!能=[7636744] {0} of {1}_=!",
+	"FIND_MATCH_INDEX": "{0} / {1}",
 	"FIND_NO_RESULTS": "該当なし",
 	"FIND_QUERY_PLACEHOLDER": "検索\u2026",
 	"REPLACE_PLACEHOLDER": "\u2026 に置換",
@@ -516,7 +516,7 @@ define({
 	"EXTENSION_NOT_INSTALLED": "インストールされていなかったため、拡張機能 {0} を削除できませんでした。",
 	"NO_EXTENSIONS": "インストールされている拡張機能はまだありません。<br>上の「入手可能」タブをクリックしてインストールしてください。",
 	"NO_EXTENSION_MATCHES": "検索条件に一致する拡張機能がありません。",
-	"REGISTRY_SANITY_CHECK_WARNING": "!能=[7105477] NOTE: These extensions may come from different authors than {APP_NAME} itself. Extensions are not reviewed and have full local privileges. Be cautious when installing extensions from an unknown source._=!",
+	"REGISTRY_SANITY_CHECK_WARNING": "注意 : これらの拡張機能の作成元が {APP_NAME} 以外である可能性があります。拡張機能はレビューされず、ローカルアクセス権が一杯です。不明なソースから拡張機能をインストールするときは十分に注意してください。",
 	"EXTENSIONS_INSTALLED_TITLE": "インストール済み",
 	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
 	"EXTENSIONS_UPDATES_TITLE": "アップデート",
