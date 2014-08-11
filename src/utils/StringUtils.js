@@ -202,7 +202,7 @@ define(function (require, exports, module) {
      * Truncate text to specified length.
      * @param {string} str Text to be truncated.
      * @param {number} len Length to which text should be truncated
-     * @return {string} Returns truncated text only if it was changed
+     * @return {?string} Returns truncated text only if it was changed
      */
     function truncate(str, len) {
         // Truncate text to specified length
