@@ -64,6 +64,9 @@ html, body {
     */
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    .dark & {
+         color: @dark-bc-text;
+    }
 }
 
 .resizing-container {
@@ -89,6 +92,10 @@ a, img {
 .main-view {
     background: @bc-menu-bg; // to keep the theme background consistent
     height: 100%;
+    
+    .dark & {
+         background: @dark-bc-menu-bg;
+    }
 
     .sidebar {
         height: 100%;
@@ -116,6 +123,11 @@ a, img {
     // Make sure the bottom box-shadow goes above the editor (position: relative needed to start a new stacking group)
     position: relative;
     z-index: @z-index-brackets-toolbar;
+    
+    .dark & {
+        border-bottom: 1px solid @dark-bc-panel-border;
+        box-shadow: 0 1px 3px @dark-bc-shadow-small;
+    }
 }
 
 .busyCursor {
@@ -133,6 +145,11 @@ a, img {
     line-height: 25px;
     height: 26px;
     overflow: hidden;
+    .dark & {
+        background: @dark-bc-bg-status-bar;
+        border-top: 1px solid @dark-bc-panel-border;
+        color: @dark-bc-text;
+    }
 }
 
 #status-info {
@@ -140,6 +157,10 @@ a, img {
     left: 10px;
     position: absolute;
     white-space: nowrap;
+    
+    .dark & {
+        color: @dark-bc-text;
+    }
 
     div {
         display: inline;
@@ -148,6 +169,10 @@ a, img {
 
 #status-file {
     color: @bc-text-quiet;
+    
+    .dark & {
+        color: @dark-bc-text-quiet;
+    }
 }
 
 #status-indicators {
@@ -157,10 +182,19 @@ a, img {
     right: 0;
     text-align: right;
     white-space: nowrap;
+    
+    .dark & {
+        background: @dark-bc-bg-status-bar;
+        color: @dark-bc-text;
+    }
 
     > div {
         &:not(.spinner) {
             border-left: 1px solid @bc-panel-border;
+            
+            .dark & {
+                border-left: 1px solid @dark-bc-panel-border;
+            }
         }
         float: right;
         padding: 0 10px;
@@ -174,6 +208,10 @@ a, img {
         border-right: 1px solid @bc-panel-border;
         padding: 0px;
         margin: 0px;
+        
+        .dark & {
+            border-left: 1px solid @dark-bc-panel-border;
+        }
     }
     
     /* dropdown button styling */
@@ -236,6 +274,10 @@ a, img {
     top: -1px;
     width: 6px;
     transition: 0.1s linear all;
+    
+    .dark & {
+        color: @dark-bc-text;
+    }
 }
 
 #indent-width-input:focus {
@@ -252,6 +294,10 @@ a, img {
     background-color: rgba(255, 255, 255, 0);
     color: @bc-text;
     cursor: pointer;
+    
+    .dark & {
+        color: @dark-bc-text;
+    }
 }
 
 #status-overwrite.flash {
@@ -269,7 +315,7 @@ a, img {
         .vbox;
         .box-pack(center);
         .box-align(center);
-        background: @bc-menu-bg url('images/no_content_bg.svg') no-repeat center 45%;
+        background: @bc-menu-bg url('images/no_content_bg.svg') no-repeat center 45%; // Same image for both light and dark UI.
     }
 
     /* Image Preview */
@@ -306,6 +352,10 @@ a, img {
         background: url(images/preview_bg.png);
         box-shadow: 0 1px 3px @bc-shadow;
         max-height: 90%;
+        
+        .dark & {
+            box-shadow: 0 1px 3px @dark-bc-shadow;
+        }
     }
 
     #img-header {
@@ -350,6 +400,11 @@ a, img {
         color: @bc-text-alt;
         border-radius: 3px;
         box-shadow: 0 1px 3px @bc-shadow;
+        
+        .dark & {
+            color: @dark-bc-text-alt;
+            box-shadow: 0 1px 3px @dark-bc-shadow;
+        }
     }
 
     #img-tip {
@@ -365,6 +420,11 @@ a, img {
         line-height: 13px;
         border-radius: 3px;
         box-shadow: 0 1px 3px @bc-shadow;
+        
+        .dark & {
+            color: @dark-bc-text-alt;
+            box-shadow: 0 1px 3px @dark-bc-shadow;
+        }
     }
 
     #x-value,
@@ -420,6 +480,11 @@ a, img {
     display: none;
     height: 200px;
     border-top: 1px solid @bc-panel-border;
+    
+    .dark & {
+        background-color: @dark-bc-panel-bg;
+        border-top: 1px solid @dark-bc-panel-border;        
+    }
 
     .check-all {
         margin: 7px 15px 7px 7px;
@@ -433,10 +498,21 @@ a, img {
         padding-bottom: (@base-padding / 2);
         z-index: @z-index-brackets-results-panel;
         box-shadow: inset 0 1px 0 @bc-highlight, 0 -1px 3px @bc-shadow-small;
+        
+        .dark & {
+            background-color: @dark-bc-panel-bg-promoted;
+            border-bottom: @dark-bc-panel-separator;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight, 0 -1px 3px @dark-bc-shadow-small;            
+        }
+        
         .title {
             color: @bc-text;
             font-size: @label-font-size;
             font-weight: @font-weight-semibold;
+            
+            .dark & {
+                color: @dark-bc-text;
+            }
         }
         .close {
             position: absolute;
@@ -455,11 +531,20 @@ a, img {
         .highlight {
             background: @bc-panel-bg-text-highlight;
             border-radius: 2px;
+            
+            .dark & {
+                background: @dark-bc-panel-bg-text-highlight;
+            }
         }
 
         tr.selected td {
             background-color: @bc-panel-bg-selected;
             color: @bc-text-thin;
+            
+            .dark & {
+                background-color: @dark-bc-panel-bg-selected;
+                color: @dark-bc-text-thin;
+            }
         }
     }
 }
@@ -484,6 +569,10 @@ a, img {
         text-align: right;
         white-space: nowrap;
         width: 5px;
+        
+        .dark & {
+            color: @dark-bc-text-thin-quiet;
+        }
     }
 
     .dialog-filename {
@@ -546,6 +635,11 @@ a, img {
     color: @project-panel-text-2;
     text-shadow: 0 -1px 0 @bc-shadow-large;
     overflow: hidden;
+    
+    .dark & {
+        background: @dark-bc-sidebar-bg;
+        text-shadow: 0 -1px 0 @dark-bc-shadow-large;        
+    }
 }
 
 #working-set-option-btn {
@@ -626,6 +720,10 @@ a, img {
         padding: 3px (@sidebar-triangle-size * 2) 3px 0;
 
         cursor: default;
+        
+        .dark & {
+            color: @dark-bc-text-alt;
+        }
 
         .directory {
             font-size: 11px;
@@ -643,6 +741,12 @@ a, img {
     border-bottom: 1px solid @bc-highlight;
     height: 22px;
     position: absolute;
+    
+    .dark & {
+        background: @dark-bc-sidebar-selection;
+        border-top: 1px solid @dark-bc-shadow-small;
+        border-bottom: 1px solid @dark-bc-highlight;        
+    }
 }
 
 .sidebar-selection-triangle {
@@ -655,6 +759,12 @@ a, img {
     position: fixed;
 
     z-index: @z-index-brackets-selection-triangle; /* scroller-shadow appears above this triangle */
+    
+    .dark & {
+        background: @dark-bc-sidebar-selection;
+        border-top: 1px solid @dark-bc-shadow-small;
+        border-bottom: 1px solid @dark-bc-highlight;        
+    }
 }
 
 .sidebar-selection-triangle.triangle-visible:before {
@@ -727,6 +837,10 @@ a, img {
     vertical-align: middle;
     width: @jstree-sprite-size;
     height: @jstree-sprite-size;
+    
+    .dark & {
+        background-image: @dark-jstree-sprite;
+    }
 }
 
 /** Overriding jsTreeTheme.less
@@ -736,6 +850,10 @@ a, img {
     -webkit-transform: translateZ(0) rotate(90deg);
     -webkit-transition: -webkit-transform 190ms cubic-bezier(.01, .91, 0, .99);
     -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
+    
+    .dark & {
+        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);        
+    }
 }
 
 .jstree-brackets .jstree-no-dots .jstree-closed > ins {
@@ -743,6 +861,10 @@ a, img {
     -webkit-transform: translateZ(0); /* Need this to make sure that the svg isn't blurry on retina. */
     -webkit-transition: -webkit-transform 90ms cubic-bezier(.01, .91, 0, .99);
     -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
+    
+    .dark & {
+        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);        
+    }
 }
 
 /** Unicode Icon container
@@ -800,6 +922,10 @@ a, img {
     background-color: @bc-bg-inline-widget;
     min-width: 250px;
     cursor: default;
+    
+    .dark & {
+        background-color: @dark-bc-bg-inline-widget; 
+    }
 
     &.animating {
         // Make the animation use the GPU--especially important for retina.
@@ -831,6 +957,10 @@ a, img {
             // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
             // default; but the hand cursor is shut off by Bootstrap's reset stylesheet)
             cursor: pointer;
+            
+            .dark & {
+                color: @dark-bc-text-thin;
+            }
 
             .dirty-indicator {
                 .unicode-icon-container;
@@ -838,6 +968,10 @@ a, img {
                 overflow: hidden;
                 position: relative;
                 top: 1px;
+                
+                .dark & {
+                    color: @dark-bc-text-quiet;
+                }
             }
 
             .line-number {
@@ -871,6 +1005,10 @@ a, img {
 
         .CodeMirror-linenumbers {
             background-color: @bc-bg-inline-widget;
+            
+            .dark & {
+                background-color: @dark-bc-bg-inline-widget;
+            }
         }
     }
 
@@ -900,6 +1038,10 @@ a, img {
     // the window narrow enough. No idea why, since there's no z-index on the button, and
     // the other items in the header go behind the rule list.
     z-index: 1;
+    
+    .dark & {
+        background: @dark-bc-panel-bg;
+    }
 
     .selection {
         width: 100%;
@@ -908,6 +1050,12 @@ a, img {
         border-top: 1px solid @bc-shadow-small;
         border-bottom: 1px solid @bc-highlight;
         top: @top-margin;
+        
+        .dark & {
+            background: @dark-bc-panel-bg-selected;
+            border-top: 1px solid @dark-bc-shadow-small;
+            border-bottom: 1px solid @dark-bc-highlight;            
+        }
 
         &.animate {
             transition: top 0.1s ease-out;
@@ -930,6 +1078,10 @@ a, img {
         margin-top: -@inline-triangle-size;
         top: 50%;
         .scale-x(0.9, left, top);
+        
+        .dark & {
+            border-left: @inline-triangle-size solid @dark-bc-bg-inline-widget;
+        }
     }
 
     .related {
@@ -952,15 +1104,27 @@ a, img {
             padding: 2px 0px 2px 15px;
             text-overflow: ellipsis;
             white-space: nowrap;
+            
+            .dark & {
+                color: @dark-bc-text-emphasized;
+            }
 
             .related-file {
                 color: @bc-text-thin-quiet;
+                
+                .dark & {
+                    color: @dark-bc-text-thin-quiet;
+                }
             }
         }
 
         .selected {
             color: @bc-text-thin;
             transition: color 0.1s ease-out .15s;
+            
+            .dark & {
+                color: @dark-bc-text-thin;
+            }
         }
     }
 }
@@ -972,6 +1136,10 @@ a, img {
     line-height: 17px;
     height: 20px;
     padding: 10px 0 40px 50px;
+    
+    .dark & {
+        color: @dark-bc-text-thin-quiet;
+    }
 }
 
 /* This text is used to force the code editor's font to be loaded early on if it's a
@@ -1023,6 +1191,10 @@ a, img {
     }
     .pagination-col > span:active {
         background-color: @bc-shadow;
+        
+        .dark & {
+            background-color: @dark-bc-shadow;
+        }
     } 
     .replace-col {
         .flex-item(1, 0);
@@ -1094,11 +1266,20 @@ a, img {
     -webkit-transform: translate(0, 0); // Prefix still required.
     transition: -webkit-transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
     z-index: @z-index-brackets-modalbar;
+    
+    .dark & {
+        color: @dark-bc-text;
+        background: @dark-bc-panel-bg;
+    }
 
     body.in-browser &,
     body:not(.has-appshell-menus) & {
         // Separator line between us and the HTML menu/titlebar above
         border-top: 1px solid @bc-panel-border;
+        
+        .dark & {
+            border-top: 1px solid @dark-bc-panel-border;
+        }
     }
 
     &.popout {
@@ -1125,6 +1306,10 @@ a, img {
         &.no-results {
             border: 1px solid  @bc-btn-border-error;
             box-shadow: inset 0 1px 0 @bc-shadow-small, 0 0 0 1px @bc-btn-border-error-glow;
+            
+            .dark & {
+                box-shadow: inset 0 1px 0 @dark-bc-shadow-small, 0 0 0 1px @dark-bc-btn-border-error-glow;
+            }
         }
     }
 
@@ -1149,6 +1334,12 @@ a, img {
             padding: 3px 8px;
             border-radius: 0 0 3px 3px;
             box-shadow: 0 1px 3px @bc-shadow-small;
+            
+            .dark & {
+                background-color: @dark-bc-error;
+                color: @dark-bc-text-alt;
+                box-shadow: 0 1px 3px @dark-bc-shadow-small;
+            }
         }
 
         #find-what {
@@ -1161,6 +1352,10 @@ a, img {
             top: 1px;
             right: 2px;
             font-size: 12px;
+            
+            .dark & {
+                color: @dark-bc-text-thin-quiet;
+            }
         }
     }
 
@@ -1203,6 +1398,10 @@ a, img {
     }
     #find-regexp.active, #find-case-sensitive.active {
         background-color: @bc-bg-highlight;
+        
+        .dark & {
+            background-color: @dark-bc-bg-highlight;
+        }
     }
 
     .navigator {  // next/prev buttons
@@ -1292,6 +1491,10 @@ li:hover .filter-edit-icon {
 .recent-filter-patterns {
     color: @bc-text-thin-quiet;
     padding-right: 52px;
+    
+    .dark & {
+        color: @dark-bc-text-thin-quiet;
+    }
 }
 
 button.file-filter-picker {
@@ -1321,6 +1524,10 @@ textarea.exclusions-editor {
     padding: 4px 8px;
     background-color: @bc-bg-highlight;
     border-radius: @bc-border-radius;
+    
+    .dark & {
+        background-color: @dark-bc-bg-highlight;
+    }
 }
 
 
@@ -1329,6 +1536,11 @@ textarea.exclusions-editor {
     background-color: @cm-match-highlight;
     box-shadow: 0 1px 3px @bc-shadow-small;
     color: @match-text !important;
+    
+    .dark & {
+        box-shadow: 0 1px 3px @dark-bc-shadow-small;
+    }
+    
     &.searching-current-match {
         background-color: @cm-current-match-highlight;
     }
@@ -1377,6 +1589,11 @@ textarea.exclusions-editor {
     text-align: right;
     top: 12px;
     z-index: 9999;
+    
+    .dark & {
+        background: @dark-bc-input-bg;
+        color: @dark-bc-text-quiet;
+    }
 }
 
 .smart_autocomplete_container {
@@ -1405,12 +1622,22 @@ textarea.exclusions-editor {
      * so these specific padding and margin values are necessary*/
     padding: 0px;
     margin: 9px 0 0;
+    
+    .dark & {
+        background-color: @dark-bc-panel-bg;
+        border-radius: 0 0 4px 4px;
+        box-shadow: 0 5px 10px @dark-bc-shadow;
+    }
 
     .quick-open-path {
         color: @bc-text-medium;
         font-size: 11px;
         letter-spacing: 0.04em;
         line-height: 11px;
+        
+        .dark & {
+            color: @dark-bc-text-medium;
+        }
     }
 
     li {
@@ -1419,18 +1646,35 @@ textarea.exclusions-editor {
         list-style: none;
         cursor: default;
         padding: 6px 10px;
+        
+        .dark & {
+            color: @dark-bc-text-emphasized;
+        }
 
         &:nth-child(odd) {
             background-color: @bc-panel-bg-alt;
+            
+            .dark & {
+                background-color: @dark-bc-panel-bg-alt;
+            }
         }
 
         &:hover {
             background-color: @bc-panel-bg-hover;
+            
+            .dark & {
+                background-color: @dark-bc-panel-bg-hover;
+            }
         }
 
         &.smart_autocomplete_highlight {
             background-color: @bc-bg-highlight;
             color: @bc-menu-text;
+            
+            .dark & {
+                bbackground-color: @dark-bc-bg-highlight;
+                color: @dark-bc-menu-text;
+            }
         }
     }
 }
@@ -1451,6 +1695,10 @@ textarea.exclusions-editor {
 
 .quicksearch-pathmatch {
     color: @bc-text-medium;
+    
+    .dark & {
+        color: @dark-bc-text-medium;
+    }
 }
 
 
@@ -1612,6 +1860,13 @@ label input {
         color: @bc-text-alt;
         box-shadow: 0 3px 9px @bc-shadow;
         white-space: nowrap;
+        
+        .dark & {
+            background-color: @dark-bc-error;
+            border-radius: 3px;
+            color: @dark-bc-text-alt;
+            box-shadow: 0 3px 9px @dark-bc-shadow;            
+        }
     }
     .arrowAbove {
         height: 0;
@@ -1619,6 +1874,10 @@ label input {
         border-width: 0 10px 10px 10px;
         border-color: transparent transparent @bc-error transparent;
         border-style: solid;
+        
+        .dark & {
+            border-color: transparent transparent @dark-bc-error transparent;
+        }
     }
     .arrowBelow {
         height: 0;
@@ -1626,6 +1885,10 @@ label input {
         border-width: 10px 10px 0 10px;
         border-color: @bc-error transparent transparent transparent;
         border-style: solid;
+        
+        .dark & {
+            border-color: @dark-bc-error transparent transparent transparent;
+        }
     }
     &.animateOpen {
         -webkit-transition: -webkit-transform 125ms;
@@ -1689,6 +1952,14 @@ label input {
     border: 1px solid @bc-primary-btn-bg;
     color: @bc-text-alt;
     text-shadow: none;
+    
+    .dark & {
+        background: @dark-bc-primary-btn-bg;
+        box-shadow: initial;
+        font-weight: normal;
+        border: 1px solid @dark-bc-primary-btn-bg;
+        color: @dark-bc-text-alt;        
+    }
 }
 
 .install-drag-message {
