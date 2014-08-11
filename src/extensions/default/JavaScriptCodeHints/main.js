@@ -55,6 +55,7 @@ define(function (require, exports, module) {
         cachedToken    = null,  // the token used in the current hinting session
         matcher        = null,  // string matcher for hints
         jsHintsEnabled = true,  // preference setting to enable/disable the hint session
+        noHintsOnDot   = false, // preference setting to prevent hints on dot
         ignoreChange;           // can ignore next "change" event if true;
 
     
@@ -63,6 +64,9 @@ define(function (require, exports, module) {
     
     // This preference controls when Tern will time out when trying to understand files
     PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 10000);
+    
+    // This preference controls whether to prevent hints from being displayed when dot is typed
+    PreferencesManager.definePreference("jscodehints.noHintsOnDot", "boolean", false);
     
     // This preference controls whether to create a session and process all JS files or not.
     PreferencesManager.definePreference("codehint.JSHints", "boolean", true);
@@ -82,6 +86,10 @@ define(function (require, exports, module) {
     
     PreferencesManager.on("change", "showCodeHints", function () {
         jsHintsEnabled = _areHintsEnabled();
+    });
+    
+    PreferencesManager.on("change", "jscodehints.noHintsOnDot", function () {
+        noHintsOnDot = !!PreferencesManager.get("jscodehints.noHintsOnDot");
     });
     
     /**
@@ -426,7 +434,7 @@ define(function (require, exports, module) {
      * @return {boolean} - can the provider provide hints for this session?
      */
     JSHints.prototype.hasHints = function (editor, key) {
-        if (session && HintUtils.hintableKey(key)) {
+        if (session && HintUtils.hintableKey(key, !noHintsOnDot)) {
             
             if (isHTMLFile(session.editor.document)) {
                 if (!isInlineScript(session.editor)) {
@@ -467,7 +475,7 @@ define(function (require, exports, module) {
         var cursor = session.getCursor(),
             token = session.getToken(cursor);
 
-        if (token && HintUtils.hintableKey(key) && HintUtils.hintable(token)) {
+        if (token && HintUtils.hintableKey(key, !noHintsOnDot) && HintUtils.hintable(token)) {
             var type    = session.getType(),
                 query   = session.getQuery();
 
