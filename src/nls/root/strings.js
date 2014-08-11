@@ -427,7 +427,7 @@ define({
     "USE_THEME_SCROLLBARS"                 : "Use Theme Scrollbars",
     "FONT_SIZE"                            : "Font Size",
     "FONT_FAMILY"                          : "Font Family",
-    "THEMES_SETTINGS"                      : "Themes Settings"
+    "THEMES_SETTINGS"                      : "Themes Settings",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "New Rule",
