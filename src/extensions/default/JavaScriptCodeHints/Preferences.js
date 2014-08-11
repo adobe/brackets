@@ -72,7 +72,7 @@ define(function (require, exports, module) {
      *  Convert an array of strings with optional wildcards, to an equivalent
      *  regular expression.
      *
-     * @param {Array.<string|RegExp>} settings
+     * @param {Array.<string|RegExp>} settings from the file (note: this may be mutated by this function)
      * @param {?RegExp} baseRegExp - base regular expression that is always used
      * @param {?RegExp} defaultRegExp - additional regular expression that is only used if the user has not configured settings
      * @return {RegExp} Regular expression that captures the array of string
@@ -83,7 +83,7 @@ define(function (require, exports, module) {
 
         if (settings instanceof Array && settings.length > 0) {
 
-            // Append default settings to user settings. The default
+            // Append base settings to user settings. The base
             // settings are builtin and cannot be overridden.
             if (baseRegExp) {
                 settings.push("/" + baseRegExp.source + "/");
