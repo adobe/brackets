@@ -1222,6 +1222,30 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("Scrolling", function () {
+            it("should scroll when moving the cursor to the end of a really long line", function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
+                    waitsForDone(promise, Commands.FILE_NEW_UNTITLED);
+                });
+
+                runs(function () {
+                    var myEditor = EditorManager.getActiveEditor();
+                    myEditor._codeMirror.setOption("lineWrapping", false);
+                    myEditor.document.setText("ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd some really long line");
+                    myEditor.setCursorPos(1, 1);
+                    myEditor._codeMirror.execCommand("goLineEnd");
+
+                    var se = myEditor.getScrollerElement(),
+                        sp = se.scrollLeft,
+                        $se = _$(se);
+
+                    // some rediculous number will scroll all the way over to the ldft
+                    $se.scrollLeft(99999999);
+                    expect(sp).toEqual(se.scrollLeft);
+                });
+            });
+        });
         describe("Opens text file and validates EditorManager APIs", function () {
             it("should return an editor after opening a text file", function () {
                 var path = testPath + "/test.js",
