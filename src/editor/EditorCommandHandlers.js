@@ -191,7 +191,7 @@ define(function (require, exports, module) {
             startLine   = sel.start.line,
             endLine     = sel.end.line,
             editGroup   = [],
-            chPos       = 0;
+            prefixPos       = 0;
 
         // In full-line selection, cursor pos is start of next line - but don't want to modify that line
         if (sel.end.ch === 0) {
@@ -210,8 +210,8 @@ define(function (require, exports, module) {
             var language = doc.language.getId();
             for (i = startLine; i <= endLine; i++) {
                 // For each line we need to determine the position where de comment prefix should be inserted
-                chPos = _getPrefixPos(language, doc.getLine(i));
-                editGroup.push({text: prefixes[0], start: {line: i, ch: chPos}});
+                prefixPos = _getPrefixPos(language, doc.getLine(i));
+                editGroup.push({text: prefixes[0], start: {line: i, ch: prefixPos}});
             }
 
             // Make sure tracked selections include the prefix that was added at start of range
