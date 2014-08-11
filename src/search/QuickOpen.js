@@ -43,6 +43,7 @@ define(function (require, exports, module) {
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         MainViewManager     = require("view/MainViewManager"),
+        MainViewFactory     = require("view/MainViewFactory"),
         CommandManager      = require("command/CommandManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
@@ -877,7 +878,7 @@ define(function (require, exports, module) {
 
         // Return files that are non-binary, or binary files that have a custom viewer
         function _filter(file) {
-            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() || EditorManager.getCustomViewerForPath(file.fullPath);
+            return MainViewFactory.findSuitableFactoryFor(file.fullPath) || EditorManager.canOpenFile(file.fullPath);
         }
         
         // Start fetching the file list, which will be needed the first time the user enters

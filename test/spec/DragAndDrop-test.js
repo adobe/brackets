@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     var DocumentManager,      // loaded from brackets.test
         DragAndDrop,          // loaded from brackets.test
         EditorManager,        // loaded from brackets.test
+        MainViewManager,
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
                     
     
@@ -52,6 +53,7 @@ define(function (require, exports, module) {
                 DocumentManager = testWindow.brackets.test.DocumentManager;
                 DragAndDrop     = testWindow.brackets.test.DragAndDrop;
                 EditorManager   = testWindow.brackets.test.EditorManager;
+                MainViewManager = testWindow.brackets.test.MainViewManager;
             });
         });
         
@@ -60,6 +62,7 @@ define(function (require, exports, module) {
             DocumentManager = null;
             DragAndDrop     = null;
             EditorManager   = null;
+            MainViewManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
@@ -82,10 +85,6 @@ define(function (require, exports, module) {
         });
         
         describe("Testing openDroppedFiles function", function () {
-            /*
-            
-            TODO: Revist this once images are fully supported...
-            
             it("should NOT open any image file when a text file is in the dropped file list", function () {
                 var jsFilePath = testPath + "/test.js";
                 runs(function () {
@@ -129,7 +128,6 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)).toEqual(lastImagePath);
                 });
             });
-            */
         });
     });
 });

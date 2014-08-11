@@ -1063,10 +1063,10 @@ define(function (require, exports, module) {
             
             $(exports).triggerHandler("paneCreate", [pane.id]);
             
-            pane.$el.on("click.mainview", function () {
+            pane.$el.on("click.mainview dragover.mainview", function () {
                 setActivePaneId(pane.id);
             });
-
+            
             $(pane).on("viewListChange.mainview", function () {
                 $(exports).triggerHandler("paneViewUpdate", [pane.id]);
             });

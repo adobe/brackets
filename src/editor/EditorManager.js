@@ -73,13 +73,6 @@ define(function (require, exports, module) {
     
     
     /**
-     * view provider registry
-     * @type {?Object}
-     * @private
-     */
-    var _customViewerRegistry = {};
-    
-    /**
      * Currently focused Editor (full-size, inline, or otherwise)
      * @type {?Editor}
      * @private
@@ -676,36 +669,16 @@ define(function (require, exports, module) {
      * @param {!Object.<render: function (fullpath, $holder), onRemove: function ()>} Provider the Custom View Provider
      */
     function registerCustomViewer(langId, provider) {
-        // 
-        // Custom View Providers must register an object which has the following method signatures:
-        // render(fullpath, $holder) is called to render the HTML Dom Node for the custom viewer at $holder for fullpath.  
-        // onRemove() is called when it's time to remove the DOM node  
-        // 
-        if (!_customViewerRegistry[langId]) {
-            _customViewerRegistry[langId] = provider;
-        } else {
-            console.error("There already is a custom viewer registered for language id  \"" + langId + "\"");
-        }
+        // todo deprecate this
     }
-    
+
     /** 
-     * Will be deprecated soon
-     * Gets the custom viewer view factory for the specified file path
-     * @param {!string} fullPath - file path to match the custom viewer to
-     * @return {?Object} the custom view factory object or null if one doesn't exist for the specified language
-     */
-    function getCustomViewerForPath(fullPath) {
-        var lang = LanguageManager.getLanguageForPath(fullPath);
-        return _customViewerRegistry[lang.getId()];
-    }
-    
-    /** 
-     * Determines if the file can be opened
-     * @param {!string} fullPath - file path to be checked for a custom viewer
-     * @return {boolean} true if the file can be opened, false if not
+     * Determines if the file can be opened in an editor
+     * @param {!string} fullPath - file to be opened
+     * @return {boolean} true if the file can be opened in an editor, false if not
      */
     function canOpenFile(fullPath) {
-        return !getCustomViewerForPath(fullPath);
+        return !LanguageManager.getLanguageForPath(fullPath).isBinary();
     }
     
     /** 
@@ -915,7 +888,6 @@ define(function (require, exports, module) {
     
     // CUSTOM VIEWER API (Will be deprecated)
     exports.registerCustomViewer          = registerCustomViewer;
-    exports.getCustomViewerForPath        = getCustomViewerForPath;
     exports.registerInlineEditProvider    = registerInlineEditProvider;
     exports.registerInlineDocsProvider    = registerInlineDocsProvider;
     exports.registerJumpToDefProvider     = registerJumpToDefProvider;

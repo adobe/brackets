@@ -39,28 +39,21 @@ define(function (require, exports, module) {
         FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
-        StringUtils     = require("utils/StringUtils");
+        StringUtils     = require("utils/StringUtils"),
+        MainViewFactory = require("view/MainViewFactory");
     
     /**
-     * Return an array of files excluding all files with a custom viewer. If all files
-     * in the array have their own custom viewers, then the last file is added back in
-     * the array since only one file with custom viewer can be open at a time.
+     * Return an array of files excluding all files without a registered viewer. 
      *
      * @param {Array.<string>} files Array of files to filter before opening.
      * @return {Array.<string>}
      */
     function filterFilesToOpen(files) {
-        // Filter out all files that have their own custom viewers
-        // since we don't keep them in the working set.
+        // Filter out file in which we have no registered viewer
         var filteredFiles = files.filter(function (file) {
-            return !EditorManager.getCustomViewerForPath(file);
+            return !MainViewFactory.findSuitableFactoryFor(file.fullPath) &&
+                    !EditorManager.canOpenFile(file.fullPath);
         });
-        
-        // If all files have custom viewers, then add back the last file
-        // so that we open it in its custom viewer.
-        if (filteredFiles.length === 0 && files.length) {
-            filteredFiles.push(files[files.length - 1]);
-        }
         
         return filteredFiles;
     }
