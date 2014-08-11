@@ -216,7 +216,7 @@
             "key" : "Ctrl-Alt-H"
         },
         {
-            "key": "Ctrl-Shift-H",
+            "key": "Cmd-Shift-H",
             "platform": "mac"
         }
     ],
