@@ -62,6 +62,7 @@ define(function (require, exports, module) {
             DocumentManager = null;
             DragAndDrop     = null;
             EditorManager   = null;
+            MainViewManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
