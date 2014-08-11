@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     var DocumentManager,      // loaded from brackets.test
         DragAndDrop,          // loaded from brackets.test
         EditorManager,        // loaded from brackets.test
+        MainViewManager,      // loaded from brackets.test
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
                     
     
@@ -52,6 +53,7 @@ define(function (require, exports, module) {
                 DocumentManager = testWindow.brackets.test.DocumentManager;
                 DragAndDrop     = testWindow.brackets.test.DragAndDrop;
                 EditorManager   = testWindow.brackets.test.EditorManager;
+                MainViewManager = testWindow.brackets.test.MainViewManager;
             });
         });
         
@@ -82,6 +84,14 @@ define(function (require, exports, module) {
         });
         
         describe("Testing openDroppedFiles function", function () {
+            it("should activate a pane on drag over", function () {
+                MainViewManager.setLayoutScheme(1, 2);
+                var $paneEl = _$("#second-pane");
+                $paneEl.triggerHandler("dragover");
+                expect(MainViewManager.getActivePaneId()).toBe("second-pane");
+            });
+            
+            
             /*
             
             TODO: Revist this once images are fully supported...
