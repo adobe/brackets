@@ -652,24 +652,10 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Registers a new custom viewer provider. To create an extension 
-     * that enables Brackets to view files that cannot be shown as  
-     * text such as binary files, use this method to register a CustomViewer.
-     * 
-     * By registering a CustomViewer with EditorManager  Brackets is
-     * enabled to view files for one or more given file extensions. 
-     * The first argument defines a so called languageId which bundles
-     * file extensions to be handled by the custom viewer, see more
-     * in LanguageManager JSDocs.
-     *
-     * Will be deprecated soon
-     * 
-     * @param {!String} languageId, i.e. string such as image, audio, etc to 
-     *                              identify a language known to LanguageManager 
-     * @param {!Object.<render: function (fullpath, $holder), onRemove: function ()>} Provider the Custom View Provider
+     * @deprecated Register a View Factory instead or use MainViewManager.showView 
      */
     function registerCustomViewer(langId, provider) {
-        // todo deprecate this
+        DeprecationWarning.deprecationWarning("EditorManager.registerCustomViewer has been deprecated.  Register a ViewFactory instead");
     }
 
     /** 
