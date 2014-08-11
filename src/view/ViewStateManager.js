@@ -27,21 +27,54 @@
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var _ = require("thirdparty/lodash");
         
-    var _viewState = {};
+    /**
+     * The view state cache.
+     * @type {Object.<string,*>}
+     * @private
+     */
+    var _viewStateCache = {};
     
+    /**
+     * resets the view state cache
+     */
     function reset() {
-        _viewState = {};
+        _viewStateCache = {};
     }
     
+    /**
+     * Sets the view state for the specfied file
+     * @param {!File} file - the file to record the view state for
+     * @param {?*} viewState - any data that the view needs to restore the view state.  
+     */
     function setViewStateFor(file, viewState) {
-        _viewState[file.fullPath] = viewState;
+        _viewStateCache[file.fullPath] = viewState;
     }
     
+    /**
+     * gets the view state for the specified file
+     * @param {!File} file - the file to record the view state for
+     * @return {?*} whatever data that was saved earlier with a call setViewStateFor
+     */
     function getViewStateFor(file) {
-        return _viewState[file.fullPath];
+        return _viewStateCache[file.fullPath];
     }
     
+    /**
+     * adds a bunch of view states en masse
+     * @param {!object.<string, *>} viewStates - View State object to append to the current set of view states
+     */
+    function addViewStates(viewStates) {
+        _viewStateCache = _.extend(_viewStateCache, viewStates);
+    }
+
+    /*
+     * Public API
+     */
     exports.reset = reset;
     exports.setViewStateFor = setViewStateFor;
+    exports.getViewStateFor = getViewStateFor;
+    exports.addViewStates   = addViewStates;
 });

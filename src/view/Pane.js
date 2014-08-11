@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         FileSystem          = require("filesystem/FileSystem"),
         File                = require("filesystem/File"),
         InMemoryFile        = require("document/InMemoryFile"),
-        EditorManager       = require("editor/EditorManager"),
+        ViewStateManager    = require("view/ViewStateManager"),
         MainViewManager     = require("view/MainViewManager"),
         DocumentManager     = require("document/DocumentManager"),
         CommandManager      = require("command/CommandManager"),
@@ -79,6 +79,8 @@ define(function (require, exports, module) {
      *      adjustScrollPos: function(state:Object=, heightDelta:number) - called to restore the scroll state and adjust the height by heightDelta
      *      switchContainers: function($newContainer:jQuery} - called to reparent the view to a new container
      *      getContainer: function() - called to get the current container @return {!jQuery} - the view's parent container
+     *      getViewState: function() @return {?*} - Called when the pane wants the view to save its view state.  Return any data you needed to restore the view state later or undefined to not store any state
+     *      restoreViewState: function(!viewState:*) - Called to restore the view state. The viewState argument is whatever data was returned from getViewState()
      * }
      *  
      * getFile()
@@ -140,7 +142,7 @@ define(function (require, exports, module) {
      */
     
     /**
-     * @typedef {getFile:function():File=, setVisible:function(visible:boolean), updateLayout:function(forceRefresh:boolean), destroy:function(), hasFocus:function():boolean, childHasFocus:function():boolean, focus:function(), getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number), switchContainers: function($newContainer:jQuery}, getContainer: function():!jQuery} View   
+     * @typedef {getFile:function():File=, setVisible:function(visible:boolean), updateLayout:function(forceRefresh:boolean), destroy:function(), hasFocus:function():boolean, childHasFocus:function():boolean, focus:function(), getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number), switchContainers: function($newContainer:jQuery}, getContainer: function():!jQuery, getViewState:function():?*, restoreViewState:function(viewState:!*)}
      */
     
     /*
@@ -737,9 +739,7 @@ define(function (require, exports, module) {
             oldPath = oldView && oldView.getFile() ? oldView.getFile().fullPath : null;
         
         if (this._currentView) {
-            if (this._currentView.hasOwnProperty("document")) {
-                EditorManager._saveEditorViewState(this._currentView);
-            }
+            ViewStateManager.setViewStateFor(file, oldView.getViewState());
             this._currentView.setVisible(false);
         } else {
             this.showInterstitial(false);
@@ -927,10 +927,7 @@ define(function (require, exports, module) {
         
         this.addListToViewList(filesToAdd);
         
-        /*
-         * @todo: Implement a ViewStateManager
-         */
-        EditorManager._addViewStates(viewStates);
+        ViewStateManager.addViewStates(viewStates);
         
         activeFile = activeFile || getInitialViewFilePath();
         
@@ -952,7 +949,7 @@ define(function (require, exports, module) {
 
         // Save the current view state first
         if (this._currentView) {
-            EditorManager._saveEditorViewState(this._currentView);
+            ViewStateManager.setViewStateFor(this._currentView.getFile(), this._currentView.getViewState());
         }
         
         // walk the list of views and save
@@ -962,7 +959,7 @@ define(function (require, exports, module) {
                 result.push({
                     file: file.fullPath,
                     active: (file.fullPath === currentlyViewedPath),
-                    viewState:  EditorManager._getViewState(file.fullPath)
+                    viewState:  ViewStateManager.getViewStateFor(file)
                 });
             }
         });

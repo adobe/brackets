@@ -422,7 +422,19 @@ define(function (require, exports, module) {
      */
     ImageView.prototype.adjustScrollPos = function () {
     };
+    
+    /* 
+     * Required interface - does nothing 
+     */
+    ImageView.prototype.getViewState = function () {
+    };
 
+    /* 
+     * Required interface - does nothing 
+     */
+    ImageView.prototype.restoreViewState = function () {
+    };
+    
     /* 
      * Reparents the view 
      * @param {!jQuery} $container - the new parent

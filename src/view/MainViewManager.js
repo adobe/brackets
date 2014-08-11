@@ -82,6 +82,7 @@ define(function (require, exports, module) {
         AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
         MainViewFactory     = require("view/MainViewFactory"),
+        ViewStateManager    = require("view/ViewStateManager"),
         Menus               = require("command/Menus"),
         Commands            = require("command/Commands"),
         EditorManager       = require("editor/EditorManager"),
@@ -1150,6 +1151,7 @@ define(function (require, exports, module) {
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!File} file - file to open
      * @param {Object={avoidPaneActivation:boolean}} optionsIn - options 
+     * @return {jQuery.Promise}  promise that resolves to a File object or rejects with a File error or string
      */
     function open(paneId, file, optionsIn) {
         var oldPane = _getPane(ACTIVE_PANE),
@@ -1173,7 +1175,7 @@ define(function (require, exports, module) {
         
         if (doc) {
             edit(paneId, doc);
-            result.resolve(doc);
+            result.resolve(doc.file);
         } else {
             var factory = MainViewFactory.findSuitableFactoryFor(file.fullPath);
             
@@ -1182,11 +1184,13 @@ define(function (require, exports, module) {
                     DocumentManager.getDocumentForPath(file.fullPath)
                         .done(function (doc) {
                             edit(paneId, doc);
-                            result.resolve(doc);
+                            result.resolve(doc.file);
                         })
                         .fail(function (fileError) {
                             result.reject(fileError);
                         });
+                } else {
+                    result.reject("Unsupported Filetype");
                 }
             } else {
                 var pane = _getPane(paneId),
@@ -1466,7 +1470,7 @@ define(function (require, exports, module) {
         // reset
         _mergePanes();
         _mruList = [];
-        EditorManager._resetViewStates();
+        ViewStateManager.reset();
         
         if (state) {
 

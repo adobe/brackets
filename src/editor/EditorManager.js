@@ -64,6 +64,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
+        ViewStateManager    = require("view/ViewStateManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
@@ -78,14 +79,6 @@ define(function (require, exports, module) {
      * @private
      */
     var _lastFocusedEditor = null;
-    
-    /**
-     * Maps full path to scroll pos & cursor/selection info. Not kept up to date while an editor is current.
-     * Only updated when switching / closing editor, or when requested explicitly via __getViewState().
-     * @type {Object.<string,{scrollPos:{x:number, y:number},Array.<{start:{line:number, ch:number},end:{line:number, ch:number}>>}
-     * @private
-     */
-    var _viewStateCache = {};
     
     /**
      * Registered inline-editor widget providers sorted descending by priority. 
@@ -147,14 +140,7 @@ define(function (require, exports, module) {
      * @param {!Editor} editor - editor to cache data for
      */
     function _saveEditorViewState(editor) {
-        if (!editor.hasOwnProperty("document")) {
-            // @todo - image viewers come through here 
-            return;
-        }
-        _viewStateCache[editor.document.file.fullPath] = {
-            selections: editor.getSelections(),
-            scrollPos: editor.getScrollPos()
-        };
+        ViewStateManager.setViewStateFor(editor.document.file, editor.getViewState());
     }
     
     /** 
@@ -164,47 +150,13 @@ define(function (require, exports, module) {
      */
     function _restoreEditorViewState(editor) {
         // We want to ignore the current state of the editor, so don't call __getViewState()
-        var viewState = _viewStateCache[editor.document.file.fullPath];
+        var viewState = ViewStateManager.getViewStateFor(editor.document.file);
         if (viewState) {
-            if (viewState.selection) {
-                // We no longer write out single-selection, but there might be some view state
-                // from an older version.
-                editor.setSelection(viewState.selection.start, viewState.selection.end);
-            }
-            if (viewState.selections) {
-                editor.setSelections(viewState.selections);
-            }
-            if (viewState.scrollPos) {
-                editor.setScrollPos(viewState.scrollPos.x, viewState.scrollPos.y);
-            }
+            editor.restoreViewState(viewState);
         }
     }
     
-    /** 
-     * @param {!string} fullPath - path of the file to retrieve the view state
-     * @return {ViewState} up-to-date view state for the given file, or null if file not open and no state cached 
-     */
-    function _getViewState(fullPath) {
-        return _viewStateCache[fullPath];
-    }
-    
-    /** 
-     * Initializes the view state cache
-     * @param {Array.<ViewState>} viewStates - serialized view state to initialize cache with
-     */
-    function _resetViewStates(viewStates) {
-        _viewStateCache = viewStates || {};
-    }
 
-    /** 
-     * Adds view states to the view state cache without destroying the existing data
-     * @param {Array.<ViewState>} viewStates - serialized view state to append to the cache
-     */
-    function _addViewStates(viewStates) {
-        _viewStateCache = _.extend(_viewStateCache, viewStates);
-    }
-    
-    
 	/**
      * Editor focus handler to change the currently active editor
      * @private
@@ -852,9 +804,6 @@ define(function (require, exports, module) {
     exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;
 
     // Internal Use only
-    exports._getViewState                 = _getViewState;
-    exports._resetViewStates              = _resetViewStates;
-    exports._addViewStates                = _addViewStates;
     exports._saveEditorViewState          = _saveEditorViewState;
     exports._createUnattachedMasterEditor = _createUnattachedMasterEditor;
     

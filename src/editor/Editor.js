@@ -1898,6 +1898,28 @@ define(function (require, exports, module) {
         return (this.getFocusedInlineWidget() !== null);
     };
     
+    Editor.prototype.getViewState = function () {
+        return {
+            selections: this.getSelections(),
+            scrollPos: this.getScrollPos()
+        };
+        
+    };
+    
+    Editor.prototype.restoreViewState = function (viewState) {
+        if (viewState.selection) {
+            // We no longer write out single-selection, but there might be some view state
+            // from an older version.
+            this.setSelection(viewState.selection.start, viewState.selection.end);
+        }
+        if (viewState.selections) {
+            this.setSelections(viewState.selections);
+        }
+        if (viewState.scrollPos) {
+            this.setScrollPos(viewState.scrollPos.x, viewState.scrollPos.y);
+        }
+    };
+    
     /**
      * Re-renders the editor UI
      * @param {boolean=} handleResize true if this is in response to resizing the editor. Default false.
