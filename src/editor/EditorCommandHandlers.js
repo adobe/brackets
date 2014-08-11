@@ -191,7 +191,8 @@ define(function (require, exports, module) {
             startLine   = sel.start.line,
             endLine     = sel.end.line,
             editGroup   = [],
-            prefixPos       = 0;
+            prefixPos   = 0,
+            language    = doc.language.getId();
 
         // In full-line selection, cursor pos is start of next line - but don't want to modify that line
         if (sel.end.ch === 0) {
@@ -206,8 +207,7 @@ define(function (require, exports, module) {
             updateSelection        = false;
         
         if (containsNotLineComment) {
-            // Comment out - prepend the first prefix to each line
-            var language = doc.language.getId();
+            // Comment out - prepend the first prefix to each line            
             for (i = startLine; i <= endLine; i++) {
                 // For each line we need to determine the position where de comment prefix should be inserted
                 prefixPos = _getPrefixPos(language, doc.getLine(i));
