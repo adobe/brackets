@@ -1,3 +1,9 @@
+@bc-bg-highlight:               #e0f0fa;
+@bc-menu-text:                  #000;
+@bc-text-quiet:                 #aaa;
+@bc-text-thin:                  #000;
+@bc-text-thin-quiet:            #777;
+
 .dropdown-arrow {
     display: inline-block;
     width: 7px;
@@ -15,13 +21,13 @@
     width: 16px;
     height: 16px;
     font-size: 20px;
-    color: rgba(0, 0, 0, 0.5);
+    color: @bc-text-thin-quiet;
     line-height: 15px;
     text-align: center;
 }
 
 .trash-icon:hover {
-    color: rgba(0, 0, 0, 1);
+    color: @bc-text-thin;
 }
 
 #project-dropdown-toggle {
@@ -50,11 +56,11 @@
 /* TODO: style the dropdown content */
 #project-dropdown.dropdown-menu {
     position: absolute;
-    
+
     /* offset for better alignment with the button */
     margin-top: -1px;
     margin-left: 1px;
-    
+
     display: block;
     max-width: none;
     z-index: 100;
@@ -78,15 +84,15 @@
 }
 
 .recent-folder, #open-folder-link {
-    color: #454545;
+    color: @bc-menu-text;
 }
 
 .recent-folder-path {
-    color: #aaa;
+    color: @bc-text-thin-quiet;
 }
 
 #project-dropdown.dropdown-menu a.selected {
-     background: #E0F0FA;
+     background: @bc-bg-highlight;
 }
 #project-dropdown.dropdown-menu a:not(.selected):hover {
      background: none;
