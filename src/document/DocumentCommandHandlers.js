@@ -452,7 +452,6 @@ define(function (require, exports, module) {
 
     /**
      * Opens the given file, makes it the current document, AND adds it to the pane view list
-     * only if the file does not have a custom viewer.
      * @param {!{fullPath:string, index:number=, forceRedraw:boolean, paneId:string=}} commandData  File to open; optional position in
      *   pane view list list (defaults to last); optional flag to force pane view list redraw
      * @return {$.Promise} a jQuery promise that will be resolved with a document object
