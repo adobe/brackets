@@ -1388,6 +1388,10 @@ a, img {
     .button-icon {  // icons must be nested inside button so we can apply padding w/o tiling icon
         .sprite-icon(0, 0, 24px, 24px, @button-icon);
         background-repeat: no-repeat;
+
+        .dark & {
+            .sprite-icon(0, 0, 24px, 24px, @dark-button-icon);
+        }
     }
     #find-regexp.active .button-icon {
         .sprite-swap(0, 24px);
@@ -1398,7 +1402,10 @@ a, img {
     #find-case-sensitive.active .button-icon {
         .sprite-swap(0, 72px);
     }
-    #find-regexp.active, #find-case-sensitive.active {
+    #find-regexp.active,
+    #find-regexp:active,
+    #find-case-sensitive.active,
+    #find-case-sensitive:active { // Make the toggle buttons' down states the same color as 'on' state to prevent a flash of different color.
         background-color: @bc-bg-highlight;
         
         .dark & {
