@@ -300,8 +300,7 @@ define(function (require, exports, module) {
         // Prefer file tree selection, else use working set selection
         var selectedEntry = _getTreeSelectedItem();
         if (!selectedEntry) {
-            var doc = DocumentManager.getCurrentDocument();
-            selectedEntry = (doc && doc.file);
+            selectedEntry = MainViewManager.getCurrentlyViewedFile();
         }
         return selectedEntry;
     }
@@ -643,12 +642,12 @@ define(function (require, exports, module) {
                 function (event, data) {
                     if (event.type === "open_node") {
                         // select the current document if it becomes visible when this folder is opened
-                        var curDoc = DocumentManager.getCurrentDocument();
+                        var curFile = MainViewManager.getCurrentlyViewedFile();
                         
-                        if (_hasFileSelectionFocus() && curDoc && data) {
+                        if (_hasFileSelectionFocus() && curFile && data) {
                             var entry = data.rslt.obj.data("entry");
                             
-                            if (entry && curDoc.file.fullPath.indexOf(entry.fullPath) === 0) {
+                            if (entry && curFile.fullPath.indexOf(entry.fullPath) === 0) {
                                 _forceSelection(data.rslt.obj, _lastSelected);
                             } else {
                                 _redraw(true, false);

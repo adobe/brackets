@@ -42,7 +42,7 @@ define(function (require, exports, module) {
     var _viewers = {};
         
     /*
-     * ImageView objects are constructed when a view of an image is opened in a pane
+     * ImageView objects are constructed when an image is opened 
      * @see {@link Pane} for more information about where ImageViews are rendered
      * 
      * @constructor

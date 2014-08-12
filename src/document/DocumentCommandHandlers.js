@@ -1338,8 +1338,7 @@ define(function (require, exports, module) {
         var entry = ProjectManager.getSelectedItem();
         if (!entry) {
             // Else use current file (not selected in ProjectManager if not visible in tree or pane view list)
-            var doc = DocumentManager.getCurrentDocument();
-            entry = doc && doc.file;
+            entry = MainViewManager.getCurrentlyViewedFile();
         }
         if (entry) {
             ProjectManager.renameItemInline(entry);
