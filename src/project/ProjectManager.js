@@ -218,6 +218,14 @@ define(function (require, exports, module) {
     /**
      * @private
      * @type {boolean}
+     * A flag to remember when user has been warned about too many files, so they
+     * are only warned once per project/session.
+     */
+    var _projectWarnedForTooManyFiles = false;
+    
+    /**
+     * @private
+     * @type {boolean}
      * Current sort order for the tree, true if directories are first. This is
      * initialized in _generateSortPrefixes.
      */
@@ -1119,7 +1127,10 @@ define(function (require, exports, module) {
 
         FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), _shouldShowName, function (err) {
             if (err === FileSystemError.TOO_MANY_ENTRIES) {
-                _showErrorDialog(ERR_TYPE_MAX_FILES);
+                if (!_projectWarnedForTooManyFiles) {
+                    _showErrorDialog(ERR_TYPE_MAX_FILES);
+                    _projectWarnedForTooManyFiles = true;
+                }
             } else if (err) {
                 console.error("Error watching project root: ", rootPath, err);
             }
@@ -1258,6 +1269,7 @@ define(function (require, exports, module) {
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectRoot = rootEntry;
+                        _projectWarnedForTooManyFiles = false;
                         
                         if (projectRootChanged) {
                             _reloadProjectPreferencesScope();
@@ -2062,6 +2074,10 @@ define(function (require, exports, module) {
             
             getProjectRoot().visit(allFilesVisitor, function (err) {
                 if (err) {
+                    if (err === FileSystemError.TOO_MANY_ENTRIES && !_projectWarnedForTooManyFiles) {
+                        _showErrorDialog(ERR_TYPE_MAX_FILES);
+                        _projectWarnedForTooManyFiles = true;
+                    }
                     deferred.reject(err);
                     _allFilesCachePromise = null;
                 } else {
@@ -2124,7 +2140,12 @@ define(function (require, exports, module) {
                 }
             })
             .fail(function (err) {
-                filteredFilesDeferred.reject(err);
+                // resolve with empty list
+                try {
+                    filteredFilesDeferred.resolve([]);
+                } catch (e) {
+                    console.warn("Unhandled exception in getAllFiles handler: ", e);
+                }
             });
         
         return filteredFilesDeferred.promise();
