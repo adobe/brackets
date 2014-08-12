@@ -110,6 +110,10 @@ define(function (require, exports, module) {
                 .done(function (cssDocs) {
                     // Construct inline widget (if we have docs for this property)
                     var cssPropDetails = cssDocs.PROPERTIES["css/properties/" + cssPropName];
+                    if (!cssPropDetails) {
+                        cssPropName = cssPropName.replace(/^-\w+-/, ""); // remove possible vendor prefixes
+                        cssPropDetails = cssDocs.PROPERTIES["css/properties/" + cssPropName];
+                    }
                     if (cssPropDetails) {
                         var inlineWidget = new InlineDocsViewer(cssPropName, cssPropDetails);
                         inlineWidget.load(hostEditor);
