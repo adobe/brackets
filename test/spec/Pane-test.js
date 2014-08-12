@@ -75,6 +75,10 @@ define(function (require, exports, module) {
                 },
                 adjustScrollPos: function () {
                 },
+                getViewState: function () {
+                },
+                restoreViewState: function () {
+                },
                 switchContainers: function () {
                 }
             };
