@@ -63,7 +63,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * adds a bunch of view states en masse
+     * adds an array of view states
      * @param {!object.<string, *>} viewStates - View State object to append to the current set of view states
      */
     function addViewStates(viewStates) {
