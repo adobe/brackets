@@ -36,10 +36,13 @@
 a {
     color: @bc-text-link;
     text-decoration: none;
+
+    .dark & {
+        color: @dark-bc-text-link;
+    }
 }
 
 a:hover {
-    color: @bc-text-link;
     text-decoration: underline;
 }
 
@@ -48,6 +51,11 @@ a:focus {
     outline: 0;
     box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
     text-decoration: none;
+
+    .dark & {
+        color: @dark-bc-text-link;
+        box-shadow: 0 0 0 1px @dark-bc-btn-border-focused-glow;
+    }
 }
 
 .panel {
@@ -61,6 +69,10 @@ a:focus {
     color: #bbb;
     letter-spacing: .01em;
     text-shadow: 0px 1px 2px @bc-shadow-large;
+
+    .dark & {
+        text-shadow: 0px 1px 2px @dark-bc-shadow-large;
+    }
 }
 
 
@@ -156,7 +168,7 @@ a:focus {
         margin: 0;
 
         > a {
-            border-radius: 3px;
+            border-radius: @bc-border-radius;
             background-repeat: no-repeat;
             display: block;
             height: 24px;
@@ -166,10 +178,18 @@ a:focus {
 
         > a:hover {
             background-color: @bc-shadow !important;
+
+            .dark & {
+                background-color: @dark-bc-shadow !important;
+            }
         }
 
         > a:active {
             background-color: @bc-shadow-large !important;
+
+            .dark & {
+                background-color: @dark-bc-shadow-large !important;
+            }
         }
     }
 
@@ -190,6 +210,10 @@ a:focus {
     color: @bc-text;
 
     position: relative;  // needed for abs-positioned elements in toolbar (e.g. right-aligned "X")
+
+    .dark & {
+        color: @dark-bc-text;
+    }
 
     .title-wrapper {
         // Title is taller than menu text, so reduce top padding to keep its baseline aligned
@@ -261,6 +285,10 @@ a:focus {
         color: @bc-menu-text;
         text-shadow: none;
         cursor: default;
+
+        .dark & {
+            color: @dark-bc-menu-text;
+        }
     }
 
     // Menubar item appearance
@@ -269,10 +297,18 @@ a:focus {
         border: 1px solid rgba(0, 0, 0, 0); // transparent border just to hold the layout so it doesn't shift on hover
         color: fadeout(@bc-menu-text, 25%);
         font-weight: @font-weight-light;
+
+        .dark & {
+            color: fadeout(@dark-bc-menu-text, 25%);
+        }
     }
     .dropdown-toggle:focus {
         background-color: @bc-menu-bg;
         outline: 0;
+
+        .dark & {
+            background-color: @dark-bc-menu-bg;
+        }
     }
     .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
         /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
@@ -281,6 +317,12 @@ a:focus {
         color: @bc-menu-text;
         background: @bc-bg-highlight;
         border-color: @bc-bg-highlight;
+
+        .dark & {
+            color: @dark-bc-menu-text;
+            background: @dark-bc-bg-highlight;
+            border-color: @dark-bc-bg-highlight;
+        }
     }
 
     // no triangle icon after menu items
@@ -306,6 +348,11 @@ a:focus {
         box-shadow: 0 3px 9px @bc-shadow;
         border: none;
 
+        .dark & {
+            background-color: @dark-bc-menu-bg;
+            box-shadow: 0 3px 9px @dark-bc-shadow;
+        }
+
         // Menu items
         li {
             a {
@@ -321,6 +368,10 @@ a:focus {
                 white-space: nowrap;
                 .box-shadow(none);
 
+                .dark & {
+                    color: @dark-bc-menu-text;
+                }
+
                 &.wide-result {
                     white-space: normal;
                 }
@@ -328,13 +379,26 @@ a:focus {
                 &:hover, &.highlight {
                     color: @bc-menu-text;
                     background: @bc-bg-highlight;
+
+                    .dark & {
+                        color: @dark-bc-menu-text;
+                        background: @dark-bc-bg-highlight;
+                    }
                 }
 
                 &.disabled {
                     color: @bc-text-thin-quiet;
 
+                    .dark & {
+                        color: @dark-bc-text-thin-quiet;
+                    }
+
                     &:hover {
                         background: @bc-menu-bg;
+
+                        .dark & {
+                            background: @dark-bc-menu-bg;
+                        }
                     }
                 }
 
@@ -354,6 +418,10 @@ a:focus {
             background-color: @bc-menu-separator;
             border: 0;
             margin: 5px 1px;
+
+            .dark & {
+                 background-color: @dark-bc-menu-separator;
+            }
         }
     }
 
@@ -376,6 +444,10 @@ a:focus {
     .dropdown-menu {
         .border-radius(3px);
         box-shadow: 0 3px 9px @bc-shadow;
+
+        .dark & {
+            box-shadow: 0 3px 9px @dark-bc-shadow;
+        }
     }
 
     .menu-shortcut {
@@ -391,6 +463,10 @@ a:focus {
         overflow-y: auto;
         padding: 0;
 
+        .dark & {
+            box-shadow: 0 3px 9px @dark-bc-shadow;
+        }
+
         li {
             a {
                 // Less padding than on menus. More padding on top than bottom
@@ -401,12 +477,22 @@ a:focus {
                 &:hover {
                     color: @bc-menu-text;
                     background-color: @bc-menu-bg;
+
+                    .dark & {
+                        color: @dark-bc-menu-text;
+                        background-color: @dark-bc-menu-bg;
+                    }
                 }
 
                 // ...except for selected item
                 &.highlight:hover {
                     color: @bc-menu-text;
                     background-color: @bc-bg-highlight;
+
+                    .dark & {
+                        color: @dark-bc-menu-text;
+                        background-color: @dark-bc-bg-highlight;
+                    }
                 }
             }
         }
@@ -445,6 +531,10 @@ a:focus {
     border-top: 4px solid @bc-btn-triangle;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
+
+    .dark & {
+        border-top: 4px solid @dark-bc-btn-triangle;
+    }
 }
 .btn-dropdown.btn-mini::after {
     top: 7px;
@@ -467,14 +557,27 @@ a:focus {
         max-width: none;
         min-width: 200px;
         z-index: @z-index-brackets-stylesheet-menu;
+
+        .dark & {
+            box-shadow: 0 3px 9px @dark-bc-shadow;
+        }
     }
     
     &.dropdown-menu li a {
         padding: 1px 15px 1px 15px;
         color: @bc-menu-text;
         
+        .dark & {
+            color: @dark-bc-menu-text;
+        }
+
         &.disabled {
             color: @bc-text-thin-quiet;
+
+            .dark & {
+                color: @dark-bc-text-thin-quiet;
+            }
+
             &:hover {
                 background: @bc-menu-bg;
             }
@@ -488,6 +591,11 @@ a:focus {
     &.dropdown-menu a.selected {
         background: @bc-bg-highlight;
         color: @bc-menu-text !important;
+
+        .dark & {
+            background: @dark-bc-bg-highlight;
+            color: @dark-bc-menu-text !important;
+        }
     }
 
     &.dropdown-menu a {
@@ -535,6 +643,10 @@ a:focus {
     li a .default-language {
         font-style: italic;
         color: @bc-text-quiet;
+
+        .dark & {
+            color: @dark-bc-text-quiet;
+        }
     }
 
     li a .checked-language::before {
@@ -558,10 +670,18 @@ a:focus {
     
     .stylesheet-name {
         color: @bc-text;
+
+        .dark & {
+            color: @dark-bc-text;
+        }
     }
     
     .stylesheet-dir {
         color: @bc-text-quiet;
+
+        .dark & {
+            color: @dark-bc-text-quiet;
+        }
     }
 }
 
@@ -590,6 +710,11 @@ a:focus {
     top: 0;
     margin: auto;
     .animation(modal, 240ms, cubic-bezier(0, 1.05, .35, 1), 0, 1);
+
+    .dark & {
+        background-color: @dark-bc-panel-bg;
+        border: 1px solid @dark-bc-panel-border;
+    }
 }
 
 .modal .close {
@@ -602,10 +727,20 @@ a:focus {
     border-radius: 4px 4px 0 0;
     border-bottom: 1px solid @bc-panel-separator;
     box-shadow: inset 0 1px 0 @bc-highlight;
+
+    .dark & {
+        background: @dark-bc-panel-bg-promoted;;
+        border-bottom: 1px solid @dark-bc-panel-separator;
+        box-shadow: inset 0 1px 0 @dark-bc-highlight;
+    }
 }
 
 .modal-body {
     background-color: @bc-panel-bg;
+
+    .dark & {
+        background-color: @dark-bc-panel-bg;
+    }
 }
 
 .modal-body.no-padding {
@@ -636,6 +771,11 @@ a:focus {
     box-shadow: none;
     padding: 10px 15px 12px;
     white-space: nowrap;
+
+    .dark & {
+        background-color: @dark-bc-panel-bg;
+        border-top: 1px solid @dark-bc-panel-separator;
+    }
 }
 
 .modal-footer .btn {
@@ -673,6 +813,10 @@ a:focus {
 .modal-backdrop {
     .animation (backdrop, 200ms, linear, 0, 1);
     opacity: @bc-modal-backdrop-opacity;
+
+    .dark & {
+        opacity: @dark-bc-modal-backdrop-opacity;
+    }
 }
 
 @-webkit-keyframes backdrop {
@@ -701,6 +845,10 @@ a:focus {
     font-size: 22px;
     line-height: 30px;
     font-weight: normal;
+
+    .dark & {
+        color: @dark-bc-text-thin;
+    }
 }
 
 .dialog-message {
@@ -709,12 +857,20 @@ a:focus {
     line-height: 20px;
     margin-bottom: 20px;
     font-weight: normal;
+
+    .dark & {
+        color: @dark-bc-text;
+    }
 }
 
 .dialog-message li {
     line-height: 20px;
     color: @bc-text-thin;
     padding: 0 0 5px;
+
+    .dark & {
+        color: @dark-bc-text-thin;
+    }
 }
 
 .dialog-message select {
@@ -736,6 +892,10 @@ a:focus {
     font-size: 1.5em;
     position: relative;
     top: 1px;
+
+    .dark & {
+        color: @dark-bc-btn-border;
+    }
 }
 
 .dialog-filename {
@@ -819,6 +979,10 @@ a[href^="http"] {
     background-color: @bc-panel-bg-promoted;
     width: 760px;
     
+    .dark & {
+        background-color: @dark-bc-panel-bg-promoted;
+    }
+
     .modal-header {
         border-bottom: none;
         padding: 0;
@@ -826,6 +990,10 @@ a[href^="http"] {
         .nav-tabs {
             margin: 0;
             border-color: @bc-panel-separator;
+
+            .dark & {
+                border-color: @dark-bc-panel-separator;
+            }
 
             /* Tab styling */
             > li > a {
@@ -844,9 +1012,18 @@ a[href^="http"] {
 
                 text-align: center;
 
+                .dark & {
+                    color: @dark-bc-text-thin;
+                }
+
                 &:hover {
                     background-color: @bc-panel-bg-hover-alt;
                     border-color: @bc-panel-bg-hover-alt;
+
+                    .dark & {
+                        background-color: @dark-bc-panel-bg-hover-alt;
+                        border-color: @dark-bc-panel-bg-hover-alt;
+                    }
                 }
 
                 > img {
@@ -865,6 +1042,11 @@ a[href^="http"] {
             > .active > a:hover {
                 background-color: @bc-panel-bg;
                 border-color: @bc-btn-border @bc-btn-border transparent @bc-btn-border;
+
+                .dark & {
+                    background-color: @dark-bc-panel-bg;
+                    border-color: @dark-bc-btn-border @dark-bc-btn-border transparent @dark-bc-btn-border;
+                }
             }
             
             > li {
@@ -878,6 +1060,11 @@ a[href^="http"] {
                     position: absolute;
                     right: 19px;
                     top: 8px;
+
+                    .dark & {
+                        background-color: @dark-bc-secondary-btn-bg;
+                        color: @dark-bc-text-alt;
+                    }
                 }
             }
         }
@@ -894,6 +1081,10 @@ a[href^="http"] {
             margin: 0;
             padding-left: 27px;
             padding-right: 20px;
+
+            .dark & {
+                background: @dark-bc-input-bg url("images/topcoat-search-20.svg") 3px 4px no-repeat;
+            }
         }
         .search-clear {
             background: transparent;
@@ -929,6 +1120,10 @@ a[href^="http"] {
         background-color: @bc-panel-bg;
         padding: 0;
         
+        .dark & {
+            background-color: @dark-bc-panel-bg;
+        }
+
         .empty-message {
             position: absolute;
             top: 50%;
@@ -940,6 +1135,10 @@ a[href^="http"] {
         .info-message {
             background-color: @bc-panel-bg;
             padding: 1em;
+
+            .dark & {
+                background-color: @dark-bc-panel-bg;
+            }
         }
 
         .spinner {
@@ -965,6 +1164,10 @@ a[href^="http"] {
                 font-weight: normal;
                 .user-select(text);
                 cursor: text;
+
+                .dark & {
+                    color: @dark-bc-text;
+                }
             }
             .ext-desc {
                 width: auto;
@@ -972,12 +1175,18 @@ a[href^="http"] {
                 font-weight: normal;
                 .user-select(text);
                 cursor: text;
+
+                .dark & {
+                    color: @dark-bc-text;
+                }
             }
-            .ext-translated {
-                color: @bc-text-thin-quiet;;
-            }
+            .ext-translated,
             .muted {
-                color: @bc-text-thin-quiet;;
+                color: @bc-text-thin-quiet;
+
+                .dark & {
+                    color: @dark-bc-text-thin-quiet;
+                }
             }
             .alert {
                 font-size: 11px;
@@ -986,6 +1195,10 @@ a[href^="http"] {
             .error {
                 font-weight: @font-weight-semibold;
                 color: @bc-error;
+
+                .dark & {
+                    color: @dark-bc-error;
+                }
             }
             .ext-version,
             .ext-date,
@@ -1028,6 +1241,10 @@ a[href^="http"] {
 
         #about-build-number {
             color: @bc-text-thin-quiet;
+
+            .dark & {
+                color: @dark-bc-text-thin-quiet;
+            }
         }
         .about-info {
             max-height: 300px;
@@ -1090,10 +1307,21 @@ input[type="color"],
     .border-radius(@bc-border-radius);
     .transition(~"border linear 180ms, box-shadow linear 180ms");
 
+    .dark & {
+        background-color: @dark-bc-input-bg;
+        border: 1px solid @dark-bc-btn-border;
+        color: @dark-bc-text-thin;
+        box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+    }
+
     &::-webkit-input-placeholder {
         color: @bc-text-thin-quiet;
         font-weight: normal;
         -webkit-font-smoothing: antialiased;
+
+        .dark & {
+            color: @dark-bc-text-thin-quiet;
+        }
     }
 
     &:focus {
@@ -1102,11 +1330,21 @@ input[type="color"],
         text-shadow: none;
         border: 1px solid @bc-btn-border-focused;
         box-shadow: inset 0 1px 0 @bc-shadow-small, 0 0 0 1px @bc-btn-border-focused-glow;
+
+        .dark & {
+            background-color: @dark-bc-input-bg;
+            border: 1px solid @dark-bc-btn-border-focused;
+            box-shadow: inset 0 1px 0 @dark-bc-shadow-small, 0 0 0 1px @dark-bc-btn-border-focused-glow;
+        }
     }
 
     &:disabled {
         opacity: @bc-disabled-opacity;
         cursor: default;
+
+        .dark & {
+            opacity: @dark-bc-disabled-opacity;
+        }
     }
 }
 
@@ -1121,6 +1359,11 @@ input[type="color"],
     color: @bc-text;
     max-width: 220px;
     text-align: left;
+
+    .dark & {
+        box-shadow: 0 3px 9px @dark-bc-shadow;
+        color: @dark-bc-text;
+    }
 }
 
 .tooltip {
@@ -1148,6 +1391,11 @@ input[type="color"],
 .btn[disabled] {
     background-color: @bc-btn-bg;
     color: @bc-text;
+
+    .dark & {
+        background-color: @dark-bc-btn-bg;
+        color: @dark-bc-text;
+    }
 }
 
 .btn.primary:hover,
@@ -1155,6 +1403,10 @@ input[type="color"],
 .btn.primary.disabled,
 .btn.primary[disabled] {
     background-color: @bc-primary-btn-bg;
+
+    .dark & {
+        background-color: @dark-bc-primary-btn-bg;
+    }
 }
 
 .btn {
@@ -1173,10 +1425,21 @@ input[type="color"],
     -webkit-font-smoothing: antialiased;
     text-shadow: none;
 
+    .dark & {
+        background-color: @dark-bc-btn-bg;
+        color: @dark-bc-text;
+        border: 1px solid @dark-bc-btn-border;
+        box-shadow: inset 0 1px @dark-bc-highlight;
+    }
 
     &:hover {
         background-color: @bc-btn-bg;
         color: @bc-text;
+
+        .dark & {
+            background-color: @dark-bc-btn-bg;
+            color: @dark-bc-text;
+        }
     }
 
     // Focus state for keyboard and accessibility
@@ -1185,6 +1448,12 @@ input[type="color"],
         box-shadow: inset 0 1px 0 @bc-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
         color: @bc-text;
         outline: none;
+
+        .dark & {
+            border: 1px solid @dark-bc-btn-border-focused;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight, 0 0 0 1px @dark-bc-btn-border-focused-glow;
+            color: @dark-bc-text;
+        }
     }
 
     // Active and Disabled states
@@ -1193,6 +1462,12 @@ input[type="color"],
         background-color: @bc-btn-bg-down;
         box-shadow: inset 0 1px 0 @bc-shadow-small;
         color: @bc-text-alt;
+
+        .dark & {
+            background-color: @dark-bc-btn-bg-down;
+            box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+            color: @dark-bc-text-alt;
+        }
     }
     
     &:active:not([disabled]) {
@@ -1200,10 +1475,20 @@ input[type="color"],
         background-color: @bc-btn-bg-down;
         box-shadow: inset 0 1px 0 @bc-shadow-small;
         color: @bc-text;
+
+        .dark & {
+            background-color: @dark-bc-btn-bg-down;
+            box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+            color: @dark-bc-text;
+        }
     }
 
     &.disabled, &[disabled] {
         opacity: @bc-disabled-opacity;
+
+        .dark & {
+            opacity: @dark-bc-disabled-opacity;
+        }
     }
 
     // Primary Button Type
@@ -1214,18 +1499,37 @@ input[type="color"],
         box-shadow: inset 0 1px 0 @bc-highlight;
         color: @bc-text-alt;
         text-shadow: none;
+
+        .dark & {
+            background-color: @dark-bc-primary-btn-bg;
+            border: 1px solid  @dark-bc-primary-btn-border;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight;
+            color: @dark-bc-text-alt
+        }
+
         &.active,
         &:active {
             background-image: none;
             background-color: @bc-primary-btn-bg-down;
             box-shadow: inset 0 1px 0 @bc-shadow-small;
             color: @bc-text-alt;
+
+            .dark & {
+                background-color: @dark-bc-primary-btn-bg-down;
+                box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+                color: @dark-bc-text-alt;
+            }
         }
 
         &:focus {
             border: 1px solid @bc-primary-btn-border;
             box-shadow: inset 0 1px 0 @bc-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
             outline: none;
+
+            .dark & {
+                border: 1px solid @dark-bc-primary-btn-border;
+                box-shadow: inset 0 1px 0 @dark-bc-highlight, 0 0 0 1px @dark-bc-btn-border-focused-glow;
+            }
         }
     }
     
@@ -1238,11 +1542,26 @@ input[type="color"],
         font-weight: @font-weight-semibold;
         text-shadow: 0 -1px 0 @bc-shadow-small;
         
+        .dark & {
+            background-color: @dark-bc-secondary-btn-bg;
+            border-color: @dark-bc-secondary-btn-border;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight;
+            color: @dark-bc-text-alt;
+            text-shadow: 0 -1px 0 @dark-bc-shadow-small;
+        }
+
         &:active {
             background-color: @bc-secondary-btn-bg-down;
             border-color: @bc-secondary-btn-border;
             box-shadow: inset 0 1px 0 @bc-shadow-small;
             color: @bc-text-alt;
+
+            .dark & {
+                background-color: @dark-bc-secondary-btn-bg-down;
+                border-color: @dark-bc-secondary-btn-border;
+                box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+                color: @dark-bc-text-alt
+            }
         }
     }
 
@@ -1260,14 +1579,26 @@ input[type="color"],
     border: 1px solid transparent;
     border-radius: @bc-border-radius;
     text-decoration: none;
+
     &:hover {
         border: 1px solid @bc-btn-border;
         box-shadow: inset 0 1px 0 @bc-highlight;
+
+        .dark & {
+            border: 1px solid @dark-bc-btn-border;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight;
+        }
     }
     &:active {
         background: @bc-btn-bg-down-alt;
         border: 1px solid @bc-btn-border;
         box-shadow: inset 0 1px 0 @bc-shadow-small;
+
+        .dark & {
+            background: @dark-bc-btn-bg-down-alt;
+            border: 1px solid @dark-bc-btn-border;
+            box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+        }
     }
 }
 
@@ -1280,6 +1611,11 @@ input[type="color"],
         border: 1px solid @bc-btn-border-focused;
         box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
         outline: none;
+
+        .dark & {
+            border: 1px solid @dark-bc-btn-border-focused;
+            box-shadow: 0 0 0 1px @dark-bc-btn-border-focused-glow;
+        }
     }
 }
 
@@ -1305,10 +1641,18 @@ input[type="color"],
     tr:nth-child(odd) td,
     tr:nth-child(odd) th {
         background-color: @bc-panel-bg-alt;
+
+        .dark & {
+            background-color: @dark-bc-panel-bg-alt;
+        }
     }
     tr:nth-child(even) td,
     tr:nth-child(even) th {
         background-color: @bc-panel-bg; // turn off bootstrap hover highlight
+
+        .dark & {
+            background-color: @dark-bc-panel-bg;
+        }
     }
 }
 .row-highlight tbody {
@@ -1316,6 +1660,11 @@ input[type="color"],
     tr:hover th {
         background-color: @bc-bg-highlight;
         color: @bc-menu-text;
+
+        .dark & {
+            background-color: @dark-bc-bg-highlight;
+            color: @dark-bc-menu-text;
+        }
     }
 }
 
@@ -1330,6 +1679,10 @@ strong {
 code {
     color: @bc-text;
     background-color: transparent;
+
+    .dark & {
+        color: @dark-bc-text;
+    }
 }
 
 label {
@@ -1354,6 +1707,10 @@ dt,
 .label {
     color: @bc-text;
     font-weight: @font-weight-semibold;
+
+    .dark & {
+        color: @dark-bc-text;
+    }
 }
 
 .alert-message a,
@@ -1365,11 +1722,18 @@ dt,
     text-shadow: none;
     background-color: @bc-warning-bg;
     border: none;
+
+    .dark & {
+        color: @dark-bc-warning-bg;
+    }
 }
-.alert,
 .alert h4 {
     // Specified for the h4 to prevent conflicts of changing @headingsColor
     color: @bc-warning-bg;
+
+    .dark & {
+        color: @dark-bc-text;
+    }
 }
 
 input[type="radio"],
@@ -1382,15 +1746,26 @@ input[type="checkbox"] {
     width: 13px;
     vertical-align: middle;
     border: 1px solid @bc-btn-border;
-    border-radius: 3px;
+    border-radius: @bc-border-radius;
     background-color: @bc-btn-bg;
     -webkit-appearance: none;
     box-shadow: inset 0 1px 0 @bc-highlight;
+
+    .dark & {
+        border: 1px solid @dark-bc-btn-border;
+        background-color: @dark-bc-btn-bg;
+        box-shadow: inset 0 1px 0 @dark-bc-highlight;
+    }
 }
 
 input[type="checkbox"]:active:not(:disabled) {
     background-color: @bc-btn-bg-down;
     box-shadow: inset 0 1px 0 @bc-shadow-small;
+
+    .dark & {
+        background-color: @dark-bc-btn-bg-down;
+        box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+    }
 }
 
 select:focus,
@@ -1398,10 +1773,20 @@ input[type="checkbox"]:focus {
     outline:none;
     border: 1px solid @bc-btn-border-focused;
     box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
+
+    .dark & {
+        border: 1px solid @dark-bc-btn-border-focused;
+        box-shadow: 0 0 0 1px @dark-bc-btn-border-focused-glow;
+    }
 }
 
 select {
     border: 1px solid @bc-btn-border;
+    border-radius: @bc-border-radius;
+
+    .dark & {
+        border: 1px solid @dark-bc-btn-border;
+    }
 }
 
 input[type="checkbox"]:checked:before {
@@ -1413,6 +1798,10 @@ input[type="checkbox"]:checked:before {
     left: 2px;
     top: -7px;
     font-size: 16px;
+
+    .dark & {
+        color: @dark-bc-text;
+    }
 }
 
 code {
@@ -1425,21 +1814,38 @@ code {
     text-shadow: none;
     opacity: 0.7;
     filter: alpha(opacity=70);
+
+    .dark & {
+        color: @dark-bc-text;
+    }
 }
 
 .close:hover {
     color: @bc-text;
     opacity: 1;
     filter: alpha(opacity=100);
+
+    .dark & {
+        color: @dark-bc-text;
+    }
 }
 
 .dropdown-menu {
     background-color: @bc-menu-bg;
     color: @bc-menu-text;
     
+    .dark & {
+        background-color: @dark-bc-menu-bg;
+        color: @dark-bc-menu-text;
+    }
+
     .divider {
         background-color: @bc-menu-separator;
         border: none;
+
+        .dark & {
+            background-color: @dark-bc-menu-separator;
+        }
     }
 }
 
@@ -1449,6 +1855,6 @@ code {
         
         input[type='checkbox'] {
              margin-top: 8px;
-         }
+        }
      }
  }
