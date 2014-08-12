@@ -31,6 +31,7 @@ define(function (require, exports, module) {
     var EditorManager    = require("editor/EditorManager"),
         WorkspaceManager = require("view/WorkspaceManager"),
         MainViewManager  = require("view/MainViewManager"),
+        ViewStateManager = require("view/ViewStateManager"),
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 
     describe("EditorManager", function () {
@@ -62,7 +63,7 @@ define(function (require, exports, module) {
             testEditor = null;
             testDoc = null;
             pane = null;
-            EditorManager._resetViewStates();
+            ViewStateManager.reset();
         });
         
         describe("Create Editors", function () {
@@ -81,22 +82,59 @@ define(function (require, exports, module) {
                 expect(pane.addView).toHaveBeenCalled();
                 expect(pane.addView.calls[0].args[0]).toEqual(editor);
             });
+        });
+    });
+    describe("ViewStateManager", function () {
+        var pane, testEditor, testDoc, $fakeContentDiv, $fakeHolder;
+        beforeEach(function () {
+            // Normally the editor holder would be created inside a "content" div, which is
+            // used in the available height calculation. We create a fake content div just to
+            // hold the height, and we'll place the editor holder in it.
+            $fakeContentDiv = $("<div class='content'/>")
+                .css("height", "200px")
+                .appendTo(document.body);
+
+            $fakeHolder = SpecRunnerUtils.createMockElement()
+                                        .css("width", "1000px")
+                                        .attr("id", "hidden-editors")
+                                        .appendTo($fakeContentDiv);
+
+            pane = SpecRunnerUtils.createMockPane($fakeHolder);
+            testDoc = SpecRunnerUtils.createMockDocument("");
+        });
+        afterEach(function () {
+            $fakeHolder.remove();
+            $fakeHolder = null;
+
+            $fakeContentDiv.remove();
+            $fakeContentDiv = null;
+
+            SpecRunnerUtils.destroyMockEditor(testDoc);
+            testEditor = null;
+            testDoc = null;
+            pane = null;
+            ViewStateManager.reset();
+        });
+        describe("Save/Restore View State", function () {
             it("should remember a file's view state", function () {
-                EditorManager._addViewStates({ a: "1234" });
-                expect(EditorManager._getViewState("a")).toEqual("1234");
+                ViewStateManager.addViewStates({ a: "1234" });
+                expect(ViewStateManager.getViewState({fullPath: "a"})).toEqual("1234");
+                ViewStateManager.setViewState({ fullPath: "b"}, "Jeff was here");
+                expect(ViewStateManager.getViewState({fullPath: "B"})).toBeUndefined();
+                expect(ViewStateManager.getViewState({fullPath: "b"})).toEqual("Jeff was here");
             });
             it("should extend the view state cache", function () {
-                EditorManager._addViewStates({ a: "1234" });
-                EditorManager._addViewStates({ b: "5678" });
-                expect(EditorManager._getViewState("a")).toEqual("1234");
-                expect(EditorManager._getViewState("b")).toEqual("5678");
+                ViewStateManager.addViewStates({ a: "1234" });
+                ViewStateManager.addViewStates({ b: "5678" });
+                expect(ViewStateManager.getViewState({fullPath: "a"})).toEqual("1234");
+                expect(ViewStateManager.getViewState({fullPath: "b"})).toEqual("5678");
             });
             it("should reset the view state cache", function () {
-                EditorManager._addViewStates({ a: "1234" });
-                EditorManager._addViewStates({ b: "5678" });
-                EditorManager._resetViewStates();
-                expect(EditorManager._getViewState("a")).toBeUndefined();
-                expect(EditorManager._getViewState("b")).toBeUndefined();
+                ViewStateManager.addViewStates({ a: "1234" });
+                ViewStateManager.addViewStates({ b: "5678" });
+                ViewStateManager.reset();
+                expect(ViewStateManager.getViewState({fullPath: "a"})).toBeUndefined();
+                expect(ViewStateManager.getViewState({fullPath: "b"})).toBeUndefined();
             });
         });
     });

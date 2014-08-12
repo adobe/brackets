@@ -140,7 +140,7 @@ define(function (require, exports, module) {
      * @param {!Editor} editor - editor to cache data for
      */
     function _saveEditorViewState(editor) {
-        ViewStateManager.setViewStateFor(editor.document.file, editor.getViewState());
+        ViewStateManager.setViewState(editor.document.file, editor.getViewState());
     }
     
     /** 
@@ -150,7 +150,7 @@ define(function (require, exports, module) {
      */
     function _restoreEditorViewState(editor) {
         // We want to ignore the current state of the editor, so don't call __getViewState()
-        var viewState = ViewStateManager.getViewStateFor(editor.document.file);
+        var viewState = ViewStateManager.getViewState(editor.document.file);
         if (viewState) {
             editor.restoreViewState(viewState);
         }

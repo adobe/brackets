@@ -739,7 +739,7 @@ define(function (require, exports, module) {
             oldPath = oldView && oldView.getFile() ? oldView.getFile().fullPath : null;
         
         if (this._currentView) {
-            ViewStateManager.setViewStateFor(file, oldView.getViewState());
+            ViewStateManager.setViewState(file, oldView.getViewState());
             this._currentView.setVisible(false);
         } else {
             this.showInterstitial(false);
@@ -949,7 +949,7 @@ define(function (require, exports, module) {
 
         // Save the current view state first
         if (this._currentView) {
-            ViewStateManager.setViewStateFor(this._currentView.getFile(), this._currentView.getViewState());
+            ViewStateManager.setViewState(this._currentView.getFile(), this._currentView.getViewState());
         }
         
         // walk the list of views and save
@@ -959,7 +959,7 @@ define(function (require, exports, module) {
                 result.push({
                     file: file.fullPath,
                     active: (file.fullPath === currentlyViewedPath),
-                    viewState:  ViewStateManager.getViewStateFor(file)
+                    viewState:  ViewStateManager.getViewState(file)
                 });
             }
         });
