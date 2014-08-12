@@ -1136,6 +1136,7 @@ define(function (require, exports, module) {
             addView(paneId, doc.file);
         }
         
+        // open document will show the editor if there is one already
         EditorManager.openDocument(doc, pane);
 
         if (pane.id === _activePaneId) {
@@ -1167,19 +1168,24 @@ define(function (require, exports, module) {
             currentPaneId = getPaneIdForPath(file.fullPath);
 
         if (currentPaneId) {
+            // The file is open in another pane so activate the pane
+            //  unless the caller specified avoidPaneActivation
             paneId = currentPaneId;
             if (!options.avoidPaneActivation) {
                 setActivePaneId(paneId);
             }
         }
-        
+
         if (doc) {
+            // If we have a document object then edit it
             edit(paneId, doc);
             result.resolve(doc.file);
         } else {
+            // Look for a View factory to create a viewer for the file
             var factory = MainViewFactory.findSuitableFactoryFor(file.fullPath);
             
             if (!factory) {
+                // no view factory can we edit it?
                 if (EditorManager.canOpenFile(file.fullPath)) {
                     DocumentManager.getDocumentForPath(file.fullPath)
                         .done(function (doc) {
@@ -1190,6 +1196,7 @@ define(function (require, exports, module) {
                             result.reject(fileError);
                         });
                 } else {
+                    // Can't do anything with this file
                     result.reject("Unsupported Filetype");
                 }
             } else {
@@ -1197,14 +1204,18 @@ define(function (require, exports, module) {
                     view = pane.getViewForPath(file.fullPath);
                 
                 if (view) {
+                    // there is a view already, so we just need to show it
                     pane.showView(view);
                     if (pane.id === _activePaneId) {
                         $(exports).triggerHandler("currentFileChange", [file, pane.id, oldFile, pane.id]);
                     }
                     result.resolve(file);
                 } else {
+                    // no view yet so let the factory open it and add a view
                     factory.openFile(file, pane)
                         .done(function () {
+                            // if we opened a file that isn't in the project
+                            //  then add the file to the working set
                             if (!ProjectManager.isWithinProject(file.fullPath)) {
                                 addView(paneId, file);
                             }
