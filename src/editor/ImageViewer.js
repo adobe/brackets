@@ -437,6 +437,7 @@ define(function (require, exports, module) {
 
     /* 
      * Required interface - does nothing 
+     * @returns {undefined}
      */
     ImageView.prototype.restoreViewState = function () {
     };
