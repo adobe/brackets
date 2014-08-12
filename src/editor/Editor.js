@@ -1898,6 +1898,14 @@ define(function (require, exports, module) {
         return (this.getFocusedInlineWidget() !== null);
     };
     
+    /* 
+     * @typedef {scrollPos:{x:number, y:number},Array.<{start:{line:number, ch:number},end:{line:number, ch:number}}>} EditorViewState
+     */
+    
+    /* 
+     * returns the view state for the editor
+     * @return {!EditorViewState}
+     */
     Editor.prototype.getViewState = function () {
         return {
             selections: this.getSelections(),
@@ -1905,7 +1913,10 @@ define(function (require, exports, module) {
         };
         
     };
-    
+    /*
+     * Restores the view state
+     * @param {!EditorViewState} viewState - the view state object to restore
+     */
     Editor.prototype.restoreViewState = function (viewState) {
         if (viewState.selection) {
             // We no longer write out single-selection, but there might be some view state
