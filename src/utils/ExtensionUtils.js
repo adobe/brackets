@@ -124,9 +124,9 @@ define(function (require, exports, module) {
             } else {
                 try {
                     result.resolve(tree.toCSS());
-                } catch (err) {
-                    console.error(err.filename + ":" + err.line + " " + err.message)
-                    result.reject(err);
+                } catch (toCSSError) {
+                    console.error(toCSSError.filename + ":" + toCSSError.line + " " + toCSSError.message);
+                    result.reject(toCSSError);
                 }
             }
         });
