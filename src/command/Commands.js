@@ -161,12 +161,10 @@ define(function (require, exports, module) {
     exports.APP_ABORT_QUIT              = "app.abort_quit";             // DocumentCommandHandlers.js   handleAbortQuit()
     exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";       // DocumentCommandHandlers.js   handleBeforeMenuPopup()
     
-    // DEPRECATED: Working Set Commands
-
+    // ADD_TO_WORKING_SET is deprectated but we need a handler for it because the new command doesn't return the same result as the legacy command
     exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";       // Deprecated through DocumentCommandHandlers.js handleFileAddToWorkingSet
     
-    // @todo - Implement a command handler for this 
-    //          that calls the handleAddToPaneViewListAndOpen or whatever, translates the result and issues a deprecation warning.
+    // DEPRECATED: Working Set Commands
     DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_ADDED",   "CMD_SORT_PANE_VIEW_LIST_BY_ADDED");
     DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_NAME",    "CMD_SORT_PANE_VIEW_LIST_BY_NAME");
     DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_TYPE",    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE");
