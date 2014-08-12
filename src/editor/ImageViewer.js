@@ -34,9 +34,12 @@ define(function (require, exports, module) {
         MainViewFactory     = require("view/MainViewFactory"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
+        FileSystem          = require("filesystem/FileSystem"),
         FileUtils           = require("file/FileUtils"),
         _                   = require("thirdparty/lodash");
     
+    
+    var _viewers = {};
         
     /*
      * ImageView objects are constructed when a view of an image is opened in a pane
@@ -75,6 +78,8 @@ define(function (require, exports, module) {
         
         this.$imagePath.text(this.relPath).attr("title", this.relPath);
         this.$imagePreview.on("load", _.bind(this._onImageLoaded, this));
+        
+        _viewers[file.fullPath] = this;
     }
 
     /**
@@ -383,6 +388,7 @@ define(function (require, exports, module) {
      * Destroys the view
      */
     ImageView.prototype.destroy = function () {
+        delete _viewers[this.file.fullPath];
         $(DocumentManager).off("fileNameChange", _.bind(this._onFilenameChange, this));
         this.$image.off(".ImageView");
         this.$view.remove();
@@ -453,6 +459,23 @@ define(function (require, exports, module) {
     };
     
     /* 
+     * Refreshes the image preview with what's on disk
+     */
+    ImageView.prototype.refresh = function () {
+        var noCacheUrl = this.$imagePreview.attr("src"),
+            now = new Date().valueOf();
+
+        if (noCacheUrl.indexOf("#") > 0) {
+            noCacheUrl = noCacheUrl.replace(/#\d+/, "#" + now);
+        } else {
+            noCacheUrl = noCacheUrl + "#" + now;
+        }
+        
+        
+        this.$imagePreview.attr("src", noCacheUrl);
+    };
+    
+    /* 
      * Creates an image view object and adds it to the specified pane
      * @param {!File} file - the file to create an image of
      * @param {!Pane} pane - the pane in which to host the view
@@ -476,6 +499,36 @@ define(function (require, exports, module) {
             return _createImageViewOf(file, pane);
         }
     });
+    
+    /*
+     * Handles file system change events so we can refresh 
+     *  image viewers for the files that changed on disk due to external editors
+     * @param {jQuery.event} event - event object
+     * @param {?File} file - file object that changed
+     * @param {Array.<FileSystemEntry>=} added If entry is a Directory, contains zero or more added children
+     * @param {Array.<FileSystemEntry>=} removed If entry is a Directory, contains zero or more removed children
+     */
+    function _handleFileSystemChange(event, entry, added, removed) {
+        // this may have been called because files were added 
+        //  or removed to the file system.  We don't care about those
+        if (!entry || entry.isDirectory) {
+            return;
+        }
+        
+        // Look for a viewer for the changed file
+        var viewer = _viewers[entry.fullPath];
+
+        // viewer found, call its refresh method
+        if (viewer) {
+            viewer.refresh();
+        }
+    }
+    
+    /*
+     * Install an event listener to receive all file system change events
+     * so we can refresh the view when changes are made to the image in an external editor
+     */
+    FileSystem.on("change", _handleFileSystemChange);
     
     /* 
      * This is for extensions that want to create a 
