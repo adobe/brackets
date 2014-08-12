@@ -135,6 +135,20 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)).toEqual(lastImagePath);
                 });
             });
+
+            it("should add images to the working set when they dropped from outside the project", function () {
+                var imagesPath = SpecRunnerUtils.getTestPath("/spec/test-image-files");
+                runs(function () {
+                    var files = [imagesPath + "/thermo.jpg", imagesPath + "/check.png"];
+                    promise = DragAndDrop.openDroppedFiles(files);
+                    waitsForDone(promise, "opening last image file from the dropped files");
+                });
+            
+                runs(function () {
+                    expect(MainViewManager.findView(MainViewManager.ALL_PANES, imagesPath + "/thermo.jpg")).toNotEqual(-1);
+                    expect(MainViewManager.findView(MainViewManager.ALL_PANES, imagesPath + "/check.png")).toNotEqual(-1);
+                });
+            });
         });
     });
 });
