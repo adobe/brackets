@@ -465,13 +465,15 @@ define(function (require, exports, module) {
         var noCacheUrl = this.$imagePreview.attr("src"),
             now = new Date().valueOf();
 
+        // Append a #<time-stamp> fragement to the URL 
+        //  to force a reload of the image
         if (noCacheUrl.indexOf("#") > 0) {
             noCacheUrl = noCacheUrl.replace(/#\d+/, "#" + now);
         } else {
             noCacheUrl = noCacheUrl + "#" + now;
         }
-        
-        
+
+        // Update the DOM node with the src URL 
         this.$imagePreview.attr("src", noCacheUrl);
     };
     
