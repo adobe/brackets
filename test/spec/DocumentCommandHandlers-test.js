@@ -1241,12 +1241,13 @@ define(function (require, exports, module) {
                         sp = se.scrollLeft,
                         $se = _$(se);
 
-                    // really big number -- will scroll all the end of the line
+                    // really big number -- will scroll to the end of the line
                     $se.scrollLeft(99999999);
                     expect(sp).toEqual(se.scrollLeft);
                 });
             });
         });
+
         describe("Opens text file and validates EditorManager APIs", function () {
             it("should return an editor after opening a text file", function () {
                 var path = testPath + "/test.js",
