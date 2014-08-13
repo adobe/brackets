@@ -22,6 +22,9 @@
         "src/thirdparty/globmatch.js": {
             "spaceUnits": 2,
             "linting.enabled": false
+        },
+        "src/thirdparty/flux/*.js": {
+            "spaceUnits": 2
         }
     },
     "spaceUnits": 4,
