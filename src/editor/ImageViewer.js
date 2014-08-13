@@ -146,9 +146,7 @@ define(function (require, exports, module) {
         this.$imageTip.hide();
         this.$imageGuides.hide();
         
-        // @todo -- Can't this just be this.$imagePreview.on("mousemove", handler) ?
         this.$image.on("mousemove.ImageView", ".image-preview", _.bind(this._showImageTip, this))
-        // @todo -- Can't this just be this.$imagePreview.on("mouseleave", handler) ?
                    .on("mouseleave.ImageView", ".image-preview", _.bind(this._hideImageTip, this));
 
         this._updateScale();
@@ -275,6 +273,10 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * Hides both guides and the tip
+     * @private
+     */
     ImageView.prototype._hideGuidesAndTip = function () {
         this.$imageTip.hide();
         this.$imageGuides.hide();

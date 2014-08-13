@@ -115,8 +115,7 @@ define(function (require, exports, module) {
     exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";      // EditorOptionHandlers.js      _getToggler()
     exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";        // EditorOptionHandlers.js      _getToggler()
 
-    // @TODO == THIS IS WRONG!
-    exports.CMD_ADD_TO_PANE_AND_OPEN   = "cmd.addToPaneAndOpen";          // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()
+    exports.CMD_ADD_TO_PANE_AND_OPEN   = "cmd.addToPaneAndOpen";          // DocumentCommandHandlers.js   handleAddToPaneViewList()
     
     exports.CMD_SORT_PANE_VIEW_LIST_BY_ADDED  = "cmd.sortPaneViewListByAdded";    // paneViewSort.js          _handleSort()
     exports.CMD_SORT_PANE_VIEW_LIST_BY_NAME   = "cmd.sortPaneViewListByName";     // paneViewSort.js          _handleSort()
