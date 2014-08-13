@@ -68,7 +68,7 @@ define(function (require, exports, module) {
      * View Interface:
      *
      * {
-     *      getFile: function () @return {!File} File object that belongs to the view (may return null)
+     *      getFile: function () @return {?File} File object that belongs to the view (may return null)
      *      setVisible: function(visible:boolean) - shows or hides the view 
      *      updateLayout: function(forceRefresh:boolean) - tells the view to do ignore any cached layout data and do a complete layout of its content 
      *      destroy: function() - called when the view is no longer needed. 
@@ -142,7 +142,7 @@ define(function (require, exports, module) {
      */
     
     /**
-     * @typedef {getFile:function():File=, setVisible:function(visible:boolean), updateLayout:function(forceRefresh:boolean), destroy:function(), hasFocus:function():boolean, childHasFocus:function():boolean, focus:function(), getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number), switchContainers: function($newContainer:jQuery}, getContainer: function():!jQuery, getViewState:function():?*, restoreViewState:function(viewState:!*)}
+     * @typedef {getFile:function():?File, setVisible:function(visible:boolean), updateLayout:function(forceRefresh:boolean), destroy:function(), hasFocus:function():boolean, childHasFocus:function():boolean, focus:function(), getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number), switchContainers: function($newContainer:jQuery}, getContainer: function():!jQuery, getViewState:function():?*, restoreViewState:function(viewState:!*)}
      */
     
     /*
@@ -191,7 +191,7 @@ define(function (require, exports, module) {
             }
         });
     }
-
+    
     /**
      * id of the pane
      * @readonly
@@ -270,12 +270,18 @@ define(function (require, exports, module) {
                 viewsToDestroy.push(view);
             }
         });
+
+        // Destroy current view if added using MainViewManager.showView
+        if (other._currentView && !other._currentView.getFile()) {
+            this._currentView.destroy();
+        }
+        
         
         // Destroy temporary views
         _.forEach(viewsToDestroy, function (view) {
             view.destroy();
         });
-
+        
         other._reset();
     };
     
@@ -739,7 +745,9 @@ define(function (require, exports, module) {
             oldPath = oldView && oldView.getFile() ? oldView.getFile().fullPath : null;
         
         if (this._currentView) {
-            ViewStateManager.setViewState(file, oldView.getViewState());
+            if (file) {
+                ViewStateManager.setViewState(file, oldView.getViewState());
+            }
             this._currentView.setVisible(false);
         } else {
             this.showInterstitial(false);
@@ -830,6 +838,11 @@ define(function (require, exports, module) {
      */
     Pane.prototype.doRemoveAllViews = function () {
         var views = _.extend({}, this._views);
+        
+        // kill any views added with MainViewManager.showView()
+        if (this._currentView && !this._currentView.getFile()) {
+            this._currentView.destroy();
+        }
         
         this._reset();
         
@@ -948,7 +961,7 @@ define(function (require, exports, module) {
             currentlyViewedPath = this.getCurrentlyViewedPath();
 
         // Save the current view state first
-        if (this._currentView) {
+        if (this._currentView && this._currentView.getFile()) {
             ViewStateManager.setViewState(this._currentView.getFile(), this._currentView.getViewState());
         }
         

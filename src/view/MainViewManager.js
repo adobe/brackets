@@ -1106,7 +1106,31 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Edits a document in the specified pane
+     * Shows a 1-off view which is destroyed when the current view chagnes
+     * @param {!string} paneId - the id of the pane in which to create the view
+     * @param {function(jQuery):view} callback - closure to do create the view
+     */
+    function showView(paneId, callback) {
+        var pane = _getPane(paneId);
+        
+        if (pane) {
+            var view = callback(pane.$el),
+                file = view.getFile(),
+                oldPane = _getPane(ACTIVE_PANE),
+                oldFile = oldPane.getCurrentlyViewedFile();
+                    
+            pane.showView(view);
+            if (pane.id === _activePaneId) {
+                $(exports).triggerHandler("currentFileChange", [file, pane.id, oldFile, pane.id]);
+            }
+        }
+    }
+    
+    /**
+     * Edits a document in the specified pane.
+     * This function is only used by Unit Tests (which construct Mock Documents), The Deprecated API "setCurrentDocument" and by File > New 
+     *  because there  is yet to be an established File object for the Document which is required for the open API.  
+     * Do not use this API unless you have a document object without a file object
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Document} doc - document to edit
      * @param {Object={avoidPaneActivation:boolean}} optionsIn - options 
@@ -1164,8 +1188,7 @@ define(function (require, exports, module) {
             return result.reject("bad argument");
         }
         
-        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath),
-            currentPaneId = getPaneIdForPath(file.fullPath);
+        var currentPaneId = getPaneIdForPath(file.fullPath);
 
         if (currentPaneId) {
             // The file is open in another pane so activate the pane
@@ -1176,17 +1199,33 @@ define(function (require, exports, module) {
             }
         }
 
-        if (doc) {
-            // If we have a document object then edit it
-            edit(paneId, doc);
-            result.resolve(doc.file);
+        // See if there is already a view for the file
+        var pane = _getPane(paneId),
+            view = pane.getViewForPath(file.fullPath);
+
+        if (view) {
+            // there is a view already, so we just need to show it
+            pane.showView(view);
+            if (pane.id === _activePaneId) {
+                $(exports).triggerHandler("currentFileChange", [file, pane.id, oldFile, pane.id]);
+            }
+            result.resolve(file);
         } else {
-            // Look for a View factory to create a viewer for the file
+        
+            // See if there is a factory to create a view for this file
+            //  we want to do this first because, we don't want our internal 
+            //  editor to edit files for which there are suitable viewfactories
             var factory = MainViewFactory.findSuitableFactoryFor(file.fullPath);
-            
+
             if (!factory) {
-                // no view factory can we edit it?
-                if (EditorManager.canOpenFile(file.fullPath)) {
+                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+
+                // no factory then see if we can edit it internally
+                if (doc) {
+                    // If we have a document object then edit it naturally
+                    edit(paneId, doc);
+                    result.resolve(doc.file);
+                } else if (EditorManager.canOpenFile(file.fullPath)) {
                     DocumentManager.getDocumentForPath(file.fullPath)
                         .done(function (doc) {
                             edit(paneId, doc);
@@ -1200,37 +1239,24 @@ define(function (require, exports, module) {
                     result.reject("Unsupported Filetype");
                 }
             } else {
-                var pane = _getPane(paneId),
-                    view = pane.getViewForPath(file.fullPath);
-                
-                if (view) {
-                    // there is a view already, so we just need to show it
-                    pane.showView(view);
-                    if (pane.id === _activePaneId) {
-                        $(exports).triggerHandler("currentFileChange", [file, pane.id, oldFile, pane.id]);
-                    }
-                    result.resolve(file);
-                } else {
-                    // no view yet so let the factory open it and add a view
-                    factory.openFile(file, pane)
-                        .done(function () {
-                            // if we opened a file that isn't in the project
-                            //  then add the file to the working set
-                            if (!ProjectManager.isWithinProject(file.fullPath)) {
-                                addView(paneId, file);
-                            }
-                            if (pane.id === _activePaneId) {
-                                $(exports).triggerHandler("currentFileChange", [file, pane.id, oldFile, pane.id]);
-                            }
-                            result.resolve(file);
-                        })
-                        .fail(function (fileError) {
-                            result.reject(fileError);
-                        });
-                }
+                // let the factory open the file and create a view for it
+                factory.openFile(file, pane)
+                    .done(function () {
+                        // if we opened a file that isn't in the project
+                        //  then add the file to the working set
+                        if (!ProjectManager.isWithinProject(file.fullPath)) {
+                            addView(paneId, file);
+                        }
+                        if (pane.id === _activePaneId) {
+                            $(exports).triggerHandler("currentFileChange", [file, pane.id, oldFile, pane.id]);
+                        }
+                        result.resolve(file);
+                    })
+                    .fail(function (fileError) {
+                        result.reject(fileError);
+                    });
             }
         }
-        
         return result;
     }
     
@@ -1715,6 +1741,7 @@ define(function (require, exports, module) {
     exports.close                       = close;
     exports.closeAll                    = closeAll;
     exports.closeList                   = closeList;
+    exports.showView                    = showView;
     
     // Layout
     exports.setLayoutScheme             = setLayoutScheme;
