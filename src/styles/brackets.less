@@ -1931,6 +1931,10 @@ label input {
     font-weight: normal;
     border-style: dashed;
     position: relative;
+
+    .dark & {
+        border-color: #5f5f5f;
+    }
 }
 
 #install-drop-zone .install-from-url {
@@ -1964,8 +1968,6 @@ label input {
     
     .dark & {
         background: @dark-bc-primary-btn-bg;
-        box-shadow: initial;
-        font-weight: normal;
         border: 1px solid @dark-bc-primary-btn-bg;
         color: @dark-bc-text-alt;        
     }
