@@ -37,7 +37,6 @@ define(function (require, exports, module) {
         Async                 = require("utils/Async"),
         LanguageManager       = require("language/LanguageManager"),
         StringUtils           = require("utils/StringUtils"),
-        Strings               = require("strings"),
         _                     = require("thirdparty/lodash");
 
     var promisify = Async.promisify; // for convenience
@@ -59,6 +58,7 @@ define(function (require, exports, module) {
             FindInFiles,
             FindInFilesUI,
             ProjectManager,
+            Strings,
             testWindow,
             $;
         
@@ -70,6 +70,7 @@ define(function (require, exports, module) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
+                Strings         = testWindow.require("strings");
                 CommandManager  = testWindow.brackets.test.CommandManager;
                 DocumentManager = testWindow.brackets.test.DocumentManager;
                 EditorManager   = testWindow.brackets.test.EditorManager;
