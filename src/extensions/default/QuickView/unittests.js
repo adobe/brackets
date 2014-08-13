@@ -268,7 +268,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     checkGradientAtPos("repeating-linear-gradient(red, blue 50%, red 100%)", 122, 50);
                     checkGradientAtPos("repeating-linear-gradient(red 0%, white 0%, blue 0%)", 123, 50);
-                    checkGradientAtPos("repeating-linear-gradient(red 0%, white 5%, blue 10%)", 124, 50);
+                    checkGradientAtPos("repeating-linear-gradient(red 0%, white 50%, blue 100%)", 124, 50);
                 });
             });
 
