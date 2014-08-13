@@ -108,7 +108,7 @@ define(function (require, exports, module) {
                 });
 
                 var promise = CommandManager.execute(Commands.FILE_SAVE_ALL);
-                waitsForDone(promise, "FILE_SAVE_ALL", 60000);
+                waitsForDone(promise, "FILE_SAVE_ALL", 5000);
             });
         });
         

@@ -1,0 +1,14 @@
+{
+    "title": "Brackets Dark",
+    "name": "dark-theme",
+    "description": "Built-in dark theme for Brackets",
+    "version": "0.42.0",
+    "author": "Miguel Castillo <mahchagnu@gmail.com>",
+    "engines": {
+        "brackets": ">=0.42.0"
+    },
+    "theme": {
+        "file": "main.less",
+        "dark": true
+    }
+}

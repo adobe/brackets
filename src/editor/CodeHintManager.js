@@ -242,18 +242,23 @@ define(function (require, exports, module) {
         CodeHintList        = require("editor/CodeHintList").CodeHintList,
         PreferencesManager  = require("preferences/PreferencesManager");
 
-    var hintProviders   = { "all" : [] },
-        lastChar        = null,
-        sessionProvider = null,
-        sessionEditor   = null,
-        hintList        = null,
-        deferredHints   = null,
-        keyDownEditor   = null;
+    var hintProviders    = { "all" : [] },
+        lastChar         = null,
+        sessionProvider  = null,
+        sessionEditor    = null,
+        hintList         = null,
+        deferredHints    = null,
+        keyDownEditor    = null,
+        codeHintsEnabled = true;
 
 
+    PreferencesManager.definePreference("showCodeHints", "boolean", true);
     PreferencesManager.definePreference("insertHintOnTab", "boolean", false);
 
-
+    PreferencesManager.on("change", "showCodeHints", function () {
+        codeHintsEnabled = PreferencesManager.get("showCodeHints");
+    });
+    
     /**
      * Comparator to sort providers from high to low priority
      */
@@ -347,7 +352,15 @@ define(function (require, exports, module) {
      * @return {?Array.<{provider: Object, priority: number}>}
      */
     function _getProvidersForLanguageId(languageId) {
-        return hintProviders[languageId] || hintProviders.all;
+        var providers = hintProviders[languageId] || hintProviders.all;
+        
+        // Exclude providers that are explicitly disabled in the preferences.
+        // All code hint providers that do not have their constructor
+        // names listed in the preferences are enabled by default.
+        return providers.filter(function (provider) {
+            var prefKey = "codehint." + provider.provider.constructor.name;
+            return PreferencesManager.get(prefKey) !== false;
+        });
     }
 
     var _beginSession;
@@ -451,6 +464,10 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      */
     _beginSession = function (editor) {
+        if (!codeHintsEnabled) {
+            return;
+        }
+
         // Don't start a session if we have a multiple selection.
         if (editor.getSelections().length > 1) {
             return;

@@ -37,16 +37,16 @@ define(function (require, exports, module) {
         AnimationUtils = require("utils/AnimationUtils");
 
     /**
-     * @constructor
-     *
      * Creates a modal bar whose contents are the given template.
      * 
      * Dispatches one event:
-     *  close - When the bar is closed, either via close() or via autoClose. After this event, the
-     *          bar may remain visible and in the DOM while its closing animation is playing. However,
-     *          by the time "close" is fired, the bar has been "popped out" of the layout and the
-     *          editor scroll position has already been restored.
+     * - close - When the bar is closed, either via close() or via autoClose. After this event, the
+     *     bar may remain visible and in the DOM while its closing animation is playing. However,
+     *     by the time "close" is fired, the bar has been "popped out" of the layout and the
+     *     editor scroll position has already been restored.
      * 
+     * @constructor
+     *
      * @param {string} template The HTML contents of the modal bar.
      * @param {boolean} autoClose If true, then close the dialog if the user hits Esc
      *      or if the bar loses focus.

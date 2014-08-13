@@ -49,6 +49,7 @@ define(function (require, exports, module) {
     require("spec/FileSystem-test");
     require("spec/FileTreeView-test");
     require("spec/FileUtils-test");
+    require("spec/FindInFiles-test");
     require("spec/FindReplace-test");
     require("spec/HTMLInstrumentation-test");
     require("spec/HTMLSimpleDOM-test");
@@ -72,6 +73,7 @@ define(function (require, exports, module) {
     require("spec/StringMatch-test");
     require("spec/StringUtils-test");
     require("spec/TextRange-test");
+    require("spec/ThemeManager-test");
     require("spec/UpdateNotification-test");
     require("spec/UrlParams-test");
     require("spec/ValidationUtils-test");

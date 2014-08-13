@@ -191,7 +191,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    var expectedHints = (brackets.platform === "mac") ? UrlCodeHintsDirHintsMac : UrlCodeHintsDirHints;
+                    var expectedHints = (brackets.platform !== "win") ? UrlCodeHintsDirHintsMac : UrlCodeHintsDirHints;
                     verifyUrlHints(hintsObj.hints, expectedHints);
                 });
             });

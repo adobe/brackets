@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, waitsForDone, runs, window, jasmine */
+/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, window, jasmine, spyOn */
 /*unittests: FindReplace*/
 
 define(function (require, exports, module) {
@@ -32,9 +32,8 @@ define(function (require, exports, module) {
         FindReplace           = require("search/FindReplace"),
         KeyEvent              = require("utils/KeyEvent"),
         SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
-        StringUtils           = require("utils/StringUtils"),
-        Strings               = require("strings");
-
+        _                     = require("thirdparty/lodash");
+    
     var defaultContent = "/* Test comment */\n" +
                          "define(function (require, exports, module) {\n" +
                          "    var Foo = require(\"modules/Foo\"),\n" +
@@ -318,7 +317,7 @@ define(function (require, exports, module) {
         ];
         
 
-        var testWindow, twCommandManager, twEditorManager, tw$;
+        var testWindow, twCommandManager, twEditorManager, twFindInFiles, tw$;
         var myDocument, myEditor;
         
         // Helper functions for testing cursor position / selection range
@@ -328,6 +327,9 @@ define(function (require, exports, module) {
                 sel.reversed = false;
             }
             expect(myEditor.getSelection()).toEqual(sel);
+        }
+        function expectMatchIndex(index) {
+            expect(myEditor._codeMirror._searchState.matchIndex).toEqual(index);
         }
         function expectHighlightedMatches(selections, expectedDOMHighlightCount) {
             var cm = myEditor._codeMirror;
@@ -435,6 +437,7 @@ define(function (require, exports, module) {
                 // Load module instances from brackets.test
                 twCommandManager = testWindow.brackets.test.CommandManager;
                 twEditorManager  = testWindow.brackets.test.EditorManager;
+                twFindInFiles    = testWindow.brackets.test.FindInFiles;
                 tw$              = testWindow.$;
 
                 SpecRunnerUtils.loadProjectInTestWindow(SpecRunnerUtils.getTempDirectory());
@@ -445,6 +448,7 @@ define(function (require, exports, module) {
             testWindow       = null;
             twCommandManager = null;
             twEditorManager  = null;
+            twFindInFiles    = null;
             tw$              = null;
             SpecRunnerUtils.closeTestWindow();
             
@@ -491,20 +495,25 @@ define(function (require, exports, module) {
                 enterSearchText("foo");
                 expectHighlightedMatches(fooExpectedMatches);
                 expectSelection(fooExpectedMatches[0]);
+                expectMatchIndex(0);
                 expect(myEditor.centerOnCursor.calls.length).toEqual(1);
 
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[1]);
+                expectMatchIndex(1);
                 expect(myEditor.centerOnCursor.calls.length).toEqual(2);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[2]);
+                expectMatchIndex(2);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[3]);
+                expectMatchIndex(3);
                 expectHighlightedMatches(fooExpectedMatches);  // no change in highlights
 
                 // wraparound
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[0]);
+                expectMatchIndex(0);
                 expect(myEditor.centerOnCursor.calls.length).toEqual(5);
             });
             
@@ -516,20 +525,25 @@ define(function (require, exports, module) {
                 enterSearchText("Foo");
                 expectHighlightedMatches(fooExpectedMatches);
                 expectSelection(fooExpectedMatches[0]);
+                expectMatchIndex(0);
                 expect(myEditor.centerOnCursor.calls.length).toEqual(1);
 
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[1]);
+                expectMatchIndex(1);
                 expect(myEditor.centerOnCursor.calls.length).toEqual(2);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[2]);
+                expectMatchIndex(2);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[3]);
+                expectMatchIndex(3);
                 expectHighlightedMatches(fooExpectedMatches);  // no change in highlights
 
                 // wraparound
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[0]);
+                expectMatchIndex(0);
                 expect(myEditor.centerOnCursor.calls.length).toEqual(5);
             });
             
@@ -542,20 +556,24 @@ define(function (require, exports, module) {
                 enterSearchText("Foo");
                 expectHighlightedMatches(capitalFooSelections);
                 expectSelection(capitalFooSelections[0]);
+                expectMatchIndex(0);
                 
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(capitalFooSelections[1]);
+                expectMatchIndex(1);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(capitalFooSelections[2]);
+                expectMatchIndex(2);
                 // note the lowercase "foo()" is NOT matched
                 
                 // wraparound
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(capitalFooSelections[0]);
+                expectMatchIndex(0);
             });
             
             it("should have a scroll track marker for every match", function () {
-                twCommandManager.execute(Commands.EDIT_FIND);
+                twCommandManager.execute(Commands.CMD_FIND);
 
                 enterSearchText("foo");
                 expectHighlightedMatches(fooExpectedMatches);
@@ -576,13 +594,16 @@ define(function (require, exports, module) {
                 enterSearchText("Foo");
                 expectHighlightedMatches(fooExpectedMatches);
                 expectSelection(fooExpectedMatches[0]);
+                expectMatchIndex(0);
                 
                 toggleCaseSensitive(true);
                 expectHighlightedMatches(capitalFooSelections);
                 expectSelection(capitalFooSelections[0]);
+                expectMatchIndex(0);
 
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(capitalFooSelections[1]);
+                expectMatchIndex(1);
             });
             
             
@@ -778,11 +799,13 @@ define(function (require, exports, module) {
                     {start: {line: LINE_FIRST_REQUIRE + 2, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 34}}
                 ];
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
                 expectHighlightedMatches(expectedSelections);
                 
                 enterSearchText("bar");
                 
                 expectSelection(barExpectedMatches[0]);  // selection one line earlier than previous selection
+                expectMatchIndex(0);
                 expectHighlightedMatches(barExpectedMatches);
             });
             
@@ -793,33 +816,36 @@ define(function (require, exports, module) {
                 
                 enterSearchText("foo");
                 expectSelection(fooExpectedMatches[0]);
+                expectMatchIndex(0);
                 
                 // get search highlight down below where the "bar" match will be
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[2]);
+                expectMatchIndex(2);
                 
                 enterSearchText("bar");
                 expectSelection(barExpectedMatches[0]);
+                expectMatchIndex(0);
             });
             
             it("should use empty initial query for single cursor selection", function () {
                 myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START});
-                twCommandManager.execute(Commands.EDIT_FIND);
+                twCommandManager.execute(Commands.CMD_FIND);
                 expect(getSearchField().val()).toEqual("");
             });
             
             it("should use empty initial query for multiple cursor selection", function () {
                 myEditor.setSelections([{start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, primary: true},
                                         {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}}]);
-                twCommandManager.execute(Commands.EDIT_FIND);
+                twCommandManager.execute(Commands.CMD_FIND);
                 expect(getSearchField().val()).toEqual("");
             });
             
             it("should get single selection as initial query", function () {
                 myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START},
                                       {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN});
-                twCommandManager.execute(Commands.EDIT_FIND);
+                twCommandManager.execute(Commands.CMD_FIND);
                 expect(getSearchField().val()).toEqual("require");
             });
             
@@ -844,6 +870,7 @@ define(function (require, exports, module) {
                 ];
                 expectHighlightedMatches(requireExpectedMatches);
                 expectSelection(requireExpectedMatches[1]);  // cursor was below 1st match, so 2nd match is selected
+                expectMatchIndex(1);
                 
                 enterSearchText("require(");
                 requireExpectedMatches.shift();  // first result no longer matches
@@ -852,6 +879,7 @@ define(function (require, exports, module) {
                 requireExpectedMatches[2].end.ch++;
                 expectHighlightedMatches(requireExpectedMatches, 3);  // in a new file, JS isn't color coded, so there's only one span each
                 expectSelection(requireExpectedMatches[0]);
+                expectMatchIndex(0);
             });
             
             it("should collapse selection when appending to prepopulated text causes no result", function () {
@@ -888,6 +916,7 @@ define(function (require, exports, module) {
                     {start: {line: LINE_FIRST_REQUIRE + 2, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 34}}
                 ];
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
                 expectHighlightedMatches(expectedSelections);
                 
                 enterSearchText("baz\"");
@@ -895,6 +924,7 @@ define(function (require, exports, module) {
                     {start: {line: LINE_FIRST_REQUIRE + 2, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 35}}
                 ];
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
                 expectHighlightedMatches(expectedSelections);
             });
         });
@@ -974,17 +1004,22 @@ define(function (require, exports, module) {
                 enterSearchText("Ba.");
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
                 
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(expectedSelections[1]);
+                expectMatchIndex(1);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(expectedSelections[2]);
+                expectMatchIndex(2);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(expectedSelections[3]);
+                expectMatchIndex(3);
                 
                 // wraparound
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
             });
             
              
@@ -1034,6 +1069,7 @@ define(function (require, exports, module) {
                 ];
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
             });
             
             it("should support case-sensitive regexp", function () {
@@ -1046,9 +1082,10 @@ define(function (require, exports, module) {
                 
                 toggleRegexp(true);
                 toggleCaseSensitive(true);
-                enterSearchText("foo");
+                enterSearchText("f.o");
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
             });
             
             it("should support case-insensitive regexp", function () {
@@ -1064,9 +1101,10 @@ define(function (require, exports, module) {
                 
                 toggleRegexp(true);
                 toggleCaseSensitive(false);
-                enterSearchText("foo");
+                enterSearchText("f.o");
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
+                expectMatchIndex(0);
             });
 
             it("shouldn't choke on invalid regexp", function () {
@@ -1098,8 +1136,32 @@ define(function (require, exports, module) {
                 twCommandManager.execute(Commands.CMD_FIND);
 
                 toggleRegexp(true);
-                enterSearchText(".*/");
+                enterSearchText(".*");
                 expectSelection({start: {line: 0, ch: 0}, end: {line: 0, ch: 18}});
+            });
+            
+            it("shouldn't freeze on /.*/ regexp", function () {
+                myEditor.setCursorPos(0, 0);
+
+                twCommandManager.execute(Commands.CMD_FIND);
+
+                toggleRegexp(true);
+                enterSearchText(".*");
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 0, ch: 18}});
+            });
+            
+            it("shouldn't freeze on regexp with 0-length matches", function () {
+                myEditor.setCursorPos(0, 0);
+
+                twCommandManager.execute(Commands.CMD_FIND);
+
+                // CodeMirror coerces all 0-length matches to 1 char
+                toggleRegexp(true);
+                enterSearchText("^");  // matches pos before start of every line, but 0-length match text
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 0, ch: 1}});
+                
+                enterSearchText("()"); // matches pos before every char, but 0-length match text
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 0, ch: 1}});
             });
         });
 
@@ -1111,6 +1173,7 @@ define(function (require, exports, module) {
                     enterSearchText("foo");
                     
                     expectSelection(fooExpectedMatches[0]);
+                    expectMatchIndex(0);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
                     expect(tw$("#replace-yes").is(":enabled")).toBe(true);
                     
@@ -1118,6 +1181,7 @@ define(function (require, exports, module) {
                     
                     tw$("#replace-yes").click();
                     expectSelection(fooExpectedMatches[1]);
+                    expectMatchIndex(0);
                     
                     myEditor.setSelection(fooExpectedMatches[0].start, fooExpectedMatches[0].end);
                     expect(/bar/i.test(myEditor.getSelectedText())).toBe(true);
@@ -1126,11 +1190,12 @@ define(function (require, exports, module) {
 
             it("should find and skip then replace string", function () {
                 runs(function () {
-                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    twCommandManager.execute(Commands.CMD_REPLACE);
                     enterSearchText("foo");
                     enterReplaceText("bar");
                     
                     expectSelection(fooExpectedMatches[0]);
+                    expectMatchIndex(0);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
                     
                     // Skip first
@@ -1138,6 +1203,7 @@ define(function (require, exports, module) {
                     tw$("#find-next").click();
                     
                     expectSelection(fooExpectedMatches[1]);
+                    expectMatchIndex(1);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
                     // Replace second
@@ -1145,6 +1211,7 @@ define(function (require, exports, module) {
                     tw$("#replace-yes").click();
                     
                     expectSelection(fooExpectedMatches[2]);
+                    expectMatchIndex(1);
                     
                     myEditor.setSelection(fooExpectedMatches[0].start, fooExpectedMatches[0].end);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
@@ -1159,11 +1226,13 @@ define(function (require, exports, module) {
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     enterSearchText("foo");
                     expectSelection(fooExpectedMatches[0]);
+                    expectMatchIndex(0);
                     
                     enterReplaceText("bar");
                     
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     expectSelection(fooExpectedMatches[1]);
+                    expectMatchIndex(0);
                     
                     myEditor.setSelection(fooExpectedMatches[0].start, fooExpectedMatches[0].end);
                     expect(/bar/i.test(myEditor.getSelectedText())).toBe(true);
@@ -1332,12 +1401,28 @@ define(function (require, exports, module) {
         });
 
         
-        describe("Search -> Replace All", function () {
+        describe("Search -> Replace All in untitled document", function () {
+            function expectTextAtPositions(text, posArray) {
+                posArray.forEach(function (pos) {
+                    expect(myEditor.document.getRange(pos, {line: pos.line, ch: pos.ch + text.length})).toEqual(text);
+                });
+            }
+            function dontExpectTextAtPositions(text, posArray) {
+                posArray.forEach(function (pos) {
+                    expect(myEditor.document.getRange(pos, {line: pos.line, ch: pos.ch + text.length})).not.toEqual(text);
+                });
+            }
+            
+            beforeEach(function () {
+                twFindInFiles._searchDone = false;
+                twFindInFiles._replaceDone = false;
+            });
+            
             it("should find and replace all", function () {
+                var searchText  = "require",
+                    replaceText = "brackets.getModule";
                 runs(function () {
-                    var searchText  = "require",
-                        replaceText = "brackets.getModule";
-                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    twCommandManager.execute(Commands.CMD_REPLACE);
                     enterSearchText(searchText);
                     enterReplaceText(replaceText);
 
@@ -1346,43 +1431,139 @@ define(function (require, exports, module) {
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
+
+                runs(function () {
                     tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
+                    // Note: LINE_FIRST_REQUIRE and CH_REQUIRE_START refer to first call to "require",
+                    //       but not first instance of "require" in text
+                    expectTextAtPositions(replaceText, [
+                        {line: 1, ch: 17},
+                        {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START},
+                        {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START},
+                        {line: LINE_FIRST_REQUIRE + 2, ch: CH_REQUIRE_START}
+                    ]);
+                });
+            });
+            
+            it("should close panel if document modified", function () {
+                var searchText  = "require",
+                    replaceText = "brackets.getModule";
+                runs(function () {
+                    twCommandManager.execute(Commands.CMD_REPLACE);
+                    enterSearchText(searchText);
+                    enterReplaceText(replaceText);
+
+                    expectSelection({start: {line: 1, ch: 17}, end: {line: 1, ch: 17 + searchText.length}});
+                    expect(myEditor.getSelectedText()).toBe(searchText);
+
+                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
+                    tw$("#replace-all").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
+
+                runs(function () {
+                    expect(tw$("#find-in-files-results").is(":visible")).toBe(true);
+                    myEditor.document.replaceRange("", {line: 0, ch: 0}, {line: 1, ch: 0});
+                    expect(tw$("#find-in-files-results").is(":visible")).toBe(false);
+                });
+            });
+            
+            it("should not replace unchecked items", function () {
+                var searchText  = "require",
+                    replaceText = "brackets.getModule";
+                runs(function () {
+                    twCommandManager.execute(Commands.CMD_REPLACE);
+                    enterSearchText(searchText);
+                    enterReplaceText(replaceText);
+
+                    expectSelection({start: {line: 1, ch: 17}, end: {line: 1, ch: 17 + searchText.length}});
+                    expect(myEditor.getSelectedText()).toBe(searchText);
+
+                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
+                    tw$("#replace-all").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
+
+                runs(function () {
+                    // verify that all items are checked by default
+                    var $checked = tw$(".check-one:checked");
+                    expect($checked.length).toBe(4);
+                    
+                    // uncheck second and fourth
+                    $checked.eq(1).click();
+                    $checked.eq(3).click();
+                    expect(tw$(".check-one:checked").length).toBe(2);
+                    
+                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
 
                     myEditor.setSelection({line: 1, ch: 17}, {line: 1, ch: 17 + replaceText.length});
                     expect(myEditor.getSelectedText()).toBe(replaceText);
 
-                    // Note: LINE_FIRST_REQUIRE and CH_REQUIRE_START refer to first call to "require",
-                    //       but not first instance of "require" in text
-                    myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START},
-                                          {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START + replaceText.length});
-                    expect(myEditor.getSelectedText()).toBe(replaceText);
-
-                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START},
-                                          {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START + replaceText.length});
-                    expect(myEditor.getSelectedText()).toBe(replaceText);
-
-                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 2, ch: CH_REQUIRE_START},
-                                          {line: LINE_FIRST_REQUIRE + 2, ch: CH_REQUIRE_START + replaceText.length});
-                    expect(myEditor.getSelectedText()).toBe(replaceText);
+                    expectTextAtPositions(replaceText, [
+                        {line: 1, ch: 17},
+                        {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START}
+                    ]);
+                    dontExpectTextAtPositions(replaceText, [
+                        {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START},
+                        {line: LINE_FIRST_REQUIRE + 2, ch: CH_REQUIRE_START}
+                    ]);
                 });
             });
 
             it("should find all regexps and replace them with $n", function () {
+                var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
                 runs(function () {
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     toggleRegexp(true);
                     enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("$2:$1");
                     
-                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
-
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
+                
+                runs(function () {
                     tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
 
+                runs(function () {
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
                     
@@ -1395,21 +1576,34 @@ define(function (require, exports, module) {
             });
 
             it("should find all regexps and replace them with $n (empty subexpression)", function () {
+                var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
                 runs(function () {
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     toggleRegexp(true);
                     enterSearchText("(modules)(.*)\\/(\\w+)");
                     enterReplaceText("$3$2:$1");
                     
-                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
-
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
-                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
 
+                runs(function () {
+                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
                     
@@ -1422,21 +1616,34 @@ define(function (require, exports, module) {
             });
 
             it("should find all regexps and replace them with $nn (n has two digits)", function () {
+                var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
                 runs(function () {
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     toggleRegexp(true);
                     enterSearchText("()()()()()()()()()()(modules)\\/()()()(\\w+)");
                     enterReplaceText("$15:$11");
                     
-                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
-
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
-                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
 
+                runs(function () {
+                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
                     
@@ -1449,21 +1656,34 @@ define(function (require, exports, module) {
             });
 
             it("should find all regexps and replace them with $$n (not a subexpression, escaped dollar)", function () {
+                var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
                 runs(function () {
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     toggleRegexp(true);
                     enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("$$2_$$10:$2");
                     
-                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
-
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
-                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
 
+                runs(function () {
+                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/\$2_\$10:Foo/i.test(myEditor.getSelectedText())).toBe(true);
                     
@@ -1476,21 +1696,34 @@ define(function (require, exports, module) {
             });
 
             it("should find all regexps and replace them with $$$n (correct subexpression)", function () {
+                var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
                 runs(function () {
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     toggleRegexp(true);
                     enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("$2$$$1");
                     
-                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
-
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
-                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
 
+                runs(function () {
+                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo\$modules/i.test(myEditor.getSelectedText())).toBe(true);
                     
@@ -1503,21 +1736,34 @@ define(function (require, exports, module) {
             });
 
             it("should find all regexps and replace them with $& (whole match)", function () {
+                var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
                 runs(function () {
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     toggleRegexp(true);
                     enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("_$&-$2$$&");
 
-                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
-
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
-                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
 
+                runs(function () {
+                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
                     myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: 23}, {line: LINE_FIRST_REQUIRE, ch: 41});
                     expect(/_modules\/Foo-Foo\$&/i.test(myEditor.getSelectedText())).toBe(true);
                     
@@ -1527,394 +1773,6 @@ define(function (require, exports, module) {
                     myEditor.setSelection({line: LINE_FIRST_REQUIRE + 2, ch: 23}, {line: LINE_FIRST_REQUIRE + 2, ch: 41});
                     expect(/_modules\/Baz-Baz\$&/i.test(myEditor.getSelectedText())).toBe(true);
                 });
-            });
-        });
-    });
-
-
-    describe("FindInFiles", function () {
-
-        this.category = "integration";
-
-        var testPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files"),
-            CommandManager,
-            DocumentManager,
-            EditorManager,
-            FileFilters,
-            FileSystem,
-            FindInFiles,
-            testWindow,
-            $;
-
-        beforeFirst(function () {
-            // Create a new window that will be shared by ALL tests in this spec.
-            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                testWindow = w;
-
-                // Load module instances from brackets.test
-                CommandManager  = testWindow.brackets.test.CommandManager;
-                DocumentManager = testWindow.brackets.test.DocumentManager;
-                EditorManager   = testWindow.brackets.test.EditorManager;
-                FileFilters     = testWindow.brackets.test.FileFilters;
-                FileSystem      = testWindow.brackets.test.FileSystem;
-                FindInFiles     = testWindow.brackets.test.FindInFiles;
-                CommandManager  = testWindow.brackets.test.CommandManager;
-                $               = testWindow.$;
-
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-            });
-        });
-
-        afterLast(function () {
-            CommandManager  = null;
-            DocumentManager = null;
-            EditorManager   = null;
-            FileSystem      = null;
-            FindInFiles     = null;
-            $               = null;
-            testWindow      = null;
-            SpecRunnerUtils.closeTestWindow();
-        });
-
-        function openSearchBar(scope) {
-            // Make sure search bar from previous test has animated out fully
-            runs(function () {
-                waitsFor(function () {
-                    return $(".modal-bar").length === 0;
-                }, "search bar close");
-            });
-            runs(function () {
-                FindInFiles._doFindInFiles(scope);
-            });
-        }
-
-        function executeSearch(searchString) {
-            var $searchField = $(".modal-bar #find-group input");
-            $searchField.val(searchString).trigger("input");
-            SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $searchField[0]);
-            waitsFor(function () {
-                return FindInFiles._searchResults;
-            }, "Find in Files done");
-        }
-
-
-        it("should find all occurences in project", function () {
-            openSearchBar();
-            runs(function () {
-                executeSearch("foo");
-            });
-
-            runs(function () {
-                var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
-                expect(fileResults).toBeFalsy();
-
-                fileResults = FindInFiles._searchResults[testPath + "/foo.html"];
-                expect(fileResults).toBeTruthy();
-                expect(fileResults.matches.length).toBe(7);
-
-                fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
-                expect(fileResults).toBeTruthy();
-                expect(fileResults.matches.length).toBe(4);
-
-                fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
-                expect(fileResults).toBeTruthy();
-                expect(fileResults.matches.length).toBe(3);
-            });
-        });
-
-        it("should ignore binary files", function () {
-            var $dlg, actualMessage, expectedMessage,
-                exists = false,
-                done = false,
-                imageDirPath = testPath + "/images";
-
-            runs(function () {
-                // Set project to have only images
-                SpecRunnerUtils.loadProjectInTestWindow(imageDirPath);
-
-                // Verify an image exists in folder
-                var file = FileSystem.getFileForPath(testPath + "/images/icon_twitter.png");
-
-                file.exists(function (fileError, fileExists) {
-                    exists = fileExists;
-                    done = true;
-                });
-            });
-
-            waitsFor(function () {
-                return done;
-            }, "file.exists");
-
-            runs(function () {
-                expect(exists).toBe(true);
-                openSearchBar();
-            });
-
-            runs(function () {
-                // Launch filter editor
-                FileFilters.editFilter({ name: "", patterns: [] }, -1);
-
-                // Dialog should state there are 0 files in project
-                $dlg = $(".modal");
-                expectedMessage = StringUtils.format(Strings.FILTER_FILE_COUNT_ALL, 0, Strings.FIND_IN_FILES_NO_SCOPE);
-            });
-
-            // Message loads asynchronously, but dialog should evetually state: "Allows all 0 files in project"
-            waitsFor(function () {
-                actualMessage   = $dlg.find(".exclusions-filecount").text();
-                return (actualMessage === expectedMessage);
-            }, "display file count");
-
-            runs(function () {
-                // Dismiss filter dialog
-                $dlg.find(".btn.primary").click();
-
-                // Close search bar
-                var $searchField = $(".modal-bar #find-group input");
-                SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keydown", $searchField[0]);
-            });
-
-            runs(function () {
-                // Set project back to main test folder
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-            });
-        });
-
-        it("should find all occurences in folder", function () {
-            var dirEntry = FileSystem.getDirectoryForPath(testPath + "/css/");
-            openSearchBar(dirEntry);
-            runs(function () {
-                executeSearch("foo");
-            });
-
-            runs(function () {
-                var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
-                expect(fileResults).toBeFalsy();
-
-                fileResults = FindInFiles._searchResults[testPath + "/foo.html"];
-                expect(fileResults).toBeFalsy();
-
-                fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
-                expect(fileResults).toBeFalsy();
-
-                fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
-                expect(fileResults).toBeTruthy();
-                expect(fileResults.matches.length).toBe(3);
-            });
-        });
-
-        it("should find all occurences in single file", function () {
-            var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
-            openSearchBar(fileEntry);
-            runs(function () {
-                executeSearch("foo");
-            });
-
-            runs(function () {
-                var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
-                expect(fileResults).toBeFalsy();
-
-                fileResults = FindInFiles._searchResults[testPath + "/foo.html"];
-                expect(fileResults).toBeFalsy();
-
-                fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
-                expect(fileResults).toBeTruthy();
-                expect(fileResults.matches.length).toBe(4);
-
-                fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
-                expect(fileResults).toBeFalsy();
-            });
-        });
-
-        it("should find start and end positions", function () {
-            var filePath = testPath + "/foo.js",
-                fileEntry = FileSystem.getFileForPath(filePath);
-
-            openSearchBar(fileEntry);
-            runs(function () {
-                executeSearch("callFoo");
-            });
-
-            runs(function () {
-                var fileResults = FindInFiles._searchResults[filePath];
-                expect(fileResults).toBeTruthy();
-                expect(fileResults.matches.length).toBe(1);
-
-                var match = fileResults.matches[0];
-                expect(match.start.ch).toBe(13);
-                expect(match.start.line).toBe(6);
-                expect(match.end.ch).toBe(20);
-                expect(match.end.line).toBe(6);
-            });
-        });
-
-        it("should dismiss dialog and show panel when there are results", function () {
-            var filePath = testPath + "/foo.js",
-                fileEntry = FileSystem.getFileForPath(filePath);
-
-            openSearchBar(fileEntry);
-            runs(function () {
-                executeSearch("callFoo");
-            });
-
-            waitsFor(function () {
-                return ($(".modal-bar").length === 0);
-            }, "search bar close");
-
-            runs(function () {
-                var fileResults = FindInFiles._searchResults[filePath];
-                expect(fileResults).toBeTruthy();
-                expect($("#search-results").is(":visible")).toBeTruthy();
-                expect($(".modal-bar").length).toBe(0);
-            });
-        });
-
-        it("should keep dialog and not show panel when there are no results", function () {
-            var filePath = testPath + "/bar.txt",
-                fileEntry = FileSystem.getFileForPath(filePath);
-
-            openSearchBar(fileEntry);
-            runs(function () {
-                executeSearch("abcdefghi");
-            });
-
-            waitsFor(function () {
-                return (FindInFiles._searchResults);
-            }, "search complete");
-
-            runs(function () {
-                var result, resultFound = false;
-
-                // verify _searchResults Object is empty
-                for (result in FindInFiles._searchResults) {
-                    if (FindInFiles._searchResults.hasOwnProperty(result)) {
-                        resultFound = true;
-                    }
-                }
-                expect(resultFound).toBe(false);
-
-                expect($("#search-results").is(":visible")).toBeFalsy();
-                expect($(".modal-bar").length).toBe(1);
-
-                // Close search bar
-                var $searchField = $(".modal-bar #find-group input");
-                SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keydown", $searchField[0]);
-            });
-        });
-
-        it("should open file in editor and select text when a result is clicked", function () {
-            var filePath = testPath + "/foo.html",
-                fileEntry = FileSystem.getFileForPath(filePath);
-
-            openSearchBar(fileEntry);
-            runs(function () {
-                executeSearch("foo");
-            });
-
-            runs(function () {
-                // Verify no current document
-                var editor = EditorManager.getActiveEditor();
-                expect(editor).toBeFalsy();
-
-                // Get panel
-                var $searchResults = $("#search-results");
-                expect($searchResults.is(":visible")).toBeTruthy();
-
-                // Get list in panel
-                var $panelResults = $searchResults.find("table.bottom-panel-table tr");
-                expect($panelResults.length).toBe(8);   // 7 hits + 1 file section
-
-                // First item in list is file section
-                expect($($panelResults[0]).hasClass("file-section")).toBeTruthy();
-
-                // Click second item which is first hit
-                var $firstHit = $($panelResults[1]);
-                expect($firstHit.hasClass("file-section")).toBeFalsy();
-                $firstHit.click();
-
-                // Verify current document
-                editor = EditorManager.getActiveEditor();
-                expect(editor.document.file.fullPath).toEqual(filePath);
-
-                // Verify selection
-                expect(editor.getSelectedText().toLowerCase() === "foo");
-                CommandManager.execute(Commands.FILE_CLOSE_ALL);
-            });
-        });
-
-        it("should open file in working set when a result is double-clicked", function () {
-            var filePath = testPath + "/foo.js",
-                fileEntry = FileSystem.getFileForPath(filePath);
-
-            openSearchBar(fileEntry);
-            runs(function () {
-                executeSearch("foo");
-            });
-
-            runs(function () {
-                // Verify document is not yet in working set
-                expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
-
-                // Get list in panel
-                var $panelResults = $("#search-results table.bottom-panel-table tr");
-                expect($panelResults.length).toBe(5);   // 4 hits + 1 file section
-
-                // Double-click second item which is first hit
-                var $firstHit = $($panelResults[1]);
-                expect($firstHit.hasClass("file-section")).toBeFalsy();
-                $firstHit.dblclick();
-
-                // Verify document is now in working set
-                expect(DocumentManager.findInWorkingSet(filePath)).not.toBe(-1);
-                CommandManager.execute(Commands.FILE_CLOSE_ALL);
-            });
-        });
-
-        it("should update results when a result in a file is edited", function () {
-            var filePath = testPath + "/foo.html",
-                fileEntry = FileSystem.getFileForPath(filePath),
-                panelListLen = 8,   // 7 hits + 1 file section
-                $panelResults;
-
-            openSearchBar(fileEntry);
-            runs(function () {
-                executeSearch("foo");
-            });
-
-            runs(function () {
-                // Verify document is not yet in working set
-                expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
-
-                // Get list in panel
-                $panelResults = $("#search-results table.bottom-panel-table tr");
-                expect($panelResults.length).toBe(panelListLen);
-
-                // Double-click second item which is first hit
-                var $firstHit = $($panelResults[1]);
-                expect($firstHit.hasClass("file-section")).toBeFalsy();
-                $firstHit.dblclick();
-
-                // Verify current document & selection
-                var editor = EditorManager.getActiveEditor();
-                expect(editor.document.file.fullPath).toEqual(filePath);
-                expect(editor.getSelectedText().toLowerCase() === "foo");
-
-                // Edit text to remove hit from file
-                var sel = editor.getSelection();
-                editor.document.replaceRange("Bar", sel.start, sel.end);
-            });
-
-            // Panel is updated asynchronously
-            waitsFor(function () {
-                $panelResults = $("#search-results table.bottom-panel-table tr");
-                return ($panelResults.length < panelListLen);
-            }, "Results panel updated");
-
-            runs(function () {
-                // Verify list automatically updated
-                expect($panelResults.length).toBe(panelListLen - 1);
-
-                CommandManager.execute(Commands.FILE_CLOSE_ALL);
             });
         });
     });

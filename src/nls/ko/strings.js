@@ -35,8 +35,8 @@ define({
     "NOT_FOUND_ERR": "파일을 찾을 수 없습니다.",
     "NOT_READABLE_ERR": "파일을 읽을 수 없습니다.",
     "NO_MODIFICATION_ALLOWED_ERR": "대상 디렉토리를 변경할 수 없습니다.",
-    "NO_MODIFICATION_ALLOWED_ERR_FILE": "파일을 수정할 수있는 권한이 없습니다.",
-    "FILE_EXISTS_ERR": "파일 또는 디렉터리가 이미 있습니다.",
+    "NO_MODIFICATION_ALLOWED_ERR_FILE": "파일을 수정할 수 있는 권한이 없습니다.",
+    "FILE_EXISTS_ERR": "파일 또는 디렉토리가 이미 있습니다.",
     "FILE": "파일",
     "DIRECTORY": "디렉토리",
 
@@ -113,7 +113,7 @@ define({
     // Generic dialog/button labels
     "OK": "확인",
     "CANCEL": "취소",
-    "DONT_SAVE": "저장하지 않",
+    "DONT_SAVE": "저장하지 않음",
     "SAVE": "저장",
     "DELETE": "삭제",
     "BUTTON_YES": "예",
@@ -134,7 +134,7 @@ define({
     "BUTTON_REGEXP_HINT": "정규식",
 
     "OPEN_FILE": "파일 열기",
-    "SAVE_FILE_AS": "다른이름으로 저장",
+    "SAVE_FILE_AS": "다른 이름으로 저장",
     "CHOOSE_FOLDER": "폴더 선택",
 
     "RELEASE_NOTES": "릴리즈 노트",
@@ -321,12 +321,12 @@ define({
     "RELAUNCH_CHROME": "Chrome 재시작",
     "ABOUT": "이 소프트웨어에 대해",
     "CLOSE": "닫기",
-    "ABOUT_TEXT_LINE1": "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3": "Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
+    "ABOUT_TEXT_LINE1": "스프린트 {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE3": "제3자 소프트웨어의 사용에 관한 공지, 이용 약관은 <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a>에 있으며 기록으로써 이곳에 존재합니다.",
     "ABOUT_TEXT_LINE4": "문서와 소스 코드는 <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>에서 구할 수 있습니다.",
     "ABOUT_TEXT_LINE5": "\u2764 및 JavaScript를 사용하여 다음의 사람에 의해 작성되었습니다 :",
     "ABOUT_TEXT_LINE6": "많은 사람들 (단, 인물 데이터 로딩에 문제가 발생하고 있습니다).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS": "웹 플랫폼 문서와 웹 플랫폼 로고는 크리에이티브 커먼즈 저작자표시 라이선스, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a> 로 배포됩니다.",
     "UPDATE_NOTIFICATION_TOOLTIP": "{APP_NAME} 새로운 빌드를 사용할 수 있습니다. 자세한 내용은 여기를 클릭하세요.",
     "UPDATE_AVAILABLE_TITLE": "사용 가능한 업데이트가 있습니다",
     "UPDATE_MESSAGE": "{APP_NAME} 새로운 빌드를 사용할 수 있습니다. 새로운 기능의 일부를 다음에 소개합니다 :",
@@ -338,7 +338,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED": "기본 URL에는 「{0}」과 같은 검색어를 사용할 수 없습니다.",
     "BASEURL_ERROR_HASH_DISALLOWED": "기본 URL에는 「{0}」와 같은 해시 기호는 사용할 수 없습니다.",
     "BASEURL_ERROR_INVALID_CHAR": "「{0}」와 같은 특수 문자는 퍼센트로 인코딩해야합니다.",
-    "BASEURL_ERROR_UNKNOWN_ERROR": "기본 URL 구문 분석하는 동안 알 수없는 오류가 발생했습니다",
+    "BASEURL_ERROR_UNKNOWN_ERROR": "기본 URL의 구문을 분석하는 동안 알 수 없는 오류가 발생했습니다",
     
     // CSS Quick Edit
     "BUTTON_NEW_RULE": "새 규칙",
@@ -348,7 +348,7 @@ define({
     "UPDATE": "업데이트",
     "REMOVE": "삭제",
     "OVERWRITE": "덮어쓰기",
-    "CANT_REMOVE_DEV": "dev 폴더 기능은 수동으로 제거해야합니다.",
+    "CANT_REMOVE_DEV": "dev 폴더 기능은 수동으로 제거해야 합니다.",
     "CANT_UPDATE": "업데이트가 이 버전의 {APP_NAME}과 호환되지 않습니다.",
     "INSTALL_EXTENSION_TITLE": "확장 기능 설치",
     "UPDATE_EXTENSION_TITLE": "확장 기능 업데이트",
@@ -480,3 +480,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK": "상세정보"
 });
+
+/* Last translated for 46de60683124768aa7f074aa3168f99d23f6c016 */

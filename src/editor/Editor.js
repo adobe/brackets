@@ -181,14 +181,14 @@ define(function (require, exports, module) {
     var _instances = [];
     
     /**
-     * @constructor
-     *
      * Creates a new CodeMirror editor instance bound to the given Document. The Document need not have
      * a "master" Editor realized yet, even if makeMasterEditor is false; in that case, the first time
      * an edit occurs we will automatically ask EditorManager to create a "master" editor to render the
      * Document modifiable.
      *
      * ALWAYS call destroy() when you are done with an Editor - otherwise it will leak a Document ref.
+     *
+     * @constructor
      *
      * @param {!Document} document
      * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the (secret) "master"
@@ -381,6 +381,12 @@ define(function (require, exports, module) {
             var nonWS = lineStr.search(/\S/);
 
             if (nonWS === -1 || nonWS >= cursor.ch) {
+                if (nonWS === -1) {
+                    // if the line is all whitespace, move the cursor to the end of the line
+                    // before indenting so that embedded whitespace such as indents are not
+                    // orphaned to the right of the electric char being inserted
+                    this.setCursorPos(cursor.line, this.document.getLine(cursor.line).length);
+                }
                 // Need to do the auto-indent on a timeout to ensure
                 // the keypress is handled before auto-indenting.
                 // This is the same timeout value used by the
@@ -1610,7 +1616,9 @@ define(function (require, exports, module) {
         // PopUpManager.removePopUp() is called either directly by this closure, or by
         // PopUpManager as a result of another popup being invoked.
         function _removeMessagePopover() {
-            PopUpManager.removePopUp(self._$messagePopover);
+            if (self._$messagePopover) {
+                PopUpManager.removePopUp(self._$messagePopover);
+            }
         }
 
         function _addListeners() {
@@ -1700,7 +1708,7 @@ define(function (require, exports, module) {
                 $(self).on("scroll.msgbox", _removeMessagePopover);
 
                 // Animate closed -- which includes delay to show message
-                AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose", 600)
+                AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose", 6000)
                     .done(_removeMessagePopover);
             }
         });

@@ -80,7 +80,6 @@ define(function (require, exports, module) {
     function InlineTextEditor() {
         InlineWidget.call(this);
 
-        /* @type {Editor}*/
         this.editor = null;
         
         // We need to set this as a capture handler so CodeMirror doesn't handle Esc before we see it.
@@ -92,6 +91,7 @@ define(function (require, exports, module) {
     InlineTextEditor.prototype.parentClass = InlineWidget.prototype;
     
     InlineTextEditor.prototype.$wrapper = null;
+    /** @type {Editor} */
     InlineTextEditor.prototype.editor = null;
     InlineTextEditor.prototype.$editorHolder = null;
     InlineTextEditor.prototype.$header = null;

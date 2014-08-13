@@ -37,9 +37,17 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "El directorio de destino no se puede modificar.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Los permisos no permiten hacer modificaciones.",
     "CONTENTS_MODIFIED_ERR"             : "El archivo fue modificado fuera de {APP_NAME}.",
+    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} actualmente solo soporta archivos codificados como UTF-8.",
     "FILE_EXISTS_ERR"                   : "El archivo ya existe.",
     "FILE"                              : "archivo",
+    "FILE_TITLE"                        : "archivo",
     "DIRECTORY"                         : "directorio",
+    "DIRECTORY_TITLE"                   : "directorio",
+    "DIRECTORY_NAMES_LEDE"              : "nombres de directorios",
+    "FILENAMES_LEDE"                    : "nombres de archivos",
+    "FILENAME"                          : "nombre de archivo",
+    "DIRECTORY_NAME"                    : "nombre de directorio",
+    
     
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error abriendo el proyecto",
@@ -48,26 +56,26 @@ define({
     "READ_DIRECTORY_ENTRIES_ERROR"      : "Ha ocurrido un error al leer los contenidos del directorio <span class='dialog-filename'>{0}</span>. (error {1})",
 
     // File open/save error string
-    "ERROR_OPENING_FILE_TITLE"          : "Error abriendo archivo",
+    "ERROR_OPENING_FILE_TITLE"          : "Error abriendo el archivo",
     "ERROR_OPENING_FILE"                : "Ha ocurrido un error al intentar abrir el archivo <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_OPENING_FILES"               : "Ha ocurrido un error al intentar abrir los siguientes archivos:",
     "ERROR_RELOADING_FILE_TITLE"        : "Error recargando cambios desde disco",
     "ERROR_RELOADING_FILE"              : "Ha ocurrido un error al intentar recargar el archivo <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_SAVING_FILE_TITLE"           : "Error guardando archivo",
+    "ERROR_SAVING_FILE_TITLE"           : "Error guardando el archivo",
     "ERROR_SAVING_FILE"                 : "Ha ocurrido un error al intentar guardar el archivo <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "Error renombrando archivo",
-    "ERROR_RENAMING_FILE"               : "Ha ocurrido un error al intentar renombrar el archivo <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_DELETING_FILE_TITLE"         : "Error eliminando archivo",
-    "ERROR_DELETING_FILE"               : "Ha ocurrido un error al intentar eliminar el archivo <span class='dialog-filename'>{0}</span>. {1}",
-    "INVALID_FILENAME_TITLE"            : "Nombre de {0} inválido",
-    "INVALID_FILENAME_MESSAGE"          : "Los nombres de archivo no pueden contener los siguientes caracteres: {0} o usar palabras reservadas del sistema",
-    "FILE_ALREADY_EXISTS"               : "El {0} <span class='dialog-filename'>{0}</span> ya existe.",
+    "ERROR_RENAMING_FILE_TITLE"         : "Error renombrando el {0}",
+    "ERROR_RENAMING_FILE"               : "Ha ocurrido un error al intentar renombrar el {2} <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_DELETING_FILE_TITLE"         : "Error eliminando el {0}",
+    "ERROR_DELETING_FILE"               : "Ha ocurrido un error al intentar eliminar el {2} <span class='dialog-filename'>{0}</span>. {1}",
+    "INVALID_FILENAME_TITLE"            : "{0} inválido",
+    "INVALID_FILENAME_MESSAGE"          : "Los {0} no puede utilizar ninguna palabra reservada por el sistema, terminar con puntos (.) o utilizar cualquiera de los siguientes caracteres: <code class='emphasized'>{1}</code>",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "Ya existe un archivo o directorio con el nombre <span class='dialog-filename'>{0}</span>.",
     "ERROR_CREATING_FILE_TITLE"         : "Error creando {0}",
     "ERROR_CREATING_FILE"               : "Ha ocurrido un error al intentar crear el {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Error leyendo las preferencias",
-    "ERROR_PREFS_CORRUPT"               : "El archivo de preferencias no tiene el formato JSON válido. El archivo se abrira para que pueda correguir el formato. Luego deberá reiniciar {APP_NAME} para que los cambios surtan efecto.",
+    "ERROR_PREFS_CORRUPT"               : "El archivo de preferencias no tiene el formato JSON válido. El archivo se abrirá para que pueda corregir el formato. Luego deberá reiniciar {APP_NAME} para que los cambios surtan efecto.",
     
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Vaya... parece que {APP_NAME} todavía no funciona en navegadores.",
@@ -90,7 +98,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Necesitas especificar una URL base en este proyecto para poder iniciar Vista Previa en Vivo con archivos de servidor.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para Vista Previa en Vivo. Vuelve a intentarlo, por favor.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a la Vista Previa en Vivo!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista Previa en Vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarollo en Vivo sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br /><br />(No volverás a ver este mensaje.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista Previa en Vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarrollo en Vivo sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br /><br />(No volverás a ver este mensaje.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Para más información, consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Vista Previa en Vivo</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Vista Previa en Vivo",
@@ -117,6 +125,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> ha sido eliminado, pero tiene cambios sin guardar en {APP_NAME}.<br /><br />¿Quieres conservar tus cambios?",
     
     // Generic dialog/button labels
+    "DONE"                              : "Aceptar",
     "OK"                                : "Aceptar",
     "CANCEL"                            : "Cancelar",
     "DONT_SAVE"                         : "No guardar",
@@ -131,8 +140,10 @@ define({
     "FIND_RESULT_COUNT"                 : "{0} resultados",
     "FIND_RESULT_COUNT_SINGLE"          : "1 resultado",
     "FIND_NO_RESULTS"                   : "No hay resultados",
+    "FIND_QUERY_PLACEHOLDER"            : "Buscar\u2026",
     "REPLACE_PLACEHOLDER"               : "Reemplazar con\u2026",
     "BUTTON_REPLACE_ALL"                : "Todo\u2026",
+    "BUTTON_REPLACE_ALL_IN_FILES"       : "Reemplazar\u2026",
     "BUTTON_REPLACE"                    : "Reemplazar",
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
@@ -140,6 +151,9 @@ define({
     "BUTTON_PREV_HINT"                  : "Anterior coincidencia",
     "BUTTON_CASESENSITIVE_HINT"         : "Sensible a mayúsculas",
     "BUTTON_REGEXP_HINT"                : "Expresión regular",
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Reemplazar sin deshacer",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Dado que hay más de {0} archivos que necesitan ser modificados, {APP_NAME} modificará los archivos no abiertos en el disco.<br />Por lo tanto, no será posible deshacer los reemplazos en esos archivos.",
+    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Reemplazar sin deshacer",
     
     "OPEN_FILE"                         : "Abrir archivo",
     "SAVE_FILE_AS"                      : "Guardar archivo",
@@ -149,15 +163,14 @@ define({
     "NO_UPDATE_TITLE"                   : "¡Estás actualizado!",
     "NO_UPDATE_MESSAGE"                 : "Estás utilizando la última versión de {APP_NAME}.",
     
-    // Replace All (in single file)
-    "FIND_REPLACE_TITLE_PART1"          : "Reemplazar \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" con \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+    // Find and Replace 
+    "FIND_REPLACE_TITLE_LABEL"          : "Reemplazar",
+    "FIND_REPLACE_TITLE_WITH"           : "con",
+    "FIND_TITLE_LABEL"                  : "Se encontró",
+    "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} en {3}",
     
     // Find in Files
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" encontrado",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} en {3} {4}",
+    "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "en <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "en el proyecto",
     "FIND_IN_FILES_ZERO_FILES"          : "El filtro excluye todos los archivos {0}",
@@ -169,17 +182,22 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click para expandir/colapsar todo",
+    "REPLACE_IN_FILES_ERRORS_TITLE"     : "Errores al reemplazar",
+    "REPLACE_IN_FILES_ERRORS"           : "Los siguientes archivos no fueron modificados porque cambiaron después de realizar la búsqueda o no pueden ser escritos.",
+    
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error obteniendo información sobre actualizaciones",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a internet y vuelve a intentarlo.",
     
     // File exclusion filters
-    "NO_FILE_FILTER"                    : "Excluir archivos\u2026",
+    "NEW_FILE_FILTER"                   : "Nuevo conjunto de filtros\u2026",
+    "CLEAR_FILE_FILTER"                 : "No excluir archivos",
+    "NO_FILE_FILTER"                    : "No hay archivos excluidos",
+    "EXCLUDE_FILE_FILTER"               : "Excluir {0}",
     "EDIT_FILE_FILTER"                  : "Editar\u2026",
-    "FILE_FILTER_DIALOG"                : "Editar filtro",
+    "FILE_FILTER_DIALOG"                : "Editar conjunto de filtros",
     "FILE_FILTER_INSTRUCTIONS"          : "Excluir archivos y carpetas que coincidan con alguna de las siguientes cadenas / subcadenas o <a href='{0}' title='{0}'>comodines</a>. Ingrese una cadena por línea.",
-    "FILE_FILTER_LIST_PREFIX"           : "excepto",
+    "FILTER_NAME_PLACEHOLDER"           : "Nombrar este conjunto de filtros (opcional)",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "y {0} más",
-    
     "FILTER_COUNTING_FILES"             : "Contando archivos\u2026",
     "FILTER_FILE_COUNT"                 : "Permite {0} de {1} archivos {2}",
     "FILTER_FILE_COUNT_ALL"             : "Permite todos los {0} archivos {1}",
@@ -230,6 +248,7 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensiones deshabilitadas",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "SOB",
+    "STATUSBAR_DEFAULT_LANG"                : "(por defecto)",
     
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "Problemas de {0}",
@@ -266,7 +285,8 @@ define({
     "CMD_FILE_SAVE"                       : "Guardar",
     "CMD_FILE_SAVE_ALL"                   : "Guardar todo",
     "CMD_FILE_SAVE_AS"                    : "Guardar como\u2026",
-    "CMD_LIVE_FILE_PREVIEW"               : "Vista Previa en Vivo",
+    "CMD_LIVE_FILE_PREVIEW"               : "Vista previa en vivo",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Recargar vista previa en vivo",
     "CMD_PROJECT_SETTINGS"                : "Configuración del proyecto\u2026",
     "CMD_FILE_RENAME"                     : "Renombrar",
     "CMD_FILE_DELETE"                     : "Eliminar",
@@ -305,7 +325,6 @@ define({
     // Search menu commands
     "FIND_MENU"                           : "Buscar",
     "CMD_FIND"                            : "Buscar",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Buscar\u2026",
     "CMD_FIND_NEXT"                       : "Buscar siguiente",
     "CMD_FIND_PREVIOUS"                   : "Buscar anterior",
     "CMD_FIND_ALL_AND_SELECT"             : "Buscar todo y seleccionar",
@@ -315,6 +334,9 @@ define({
     "CMD_FIND_IN_SELECTED"                : "Buscar en el archivo/directorio seleccionado",
     "CMD_FIND_IN_SUBTREE"                 : "Buscar en\u2026",
     "CMD_REPLACE"                         : "Reemplazar",
+    "CMD_REPLACE_IN_FILES"                : "Reemplazar en archivos",
+    "CMD_REPLACE_IN_SELECTED"             : "Reemplazar en el archivo/directorio seleccionado",
+    "CMD_REPLACE_IN_SUBTREE"              : "Reemplazar en\u2026",
     
     // View menu commands
     "VIEW_MENU"                           : "Ver",
@@ -334,13 +356,14 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por Nombre",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ordenar por Tipo",
     "CMD_SORT_WORKINGSET_AUTO"            : "Ordenación automática",
+    "CMD_THEMES"                          : "Temas\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navegación",
     "CMD_QUICK_OPEN"                      : "Apertura rápida",
     "CMD_GOTO_LINE"                       : "Ir a la línea",
     "CMD_GOTO_DEFINITION"                 : "Búsqueda rápida de definición",
-    "CMD_GOTO_FIRST_PROBLEM"              : "Ir al primer Error/Advertencia",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Ir al primer error/advertencia",
     "CMD_TOGGLE_QUICK_EDIT"               : "Edición rápida",
     "CMD_TOGGLE_QUICK_DOCS"               : "Documentación rápida",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Coincidencia anterior",
@@ -362,6 +385,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Notas de la versión",
     "CMD_GET_INVOLVED"                    : "Involúcrese",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Abrir carpeta de extensiones",
+    "CMD_HOMEPAGE"                        : "Página principal de {APP_TITLE}",
     "CMD_TWITTER"                         : "{TWITTER_NAME} en Twitter",
     "CMD_ABOUT"                           : "Acerca de {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Abrir archivo de preferencias",
@@ -376,6 +400,7 @@ define({
     "ABOUT"                                : "Acerca de\u2026",
     "CLOSE"                                : "Cerrar",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_BUILD_TIMESTAMP"           : "construido el: ",
     "ABOUT_TEXT_LINE3"                     : "Los avisos, términos y condiciones pertenecientes a software de terceros se encuentran en <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> y se incluyen aquí como referencia.",
     "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Hecho con \u2764 y JavaScript por:",
@@ -394,6 +419,12 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Los caracteres especiales como '{0}' deben codificarse en formato %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Error desconocido analizando la URL base",
     
+    // Strings for themes-settings.html and themes-general.html 
+    "CURRENT_THEME"                        : "Tema actual",
+    "USE_THEME_SCROLLBARS"                 : "Usar scrollbars del tema",
+    "FONT_SIZE"                            : "Tamaño de letra",
+    "FONT_FAMILY"                          : "Tipo de letra",
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nueva regla",
     
@@ -415,6 +446,8 @@ define({
     "CANCELING_INSTALL"                    : "Cancelando\u2026",
     "CANCELING_HUNG"                       : "La instalación está tardando demasiado; cancelando. Puede que se haya producido un error interno.",
     "INSTALL_CANCELED"                     : "Instalación cancelada.",
+    "VIEW_COMPLETE_DESCRIPTION"            : "Ver descripción completa",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "Ver descripción corta",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "El contenido descargado no es un archivo zip válido.",
     "INVALID_PACKAGE_JSON"                 : "El archivo package.json no es válido (error: {0}).",
@@ -440,7 +473,11 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Gestor de extensiones",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "No se pudo acceder al registro de extensiones. Vuelve a intentarlo más tarde, por favor.",
+    "INSTALL_EXTENSION_DRAG"               : "Arrastrar el .zip aquí ó",
+    "INSTALL_EXTENSION_DROP"               : "Soltar el .zip para instalarlo",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "La instalación/actualización fue abortada por los siguientes errores:",
     "INSTALL_FROM_URL"                     : "Instalar desde URL\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "Validando\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Fecha",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Esta extensión necesita una versión más actualizada de {APP_NAME}.",
@@ -452,6 +489,9 @@ define({
     "EXTENSION_ERROR"                      : "Error en la extensión",
     "EXTENSION_KEYWORDS"                   : "Palabras clave",
     "EXTENSION_INSTALLED"                  : "Instalada",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "Traducida a {0} idiomas, incluyendo el tuyo",
+    "EXTENSION_TRANSLATED_GENERAL"         : "Traducida a {0} idiomas",
+    "EXTENSION_TRANSLATED_LANGS"           : "Esta extension fue traducida a los siguientes idiomas: {0}",
     "EXTENSION_UPDATE_INSTALLED"           : "La actualización de esta extensión se ha descargado y se instalará luego de recargar {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Buscar",
     "EXTENSION_MORE_INFO_LINK"             : "Más",
@@ -532,6 +572,8 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Saltar a la definición",
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostrar sugerencias de parámetros",
     "NO_ARGUMENTS"                              : "<no hay parámetros>",
+    "DETECTED_EXCLUSION_TITLE"                  : "Problema de inferencia con un archivo JavaScript",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets se encontró con problemas procesando:<br><br>{0}<br><br>Este archivo no volverá a ser procesado para las sugerencias de código y saltar a la definición. Para reactivarlo, abra <code>.brackets.json</code> en su proyecto y elimine el archivo de jscodehints.detectedExclusions.",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -546,4 +588,4 @@ define({
     "DOCS_MORE_LINK"                            : "Más"
 });
 
-/* Last translated for e47dc5b16ec4bfabacfdb5c62f67a94feca85d50 */
+/* Last translated for 75c811dfa38164b7e9bd3921dd630d40720e9c2a */

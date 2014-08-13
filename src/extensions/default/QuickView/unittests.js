@@ -208,7 +208,27 @@ define(function (require, exports, module) {
                     checkGradientAtPos(expectedGradient4, 90, 36);   // test parameters with 2 levels of nested parens
                 });
             });
-
+            
+            it("Should show linear gradient preview for those with colon or space before", function () {
+                runs(function () {
+                    var expectedGradient = "linear-gradient(to bottom, black 0%, white 100%)";
+                    checkGradientAtPos(expectedGradient, 169, 25);   // space colon space
+                    checkGradientAtPos(expectedGradient, 170, 25);   // colon space
+                    checkGradientAtPos(expectedGradient, 171, 25);   // space colon
+                    checkGradientAtPos(expectedGradient, 172, 25);   // colon
+                });
+            });
+            
+            it("Should show radial gradient preview for those with colon or space before", function () {
+                runs(function () {
+                    var expectedGradient = "radial-gradient(red, white 50%, blue 100%)";
+                    checkGradientAtPos(expectedGradient, 176, 25);   // space colon space
+                    checkGradientAtPos(expectedGradient, 177, 25);   // colon space
+                    checkGradientAtPos(expectedGradient, 178, 25);   // space colon
+                    checkGradientAtPos(expectedGradient, 179, 25);   // colon
+                });
+            });
+            
             it("Should show linear gradient preview for those with w3c standard syntax (no prefix)", function () {
                 runs(function () {
                     checkGradientAtPos("linear-gradient(#333, #CCC)",                  99, 50);
@@ -400,6 +420,12 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("Should show image preview for URIs containing quotes", function () {
+                checkImagePathAtPos("img/don't.png", 183, 26);  // url() containing '
+                checkImagePathAtPos("img/don't.png", 184, 26);  // url("") containing '
+                checkImageDataAtPos("data:image/svg+xml;utf8, <svg version='1.1' xmlns='http://www.w3.org/2000/svg'></svg>", 185, 26);  // data url("") containing '
+            });
+            
             it("Should show image preview for a data URI inside url()", function () {
                 runs(function () {
                     checkImageDataAtPos("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAABq0lEQVQoU11RPUgcURD+Zt/unnrcCf4QIugRMcS7a2xjmmArRlRIFRBFgrVtGgmBRFCwTBoLsQiBGMxiJ4iksLRSFEzQRC2EAwm5g727feP3LpyFy1tm5s33zcz7RnDvG4x0zFgMJRY/jiewhy/w8FKSJkyaTuG7Fumvi+ARbQiLpcMDvH/Qj1S6Bf6vI5SxKPUG4fGm5kMf6wr08MKHILCKldoZlk0OIeuHjNuDBBcNAqvvENTLwKii1ZFoF/7G2PQDpNo8dFUt1AcSGfymz42PVfI8ghxht1bHh9MpucCiegMFdJoUOtSD+MxLPtI5T/GaHWhg+NjRk3G5utPikwb5bjzhq40JSChs6Sx1eOYAojg/fCFv7yvnBLGCLPMqxS2dZrtXnDthhySuYebnpFw3ST2RtmUVIx5z1sIKdX9qgDcOTJAj7WsNa8eTUhrY0Gwqg2FldeZiduH5r9JHvqEDigzDS/4VJvYJfMh9VLmbNO9+s9hNg5D/qjkJ8I6uW0yFtkrwHydCg+AhVgsp/8Pnu00XI+0jYJ7gjANRiEsmQ3aNOXuJhG035i1QA6g+uONCrgAAAABJRU5ErkJggg==",  159, 26);

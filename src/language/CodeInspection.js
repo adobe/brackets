@@ -152,7 +152,7 @@ define(function (require, exports, module) {
     function _unregisterAll() {
         _providers = {};
     }
-
+    
     /**
      * Returns a list of provider for given file path, if available.
      * Decision is made depending on the file extension.
@@ -273,7 +273,7 @@ define(function (require, exports, module) {
      * @param {boolean} aborted - true if any provider returned a result with the 'aborted' flag set
      */
     function updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted) {
-        var message;
+        var message, tooltip;
 
         if (providersReportingProblems.length === 1) {
             // don't show a header if there is only one provider available for this file type
@@ -288,9 +288,6 @@ define(function (require, exports, module) {
 
                 message = StringUtils.format(Strings.MULTIPLE_ERRORS, providersReportingProblems[0].name, numProblems);
             }
-
-            $problemsPanel.find(".title").text(message);
-            StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", message);
         } else if (providersReportingProblems.length > 1) {
             $problemsPanelTable.find(".inspector-section").show();
 
@@ -299,9 +296,13 @@ define(function (require, exports, module) {
             }
 
             message = StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, numProblems);
-            $problemsPanel.find(".title").text(message);
-            StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", message);
+        } else {
+            return;
         }
+
+        $problemsPanel.find(".title").text(message);
+        tooltip = StringUtils.format(Strings.STATUSBAR_CODE_INSPECTION_TOOLTIP, message);
+        StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", tooltip);
     }
 
     /**
@@ -474,7 +475,7 @@ define(function (require, exports, module) {
         if (_enabled) {
             // register our event listeners
             $(DocumentManager)
-                .on("currentDocumentChange.codeInspection", function () {
+                .on("currentDocumentChange.codeInspection currentDocumentLanguageChanged.codeInspection", function () {
                     run();
                 })
                 .on("documentSaved.codeInspection documentRefreshed.codeInspection", function (event, document) {

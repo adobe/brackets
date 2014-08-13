@@ -320,7 +320,7 @@ define(function (require, exports, module) {
                     }
                 }
                 
-                animationRequest = window.webkitRequestAnimationFrame(doRedraw);
+                animationRequest = window.requestAnimationFrame(doRedraw);
             }
             
             function onMouseMove(e) {
@@ -337,7 +337,7 @@ define(function (require, exports, module) {
                 e.preventDefault();
                 
                 if (animationRequest === null) {
-                    animationRequest = window.webkitRequestAnimationFrame(doRedraw);
+                    animationRequest = window.requestAnimationFrame(doRedraw);
                 }
             }
             

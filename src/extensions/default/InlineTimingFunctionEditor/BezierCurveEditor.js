@@ -160,11 +160,11 @@ define(function (require, exports, module) {
                 setting;
 
             var defaultSettings = {
-                handleTimingFunction: "#1461FC",
+                handleTimingFunction: "#2893ef",
                 handleThickness: 0.008,
                 vBorderThickness: 0.02,
                 hBorderThickness: 0.01,
-                bezierTimingFunction: "#1461FC",
+                bezierTimingFunction: "#2893ef",
                 bezierThickness: 0.03
             };
 
@@ -305,7 +305,7 @@ define(function (require, exports, module) {
             bezierEditor._commitTimingFunction();
 
             bezierEditor._updateCanvas();
-            animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
+            animationRequest = window.requestAnimationFrame(mouseMoveRedraw);
         }
 
         // This is a dragging state, but left button is no longer down, so mouse
@@ -336,7 +336,7 @@ define(function (require, exports, module) {
             .concat(bezierEditor.bezierCanvas.offsetsToCoordinates(bezierEditor.P2));
 
         if (!animationRequest) {
-            animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
+            animationRequest = window.requestAnimationFrame(mouseMoveRedraw);
         }
     }
 

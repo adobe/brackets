@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     var CommandManager,      // loaded from brackets.test
         Commands,            // loaded from brackets.test
         EditorManager,       // loaded from brackets.test
+        DocumentModule,      // loaded from brackets.test
         DocumentManager,     // loaded from brackets.test
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
     
@@ -226,6 +227,7 @@ define(function (require, exports, module) {
                 CommandManager      = testWindow.brackets.test.CommandManager;
                 Commands            = testWindow.brackets.test.Commands;
                 EditorManager       = testWindow.brackets.test.EditorManager;
+                DocumentModule      = testWindow.brackets.test.DocumentModule;
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
@@ -237,6 +239,7 @@ define(function (require, exports, module) {
             CommandManager  = null;
             Commands        = null;
             EditorManager   = null;
+            DocumentModule  = null;
             DocumentManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
@@ -246,6 +249,7 @@ define(function (require, exports, module) {
 
             runs(function () {
                 expect(DocumentManager.getAllOpenDocuments().length).toBe(0);
+                $(DocumentModule).off(".docTest");
             });
         });
         
@@ -395,6 +399,75 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("Refresh and change events", function () {
+            var promise, changeListener, docChangeListener, doc;
+            
+            beforeEach(function () {
+                changeListener = jasmine.createSpy();
+                docChangeListener = jasmine.createSpy();
+            });
+                
+            afterEach(function () {
+                promise = null;
+                changeListener = null;
+                docChangeListener = null;
+                doc = null;
+            });
+            
+            it("should fire both change and documentChange when text is refreshed if doc does not have masterEditor", function () {
+                runs(function () {
+                    promise = DocumentManager.getDocumentForPath(JS_FILE)
+                        .done(function (result) { doc = result; });
+                    waitsForDone(promise, "Create Document");
+                });
+                
+                runs(function () {
+                    $(DocumentModule).on("documentChange.docTest", docChangeListener);
+                    $(doc).on("change", changeListener);
+                    
+                    expect(doc._masterEditor).toBeFalsy();
+
+                    doc.refreshText("New content", Date.now());
+                    
+                    expect(doc._masterEditor).toBeFalsy();
+                    expect(docChangeListener.callCount).toBe(1);
+                    expect(changeListener.callCount).toBe(1);
+                });
+            });
+            
+            it("should fire both change and documentChange when text is refreshed if doc has masterEditor", function () {
+                runs(function () {
+                    promise = DocumentManager.getDocumentForPath(JS_FILE)
+                        .done(function (result) { doc = result; });
+                    waitsForDone(promise, "Create Document");
+                });
+                
+                runs(function () {
+                    expect(doc._masterEditor).toBeFalsy();
+                    doc.setText("first edit");
+                    expect(doc._masterEditor).toBeTruthy();
+                    
+                    $(DocumentModule).on("documentChange.docTest", docChangeListener);
+                    $(doc).on("change", changeListener);
+
+                    doc.refreshText("New content", Date.now());
+                    
+                    expect(docChangeListener.callCount).toBe(1);
+                    expect(changeListener.callCount).toBe(1);
+                });
+            });
+            
+            it("should *not* fire documentChange when a document is first created", function () {
+                runs(function () {
+                    $(DocumentModule).on("documentChange.docTest", docChangeListener);
+                    waitsForDone(DocumentManager.getDocumentForPath(JS_FILE));
+                });
+                
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(0);
+                });
+            });
+        });
         
         describe("Ref counting", function () {
             
