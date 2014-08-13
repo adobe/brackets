@@ -137,8 +137,7 @@ define({
     "BUTTON_NO"                                 : "Hayır",
 
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                         : "{0} sonuçlar",
-    "FIND_RESULT_COUNT_SINGLE"                  : "1 sonuç",
+    "FIND_MATCH_INDEX"                          : "{0} dan {1}",
     "FIND_NO_RESULTS"                           : "Sonuç Yok",
     "FIND_QUERY_PLACEHOLDER"                    : "Bul\u2026",
     "REPLACE_PLACEHOLDER"                       : "ile değiştir\u2026",
