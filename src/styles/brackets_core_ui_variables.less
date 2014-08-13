@@ -22,12 +22,10 @@
  * Brackets Colors
  *
  * These are general purpose colors that can be used in defining
- * themes or UI elements. We should NEVER use color literals (e.g. #aaa)
- * elsewhere in our LESS. (Using "lighten" and "darken") functions
- * is encouraged however.
+ * themes or UI elements.
  
- * IMPORTANT: IF we want a UI element to be themeable, these variable
- * names should _not_ be used in its definition.
+ * "IMPORTANT: IF we want a UI element to be themeable, these variable names or
+ * color literals (#aaa) should not be used in its definition."
  *
  * Instead, a new semantically-meaningful variables/mixins should be added
  * to the "brackets_theme_default.less" file, and then these variables/mixins
@@ -158,7 +156,7 @@
 @dark-bc-warning-text:               #635301;
 
 // Text
-@dark-bc-text:                       #ddd;
+@dark-bc-text:                       #ccc;
 @dark-bc-text-alt:                   #fff;
 @dark-bc-text-emphasized:            #fff;
 @dark-bc-text-link:                  #6bbeff;
@@ -169,11 +167,11 @@
 
 // Panel
 @dark-bc-panel-bg:                   #2c2c2c;
-@dark-bc-panel-bg-alt:               #333;
+@dark-bc-panel-bg-alt:               #313131;
 @dark-bc-panel-bg-promoted:          #222;
 @dark-bc-panel-bg-hover:             rgba(255, 255, 255, 0.12);
 @dark-bc-panel-bg-hover-alt:         rgba(0, 0, 0, 0.04);
-@dark-bc-panel-bg-selected:          #494a4b;
+@dark-bc-panel-bg-selected:          #3d3e40;
 @dark-bc-panel-bg-text-highlight:    #000;
 @dark-bc-panel-border:               #000;
 @dark-bc-panel-separator:            #343434;
