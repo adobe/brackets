@@ -1065,6 +1065,11 @@ define(function (require, exports, module) {
             $(pane).on("viewListChange.mainview", function () {
                 $(exports).triggerHandler("paneViewUpdate", [pane.id]);
             });
+            $(pane).on("currentViewChange.mainview", function (e, newView, oldView) {
+                if (_activePaneId === pane.id) {
+                    $(exports).triggerHandler("currentFileChange", [newView && newView.getFile(), pane.id, oldView && oldView.getFile(), pane.id]);
+                }
+            });
         }
         
         return _paneViews[paneId];
