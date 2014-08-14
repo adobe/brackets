@@ -167,7 +167,7 @@ define(function (require, exports, module) {
             var newToolbarHeight = _$titleContainerToolbar.height();
             if (_lastToolbarHeight !== newToolbarHeight) {
                 _lastToolbarHeight = newToolbarHeight;
-                EditorManager.resizeEditor();
+                WorkspaceManager.recomputeLayout();
             }
         }
 

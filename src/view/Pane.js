@@ -64,6 +64,7 @@ define(function (require, exports, module) {
      *
      * Pane Object Events:
      * viewListChange - triggered whenever there is a change the the pane's view state
+     * currentViewChange - triggered whenever the current view changes
      *
      * View Interface:
      *
@@ -242,7 +243,12 @@ define(function (require, exports, module) {
     Pane.prototype.mergeWith = function (other) {
         // hide the current views and show the interstitial page
         other.showInterstitial(true);
-        
+
+        // trigger the change view handler
+        if (other._currentView) {
+            $(other).triggerHandler("currentViewChange", [null, other._currentView]);
+        }
+
         // Copy the File lists
         this._viewList = _.union(this._viewList, other._viewList);
         this._viewListMRUOrder = _.union(this._viewListMRUOrder, other._viewListMRUOrder);
@@ -828,13 +834,18 @@ define(function (require, exports, module) {
      * Destroys all views and resets the state of the pane
      */
     Pane.prototype.doRemoveAllViews = function () {
-        var views = _.extend({}, this._views);
+        var views = _.extend({}, this._views),
+            view = this._currentView;
         
         this._reset();
         
         _.forEach(views, function (view) {
             view.destroy();
         });
+        
+        if (view) {
+            $(this).triggerHandler("currentViewChange", [null, view]);
+        }
     };
     
     /**
