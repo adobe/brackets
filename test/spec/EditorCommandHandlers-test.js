@@ -3744,9 +3744,18 @@ define(function (require, exports, module) {
                 });
                 
                 it("should be able to move the last line of the inline editor up", function () {
-                    myEditor.setCursorPos({line: 8, ch: 6});
+                    myEditor.setCursorPos({line: 2, ch: 0});
                     CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
                     
+                    var lines = moveContent.split("\n");
+                    var temp = lines[1];
+                    lines[1] = lines[2];
+                    lines[2] = temp;
+                    var expectedText = lines.join("\n");
+
+                    expect(myEditor.document.getText()).toEqual(expectedText);
+                    expect(myEditor.getFirstVisibleLine()).toBe(0);
+                    expect(myEditor.getLastVisibleLine()).toBe(2);
                 });
             });
         
