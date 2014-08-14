@@ -137,7 +137,7 @@ for a new locale section for adding a new one.
 ### Branch and Pull Request
 For either case, if you have not yet forked the brackets repository in your
 github account (`https://github.com/user1/brackets`), it's done automatically.
-A new branch will be created in your brackets fork with a unique name
+A new branch will be created in your Brackets fork with a unique name
 which is something like `patch-1` that contains your changes.
 
 You are then taken to the New Pull Request dialog which is filled in
@@ -145,7 +145,7 @@ with all of the information from previous dialog.
 It also shows contents of new file or a "diff" of changes to existing file.
 You can make any changes if desired, then click "Send Pull Request" when done
 (or close page to Cancel).
-A pull request for your branch is created and submitted to the brackets "repo".
+A pull request for your branch is created and submitted to the Brackets "repo".
 
 ### Code Review
 Someone on the Brackets team will review the pull request. If it's ok, it will
@@ -154,8 +154,8 @@ pull request which will send you an e-mail notification.
 
 ### Updating Existing Branch and Pull Request
 
-If you need to make changes to an exsiting branch, 
-you should make updates in the `patch-1` branch in your github fork of brackets
+If you need to make changes to an existing branch, 
+you should make updates in the `patch-1` branch in your Github fork of Brackets
 so all of your changes for this update are in a single branch.
 Creating a new branch for every update makes it difficult for core team
 to see all changes at once, and can even create conflicts that are

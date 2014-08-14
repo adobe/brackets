@@ -39,6 +39,22 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         paneTemplate        = require("text!htmlContent/pane.html");
     
+    /* Helper
+     * @private
+     */
+    function _hasView(obj, view) {
+        var result = false;
+        
+        _.forEach(obj, function (_view) {
+            if (_view === view) {
+                result = true;
+                return false;
+            }
+        });
+        
+        return result;
+    }
+    
     /**
      * Pane objects host views of files, editors, etc... 
      * 
@@ -64,6 +80,7 @@ define(function (require, exports, module) {
      *
      * Pane Object Events:
      * viewListChange - triggered whenever there is a change the the pane's view state
+     * currentViewChange - triggered whenever the current view changes
      *
      * View Interface:
      *
@@ -191,7 +208,7 @@ define(function (require, exports, module) {
         $(DocumentManager).on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
         $(DocumentManager).on(this._makeEventName("pathDeleted"), _.bind(this._handleFileDeleted, this));
     }
-    
+
     /**
      * id of the pane
      * @readonly
@@ -248,6 +265,11 @@ define(function (require, exports, module) {
         }
         other.showInterstitial(true);
         
+        // trigger the change view handler
+        if (other._currentView) {
+            $(other).triggerHandler("currentViewChange", [null, other._currentView]);
+        }
+
         // Copy the File lists
         this._viewList = _.union(this._viewList, other._viewList);
         this._viewListMRUOrder = _.union(this._viewListMRUOrder, other._viewListMRUOrder);
@@ -270,18 +292,17 @@ define(function (require, exports, module) {
                 viewsToDestroy.push(view);
             }
         });
-
-        // Destroy current view if added using MainViewManager.showView
-        if (other._currentView && !other._currentView.getFile()) {
-            this._currentView.destroy();
-        }
         
+        // 1-off views 
+        if (other._currentView && !_hasView(other._views, other._currentView)) {
+            viewsToDestroy.push(other._currentView);
+        }
         
         // Destroy temporary views
         _.forEach(viewsToDestroy, function (view) {
             view.destroy();
         });
-        
+
         other._reset();
     };
     
@@ -839,7 +860,12 @@ define(function (require, exports, module) {
      * Destroys all views and resets the state of the pane
      */
     Pane.prototype.doRemoveAllViews = function () {
-        var views = _.extend({}, this._views);
+        var views = _.extend({}, this._views),
+            view = this._currentView;
+
+        if (view && !_hasView(views, view)) {
+            views = _.extend(views, {"<|?*:temporaryView:*?|>": view});
+        }
         
         // kill any views added with MainViewManager.showView()
         if (this._currentView && !this._currentView.getFile()) {
@@ -848,9 +874,14 @@ define(function (require, exports, module) {
         
         this._reset();
         
-        _.forEach(views, function (view) {
-            view.destroy();
+        if (view) {
+            $(this).triggerHandler("currentViewChange", [null, view]);
+        }
+        
+        _.forEach(views, function (_view) {
+            _view.destroy();
         });
+
     };
     
     /**
@@ -986,7 +1017,6 @@ define(function (require, exports, module) {
      * gets the current view's scroll state data
      * @return {Object=} scroll state - the current scroll state
      */
-    
     Pane.prototype.getScrollState = function () {
         if (this._currentView) {
             return {scrollPos: this._currentView.getScrollPos()};

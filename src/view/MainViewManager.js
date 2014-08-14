@@ -376,7 +376,8 @@ define(function (require, exports, module) {
     
     /**
      * EditorManager.activeEditorChange handler 
-     *   Activates the pane that the active editor belongs to
+     *   This event is triggered when an visible editor gains focus
+     *   Therefore we need to Activate the pane that the active editor belongs to
      * @private
      * @param {!jQuery.Event} e - jQuery Event object
      * @param {Editor=} current - editor being made the current editor
@@ -393,13 +394,6 @@ define(function (require, exports, module) {
                     //  it will dispatch the currentFileChange message as well
                     //  as dispatching other events when the active pane changes
                     setActivePaneId(newPaneId);
-                } else {
-                    // TODO: This may not be necessary anymore
-                    var currentFile = getCurrentlyViewedFile();
-                    if (currentFile !== current.getFile()) {
-                        $(exports).triggerHandler("currentFileChange", [current.getFile(), _activePaneId, currentFile, _activePaneId]);
-                        focusActivePane();
-                    }
                 }
             } else {
                 // Editor is an inline editor, find the parent pane
@@ -1183,11 +1177,6 @@ define(function (require, exports, module) {
         
         // open document will show the editor if there is one already
         EditorManager.openDocument(doc, pane);
-
-        if (pane.id === _activePaneId) {
-            $(exports).triggerHandler("currentFileChange", [doc.file, pane.id, oldFile, pane.id]);
-        }
-
         _makePaneViewMostRecent(paneId, doc.file);
     }
     
@@ -1346,17 +1335,6 @@ define(function (require, exports, module) {
         if (pane.doRemoveView(file, !options.noOpenNextFile)) {
             _removeFileFromMRU(pane.id, file);
             $(exports).triggerHandler("paneViewRemove", [file, false, pane.id]);
-            
-            if (pane.id === _activePaneId) {
-                // when doRemoveView is called, it will open next file unless the option
-                //  to not do so is specified. That will trigger the currentFileChange Event
-                //  so we don't need to do it again, so if we removedthe current view of the activated
-                //  pane and the new view is now null then we need to tell our listeners that it's null
-                //  otherwise this is handled in open
-                if (oldFile && oldFile.fullPath === file.fullPath && !pane.getCurrentlyViewedFile()) {
-                    $(exports).triggerHandler("currentFileChange", [pane.getCurrentlyViewedFile(), pane.id, oldFile, pane.id]);
-                }
-            }
         }
     }
 
@@ -1389,10 +1367,6 @@ define(function (require, exports, module) {
             
             $(exports).triggerHandler("paneViewRemoveList", [closedList, pane.id]);
         }
-        
-        if (currentFileClosed) {
-            $(exports).triggerHandler("currentFileChange", [_getPane(ACTIVE_PANE).getCurrentlyViewedFile(), _activePaneId, currentFile, _activePaneId]);
-        }
     }
     
     /**
@@ -1422,12 +1396,6 @@ define(function (require, exports, module) {
             pane.doRemoveAllViews();
             $(exports).triggerHandler("paneViewRemoveList", [fileList, pane.id]);
         }
-        
-        if (paneId === _activePaneId || paneId === ACTIVE_PANE || paneId === ALL_PANES) {
-            $(exports).triggerHandler("currentFileChange", [null, _activePaneId, currentFile, _activePaneId]);
-        }
-        
-        _mergePanes();
     }
 
     

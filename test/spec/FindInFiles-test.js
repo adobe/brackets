@@ -1730,12 +1730,12 @@ define(function (require, exports, module) {
                         
                         openTestProjectCopy(defaultSourcePath);
                         runs(function () {
-                            waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.html" }), "open file");
+                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, { fullPath: testPath + "/foo.html" }), "open file");
                         });
                         runs(function () {
                             doc = DocumentManager.getOpenDocumentForPath(testPath + "/foo.html");
                             expect(doc).toBeTruthy();
-                            DocumentManager.setCurrentDocument(doc);
+                            MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
                             editor = doc._masterEditor;
                             expect(editor).toBeTruthy();
                             editor.setSelection({line: 4, ch: 7}, {line: 4, ch: 10});
@@ -1753,12 +1753,12 @@ define(function (require, exports, module) {
                         
                         openTestProjectCopy(defaultSourcePath);
                         runs(function () {
-                            waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.html" }), "open file");
+                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, { fullPath: testPath + "/foo.html" }), "open file");
                         });
                         runs(function () {
                             doc = DocumentManager.getOpenDocumentForPath(testPath + "/foo.html");
                             expect(doc).toBeTruthy();
-                            DocumentManager.setCurrentDocument(doc);
+                            MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
                             editor = doc._masterEditor;
                             expect(editor).toBeTruthy();
                             editor.setSelection({line: 4, ch: 7}, {line: 6, ch: 10});

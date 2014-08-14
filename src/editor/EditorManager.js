@@ -713,9 +713,6 @@ define(function (require, exports, module) {
         var editor = getActiveEditor();
         
         if (editor) {
-            return editor.jumpToDefinition(_jumpToDefProviders);
-        }
-        if (editor) {
             var pos = editor.getCursorPos();
 
             PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
