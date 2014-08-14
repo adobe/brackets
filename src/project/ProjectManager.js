@@ -1611,7 +1611,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        // TODO probably new to move the isOpen check up before updating the model
+        // TODO probably need to move the isOpen check up before updating the model
         var wasOpen = viewModel.isOpen(entry);
         
         // Directory contents removed
