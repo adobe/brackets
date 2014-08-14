@@ -565,6 +565,7 @@ define(function (require, exports, module) {
         }
 
         if (!editor || !editor._codeMirror) {
+            hidePreview();
             return;
         }
 
