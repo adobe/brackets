@@ -461,7 +461,7 @@ define(function (require, exports, module) {
             it("should dispatch events when the view has changed", function () {
                 var eventHandler = jasmine.createSpy();
                 
-                $(myPane).on("viewListChange.test", eventHandler);
+                $(myPane).on("currentViewChange.test", eventHandler);
                 
                 myPane.addToViewList(myView.getFile());
                 myPane.showView(myView);
@@ -472,7 +472,7 @@ define(function (require, exports, module) {
             it("should dispatch events when all views are closed", function () {
                 var eventHandler = jasmine.createSpy();
                 
-                $(myPane).on("viewListChange.test", eventHandler);
+                $(myPane).on("currentViewChange.test", eventHandler);
                 
                 myPane.addToViewList(myView.getFile());
                 myPane.showView(myView);

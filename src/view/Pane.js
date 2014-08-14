@@ -287,6 +287,11 @@ define(function (require, exports, module) {
                 viewsToDestroy.push(view);
             }
         });
+
+        // 1-off views 
+        if (other._currentView && !_hasView(other._views, other._currentView)) {
+            viewsToDestroy.push(other._currentView);
+        }
         
         // Destroy temporary views
         _.forEach(viewsToDestroy, function (view) {
@@ -853,19 +858,20 @@ define(function (require, exports, module) {
         var views = _.extend({}, this._views),
             view = this._currentView;
 
-        if (!_hasView(views, view)) {
-            views = _.extend(views, {__$$$temporaryView__$$: view});
+        if (view && !_hasView(views, view)) {
+            views = _.extend(views, {"<|?*:temporaryView:*?|>": view});
         }
         
         this._reset();
         
-        _.forEach(views, function (view) {
-            view.destroy();
-        });
-        
         if (view) {
             $(this).triggerHandler("currentViewChange", [null, view]);
         }
+        
+        _.forEach(views, function (_view) {
+            _view.destroy();
+        });
+
     };
     
     /**
@@ -1004,7 +1010,6 @@ define(function (require, exports, module) {
      * gets the current view's scroll state data
      * @return {Object=} scroll state - the current scroll state
      */
-    
     Pane.prototype.getScrollState = function () {
         if (this._currentView) {
             return {scrollPos: this._currentView.getScrollPos()};
