@@ -113,12 +113,14 @@ define(function (require, exports, module) {
     var CMD_ID_SPLIT_HORIZONTALLY = "cmd.splitHorizontally";
     
     /** 
+     * Preference setting name for the MainView Saved State
      * @const
      * @private
      */
     var PREFS_NAME          = "mainView.state";
     
     /** 
+     * Legacy Preference setting name used to migrate old preferences
      * @const
      * @private
      */
@@ -161,12 +163,14 @@ define(function (require, exports, module) {
      */
 
     /** 
+     * Vertical layout state name
      * @const
      * @private
      */
     var VERTICAL            = "VERTICAL";
 
     /** 
+     * Horizontal layout state name
      * @const
      * @private
      */
@@ -576,6 +580,13 @@ define(function (require, exports, module) {
         return result;
     }
 
+    
+    /**
+     * Finds all views of a specified file
+     * @param {!string} fullPath - Path of the file to locate
+     * @return {Array.<{paneId:string, index:number}>} an array of pane/index pairs
+     * @private
+     */
     function findAllViewsOf(fullPath) {
         var index,
             result = [];
@@ -896,6 +907,11 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Removes a file that has been deleted from the MRU list
+     * @param {!jQuery.Event} e - event
+     * @param {!string} fullPath - path of the file that was deleted
+     */
     function _removeDeletedFileFromMRU(e, fullPath) {
         var index,
             compare = function (record) {
