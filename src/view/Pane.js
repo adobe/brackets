@@ -39,6 +39,22 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         paneTemplate        = require("text!htmlContent/pane.html");
     
+    /* Helper
+     * @private
+     */
+    function _hasView(obj, view) {
+        var result = false;
+        
+        _.forEach(obj, function (_view) {
+            if (_view === view) {
+                result = true;
+                return false;
+            }
+        });
+        
+        return result;
+    }
+    
     /**
      * Pane objects host views of files, editors, etc... 
      * 
@@ -836,6 +852,10 @@ define(function (require, exports, module) {
     Pane.prototype.doRemoveAllViews = function () {
         var views = _.extend({}, this._views),
             view = this._currentView;
+
+        if (!_hasView(views, view)) {
+            views = _.extend(views, {__$$$temporaryView__$$: view});
+        }
         
         this._reset();
         

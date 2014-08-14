@@ -431,25 +431,21 @@ define(function (require, exports, module) {
                 myPane.addView(myView);
             });
             it("should dispatch events when a file is removed", function () {
-                var gotEvent = false;
+                var eventHandler = jasmine.createSpy();
                 
-                $(myPane).on("viewListChange.test", function () {
-                    gotEvent = true;
-                });
+                $(myPane).on("viewListChange.test", eventHandler);
                 
                 myPane.addToViewList(myView.getFile());
                 myPane.showView(myView);
                 myPane._handleFileDeleted(undefined, myView.getFullPath());
 
-                expect(gotEvent).toBeTruthy();
+                expect(eventHandler).toHaveBeenCalled();
                 $(myPane).off(".test");
             });
             it("should dispatch events when file is renamed", function () {
-                var gotEvent = false;
+                var eventHandler = jasmine.createSpy();
                 
-                $(myPane).on("viewListChange.test", function () {
-                    gotEvent = true;
-                });
+                $(myPane).on("viewListChange.test", eventHandler);
                 
                 myPane.addToViewList(myView.getFile());
                 myPane.showView(myView);
@@ -459,7 +455,30 @@ define(function (require, exports, module) {
 
                 myPane._handleFileNameChange(undefined, oldPath, myView.getFullPath());
 
-                expect(gotEvent).toBeTruthy();
+                expect(eventHandler).toHaveBeenCalled();
+                $(myPane).off(".test");
+            });
+            it("should dispatch events when the view has changed", function () {
+                var eventHandler = jasmine.createSpy();
+                
+                $(myPane).on("viewListChange.test", eventHandler);
+                
+                myPane.addToViewList(myView.getFile());
+                myPane.showView(myView);
+
+                expect(eventHandler).toHaveBeenCalled();
+                $(myPane).off(".test");
+            });
+            it("should dispatch events when all views are closed", function () {
+                var eventHandler = jasmine.createSpy();
+                
+                $(myPane).on("viewListChange.test", eventHandler);
+                
+                myPane.addToViewList(myView.getFile());
+                myPane.showView(myView);
+                myPane.doRemoveAllViews();
+
+                expect(eventHandler.callCount).toBe(2);
                 $(myPane).off(".test");
             });
         });
