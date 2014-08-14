@@ -206,13 +206,14 @@ a:focus {
 .toolbar {
     font-size: @label-font-size;
     padding: 4px 8px;
-    background-color: @bc-bg-tool-bar;
-    color: @bc-text;
+    background-color: @bc-menu-bg;
+    color: @bc-menu-text;
 
     position: relative;  // needed for abs-positioned elements in toolbar (e.g. right-aligned "X")
 
     .dark & {
-        color: @dark-bc-text;
+        background-color: @dark-bc-panel-bg-promoted;
+        color: @dark-bc-menu-text;
     }
 
     .title-wrapper {
