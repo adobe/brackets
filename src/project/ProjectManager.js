@@ -2079,7 +2079,6 @@ define(function (require, exports, module) {
                         _projectWarnedForTooManyFiles = true;
                     }
                     deferred.reject(err);
-                    _allFilesCachePromise = null;
                 } else {
                     deferred.resolve(allFiles);
                 }
