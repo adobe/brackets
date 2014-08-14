@@ -159,10 +159,6 @@ define(function (require, exports, module) {
         // Setup the container and the element we're inserting
         var $el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id);
         
-        // Listen to document events so we can update ourself
-        $(DocumentManager).on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
-        $(DocumentManager).on(this._makeEventName("pathDeleted"), _.bind(this._handleFileDeleted, this));
-
         // Make these properties read only
         Object.defineProperty(this,  "id", {
             get: function () {
@@ -190,6 +186,10 @@ define(function (require, exports, module) {
                 console.error("cannot change the DOM node of a working pane");
             }
         });
+
+        // Listen to document events so we can update ourself
+        $(DocumentManager).on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
+        $(DocumentManager).on(this._makeEventName("pathDeleted"), _.bind(this._handleFileDeleted, this));
     }
     
     /**
@@ -234,7 +234,7 @@ define(function (require, exports, module) {
      * @return {string} an event namespaced to this pane
      */
     Pane.prototype._makeEventName = function (name) {
-        return name + ".pane" + this.paneId;
+        return name + ".pane-" + this.id;
     };
     
     /**
@@ -509,6 +509,7 @@ define(function (require, exports, module) {
             if (this._currentView === view) {
                 this.showInterstitial(true);
                 this._currentView = null;
+                $(this).triggerHandler("currentViewChange", [null, view]);
             }
             delete this._views[file.fullPath];
             view.destroy();
@@ -756,6 +757,7 @@ define(function (require, exports, module) {
         this._currentView = view;
         this._currentView.setVisible(true);
         this.updateLayout();
+        $(this).triggerHandler("currentViewChange", [view, oldView]);
         
         if (oldPath) {
             // The old view is a temporary view because it 

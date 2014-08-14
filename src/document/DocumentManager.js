@@ -494,7 +494,9 @@ define(function (require, exports, module) {
      * @param {boolean} skipAutoSelect - if true, don't automatically open/select the next document
      */
     function notifyFileDeleted(file, skipAutoSelect) {
-        // Notify all other editors to close as well
+        // Notify all editors to close as well
+        $(exports).triggerHandler("pathDeleted", file.fullPath);
+
         var doc = getOpenDocumentForPath(file.fullPath);
         if (doc) {
             $(doc).triggerHandler("deleted");
@@ -504,8 +506,6 @@ define(function (require, exports, module) {
         if (doc && doc._refCount > 0) {
             console.warn("Deleted " + file.fullPath + " Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
         }
-
-        $(exports).triggerHandler("pathDeleted", file.fullPath);
     }
 
     /**
@@ -518,7 +518,6 @@ define(function (require, exports, module) {
         /* FileSyncManager.syncOpenDocuments() does all the work of closing files
            in the working set and notifying the user of any unsaved changes. */
         FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
-        
         // Send a "pathDeleted" event. This will trigger the views to update.
         $(exports).triggerHandler("pathDeleted", path);
     }
