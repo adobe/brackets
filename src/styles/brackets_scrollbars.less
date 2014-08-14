@@ -27,7 +27,10 @@
 
 .platform-mac .quiet-scrollbars,
 .platform-win .quiet-scrollbars,
-.platform-linux .quiet-scrollbars {
+.platform-linux .quiet-scrollbars,
+.dark.platform-mac .quiet-scrollbars,
+.dark.platform-win .quiet-scrollbars,
+.dark.platform-linux .quiet-scrollbars {
 
     ::-webkit-scrollbar {
         width: 9px;
@@ -138,7 +141,7 @@
 
 .dark {
     /* Custom scrollbar colors */
-    &.platform-win {
+    &.platform-mac {
         .CodeMirror-scrollbar-filler,
         .CodeMirror-gutter-filler {
             background-color: rgb(15, 15, 15);
