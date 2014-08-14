@@ -225,7 +225,7 @@ define(function (require, exports, module) {
      * @type {Object.<string, Pane>} 
      * @private
      */
-    var _paneViews = {};
+    var _panes = {};
     
     
     /**
@@ -281,8 +281,8 @@ define(function (require, exports, module) {
             paneId = getActivePaneId();
         }
         
-        if (_paneViews[paneId]) {
-            return _paneViews[paneId];
+        if (_panes[paneId]) {
+            return _panes[paneId];
         }
         
         return null;
@@ -300,7 +300,7 @@ define(function (require, exports, module) {
      * @param {!string} paneId - the id of the pane to activate
      */
     function setActivePaneId(newPaneId) {
-        if (_paneViews.hasOwnProperty(newPaneId) && (newPaneId !== _activePaneId)) {
+        if (_panes.hasOwnProperty(newPaneId) && (newPaneId !== _activePaneId)) {
             var oldPaneId = _activePaneId,
                 oldPane = _getPane(ACTIVE_PANE),
                 newPane = _getPane(newPaneId);
@@ -320,19 +320,19 @@ define(function (require, exports, module) {
     /**
      * Retrieves the Pane ID for the specified container
      * @param {!jQuery} $container - the container of the item to fetch
-     * @return {?string} the id of the pane that matches the container or undefined if a pane doesn't exist for that container
+     * @return {?Pane} the pane that matches the container or undefined if a pane doesn't exist for that container
      */
-    function _getPaneIdFromContainer($container) {
-        var paneId;
-        _.forEach(_paneViews, function (pane) {
+    function _getPaneFromContainer($container) {
+        var pane;
+        _.forEach(_panes, function (_pane) {
             // matching $el to $container doesn't always work 
             //  i.e. if $container is the result of a query 
-            if (pane.$el.attr("id") === $container.attr("id")) {
-                paneId = pane.id;
+            if (_pane.$el.attr("id") === $container.attr("id")) {
+                pane = _pane;
                 return false;
             }
         });
-        return paneId;
+        return pane;
     }
     
     /** 
@@ -385,7 +385,8 @@ define(function (require, exports, module) {
     function _activeEditorChange(e, current) {
         if (current) {
             var $container = current.getContainer(),
-                newPaneId = _getPaneIdFromContainer($container);
+                pane = _getPaneFromContainer($container),
+                newPaneId = pane && pane.id;
 
             if (newPaneId) {
                 // Editor is a full editor
@@ -399,8 +400,11 @@ define(function (require, exports, module) {
                 // Editor is an inline editor, find the parent pane
                 var parents = $container.parents(".view-pane");
                 if (parents.length === 1) {
+                    
                     $container = $(parents[0]);
-                    newPaneId = _getPaneIdFromContainer($container);
+                    pane = _getPaneFromContainer($container);
+                    newPaneId = pane && pane.id;
+                    
                     if (newPaneId) {
                         if (newPaneId !== _activePaneId) {
                             // activate the pane which will put focus in the pane's doc
@@ -421,7 +425,7 @@ define(function (require, exports, module) {
      */
     function cacheScrollState(paneId) {
         if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
+            _.forEach(_panes, function (pane) {
                 _paneScrollStates[pane.id] = pane.getScrollState();
             });
         } else {
@@ -443,7 +447,7 @@ define(function (require, exports, module) {
      */
     function restoreAdjustedScrollState(paneId, heightDelta) {
         if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
+            _.forEach(_panes, function (pane) {
                 if (_paneScrollStates.hasOwnProperty(pane.id)) {
                     pane.restoreAndAdjustScrollState(_paneScrollStates[pane.id], heightDelta);
                 }
@@ -468,7 +472,7 @@ define(function (require, exports, module) {
         if (paneId === ALL_PANES) {
             var result = [];
             
-            _.forEach(_paneViews, function (pane) {
+            _.forEach(_panes, function (pane) {
                 var viewList = pane.getViewList();
                 result = _.union(result, viewList);
             });
@@ -490,7 +494,7 @@ define(function (require, exports, module) {
      */
     function getAllOpenFiles() {
         var result = getViews(ALL_PANES);
-        _.forEach(_paneViews, function (pane) {
+        _.forEach(_panes, function (pane) {
             var file = pane.getCurrentlyViewedFile();
             if (file) {
                 result = _.union(result, [file]);
@@ -504,7 +508,7 @@ define(function (require, exports, module) {
      * @return {array.<string>} the list of all open panes
      */
     function getPaneIdList() {
-        return Object.keys(_paneViews);
+        return Object.keys(_panes);
     }
     
     /**
@@ -515,7 +519,7 @@ define(function (require, exports, module) {
     function getViewCount(paneId) {
         var result = 0;
         if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
+            _.forEach(_panes, function (pane) {
                 result += pane.getViewListSize();
             });
         } else {
@@ -541,7 +545,7 @@ define(function (require, exports, module) {
      * @return {number} 
      */
     function getPaneCount() {
-        return Object.keys(_paneViews).length;
+        return Object.keys(_panes).length;
     }
     
     /**
@@ -557,7 +561,7 @@ define(function (require, exports, module) {
         if (paneId === ALL_PANES) {
             var index;
             
-            _.forEach(_paneViews, function (pane) {
+            _.forEach(_panes, function (pane) {
                 index = pane[method].call(pane, fullPath);
                 if (index >= 0) {
                     result = index;
@@ -585,7 +589,7 @@ define(function (require, exports, module) {
         var index,
             result = [];
         
-        _.forEach(_paneViews, function (pane) {
+        _.forEach(_panes, function (pane) {
             index = pane.findInViewList(fullPath);
             if (index >= 0) {
                 result.push({paneId: pane.id, index: index});
@@ -636,7 +640,7 @@ define(function (require, exports, module) {
 
         // Look for a view that has not been added to a working set
         if (!info) {
-            _.forEach(_paneViews, function (pane) {
+            _.forEach(_panes, function (pane) {
                 if (pane.getCurrentlyViewedPath() === fullPath) {
                     info = {paneId: pane.id};
                     return false;
@@ -776,7 +780,7 @@ define(function (require, exports, module) {
      */
     function removeView(paneId, file, suppressRedraw) {
         if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
+            _.forEach(_panes, function (pane) {
                 _removeView(pane.id, file, suppressRedraw);
             });
         } else {
@@ -820,7 +824,7 @@ define(function (require, exports, module) {
      */
     function removeViews(paneId, list) {
         if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
+            _.forEach(_panes, function (pane) {
                 _removeViews(pane.id, list);
             });
         } else {
@@ -867,7 +871,7 @@ define(function (require, exports, module) {
      */
     function removeAllViews(paneId) {
         if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
+            _.forEach(_panes, function (pane) {
                 _removeAllViews(pane.id);
             });
         } else {
@@ -937,7 +941,7 @@ define(function (require, exports, module) {
         };
         
         if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
+            _.forEach(_panes, function (pane) {
                 doSort(pane);
             });
         } else {
@@ -1042,10 +1046,10 @@ define(function (require, exports, module) {
      * @private
      */
     function _updateLayout(event, viewAreaHeight, forceRefresh) {
-        var panes = Object.keys(_paneViews),
+        var panes = Object.keys(_panes),
             size = 100 / panes.length;
         
-        _.forEach(_paneViews, function (pane) {
+        _.forEach(_panes, function (pane) {
             if (_orientation === VERTICAL) {
                 pane.$el.css({height: "100%",
                               width: size + "%",
@@ -1083,9 +1087,9 @@ define(function (require, exports, module) {
         var currentPane,
             pane;
         
-        if (!_paneViews.hasOwnProperty(paneId)) {
+        if (!_panes.hasOwnProperty(paneId)) {
             pane = new Pane(paneId, _$container);
-            _paneViews[paneId] = pane;
+            _panes[paneId] = pane;
             
             $(exports).triggerHandler("paneCreate", [pane.id]);
             
@@ -1103,7 +1107,7 @@ define(function (require, exports, module) {
             });
         }
         
-        return _paneViews[paneId];
+        return _panes[paneId];
     }
     
     /**
@@ -1118,27 +1122,6 @@ define(function (require, exports, module) {
         _updateCommandState();
         $(exports).triggerHandler("paneLayoutChange", [_orientation]);
         
-    }
-    
-    /**
-     * Shows a 1-off view which is destroyed when the current view chagnes
-     * @param {!string} paneId - the id of the pane in which to create the view
-     * @param {function(jQuery):view} callback - closure to do create the view
-     */
-    function showView(paneId, callback) {
-        var pane = _getPane(paneId);
-        
-        if (pane) {
-            var view = callback(pane.$el),
-                file = view.getFile(),
-                oldPane = _getPane(ACTIVE_PANE),
-                oldFile = oldPane.getCurrentlyViewedFile();
-                    
-            pane.showView(view);
-            if (pane.id === _activePaneId) {
-                $(exports).triggerHandler("currentFileChange", [file, pane.id, oldFile, pane.id]);
-            }
-        }
     }
     
     /**
@@ -1216,9 +1199,6 @@ define(function (require, exports, module) {
         if (view) {
             // there is a view already, so we just need to show it
             pane.showView(view);
-            if (pane.id === _activePaneId) {
-                $(exports).triggerHandler("currentFileChange", [file, pane.id, oldFile, pane.id]);
-            }
             result.resolve(file);
         } else {
         
@@ -1257,9 +1237,6 @@ define(function (require, exports, module) {
                         if (!ProjectManager.isWithinProject(file.fullPath)) {
                             addView(paneId, file);
                         }
-                        if (pane.id === _activePaneId) {
-                            $(exports).triggerHandler("currentFileChange", [file, pane.id, oldFile, pane.id]);
-                        }
                         result.resolve(file);
                     })
                     .fail(function (fileError) {
@@ -1275,10 +1252,10 @@ define(function (require, exports, module) {
      * @private
      */
     function _mergePanes() {
-        if (_paneViews.hasOwnProperty(SECOND_PANE)) {
+        if (_panes.hasOwnProperty(SECOND_PANE)) {
             
-            var firstPane = _paneViews[FIRST_PANE],
-                secondPane = _paneViews[SECOND_PANE],
+            var firstPane = _panes[FIRST_PANE],
+                secondPane = _panes[SECOND_PANE],
                 fileList = secondPane.getViewList(),
                 lastViewed = getCurrentlyViewedFile();
             
@@ -1292,7 +1269,7 @@ define(function (require, exports, module) {
             $(secondPane).off(".mainview");
 
             secondPane.destroy();
-            delete _paneViews[SECOND_PANE];
+            delete _panes[SECOND_PANE];
             $(exports).triggerHandler("paneDestroy", secondPane.id);
             $(exports).triggerHandler("paneViewAddList", [fileList, firstPane.id]);
 
@@ -1349,7 +1326,7 @@ define(function (require, exports, module) {
             currentFileClosed = currentFile ? (fileList.indexOf(currentFile) !== -1) : false;
 
         if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
+            _.forEach(_panes, function (pane) {
                 closedList = pane.doRemoveViews(fileList);
                 closedList.forEach(function (file) {
                     _removeFileFromMRU(pane.id, file);
@@ -1378,7 +1355,7 @@ define(function (require, exports, module) {
             currentFile = _getPane(ACTIVE_PANE).getCurrentlyViewedFile();
         
         if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
+            _.forEach(_panes, function (pane) {
                 fileList = pane.getViewList();
                 fileList.forEach(function (file) {
                     _removeFileFromMRU(pane.id, file);
@@ -1400,6 +1377,7 @@ define(function (require, exports, module) {
 
     
     /**
+     * Determines the owning pane of a Document object
      * @private
      */
     function _findPaneForDocument(document) {
@@ -1407,14 +1385,13 @@ define(function (require, exports, module) {
             return;
         }
         // First check for an editor view of the document 
-        var paneId = _getPaneIdFromContainer(document._masterEditor.getContainer()),
-            pane = _paneViews[paneId];
+        var pane = _getPaneFromContainer(document._masterEditor.getContainer());
         
-        if (!paneId) {
+        if (!pane) {
             // No view of the document, it may be in a working set and not yet opened
             var info = findAllViewsOf(document.file.fullPath).shift();
             if (info) {
-                pane = _paneViews[info.paneId];
+                pane = _panes[info.paneId];
             }
         }
         
@@ -1519,7 +1496,7 @@ define(function (require, exports, module) {
                     $(exports).triggerHandler("paneLayoutChange", _orientation);
                 }
 
-                _.forEach(_paneViews, function (pane) {
+                _.forEach(_panes, function (pane) {
                     var fileList = pane.getViewList();
 
                     fileList.forEach(function (file) {
@@ -1552,7 +1529,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        _.forEach(_paneViews, function (pane) {
+        _.forEach(_panes, function (pane) {
             state.panes[pane.id] = pane.saveState();
         });
 
@@ -1569,7 +1546,7 @@ define(function (require, exports, module) {
             _$container = $container;
             _createPaneIfNecessary(FIRST_PANE);
             _activePaneId = FIRST_PANE;
-            _paneViews[FIRST_PANE].notifySetActive(true);
+            _panes[FIRST_PANE].notifySetActive(true);
             _updateLayout();
         }
     }
@@ -1730,7 +1707,6 @@ define(function (require, exports, module) {
     exports.close                       = close;
     exports.closeAll                    = closeAll;
     exports.closeList                   = closeList;
-    exports.showView                    = showView;
     
     // Layout
     exports.setLayoutScheme             = setLayoutScheme;
