@@ -272,6 +272,7 @@ define(function (require, exports, module) {
         // Load registry only if the registry URL exists
         if (context.showRegistry) {
             models.push(new ExtensionManagerViewModel.RegistryViewModel());
+            models.push(new ExtensionManagerViewModel.ThemesViewModel());
         }
         
         models.push(new ExtensionManagerViewModel.InstalledViewModel());
