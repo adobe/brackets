@@ -1217,7 +1217,7 @@ define(function (require, exports, module) {
                 exports.open(firstPane.id, lastViewed);
             }
         }
-    }    
+    }
 
     /**
      * Closes a file in the specified pane or panes
