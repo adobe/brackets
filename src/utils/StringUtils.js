@@ -199,18 +199,18 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Truncate strings to specified length.
+     * Truncate text to specified length.
      * @param {string} str Text to be truncated.
-     * @param {number} len Length to which text should be limited.
-     * @return {string} Returns truncated text only if it was changed.
+     * @param {number} len Length to which text should be truncated
+     * @return {?string} Returns truncated text only if it was changed
      */
     function truncate(str, len) {
-        // Truncate the description if it is too long
+        // Truncate text to specified length
         if (str.length > len) {
             str = str.substr(0, len);
 
-            // To prevent awkward addition of ellipsis, try to truncate
-            // at the end of the last whole word
+            // To prevent awkwardly truncating in the middle of a word,
+            // attempt to truncate at the end of the last whole word
             var lastSpaceChar = str.lastIndexOf(" ");
             if (lastSpaceChar < len && lastSpaceChar > -1) {
                 str = str.substr(0, lastSpaceChar);

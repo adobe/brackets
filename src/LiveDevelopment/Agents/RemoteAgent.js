@@ -124,7 +124,12 @@ define(function RemoteAgent(require, exports, module) {
     
     // WebInspector Event: Page.frameNavigated
     function _onFrameNavigated(event, res) {
-        // res = {timestamp}
+        // res = {frame}
+        // Re-inject RemoteFunctions when navigating to a new page, but not if an iframe was loaded
+        if (res.frame.parentId) {
+            return;
+        }
+
         _stopKeepAliveInterval();
 
         // inject RemoteFunctions

@@ -378,7 +378,11 @@ define(function (require, exports, module) {
      *     rejected with an error if there's a problem with the update.
      */
     function update(id, packagePath, keepFile) {
-        return Package.installUpdate(packagePath, id, keepFile);
+        return Package.installUpdate(packagePath, id).done(function () {
+            if (!keepFile) {
+                FileSystem.getFileForPath(packagePath).unlink();
+            }
+        });
     }
 
     /**
@@ -443,6 +447,10 @@ define(function (require, exports, module) {
      * @param {Object} installationResult info about the install provided by the Package.download function
      */
     function updateFromDownload(installationResult) {
+        if (installationResult.keepFile === undefined) {
+            installationResult.keepFile = false;
+        }
+        
         var installationStatus = installationResult.installationStatus;
         if (installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
                 installationStatus === Package.InstallationStatuses.NEEDS_UPDATE ||

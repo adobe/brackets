@@ -130,12 +130,14 @@ define(function (require, exports, module) {
         
         // Default to searching for the current selection
         var currentEditor = EditorManager.getActiveEditor(),
-            initialString = currentEditor && currentEditor.getSelectedText();
+            initialQuery  = "";
 
         if (_findBar && !_findBar.isClosed()) {
             // The modalBar was already up. When creating the new modalBar, copy the
             // current query instead of using the passed-in selected text.
-            initialString = _findBar.getQueryInfo().query;
+            initialQuery = _findBar.getQueryInfo().query;
+        } else if (currentEditor) {
+            initialQuery = FindUtils.getInitialQueryFromSelection(currentEditor);
         }
         
         FindInFiles.clearSearch();
@@ -149,7 +151,7 @@ define(function (require, exports, module) {
         _findBar = new FindBar({
             multifile: true,
             replace: showReplace,
-            initialQuery: initialString,
+            initialQuery: initialQuery,
             queryPlaceholder: Strings.FIND_QUERY_PLACEHOLDER,
             scopeLabel: FindUtils.labelForScope(scope)
         });

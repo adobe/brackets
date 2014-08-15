@@ -71,6 +71,21 @@ define(function (require, exports, module) {
         return replaceWith;
     }
     
+    /*
+     * Returns the string used to prepopulate the find bar
+     * @param {!Editor} editor
+     * @return {string} first line of primary selection to populate the find bar
+     */
+    function getInitialQueryFromSelection(editor) {
+        var selectionText = editor.getSelectedText();
+        if (selectionText) {
+            return selectionText
+                .replace(/^\n*/, "") // Trim possible newlines at the very beginning of the selection
+                .split("\n")[0];
+        }
+        return "";
+    }
+
     /**
      * Does a set of replacements in a single document in memory.
      * @param {!Document} doc The document to do the replacements in.
@@ -255,9 +270,10 @@ define(function (require, exports, module) {
         }
     }
 
-    exports.parseDollars        = parseDollars;
-    exports.hasCheckedMatches   = hasCheckedMatches;
-    exports.performReplacements = performReplacements;
-    exports.labelForScope       = labelForScope;
-    exports.ERROR_FILE_CHANGED  = "fileChanged";
+    exports.parseDollars                    = parseDollars;
+    exports.getInitialQueryFromSelection    = getInitialQueryFromSelection;
+    exports.hasCheckedMatches               = hasCheckedMatches;
+    exports.performReplacements             = performReplacements;
+    exports.labelForScope                   = labelForScope;
+    exports.ERROR_FILE_CHANGED              = "fileChanged";
 });

@@ -83,7 +83,7 @@ define({
     
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",
-    "ERROR_MAX_FILES"                   : "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.",
+    "ERROR_MAX_FILES"                   : "This project contains more than 30,000 files. Features that operate across multiple files may be disabled or behave as if the project is empty. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Read more about working with large projects</a>.",
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error Launching Browser",
@@ -137,8 +137,7 @@ define({
     "BUTTON_NO"                         : "No",
     
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} results",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 result",
+    "FIND_MATCH_INDEX"                  : "{0} of {1}",
     "FIND_NO_RESULTS"                   : "No results",
     "FIND_QUERY_PLACEHOLDER"            : "Find\u2026",
     "REPLACE_PLACEHOLDER"               : "Replace with\u2026",
@@ -248,7 +247,11 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensions Disabled",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Click to toggle cursor between Insert (INS) and Overwrite (OVR) modes",
+    "STATUSBAR_LANG_TOOLTIP"                : "Click to change file type",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Click to toggle report panel.",
     "STATUSBAR_DEFAULT_LANG"                : "(default)",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Set as Default for .{0} Files",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",
@@ -513,7 +516,7 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {0} because it wasn't installed.",
     "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click on the Available tab above to get started.",
     "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "Be cautious when installing extensions from an unknown source.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "NOTE: These extensions may come from different authors than {APP_NAME} itself. Extensions are not reviewed and have full local privileges. Be cautious when installing extensions from an unknown source.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",

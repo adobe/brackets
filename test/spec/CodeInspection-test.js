@@ -438,6 +438,13 @@ define(function (require, exports, module) {
                 };
             }
             
+            // Tooltip is panel title, plus an informational message when there are problems.
+            function buildTooltip(title, count) {
+                if (count === 0) {
+                    return title;
+                }
+                return StringUtils.format(Strings.STATUSBAR_CODE_INSPECTION_TOOLTIP, title);
+            }
 
             it("should run test linter when a JavaScript document opens and indicate errors in the panel", function () {
                 var codeInspector = createCodeInspector("javascript linter", failLintResult());
@@ -741,7 +748,8 @@ define(function (require, exports, module) {
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe(StringUtils.format(Strings.SINGLE_ERROR, "JavaScript Linter"));
+                    var expectedTooltip = buildTooltip(StringUtils.format(Strings.SINGLE_ERROR, "JavaScript Linter"), 1);
+                    expect(tooltip).toBe(expectedTooltip);
                 });
             });
 
@@ -774,7 +782,8 @@ define(function (require, exports, module) {
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe(StringUtils.format(Strings.MULTIPLE_ERRORS, "JavaScript Linter", 2));
+                    var expectedTooltip = buildTooltip(StringUtils.format(Strings.MULTIPLE_ERRORS, "JavaScript Linter", 2), 2);
+                    expect(tooltip).toBe(expectedTooltip);
                 });
             });
 
@@ -797,7 +806,8 @@ define(function (require, exports, module) {
 
                     var tooltip = $statusBar.attr("title");
                     // tooltip will contain + in the title if the inspection was aborted
-                    expect(tooltip).toBe(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2));
+                    var expectedTooltip = buildTooltip(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2), 2);
+                    expect(tooltip).toBe(expectedTooltip);
                 });
             });
 
@@ -814,7 +824,8 @@ define(function (require, exports, module) {
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe(Strings.NO_ERRORS_MULTIPLE_PROVIDER);
+                    var expectedTooltip = buildTooltip(Strings.NO_ERRORS_MULTIPLE_PROVIDER, 0);
+                    expect(tooltip).toBe(expectedTooltip);
                 });
             });
 
@@ -829,7 +840,8 @@ define(function (require, exports, module) {
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe(StringUtils.format(Strings.NO_ERRORS, "JavaScript Linter1"));
+                    var expectedTooltip = buildTooltip(StringUtils.format(Strings.NO_ERRORS, "JavaScript Linter1"), 0);
+                    expect(tooltip).toBe(expectedTooltip);
                 });
             });
             
@@ -911,7 +923,8 @@ define(function (require, exports, module) {
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2));
+                    var expectedTooltip = buildTooltip(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2), 2);
+                    expect(tooltip).toBe(expectedTooltip);
                 });
             });
             

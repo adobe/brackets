@@ -188,7 +188,7 @@ define(function (require, exports, module) {
                     expectNoPreviewAtPos(72, 15);    // cursor on redsox
                     expectNoPreviewAtPos(73, 16);    // cursor on pinky
                     expectNoPreviewAtPos(74, 16);    // cursor on blue in hyphenated word blue-cheese
-                    expectNoPreviewAtPos(75, 18);    // cursor on white in hyphenated word @bc-white
+                    expectNoPreviewAtPos(75, 18);    // cursor on white in hyphenated word @bc-bg-highlight
                 });
             });
         });
@@ -268,7 +268,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     checkGradientAtPos("repeating-linear-gradient(red, blue 50%, red 100%)", 122, 50);
                     checkGradientAtPos("repeating-linear-gradient(red 0%, white 0%, blue 0%)", 123, 50);
-                    checkGradientAtPos("repeating-linear-gradient(red 0%, white 5%, blue 10%)", 124, 50);
+                    checkGradientAtPos("repeating-linear-gradient(red 0%, white 50%, blue 100%)", 124, 50);
                 });
             });
 
@@ -420,6 +420,12 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("Should show image preview for URIs containing quotes", function () {
+                checkImagePathAtPos("img/don't.png", 183, 26);  // url() containing '
+                checkImagePathAtPos("img/don't.png", 184, 26);  // url("") containing '
+                checkImageDataAtPos("data:image/svg+xml;utf8, <svg version='1.1' xmlns='http://www.w3.org/2000/svg'></svg>", 185, 26);  // data url("") containing '
+            });
+            
             it("Should show image preview for a data URI inside url()", function () {
                 runs(function () {
                     checkImageDataAtPos("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAABq0lEQVQoU11RPUgcURD+Zt/unnrcCf4QIugRMcS7a2xjmmArRlRIFRBFgrVtGgmBRFCwTBoLsQiBGMxiJ4iksLRSFEzQRC2EAwm5g727feP3LpyFy1tm5s33zcz7RnDvG4x0zFgMJRY/jiewhy/w8FKSJkyaTuG7Fumvi+ARbQiLpcMDvH/Qj1S6Bf6vI5SxKPUG4fGm5kMf6wr08MKHILCKldoZlk0OIeuHjNuDBBcNAqvvENTLwKii1ZFoF/7G2PQDpNo8dFUt1AcSGfymz42PVfI8ghxht1bHh9MpucCiegMFdJoUOtSD+MxLPtI5T/GaHWhg+NjRk3G5utPikwb5bjzhq40JSChs6Sx1eOYAojg/fCFv7yvnBLGCLPMqxS2dZrtXnDthhySuYebnpFw3ST2RtmUVIx5z1sIKdX9qgDcOTJAj7WsNa8eTUhrY0Gwqg2FldeZiduH5r9JHvqEDigzDS/4VJvYJfMh9VLmbNO9+s9hNg5D/qjkJ8I6uW0yFtkrwHydCg+AhVgsp/8Pnu00XI+0jYJ7gjANRiEsmQ3aNOXuJhG035i1QA6g+uONCrgAAAABJRU5ErkJggg==",  159, 26);

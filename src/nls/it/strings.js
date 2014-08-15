@@ -210,9 +210,9 @@ define({
      */
     "STATUSBAR_CURSOR_POSITION"             : "Linea {0}, Colonna {1}",
     "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Selezionata {0} colonna",
-    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selezionare {0} colonne",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selezionate {0} colonne",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Selezionata {0} linea",
-    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selezionare {0} linee",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selezionate {0} linee",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Clicca per passare alla indentazione a spazi",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Clicca per passare alla indentazione a tabulazione",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Clicca per cambiare il numero di spazi usati per l’indentazione",
@@ -348,7 +348,7 @@ define({
     "CMD_CHECK_FOR_UPDATE"              : "Controlla aggiornamenti",
     "CMD_HOW_TO_USE_BRACKETS"           : "Come usare {APP_NAME}",
     "CMD_FORUM"                         : "Forum di {APP_NAME}",
-    "CMD_RELEASE_NOTES"                 : "Note del lancio",
+    "CMD_RELEASE_NOTES"                 : "Note del rilascio",
     "CMD_REPORT_AN_ISSUE"               : "Segnala un problema",
     "CMD_SHOW_EXTENSIONS_FOLDER"        : "Mostra cartella estensioni",
     "CMD_HOMEPAGE"                      : "Sito WEB di {APP_TITLE}",
@@ -362,7 +362,7 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                : "Build sperimentale",
     "DEVELOPMENT_BUILD"                 : "Build di sviluppo",
-    "CMD_SUGGEST"                       : "Suggerisci una feature",
+    "CMD_SUGGEST"                       : "Suggerisci una funzionalità",
     "CMD_SUPPORT"                       : "Supporto per {APP_NAME}",
     "RELOAD_FROM_DISK"                  : "Ricarica dal disco",
     "CMD_GET_INVOLVED"                  : "Far parte",
@@ -389,6 +389,13 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"     : "L’URL di base non può contenere hash come \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"        : "I caratteri speciali come '{0}' devono essere %-encodate.",
     "BASEURL_ERROR_UNKNOWN_ERROR"       : "Trovato un carattere sconosciuto durante l'analisi del URL di base",
+    
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Tema attuale",
+    "USE_THEME_SCROLLBARS"                 : "Utilizzare le barre di scorrimento a tema",
+    "FONT_SIZE"                            : "Dimensioni carattere",
+    "FONT_FAMILY"                          : "Tipo di carattere",
+ 
     
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nuova regola",
@@ -436,6 +443,9 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Manager delle Estensioni",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Impossibile accedere al registro delle estensioni. Riprova più tardi.",
+    "INSTALL_EXTENSION_DRAG"               : "Trascina .zip qui o",
+    "INSTALL_EXTENSION_DROP"               : "Rilascia .zip per l'installazione",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Installazione/Aggiornamento interrotto a causa dei seguenti errori:",
     "INSTALL_FROM_URL"                     : "Installo dall’indirizzo URL\u2026",
     "EXTENSION_AUTHOR"                     : "Autore",
     "EXTENSION_DATE"                       : "Data",
@@ -447,6 +457,9 @@ define({
     "EXTENSION_MORE_INFO"                  : "Più info...",
     "EXTENSION_ERROR"                      : "Errore di estensione",
     "EXTENSION_KEYWORDS"                   : "Parole chiave",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "Tradotto in {0} lingue, inclusa la tua",
+    "EXTENSION_TRANSLATED_GENERAL"         : "Tradotto in {0} lingue",
+    "EXTENSION_TRANSLATED_LANGS"           : "Questa estensione è stata tradotta in queste lingue: {0}",
     "EXTENSION_INSTALLED"                  : "Installata",
     "EXTENSION_UPDATE_INSTALLED"           : "Questo aggiornamento dell’estensione è stato scaricato e sarà installato dopo il riavvio di {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Cerca",
@@ -528,6 +541,8 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Passa alla definizione",
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostra suggerimenti sul parametro",
     "NO_ARGUMENTS"                              : "<nessun parametro>",
+    "DETECTED_EXCLUSION_TITLE"                  : "Problema Conseguente File JavaScript",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets ha dei problemi per elaborare il file:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> nel tuo progetto e rimuovi il file da jscodehints.detectedExclusions.",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -542,5 +557,5 @@ define({
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
 
-/* Last translation of: 46de60683124768aa7f074aa3168f99d23f6c016*/
+/* Last translation of: e04798f182d2833a077e4e110b781e071c997c51*/
 

@@ -1230,6 +1230,29 @@ define(function (require, exports, module) {
                     });
                 });
 
+                it("should replace instances of regexp with 0-length matches on disk", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    doBasicTest({
+                        queryInfo:       {query: "^", isRegexp: true},
+                        numMatches:      55,
+                        replaceText:     "CHANGED",
+                        knownGoodFolder: "regexp-zero-length"
+                    });
+                });
+                
+                it("should replace instances of regexp with 0-length matches in memory", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    doInMemoryTest({
+                        queryInfo:       {query: "^", isRegexp: true},
+                        numMatches:      55,
+                        replaceText:     "CHANGED",
+                        knownGoodFolder:   "unchanged",
+                        forceFilesOpen:    true,
+                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder: "regexp-zero-length"
+                    });
+                });
+
                 it("should replace instances of a string in a project respecting CRLF line endings", function () {
                     openTestProjectCopy(defaultSourcePath, FileUtils.LINE_ENDINGS_CRLF);
                     doBasicTest({
@@ -1699,6 +1722,52 @@ define(function (require, exports, module) {
                 });
                 
                 describe("Full workflow", function () {
+                    it("should prepopulate the find bar with selected text", function () {
+                        var doc, editor;
+                        
+                        openTestProjectCopy(defaultSourcePath);
+                        runs(function () {
+                            waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.html" }), "open file");
+                        });
+                        runs(function () {
+                            doc = DocumentManager.getOpenDocumentForPath(testPath + "/foo.html");
+                            expect(doc).toBeTruthy();
+                            DocumentManager.setCurrentDocument(doc);
+                            editor = doc._masterEditor;
+                            expect(editor).toBeTruthy();
+                            editor.setSelection({line: 4, ch: 7}, {line: 4, ch: 10});
+                        });
+
+                        openSearchBar(null);
+                        runs(function () {
+                            expect($("#find-what").val()).toBe("Foo");
+                        });
+                        waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
+                    });
+                    
+                    it("should prepopulate the find bar with only first line of selected text", function () {
+                        var doc, editor;
+                        
+                        openTestProjectCopy(defaultSourcePath);
+                        runs(function () {
+                            waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.html" }), "open file");
+                        });
+                        runs(function () {
+                            doc = DocumentManager.getOpenDocumentForPath(testPath + "/foo.html");
+                            expect(doc).toBeTruthy();
+                            DocumentManager.setCurrentDocument(doc);
+                            editor = doc._masterEditor;
+                            expect(editor).toBeTruthy();
+                            editor.setSelection({line: 4, ch: 7}, {line: 6, ch: 10});
+                        });
+
+                        openSearchBar(null);
+                        runs(function () {
+                            expect($("#find-what").val()).toBe("Foo</title>");
+                        });
+                        waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
+                    });
+
                     it("should show results from the search with all checkboxes checked", function () {
                         showSearchResults("foo", "bar");
                         runs(function () {
