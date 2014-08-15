@@ -111,3 +111,10 @@
     color: #bbb; /* dark grey */
     font-family: SourceCodePro;
 }
+
+.dark #function-hint-container {
+    background: #000;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.24);
+}
