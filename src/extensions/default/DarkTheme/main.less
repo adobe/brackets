@@ -54,7 +54,7 @@
 
 .CodeMirror-focused .CodeMirror-activeline {
     .CodeMirror-gutter-elt {
-        background: #000;
+        background: @background;
         color: #fff;
     }
     .inline-widget .CodeMirror-gutter-elt {
@@ -90,6 +90,10 @@
 .CodeMirror-gutters {
     background-color: @background;
     border-right: none;
+}
+
+.CodeMirror-linenumber {
+    color: #767676;
 }
 
 .CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
