@@ -38,7 +38,7 @@ define(function (require, exports, module) {
     exports.FILE_NEW_UNTITLED           = "file.newDoc";                // DocumentCommandHandlers.js   handleFileNew()
     exports.FILE_NEW                    = "file.newFile";               // DocumentCommandHandlers.js   handleFileNewInProject()
     exports.FILE_NEW_FOLDER             = "file.newFolder";             // DocumentCommandHandlers.js   handleNewFolderInProject()
-    exports.FILE_OPEN                   = "file.open";                  // DocumentCommandHandlers.js   handleFileOpen()
+    exports.FILE_OPEN                   = "file.open";                  // DocumentCommandHandlers.js   handleDocumentOpen()
     exports.FILE_OPEN_FOLDER            = "file.openFolder";            // ProjectManager.js            openProject()
     exports.FILE_SAVE                   = "file.save";                  // DocumentCommandHandlers.js   handleFileSave()
     exports.FILE_SAVE_ALL               = "file.saveAll";               // DocumentCommandHandlers.js   handleFileSaveAll()
@@ -116,6 +116,7 @@ define(function (require, exports, module) {
     exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";        // EditorOptionHandlers.js      _getToggler()
 
     exports.CMD_ADD_TO_PANE_AND_OPEN   = "cmd.addToPaneAndOpen";          // DocumentCommandHandlers.js   handleAddToPaneViewList()
+    exports.CMD_OPEN                   = "cmd.open";                      // DocumentCommandHandlers.js   handleFileOpen()
     
     exports.CMD_SORT_PANE_VIEW_LIST_BY_ADDED  = "cmd.sortPaneViewListByAdded";    // paneViewSort.js          _handleSort()
     exports.CMD_SORT_PANE_VIEW_LIST_BY_NAME   = "cmd.sortPaneViewListByName";     // paneViewSort.js          _handleSort()

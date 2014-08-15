@@ -440,7 +440,7 @@ define(function (require, exports, module) {
      * only if the file does not have a custom viewer.
      * @param {!{fullPath:string, index:number=, forceRedraw:boolean, paneId:string=}} commandData  File to open; optional position in
      *   pane view list list (defaults to last); optional flag to force pane view list redraw
-     * @return {$.Promise} a jQuery promise that will be resolved with a file object
+     * @return {$.Promise} a jQuery promise that will be resolved with a document object
      */
     function handleAddToPaneViewList(commandData) {
         return handleFileOpen(commandData).done(function (file) {
@@ -449,6 +449,32 @@ define(function (require, exports, module) {
             MainViewManager.addView(paneId, file, commandData.index, commandData.forceRedraw);
         });
     }
+  /**
+     * Opens the given file, makes it the current file, AND adds it to the pane view list
+     * only if the file does not have a custom viewer.
+     * @param {!{fullPath:string, index:number=, forceRedraw:boolean, paneId:string=}} commandData  File to open; optional position in
+     *   pane view list list (defaults to last); optional flag to force pane view list redraw
+     * @return {$.Promise} a jQuery promise that will be resolved with a Document object
+     */
+    function handleDocumentOpen(commandData) {
+        var result = new $.Deferred();
+        handleFileOpen(commandData)
+            .done(function (file) {
+                // if we succeeded with an open file
+                //  then we need to resolve that to a document.
+                //  getOpenDocumentForPath will return null if there isn't a 
+                //  supporting document for that file (e.g. an image)
+                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                result.resolve(doc);
+            })
+            .fail(function () {
+                result.reject();
+            });
+
+        return result.promise();
+        
+    }
+
 
     /**
      * Opens the given file, makes it the current document, AND adds it to the pane view list
@@ -1616,7 +1642,8 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET, Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
     
     // Register global commands
-    CommandManager.register(Strings.CMD_FILE_OPEN,              Commands.FILE_OPEN, handleFileOpen);
+    CommandManager.register(Strings.CMD_FILE_OPEN,              Commands.FILE_OPEN, handleDocumentOpen);
+    CommandManager.register(Strings.CMD_FILE_OPEN,              Commands.CMD_OPEN, handleFileOpen);
     CommandManager.register(Strings.CMD_ADD_TO_PANE_AND_OPEN,   Commands.CMD_ADD_TO_PANE_AND_OPEN, handleAddToPaneViewList);
     CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,      Commands.FILE_NEW_UNTITLED, handleFileNew);
     CommandManager.register(Strings.CMD_FILE_NEW,               Commands.FILE_NEW, handleFileNewInProject);
