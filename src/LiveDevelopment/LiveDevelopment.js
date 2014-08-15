@@ -264,6 +264,16 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * @private
+     * Append a message to direct users to the troubleshooting page
+     * @param {string} msg Original message
+     * @return {string} Original message plus link to troubleshooting page.
+     */
+    function _appendTroubleshootingMessage(msg) {
+        return msg + " " + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
+    }
+
+    /**
+     * @private
      * Close a live document
      */
     function _closeDocument(liveDocument) {
@@ -619,7 +629,7 @@ define(function LiveDevelopment(require, exports, module) {
                 Dialogs.showModalDialog(
                     Dialogs.DIALOG_ID_ERROR,
                     Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-                    _append(Strings.LIVE_DEV_LOADING_ERROR_MESSAGE)
+                    _appendTroubleshootingMessage(Strings.LIVE_DEV_LOADING_ERROR_MESSAGE)
                 );
             })
             .always(function () {
@@ -1042,15 +1052,6 @@ define(function LiveDevelopment(require, exports, module) {
         });
     }
     
-    /**
-     * Append a message to direct users to the troubleshooting page
-     * @param {string} msg Original message
-     * @return {string} Original message plus link to troubleshooting page.
-     */
-    function _appendTroubleshootingMessage(msg) {
-        return msg + " " + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
-    }
-
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
         // When the browser navigates away from the primary live document
