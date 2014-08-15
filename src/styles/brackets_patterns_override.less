@@ -1196,6 +1196,12 @@ a[href^="http"] {
             .alert {
                 font-size: 11px;
                 margin: 0 0 10px;
+
+                .dark & {
+                    background: @dark-bc-warning-bg;
+                    border-radius: 2px;
+                    color: @dark-bc-warning-text;
+                }
             }
             .error {
                 font-weight: @font-weight-semibold;
