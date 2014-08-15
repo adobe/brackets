@@ -818,13 +818,12 @@ define(function (require, exports, module) {
     exports.getFocusedEditor              = getFocusedEditor;
     
     
-    // CUSTOM VIEWER API (Will be deprecated)
-    exports.registerCustomViewer          = registerCustomViewer;
     exports.registerInlineEditProvider    = registerInlineEditProvider;
     exports.registerInlineDocsProvider    = registerInlineDocsProvider;
     exports.registerJumpToDefProvider     = registerJumpToDefProvider;
     
     // Deprecated
+    exports.registerCustomViewer          = registerCustomViewer;
     exports.resizeEditor                  = resizeEditor;
     exports.focusEditor                   = focusEditor;
     exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;
