@@ -31,7 +31,6 @@ define(function (require, exports, module) {
         Immutable = require("thirdparty/immutable"),
         _ = require("thirdparty/lodash"),
         FileUtils = require("file/FileUtils"),
-        FileSystem = require("filesystem/FileSystem"),
         FileViewController = require("project/FileViewController");
     
     var DOM = React.DOM;
@@ -46,7 +45,7 @@ define(function (require, exports, module) {
      */
     var SORT_DIRECTORIES_FIRST = "sortDirectoriesFirst";
     
-    function _formatDirectoryContents(path, contents) {
+    function _formatDirectoryContents(contents) {
         return Immutable.fromJS(contents.map(function (entry) {
             if (entry.isFile) {
                 // if the name starts with a dot, treat the whole name as the filename not an extension
@@ -61,14 +60,15 @@ define(function (require, exports, module) {
             } else {
                 return {
                     name: entry.name,
-                    directory: path + entry.name + "/"
+                    children: null,
+                    fullPath: entry.fullPath
                 };
             }
         }));
     }
     
     function _nameCompare(a, b) {
-        var result = FileUtils.compareFilenames(a.get("name"), b.get("name", false));
+        var result = FileUtils.compareFilenames(a.get("name"), b.get("name"), false);
         if (result === 0) {
             if (a.get("extension") && b.get("extension") === "") {
                 return 1;
@@ -82,9 +82,9 @@ define(function (require, exports, module) {
     }
     
     function _dirsFirstCompare(a, b) {
-        if (a.get("directory") !== undefined && b.get("directory") === undefined) {
+        if (a.get("children") !== undefined && b.get("children") === undefined) {
             return -1;
-        } else if (a.get("directory") === undefined && b.get("directory") !== undefined) {
+        } else if (a.get("children") === undefined && b.get("children") !== undefined) {
             return 1;
         } else {
             return _nameCompare(a, b);
@@ -95,19 +95,18 @@ define(function (require, exports, module) {
         return contents.sort(dirsFirst ? _dirsFirstCompare : _nameCompare);
     }
     
-    function _getDirectoryContents(projectPath, directory, sortDirsFirst) {
+    function _getDirectoryContents(directory, sortDirsFirst) {
         var deferred = new $.Deferred();
         directory.getContents(function (err, contents) {
             if (err) {
                 deferred.reject(err);
                 return;
             }
-            var sorted = _sortFormattedDirectory(_formatDirectoryContents(projectPath, contents), sortDirsFirst);
-            deferred.resolve(sorted);
+            deferred.resolve(_sortFormattedDirectory(_formatDirectoryContents(contents), sortDirsFirst));
         });
         return deferred.promise();
     }
-    
+
     function ViewModel() {
         this.setProjectRoot(null);
     }
@@ -131,15 +130,12 @@ define(function (require, exports, module) {
     
     ViewModel.prototype.setProjectRoot = function (root) {
         this.projectRoot = root;
-        this.treeData = new Immutable.Vector();
         if (!root) {
+            this.treeData = new Immutable.Vector();
             return new $.Deferred().resolve().promise();
         }
-        return _getDirectoryContents("", this.projectRoot, this.sortDirsFirst).then(function (contents) {
-            this.treeData = new Immutable.Map()
-                            .set("", new Immutable.Map()
-                                    .set("children", contents)
-                                );
+        return _getDirectoryContents(this.projectRoot, this.sortDirsFirst).then(function (treeData) {
+            this.treeData = treeData;
             $(this).trigger(CHANGE);
         }.bind(this));
     };
@@ -147,39 +143,72 @@ define(function (require, exports, module) {
     /**
      * Removes the project root.
      */
-    ViewModel.prototype.getTreeDataForPath = function (path) {
-        var projectRoot = this.projectRoot;
+    ViewModel.prototype._filePathToObjectPath = function (path) {
+        if (!this.projectRoot) {
+            return null;
+        }
+        
+        var projectRoot = this.projectRoot.fullPath;
         
         if (path.substr(0, projectRoot.length) !== projectRoot) {
-            return undefined;
+            return null;
         }
         
         path = path.substring(projectRoot.length);
+        var parts = path.split("/"),
+            part = parts.shift(),
+            treeData = this.treeData,
+            result = [],
+            itemIndex;
         
-        return this.treeData.get(path);
+        function matchEntryName(part, entry) {
+            return entry.get("name") === part;
+        }
+        
+        while (part) {
+            if (treeData === null) {
+                return null;
+            }
+            itemIndex = treeData.findIndex(_.partial(matchEntryName, part));
+            if (itemIndex === -1) {
+                return null;
+            }
+            result.push(itemIndex);
+            treeData = treeData.get(itemIndex).children;
+            if (treeData) {
+                result.push("children");
+            }
+            part = parts.shift();
+        }
+        
+        return result;
     };
     
     /**
      * @private
      * Save ProjectManager project path and tree state.
      */
-    ViewModel.prototype.getOpenNodes = function getOpenNodes() {
-        var openNodes = [],
-            path = this.projectRoot.fullPath;
+    ViewModel.prototype.getOpenNodes = function _getOpenNodes() {
+        var openNodes = [];
         
-        this.treeData.keys().forEach(function (key) {
-            if (key === "") {
-                return;
-            }
-            var depth = key.split("/").length - 2,
-                nodesAtDepth = openNodes[depth];
-            if (nodesAtDepth === undefined) {
-                nodesAtDepth = [];
-                openNodes[depth] = nodesAtDepth;
-            }
-            nodesAtDepth.push(path + key);
-        });
+        function addNodesAtDepth(treeList, parent, depth) {
+            treeList.forEach(function (treeDataEntry) {
+                // is it a file or closed? (undefined or null)
+                if (!treeDataEntry.children) {
+                    return;
+                }
+                var nodeList = openNodes[depth];
+                if (!nodeList) {
+                    nodeList = openNodes[depth] = [];
+                }
+                
+                var directoryPath = parent + treeDataEntry.name + "/";
+                nodeList.push(directoryPath);
+                addNodesAtDepth(treeDataEntry.children, directoryPath, depth + 1);
+            });
+        }
         
+        addNodesAtDepth(this.treeData, this.projectRoot.fullPath, 0);
         return openNodes;
     };
     
@@ -226,27 +255,15 @@ define(function (require, exports, module) {
         }
     };
     
-    ViewModel.prototype._openPath = function (path) {
-        var entry = FileSystem.getDirectoryForPath(this.projectRoot.fullPath + path);
-        if (!entry) {
-            throw new Error("Tried to open unknown path: " + path);
+    ViewModel.prototype.toggleDirectory = function (treeDataEntry) {
+        if (treeDataEntry.children === undefined) {
+            throw new Error("toggleDirectory was called with a file treeDataEntry");
         }
-        
-        // call _getDirectoryContents on exports for testing
-        return exports._getDirectoryContents(path, entry, this.sortDirsFirst).then(function (contents) {
-            this.treeData = this.treeData.set(path, new Immutable.Map().set("children", contents));
-        }.bind(this));
-    };
-    
-    ViewModel.prototype._toggleDirectory = function (path) {
-        if (path[path.length - 1] !== "/") {
-            throw new Error("toggleDirectory was called with a file: " + path);
-        }
-        var entry = this.treeData.get(path);
-        if (entry === undefined) {
-            return this._openPath(path);
+        if (treeDataEntry.children === null) {
+            treeDataEntry.children = [];
+            return this.updateContents(treeDataEntry.directory, treeDataEntry.children);
         } else {
-            this.treeData = this.treeData["delete"](path);
+            treeDataEntry.children = null;
             $(this).trigger(CHANGE);
             return new $.Deferred().resolve().promise();
         }
@@ -315,9 +332,9 @@ define(function (require, exports, module) {
         },
         render: function () {
             var entry = this.props.entry,
-                name = entry.get("name"),
-                extension = entry.get("extension");
-                        
+                name = entry.name,
+                extension = entry.extension;
+            
             if (extension) {
                 extension = DOM.span({
                     className: "extension"
@@ -415,16 +432,15 @@ define(function (require, exports, module) {
             var ulProps = this.props.isRoot ? {
                 className: "jstree-no-dots jstree-no-icons"
             } : null;
+            
             return DOM.ul(ulProps, this.props.contents.map(function (entry) {
-                console.log("entry", entry.toJS())
                 // TODO: set keys
-                if (entry.get("directory") !== undefined) {
+                if (entry.children !== undefined) {
                     return directoryNode({
                         entry: entry,
                         dispatcher: this.props.dispatcher
                     });
                 } else {
-                    console.log("Gonna filenode", entry);
                     return fileNode({
                         entry: entry,
                         dispatcher: this.props.dispatcher
@@ -487,7 +503,6 @@ define(function (require, exports, module) {
     exports._directoryNode = directoryNode;
     exports._directoryContents = directoryContents;
     exports._fileTreeView = fileTreeView;
-    exports._getDirectoryContents = _getDirectoryContents;
     
     exports.CHANGE = CHANGE;
     exports.render = render;
