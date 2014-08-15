@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        FileUtils           = require("file/FileUtils"),
         HTMLUtils           = require("language/HTMLUtils"),
         ProjectManager      = require("project/ProjectManager"),
         TokenUtils          = require("utils/TokenUtils"),
@@ -1350,6 +1351,8 @@ define(function (require, exports, module) {
         var cm = editor._codeMirror;
         var ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
         var selector = "", inSelector = false, foundChars = false;
+        var isPreprocessorDoc = /(scss|less)/i.test(FileUtils.getFileExtension(editor.document.file.fullPath));
+        var selectorArray = [];
 
         function _stripAtRules(selector) {
             selector = selector.trim();
@@ -1359,6 +1362,57 @@ define(function (require, exports, module) {
             return selector;
         }
         
+        function _getSelectorInFinalCSSForm() {
+            var finalSelectorArray = [""],
+                parentSelectorArray = [],
+                group = [];
+            _.forEach(selectorArray, function (selector) {
+                selector = _stripAtRules(selector);
+                group = selector.split(", ");
+                parentSelectorArray = [];
+                _.forEach(group, function (cs) {
+                    var ampersandIndex = cs.indexOf("&");
+                    _.forEach(finalSelectorArray, function (ps) {
+                        if (ampersandIndex === -1) {
+                            if (ps.length) {
+                                ps += " ";
+                            }
+                            ps += cs;
+                        } else {
+                            ps = cs.replace("&", ps);
+                        }
+                        parentSelectorArray.push(ps);
+                    });
+                });
+                finalSelectorArray = parentSelectorArray;
+            });
+            return finalSelectorArray.join(", ");
+        }
+        
+        function _skipToOpeningBracket(ctx, startChar) {
+            var bracketPairs = { "}": "{",
+                                 "]": "[",
+                                 ")": "(" },
+                unmatchedBraces = 0;
+            if (!startChar) {
+                startChar = "}";
+            }
+            while (true) {
+                if (startChar === ctx.token.string) {
+                    unmatchedBraces++;
+                } else if (ctx.token.string.match(bracketPairs[startChar])) {
+                    unmatchedBraces--;
+                    if (unmatchedBraces === 0) {
+                        return;
+                    }
+                }
+                
+                if (!TokenUtils.movePrevToken(ctx)) {
+                    return;
+                }
+            }
+        }
+
         // Parse a selector. Assumes ctx is pointing at the opening
         // { that is after the selector name.
         function _parseSelector(ctx) {
@@ -1393,23 +1447,50 @@ define(function (require, exports, module) {
             
             return selector;
         }
+
+        var skipPrevSibling = false;
+        
+        // If the cursor is inside a non-whitespace token with "block" or "top" state, then it is inside a 
+        // selector. The only exception is when it is immediately after the '{'.
+        if (isPreprocessorDoc && /\S/.test(ctx.token.string) && ctx.token.string !== "{" &&
+                (ctx.token.state.state === "block" || ctx.token.state.state === "top")) {
+            foundChars = true;
+        }
         
         // scan backwards to see if the cursor is in a rule
         while (true) {
             if (ctx.token.type !== "comment") {
                 if (ctx.token.string === "}") {
-                    break;
+                    if (isPreprocessorDoc) {
+                        if (ctx.token.state.state === "top") {
+                            break;
+                        }
+                        skipPrevSibling = true;
+                        // Skip past the entire preceding block until the matching "{"
+                        _skipToOpeningBracket(ctx, "}");
+                    } else {
+                        break;
+                    }
                 } else if (ctx.token.string === "{") {
                     selector = _parseSelector(ctx);
-                    break;
+                    if (isPreprocessorDoc) {
+                        if (!skipPrevSibling && !/^\s*@media/i.test(selector)) {
+                            selectorArray.unshift(selector);
+                        }
+                        if (skipPrevSibling) {
+                            skipPrevSibling = false;
+                        }
+                    } else {
+                        break;
+                    }
                 } else {
-                    if (/\S/.test(ctx.token.string)) {
+                    if (!isPreprocessorDoc && /\S/.test(ctx.token.string)) {
                         foundChars = true;
                     }
                 }
             }
             
-            if (!TokenUtils.movePrevToken(ctx)) {
+            if (ctx.token.string !== "{" && ctx.token.string !== "}" && !TokenUtils.movePrevToken(ctx)) {
                 break;
             }
         }
@@ -1420,8 +1501,11 @@ define(function (require, exports, module) {
         ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
         
         // special case - we aren't in a selector and haven't found any chars,
-        // look at the next immediate token to see if it is non-whitespace
-        if (!selector && !foundChars) {
+        // look at the next immediate token to see if it is non-whitespace. 
+        // For preprocessor documents we need to move the cursor to next non-whitespace
+        // token so that we can collect the current selector if the sursor is inside it.
+        if ((!selector && !foundChars && !isPreprocessorDoc) ||
+                (isPreprocessorDoc && (selectorArray.length === 0 || /\s+/.test(ctx.token)))) {
             if (TokenUtils.moveNextToken(ctx) && ctx.token.type !== "comment" && /\S/.test(ctx.token.string)) {
                 foundChars = true;
                 ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
@@ -1429,13 +1513,18 @@ define(function (require, exports, module) {
         }
         
         // At this point if we haven't found a selector, but have seen chars when
-        // scanning, assume we are in the middle of a selector.
-        if (!selector && foundChars) {
+        // scanning, assume we are in the middle of a selector. For a preprocessor 
+        // document we also need to collect the current selector if the cursor is 
+        // is within the selector or whitespaces immediately before or after it.
+        if ((!selector || isPreprocessorDoc) && foundChars) {
             // scan forward to see if the cursor is in a selector
             while (true) {
                 if (ctx.token.type !== "comment") {
                     if (ctx.token.string === "{") {
                         selector = _parseSelector(ctx);
+                        if (isPreprocessorDoc) {
+                            selectorArray.push(selector);
+                        }
                         break;
                     } else if (ctx.token.string === "}" || ctx.token.string === ";") {
                         break;
@@ -1445,6 +1534,10 @@ define(function (require, exports, module) {
                     break;
                 }
             }
+        }
+        
+        if (isPreprocessorDoc) {
+            return _getSelectorInFinalCSSForm();
         }
         
         return _stripAtRules(selector);

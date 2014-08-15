@@ -93,12 +93,13 @@ define(function LiveDevelopment(require, exports, module) {
         UserServer           = require("LiveDevelopment/Servers/UserServer").UserServer;
 
     // Inspector
-    var Inspector       = require("LiveDevelopment/Inspector/Inspector");
+    var Inspector            = require("LiveDevelopment/Inspector/Inspector");
 
     // Documents
-    var CSSDocument     = require("LiveDevelopment/Documents/CSSDocument"),
-        HTMLDocument    = require("LiveDevelopment/Documents/HTMLDocument"),
-        JSDocument      = require("LiveDevelopment/Documents/JSDocument");
+    var CSSDocument          = require("LiveDevelopment/Documents/CSSDocument"),
+        HTMLDocument         = require("LiveDevelopment/Documents/HTMLDocument"),
+        JSDocument           = require("LiveDevelopment/Documents/JSDocument"),
+        PreprocessorDocument = require("LiveDevelopment/Documents/PreprocessorDocument");
     
     // Document errors
     var SYNC_ERROR_CLASS = "live-preview-sync-error";
@@ -184,7 +185,7 @@ define(function LiveDevelopment(require, exports, module) {
      * @type {BaseServer}
      */
     var _server;
-
+    
     function _isPromisePending(promise) {
         return promise && promise.state() === "pending";
     }
@@ -206,6 +207,9 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function _classForDocument(doc) {
         switch (doc.getLanguage().getId()) {
+        case "less":
+        case "scss":
+            return PreprocessorDocument;
         case "css":
             return CSSDocument;
         case "javascript":
@@ -483,7 +487,8 @@ define(function LiveDevelopment(require, exports, module) {
         var docPromise = DocumentManager.getDocumentForPath(path);
 
         docPromise.done(function (doc) {
-            if ((_classForDocument(doc) === CSSDocument) &&
+            if ((_classForDocument(doc) === CSSDocument ||
+                    _classForDocument(doc) === PreprocessorDocument) &&
                     (!_liveDocument || (doc !== _liveDocument.doc))) {
                 // The doc may already have an editor (e.g. starting live preview from an css file),
                 // so pass the editor if any
@@ -1249,6 +1254,31 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /**
+     * If the current editor is for a preprocessor file, then add it to the style sheet 
+     * so that we can track cursor positions in the editor to show live preview highlighting.
+     *
+     * @param {Event} event (unused)
+     * @param {Editor} current Current editor
+     * @param {Editor} previous Previous editor
+     *
+     */
+    function onActiveEditorChange(event, current, previous) {
+        if (previous && previous.document &&
+                /(less|scss)/i.test(FileUtils.getFileExtension(previous.document.file.fullPath))) {
+            var prevDocUrl = _server && _server.pathToUrl(previous.document.file.fullPath);
+            
+            if (_relatedDocuments && _relatedDocuments[prevDocUrl]) {
+                _closeRelatedDocument(_relatedDocuments[prevDocUrl]);
+            }
+        }
+        if (current && current.document &&
+                /(less|scss)/i.test(FileUtils.getFileExtension(current.document.file.fullPath))) {
+            var docUrl = _server && _server.pathToUrl(current.document.file.fullPath);
+            _styleSheetAdded(null, docUrl);
+        }
+    }
+    
+    /**
      * Open the Connection and go live
      *
      * @param {!boolean} restart  true if relaunching and _openDeferred already exists
@@ -1293,6 +1323,10 @@ define(function LiveDevelopment(require, exports, module) {
             prepareServerPromise
                 .done(function () {
                     _doLaunchAfterServerReady(doc);
+
+                    // Explicitly trigger onActiveEditorChange so that live preview highlighting
+                    // can be set up for the preprocessor files.
+                    onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
                 })
                 .fail(function () {
                     _showWrongDocError();
@@ -1448,6 +1482,12 @@ define(function LiveDevelopment(require, exports, module) {
     function getServerBaseUrl() {
         return _server && _server.getBaseUrl();
     }
+
+    // Setup activeEditorChange event listener so that we can track cursor positions in 
+    // preprocessor files and perform live preview highlighting on all elements with 
+    // the current selector in the preprocessor file.
+    $(EditorManager).on("activeEditorChange", onActiveEditorChange);
+
 
     // For unit testing
     exports.launcherUrl               = launcherUrl;
