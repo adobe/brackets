@@ -63,10 +63,10 @@ define({
 	"ERROR_RELOADING_FILE": "Une erreur s’est produite lors de la tentative de rechargement du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"ERROR_SAVING_FILE_TITLE": "Erreur lors de l’enregistrement du fichier",
 	"ERROR_SAVING_FILE": "Une erreur s’est produite lors de la tentative d’enregistrement du fichier <span class='dialog-filename'>{0}</span>. {1}",
-	"ERROR_RENAMING_FILE_TITLE": "Erreur lors du changement de nom de {0}",
-	"ERROR_RENAMING_FILE": "Une erreur s’est produite lors de la tentative de changement de nom de l’élément {2} <span class='dialog-filename'>{0}</span>. {1}",
-	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression de {0}",
-	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression de l’élément {2} <span class='dialog-filename'>{0}</span>. {1}",
+	"ERROR_RENAMING_FILE_TITLE": "Erreur lors du changement de nom du {0}",
+	"ERROR_RENAMING_FILE": "Une erreur s’est produite lors de la tentative de changement de nom du {2} <span class='dialog-filename'>{0}</span>. {1}",
+	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du {0}",
+	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du {2} <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "{0} non valide",
 	"INVALID_FILENAME_MESSAGE": "Les {0} ne peuvent pas utiliser de termes réservés au système, finir par un point (.) ou contenir l’un des caractères suivants : <code class='emphasized'>{1}</code>",
 	"ENTRY_WITH_SAME_NAME_EXISTS": "Il existe déjà un fichier ou un répertoire portant le nom <span class='dialog-filename'>{0}</span>.",
@@ -137,8 +137,7 @@ define({
 	"BUTTON_NO": "Non",
     
     // Find, Replace, Find in Files
-	"FIND_RESULT_COUNT": "{0} résultats",
-	"FIND_RESULT_COUNT_SINGLE": "1 résultat",
+	"FIND_MATCH_INDEX": "{0} sur {1}",
 	"FIND_NO_RESULTS": "Aucun résultat",
 	"FIND_QUERY_PLACEHOLDER": "Rechercher\u2026",
 	"REPLACE_PLACEHOLDER": "Remplacer par\u2026",
@@ -251,7 +250,7 @@ define({
 	"STATUSBAR_INSOVR_TOOLTIP": "Cliquez pour faire passer le curseur du mode Insertion (INS) au mode Remplacement (RFP) ou inversement",
 	"STATUSBAR_LANG_TOOLTIP": "Cliquez pour modifier le type de fichier",
 	"STATUSBAR_CODE_INSPECTION_TOOLTIP": "{0}. Cliquez pour afficher/masquer le panneau des rapports.",
-	"STATUSBAR_DEFAULT_LANG": "(valeur par défaut)",
+	"STATUSBAR_DEFAULT_LANG": "(par défaut)",
 	"STATUSBAR_SET_DEFAULT_LANG": "Utiliser par défaut pour les fichiers .{0}",
 
     // CodeInspection: errors/warnings
@@ -424,10 +423,10 @@ define({
 	"BASEURL_ERROR_UNKNOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
     
     // Strings for themes-settings.html and themes-general.html
-	"CURRENT_THEME": "Thème actuel",
-	"USE_THEME_SCROLLBARS": "Utiliser les barres de défilement des thèmes",
-	"FONT_SIZE": "Taille de la police",
-	"FONT_FAMILY": "Famille de polices",
+	"CURRENT_THEME": "Thème actuel ",
+	"USE_THEME_SCROLLBARS": "Utiliser les barres de défilement du thème",
+	"FONT_SIZE": "Taille de la police ",
+	"FONT_FAMILY": "Famille de polices ",
 
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "Nouvelle règle",
@@ -517,7 +516,7 @@ define({
 	"EXTENSION_NOT_INSTALLED": "Impossible de supprimer l’extension {0} car elle n’est pas installée.",
 	"NO_EXTENSIONS": "Aucune extension installée pour le moment.<br>Cliquez sur l’onglet Disponibles ci-dessus pour vous lancer.",
 	"NO_EXTENSION_MATCHES": "Aucune extension ne correspond à votre recherche.",
-	"REGISTRY_SANITY_CHECK_WARNING": "Soyez prudent lorsque vous installez des extensions provenant d’une source inconnue.",
+	"REGISTRY_SANITY_CHECK_WARNING": "REMARQUE : ces extensions peuvent provenir d’autres sources que l’application {APP_NAME} elle-même. Les extensions ne sont pas contrôlées et disposent de privilèges locaux complets. Soyez prudents lorsque vous installez des extensions provenant d’une source inconnue.",
 	"EXTENSIONS_INSTALLED_TITLE": "Installées",
 	"EXTENSIONS_AVAILABLE_TITLE": "Disponibles",
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
