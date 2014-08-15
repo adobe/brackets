@@ -393,7 +393,7 @@ define(function (require, exports, module) {
      * the fullPath string is of the form "path[:lineNumber[:columnNumber]]"
      * lineNumber and columnNumber are 1-origin: the very first line is line 1, and the very first column is column 1.
      * paneId if omitted will be the ACTIVE_PANE
-     * @return {$.Promise} a jQuery promise that will be resolved with a document object
+     * @return {$.Promise} a jQuery promise that will be resolved with a file object
      */
     function handleFileOpen(commandData) {
         var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
@@ -440,7 +440,7 @@ define(function (require, exports, module) {
      * only if the file does not have a custom viewer.
      * @param {!{fullPath:string, index:number=, forceRedraw:boolean, paneId:string=}} commandData  File to open; optional position in
      *   pane view list list (defaults to last); optional flag to force pane view list redraw
-     * @return {$.Promise} a jQuery promise that will be resolved with a document object
+     * @return {$.Promise} a jQuery promise that will be resolved with a file object
      */
     function handleAddToPaneViewList(commandData) {
         return handleFileOpen(commandData).done(function (file) {
@@ -477,6 +477,7 @@ define(function (require, exports, module) {
 
 
     /**
+     * @deprecated
      * Opens the given file, makes it the current document, AND adds it to the pane view list
      * @param {!{fullPath:string, index:number=, forceRedraw:boolean, paneId:string=}} commandData  File to open; optional position in
      *   pane view list list (defaults to last); optional flag to force pane view list redraw
