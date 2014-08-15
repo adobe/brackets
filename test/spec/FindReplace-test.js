@@ -331,6 +331,12 @@ define(function (require, exports, module) {
         function expectMatchIndex(index) {
             expect(myEditor._codeMirror._searchState.matchIndex).toEqual(index);
         }
+        function expectMatchCount(count) {
+            expect(myEditor._codeMirror._searchState.resultSet.length).toEqual(count);
+        }
+        function expectNoDOMHighlight() {
+            expect(myEditor._codeMirror._searchState.marked.length).toEqual(0);
+        }
         function expectHighlightedMatches(selections, expectedDOMHighlightCount) {
             var cm = myEditor._codeMirror;
             var searchState = cm._searchState;
@@ -487,6 +493,24 @@ define(function (require, exports, module) {
         });
         
         describe("Search", function () {
+            it("should have the correct match count even if DOM highlighting is turned off when over 2000 matches", function () {
+                var text = "bbbbbbbbbb", i;
+                // Create a text string that is 2430 (10 x 3^5) characters long
+                for (i = 0; i < 5; i++) {
+                    text += text + text;
+                }
+                myEditor._codeMirror.setValue(text);
+                myEditor.setCursorPos(0, 0);
+
+                twCommandManager.execute(Commands.CMD_FIND);
+
+                enterSearchText("b");
+
+                expectMatchIndex(0);
+                expectMatchCount(2430);
+                expectNoDOMHighlight();
+            });
+            
             it("should find all case-insensitive matches with lowercase text", function () {
                 myEditor.setCursorPos(0, 0);
 
