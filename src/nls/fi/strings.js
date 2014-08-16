@@ -83,7 +83,7 @@ define({
 
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Virhe tiedostojen indeksoinnissa",
-    "ERROR_MAX_FILES"                   : "Suurin sallittu määrä tiedostoja on indeksoitu. Toiminnot, jotka etsivät tiedostoja indeksistä, voivat toimia virheellisesti.",
+    "ERROR_MAX_FILES"                   : "Tämä projekti sisältää yli 30&nbsp;000 tiedostoa. Useiden tiedostojen välillä toimivat ominaisuudet poistetaan käytöstä, tai ne toimivat niin kuin projekti olisi tyhjä. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Lue lisää suurten projektien kanssa työskentelemisestä</a>.",
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Virhe käynnistettäessä selainta",
@@ -591,4 +591,4 @@ define({
     "DOCS_MORE_LINK"                            : "Lue lisää"
 });
 
-/* Last translated for 884ee8414fa7d7dad0cb85b062573e65b3a827a0 */
+/* Last translated for 2c80c8b1ecbf597aec39ce8821e10a8e135b846c */
