@@ -407,14 +407,17 @@ define("promise/promise",
       },
 
       done: function (fn) {
+        console.log("jQuery promises are deprecated in favor of Promise object - use then() instead of done().");
         return this.then(fn, null);
       },
 
       fail: function (fn) {
+        console.log("jQuery promises are deprecated in favor of Promise object - use then() instead of fail().");
         return this.then(null, fn);
       },
 
       always: function (fn) {
+        console.log("jQuery promises are deprecated in favor of Promise object - use then() instead of always().");
         return this.then(fn, fn);
       },
 
