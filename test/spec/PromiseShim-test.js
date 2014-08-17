@@ -248,65 +248,73 @@ define(function (require, exports, module) {
             });
         });
         
-//        describe("jQuery style promises (deprecated)", function () {
-//            
-//            it("should support jQuery Deferred promise done() & always() methods", function () {
-//                var promise,
-//                    success = false,
-//                    fail    = false,
-//                    always  = false;
-//                
-//                runs(function () {
-//                    promise = promiseThatSucceeds();
-//                    promise
-//                        .done(function () {
-//                            success = true;
-//                        })
-//                        .fail(function () {
-//                            fail = true;
-//                        })
-//                        .always(function () {
-//                            always = true;
-//                        });
-//                    
-//                    waitsForFulfillment(promise, "resolve with no args");
-//                });
-//                
-//                runs(function () {
-//                    expect(success).toBe(true);
-//                    expect(fail).toBe(false);
-//                    expect(always).toBe(true);
-//                });
-//            });
-//            
-//            it("should support jQuery Deferred promise fail() & always() methods", function () {
-//                var promise,
-//                    success = false,
-//                    fail    = false,
-//                    always  = false;
-//                
-//                runs(function () {
-//                    promise = promiseThatFails();
-//                    promise
-//                        .done(function () {
-//                            success = true;
-//                        })
-//                        .fail(function () {
-//                            fail = true;
-//                        })
-//                        .always(function () {
-//                            always = true;
-//                        });
-//                    
-//                    waitsForRejection(promise, "fail with no args");
-//                });
-//                
-//                runs(function () {
-//                    expect(success).toBe(false);
-//                    expect(fail).toBe(true);
-//                    expect(always).toBe(true);
-//                });
-//            });
-//        });
+        describe("jQuery style promises (deprecated)", function () {
+            
+            it("should support jQuery Deferred promise done() & always() methods", function () {
+                var promise,
+                    success = false,
+                    fail    = false,
+                    always  = false;
+                
+                runs(function () {
+                    promise = promiseThatSucceeds();
+                    promise
+                        .done(function () {
+                            success = true;
+                        })
+                        .fail(function () {
+                            // handlers should be executed in order added
+                            expect(always).toBe(false);
+                            fail = true;
+                        })
+                        .always(function () {
+                            // handlers should be executed in order added
+                            expect(success).toBe(true);
+                            always = true;
+                        });
+                    
+                    waitsForFulfillment(promise, "resolve with no args");
+                });
+                
+                runs(function () {
+                    expect(success).toBe(true);
+                    expect(fail).toBe(false);
+                    expect(always).toBe(true);
+                });
+            });
+            
+            it("should support jQuery Deferred promise fail() & always() methods", function () {
+                var promise,
+                    success = false,
+                    fail    = false,
+                    always  = false;
+                
+                runs(function () {
+                    promise = promiseThatFails();
+                    promise
+                        .done(function () {
+                            // handlers should be executed in order added
+                            expect(always).toBe(false);
+                            success = true;
+                        })
+                        .fail(function () {
+                            fail = true;
+                        })
+                        .always(function () {
+                            // handlers should be executed in order added
+                            expect(fail).toBe(true);
+                            always = true;
+                        });
+                    
+                    waitsForRejection(promise, "fail with no args");
+                });
+                
+                runs(function () {
+                    expect(success).toBe(false);
+                    expect(fail).toBe(true);
+                    expect(always).toBe(true);
+                });
+            });
+        });
     });
 });
