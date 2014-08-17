@@ -31,6 +31,7 @@ define(function (require, exports, module) {
         Immutable = require("thirdparty/immutable"),
         _ = require("thirdparty/lodash"),
         FileUtils = require("file/FileUtils"),
+        FileSystem = require("filesystem/FileSystem"),
         FileViewController = require("project/FileViewController");
     
     var DOM = React.DOM;
@@ -38,13 +39,6 @@ define(function (require, exports, module) {
     // Constants
     var CHANGE = "change";
 
-    /**
-     * Name of the preferences for sorting directories first
-     * 
-     * @type {string}
-     */
-    var SORT_DIRECTORIES_FIRST = "sortDirectoriesFirst";
-    
     function _formatDirectoryContents(contents) {
         return Immutable.fromJS(_.zipObject(contents.map(function (entry) {
             if (entry.isFile) {
@@ -56,6 +50,9 @@ define(function (require, exports, module) {
     }
     
     function _getDirectoryContents(directory) {
+        if (typeof directory === "string") {
+            directory = FileSystem.getDirectoryForPath(directory);
+        }
         var deferred = new $.Deferred();
         directory.getContents(function (err, contents) {
             if (err) {
@@ -77,19 +74,13 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Reference to the currently selected file.
-     * @type {?(File|Directory)}
-     */
-    ViewModel.prototype.selected = null;
-    
-    /**
      * Reference to previous selected file when ProjectManager had
      * selection focus from FileViewController.
      * @type {string}
      */
     ViewModel.prototype._lastSelected = null;
     
-    ViewModel.prototype.sortDirsFirst = false;
+    ViewModel.prototype.sortDirectoriesFirst = false;
     
     ViewModel.prototype.treeData = null;
     
@@ -234,10 +225,22 @@ define(function (require, exports, module) {
             throw new Error("Cannot find directory in project: " + path);
         }
         
-        var directory = this.treeData.getIn(objectPath);
-        if (directory.get("open")) {
-            var newTreeData = this.treeData.updateIn(objectPath, function (directory) {
-                return directory["delete"]("open");
+        var directory = this.treeData.getIn(objectPath),
+            newTreeData = this.treeData;
+        
+        if (isFile(directory)) {
+            throw new Error("toggleDirectory called with a file: " + path);
+        }
+        
+        var isOpen = directory.get("open");
+        
+        if (isOpen || directory.get("children")) {
+            newTreeData = newTreeData.updateIn(objectPath, function (directory) {
+                if (isOpen) {
+                    return directory["delete"]("open");
+                } else {
+                    return directory.set("open", true);
+                }
             });
             this._commitTreeData(newTreeData);
             return new $.Deferred().resolve().promise();
@@ -282,6 +285,13 @@ define(function (require, exports, module) {
         this._lastSelected = path;
         
         this._commitTreeData(newTreeData);
+    };
+    
+    ViewModel.prototype.setSortDirectoriesFirst = function (sortDirectoriesFirst) {
+        if (sortDirectoriesFirst !== this.sortDirectoriesFirst) {
+            this.sortDirectoriesFirst = sortDirectoriesFirst;
+            $(this).trigger(CHANGE);
+        }
     };
     
     ViewModel.prototype.on = function (event, handler) {
@@ -344,10 +354,12 @@ define(function (require, exports, module) {
     }
 
     var fileNode = React.createClass({
+        shouldComponentUpdate: function (nextProps, nextState) {
+            return this.props.entry !== nextProps.entry;
+        },
+        
         handleClick: function (e) {
-            if (this.props.setSelected) {
-                this.props.setSelected(this.props.file.fullPath);
-            }
+            this.props.dispatcher.setSelected(this.props.parentPath + this.props.name);
             return false;
         },
         handleMouseDown: function (e) {
@@ -369,7 +381,7 @@ define(function (require, exports, module) {
             }
             
             var fileClasses = "";
-            if (this.props.selected) {
+            if (this.props.entry.get("selected")) {
                 fileClasses = "jstree-clicked jstree-hovered sidebar-selection";
             }
             if (this.props.context) {
@@ -441,8 +453,17 @@ define(function (require, exports, module) {
     var directoryNode, directoryContents;
     
     directoryNode = React.createClass({
+        shouldComponentUpdate: function (nextProps, nextState) {
+            return this.props.entry !== nextProps.entry ||
+                this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst;
+        },
+        
+        myPath: function () {
+            return this.props.parentPath + this.props.name + "/";
+        },
+        
         handleClick: function () {
-            this.props.dispatcher.toggleDirectory(this.props.entry);
+            this.props.dispatcher.toggleDirectory(this.myPath());
             return false;
         },
         
@@ -456,6 +477,7 @@ define(function (require, exports, module) {
             if (isOpen && children) {
                 nodeClass = "open";
                 childNodes = directoryContents({
+                    parentPath: this.myPath(),
                     contents: children,
                     dispatcher: this.props.dispatcher
                 });
@@ -482,26 +504,38 @@ define(function (require, exports, module) {
     });
 
     directoryContents = React.createClass({
+        shouldComponentUpdate: function (nextProps, nextState) {
+            return this.props.contents !== nextProps.contents ||
+                this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst;
+        },
+        
         render: function () {
             var ulProps = this.props.isRoot ? {
                 className: "jstree-no-dots jstree-no-icons"
             } : null;
             
-            return DOM.ul(ulProps, this.props.contents.map(function (entry, name) {
+            var contents = this.props.contents,
+                namesInOrder = _sortFormattedDirectory(contents, this.props.sortDirectoriesFirst);
+            
+            return DOM.ul(ulProps, namesInOrder.map(function (name) {
+                var entry = contents.get(name);
                 // TODO: set keys
                 if (isFile(entry)) {
                     return fileNode({
                         parentPath: this.props.parentPath,
                         name: name,
                         entry: entry,
-                        dispatcher: this.props.dispatcher
+                        dispatcher: this.props.dispatcher,
+                        key: name
                     });
                 } else {
                     return directoryNode({
                         parentPath: this.props.parentPath,
                         name: name,
                         entry: entry,
-                        dispatcher: this.props.dispatcher
+                        dispatcher: this.props.dispatcher,
+                        sortDirectoriesFirst: this.props.sortDirectoriesFirst,
+                        key: name
                     });
                 }
             }.bind(this)).toArray());
@@ -509,13 +543,17 @@ define(function (require, exports, module) {
     });
     
     var fileTreeView = React.createClass({
-        // TODO: Add shouldComponentUpdate
-        // TODO: pass dirsFirst flag
+        shouldComponentUpdate: function (nextProps, nextState) {
+            return this.props.treeData !== nextProps.treeData ||
+                this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst;
+        },
+        
         render: function () {
             return directoryContents({
                 isRoot: true,
                 parentPath: this.props.parentPath,
-                contents: this.props.viewModel.treeData,
+                sortDirectoriesFirst: this.props.sortDirectoriesFirst,
+                contents: this.props.treeData,
                 dispatcher: this.props.dispatcher
             });
 //            return DOM.ul({
@@ -537,7 +575,8 @@ define(function (require, exports, module) {
             return;
         }
         React.renderComponent(fileTreeView({
-            viewModel: viewModel,
+            treeData: viewModel.treeData,
+            sortDirectoriesFirst: viewModel.sortDirectoriesFirst,
             parentPath: viewModel.projectRoot.fullPath,
             dispatcher: dispatcher
         }),

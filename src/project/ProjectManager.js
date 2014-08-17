@@ -88,8 +88,13 @@ define(function (require, exports, module) {
      */
     var SETTINGS_FILENAME = "." + PreferencesManager.SETTINGS_FILENAME;
 
+    /**
+     * Name of the preferences for sorting directories first
+     * 
+     * @type {string}
+     */
     var SORT_DIRECTORIES_FIRST = "sortDirectoriesFirst";
-    
+
     /**
      * @private
      * A string containing all invalid characters for a specific platform.
@@ -168,10 +173,20 @@ define(function (require, exports, module) {
     
     Dispatcher.prototype.toggleDirectory = function (path) {
         this.viewModel.toggleDirectory(path);
+        // TODO save tree state
 //        var openNodes = this.viewModel.getOpenNodes();
 //        PreferencesManager.setViewState("project.treeState", openNodes, { location : { scope: "user",
 //                                                                                      layer: "project",
 //                                                                                      layerID: model.projectRoot.fullPath } });
+    };
+    
+    Dispatcher.prototype.setSelected = function (path) {
+        this.viewModel._setSelected(path);
+        var openResult = FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
+    };
+    
+    Dispatcher.prototype.setSortDirectoriesFirst = function (sortDirectoriesFirst) {
+        this.viewModel.setSortDirectoriesFirst(sortDirectoriesFirst);
     };
     
     var dispatcher = new Dispatcher(model, viewModel);
@@ -1677,7 +1692,7 @@ define(function (require, exports, module) {
     // Define the preference to decide how to sort the Project Tree files
     PreferencesManager.definePreference(SORT_DIRECTORIES_FIRST, "boolean", brackets.platform !== "mac")
         .on("change", function () {
-            // TODO implement
+            dispatcher.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
         });
     
     // TODO fixme
@@ -1715,4 +1730,5 @@ define(function (require, exports, module) {
     exports.refreshFileTree          = refreshFileTree;
     exports.getAllFiles              = getAllFiles;
     exports.getLanguageFilter        = getLanguageFilter;
+    exports.dispatcher               = dispatcher;
 });

@@ -211,6 +211,29 @@ define(function (require, exports, module) {
                         children: {}
                     });
                 });
+                
+                it("should not rerequest subdirectories", function () {
+                    var changeFired = false;
+                    vm.on(FileTreeView.CHANGE, function () {
+                        changeFired = true;
+                    });
+                    
+                    var childrenObject;
+                    
+                    spyOn(FileTreeView, "_getDirectoryContents").andReturn(new $.Deferred().resolve({}).promise());
+
+                    waitsForDone(vm.toggleDirectory("/foo/subdir/"));
+                    runs(function () {
+                        changeFired = false;
+                        childrenObject = vm.treeData.getIn(["subdir", "children"]);
+                        waitsForDone(vm.toggleDirectory("/foo/subdir/"));
+                    });
+                    runs(function () {
+                        expect(changeFired).toBe(true);
+                        expect(vm.treeData.getIn(["subdir", "children"])).toBe(childrenObject);
+                        expect(FileTreeView._getDirectoryContents).not.toHaveBeenCalled();
+                    });
+                });
             });
             
             describe("_getOpenNodes", function () {
