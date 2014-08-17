@@ -166,12 +166,12 @@ define(function (require, exports, module) {
         });
     };
     
-    Dispatcher.prototype.toggleDirectory = function (treeDataEntry) {
-        this.viewModel.toggleDirectory(treeDataEntry);
-        var openNodes = this.viewModel.getOpenNodes();
-        PreferencesManager.setViewState("project.treeState", openNodes, { location : { scope: "user",
-                                                                                      layer: "project",
-                                                                                      layerID: model.projectRoot.fullPath } });
+    Dispatcher.prototype.toggleDirectory = function (path) {
+        this.viewModel.toggleDirectory(path);
+//        var openNodes = this.viewModel.getOpenNodes();
+//        PreferencesManager.setViewState("project.treeState", openNodes, { location : { scope: "user",
+//                                                                                      layer: "project",
+//                                                                                      layerID: model.projectRoot.fullPath } });
     };
     
     var dispatcher = new Dispatcher(model, viewModel);
@@ -865,7 +865,6 @@ define(function (require, exports, module) {
      */
     function forceFinishRename() {
         $(".jstree-rename-input").blur();
->>>>>>> master
     }
     
     /**
@@ -1044,17 +1043,12 @@ define(function (require, exports, module) {
             DocumentManager.closeAll();
     
             _unwatchProjectRoot().always(function () {
-<<<<<<< HEAD
                 // Done closing old project (if any)
                 if (model.projectRoot) {
                     $(exports).triggerHandler("projectClose", model.projectRoot);
-=======
-                // Finish closing old project (if any)
-                if (_projectRoot) {
                     LanguageManager._resetPathLanguageOverrides();
                     PreferencesManager._reloadUserPrefs(_projectRoot);
                     $(exports).triggerHandler("projectClose", _projectRoot);
->>>>>>> master
                 }
                 
                 startLoad.resolve();
@@ -1079,14 +1073,9 @@ define(function (require, exports, module) {
                 var rootEntry = FileSystem.getDirectoryForPath(rootPath);
                 rootEntry.exists(function (err, exists) {
                     if (exists) {
-<<<<<<< HEAD
                         var projectRootChanged = (!model.projectRoot || !rootEntry) ||
                             model.projectRoot.fullPath !== rootEntry.fullPath;
                         var i;
-=======
-                        var projectRootChanged = (!_projectRoot || !rootEntry) ||
-                            _projectRoot.fullPath !== rootEntry.fullPath;
->>>>>>> master
                         
                         // Success!
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
@@ -1117,38 +1106,12 @@ define(function (require, exports, module) {
                         }
                         PerfUtils.addMeasurement(perfTimerName);
                     } else {
-<<<<<<< HEAD
-                        Dialogs.showModalDialog(
-                            DefaultDialogs.DIALOG_ID_ERROR,
-                            Strings.ERROR_LOADING_PROJECT,
-                            StringUtils.format(
-                                Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
-                                StringUtils.breakableUrl(rootPath),
-                                err || FileSystemError.NOT_FOUND
-                            )
-                        ).done(function () {
-                            // Reset _projectRoot to null so that the following _loadProject call won't 
-                            // run the 'beforeProjectClose' event a second time on the original project, 
-                            // which is now partially torn down (see #6574).
-                            // TODO loadProject should really just instantiate a new project model
-                            model.projectRoot = null;
-                            
-                            // The project folder stored in preference doesn't exist, so load the default
-                            // project directory.
-                            // TODO (issue #267): When Brackets supports having no project directory
-                            // defined this code will need to change
-                            _loadProject(_getWelcomeProjectPath()).always(function () {
-                                // Make sure not to reject the original deferred until the fallback
-                                // project is loaded, so we don't violate expectations that there is always
-                                // a current project before continuing after _loadProject().
-                                result.reject();
-=======
                         _showErrorDialog(ERR_TYPE_LOADING_PROJECT_NATIVE, null, rootPath, err || FileSystemError.NOT_FOUND)
                             .done(function () {
                                 // Reset _projectRoot to null so that the following _loadProject call won't 
                                 // run the 'beforeProjectClose' event a second time on the original project, 
                                 // which is now partially torn down (see #6574).
-                                _projectRoot = null;
+                                model.projectRoot = null;
 
                                 // The project folder stored in preference doesn't exist, so load the default
                                 // project directory.
@@ -1160,7 +1123,6 @@ define(function (require, exports, module) {
                                     // a current project before continuing after _loadProject().
                                     result.reject();
                                 });
->>>>>>> master
                             });
                     }
                 });
@@ -1311,21 +1273,8 @@ define(function (require, exports, module) {
      * @return {boolean} Returns true if no illegal characters are found
      */
     function _checkForValidFilename(filename, isFolder) {
-<<<<<<< HEAD
         if (ProjectModel.isValidFilename(filename, _invalidChars)) {
-            Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_ERROR,
-                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME),
-                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE,  _invalidChars)
-            );
-=======
-        // Validate file name
-        // Checks for valid Windows filenames:
-        // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-        if ((filename.search(new RegExp("[" + _invalidChars + "]+")) !== -1) ||
-                filename.match(_illegalFilenamesRegEx)) {
             _showErrorDialog(ERR_TYPE_INVALID_FILENAME, isFolder, _invalidChars);
->>>>>>> master
             return false;
         }
         return true;

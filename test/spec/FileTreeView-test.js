@@ -21,7 +21,7 @@
  *
  */
 
-/*global $, define, brackets, describe, it, xit, beforeEach, expect, setTimeout, waitsForDone, runs, spyOn */
+/*global $, define, brackets, describe, xdescribe, it, xit, beforeEach, expect, setTimeout, waitsForDone, runs, spyOn */
 /*unittests: FileTreeView*/
 
 define(function (require, exports, module) {
@@ -56,137 +56,15 @@ define(function (require, exports, module) {
             describe("_formatDirectoryContents", function () {
                 it("should convert file and directory objects for display", function () {
                     var result = FileTreeView._formatDirectoryContents(contents);
-                    expect(result.toJS()).toEqual([
-                        {
-                            name: "README",
-                            extension: ".md"
-                        },
-                        {
-                            name: "afile",
-                            extension: ".js"
-                        },
-                        {
-                            name: "subdir",
-                            children: null,
-                            fullPath: subdir.fullPath
+                    expect(result.toJS()).toEqual({
+                        "README.md": {},
+                        "afile.js": {},
+                        "subdir": {
+                            children: null
                         }
-                    ]);
+                    });
                 });
                 
-                it("should treat dotfiles as filenames and not extensions", function () {
-                    var result = FileTreeView._formatDirectoryContents([
-                        {
-                            fullPath: "/path/to/.dotfile",
-                            name: ".dotfile",
-                            isFile: true
-                        }
-                    ]);
-                    expect(result.toJS()).toEqual([
-                        {
-                            name: ".dotfile",
-                            extension: ""
-                        }
-                    ]);
-                });
-            });
-            
-            describe("_sortFormattedDirectory", function () {
-                it("should sort alphabetically", function () {
-                    var formatted = Immutable.fromJS([
-                        {
-                            name: "README",
-                            extension: ".md"
-                        },
-                        {
-                            name: "afile",
-                            extension: ".js"
-                        },
-                        {
-                            name: "subdir",
-                            children: null,
-                            fullPath: subdir.fullPath
-                        }
-                    ]);
-                    expect(FileTreeView._sortFormattedDirectory(formatted).toJS()).toEqual([
-                        {
-                            name: "afile",
-                            extension: ".js"
-                        },
-                        {
-                            name: "README",
-                            extension: ".md"
-                        },
-                        {
-                            name: "subdir",
-                            children: null,
-                            fullPath: subdir.fullPath
-                        }
-                    ]);
-                });
-                
-                it("should include the extension in the sort", function () {
-                    var formatted = Immutable.fromJS([
-                        {
-                            name: "README",
-                            extension: ".txt"
-                        },
-                        {
-                            name: "README",
-                            extension: ".md"
-                        },
-                        {
-                            name: "README",
-                            extension: ""
-                        }
-                    ]);
-                    expect(FileTreeView._sortFormattedDirectory(formatted).toJS()).toEqual([
-                        {
-                            name: "README",
-                            extension: ""
-                        },
-                        {
-                            name: "README",
-                            extension: ".md"
-                        },
-                        {
-                            name: "README",
-                            extension: ".txt"
-                        }
-                    ]);
-                });
-                
-                it("can sort by directories first", function () {
-                    var formatted = Immutable.fromJS([
-                        {
-                            name: "README",
-                            extension: ".md"
-                        },
-                        {
-                            name: "afile",
-                            extension: ".js"
-                        },
-                        {
-                            name: "subdir",
-                            children: null,
-                            directory: subdir
-                        }
-                    ]);
-                    expect(FileTreeView._sortFormattedDirectory(formatted, true).toJS()).toEqual([
-                        {
-                            name: "subdir",
-                            children: null,
-                            directory: subdir
-                        },
-                        {
-                            name: "afile",
-                            extension: ".js"
-                        },
-                        {
-                            name: "README",
-                            extension: ".md"
-                        }
-                    ]);
-                });
             });
             
             describe("setProjectRoot", function () {
@@ -199,7 +77,7 @@ define(function (require, exports, module) {
                     }
                 };
                 
-                it("should create a formatted, sorted list of objects", function () {
+                it("should initialize the treeData", function () {
                     var vm = new FileTreeView.ViewModel();
                     
                     var changeFired = false;
@@ -210,21 +88,13 @@ define(function (require, exports, module) {
                     waitsForDone(vm.setProjectRoot(root));
                     
                     runs(function () {
-                        expect(vm.treeData.toJS()).toEqual([
-                            {
-                                name: "afile",
-                                extension: ".js"
-                            },
-                            {
-                                name: "README",
-                                extension: ".md"
-                            },
-                            {
-                                name: "subdir",
-                                children: null,
-                                fullPath: subdir.fullPath
+                        expect(vm.treeData.toJS()).toEqual({
+                            "README.md": {},
+                            "afile.js": {},
+                            "subdir": {
+                                children: null
                             }
-                        ]);
+                        });
                         expect(changeFired).toBe(true);
                     });
                 });
@@ -237,53 +107,80 @@ define(function (require, exports, module) {
                         fullPath: "/foo/"
                     };
 
-                    vm.treeData = Immutable.fromJS([
-                        {
-                            name: "subdir",
-                            children: [
-                                {
-                                    name: "afile",
-                                    extension: "js"
-                                },
-                                {
-                                    name: "subsubdir",
-                                    children: [
-                                        {
-                                            name: "thirdsub",
-                                            children: null
+                    vm.treeData = Immutable.fromJS({
+                        "subdir": {
+                            children: {
+                                "afile.js": {},
+                                "subsubdir": {
+                                    children: {
+                                        "thirdsub": {
+                                            children: {}
                                         }
-                                    ]
+                                    }
                                 }
-                            ]
+                            }
                         },
-                        {
-                            name: "anothersub",
-                            children: null
+                        "anothersub": {
+                            children: {}
                         }
-                    ]);
+                    });
                 });
                 
                 it("returns null if the projectRoot isn't set", function () {
                     vm.projectRoot = null;
-                    expect(vm._filePathToObjectPath("/foo/subdir")).toBeNull();
+                    expect(vm._filePathToObjectPath("/foo/subdir/")).toBeNull();
                     delete vm.projectRoot;
-                    expect(vm._filePathToObjectPath("/foo/subdir")).toBeNull();
+                    expect(vm._filePathToObjectPath("/foo/subdir/")).toBeNull();
                 });
                 
                 it("should find items at the root", function () {
-                    expect(vm._filePathToObjectPath("/foo/subdir")).toEqual([0]);
-                    expect(vm._filePathToObjectPath("/foo/anothersub")).toEqual([1]);
+                    expect(vm._filePathToObjectPath("/foo/subdir/")).toEqual(["subdir"]);
+                    expect(vm._filePathToObjectPath("/foo/anothersub/")).toEqual(["anothersub"]);
+                });
+                
+                it("should find nested files", function () {
+                    expect(vm._filePathToObjectPath("/foo/subdir/afile.js")).toEqual(["subdir", "children", "afile.js"]);
+                });
+                
+                it("should find nested directories", function () {
+                    expect(vm._filePathToObjectPath("/foo/subdir/subsubdir/thirdsub/")).toEqual(
+                        ["subdir", "children", "subsubdir", "children", "thirdsub"]
+                    );
                 });
             });
             
             describe("toggleDirectory", function () {
-                it("should throw if it is passed a file and not a directory", function () {
-                    var vm = new FileTreeView.ViewModel();
+                var vm = new FileTreeView.ViewModel();
+                vm.projectRoot = {
+                    fullPath: "/foo/"
+                };
+                
+                beforeEach(function () {
+                    vm.treeData = Immutable.fromJS({
+                        "subdir": {
+                            open: true,
+                            children: {
+                                "afile.js": {}
+                            }
+                        },
+                        "closedDir": {
+                            children: null
+                        }
+                    });
+                });
+                
+                it("should throw if the path does not exist", function () {
                     try {
-                        vm.toggleDirectory({
-                            name: "afile",
-                            extension: ".js"
-                        });
+                        vm.toggleDirectory("/foo/bar/");
+                        expect("should have thrown an error").toBe("but it didn't");
+                    } catch (e) {
+                        // Do nothing. It's expected to throw an error.
+                    }
+                });
+                
+                it("should throw if it is passed a file and not a directory", function () {
+                    try {
+                        vm.toggleDirectory("/foo/subdir/afile.js");
                         expect("should have thrown an error").toBe("but it didn't");
                     } catch (e) {
                         // Do nothing. This is actually what we expect.
@@ -291,49 +188,32 @@ define(function (require, exports, module) {
                 });
                 
                 it("should close a directory that's open", function () {
-                    var vm = new FileTreeView.ViewModel();
-                    vm.treeData = [
-                        {
-                            name: "subdir",
-                            children: [
-                                {
-                                    name: "afile",
-                                    extension: ".js"
-                                }
-                            ]
-                        }
-                    ];
-                    
                     var changeFired = false;
                     vm.on(FileTreeView.CHANGE, function () {
                         changeFired = true;
                     });
                     
-                    waitsForDone(vm.toggleDirectory(vm.treeData[0]));
+                    waitsForDone(vm.toggleDirectory("/foo/subdir/"));
                     runs(function () {
-                        expect(vm.treeData[0].children).toBeNull();
+                        expect(vm.treeData.getIn(["subdir", "open"])).toBeUndefined();
+                        expect(vm.treeData.getIn(["subdir", "children"]).length).toBe(1);
                         expect(changeFired).toBe(true);
                     });
                 });
                 
                 it("should open a directory that's closed", function () {
-                    var vm = new FileTreeView.ViewModel();
-                    vm.treeData = [
-                        {
-                            name: "subdir",
-                            children: null,
-                            directory: {}
-                        }
-                    ];
                     var deferred = new $.Deferred();
-                    spyOn(vm, "updateContents").andReturn(deferred.resolve().promise());
-                    vm.toggleDirectory(vm.treeData[0]);
-                    expect(vm.updateContents).toHaveBeenCalledWith(vm.treeData[0].directory, vm.treeData[0].children);
-                    expect(vm.treeData[0].children).toEqual([]);
+                    spyOn(FileTreeView, "_getDirectoryContents").andReturn(deferred.resolve({}).promise());
+                    vm.toggleDirectory("/foo/closedDir/");
+                    expect(FileTreeView._getDirectoryContents).toHaveBeenCalledWith("/foo/closedDir/");
+                    expect(vm.treeData.get("closedDir").toJS()).toEqual({
+                        open: true,
+                        children: {}
+                    });
                 });
             });
             
-            describe("getOpenNodes", function () {
+            describe("_getOpenNodes", function () {
                 var vm;
                 
                 beforeEach(function () {
@@ -345,40 +225,35 @@ define(function (require, exports, module) {
                 });
                 
                 it("should return an empty list when there are no open nodes", function () {
-                    vm.treeData = [
-                        {
-                            name: "file"
-                        },
-                        {
-                            name: "subdir",
-                            children: null,
-                            directory: {}
+                    vm.treeData = Immutable.fromJS({
+                        file: {},
+                        subdir: {
+                            children: null
                         }
-                    ];
-                    expect(vm.getOpenNodes()).toEqual([]);
+                    });
+                    expect(vm._getOpenNodes()).toEqual([]);
                 });
                 
                 it("should return open directories grouped by level", function () {
-                    vm.treeData = [
-                        {
-                            name: "subdir1",
-                            children: [
-                                {
-                                    name: "subsubdir",
-                                    children: []
+                    vm.treeData = Immutable.fromJS({
+                        subdir1: {
+                            open: true,
+                            children: {
+                                subsubdir: {
+                                    children: {},
+                                    open: true
                                 }
-                            ]
+                            }
                         },
-                        {
-                            name: "subdir2",
+                        subdir2: {
                             children: null
                         },
-                        {
-                            name: "subdir3",
-                            children: []
+                        subdir3: {
+                            open: true,
+                            children: {}
                         }
-                    ];
-                    expect(vm.getOpenNodes()).toEqual([
+                    });
+                    expect(vm._getOpenNodes()).toEqual([
                         [
                             "/foo/bar/subdir1/",
                             "/foo/bar/subdir3/"
@@ -390,51 +265,77 @@ define(function (require, exports, module) {
                 });
             });
             
-            describe("getTreeDataForPath", function () {
-                var vm;
+            describe("_setSelected", function () {
+                var vm = new FileTreeView.ViewModel(),
+                    changed;
+                
+                vm.projectRoot = {
+                    fullPath: "/foo/"
+                };
+                
+                vm.on(FileTreeView.CHANGE, function () {
+                    changed = true;
+                });
                 
                 beforeEach(function () {
-                    vm = new FileTreeView.ViewModel();
-                    vm.treeData = [
-                        {
-                            name: "subdir",
-                            children: [
-                                {
-                                    name: "subsubdir",
-                                    children: null
-                                }
-                            ]
-                        }
-                    ];
-                    vm.projectRoot = "/foo/bar/";
+                    changed = false;
+                    vm.treeData = Immutable.fromJS({
+                        subdir1: {
+                            open: true,
+                            children: {
+                                "afile.js": {}
+                            }
+                        },
+                        "afile.js": {}
+                    });
                 });
                 
-                it("should return undefined for an unknown directory", function () {
-                    expect(vm.getTreeDataForPath("yo/")).toBeUndefined();
-                    expect(vm.getTreeDataForPath("/foo/bar/yo/")).toBeUndefined();
+                it("should select an unselected file", function () {
+                    vm._setSelected("/foo/afile.js");
+                    expect(vm.treeData.getIn(["afile.js", "selected"])).toBe(true);
+                    expect(changed).toBe(true);
                 });
                 
-                it("should return a top level path after removing the project root", function () {
-                    expect(vm.getTreeDataForPath("/foo/bar/subdir/")).toBe(vm.treeData[0]);
+                it("should change the selection from the old to the new", function () {
+                    vm._setSelected("/foo/afile.js");
+                    changed = false;
+                    vm._setSelected("/foo/subdir1/afile.js");
+                    expect(vm.treeData.getIn(["afile.js", "selected"])).toBe(undefined);
+                    expect(vm.treeData.getIn(["subdir1", "children", "afile.js", "selected"])).toBe(true);
+                    expect(changed).toBe(true);
                 });
                 
-                it("should return a second level directory", function () {
-                    expect(vm.getTreeDataForPath("/foo/bar/subdir/subsubdir/")).toBe(vm.treeData[0].children[0]);
-                });
-                
-                it("should return null if the directory hasn't been loaded", function () {
-                    expect(vm.getTreeDataForPath("/foo/bar/subdir/subsubdir/yodeling/submarines/")).toBeNull();
+                it("shouldn't fire a changed message if there was no change in selection", function () {
+                    vm._setSelected("/foo/afile.js");
+                    expect(changed).toBe(true);
+                    changed = false;
+                    vm._setSelected("/foo/afile.js");
+                    expect(changed).toBe(false);
                 });
             });
         });
         
+        describe("_splitExtension", function () {
+            it("should work for plain filenames", function () {
+                expect(FileTreeView._splitExtension("afile.js")).toEqual({
+                    name: "afile",
+                    extension: ".js"
+                });
+            });
+
+            it("should treat dotfiles as filenames and not extensions", function () {
+                var result = FileTreeView._splitExtension(".dotfile");
+                expect(result).toEqual({
+                    name: ".dotfile",
+                    extension: ""
+                });
+            });
+        });
+
         describe("_fileNode", function () {
             it("should create a component with the right information", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
-                    entry: {
-                        name: "afile",
-                        extension: ".js"
-                    }
+                    name: "afile.js"
                 }));
                 var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
                 expect(a.props.children[0]).toBe("afile");
@@ -442,28 +343,64 @@ define(function (require, exports, module) {
             });
         });
         
-        var twoLevel = {
-            name: "thedir",
-            children: [
-                {
-                    name: "subdir",
-                    children: [
-                        {
-                            name: "afile",
-                            extension: ".js"
-                        }
-                    ]
+        describe("_sortFormattedDirectory", function () {
+            it("should sort alphabetically", function () {
+                var formatted = Immutable.fromJS({
+                    "README.md": {},
+                    "afile.js": {},
+                    subdir: {
+                        children: null
+                    }
+                });
+                expect(FileTreeView._sortFormattedDirectory(formatted).toJS()).toEqual([
+                    "afile.js", "README.md", "subdir"
+                ]);
+            });
+
+            it("should include the extension in the sort", function () {
+                var formatted = Immutable.fromJS({
+                    "README.txt": {},
+                    "README.md": {},
+                    "README": {}
+                });
+                expect(FileTreeView._sortFormattedDirectory(formatted).toJS()).toEqual([
+                    "README", "README.md", "README.txt"
+                ]);
+            });
+
+            it("can sort by directories first", function () {
+                var formatted = Immutable.fromJS({
+                    "README.md": {},
+                    "afile.js": {},
+                    subdir: {
+                        children: null
+                    }
+                });
+                expect(FileTreeView._sortFormattedDirectory(formatted, true).toJS()).toEqual([
+                    "subdir", "afile.js", "README.md"
+                ]);
+            });
+        });
+
+        var twoLevel = Immutable.fromJS({
+            open: true,
+            children: {
+                subdir: {
+                    open: true,
+                    children: {
+                        "afile.js": {}
+                    }
                 }
-            ]
-        };
-        
+            }
+        });
+
         describe("_directoryNode and _directoryContents", function () {
             it("should format a closed directory", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
-                    entry: {
-                        name: "thedir",
+                    name: "thedir",
+                    entry: Immutable.fromJS({
                         children: null
-                    }
+                    })
                 }));
                 var dirLI = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-closed"),
                     dirA = RTU.findRenderedDOMComponentWithTag(dirLI, "a");
@@ -472,12 +409,9 @@ define(function (require, exports, module) {
             
             it("should be able to list files", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._directoryContents({
-                    contents: [
-                        {
-                            name: "afile",
-                            extension: ".js"
-                        }
-                    ]
+                    contents: Immutable.fromJS({
+                        "afile.js": {}
+                    })
                 }));
                 var fileLI = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-leaf"),
                     fileA = RTU.findRenderedDOMComponentWithTag(fileLI, "a");
@@ -486,15 +420,15 @@ define(function (require, exports, module) {
             
             it("should be able to list closed directories", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
-                    entry: {
-                        name: "thedir",
-                        children: [
-                            {
-                                name: "subdir",
+                    name: "thedir",
+                    entry: Immutable.fromJS({
+                        open: true,
+                        children: {
+                            "subdir": {
                                 children: null
                             }
-                        ]
-                    }
+                        }
+                    })
                 }));
                 
                 var subdirLI = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-closed"),
@@ -504,6 +438,7 @@ define(function (require, exports, module) {
             
             it("should be able to list open subdirectories", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
+                    name: "twoLevel",
                     entry: twoLevel
                 }));
                 var dirLIs = RTU.scryRenderedDOMComponentsWithClass(rendered, "jstree-open");
@@ -521,7 +456,9 @@ define(function (require, exports, module) {
                 var rendered = RTU.renderIntoDocument(FileTreeView._fileTreeView({
                     viewModel: {
                         projectRoot: {},
-                        treeData: twoLevel.children
+                        treeData: new Immutable.Map({
+                            "subdir": twoLevel.getIn(["children", "subdir"])
+                        })
                     }
                 })),
                     rootNode = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-no-dots"),
@@ -536,7 +473,9 @@ define(function (require, exports, module) {
             it("should render into the given element", function () {
                 var el = document.createElement("div"),
                     viewModel = new FileTreeView.ViewModel();
-                viewModel.treeData = twoLevel.children;
+                viewModel.treeData = new Immutable.Map({
+                    "subdir": twoLevel.getIn(["children", "subdir"])
+                });
                 viewModel.projectRoot = {};
                 FileTreeView.render(el, viewModel);
                 expect($(el).hasClass("jstree")).toBe(true);
