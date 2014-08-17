@@ -509,6 +509,8 @@ define(function (require, exports, module) {
     });
     
     var fileTreeView = React.createClass({
+        // TODO: Add shouldComponentUpdate
+        // TODO: pass dirsFirst flag
         render: function () {
             return directoryContents({
                 isRoot: true,

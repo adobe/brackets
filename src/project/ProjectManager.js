@@ -930,9 +930,6 @@ define(function (require, exports, module) {
         if (!projectRoot) {
             return;
         }
-        var curDoc = DocumentManager.getCurrentDocument(),
-            selected = curDoc && curDoc.file ? curDoc.file.fullPath : "";
-
         FileTreeView.render($projectTreeContainer[0], viewModel, dispatcher);
         return new $.Deferred().resolve();
     };
