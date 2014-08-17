@@ -66,6 +66,7 @@ define(function (require, exports, module) {
     require("spec/PreferencesBase-test");
     require("spec/PreferencesManager-test");
     require("spec/ProjectManager-test");
+    require("spec/PromiseShim-test");
     require("spec/QuickOpen-test");
     require("spec/RemoteFunctions-test");
     require("spec/StringMatch-test");
