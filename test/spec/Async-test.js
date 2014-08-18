@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, waits, waitsFor, waitsForDone, waitsForFail, expect, $, jasmine  */
+/*global define, Promise, describe, beforeEach, afterEach, it, runs, waits, waitsFor, waitsForDone, waitsForFail, expect, $, jasmine  */
 
 define(function (require, exports, module) {
     "use strict";
@@ -35,43 +35,73 @@ define(function (require, exports, module) {
         describe("Chain", function () {
 
             function zeroArgThatSucceeds() {
-                var d = new $.Deferred();
-                setTimeout(function () {
-                    d.resolve();
-                }, 1);
-                return d.promise();
+//                var d = new $.Deferred();
+//                setTimeout(function () {
+//                    d.resolve();
+//                }, 1);
+//                return d.promise();
+                var d = new Promise(function (resolve, reject) {
+                    setTimeout(function () {
+                        resolve();
+                    }, 1);
+                });
+                return d;
             }
             
             function zeroArgThatFails() {
-                var d = new $.Deferred();
-                setTimeout(function () {
-                    d.reject();
-                }, 1);
-                return d.promise();
+//                var d = new $.Deferred();
+//                setTimeout(function () {
+//                    d.reject();
+//                }, 1);
+//                return d.promise();
+                var d = new Promise(function (resolve, reject) {
+                    setTimeout(function () {
+                        reject();
+                    }, 1);
+                });
+                return d;
             }
 
             function oneArgThatSucceeds(x) {
-                var d = new $.Deferred();
-                setTimeout(function () {
-                    d.resolveWith(null, [x]);
-                }, 1);
-                return d.promise();
+//                var d = new $.Deferred();
+//                setTimeout(function () {
+//                    d.resolveWith(null, [x]);
+//                }, 1);
+//                return d.promise();
+                var d = new Promise(function (resolve, reject) {
+                    setTimeout(function () {
+                        resolve([x]);
+                    }, 1);
+                });
+                return d;
             }
 
             function twoArgThatSucceeds(x, y) {
-                var d = new $.Deferred();
-                setTimeout(function () {
-                    d.resolveWith(null, [x, y]);
-                }, 1);
-                return d.promise();
+//                var d = new $.Deferred();
+//                setTimeout(function () {
+//                    d.resolveWith(null, [x, y]);
+//                }, 1);
+//                return d.promise();
+                var d = new Promise(function (resolve, reject) {
+                    setTimeout(function () {
+                        resolve([x, y]);
+                    }, 1);
+                });
+                return d;
             }
             
             function twoArgThatFails(x, y) {
-                var d = new $.Deferred();
-                setTimeout(function () {
-                    d.rejectWith(null, [x, y]);
-                }, 1);
-                return d.promise();
+//                var d = new $.Deferred();
+//                setTimeout(function () {
+//                    d.rejectWith(null, [x, y]);
+//                }, 1);
+//                return d.promise();
+                var d = new Promise(function (resolve, reject) {
+                    setTimeout(function () {
+                        reject([x, y]);
+                    }, 1);
+                });
+                return d;
             }
             
             function syncAddTwoArg(x, y) {
@@ -82,13 +112,20 @@ define(function (require, exports, module) {
                 throw new Error("sync error");
             }
             
-            function createArrayComparator(arrayOne) {
+            function createArrayComparator(arrayOneArgs) {
                 return function (arrayTwo) {
+//                    var i, l;
+//                    expect(arrayOneArgs.length).toBe(arrayTwo.length);
+//                    l = Math.min(arrayOneArgs.length, arrayTwo.length);
+//                    for (i = 0; i < l; i++) {
+//                        expect(arrayOneArgs[i]).toBe(arrayTwo[i]);
+//                    }
+                    // Ignore first arg for arrayTwo (i.e. Promise)
                     var i, l;
-                    expect(arrayOne.length).toBe(arrayTwo.length);
-                    l = Math.min(arrayOne.length, arrayTwo.length);
+                    expect(arrayOneArgs.length).toBe(arrayTwo.length - 1);
+                    l = Math.min(arrayOneArgs.length, arrayTwo.length - 1);
                     for (i = 0; i < l; i++) {
-                        expect(arrayOne[i]).toBe(arrayTwo[i]);
+                        expect(arrayOneArgs[i]).toBe(arrayTwo[i + 1]);
                     }
                 };
             }
@@ -102,12 +139,21 @@ define(function (require, exports, module) {
                         functions,
                         args
                     );
-                    result.done(function () {
+//                    result.done(function () {
+//                        done = true;
+//                        success = true;
+//                        response = arguments;
+//                    });
+//                    result.fail(function () {
+//                        done = true;
+//                        success = false;
+//                        response = arguments;
+//                    });
+                    result.then(function () {
                         done = true;
                         success = true;
                         response = arguments;
-                    });
-                    result.fail(function () {
+                    }, function () {
                         done = true;
                         success = false;
                         response = arguments;
@@ -228,19 +274,31 @@ define(function (require, exports, module) {
             
             describe("With Timeout", function () {
                 function promiseThatSucceeds(duration) {
-                    var d = new $.Deferred();
-                    setTimeout(function () {
-                        d.resolve();
-                    }, duration);
-                    return d.promise();
+//                    var d = new $.Deferred();
+//                    setTimeout(function () {
+//                        d.resolve();
+//                    }, duration);
+//                    return d.promise();
+                    var d = new Promise(function (resolve, reject) {
+                        setTimeout(function () {
+                            resolve();
+                        }, duration);
+                    });
+                    return d;
                 }
                 
                 function promiseThatFails(duration) {
-                    var d = new $.Deferred();
-                    setTimeout(function () {
-                        d.reject();
-                    }, duration);
-                    return d.promise();
+//                    var d = new $.Deferred();
+//                    setTimeout(function () {
+//                        d.reject();
+//                    }, duration);
+//                    return d.promise();
+                    var d = new Promise(function (resolve, reject) {
+                        setTimeout(function () {
+                            reject();
+                        }, duration);
+                    });
+                    return d;
                 }
                 
                 it("should resolve promise before rejected with timeout", function () {
@@ -370,9 +428,12 @@ define(function (require, exports, module) {
                         }
                     
                         promise = Async.chain([negate, setFlag], [flag]);
-                        promise.done(function (b) {
+//                        promise.done(function (b) {
+//                            expect(b).toBe(flag);
+//                        });
+                        promise.then(function (b) {
                             expect(b).toBe(flag);
-                        });
+                        }, undefined);
                         
                         // note, we WANT to test this synchronously. This is not a bug
                         // in the unit test. A series of synchronous functions should
@@ -434,17 +495,33 @@ define(function (require, exports, module) {
             });
             
             function makeFn(id, resolveNow, rejectNow) {
-                var result = new $.Deferred();
-                return {
-                    fn: function () {
+//                var result = new $.Deferred();
+//                return {
+//                    fn: function () {
+//                        calledFns[id] = true;
+//                        if (rejectNow) {
+//                            result.reject();
+//                        } else if (resolveNow) {
+//                            result.resolve();
+//                        }
+//                        return result.promise();
+//                    },
+//                    deferred: result
+//                };
+                var func;
+                var result = new Promise(function (resolve, reject) {
+                    func = function () {
                         calledFns[id] = true;
                         if (rejectNow) {
-                            result.reject();
+                            reject();
                         } else if (resolveNow) {
-                            result.resolve();
+                            resolve();
                         }
-                        return result.promise();
-                    },
+                        return result;
+                    };
+                });
+                return {
+                    fn: func,
                     deferred: result
                 };
             }
