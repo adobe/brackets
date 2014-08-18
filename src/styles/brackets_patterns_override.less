@@ -1472,6 +1472,14 @@ input[type="color"],
     }
 
     // Active and Disabled states
+    &.active:active {
+        background-color: @bc-bg-highlight !important;
+
+        .dark & {
+            background-color:@dark-bc-bg-highlight !important;
+        }
+    }
+
     &.active:not([disabled]) {
         background-image: none;
         background-color: @bc-bg-highlight;
