@@ -44,7 +44,7 @@ For an example of a simple localized plugin see: brackets\src\extensions\disable
 
 Move this plugin to the extensions\user\ folder to run the plugin. It will add a "My New Command" menu item to the end of the Edit menu. This command shows an alert with localized text and then a modal dialog with localized HTML content.
 
-#### Below is the folder struture and comments on the role of each file
+#### Below is the folder structure and comments on the role of each file
 
 * main.js – loads the Strings module for the plugin and uses mustache to localize html content
 
