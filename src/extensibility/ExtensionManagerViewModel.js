@@ -515,25 +515,6 @@ define(function (require, exports, module) {
      */
     function ThemesViewModel() {
         ExtensionManagerViewModel.call(this);
-
-        // when registry is downloaded, sort extensions again - those with updates will be before others
-        this._ready = new $.Deferred();
-
-        // Gotta wait for the event of when the registry is downloaded in order to process the full set of
-        // extensions.
-        $(ExtensionManager).on("registryDownload", function () {
-            this.extensions = ExtensionManager.extensions;
-            this.sortedFullSet = registry_utils.sortRegistry(this.extensions, "registryInfo")
-                .filter(function (entry) {
-                    return entry.installInfo === undefined && entry.registryInfo !== undefined && entry.registryInfo.metadata.theme;
-                })
-                .map(function (entry) {
-                    return entry.registryInfo.metadata.name;
-                });
-
-            this._setInitialFilter();
-            this._ready.resolve(this.extensions);
-        }.bind(this));
     }
 
 
@@ -555,7 +536,25 @@ define(function (require, exports, module) {
      */
     ThemesViewModel.prototype._initializeFromSource = function () {
         var self = this;
-        return self._ready.promise();
+        return ExtensionManager.downloadRegistry()
+            .done(function () {
+                self.extensions = ExtensionManager.extensions;
+
+                // Sort the registry by last published date and store the sorted list of IDs.
+                self.sortedFullSet = registry_utils.sortRegistry(self.extensions, "registryInfo")
+                    .filter(function (entry) {
+                        return entry.installInfo === undefined && entry.registryInfo !== undefined && entry.registryInfo.metadata.theme;
+                    })
+                    .map(function (entry) {
+                        return entry.registryInfo.metadata.name;
+                    });
+                self._setInitialFilter();
+            })
+            .fail(function () {
+                self.extensions = [];
+                self.sortedFullSet = [];
+                self.filterSet = [];
+            });
     };
 
 
