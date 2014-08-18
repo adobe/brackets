@@ -1554,6 +1554,10 @@ textarea.exclusions-editor {
     
     &.searching-current-match {
         background-color: @cm-current-match-highlight;
+        display: inline-block;
+
+        .animation (pulse, 170ms, cubic-bezier(.05, .47, .11, .99), 0, 1);
+        -webkit-tranform-origin: 50% 50%;
     }
     &.searching-first {  // first in a contiguous run of highlights
         border-top-left-radius: @bc-border-radius-small;
@@ -1564,6 +1568,16 @@ textarea.exclusions-editor {
         border-bottom-right-radius: @bc-border-radius-small;
     }
 }
+
+@-webkit-keyframes pulse {
+	0% {
+		-webkit-transform: scale(1.7);
+	}
+	100% {
+		-webkit-transform: scale(1);
+	}
+}
+
 #find-counter {
     font-weight: @font-weight-semibold;
     padding: 0 5px;
