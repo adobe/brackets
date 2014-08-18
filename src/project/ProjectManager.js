@@ -185,6 +185,10 @@ define(function (require, exports, module) {
         var openResult = FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
     };
     
+    Dispatcher.prototype.setContext = function (path) {
+        this.viewModel._setContext(path);
+    };
+    
     Dispatcher.prototype.setSortDirectoriesFirst = function (sortDirectoriesFirst) {
         this.viewModel.setSortDirectoriesFirst(sortDirectoriesFirst);
     };

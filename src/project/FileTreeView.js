@@ -80,6 +80,8 @@ define(function (require, exports, module) {
      */
     ViewModel.prototype._lastSelected = null;
     
+    ViewModel.prototype._lastContext = null;
+    
     ViewModel.prototype.sortDirectoriesFirst = false;
     
     ViewModel.prototype.treeData = null;
@@ -100,24 +102,21 @@ define(function (require, exports, module) {
         return _getDirectoryContents(this.projectRoot).then(this._commitTreeData);
     };
     
-    /**
-     * Removes the project root.
-     */
-    ViewModel.prototype._filePathToObjectPath = function (path) {
-        if (!this.projectRoot) {
+    function _filePathToObjectPath(projectRoot, treeData, path) {
+        if (!projectRoot) {
+            return null;
+        }
+
+        var projectRootPath = projectRoot.fullPath;
+
+        if (path.substr(0, projectRootPath.length) !== projectRootPath) {
             return null;
         }
         
-        var projectRoot = this.projectRoot.fullPath;
-        
-        if (path.substr(0, projectRoot.length) !== projectRoot) {
-            return null;
-        }
-        
-        path = path.substring(projectRoot.length);
+        path = path.substring(projectRootPath.length);
+
         var parts = path.split("/"),
             part = parts.shift(),
-            treeData = this.treeData,
             result = [],
             node;
         
@@ -140,7 +139,7 @@ define(function (require, exports, module) {
         }
         
         return result;
-    };
+    }
     
     /**
      * @private
@@ -220,7 +219,7 @@ define(function (require, exports, module) {
     };
     
     ViewModel.prototype.toggleDirectory = function (path) {
-        var objectPath = this._filePathToObjectPath(path);
+        var objectPath = _filePathToObjectPath(this.projectRoot, this.treeData, path);
         if (!objectPath) {
             throw new Error("Cannot find directory in project: " + path);
         }
@@ -257,34 +256,58 @@ define(function (require, exports, module) {
         }
     };
     
-    ViewModel.prototype._setSelected = function (path) {
-        if (path === this._lastSelected) {
+    function _moveMarker (projectRoot, treeData, markerName, oldPath, newPath) {
+        if (newPath === oldPath) {
             return;
         }
         
-        var objectPath = this._filePathToObjectPath(path);
-        if (!objectPath) {
-            return;
+        var objectPath;
+        
+        if (newPath !== null) {
+            objectPath = _filePathToObjectPath(projectRoot, treeData, newPath);
+            if (!objectPath) {
+                return;
+            }
         }
-        
-        var newTreeData = this.treeData;
-        
-        if (this._lastSelected) {
-            var lastSelectedPath = this._filePathToObjectPath(this._lastSelected);
-            if (lastSelectedPath) {
-                newTreeData = newTreeData.updateIn(lastSelectedPath, function (entry) {
-                    return entry["delete"]("selected");
+
+        var newTreeData = treeData;
+
+        if (oldPath) {
+            var lastObjectPath = _filePathToObjectPath(projectRoot, treeData, oldPath);
+            if (lastObjectPath) {
+                newTreeData = newTreeData.updateIn(lastObjectPath, function (entry) {
+                    return entry["delete"](markerName);
                 });
             }
         }
         
-        newTreeData = newTreeData.updateIn(objectPath, function (entry) {
-            return entry.set("selected", true);
-        });
+        if (newPath !== null) {
+            newTreeData = newTreeData.updateIn(objectPath, function (entry) {
+                return entry.set(markerName, true);
+            });
+        }
         
-        this._lastSelected = path;
+        return newTreeData;
+    }
+    
+    ViewModel.prototype._setSelected = function (path) {
+        var newTreeData = _moveMarker(this.projectRoot, this.treeData, "selected", this._lastSelected, path);
         
-        this._commitTreeData(newTreeData);
+        if (newTreeData) {
+            newTreeData = _moveMarker(this.projectRoot, newTreeData, "context", this._lastContext, null) || newTreeData;
+            this._lastSelected = path;
+            this._lastContext = null;
+            this._commitTreeData(newTreeData);
+        }
+    };
+    
+    ViewModel.prototype._setContext = function (path) {
+        var newTreeData = _moveMarker(this.projectRoot, this.treeData, "context", this._lastContext, path);
+
+        if (newTreeData) {
+            this._lastContext = path;
+            this._commitTreeData(newTreeData);
+        }
     };
     
     ViewModel.prototype.setSortDirectoriesFirst = function (sortDirectoriesFirst) {
@@ -344,7 +367,12 @@ define(function (require, exports, module) {
     function _splitExtension(name) {
         // if the name starts with a dot, treat the whole name as the filename not an extension
         var i = name.lastIndexOf(".");
-        if (i === 0) {
+        if (i === -1) {
+            return {
+                name: name,
+                extension: ""
+            };
+        } else if (i === 0) {
             i = name.length;
         }
         return {
@@ -358,13 +386,18 @@ define(function (require, exports, module) {
             return this.props.entry !== nextProps.entry;
         },
         
+        myPath: function () {
+            return this.props.parentPath + this.props.name;
+        },
+        
         handleClick: function (e) {
-            this.props.dispatcher.setSelected(this.props.parentPath + this.props.name);
+            this.props.dispatcher.setSelected(this.myPath());
             return false;
         },
+        
         handleMouseDown: function (e) {
-            if (e.button === 2 && this.props.setContext) {
-                this.props.setContext(this.props.file.fullPath);
+            if (e.button === 2) {
+                this.props.dispatcher.setContext(this.myPath());
             }
             return true;
         },
@@ -384,7 +417,7 @@ define(function (require, exports, module) {
             if (this.props.entry.get("selected")) {
                 fileClasses = "jstree-clicked jstree-hovered sidebar-selection";
             }
-            if (this.props.context) {
+            if (this.props.entry.get("context")) {
                 fileClasses += " sidebar-context";
             }
             return DOM.li({
@@ -443,7 +476,6 @@ define(function (require, exports, module) {
     
     function _sortFormattedDirectory(contents, dirsFirst) {
         if (dirsFirst) {
-
             return contents.keys().sort(_buildDirsFirstComparator(contents));
         } else {
             return contents.keys().sort(FileUtils.compareFilenames);
@@ -606,6 +638,7 @@ define(function (require, exports, module) {
     exports._directoryNode = directoryNode;
     exports._directoryContents = directoryContents;
     exports._fileTreeView = fileTreeView;
+    exports._filePathToObjectPath = _filePathToObjectPath;
     
     exports.CHANGE = CHANGE;
     exports.render = render;

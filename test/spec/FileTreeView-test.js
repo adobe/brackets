@@ -101,13 +101,12 @@ define(function (require, exports, module) {
             });
             
             describe("_filePathToObjectPath", function () {
-                var vm = new FileTreeView.ViewModel();
-                beforeEach(function () {
-                    vm.projectRoot = {
+                var treeData,
+                    projectRoot = {
                         fullPath: "/foo/"
                     };
-
-                    vm.treeData = Immutable.fromJS({
+                beforeEach(function () {
+                    treeData = Immutable.fromJS({
                         "subdir": {
                             children: {
                                 "afile.js": {},
@@ -127,23 +126,21 @@ define(function (require, exports, module) {
                 });
                 
                 it("returns null if the projectRoot isn't set", function () {
-                    vm.projectRoot = null;
-                    expect(vm._filePathToObjectPath("/foo/subdir/")).toBeNull();
-                    delete vm.projectRoot;
-                    expect(vm._filePathToObjectPath("/foo/subdir/")).toBeNull();
+                    expect(FileTreeView._filePathToObjectPath(null, treeData, "/foo/subdir/")).toBeNull();
+                    expect(FileTreeView._filePathToObjectPath(undefined, treeData, "/foo/subdir/")).toBeNull();
                 });
                 
                 it("should find items at the root", function () {
-                    expect(vm._filePathToObjectPath("/foo/subdir/")).toEqual(["subdir"]);
-                    expect(vm._filePathToObjectPath("/foo/anothersub/")).toEqual(["anothersub"]);
+                    expect(FileTreeView._filePathToObjectPath(projectRoot, treeData, "/foo/subdir/")).toEqual(["subdir"]);
+                    expect(FileTreeView._filePathToObjectPath(projectRoot, treeData, "/foo/anothersub/")).toEqual(["anothersub"]);
                 });
                 
                 it("should find nested files", function () {
-                    expect(vm._filePathToObjectPath("/foo/subdir/afile.js")).toEqual(["subdir", "children", "afile.js"]);
+                    expect(FileTreeView._filePathToObjectPath(projectRoot, treeData, "/foo/subdir/afile.js")).toEqual(["subdir", "children", "afile.js"]);
                 });
                 
                 it("should find nested directories", function () {
-                    expect(vm._filePathToObjectPath("/foo/subdir/subsubdir/thirdsub/")).toEqual(
+                    expect(FileTreeView._filePathToObjectPath(projectRoot, treeData, "/foo/subdir/subsubdir/thirdsub/")).toEqual(
                         ["subdir", "children", "subsubdir", "children", "thirdsub"]
                     );
                 });
@@ -311,6 +308,8 @@ define(function (require, exports, module) {
                         },
                         "afile.js": {}
                     });
+                    vm._lastSelected = null;
+                    vm._lastContext = null;
                 });
                 
                 it("should select an unselected file", function () {
@@ -335,6 +334,82 @@ define(function (require, exports, module) {
                     vm._setSelected("/foo/afile.js");
                     expect(changed).toBe(false);
                 });
+                
+                it("should clear the context when there's a new selection", function () {
+                    vm._setContext("/foo/afile.js");
+                    vm._setSelected("/foo/subdir1/afile.js");
+                    expect(vm.treeData.getIn(["afile.js", "context"])).toBeUndefined();
+                    expect(vm._lastContext).toBeNull();
+                });
+                
+                it("can clear the selection by passing in null", function () {
+                    vm._setSelected("/foo/afile.js");
+                    expect(vm.treeData.getIn(["afile.js", "selected"])).toBe(true);
+                    changed = false;
+                    vm._setSelected(null);
+                    expect(vm.treeData.getIn(["afile.js", "selected"])).toBeUndefined();
+                    expect(changed).toBe(true);
+                });
+            });
+            
+            describe("_setContext", function () {
+                var vm = new FileTreeView.ViewModel(),
+                    changed;
+
+                vm.projectRoot = {
+                    fullPath: "/foo/"
+                };
+
+                vm.on(FileTreeView.CHANGE, function () {
+                    changed = true;
+                });
+
+                beforeEach(function () {
+                    changed = false;
+                    vm.treeData = Immutable.fromJS({
+                        subdir1: {
+                            open: true,
+                            children: {
+                                "afile.js": {}
+                            }
+                        },
+                        "afile.js": {}
+                    });
+                    vm._lastSelected = null;
+                    vm._lastContext = null;
+                });
+
+                it("should set context a file", function () {
+                    vm._setContext("/foo/afile.js");
+                    expect(vm.treeData.getIn(["afile.js", "context"])).toBe(true);
+                    expect(changed).toBe(true);
+                });
+
+                it("should change the context from the old to the new", function () {
+                    vm._setContext("/foo/afile.js");
+                    changed = false;
+                    vm._setContext("/foo/subdir1/afile.js");
+                    expect(vm.treeData.getIn(["afile.js", "context"])).toBe(undefined);
+                    expect(vm.treeData.getIn(["subdir1", "children", "afile.js", "context"])).toBe(true);
+                    expect(changed).toBe(true);
+                });
+
+                it("shouldn't fire a changed message if there was no change in context", function () {
+                    vm._setContext("/foo/afile.js");
+                    expect(changed).toBe(true);
+                    changed = false;
+                    vm._setContext("/foo/afile.js");
+                    expect(changed).toBe(false);
+                });
+                
+                it("can clear the context by passing in null", function () {
+                    vm._setContext("/foo/afile.js");
+                    expect(vm.treeData.getIn(["afile.js", "context"])).toBe(true);
+                    changed = false;
+                    vm._setContext(null);
+                    expect(vm.treeData.getIn(["afile.js", "context"])).toBeUndefined();
+                    expect(changed).toBe(true);
+                });
             });
         });
         
@@ -353,12 +428,21 @@ define(function (require, exports, module) {
                     extension: ""
                 });
             });
+            
+            it("should work for files with no extension", function () {
+                var result = FileTreeView._splitExtension("LICENSE");
+                expect(result).toEqual({
+                    name: "LICENSE",
+                    extension: ""
+                });
+            });
         });
 
         describe("_fileNode", function () {
             it("should create a component with the right information", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
-                    name: "afile.js"
+                    name: "afile.js",
+                    entry: Immutable.Map()
                 }));
                 var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
                 expect(a.props.children[0]).toBe("afile");
@@ -477,12 +561,11 @@ define(function (require, exports, module) {
         describe("_fileTreeView", function () {
             it("should render the directory", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._fileTreeView({
-                    viewModel: {
-                        projectRoot: {},
-                        treeData: new Immutable.Map({
-                            "subdir": twoLevel.getIn(["children", "subdir"])
-                        })
-                    }
+                    projectRoot: {},
+                    treeData: new Immutable.Map({
+                        "subdir": twoLevel.getIn(["children", "subdir"])
+                    }),
+                    sortDirectoriesFirst: false
                 })),
                     rootNode = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-no-dots"),
                     aTags = RTU.scryRenderedDOMComponentsWithTag(rootNode, "a");
