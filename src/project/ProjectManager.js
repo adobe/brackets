@@ -201,6 +201,10 @@ define(function (require, exports, module) {
         this.viewModel.setSortDirectoriesFirst(sortDirectoriesFirst);
     };
     
+    Dispatcher.prototype.refresh = function () {
+        this.viewModel.refresh();
+    };
+    
     var dispatcher = new Dispatcher(model, viewModel);
     
     /**
@@ -1152,29 +1156,7 @@ define(function (require, exports, module) {
      *  the promise is still resolved.
      */
     function refreshFileTree() {
-        if (!_refreshFileTreePromise) {
-            var deferred                = new $.Deferred();
-
-            _refreshFileTreePromise = deferred.promise();
-            
-            _refreshFileTreePromise.always(function () {
-                _refreshFileTreePromise = null;
-                
-                if (_refreshPending) {
-                    _refreshPending = false;
-                    refreshFileTree();
-                }
-            });
-
-            // Wait at least one second before resolving the promise
-            window.setTimeout(function () {
-                deferred.resolve();
-            }, _refreshDelay);
-        } else {
-            _refreshPending = true;
-        }
-
-        return _refreshFileTreePromise;
+        return viewModel._refresh();
     }
     
     /**
@@ -1548,7 +1530,10 @@ define(function (require, exports, module) {
             refreshFileTree();
             return;
         }
-
+        
+        
+        refreshFileTree();
+        return;
         // TODO probably need to move the isOpen check up before updating the model
         var wasOpen = viewModel.isOpen(entry);
         

@@ -299,14 +299,46 @@ define(function (require, exports, module) {
                 });
             });
             
-            describe("_reopenNodes", function () {
-                it("should reopen previously closed nodes", function () {
-                    var vm = new FileTreeView.ViewModel();
+            describe("_reopenNodes and _refresh", function () {
+                var vm,
+                    pathData,
+                    gdcCalls,
+                    changesFired,
+                    nodesByDepth = [
+                        [
+                            "/foo/subdir1/",
+                            "/foo/subdir3/"
+                        ],
+                        [
+                            "/foo/subdir1/subsubdir/"
+                        ]
+                    ];
+
+
+                
+                beforeEach(function () {
+                    vm = new FileTreeView.ViewModel();
                     vm.projectRoot = {
-                        fullPath: "/foo/"
+                        fullPath: "/foo/",
+                        getContents: function (callback) {
+                            return callback(null, [
+                                {
+                                    name: "subdir1",
+                                    isFile: false
+                                },
+                                {
+                                    name: "subdir2",
+                                    isFile: false
+                                },
+                                {
+                                    name: "subdir3",
+                                    isFile: false
+                                }
+                            ]);
+                        }
                     };
 
-                    var pathData = {
+                    pathData = {
                         "/foo/subdir1/": [
                             {
                                 name: "subsubdir",
@@ -314,8 +346,16 @@ define(function (require, exports, module) {
                             }
                         ],
                         "/foo/subdir1/subsubdir/": [
+                            {
+                                name: "interior.txt",
+                                isFile: true
+                            }
                         ],
                         "/foo/subdir3/": [
+                            {
+                                name: "higher.txt",
+                                isFile: true
+                            }
                         ]
                     };
 
@@ -331,27 +371,45 @@ define(function (require, exports, module) {
                         }
                     });
                     
-                    var nodesByDepth = [
-                        [
-                            "/foo/subdir1/",
-                            "/foo/subdir3/"
-                        ],
-                        [
-                            "/foo/subdir1/subsubdir/"
-                        ]
-                    ];
+                    changesFired = 0;
+                    vm.on(FileTreeView.CHANGE, function () {
+                        changesFired++;
+                    });
                     
+                    gdcCalls = 0;
                     spyOn(FileTreeView, "_getDirectoryContents").andCallFake(function (path) {
+                        gdcCalls++;
                         expect(pathData[path]).toBeDefined();
                         return new $.Deferred().resolve(FileTreeView._formatDirectoryContents(pathData[path])).promise();
                     });
-                    
+                });
+                
+                it("should reopen previously closed nodes", function () {
                     waitsForDone(vm._reopenNodes(nodesByDepth));
                     runs(function () {
                         var subdir1 = vm.treeData.get("subdir1");
                         expect(subdir1.get("open")).toBe(true);
                         expect(subdir1.getIn(["children", "subsubdir", "open"])).toBe(true);
                         expect(vm.treeData.getIn(["subdir3", "open"])).toBe(true);
+                    });
+                });
+                
+                it("should refresh the whole tree", function () {
+                    var oldTree;
+                    waitsForDone(vm._reopenNodes(nodesByDepth));
+                    runs(function () {
+                        vm._setSelected("/foo/subdir1/subsubdir/interior.txt");
+                        vm._setContext("/foo/subdir3/higher.txt");
+                        gdcCalls = 0;
+                        changesFired = 0;
+                        oldTree = vm.treeData;
+                        waitsForDone(vm._refresh());
+                    });
+                    runs(function () {
+                        expect(changesFired).toBe(1)
+                        expect(vm.treeData).not.toBe(oldTree);
+                        expect(vm.treeData.getIn(["subdir1", "children", "subsubdir", "children", "interior.txt", "selected"])).toBe(true);
+                        expect(vm.treeData.getIn(["subdir3", "children", "higher.txt", "context"])).toBe(true);
                     });
                 });
             });

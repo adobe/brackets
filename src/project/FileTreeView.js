@@ -89,10 +89,27 @@ define(function (require, exports, module) {
     
     ViewModel.prototype.treeData = null;
     
+    ViewModel.prototype._notificationsPaused = false;
+    
+    ViewModel.prototype.pauseNotifications = function () {
+        this._notificationsPaused = true;
+        this._lastNotifiedTree = this.treeData;
+    };
+    
+    ViewModel.prototype.resumeNotifications = function () {
+        this._notificationsPaused = false;
+        if (this._lastNotifiedTree !== this.treeData) {
+            $(this).trigger(CHANGE);
+        }
+        delete this._lastNotifiedTree;
+    };
+    
     ViewModel.prototype._commitTreeData = function (treeData) {
         if (treeData !== this.treeData) {
             this.treeData = treeData;
-            $(this).trigger(CHANGE);
+            if (!this._notificationsPaused) {
+                $(this).trigger(CHANGE);
+            }
         }
     };
     
@@ -205,6 +222,34 @@ define(function (require, exports, module) {
                 );
             });
         }
+    };
+    
+    ViewModel.prototype._refresh = function () {
+        var projectRoot = this.projectRoot,
+            selected = this._lastSelected,
+            context = this._lastContext,
+            rename = this._lastRename,
+            openNodes = this._getOpenNodes(),
+            self = this,
+            deferred = new $.Deferred();
+        
+        this.pauseNotifications();
+        this.setProjectRoot(projectRoot)
+            .then(function () {
+                self._reopenNodes(openNodes).then(function () {
+                    self._lastSelected = null;
+                    self._lastContext = null;
+                    self._lastRename = null;
+                    
+                    self._setSelected(selected);
+                    self._setContext(context);
+                    self._setRename(rename);
+                    self.resumeNotifications();
+                    deferred.resolve();
+                });
+            });
+        
+        return deferred.promise();
     };
     
     ViewModel.prototype.toggleDirectory = function (path, shouldOpen) {
