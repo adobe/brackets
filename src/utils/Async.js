@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define, $, window, Promise */
 
 /**
  * Utilities for working with Deferred, Promise, and other asynchronous processes.
@@ -89,41 +89,74 @@ define(function (require, exports, module) {
      */
     function doInParallel(items, beginProcessItem, failFast) {
         var promises = [];
-        var masterDeferred = new $.Deferred();
-        
-        if (items.length === 0) {
-            masterDeferred.resolve();
-            
-        } else {
-            var numCompleted = 0;
-            var hasFailed = false;
-            
-            items.forEach(function (item, i) {
-                var itemPromise = beginProcessItem(item, i);
-                promises.push(itemPromise);
-                
-                itemPromise.fail(function () {
-                    if (failFast) {
-                        masterDeferred.reject();
-                    } else {
-                        hasFailed = true;
-                    }
-                });
-                itemPromise.always(function () {
-                    numCompleted++;
-                    if (numCompleted === items.length) {
-                        if (hasFailed) {
-                            masterDeferred.reject();
+//        var masterDeferred = new $.Deferred();
+//        
+//        if (items.length === 0) {
+//            masterDeferred.resolve();
+//            
+//        } else {
+//            var numCompleted = 0;
+//            var hasFailed = false;
+//            
+//            items.forEach(function (item, i) {
+//                var itemPromise = beginProcessItem(item, i);
+//                promises.push(itemPromise);
+//                
+//                itemPromise.fail(function () {
+//                    if (failFast) {
+//                        masterDeferred.reject();
+//                    } else {
+//                        hasFailed = true;
+//                    }
+//                });
+//                itemPromise.always(function () {
+//                    numCompleted++;
+//                    if (numCompleted === items.length) {
+//                        if (hasFailed) {
+//                            masterDeferred.reject();
+//                        } else {
+//                            masterDeferred.resolve();
+//                        }
+//                    }
+//                });
+//            });
+//            
+//        }
+//        return masterDeferred.promise();
+
+        return new Promise(function (resolve, reject) {
+            if (items.length === 0) {
+                resolve();
+
+            } else {
+                var numCompleted = 0;
+                var hasFailed = false;
+
+                items.forEach(function (item, i) {
+                    var itemPromise = beginProcessItem(item, i);
+                    promises.push(itemPromise);
+
+                    itemPromise.then(null, function () {
+                        if (failFast) {
+                            reject();
                         } else {
-                            masterDeferred.resolve();
+                            hasFailed = true;
                         }
-                    }
+                    });
+                    var fnAlways = function () {
+                        numCompleted++;
+                        if (numCompleted === items.length) {
+                            if (hasFailed) {
+                                reject();
+                            } else {
+                                resolve();
+                            }
+                        }
+                    };
+                    itemPromise.then(fnAlways, fnAlways);
                 });
-            });
-            
-        }
-        
-        return masterDeferred.promise();
+            }
+        });
     }
     
     /**
@@ -165,38 +198,69 @@ define(function (require, exports, module) {
      */
     function doSequentially(items, beginProcessItem, failAndStopFast) {
 
-        var masterDeferred = new $.Deferred(),
-            hasFailed = false;
-        
-        function doItem(i) {
-            if (i >= items.length) {
-                if (hasFailed) {
-                    masterDeferred.reject();
-                } else {
-                    masterDeferred.resolve();
+//        var masterDeferred = new $.Deferred(),
+//            hasFailed = false;
+//        
+//        function doItem(i) {
+//            if (i >= items.length) {
+//                if (hasFailed) {
+//                    masterDeferred.reject();
+//                } else {
+//                    masterDeferred.resolve();
+//                }
+//                return;
+//            }
+//            
+//            var itemPromise = beginProcessItem(items[i], i);
+//            
+//            itemPromise.done(function () {
+//                doItem(i + 1);
+//            });
+//            itemPromise.fail(function () {
+//                if (failAndStopFast) {
+//                    masterDeferred.reject();
+//                    // note: we do NOT process any further items in this case
+//                } else {
+//                    hasFailed = true;
+//                    doItem(i + 1);
+//                }
+//            });
+//        }
+//        
+//        doItem(0);
+//        return masterDeferred.promise();
+
+        return new Promise(function (resolve, reject) {
+            var hasFailed = false;
+
+            function doItem(i) {
+                if (i >= items.length) {
+                    if (hasFailed) {
+                        reject();
+                    } else {
+                        resolve();
+                    }
+                    return;
                 }
-                return;
-            }
-            
-            var itemPromise = beginProcessItem(items[i], i);
-            
-            itemPromise.done(function () {
-                doItem(i + 1);
-            });
-            itemPromise.fail(function () {
-                if (failAndStopFast) {
-                    masterDeferred.reject();
-                    // note: we do NOT process any further items in this case
-                } else {
-                    hasFailed = true;
+
+                var itemPromise = beginProcessItem(items[i], i);
+
+                itemPromise.done(function () {
                     doItem(i + 1);
-                }
-            });
-        }
-        
-        doItem(0);
-        
-        return masterDeferred.promise();
+                });
+                itemPromise.then(null, function () {
+                    if (failAndStopFast) {
+                        reject();
+                        // note: we do NOT process any further items in this case
+                    } else {
+                        hasFailed = true;
+                        doItem(i + 1);
+                    }
+                });
+            }
+
+            doItem(0);
+        });
     }
     
     /**
@@ -217,24 +281,42 @@ define(function (require, exports, module) {
         var sliceStartTime = (new Date()).getTime();
         
         return doSequentially(items, function (item, i) {
-            var result = new $.Deferred();
-            
-            // process the next item
-            fnProcessItem(item, i);
-            
-            // if we've exhausted our maxBlockingTime
-            if ((new Date()).getTime() - sliceStartTime >= maxBlockingTime) {
-                //yield
-                window.setTimeout(function () {
-                    sliceStartTime = (new Date()).getTime();
-                    result.resolve();
-                }, idleTime);
-            } else {
-                //continue processing
-                result.resolve();
-            }
+//            var result = new $.Deferred();
+//            
+//            // process the next item
+//            fnProcessItem(item, i);
+//            
+//            // if we've exhausted our maxBlockingTime
+//            if ((new Date()).getTime() - sliceStartTime >= maxBlockingTime) {
+//                //yield
+//                window.setTimeout(function () {
+//                    sliceStartTime = (new Date()).getTime();
+//                    result.resolve();
+//                }, idleTime);
+//            } else {
+//                //continue processing
+//                result.resolve();
+//            }
+//            return result.promise();
 
-            return result;
+            return new Promise(function (resolve, reject) {
+
+                // process the next item
+                fnProcessItem(item, i);
+
+                // if we've exhausted our maxBlockingTime
+                if ((new Date()).getTime() - sliceStartTime >= maxBlockingTime) {
+                    //yield
+                    window.setTimeout(function () {
+                        sliceStartTime = (new Date()).getTime();
+                        resolve();
+                    }, idleTime);
+                } else {
+                    //continue processing
+                    resolve();
+                }
+            });
+
         }, false);
     }
     
@@ -256,29 +338,50 @@ define(function (require, exports, module) {
     function doInParallel_aggregateErrors(items, beginProcessItem) {
         var errors = [];
         
-        var masterDeferred = new $.Deferred();
-        
-        var parallelResult = doInParallel(
-            items,
-            function (item, i) {
-                var itemResult = beginProcessItem(item, i);
-                itemResult.fail(function (error) {
-                    errors.push({ item: item, error: error });
+//        var masterDeferred = new $.Deferred();
+//        
+//        var parallelResult = doInParallel(
+//            items,
+//            function (item, i) {
+//                var itemResult = beginProcessItem(item, i);
+//                itemResult.fail(function (error) {
+//                    errors.push({ item: item, error: error });
+//                });
+//                return itemResult;
+//            },
+//            false
+//        );
+//        
+//        parallelResult
+//            .done(function () {
+//                masterDeferred.resolve();
+//            })
+//            .fail(function () {
+//                masterDeferred.reject(errors);
+//            });
+//        return masterDeferred.promise();
+
+        return new Promise(function (resolve, reject) {
+
+            var parallelResult = doInParallel(
+                items,
+                function (item, i) {
+                    var itemResult = beginProcessItem(item, i);
+                    itemResult.then(null, function (error) {
+                        errors.push({ item: item, error: error });
+                    });
+                    return itemResult;
+                },
+                false
+            );
+
+            parallelResult
+                .then(function () {
+                    resolve();
+                }, function () {
+                    reject(errors);
                 });
-                return itemResult;
-            },
-            false
-        );
-        
-        parallelResult
-            .done(function () {
-                masterDeferred.resolve();
-            })
-            .fail(function () {
-                masterDeferred.reject(errors);
-            });
-        
-        return masterDeferred.promise();
+        });
     }
         
     /** Value passed to fail() handlers that have been triggered due to withTimeout()'s timeout */
@@ -299,24 +402,43 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function withTimeout(promise, timeout, resolveTimeout) {
-        var wrapper = new $.Deferred();
-        
-        var timer = window.setTimeout(function () {
-            if (resolveTimeout) {
-                wrapper.resolve();
-            } else {
-                wrapper.reject(ERROR_TIMEOUT);
-            }
-        }, timeout);
-        promise.always(function () {
-            window.clearTimeout(timer);
+//        var wrapper = new $.Deferred();
+//        
+//        var timer = window.setTimeout(function () {
+//            if (resolveTimeout) {
+//                wrapper.resolve();
+//            } else {
+//                wrapper.reject(ERROR_TIMEOUT);
+//            }
+//        }, timeout);
+//        promise.always(function () {
+//            window.clearTimeout(timer);
+//        });
+//        
+//        // If the wrapper was already rejected due to timeout, the Promise's calls to resolve/reject
+//        // won't do anything
+//        promise.then(wrapper.resolve, wrapper.reject);
+//        return wrapper.promise();
+
+        return new Promise(function (resolve, reject) {
+
+            var timer = window.setTimeout(function () {
+                if (resolveTimeout) {
+                    resolve();
+                } else {
+                    reject(ERROR_TIMEOUT);
+                }
+            }, timeout);
+
+            var fnAlways = function () {
+                window.clearTimeout(timer);
+            };
+            promise.then(fnAlways, fnAlways);
+
+            // If the wrapper was already rejected due to timeout, the Promise's calls to resolve/reject
+            // won't do anything
+            promise.then(resolve, reject);
         });
-        
-        // If the wrapper was already rejected due to timeout, the Promise's calls to resolve/reject
-        // won't do anything
-        promise.then(wrapper.resolve, wrapper.reject);
-        
-        return wrapper.promise();
     }
     
     /**
@@ -341,40 +463,74 @@ define(function (require, exports, module) {
      * 
      */
     function waitForAll(promises, failOnReject, timeout) {
-        var masterDeferred = new $.Deferred(),
-            count = 0,
-            sawRejects = false;
-        
-        if (!promises || promises.length === 0) {
-            masterDeferred.resolve();
-            return masterDeferred.promise();
-        }
-        
-        // set defaults if needed
-        failOnReject = (failOnReject === undefined) ? false : true;
-        
-        if (timeout !== undefined) {
-            withTimeout(masterDeferred, timeout);
-        }
-        
-        promises.forEach(function (promise) {
-            promise
-                .fail(function (err) {
+//        var masterDeferred = new $.Deferred(),
+//            count = 0,
+//            sawRejects = false;
+//        
+//        if (!promises || promises.length === 0) {
+//            masterDeferred.resolve();
+//            return masterDeferred.promise();
+//        }
+//        
+//        // set defaults if needed
+//        failOnReject = (failOnReject === undefined) ? false : true;
+//        
+//        if (timeout !== undefined) {
+//            withTimeout(masterDeferred, timeout);
+//        }
+//        
+//        promises.forEach(function (promise) {
+//            promise
+//                .fail(function (err) {
+//                    sawRejects = true;
+//                })
+//                .always(function () {
+//                    count++;
+//                    if (count === promises.length) {
+//                        if (failOnReject && sawRejects) {
+//                            masterDeferred.reject();
+//                        } else {
+//                            masterDeferred.resolve();
+//                        }
+//                    }
+//                });
+//        });
+//        return masterDeferred.promise(),
+
+        return new Promise(function (resolve, reject) {
+            var count = 0,
+                sawRejects = false;
+
+            if (!promises || promises.length === 0) {
+                resolve();
+                return;
+            }
+
+            // set defaults if needed
+            failOnReject = (failOnReject === undefined) ? false : true;
+
+            if (timeout !== undefined) {
+                withTimeout(this, timeout);
+            }
+
+            promises.forEach(function (promise) {
+                promise.then(null, function (err) {
                     sawRejects = true;
-                })
-                .always(function () {
+                });
+
+                var fnAlways = function () {
                     count++;
                     if (count === promises.length) {
                         if (failOnReject && sawRejects) {
-                            masterDeferred.reject();
+                            reject();
                         } else {
-                            masterDeferred.resolve();
+                            resolve();
                         }
                     }
-                });
+                };
+                promise.then(fnAlways, fnAlways);
+            });
         });
-        
-        return masterDeferred.promise();
     }
     
     /**
@@ -390,35 +546,57 @@ define(function (require, exports, module) {
      *      rejects with the first error.
      */
     function chain(functions, args) {
-        var deferred = $.Deferred();
-        
-        function chainHelper(index, args) {
-            if (functions.length === index) {
-                deferred.resolveWith(null, args);
-            } else {
-                var nextFunction = functions[index++];
-                try {
+//        var deferred = $.Deferred();
+//        
+//        function chainHelper(index, args) {
+//            if (functions.length === index) {
+//                deferred.resolveWith(null, args);
+//            } else {
+//                var nextFunction = functions[index++];
+//                try {
+//                    var responseOrPromise = nextFunction.apply(null, args);
+//                    if (responseOrPromise.hasOwnProperty("done") &&
+//                            responseOrPromise.hasOwnProperty("fail")) {
+//                        responseOrPromise.done(function () {
+//                            chainHelper(index, arguments);
+//                        });
+//                        responseOrPromise.fail(function () {
+//                            deferred.rejectWith(null, arguments);
+//                        });
+//                    } else {
+//                        chainHelper(index, [responseOrPromise]);
+//                    }
+//                } catch (e) {
+//                    deferred.reject(e);
+//                }
+//            }
+//        }
+//        
+//        chainHelper(0, args || []);
+//        return deferred.promise();
+
+        return new Promise(function (resolve, reject) {
+
+            function chainHelper(index, args) {
+                if (functions.length === index) {
+                    resolve(null, args);
+                } else {
+                    var nextFunction = functions[index++];
                     var responseOrPromise = nextFunction.apply(null, args);
-                    if (responseOrPromise.hasOwnProperty("done") &&
-                            responseOrPromise.hasOwnProperty("fail")) {
-                        responseOrPromise.done(function () {
+                    if (responseOrPromise.hasOwnProperty("then")) {
+                        responseOrPromise.then(function () {
                             chainHelper(index, arguments);
-                        });
-                        responseOrPromise.fail(function () {
-                            deferred.rejectWith(null, arguments);
+                        }, function () {
+                            reject(arguments);
                         });
                     } else {
                         chainHelper(index, [responseOrPromise]);
                     }
-                } catch (e) {
-                    deferred.reject(e);
                 }
             }
-        }
-        
-        chainHelper(0, args || []);
-        
-        return deferred.promise();
+
+            chainHelper(0, args || []);
+        });
     }
     
     /**
@@ -456,17 +634,29 @@ define(function (require, exports, module) {
      *      non-null.
      */
     function promisify(obj, method) {
-        var result = new $.Deferred(),
-            args = Array.prototype.slice.call(arguments, 2);
-        args.push(function (err) {
-            if (err) {
-                result.reject(err);
-            } else {
-                result.resolve.apply(result, Array.prototype.slice.call(arguments, 1));
-            }
+//        var result = new $.Deferred(),
+//            args = Array.prototype.slice.call(arguments, 2);
+//        args.push(function (err) {
+//            if (err) {
+//                result.reject(err);
+//            } else {
+//                result.resolve.apply(result, Array.prototype.slice.call(arguments, 1));
+//            }
+//        });
+//        obj[method].apply(obj, args);
+//        return result.promise(),
+
+        return new Promise(function (resolve, reject) {
+            var args = Array.prototype.slice.call(arguments, 2);
+            args.push(function (err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve.apply(this, Array.prototype.slice.call(arguments, 1));
+                }
+            });
+            obj[method].apply(obj, args);
         });
-        obj[method].apply(obj, args);
-        return result.promise();
     }
 
     /**
@@ -541,10 +731,11 @@ define(function (require, exports, module) {
         if (this._queue.length) {
             var op = this._queue.shift();
             this._curPromise = op();
-            this._curPromise.always(function () {
+            var fnAlways = function () {
                 self._curPromise = null;
                 self._doNext();
-            });
+            };
+            this._curPromise.then(fnAlways, fnAlways);
         }
     };
     

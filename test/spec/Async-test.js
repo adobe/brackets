@@ -486,7 +486,7 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("Async PromiseQueue", function () {
+        xdescribe("Async PromiseQueue", function () {
             var queue, calledFns;
             
             beforeEach(function () {
