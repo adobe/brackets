@@ -225,6 +225,9 @@ define(function (require, exports, module) {
     };
     
     ViewModel.prototype._refresh = function () {
+        // This could be made a bit faster/more seamless by comparing the new contents and old contents
+        // and just replacing the parts of treeData that actually change.
+        
         var projectRoot = this.projectRoot,
             selected = this._lastSelected,
             context = this._lastContext,
