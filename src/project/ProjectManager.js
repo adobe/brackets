@@ -189,6 +189,19 @@ define(function (require, exports, module) {
         this.viewModel._setContext(path);
     };
     
+    Dispatcher.prototype.startRename = function () {
+        this.viewModel._setRename(this.viewModel._lastContext);
+    };
+    
+    Dispatcher.prototype.cancelRename = function () {
+        this.viewModel._setRename(null);
+    };
+    
+    Dispatcher.prototype.performRename = function (oldPath, newPath) {
+        renameItem(oldPath, newPath);
+        this.viewModel._setRename(null);
+    };
+    
     Dispatcher.prototype.setSortDirectoriesFirst = function (sortDirectoriesFirst) {
         this.viewModel.setSortDirectoriesFirst(sortDirectoriesFirst);
     };
@@ -1699,13 +1712,16 @@ define(function (require, exports, module) {
             dispatcher.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
         });
     
-    // TODO fixme
     function getContext() {
-        return viewModel.selected;
+        var context = viewModel._lastContext;
+        if (context) {
+            context = FileSystem.getFileForPath(context);
+        }
+        return context;
     }
     
     function renameItemInline() {
-        // TODO implement
+        dispatcher.startRename();
     }
     
     function getAllFiles() {

@@ -82,6 +82,8 @@ define(function (require, exports, module) {
     
     ViewModel.prototype._lastContext = null;
     
+    ViewModel.prototype._lastRename = null;
+    
     ViewModel.prototype.sortDirectoriesFirst = false;
     
     ViewModel.prototype.treeData = null;
@@ -294,9 +296,15 @@ define(function (require, exports, module) {
         var newTreeData = _moveMarker(this.projectRoot, this.treeData, "selected", this._lastSelected, path);
         
         if (newTreeData) {
+            // Clear the context flag automatically when you change the selection
             newTreeData = _moveMarker(this.projectRoot, newTreeData, "context", this._lastContext, null) || newTreeData;
-            this._lastSelected = path;
             this._lastContext = null;
+            
+            // Stop renaming when you change the selection
+            newTreeData = _moveMarker(this.projectRoot, newTreeData, "rename", this._lastRename, null) || newTreeData;
+            this._lastRename = null;
+            
+            this._lastSelected = path;
             this._commitTreeData(newTreeData);
         }
     };
@@ -305,7 +313,26 @@ define(function (require, exports, module) {
         var newTreeData = _moveMarker(this.projectRoot, this.treeData, "context", this._lastContext, path);
 
         if (newTreeData) {
+            // Stop renaming when you move the context
+            newTreeData = _moveMarker(this.projectRoot, newTreeData, "rename", this._lastRename, null) || newTreeData;
+            this._lastRename = null;
+            
             this._lastContext = path;
+            this._commitTreeData(newTreeData);
+        }
+    };
+    
+    ViewModel.prototype._setRename = function (path) {
+        var newTreeData = _moveMarker(this.projectRoot, this.treeData, "rename", this._lastRename, path);
+
+        if (newTreeData) {
+            if (path === null) {
+                // Clear the context when you finish renaming
+                newTreeData = _moveMarker(this.projectRoot, newTreeData, "context", this._lastContext, null) || newTreeData;
+                this._lastContext = null;
+            }
+            
+            this._lastRename = path;
             this._commitTreeData(newTreeData);
         }
     };
@@ -436,9 +463,15 @@ define(function (require, exports, module) {
     });
 
     var fileRename = React.createClass({
+        myPath: function () {
+            return this.props.parentPath + this.props.name;
+        },
+
         handleKeyDown: function (e) {
             if (e.keyCode === 27) {
-                this.props.cancel();
+                this.props.dispatcher.cancelRename();
+            } else if (e.keyCode === 13) {
+                this.props.dispatcher.performRename(this.myPath(), this.props.parentPath + this.refs.name.getDOMNode().value.trim());
             }
         },
         render: function () {
@@ -451,9 +484,10 @@ define(function (require, exports, module) {
                 DOM.input({
                     className: "sidebar-context jstree-clicked",
                     type: "text",
-                    defaultValue: this.props.file.name,
+                    defaultValue: this.props.name,
                     autoFocus: true,
-                    onKeyDown: this.handleKeyDown
+                    onKeyDown: this.handleKeyDown,
+                    ref: "name"
                 }));
         }
     });
@@ -551,9 +585,13 @@ define(function (require, exports, module) {
             
             return DOM.ul(ulProps, namesInOrder.map(function (name) {
                 var entry = contents.get(name);
-                // TODO: set keys
+
                 if (isFile(entry)) {
-                    return fileNode({
+                    var component = fileNode;
+                    if (entry.get("rename")) {
+                        component = fileRename;
+                    }
+                    return component({
                         parentPath: this.props.parentPath,
                         name: name,
                         entry: entry,
@@ -635,6 +673,7 @@ define(function (require, exports, module) {
     exports._sortFormattedDirectory = _sortFormattedDirectory;
     exports._getDirectoryContents = _getDirectoryContents;
     exports._fileNode = fileNode;
+    exports._fileRename = fileRename;
     exports._directoryNode = directoryNode;
     exports._directoryContents = directoryContents;
     exports._fileTreeView = fileTreeView;

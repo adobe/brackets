@@ -285,74 +285,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            describe("_setSelected", function () {
-                var vm = new FileTreeView.ViewModel(),
-                    changed;
-                
-                vm.projectRoot = {
-                    fullPath: "/foo/"
-                };
-                
-                vm.on(FileTreeView.CHANGE, function () {
-                    changed = true;
-                });
-                
-                beforeEach(function () {
-                    changed = false;
-                    vm.treeData = Immutable.fromJS({
-                        subdir1: {
-                            open: true,
-                            children: {
-                                "afile.js": {}
-                            }
-                        },
-                        "afile.js": {}
-                    });
-                    vm._lastSelected = null;
-                    vm._lastContext = null;
-                });
-                
-                it("should select an unselected file", function () {
-                    vm._setSelected("/foo/afile.js");
-                    expect(vm.treeData.getIn(["afile.js", "selected"])).toBe(true);
-                    expect(changed).toBe(true);
-                });
-                
-                it("should change the selection from the old to the new", function () {
-                    vm._setSelected("/foo/afile.js");
-                    changed = false;
-                    vm._setSelected("/foo/subdir1/afile.js");
-                    expect(vm.treeData.getIn(["afile.js", "selected"])).toBe(undefined);
-                    expect(vm.treeData.getIn(["subdir1", "children", "afile.js", "selected"])).toBe(true);
-                    expect(changed).toBe(true);
-                });
-                
-                it("shouldn't fire a changed message if there was no change in selection", function () {
-                    vm._setSelected("/foo/afile.js");
-                    expect(changed).toBe(true);
-                    changed = false;
-                    vm._setSelected("/foo/afile.js");
-                    expect(changed).toBe(false);
-                });
-                
-                it("should clear the context when there's a new selection", function () {
-                    vm._setContext("/foo/afile.js");
-                    vm._setSelected("/foo/subdir1/afile.js");
-                    expect(vm.treeData.getIn(["afile.js", "context"])).toBeUndefined();
-                    expect(vm._lastContext).toBeNull();
-                });
-                
-                it("can clear the selection by passing in null", function () {
-                    vm._setSelected("/foo/afile.js");
-                    expect(vm.treeData.getIn(["afile.js", "selected"])).toBe(true);
-                    changed = false;
-                    vm._setSelected(null);
-                    expect(vm.treeData.getIn(["afile.js", "selected"])).toBeUndefined();
-                    expect(changed).toBe(true);
-                });
-            });
-            
-            describe("_setContext", function () {
+            describe("markers", function () {
                 var vm = new FileTreeView.ViewModel(),
                     changed;
 
@@ -377,41 +310,141 @@ define(function (require, exports, module) {
                     });
                     vm._lastSelected = null;
                     vm._lastContext = null;
+                    vm._lastRename = null;
                 });
 
-                it("should set context a file", function () {
-                    vm._setContext("/foo/afile.js");
-                    expect(vm.treeData.getIn(["afile.js", "context"])).toBe(true);
-                    expect(changed).toBe(true);
+                describe("_setSelected", function () {
+                    it("should select an unselected file", function () {
+                        vm._setSelected("/foo/afile.js");
+                        expect(vm.treeData.getIn(["afile.js", "selected"])).toBe(true);
+                        expect(changed).toBe(true);
+                    });
+
+                    it("should change the selection from the old to the new", function () {
+                        vm._setSelected("/foo/afile.js");
+                        changed = false;
+                        vm._setSelected("/foo/subdir1/afile.js");
+                        expect(vm.treeData.getIn(["afile.js", "selected"])).toBe(undefined);
+                        expect(vm.treeData.getIn(["subdir1", "children", "afile.js", "selected"])).toBe(true);
+                        expect(changed).toBe(true);
+                    });
+
+                    it("shouldn't fire a changed message if there was no change in selection", function () {
+                        vm._setSelected("/foo/afile.js");
+                        expect(changed).toBe(true);
+                        changed = false;
+                        vm._setSelected("/foo/afile.js");
+                        expect(changed).toBe(false);
+                    });
+
+                    it("should clear the context when there's a new selection", function () {
+                        vm._setContext("/foo/afile.js");
+                        vm._setSelected("/foo/subdir1/afile.js");
+                        expect(vm.treeData.getIn(["afile.js", "context"])).toBeUndefined();
+                        expect(vm._lastContext).toBeNull();
+                    });
+
+                    it("can clear the selection by passing in null", function () {
+                        vm._setSelected("/foo/afile.js");
+                        expect(vm.treeData.getIn(["afile.js", "selected"])).toBe(true);
+                        changed = false;
+                        vm._setSelected(null);
+                        expect(vm.treeData.getIn(["afile.js", "selected"])).toBeUndefined();
+                        expect(changed).toBe(true);
+                    });
                 });
 
-                it("should change the context from the old to the new", function () {
-                    vm._setContext("/foo/afile.js");
-                    changed = false;
-                    vm._setContext("/foo/subdir1/afile.js");
-                    expect(vm.treeData.getIn(["afile.js", "context"])).toBe(undefined);
-                    expect(vm.treeData.getIn(["subdir1", "children", "afile.js", "context"])).toBe(true);
-                    expect(changed).toBe(true);
-                });
+                describe("_setContext", function () {
+                    it("should set the context flag on a file", function () {
+                        vm._setContext("/foo/afile.js");
+                        expect(vm.treeData.getIn(["afile.js", "context"])).toBe(true);
+                        expect(changed).toBe(true);
+                    });
 
-                it("shouldn't fire a changed message if there was no change in context", function () {
-                    vm._setContext("/foo/afile.js");
-                    expect(changed).toBe(true);
-                    changed = false;
-                    vm._setContext("/foo/afile.js");
-                    expect(changed).toBe(false);
+                    it("should change the context from the old to the new", function () {
+                        vm._setContext("/foo/afile.js");
+                        changed = false;
+                        vm._setContext("/foo/subdir1/afile.js");
+                        expect(vm.treeData.getIn(["afile.js", "context"])).toBe(undefined);
+                        expect(vm.treeData.getIn(["subdir1", "children", "afile.js", "context"])).toBe(true);
+                        expect(changed).toBe(true);
+                    });
+
+                    it("shouldn't fire a changed message if there was no change in context", function () {
+                        vm._setContext("/foo/afile.js");
+                        expect(changed).toBe(true);
+                        changed = false;
+                        vm._setContext("/foo/afile.js");
+                        expect(changed).toBe(false);
+                    });
+
+                    it("can clear the context by passing in null", function () {
+                        vm._setContext("/foo/afile.js");
+                        expect(vm.treeData.getIn(["afile.js", "context"])).toBe(true);
+                        changed = false;
+                        vm._setContext(null);
+                        expect(vm.treeData.getIn(["afile.js", "context"])).toBeUndefined();
+                        expect(changed).toBe(true);
+                    });
                 });
                 
-                it("can clear the context by passing in null", function () {
-                    vm._setContext("/foo/afile.js");
-                    expect(vm.treeData.getIn(["afile.js", "context"])).toBe(true);
-                    changed = false;
-                    vm._setContext(null);
-                    expect(vm.treeData.getIn(["afile.js", "context"])).toBeUndefined();
-                    expect(changed).toBe(true);
+                describe("_setRename", function () {
+                    it("should set the rename flag on a file", function () {
+                        vm._setRename("/foo/afile.js");
+                        expect(vm.treeData.getIn(["afile.js", "rename"])).toBe(true);
+                        expect(changed).toBe(true);
+                    });
+
+                    it("should move the rename from the old to the new", function () {
+                        vm._setRename("/foo/afile.js");
+                        changed = false;
+                        vm._setRename("/foo/subdir1/afile.js");
+                        expect(vm.treeData.getIn(["afile.js", "rename"])).toBe(undefined);
+                        expect(vm.treeData.getIn(["subdir1", "children", "afile.js", "rename"])).toBe(true);
+                        expect(changed).toBe(true);
+                    });
+
+                    it("shouldn't fire a changed message if there was no change in rename", function () {
+                        vm._setRename("/foo/afile.js");
+                        expect(changed).toBe(true);
+                        changed = false;
+                        vm._setRename("/foo/afile.js");
+                        expect(changed).toBe(false);
+                    });
+
+                    it("can clear the rename by passing in null", function () {
+                        vm._setRename("/foo/afile.js");
+                        expect(vm.treeData.getIn(["afile.js", "rename"])).toBe(true);
+                        changed = false;
+                        vm._setRename(null);
+                        expect(vm.treeData.getIn(["afile.js", "rename"])).toBeUndefined();
+                        expect(changed).toBe(true);
+                    });
+                    
+                    it("clears the rename flag when the context or selection moves", function () {
+                        vm._setRename("/foo/afile.js");
+                        expect(vm.treeData.getIn(["afile.js", "rename"])).toBe(true);
+                        vm._setSelected("/foo/afile.js");
+                        expect(vm.treeData.getIn(["afile.js", "rename"])).toBeUndefined();
+                        expect(vm._lastRename).toBeNull();
+                        vm._setRename("/foo/afile.js");
+                        expect(vm.treeData.getIn(["afile.js", "rename"])).toBe(true);
+                        vm._setContext("/foo/afile.js");
+                        expect(vm.treeData.getIn(["afile.js", "rename"])).toBeUndefined();
+                        expect(vm._lastRename).toBeNull();
+                    });
+                    
+                    it("clears the context when rename is cancelled", function () {
+                        vm._setContext("/foo/afile.js");
+                        vm._setRename("/foo/afile.js");
+                        expect(vm.treeData.getIn(["afile.js", "context"])).toBe(true);
+                        vm._setRename(null);
+                        expect(vm.treeData.getIn(["afile.js", "context"])).toBeUndefined();
+                    });
                 });
             });
         });
+            
         
         describe("_splitExtension", function () {
             it("should work for plain filenames", function () {
@@ -447,6 +480,19 @@ define(function (require, exports, module) {
                 var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
                 expect(a.props.children[0]).toBe("afile");
                 expect(a.props.children[1].props.children).toBe(".js");
+            });
+        });
+        
+        describe("_fileRename", function () {
+            it("should render a rename component", function () {
+                var rendered = RTU.renderIntoDocument(FileTreeView._fileRename({
+                    name: "afile.js",
+                    entry: Immutable.Map({
+                        rename: true
+                    })
+                }));
+                var input = RTU.findRenderedDOMComponentWithTag(rendered, "input");
+                expect(input.props.value).toBe("afile.js");
             });
         });
         
@@ -555,6 +601,18 @@ define(function (require, exports, module) {
                 expect(aTags.length).toBe(2);
                 expect(aTags[0].props.children[1]).toBe("subdir");
                 expect(aTags[1].props.children[0]).toBe("afile");
+            });
+            
+            it("should render a fileRename component when a rename is in progress", function () {
+                var rendered = RTU.renderIntoDocument(FileTreeView._directoryContents({
+                    contents: Immutable.fromJS({
+                        "afile.js": {
+                            rename: true
+                        }
+                    })
+                }));
+                var input = RTU.findRenderedDOMComponentWithTag(rendered, "input");
+                expect(input.props.value).toBe("afile.js");
             });
         });
         
