@@ -406,7 +406,7 @@ define(function (require, exports, module) {
                         waitsForDone(vm._refresh());
                     });
                     runs(function () {
-                        expect(changesFired).toBe(1)
+                        expect(changesFired).toBe(1);
                         expect(vm.treeData).not.toBe(oldTree);
                         expect(vm.treeData.getIn(["subdir1", "children", "subsubdir", "children", "interior.txt", "selected"])).toBe(true);
                         expect(vm.treeData.getIn(["subdir3", "children", "higher.txt", "context"])).toBe(true);
@@ -521,6 +521,7 @@ define(function (require, exports, module) {
                     it("should set the rename flag on a file", function () {
                         vm._setRename("/foo/afile.js");
                         expect(vm.treeData.getIn(["afile.js", "rename"])).toBe(true);
+                        expect(vm._renameTo).toBe("/foo/afile.js");
                         expect(changed).toBe(true);
                     });
 
@@ -530,14 +531,17 @@ define(function (require, exports, module) {
                         vm._setRename("/foo/subdir1/afile.js");
                         expect(vm.treeData.getIn(["afile.js", "rename"])).toBe(undefined);
                         expect(vm.treeData.getIn(["subdir1", "children", "afile.js", "rename"])).toBe(true);
+                        expect(vm._renameTo).toBe("/foo/subdir1/afile.js");
                         expect(changed).toBe(true);
                     });
 
                     it("shouldn't fire a changed message if there was no change in rename", function () {
                         vm._setRename("/foo/afile.js");
+                        vm._setRenameValue("/foo/bar.js");
                         expect(changed).toBe(true);
                         changed = false;
                         vm._setRename("/foo/afile.js");
+                        expect(vm._renameTo).toBe("/foo/bar.js");
                         expect(changed).toBe(false);
                     });
 
@@ -547,6 +551,7 @@ define(function (require, exports, module) {
                         changed = false;
                         vm._setRename(null);
                         expect(vm.treeData.getIn(["afile.js", "rename"])).toBeUndefined();
+                        expect(vm._renameTo).toBe(null);
                         expect(changed).toBe(true);
                     });
                     
@@ -570,36 +575,16 @@ define(function (require, exports, module) {
                         vm._setRename(null);
                         expect(vm.treeData.getIn(["afile.js", "context"])).toBeUndefined();
                     });
+                    
+                    it("does nothing if setRenameValue is called when there's no rename in progress", function () {
+                        vm._setRenameValue("/foo/bar/baz");
+                        expect(vm._renameTo).toBe(null);
+                    });
                 });
             });
         });
             
         
-        describe("_splitExtension", function () {
-            it("should work for plain filenames", function () {
-                expect(FileTreeView._splitExtension("afile.js")).toEqual({
-                    name: "afile",
-                    extension: ".js"
-                });
-            });
-
-            it("should treat dotfiles as filenames and not extensions", function () {
-                var result = FileTreeView._splitExtension(".dotfile");
-                expect(result).toEqual({
-                    name: ".dotfile",
-                    extension: ""
-                });
-            });
-            
-            it("should work for files with no extension", function () {
-                var result = FileTreeView._splitExtension("LICENSE");
-                expect(result).toEqual({
-                    name: "LICENSE",
-                    extension: ""
-                });
-            });
-        });
-
         describe("_fileNode", function () {
             it("should create a component with the right information", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._fileNode({

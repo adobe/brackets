@@ -176,23 +176,37 @@ define(function (require, exports, module) {
     };
     
     Dispatcher.prototype.setSelected = function (path) {
+        this.performRename();
         this.viewModel._setSelected(path);
         var openResult = FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
     };
     
     Dispatcher.prototype.setContext = function (path) {
+        this.performRename();
         this.viewModel._setContext(path);
     };
     
-    Dispatcher.prototype.startRename = function () {
-        this.viewModel._setRename(this.viewModel._lastContext);
+    Dispatcher.prototype.startRename = function (path) {
+        if (!path) {
+            path = this.viewModel._lastContext;
+        }
+        this.viewModel._setRename(path);
+    };
+    
+    Dispatcher.prototype.setRenameValue = function (path) {
+        this.viewModel._setRenameValue(path);
     };
     
     Dispatcher.prototype.cancelRename = function () {
         this.viewModel._setRename(null);
     };
     
-    Dispatcher.prototype.performRename = function (oldPath, newPath) {
+    Dispatcher.prototype.performRename = function () {
+        var oldPath = this.viewModel._lastRename;
+        if (!oldPath) {
+            return;
+        }
+        var newPath = this.viewModel._renameTo;
         renameItem(oldPath, newPath);
         this.viewModel._setRename(null);
     };

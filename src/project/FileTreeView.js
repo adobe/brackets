@@ -85,6 +85,8 @@ define(function (require, exports, module) {
     
     ViewModel.prototype._lastRename = null;
     
+    ViewModel.prototype._renameTo = null;
+    
     ViewModel.prototype.sortDirectoriesFirst = false;
     
     ViewModel.prototype.treeData = null;
@@ -372,7 +374,14 @@ define(function (require, exports, module) {
             }
             
             this._lastRename = path;
+            this._renameTo = path;
             this._commitTreeData(newTreeData);
+        }
+    };
+    
+    ViewModel.prototype._setRenameValue = function (path) {
+        if (this._lastRename) {
+            this._renameTo = path;
         }
     };
     
@@ -430,23 +439,10 @@ define(function (require, exports, module) {
         return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
     }
     
-    function _splitExtension(name) {
-        // if the name starts with a dot, treat the whole name as the filename not an extension
-        var i = name.lastIndexOf(".");
-        if (i === -1) {
-            return {
-                name: name,
-                extension: ""
-            };
-        } else if (i === 0) {
-            i = name.length;
-        }
-        return {
-            name: name.substr(0, i > -1 ? i : name.length),
-            extension: name.substring(i)
-        };
+    function _getName(fullname, extension) {
+        return extension !== "" ? fullname.substring(0, fullname.length - extension.length - 1) : fullname;
     }
-
+    
     var fileNode = React.createClass({
         shouldComponentUpdate: function (nextProps, nextState) {
             return this.props.entry !== nextProps.entry;
@@ -457,7 +453,11 @@ define(function (require, exports, module) {
         },
         
         handleClick: function (e) {
-            this.props.dispatcher.setSelected(this.myPath());
+            if (this.props.entry.get("selected")) {
+                this.props.dispatcher.startRename(this.myPath());
+            } else {
+                this.props.dispatcher.setSelected(this.myPath());
+            }
             return false;
         },
         
@@ -467,16 +467,16 @@ define(function (require, exports, module) {
             }
             return true;
         },
+        
         render: function () {
             var fullname = this.props.name,
-                splitname = _splitExtension(fullname),
-                name = splitname.name,
-                extension = splitname.extension;
+                extension = FileUtils.getSmartFileExtension(fullname),
+                name = _getName(fullname, extension);
             
             if (extension) {
                 extension = DOM.span({
                     className: "extension"
-                }, extension);
+                }, "." + extension);
             }
             
             var fileClasses = "";
@@ -510,9 +510,21 @@ define(function (require, exports, module) {
             if (e.keyCode === 27) {
                 this.props.dispatcher.cancelRename();
             } else if (e.keyCode === 13) {
-                this.props.dispatcher.performRename(this.myPath(), this.props.parentPath + this.refs.name.getDOMNode().value.trim());
+                this.props.dispatcher.performRename();
             }
         },
+        
+        handleKeyUp: function () {
+            this.props.dispatcher.setRenameValue(this.props.parentPath + this.refs.name.getDOMNode().value.trim());
+        },
+        
+        componentDidMount: function () {
+            var fullname = this.props.name,
+                extension = FileUtils.getSmartFileExtension(fullname);
+            
+            this.refs.name.getDOMNode().setSelectionRange(0, _getName(fullname, extension).length);
+        },
+        
         render: function () {
             return DOM.li({
                 className: "jstree-leaf"
@@ -521,11 +533,12 @@ define(function (require, exports, module) {
                     className: "jstree-icon"
                 }, " "),
                 DOM.input({
-                    className: "sidebar-context jstree-clicked",
+                    className: "rename-input",
                     type: "text",
                     defaultValue: this.props.name,
                     autoFocus: true,
                     onKeyDown: this.handleKeyDown,
+                    onKeyUp: this.handleKeyUp,
                     ref: "name"
                 }));
         }
@@ -692,7 +705,6 @@ define(function (require, exports, module) {
             element);
     }
     
-    exports._splitExtension = _splitExtension;
     exports._formatDirectoryContents = _formatDirectoryContents;
     exports._sortFormattedDirectory = _sortFormattedDirectory;
     exports._getDirectoryContents = _getDirectoryContents;
