@@ -21,7 +21,7 @@
  *
  */
 
-/*global $, define, brackets, describe, xdescribe, it, xit, beforeEach, expect, setTimeout, waitsForDone, runs, spyOn */
+/*global $, define, brackets, describe, xdescribe, it, xit, beforeEach, expect, setTimeout, waitsForDone, waitsForFail, runs, spyOn */
 /*unittests: FileTreeView*/
 
 define(function (require, exports, module) {
@@ -147,12 +147,19 @@ define(function (require, exports, module) {
             });
             
             describe("toggleDirectory", function () {
-                var vm = new FileTreeView.ViewModel();
+                var vm = new FileTreeView.ViewModel(),
+                    changeFired;
+                
                 vm.projectRoot = {
                     fullPath: "/foo/"
                 };
                 
+                vm.on(FileTreeView.CHANGE, function () {
+                    changeFired = true;
+                });
+
                 beforeEach(function () {
+                    changeFired = false;
                     vm.treeData = Immutable.fromJS({
                         "subdir": {
                             open: true,
@@ -166,30 +173,15 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                it("should throw if the path does not exist", function () {
-                    try {
-                        vm.toggleDirectory("/foo/bar/");
-                        expect("should have thrown an error").toBe("but it didn't");
-                    } catch (e) {
-                        // Do nothing. It's expected to throw an error.
-                    }
+                it("should reject if the path does not exist", function () {
+                    waitsForFail(vm.toggleDirectory("/foo/bar/"), "toggling non-existent directory");
                 });
                 
-                it("should throw if it is passed a file and not a directory", function () {
-                    try {
-                        vm.toggleDirectory("/foo/subdir/afile.js");
-                        expect("should have thrown an error").toBe("but it didn't");
-                    } catch (e) {
-                        // Do nothing. This is actually what we expect.
-                    }
+                it("should reject if it is passed a file and not a directory", function () {
+                    waitsForFail(vm.toggleDirectory("/foo/subdir/afile.js"));
                 });
                 
                 it("should close a directory that's open", function () {
-                    var changeFired = false;
-                    vm.on(FileTreeView.CHANGE, function () {
-                        changeFired = true;
-                    });
-                    
                     waitsForDone(vm.toggleDirectory("/foo/subdir/"));
                     runs(function () {
                         expect(vm.treeData.getIn(["subdir", "open"])).toBeUndefined();
@@ -210,11 +202,6 @@ define(function (require, exports, module) {
                 });
                 
                 it("should not rerequest subdirectories", function () {
-                    var changeFired = false;
-                    vm.on(FileTreeView.CHANGE, function () {
-                        changeFired = true;
-                    });
-                    
                     var childrenObject;
                     
                     spyOn(FileTreeView, "_getDirectoryContents").andReturn(new $.Deferred().resolve({}).promise());
@@ -229,6 +216,33 @@ define(function (require, exports, module) {
                         expect(changeFired).toBe(true);
                         expect(vm.treeData.getIn(["subdir", "children"])).toBe(childrenObject);
                         expect(FileTreeView._getDirectoryContents).not.toHaveBeenCalled();
+                    });
+                });
+                
+                it("allows you to explicitly open a directory that's already open", function () {
+                    waitsForDone(vm.toggleDirectory("/foo/subdir/", true));
+                    runs(function () {
+                        expect(changeFired).toBe(false);
+                        expect(vm.treeData.getIn(["subdir", "open"])).toBe(true);
+                    });
+                });
+                
+                it("allows you to explicitly close a directory that's already closed", function () {
+                    waitsForDone(vm.toggleDirectory("/foo/closedDir/", false));
+                    runs(function () {
+                        expect(changeFired).toBe(false);
+                        expect(vm.treeData.getIn(["closedDir", "open"])).toBeUndefined();
+                    });
+                });
+                
+                it("allows you to explicitly open a directory that's closed", function () {
+                    var deferred = new $.Deferred();
+                    spyOn(FileTreeView, "_getDirectoryContents").andReturn(deferred.resolve({}).promise());
+                    vm.toggleDirectory("/foo/closedDir/", true);
+                    expect(FileTreeView._getDirectoryContents).toHaveBeenCalledWith("/foo/closedDir/");
+                    expect(vm.treeData.get("closedDir").toJS()).toEqual({
+                        open: true,
+                        children: {}
                     });
                 });
             });
@@ -282,6 +296,63 @@ define(function (require, exports, module) {
                             "/foo/bar/subdir1/subsubdir/"
                         ]
                     ]);
+                });
+            });
+            
+            describe("_reopenNodes", function () {
+                it("should reopen previously closed nodes", function () {
+                    var vm = new FileTreeView.ViewModel();
+                    vm.projectRoot = {
+                        fullPath: "/foo/"
+                    };
+
+                    var pathData = {
+                        "/foo/subdir1/": [
+                            {
+                                name: "subsubdir",
+                                isFile: false
+                            }
+                        ],
+                        "/foo/subdir1/subsubdir/": [
+                        ],
+                        "/foo/subdir3/": [
+                        ]
+                    };
+
+                    vm.treeData = Immutable.fromJS({
+                        subdir1: {
+                            children: null
+                        },
+                        subdir2: {
+                            children: null
+                        },
+                        subdir3: {
+                            children: null
+                        }
+                    });
+                    
+                    var nodesByDepth = [
+                        [
+                            "/foo/subdir1/",
+                            "/foo/subdir3/"
+                        ],
+                        [
+                            "/foo/subdir1/subsubdir/"
+                        ]
+                    ];
+                    
+                    spyOn(FileTreeView, "_getDirectoryContents").andCallFake(function (path) {
+                        expect(pathData[path]).toBeDefined();
+                        return new $.Deferred().resolve(FileTreeView._formatDirectoryContents(pathData[path])).promise();
+                    });
+                    
+                    waitsForDone(vm._reopenNodes(nodesByDepth));
+                    runs(function () {
+                        var subdir1 = vm.treeData.get("subdir1");
+                        expect(subdir1.get("open")).toBe(true);
+                        expect(subdir1.getIn(["children", "subsubdir", "open"])).toBe(true);
+                        expect(vm.treeData.getIn(["subdir3", "open"])).toBe(true);
+                    });
                 });
             });
             

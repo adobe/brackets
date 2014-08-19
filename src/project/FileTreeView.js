@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         _ = require("thirdparty/lodash"),
         FileUtils = require("file/FileUtils"),
         FileSystem = require("filesystem/FileSystem"),
+        Async = require("utils/Async"),
         FileViewController = require("project/FileViewController");
     
     var DOM = React.DOM;
@@ -183,57 +184,47 @@ define(function (require, exports, module) {
      * @param {Array.<Array.<string>>} nodesByDepth An array of arrays of node ids to reopen. The ids within
      *     each sub-array are reopened in parallel, and the sub-arrays are reopened in order, so they should
      *     be sorted by depth within the tree.
-     * @param {$.Deferred} resultDeferred A Deferred that will be resolved when all nodes have been fully
+     * @return {$.Deferred} A promise that will be resolved when all nodes have been fully
      *     reopened.
      */
-    ViewModel.prototype.reopenNodes = function reopenNodes(nodesByDepth, resultDeferred) {
+    ViewModel.prototype._reopenNodes = function _reopenNodes(nodesByDepth) {
+        var deferred = new $.Deferred();
+        
         if (nodesByDepth.length === 0) {
             // All paths are opened and fully rendered.
-            resultDeferred.resolve();
+            return deferred.resolve().promise();
         } else {
-            var toOpenPaths = nodesByDepth.shift(),
-                toOpenIds   = [],
-                node        = null;
-
-            // use path to lookup ID
-            toOpenPaths.forEach(function (value, index) {
-                node = _projectInitialLoad.fullPathToIdMap[value];
-
-                if (node) {
-                    toOpenIds.push(node);
-                }
-            });
-
-            Async.doInParallel(
-                toOpenIds,
-                function (id) {
-                    var result = new $.Deferred();
-                    _projectTree.jstree("open_node", "#" + id, function () {
-                        result.resolve();
-                    }, true);
-                    return result.promise();
-                },
-                false
-            ).always(function () {
-                _reopenNodes(nodesByDepth, resultDeferred);
+            var self = this;
+            return Async.doSequentially(nodesByDepth, function (toOpenPaths) {
+                return Async.doInParallel(
+                    toOpenPaths,
+                    function (path) {
+                        return self.toggleDirectory(path, true);
+                    },
+                    false
+                );
             });
         }
     };
     
-    ViewModel.prototype.toggleDirectory = function (path) {
+    ViewModel.prototype.toggleDirectory = function (path, shouldOpen) {
         var objectPath = _filePathToObjectPath(this.projectRoot, this.treeData, path);
         if (!objectPath) {
-            throw new Error("Cannot find directory in project: " + path);
+            return new $.Deferred().reject(new Error("Cannot find directory in project: " + path)).promise();
         }
         
         var directory = this.treeData.getIn(objectPath),
             newTreeData = this.treeData;
         
         if (isFile(directory)) {
-            throw new Error("toggleDirectory called with a file: " + path);
+            return new $.Deferred().reject(new Error("toggleDirectory called with a file: " + path)).promise();
         }
         
         var isOpen = directory.get("open");
+        
+        if ((isOpen && shouldOpen) || (!isOpen && shouldOpen === false)) {
+            return new $.Deferred().resolve().promise();
+        }
         
         if (isOpen || directory.get("children")) {
             newTreeData = newTreeData.updateIn(objectPath, function (directory) {
@@ -258,7 +249,7 @@ define(function (require, exports, module) {
         }
     };
     
-    function _moveMarker (projectRoot, treeData, markerName, oldPath, newPath) {
+    function _moveMarker(projectRoot, treeData, markerName, oldPath, newPath) {
         if (newPath === oldPath) {
             return;
         }
@@ -651,21 +642,6 @@ define(function (require, exports, module) {
             dispatcher: dispatcher
         }),
             element);
-    }
-    
-    function renameItemInline(entry) {
-        rename = {
-            path: entry,
-            cancel: _cancelRename
-        };
-        fileContext = entry;
-        _renderTree();
-    }
-
-    function _cancelRename() {
-        fileContext = null;
-        rename = null;
-        _renderTree();
     }
     
     exports._splitExtension = _splitExtension;

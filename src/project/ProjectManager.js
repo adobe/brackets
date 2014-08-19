@@ -172,12 +172,7 @@ define(function (require, exports, module) {
     };
     
     Dispatcher.prototype.toggleDirectory = function (path) {
-        this.viewModel.toggleDirectory(path);
-        // TODO save tree state
-//        var openNodes = this.viewModel.getOpenNodes();
-//        PreferencesManager.setViewState("project.treeState", openNodes, { location : { scope: "user",
-//                                                                                      layer: "project",
-//                                                                                      layerID: model.projectRoot.fullPath } });
+        this.viewModel.toggleDirectory(path).then(_savePreferences);
     };
     
     Dispatcher.prototype.setSelected = function (path) {
@@ -252,7 +247,7 @@ define(function (require, exports, module) {
     function _setProjectRoot(rootEntry) {
         model.projectRoot = rootEntry;
         model._resetCache();  // invalidate getAllFiles() cache as soon as _projectRoot changes
-        viewModel.setProjectRoot(rootEntry);
+        viewModel.setProjectRoot(rootEntry).then(_reopenNodes);
     }
 
     /**
@@ -298,23 +293,31 @@ define(function (require, exports, module) {
     function makeProjectRelativeIfPossible(absPath) {
         return model.makeProjectRelativeIfPossible(absPath);
     }
-
+    
+    function _getProjectViewStateContext() {
+        return { location : { scope: "user",
+                             layer: "project",
+                             layerID: model.projectRoot.fullPath } };
+    }
+    
     /**
      * @private
      * Save ProjectManager project path and tree state.
      */
     function _savePreferences() {
-        var context = { location : { scope: "user",
-                                     layer: "project",
-                                     layerID: model.projectRoot.fullPath } };
+        var context = _getProjectViewStateContext();
 
         // save the current project
         PreferencesManager.setViewState("projectPath", model.projectRoot.fullPath);
         
-        var openNodes = viewModel.getTreeState();
+        var openNodes = viewModel._getOpenNodes();
         
         // Store the open nodes by their full path and persist to storage
         PreferencesManager.setViewState("project.treeState", openNodes, context);
+    }
+    
+    function _reopenNodes() {
+        return viewModel._reopenNodes(PreferencesManager.getViewState("project.treeState", _getProjectViewStateContext()));
     }
     
     /**
@@ -348,49 +351,6 @@ define(function (require, exports, module) {
         return ($(element).closest("li").find("input").length > 0);
     }
         
-    /**
-     * @private
-     * Reopens a set of nodes in the tree by ID.
-     * @param {Array.<Array.<string>>} nodesByDepth An array of arrays of node ids to reopen. The ids within
-     *     each sub-array are reopened in parallel, and the sub-arrays are reopened in order, so they should
-     *     be sorted by depth within the tree.
-     * @param {$.Deferred} resultDeferred A Deferred that will be resolved when all nodes have been fully
-     *     reopened.
-     */
-    function _reopenNodes(nodesByDepth, resultDeferred) {
-        if (nodesByDepth.length === 0) {
-            // All paths are opened and fully rendered.
-            resultDeferred.resolve();
-        } else {
-            var toOpenPaths = nodesByDepth.shift(),
-                toOpenIds   = [],
-                node        = null;
-
-            // use path to lookup ID
-            toOpenPaths.forEach(function (value, index) {
-                node = _projectInitialLoad.fullPathToIdMap[value];
-                
-                if (node) {
-                    toOpenIds.push(node);
-                }
-            });
-            
-            Async.doInParallel(
-                toOpenIds,
-                function (id) {
-                    var result = new $.Deferred();
-                    _projectTree.jstree("open_node", "#" + id, function () {
-                        result.resolve();
-                    }, true);
-                    return result.promise();
-                },
-                false
-            ).always(function () {
-                _reopenNodes(nodesByDepth, resultDeferred);
-            });
-        }
-    }
-
     /**
      * A memoized comparator of DOM nodes for use with jsTree
      * @private
