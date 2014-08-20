@@ -837,8 +837,10 @@ define(function (require, exports, module) {
             
             // Everything until the next ',' or '{' is part of the current selector
             while (token !== "," && token !== "{") {
-                if (token === "}" && (!currentSelector || /:\s*\S/.test(currentSelector))) {
+                if (token === "}" &&
+                        (!currentSelector || /:\s*\S/.test(currentSelector) || !/\{\w/.test(currentSelector))) {
                     // Either empty currentSelector or currentSelector is a CSS property
+                    // but not a selector that is in the form of #{$class}
                     return false;
                 }
                 if (token === ";" ||
@@ -1097,7 +1099,6 @@ define(function (require, exports, module) {
         }
         
         _parseRuleList = function (escapeToken, level) {
-            
             while ((!escapeToken) || token !== escapeToken) {
                 if (_isStartAtRule()) {
                     // @rule
@@ -1113,6 +1114,12 @@ define(function (require, exports, module) {
                 } else if (_maybeProperty()) {
                     // Skip the property.
                     _skipProperty();
+                    // If we find a "{" or "}" while skipping a property, then don't skip it in
+                    // this while loop.Otherwise, we will get into an infinite loop in parsing
+                    // since we miss to handle the opening or closing of a block properly.
+                    if (token === "{" || token === "}") {
+                        return false;
+                    }
                 } else {
                     // Otherwise, it's style rule
                     if (!_parseRule(level === undefined ? 0 : level) && level > 0) {
@@ -1503,9 +1510,9 @@ define(function (require, exports, module) {
         // special case - we aren't in a selector and haven't found any chars,
         // look at the next immediate token to see if it is non-whitespace. 
         // For preprocessor documents we need to move the cursor to next non-whitespace
-        // token so that we can collect the current selector if the sursor is inside it.
+        // token so that we can collect the current selector if the cursor is inside it.
         if ((!selector && !foundChars && !isPreprocessorDoc) ||
-                (isPreprocessorDoc && (selectorArray.length === 0 || /\s+/.test(ctx.token)))) {
+                (isPreprocessorDoc && (ctx.token.string === "" || /\s+/.test(ctx.token.string)))) {
             if (TokenUtils.moveNextToken(ctx) && ctx.token.type !== "comment" && /\S/.test(ctx.token.string)) {
                 foundChars = true;
                 ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
