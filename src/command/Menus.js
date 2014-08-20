@@ -1097,6 +1097,7 @@ define(function (require, exports, module) {
      * Closes the context menu.
      */
     ContextMenu.prototype.close = function () {
+        $(this).triggerHandler("beforeContextMenuClose");
         $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
     };
 

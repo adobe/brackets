@@ -1588,6 +1588,10 @@ define(function (require, exports, module) {
             }
         });
         
+        $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuClose", function () {
+            dispatcher.setContext(null);
+        });
+        
         $projectTreeContainer.on("contextmenu", function () {
             forceFinishRename();
         });
