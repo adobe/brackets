@@ -1188,14 +1188,11 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("paneDestroy", secondPane.id);
             $(exports).triggerHandler("paneViewAddList", [fileList, firstPane.id]);
 
-            fileList.forEach(function (file) {
-                _mruList.forEach(function (record) {
-                    if (record.file === file) {
-                        record.paneId = firstPane.id;
-                    }
-                });
+            _mruList.forEach(function (record) {
+                if (record.paneId === secondPane.id) {
+                    record.paneId = firstPane.id;
+                }
             });
-            
             
             _orientation = null;
             _updateLayout();
