@@ -477,26 +477,26 @@ define(function (require, exports, module) {
             var testObj = {
                 someVal: 5,
                 succeeder: function (input, cb) {
-                    cb(null, input, this.someVal);
+                    cb(null, { input: input, someVal: this.someVal });
                 },
                 failer: function (input, cb) {
                     cb("this is an error");
                 }
             };
             
-            xit("should resolve its returned promise when the errback is called with null err", function () {
+            it("should resolve its returned promise when the errback is called with null err", function () {
                 Async.promisify(testObj, "succeeder", "myInput")
-                    .then(function (input, someVal) {
-                        expect(input).toBe("myInput");
-                        expect(someVal).toBe(testObj.someVal);
+                    .then(function (result) {
+                        expect(result.input).toBe("myInput");
+                        expect(result.someVal).toBe(testObj.someVal);
                     }, function (err) {
                         expect("should not have called fail callback").toBe(false);
                     });
             });
             
-            xit("should reject its returned promise when the errback is called with an err", function () {
+            it("should reject its returned promise when the errback is called with an err", function () {
                 Async.promisify(testObj, "failer", "myInput")
-                    .then(function (input, someVal) {
+                    .then(function (result) {
                         expect("should not have called success callback").toBe(false);
                     }, function (err) {
                         expect(err).toBe("this is an error");

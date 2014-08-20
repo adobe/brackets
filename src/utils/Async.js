@@ -637,20 +637,9 @@ define(function (require, exports, module) {
      *      non-null.
      */
     function promisify(obj, method) {
-//        var result = new $.Deferred(),
-//            args = Array.prototype.slice.call(arguments, 2);
-//        args.push(function (err) {
-//            if (err) {
-//                result.reject(err);
-//            } else {
-//                result.resolve.apply(result, Array.prototype.slice.call(arguments, 1));
-//            }
-//        });
-//        obj[method].apply(obj, args);
-//        return result.promise(),
+        var args = Array.prototype.slice.call(arguments, 2);
 
         return new Promise(function (resolve, reject) {
-            var args = Array.prototype.slice.call(arguments, 2);
             args.push(function (err) {
                 if (err) {
                     reject(err);
