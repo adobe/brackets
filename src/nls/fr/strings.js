@@ -83,7 +83,7 @@ define({
     
     // ProjectManager max files error string
 	"ERROR_MAX_FILES_TITLE": "Erreur lors de l’indexation des fichiers",
-	"ERROR_MAX_FILES": "[6307136] !é=This project contains more than 30,000 files. Features that operate across multiple files may be disabled or behave as if the project is empty. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Read more about working with large projects</a>.=!",
+	"ERROR_MAX_FILES": "Ce projet contient plus de 30 000 fichiers. Les fonctionnalités qui s’appliquent de manière globale à plusieurs fichiers peuvent être désactivées ou se comporter comme si le projet était vide. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>En savoir plus sur l’utilisation de projets volumineux</a>.",
 
     // Live Preview error strings
 	"ERROR_LAUNCHING_BROWSER_TITLE": "Erreur lors du lancement du navigateur",
