@@ -350,6 +350,23 @@ define(function (require, exports, module) {
         }
     };
     
+    function _pathIsFile(path) {
+        return path[path.length - 1] !== "/";
+    }
+    
+    function _getFSObject(path) {
+        if (!path) {
+            return path;
+        } else if (_pathIsFile(path)) {
+            return FileSystem.getFileForPath(path);
+        }
+        return FileSystem.getDirectoryForPath(path);
+    }
+    
+    ViewModel.prototype.getSelected = function () {
+        return _getFSObject(this._lastSelected);
+    };
+    
     ViewModel.prototype._setContext = function (path) {
         var newTreeData = _moveMarker(this.projectRoot, this.treeData, "context", this._lastContext, path);
 
@@ -361,6 +378,10 @@ define(function (require, exports, module) {
             this._lastContext = path;
             this._commitTreeData(newTreeData);
         }
+    };
+    
+    ViewModel.prototype.getContext = function () {
+        return _getFSObject(this._lastContext);
     };
     
     ViewModel.prototype._setRename = function (path) {

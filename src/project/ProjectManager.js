@@ -238,8 +238,11 @@ define(function (require, exports, module) {
      * @return {?(File|Directory)}
      */
     function getSelectedItem() {
-        // Prefer file tree selection, else use working set selection
-        var selectedEntry = viewModel.selected();
+        // Prefer file tree context, then selection, else use working set
+        var selectedEntry = viewModel.getContext();
+        if (!selectedEntry) {
+            selectedEntry = viewModel.getSelected();
+        }
         if (!selectedEntry) {
             var doc = DocumentManager.getCurrentDocument();
             selectedEntry = (doc && doc.file);
