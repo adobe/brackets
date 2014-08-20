@@ -41,7 +41,7 @@ define(function (require, exports, module) {
     
     var _viewers = {};
         
-    /*
+    /**
      * ImageView objects are constructed when an image is opened 
      * @see {@link Pane} for more information about where ImageViews are rendered
      * 
@@ -152,7 +152,7 @@ define(function (require, exports, module) {
         this._updateScale();
     };
     
-    /*
+    /**
      * Update the scale element
      * @private
      */
@@ -345,7 +345,7 @@ define(function (require, exports, module) {
         }
     };
 
-    /*
+    /**
      * View Interface functions
      */
 
@@ -362,7 +362,7 @@ define(function (require, exports, module) {
      * @param {boolean} visible - true to show, false to hide
      */
     ImageView.prototype.setVisible = function (visible) {
-        this.$view.css("display", (!!visible) ? "block" : "none");
+        this.$view.css("display", (visible) ? "block" : "none");
     };
     
     /* 
@@ -383,7 +383,7 @@ define(function (require, exports, module) {
                         left: pos.left + ((oWidth - iWidth) / 2),
                         width: iWidth,
                         height: iHeight});
-        this._updateScale(this.$imagePreview.width());
+        this._updateScale();
     };
 
     /* 
@@ -398,6 +398,7 @@ define(function (require, exports, module) {
     
     /* 
      * Determines if the view has focus
+     * @return true if the view has focus, false if not.
      */
     ImageView.prototype.hasFocus = function () {
         return this.$view.has(":focus");
@@ -405,6 +406,7 @@ define(function (require, exports, module) {
 
     /* 
      * Determines if a child of the view has focus
+     * @return false. this view has no child elements that can receieve focus.
      */
     ImageView.prototype.childHasFocus = function () {
         // we have no children to receive focus
@@ -420,13 +422,14 @@ define(function (require, exports, module) {
 
     /* 
      * Required interface - does nothing 
-     * @returns {undefined}
+     * images are scaled to viewport so they will never scroll
      */
     ImageView.prototype.getScrollPos = function () {
     };
 
     /* 
      * Required interface - does nothing 
+     * images are scaled to viewport so they will never scroll
      */
     ImageView.prototype.adjustScrollPos = function () {
     };
@@ -439,7 +442,6 @@ define(function (require, exports, module) {
 
     /* 
      * Required interface - does nothing 
-     * @returns {undefined}
      */
     ImageView.prototype.restoreViewState = function () {
     };
@@ -484,28 +486,15 @@ define(function (require, exports, module) {
      * Creates an image view object and adds it to the specified pane
      * @param {!File} file - the file to create an image of
      * @param {!Pane} pane - the pane in which to host the view
-     * @return {!ImageView} view
+     * @return {jQuery.Promise} 
      */
-    function _createImageViewOf(file, pane) {
+    function _createImageView(file, pane) {
         var view = new ImageView(file, pane.$el);
         pane.addView(view, true);
         return new $.Deferred().resolve().promise();
     }
-
-    /* 
-     * Initialization, register our view factory
-     */
-    MainViewFactory.registerViewFactory({
-        canOpenFile: function (fullPath) {
-            var lang = LanguageManager.getLanguageForPath(fullPath);
-            return (lang.getId() === "image");
-        },
-        openFile: function (file, pane) {
-            return _createImageViewOf(file, pane);
-        }
-    });
     
-    /*
+    /**
      * Handles file system change events so we can refresh 
      *  image viewers for the files that changed on disk due to external editors
      * @param {jQuery.event} event - event object
@@ -534,6 +523,19 @@ define(function (require, exports, module) {
      * so we can refresh the view when changes are made to the image in an external editor
      */
     FileSystem.on("change", _handleFileSystemChange);
+
+    /* 
+     * Initialization, register our view factory
+     */
+    MainViewFactory.registerViewFactory({
+        canOpenFile: function (fullPath) {
+            var lang = LanguageManager.getLanguageForPath(fullPath);
+            return (lang.getId() === "image");
+        },
+        openFile: function (file, pane) {
+            return _createImageView(file, pane);
+        }
+    });
     
     /* 
      * This is for extensions that want to create a 

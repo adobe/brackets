@@ -1913,6 +1913,7 @@ define(function (require, exports, module) {
         };
         
     };
+    
     /*
      * Restores the view state
      * @param {!EditorViewState} viewState - the view state object to restore

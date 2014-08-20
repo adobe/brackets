@@ -118,7 +118,7 @@ define(function (require, exports, module) {
     function _showFindBar(scope, showReplace) {
         // If the scope is a file with a custom viewer, then we
         // don't show find in files dialog.
-        if (scope && !EditorManager.canOpenFile(scope.fullPath)) {
+        if (scope && !EditorManager.canOpenPath(scope.fullPath)) {
             return;
         }
         

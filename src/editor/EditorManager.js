@@ -600,14 +600,15 @@ define(function (require, exports, module) {
      * Use MainViewManager._initialize() from a unit test to create a Main View attached to a specific DOM element
      */
     function setEditorHolder() {
-        DeprecationWarning.deprecationWarning("EditorManager.setEditorHolder has been deprecated without an equivelent API.  Use MainViewManager._initialize() to create a main view in specified DOM element from within a unit test", true);
+        throw new Error("EditorManager.setEditorHolder() has been removed.");
     }
     
     /**
-     * @deprecated Register a View Factory instead or use MainViewManager.showView 
+     * @deprecated Register a View Factory instead  
+     * @see MainViewManager.registerViewFactory()
      */
-    function registerCustomViewer(langId, provider) {
-        DeprecationWarning.deprecationWarning("EditorManager.registerCustomViewer has been deprecated.  Register a ViewFactory instead");
+    function registerCustomViewer() {
+        throw new Error("EditorManager.registerCustomViewer() has been removed.");
     }
 
     /** 
@@ -615,7 +616,7 @@ define(function (require, exports, module) {
      * @param {!string} fullPath - file to be opened
      * @return {boolean} true if the file can be opened in an editor, false if not
      */
-    function canOpenFile(fullPath) {
+    function canOpenPath(fullPath) {
         return !LanguageManager.getLanguageForPath(fullPath).isBinary();
     }
     
@@ -810,7 +811,7 @@ define(function (require, exports, module) {
     exports.getInlineEditors              = getInlineEditors;
     exports.closeInlineWidget             = closeInlineWidget;
     exports.openDocument                  = openDocument;
-    exports.canOpenFile                   = canOpenFile;
+    exports.canOpenPath                   = canOpenPath;
 
     // Convenience Methods
     exports.getActiveEditor               = getActiveEditor;

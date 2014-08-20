@@ -49,7 +49,7 @@ define(function (require, exports, module) {
                 spyOn(factory, "canOpenFile");
 
                 MainViewFactory.registerViewFactory(factory);
-                MainViewFactory.findSuitableFactoryFor();
+                MainViewFactory.findSuitableFactoryForPath();
                 expect(factory.canOpenFile).toHaveBeenCalled();
             });
         });
@@ -59,7 +59,7 @@ define(function (require, exports, module) {
                 spyOn(factory, "canOpenFile").andCallThrough();
 
                 MainViewFactory.registerViewFactory(factory);
-                var result = MainViewFactory.findSuitableFactoryFor("blah");
+                var result = MainViewFactory.findSuitableFactoryForPath("blah");
 
                 expect(factory.canOpenFile.calls[0].args[0]).toEqual("blah");
                 expect(result).toBe(factory);
@@ -69,7 +69,7 @@ define(function (require, exports, module) {
             runs(function () {
                 var factory = createMockFactory();
                 MainViewFactory.registerViewFactory(factory);
-                var result = MainViewFactory.findSuitableFactoryFor("blahblah");
+                var result = MainViewFactory.findSuitableFactoryForPath("blahblah");
                 expect(result).toBeFalsy();
             });
         });

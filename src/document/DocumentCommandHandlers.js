@@ -59,7 +59,7 @@ define(function (require, exports, module) {
         Menus               = require("command/Menus"),
         UrlParams           = require("utils/UrlParams").UrlParams,
         StatusBar           = require("widgets/StatusBar"),
-        WorkspaceManager    = require("View/WorkspaceManager");
+        WorkspaceManager    = require("view/WorkspaceManager");
 
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
@@ -264,7 +264,7 @@ define(function (require, exports, module) {
         
         function _cleanup(fullFilePath) {
             if (fullFilePath) {
-                // For performance, we do lazy checking of file existence, so it may be in pane view list
+                // For performance, we do lazy checking of file existence, so it may be in a pane view 
                 MainViewManager.removeView(paneId, FileSystem.getFileForPath(fullFilePath));
                 MainViewManager.focusActivePane();
             }
@@ -316,7 +316,8 @@ define(function (require, exports, module) {
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @param {boolean=} silent - If true, don't show error message
      * @param {string=}  paneId - the pane in which to open the file
-     * @return {$.Promise} a jQuery promise resolved with a document object or rejected if the file can not be read.
+     * @return {$.Promise} a jQuery promise resolved with a Document object or 
+     *                      rejected with an err 
      */
     function _doOpenWithOptionalPath(fullPath, silent, paneId) {
         var result;
@@ -345,7 +346,10 @@ define(function (require, exports, module) {
                         
                         _doOpen(filteredPaths[filteredPaths.length - 1], silent, paneId)
                             .done(function (file) {
-                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(MainViewManager.getCurrentlyViewedPath(paneId));
+                                _defaultOpenDialogFullPath =
+                                    FileUtils.getDirectoryPath(
+                                        MainViewManager.getCurrentlyViewedPath(paneId)
+                                    );
                             })
                             // Send the resulting document that was opened
                             .then(result.resolve, result.reject);
@@ -388,11 +392,23 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @typedef {{!fullPath:string, silent:boolean=, paneId:string=}} FileCommandData
+     * fullPath: is in the form "path[:lineNumber[:columnNumber]]"
+     * lineNumber and columnNumber are 1-origin: lines and columns are 1-based
+     */
+
+    /**
+     * @typedef {{!fullPath:string, index:number=, silent:boolean=, forceRedraw:boolean=, paneId:string=}} PaneCommandData
+     * fullPath: is in the form "path[:lineNumber[:columnNumber]]"
+     * lineNumber and columnNumber are 1-origin: lines and columns are 1-based
+     */
+    
+    /**
      * Opens the given file and makes it the current file. Does NOT add it to the pane view list.
-     * @param {{!fullPath:string}, {silent:boolean}, {paneId:string}} Params for FILE_OPEN command;
-     * the fullPath string is of the form "path[:lineNumber[:columnNumber]]"
-     * lineNumber and columnNumber are 1-origin: the very first line is line 1, and the very first column is column 1.
-     * paneId if omitted will be the ACTIVE_PANE
+     * @param {FileCommandData=} commandData - 
+     *   File to open; 
+     *   optional flag to suppress error messages; 
+     *   optional PaneId (defaults to active pane)
      * @return {$.Promise} a jQuery promise that will be resolved with a file object
      */
     function handleFileOpen(commandData) {
@@ -412,13 +428,15 @@ define(function (require, exports, module) {
                     }
                     
                     // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
-                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1, fileInfo.column - 1, true);
+                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1,
+                                                                      fileInfo.column - 1,
+                                                                      true);
                 }
                 
                 result.resolve(file);
             })
-            .fail(function () {
-                result.reject();
+            .fail(function (err) {
+                result.reject(err);
             });
         
         return result;
@@ -435,12 +453,17 @@ define(function (require, exports, module) {
         // do "View Source" from Adobe Scout version 1.2 or newer (this will use decorated paths of the form "path:line:column")
     }
 
+    
     /**
      * Opens the given file, makes it the current file, AND adds it to the pane view list
      * only if the file does not have a custom viewer.
-     * @param {!{fullPath:string, index:number=, forceRedraw:boolean, paneId:string=}} commandData  File to open; optional position in
-     *   pane view list list (defaults to last); optional flag to force pane view list redraw
-     * @return {$.Promise} a jQuery promise that will be resolved with a file object
+     * @param {!PaneCommandData} commandData
+     *   File to open; 
+     *   optional index to position in pane view list (defaults to last); 
+     *   optional flag to suppress error messages; 
+     *   optional flag to force pane view list redraw; 
+     *   optional PaneId (defaults to active pane)
+     * @return {$.Promise} a jQuery promise that will be resolved with a @type {File} 
      */
     function handleAddToPaneViewList(commandData) {
         return handleFileOpen(commandData).done(function (file) {
@@ -449,12 +472,15 @@ define(function (require, exports, module) {
             MainViewManager.addView(paneId, file, commandData.index, commandData.forceRedraw);
         });
     }
+    
   /**
      * Opens the given file, makes it the current file, AND adds it to the pane view list
      * only if the file does not have a custom viewer.
-     * @param {!{fullPath:string, index:number=, forceRedraw:boolean, paneId:string=}} commandData  File to open; optional position in
-     *   pane view list list (defaults to last); optional flag to force pane view list redraw
-     * @return {$.Promise} a jQuery promise that will be resolved with a Document object
+     * @param {FileCommandData} commandData  
+     *   File to open; 
+     *   optional flag to suppress error messages; 
+     *   optional PaneId (defaults to active pane)
+     * @return {$.Promise} a jQuery promise that will be resolved with @type {Document} 
      */
     function handleDocumentOpen(commandData) {
         var result = new $.Deferred();
@@ -467,27 +493,29 @@ define(function (require, exports, module) {
                 var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 result.resolve(doc);
             })
-            .fail(function () {
-                result.reject();
+            .fail(function (err) {
+                result.reject(err);
             });
 
         return result.promise();
         
     }
 
-
     /**
      * @deprecated
      * Opens the given file, makes it the current document, AND adds it to the pane view list
-     * @param {!{fullPath:string, index:number=, forceRedraw:boolean, paneId:string=}} commandData  File to open; optional position in
-     *   pane view list list (defaults to last); optional flag to force pane view list redraw
-     * @return {$.Promise} a jQuery promise that will be resolved with a document object
+     * @param {!PaneCommandData} commandData
+     *   File to open; 
+     *   optional index to position in 
+     *   pane view list (defaults to last); optional flag to suppress error messages; 
+     *   optional flag to force pane view list redraw; optional PaneId (defaults to active pane)
+     * @return {$.Promise} a jQuery promise that will be resolved with @type {File} 
      */
     function handleFileAddToWorkingSet(commandData) {
         // This is a legacy deprecated command that 
         //  will use the new command and resolve with a document
         //  as the legacy command would only support.
-        DeprecationWarning.deprecationWarning("Commands.FILE_ADD_TO_WORKING_SET has been deprecatied.  Use Commands.CMD_ADD_TO_PANE_AND_OPEN instead.");
+        DeprecationWarning.deprecationWarning("Commands.FILE_ADD_TO_WORKING_SET has been deprecated.  Use Commands.CMD_ADD_TO_PANE_AND_OPEN instead.");
         var result = new $.Deferred();
         
         handleAddToPaneViewList(commandData)
@@ -499,8 +527,8 @@ define(function (require, exports, module) {
                 var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 result.resolve(doc);
             })
-            .fail(function () {
-                result.reject();
+            .fail(function (err) {
+                result.reject(err);
             });
         
         return result.promise();
@@ -1640,7 +1668,7 @@ define(function (require, exports, module) {
     }
 
     // Deprecated commands
-    CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET, Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
+    CommandManager.register(Strings.CMD_ADD_TO_PANE_AND_OPEN,   Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
     
     // Register global commands
     CommandManager.register(Strings.CMD_FILE_OPEN,              Commands.FILE_OPEN, handleDocumentOpen);

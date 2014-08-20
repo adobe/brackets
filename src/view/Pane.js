@@ -159,7 +159,7 @@ define(function (require, exports, module) {
      */
     
     /**
-     * @typedef {getFile:function():?File, setVisible:function(visible:boolean), updateLayout:function(forceRefresh:boolean), destroy:function(), hasFocus:function():boolean, childHasFocus:function():boolean, focus:function(), getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number), switchContainers: function($newContainer:jQuery}, getContainer: function():!jQuery, getViewState:function():?*, restoreViewState:function(viewState:!*)}
+     * @typedef {getFile:function():?File, setVisible:function(visible:boolean), updateLayout:function(forceRefresh:boolean), destroy:function(), hasFocus:function():boolean, childHasFocus:function():boolean, focus:function(), getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number), switchContainers: function($newContainer:jQuery}, getContainer: function():!jQuery, getViewState:function():?*, restoreViewState:function(viewState:!*)} View
      */
     
     /*
@@ -280,7 +280,6 @@ define(function (require, exports, module) {
 
         // Copy the views
         _.forEach(other._views, function (view) {
-            
             var file = view.getFile(),
                 fullPath = file && file.fullPath;
             if (fullPath && other.findInViewList(fullPath) !== -1) {

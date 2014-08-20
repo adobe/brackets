@@ -27,6 +27,9 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("thirdparty/lodash");
+
+    
     /**
      * @typedef {canOpenFile:function(path:string):boolean, openFile:function(path:string, pane:Pane)} Factory
      */
@@ -51,24 +54,19 @@ define(function (require, exports, module) {
      * @param {!string} fullPath - the file to open
      * @return {?Factory} A factory that can create a view for the path or undefined if there isn't one.
      */
-    function findSuitableFactoryFor(fullPath) {
-        var result;
-        _factories.forEach(function (factory) {
+    function findSuitableFactoryForPath(fullPath) {
+        return _.find(_factories, function (factory) {
             // This could get more complex in the future by searching in this order
             //  1) a factory that can open the file by fullPath
             //  2) a factory that can open the file by name
             //  3) a factory that can open the file by filetype
-            if (factory.canOpenFile(fullPath)) {
-                result = factory;
-                return true;
-            }
+            return factory.canOpenFile(fullPath);
         });
-        return result;
     }
     
     /* 
      * Public API
      */
     exports.registerViewFactory     = registerViewFactory;
-    exports.findSuitableFactoryFor  = findSuitableFactoryFor;
+    exports.findSuitableFactoryForPath  = findSuitableFactoryForPath;
 });

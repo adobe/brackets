@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -73,8 +73,8 @@ define(function (require, exports, module) {
     /*
      * Public API
      */
-    exports.reset = reset;
-    exports.setViewState = setViewState;
-    exports.getViewState = getViewState;
+    exports.reset           = reset;
+    exports.setViewState    = setViewState;
+    exports.getViewState    = getViewState;
     exports.addViewStates   = addViewStates;
 });

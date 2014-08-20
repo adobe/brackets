@@ -99,7 +99,7 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getViewCount(MainViewManager.ALL_PANES)).toEqual(0);
                 });
             });
-            it("should open an image", function () {
+            it("should close an image", function () {
                 runs(function () {
                     promise = MainViewManager.open(MainViewManager.ACTIVE_PANE, getFileObject("/images/events.jpg"));
                     waitsForDone(promise, "MainViewManager.doOpen");
