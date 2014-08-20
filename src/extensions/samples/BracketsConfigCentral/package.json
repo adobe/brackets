@@ -7,6 +7,6 @@
     "author": "@JeffryBooher",
     "license": "MIT",
     "engines": {
-        "brackets": ">=0.24.0"
+        "brackets": ">=0.44.0"
     }
 }
