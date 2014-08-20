@@ -178,7 +178,9 @@ define(function (require, exports, module) {
     Dispatcher.prototype.setSelected = function (path) {
         this.performRename();
         this.viewModel._setSelected(path);
-        var openResult = FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
+        if (path && path[path.length - 1] !== "/") {
+            var openResult = FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
+        }
     };
     
     Dispatcher.prototype.setContext = function (path) {

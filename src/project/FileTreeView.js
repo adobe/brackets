@@ -443,7 +443,59 @@ define(function (require, exports, module) {
         return extension !== "" ? fullname.substring(0, fullname.length - extension.length - 1) : fullname;
     }
     
+    var renameBehavior = {
+        handleKeyDown: function (e) {
+            if (e.keyCode === 27) {
+                this.props.dispatcher.cancelRename();
+            } else if (e.keyCode === 13) {
+                this.props.dispatcher.performRename();
+            }
+        },
+
+        handleKeyUp: function () {
+            this.props.dispatcher.setRenameValue(this.props.parentPath + this.refs.name.getDOMNode().value.trim());
+        }
+    };
+
+    var fileRenameInput = React.createClass({
+        mixins: [renameBehavior],
+
+        myPath: function () {
+            return this.props.parentPath + this.props.name;
+        },
+
+        componentDidMount: function () {
+            var fullname = this.props.name,
+                extension = FileUtils.getSmartFileExtension(fullname);
+
+            this.refs.name.getDOMNode().setSelectionRange(0, _getName(fullname, extension).length);
+        },
+
+        render: function () {
+            return DOM.input({
+                className: "rename-input",
+                type: "text",
+                defaultValue: this.props.name,
+                autoFocus: true,
+                onKeyDown: this.handleKeyDown,
+                onKeyUp: this.handleKeyUp,
+                ref: "name"
+            });
+        }
+    });
+    
+    var contextSettable = {
+        handleMouseDown: function (e) {
+            if (e.button === 2) {
+                this.props.dispatcher.setContext(this.myPath());
+            }
+            return true;
+        }
+    };
+
     var fileNode = React.createClass({
+        mixins: [contextSettable],
+        
         shouldComponentUpdate: function (nextProps, nextState) {
             return this.props.entry !== nextProps.entry;
         },
@@ -459,13 +511,6 @@ define(function (require, exports, module) {
                 this.props.dispatcher.setSelected(this.myPath());
             }
             return false;
-        },
-        
-        handleMouseDown: function (e) {
-            if (e.button === 2) {
-                this.props.dispatcher.setContext(this.myPath());
-            }
-            return true;
         },
         
         render: function () {
@@ -486,6 +531,23 @@ define(function (require, exports, module) {
             if (this.props.entry.get("context")) {
                 fileClasses += " sidebar-context";
             }
+            
+            var nameDisplay;
+            
+            if (this.props.entry.get("rename")) {
+                nameDisplay = fileRenameInput({
+                    dispatcher: this.props.dispatcher,
+                    entry: this.props.entry,
+                    name: this.props.name,
+                    parentPath: this.props.parentPath
+                });
+            } else {
+                nameDisplay = DOM.a({
+                    href: "#",
+                    className: fileClasses
+                }, name, extension);
+            }
+            
             return DOM.li({
                 className: "jstree-leaf",
                 onClick: this.handleClick,
@@ -494,56 +556,10 @@ define(function (require, exports, module) {
                 DOM.ins({
                     className: "jstree-icon"
                 }, " "),
-                DOM.a({
-                    href: "#",
-                    className: fileClasses
-                }, name, extension));
+                nameDisplay);
         }
     });
 
-    var fileRename = React.createClass({
-        myPath: function () {
-            return this.props.parentPath + this.props.name;
-        },
-
-        handleKeyDown: function (e) {
-            if (e.keyCode === 27) {
-                this.props.dispatcher.cancelRename();
-            } else if (e.keyCode === 13) {
-                this.props.dispatcher.performRename();
-            }
-        },
-        
-        handleKeyUp: function () {
-            this.props.dispatcher.setRenameValue(this.props.parentPath + this.refs.name.getDOMNode().value.trim());
-        },
-        
-        componentDidMount: function () {
-            var fullname = this.props.name,
-                extension = FileUtils.getSmartFileExtension(fullname);
-            
-            this.refs.name.getDOMNode().setSelectionRange(0, _getName(fullname, extension).length);
-        },
-        
-        render: function () {
-            return DOM.li({
-                className: "jstree-leaf"
-            },
-                DOM.ins({
-                    className: "jstree-icon"
-                }, " "),
-                DOM.input({
-                    className: "rename-input",
-                    type: "text",
-                    defaultValue: this.props.name,
-                    autoFocus: true,
-                    onKeyDown: this.handleKeyDown,
-                    onKeyUp: this.handleKeyUp,
-                    ref: "name"
-                }));
-        }
-    });
-    
     function _buildDirsFirstComparator(contents) {
         function _dirsFirstCompare(a, b) {
             var aIsFile = isFile(contents.get(a)),
@@ -570,7 +586,29 @@ define(function (require, exports, module) {
 
     var directoryNode, directoryContents;
     
+    var directoryRenameInput = React.createClass({
+        mixins: [renameBehavior],
+
+        myPath: function () {
+            return this.props.parentPath + this.props.name;
+        },
+
+        render: function () {
+            return DOM.input({
+                className: "rename-input",
+                type: "text",
+                defaultValue: this.props.name,
+                autoFocus: true,
+                onKeyDown: this.handleKeyDown,
+                onKeyUp: this.handleKeyUp,
+                ref: "name"
+            });
+        }
+    });
+
     directoryNode = React.createClass({
+        mixins: [contextSettable],
+        
         shouldComponentUpdate: function (nextProps, nextState) {
             return this.props.entry !== nextProps.entry ||
                 this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst;
@@ -582,6 +620,7 @@ define(function (require, exports, module) {
         
         handleClick: function () {
             this.props.dispatcher.toggleDirectory(this.myPath());
+            this.props.dispatcher.setSelected(this.myPath());
             return false;
         },
         
@@ -590,7 +629,8 @@ define(function (require, exports, module) {
                 nodeClass,
                 childNodes,
                 children = entry.get("children"),
-                isOpen = entry.get("open");
+                isOpen = entry.get("open"),
+                directoryClasses = "";
             
             if (isOpen && children) {
                 nodeClass = "open";
@@ -603,9 +643,30 @@ define(function (require, exports, module) {
                 nodeClass = "closed";
             }
             
+            var nameDisplay;
+            if (entry.get("rename")) {
+                nameDisplay = directoryRenameInput({
+                    dispatcher: this.props.dispatcher,
+                    entry: this.props.entry,
+                    name: this.props.name,
+                    parentPath: this.props.parentPath
+                });
+            } else {
+                nameDisplay = this.props.name;
+            }
+            
+            if (this.props.entry.get("selected")) {
+                directoryClasses += " sidebar-selection";
+            }
+            
+            if (entry.get("context")) {
+                directoryClasses += " sidebar-context";
+            }
+
             return DOM.li({
-                className: "jstree-" + nodeClass,
-                onClick: this.handleClick
+                className: "jstree-" + nodeClass + directoryClasses,
+                onClick: this.handleClick,
+                onMouseDown: this.handleMouseDown
             },
                 DOM.ins({
                     className: "jstree-icon"
@@ -616,7 +677,7 @@ define(function (require, exports, module) {
                       DOM.ins({
                         className: "jstree-icon"
                     }, " "),
-                      this.props.name),
+                      nameDisplay),
                 childNodes);
         }
     });
@@ -639,11 +700,7 @@ define(function (require, exports, module) {
                 var entry = contents.get(name);
 
                 if (isFile(entry)) {
-                    var component = fileNode;
-                    if (entry.get("rename")) {
-                        component = fileRename;
-                    }
-                    return component({
+                    return fileNode({
                         parentPath: this.props.parentPath,
                         name: name,
                         entry: entry,
@@ -709,7 +766,6 @@ define(function (require, exports, module) {
     exports._sortFormattedDirectory = _sortFormattedDirectory;
     exports._getDirectoryContents = _getDirectoryContents;
     exports._fileNode = fileNode;
-    exports._fileRename = fileRename;
     exports._directoryNode = directoryNode;
     exports._directoryContents = directoryContents;
     exports._fileTreeView = fileTreeView;

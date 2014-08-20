@@ -595,11 +595,9 @@ define(function (require, exports, module) {
                 expect(a.props.children[0]).toBe("afile");
                 expect(a.props.children[1].props.children).toBe(".js");
             });
-        });
-        
-        describe("_fileRename", function () {
+            
             it("should render a rename component", function () {
-                var rendered = RTU.renderIntoDocument(FileTreeView._fileRename({
+                var rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
                     name: "afile.js",
                     entry: Immutable.Map({
                         rename: true
@@ -674,6 +672,18 @@ define(function (require, exports, module) {
                 expect(dirA.props.children[1]).toBe("thedir");
             });
             
+            it("should allow renaming a closed directory", function () {
+                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
+                    name: "thedir",
+                    entry: Immutable.fromJS({
+                        children: null,
+                        rename: true
+                    })
+                }));
+                var input = RTU.findRenderedDOMComponentWithTag(rendered, "input");
+                expect(input.props.value).toBe("thedir");
+            });
+            
             it("should be able to list files", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._directoryContents({
                     contents: Immutable.fromJS({
@@ -715,18 +725,6 @@ define(function (require, exports, module) {
                 expect(aTags.length).toBe(2);
                 expect(aTags[0].props.children[1]).toBe("subdir");
                 expect(aTags[1].props.children[0]).toBe("afile");
-            });
-            
-            it("should render a fileRename component when a rename is in progress", function () {
-                var rendered = RTU.renderIntoDocument(FileTreeView._directoryContents({
-                    contents: Immutable.fromJS({
-                        "afile.js": {
-                            rename: true
-                        }
-                    })
-                }));
-                var input = RTU.findRenderedDOMComponentWithTag(rendered, "input");
-                expect(input.props.value).toBe("afile.js");
             });
         });
         
