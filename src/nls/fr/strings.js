@@ -427,6 +427,7 @@ define({
 	"USE_THEME_SCROLLBARS": "Utiliser les barres de défilement du thème",
 	"FONT_SIZE": "Taille de la police ",
 	"FONT_FAMILY": "Famille de polices ",
+	"THEMES_SETTINGS": "[7660433] !é=Themes Settings=!",
 
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "Nouvelle règle",
