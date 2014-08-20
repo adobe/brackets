@@ -427,6 +427,7 @@ define({
 	"USE_THEME_SCROLLBARS": "テーマスクロールバーを使用",
 	"FONT_SIZE": "フォントサイズ",
 	"FONT_FAMILY": "フォントファミリー",
+	"THEMES_SETTINGS": "!能=[7660433] Themes Settings_=!",
 
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "新規ルール",
