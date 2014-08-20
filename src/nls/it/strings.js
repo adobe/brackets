@@ -411,6 +411,7 @@ define({
     "USE_THEME_SCROLLBARS"                 : "Utilizzare le barre di scorrimento a tema",
     "FONT_SIZE"                            : "Dimensioni carattere",
     "FONT_FAMILY"                          : "Tipo di carattere",
+    "THEMES_SETTINGS"                      : "Impostazioni Temi",
  
     
     // CSS Quick Edit
