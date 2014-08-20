@@ -870,14 +870,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Forces createNewItem() to complete by removing focus from the rename field which causes
-     * the new file to be written to disk
-     */
-    function forceFinishRename() {
-        $(".jstree-rename-input").blur();
-    }
-    
-    /**
      * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
      * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
      * @param {string} fileName
@@ -1570,7 +1562,7 @@ define(function (require, exports, module) {
     };
     
     function forceFinishRename() {
-        // TODO implement some form of this
+        dispatcher.performRename();
     }
     
     
@@ -1583,7 +1575,7 @@ define(function (require, exports, module) {
         });
         
         $(".main-view").click(function (jqEvent) {
-            if (jqEvent.target.className !== "jstree-rename-input") {
+            if (jqEvent.target.className !== "rename-input") {
                 forceFinishRename();
             }
         });
