@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, window, jasmine, spyOn */
+/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFulfillment, runs, window, jasmine, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -937,7 +937,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         newFilePath = fullTestPath("newfoo.html");
                         expect(FindInFiles.searchModel.results[newFilePath]).toBeFalsy();
-                        waitsForDone(promisify(FileSystem.getFileForPath(newFilePath), "write", "this is a new foo match\n"), "add new file");
+                        waitsForFulfillment(promisify(FileSystem.getFileForPath(newFilePath), "write", "this is a new foo match\n"), "add new file");
                     });
                     waitsFor(function () { return gotChange; }, "model change event");
                     runs(function () {
@@ -955,7 +955,7 @@ define(function (require, exports, module) {
                 it("should remove matches for a deleted file", function () {
                     runs(function () {
                         expect(FindInFiles.searchModel.results[fullTestPath("foo.html")]).toBeTruthy();
-                        waitsForDone(promisify(FileSystem.getFileForPath(fullTestPath("foo.html")), "unlink"), "delete file");
+                        waitsForFulfillment(promisify(FileSystem.getFileForPath(fullTestPath("foo.html")), "unlink"), "delete file");
                     });
                     waitsFor(function () { return gotChange; }, "model change event");
                     runs(function () {
@@ -969,7 +969,7 @@ define(function (require, exports, module) {
                 it("should remove matches for a deleted folder", function () {
                     runs(function () {
                         expect(FindInFiles.searchModel.results[fullTestPath("css/foo.css")]).toBeTruthy();
-                        waitsForDone(promisify(FileSystem.getFileForPath(fullTestPath("css")), "unlink"), "delete folder");
+                        waitsForFulfillment(promisify(FileSystem.getFileForPath(fullTestPath("css")), "unlink"), "delete folder");
                     });
                     waitsFor(function () { return gotChange; }, "model change event");
                     runs(function () {
@@ -1338,7 +1338,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         // Now the file on disk should have been replaced too.
-                        waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/foo.html"), "read").then(function (contents) {
+                        waitsForFulfillment(promisify(FileSystem.getFileForPath(testPath + "/foo.html"), "read").then(function (contents) {
                             expect(FileUtils.translateLineEndings(contents, FileUtils.LINE_ENDINGS_LF)).toEqual(kgFileContents["/foo.html"]);
                         }), "checking known good");
                     });
@@ -1363,7 +1363,7 @@ define(function (require, exports, module) {
                                 // be auto-updated, but we want to make sure there's no edge case where we missed an update and still clobber the
                                 // file on disk anyway.
                                 searchResults = _.cloneDeep(searchResults);
-                                waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/css/foo.css"), "write", "/* changed content */"), "modify file");
+                                waitsForFulfillment(promisify(FileSystem.getFileForPath(testPath + "/css/foo.css"), "write", "/* changed content */"), "modify file");
                             });
                         },
                         errors:          [{item: testPath + "/css/foo.css", error: FindUtils.ERROR_FILE_CHANGED}]
@@ -2021,7 +2021,7 @@ define(function (require, exports, module) {
                             externalFilePath = defaultSourcePath + "/foo.js";
                         runs(function () {
                             var dirEntry = FileSystem.getDirectoryForPath(blankProject);
-                            waitsForDone(promisify(dirEntry, "create"));
+                            waitsForFulfillment(promisify(dirEntry, "create"));
                         });
                         SpecRunnerUtils.loadProjectInTestWindow(blankProject);
                         runs(function () {
@@ -2150,7 +2150,7 @@ define(function (require, exports, module) {
                         showSearchResults("foo", "bar");
                         runs(function () {
                             expect($("#find-in-files-results").is(":visible")).toBe(true);
-                            waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/foo.html"), "write", "changed content"));
+                            waitsForFulfillment(promisify(FileSystem.getFileForPath(testPath + "/foo.html"), "write", "changed content"));
                         });
                         runs(function () {
                             expect($("#find-in-files-results").is(":visible")).toBe(false);
