@@ -545,6 +545,7 @@ define(function (require, exports, module) {
      * @return {jQuery.Promise} A promise that resolves with the result of the final call, or
      *      rejects with the first error.
      */
+/***
     function chain(functions, args) {
 //        var deferred = $.Deferred();
 //        
@@ -579,11 +580,12 @@ define(function (require, exports, module) {
 
             function chainHelper(index, args) {
                 if (functions.length === index) {
-                    resolve(null, args);
+                    resolve(args);
                 } else {
                     var nextFunction = functions[index++];
                     var responseOrPromise = nextFunction.apply(null, args);
-                    if (responseOrPromise.hasOwnProperty("then")) {
+//                    if (responseOrPromise.hasOwnProperty("then")) {
+                    if (typeof responseOrPromise.then === "function") {
                         responseOrPromise.then(function () {
                             chainHelper(index, arguments);
                         }, function () {
@@ -598,6 +600,7 @@ define(function (require, exports, module) {
             chainHelper(0, args || []);
         });
     }
+***/
     
     /**
      * Utility for converting a method that takes (error, callback) to one that returns a promise;
@@ -747,7 +750,7 @@ define(function (require, exports, module) {
     exports.withTimeout    = withTimeout;
     exports.waitForAll     = waitForAll;
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
-    exports.chain          = chain;
+//    exports.chain          = chain;
     exports.promisify      = promisify;
     exports.PromiseQueue   = PromiseQueue;
 });
