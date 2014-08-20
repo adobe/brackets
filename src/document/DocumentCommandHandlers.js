@@ -58,7 +58,7 @@ define(function (require, exports, module) {
         Menus               = require("command/Menus"),
         UrlParams           = require("utils/UrlParams").UrlParams,
         StatusBar           = require("widgets/StatusBar"),
-        WorkspaceManager    = require("View/WorkspaceManager");
+        WorkspaceManager    = require("view/WorkspaceManager");
 
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
