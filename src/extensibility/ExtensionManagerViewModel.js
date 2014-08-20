@@ -500,8 +500,7 @@ define(function (require, exports, module) {
         }
         return entry;
     };
-    
-    
+
     /**
      * The model for the ExtensionManagerView that is responsible for handling registry-based theme extensions. 
      * This extends ExtensionManagerViewModel.
@@ -517,18 +516,15 @@ define(function (require, exports, module) {
         ExtensionManagerViewModel.call(this);
     }
 
-
     // Inheritance setup
     ThemesViewModel.prototype = Object.create(ExtensionManagerViewModel.prototype);
     ThemesViewModel.prototype.constructor = ThemesViewModel;
-
 
     /**
      * @type {string}
      * ThemeViewModels always have a source of SOURCE_THEMES.
      */
     ThemesViewModel.prototype.source = ExtensionManagerViewModel.prototype.SOURCE_THEMES;
-
 
     /**
      * Initializes the model from the remote extension registry.
@@ -557,7 +553,6 @@ define(function (require, exports, module) {
             });
     };
 
-
     /**
      * @private
      * Finds the theme extension metadata by id. If there is no theme extension matching the given id,
@@ -572,7 +567,6 @@ define(function (require, exports, module) {
         }
         return entry;
     };
-
 
     exports.RegistryViewModel = RegistryViewModel;
     exports.ThemesViewModel = ThemesViewModel;

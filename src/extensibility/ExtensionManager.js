@@ -54,7 +54,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type {$.Promise} Keeps track of the current registry download so that if a request is already
+     * @type {$.Deferred} Keeps track of the current registry download so that if a request is already
      * in progress and another request to download the registry comes in, we don't send yet another request.
      * This is primarily used when multiple view models need to download the registry at the same time.
      */
@@ -189,7 +189,7 @@ define(function (require, exports, module) {
      */
     function downloadRegistry() {
         if (pendingDownloadRegistry) {
-            return pendingDownloadRegistry;
+            return pendingDownloadRegistry.promise();
         }
 
         pendingDownloadRegistry = new $.Deferred();
