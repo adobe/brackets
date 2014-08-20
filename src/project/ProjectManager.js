@@ -183,6 +183,11 @@ define(function (require, exports, module) {
         }
     };
     
+    Dispatcher.prototype.selectInWorkingSet = function (path) {
+        this.performRename();
+        FileViewController.addToWorkingSetAndSelect(path);
+    };
+    
     Dispatcher.prototype.setContext = function (path) {
         this.performRename();
         this.viewModel._setContext(path);
@@ -249,13 +254,18 @@ define(function (require, exports, module) {
         }
         return selectedEntry;
     }
-
-    function _fileViewFocusChange() {
-        _renderTree();
-    }
     
-    function _documentSelectionFocusChange() {
-        _renderTree();
+    /**
+     * @private
+     */
+    function _hasFileSelectionFocus() {
+        return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
+    }
+
+    function _fileViewControllerChange() {
+        if (!_hasFileSelectionFocus()) {
+            dispatcher.setSelected(null);
+        }
     }
     
     /**
@@ -1648,8 +1658,8 @@ define(function (require, exports, module) {
     $(exports).on("projectOpen", _reloadProjectPreferencesScope);
 
     // Event Handlers
-    $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
-    $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
+    $(FileViewController).on("documentSelectionFocusChange", _fileViewControllerChange);
+    $(FileViewController).on("fileViewFocusChange", _fileViewControllerChange);
     $(exports).on("beforeAppClose", _unwatchProjectRoot);
     
     // Commands

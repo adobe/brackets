@@ -526,12 +526,31 @@ define(function (require, exports, module) {
         },
         
         handleClick: function (e) {
+            // If the user clicks twice within 500ms, that will be picked up by the double click handler
+            // If they click on the node twice with a pause, we'll start a rename.
             if (this.props.entry.get("selected")) {
-                this.props.dispatcher.startRename(this.myPath());
+                if (!this.props.entry.get("rename") && this.state.clickTime && (new Date().getTime() - this.state.clickTime > 500)) {
+                    this.props.dispatcher.startRename(this.myPath());
+                    this.setState({
+                        clickTime: 0
+                    });
+                }
             } else {
                 this.props.dispatcher.setSelected(this.myPath());
+                this.setState({
+                    clickTime: new Date().getTime()
+                });
             }
             return false;
+        },
+        
+        handleDoubleClick: function () {
+            if (!this.props.entry.get("rename")) {
+                this.props.dispatcher.selectInWorkingSet(this.myPath());
+                this.setState({
+                    clickTime: 0
+                });
+            }
         },
         
         render: function () {
@@ -572,7 +591,8 @@ define(function (require, exports, module) {
             return DOM.li({
                 className: "jstree-leaf",
                 onClick: this.handleClick,
-                onMouseDown: this.handleMouseDown
+                onMouseDown: this.handleMouseDown,
+                onDoubleClick: this.handleDoubleClick
             },
                 DOM.ins({
                     className: "jstree-icon"
