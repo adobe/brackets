@@ -206,7 +206,7 @@ define(function (require, exports, module) {
             var didClose = false;
             
             // make 2nd doc clean
-            var fileList = MainViewManager.getViews(MainViewManager.ACTIVE_PANE);
+            var fileList = MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE);
 
             runs(function () {
                 var doc0 = DocumentManager.getOpenDocumentForPath(fileList[0].fullPath);
@@ -242,7 +242,7 @@ define(function (require, exports, module) {
         it("should remove dirty icon when file becomes clean", function () {
             runs(function () {
                 // check that dirty icon is removed when docs are cleaned
-                var fileList = MainViewManager.getViews(MainViewManager.ACTIVE_PANE);
+                var fileList = MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE);
                 var doc0 = DocumentManager.getOpenDocumentForPath(fileList[0].fullPath);
                 doc0._markClean();
                 

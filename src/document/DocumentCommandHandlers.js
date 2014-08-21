@@ -264,7 +264,7 @@ define(function (require, exports, module) {
         function _cleanup(fullFilePath) {
             if (fullFilePath) {
                 // For performance, we do lazy checking of file existence, so it may be in pane view list
-                MainViewManager.removeView(paneId, FileSystem.getFileForPath(fullFilePath));
+                MainViewManager._removeView(paneId, FileSystem.getFileForPath(fullFilePath));
                 MainViewManager.focusActivePane();
             }
             result.reject();
@@ -769,7 +769,7 @@ define(function (require, exports, module) {
                     var info = MainViewManager.findAllViewsOf(doc.file.fullPath).shift();
                     
                     // Remove old file from pane view list; no redraw yet since there's a pause before the new file is opened
-                    MainViewManager.removeView(info.paneId, doc.file, true);
+                    MainViewManager._removeView(info.paneId, doc.file, true);
                     
                     // Add new file to pane view list, and ensure we now redraw (even if index hasn't changed)
                     fileOpenPromise = handleAddToPaneViewList({fullPath: path, paneId: info.paneId, index: info.index, forceRedraw: true});
@@ -946,7 +946,7 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function saveAll() {
-        return _saveFileList(MainViewManager.getViews(MainViewManager.ALL_PANES));
+        return _saveFileList(MainViewManager.getWorkingSet(MainViewManager.ALL_PANES));
     }
 
     /**

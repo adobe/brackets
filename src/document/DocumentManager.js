@@ -155,12 +155,12 @@ define(function (require, exports, module) {
     
     /**
      * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
-     * @deprecated Use MainViewManager.getViews() instead
+     * @deprecated Use MainViewManager.getWorkingSet() instead
      * @return {Array.<File>}
      */
     function getWorkingSet() {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.getViews() instead of DocumentManager.getWorkingSet()", true);
-        return MainViewManager.getViews(MainViewManager.ALL_PANES);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.getWorkingSet() instead of DocumentManager.getWorkingSet()", true);
+        return MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
     }
 
     /**
@@ -224,27 +224,11 @@ define(function (require, exports, module) {
         MainViewManager.addListToWorkingSet(MainViewManager.ACTIVE_PANE, fileList);
     }
     
-    /**
-     * Removes the given file from the working set list, if it was in the list. 
-     * @deprecated Use MainViewManager.removeView() instead 
-     * @param {!File} file
-     * @param {boolean=} true to suppress redraw after removal
-     */
-    function removeFromWorkingSet(file, suppressRedraw) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.removeView() instead of DocumentManager.removeFromWorkingSet()", true);
-        MainViewManager.removeView(MainViewManager.ALL_PANES, file, suppressRedraw);
-    }
-
     
     /**
-     * Removes a list of files from the working set and closes their respective editors
-     * @deprecated Use MainViewManager.removeViews() instead
-     * @param {Array.<File>=} list of files to close and remove from the working set
-     
      */
     function removeListFromWorkingSet(list) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.removeViews() instead of DocumentManager.removeListFromWorkingSet()", true);
-        MainViewManager.removeViews(MainViewManager.ALL_PANES, list);
+        throw new Error("removeListFromWorkingSet() has been deprecated.  Use Command.FILE_CLOSE_LIST instead.");
     }
         
     /**
