@@ -218,7 +218,7 @@ define(function (require, exports, module) {
         context.isMarkedForRemoval = ExtensionManager.isMarkedForRemoval(info.metadata.name);
         context.isMarkedForUpdate = ExtensionManager.isMarkedForUpdate(info.metadata.name);
         
-        context.showInstallButton = (this.model.source === this.model.SOURCE_REGISTRY) && !context.updateAvailable;
+        context.showInstallButton = (this.model.source === this.model.SOURCE_REGISTRY || this.model.source === this.model.SOURCE_THEMES) && !context.updateAvailable;
         context.showUpdateButton = context.updateAvailable && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
 
         context.allowInstall = context.isCompatible && !context.isInstalled;

@@ -306,7 +306,6 @@ define(function (require, exports, module) {
                     thisSize,
                     i;
 
-
                 // find lower bound                
                 for (i = 0; i < params.length; i++) {
                     args = params[i].split(" ");
@@ -335,7 +334,11 @@ define(function (require, exports, module) {
                 for (i = 0; i < params.length; i++) {
                     args = params[i].split(" ");
                     if (isGradientColorStop(args) && hasLengthInPixels(args)) {
-                        thisSize = ((parseFloat(args[1]) + lowerBound) / upperBound) * 100;
+                        if (upperBound === 0) {
+                            thisSize = 0;
+                        } else {
+                            thisSize = ((parseFloat(args[1]) + lowerBound) / upperBound) * 100;
+                        }
                         args[1] = thisSize + "%";
                     }
                     params[i] = args.join(" ");
@@ -565,6 +568,7 @@ define(function (require, exports, module) {
         }
 
         if (!editor || !editor._codeMirror) {
+            hidePreview();
             return;
         }
 
@@ -748,7 +752,7 @@ define(function (require, exports, module) {
     $previewContent = $previewContainer.find(".preview-content");
     
     // Load our stylesheet
-    ExtensionUtils.loadStyleSheet(module, "QuickView.css");
+    ExtensionUtils.loadStyleSheet(module, "QuickView.less");
     
     // Register command
     CommandManager.register(Strings.CMD_ENABLE_QUICK_VIEW, CMD_ENABLE_QUICK_VIEW, toggleEnableQuickView);

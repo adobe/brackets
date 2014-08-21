@@ -404,5 +404,9 @@ define(function (require, exports, module) {
     $(EditorManager).on("activeEditorChange", _onActiveEditorChange);
     
     AppInit.htmlReady(_init);
-    AppInit.appReady(_populateLanguageDropdown);
+    AppInit.appReady(function () {
+        // Populate language switcher with all languages after startup; update it later if this set changes
+        _populateLanguageDropdown();
+        $(LanguageManager).on("languageAdded languageModified", _populateLanguageDropdown);
+    });
 });

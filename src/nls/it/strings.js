@@ -125,9 +125,9 @@ define({
     "BUTTON_NO"                         : "No",
         
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} risultati",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 risultato",
+    "FIND_MATCH_INDEX"                  : "{0} di {1}",
     "FIND_NO_RESULTS"                   : "Nessun risultato",
+    "FIND_QUERY_PLACEHOLDER"            : "Trova\u2026",
     "REPLACE_PLACEHOLDER"               : "Sostituisci con\u2026",
     "BUTTON_REPLACE_ALL"                : "Tutti\u2026",
     "BUTTON_REPLACE"                    : "Sostituisci",
@@ -137,6 +137,11 @@ define({
     "BUTTON_PREV_HINT"                  : "Corrispondenza precedente",
     "BUTTON_CASESENSITIVE_HINT"         : "Rispetta maiuscole/minuscole",
     "BUTTON_REGEXP_HINT"                : "Espressione regolare",
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Sostituire senza Annulla",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Perché più di {0} file hanno bisogno di essere sostituiti, {APP_NAME} modificherà i file aperti sul disco.<br />Non sarai in grado di annullare le sostituzioni in quei file.",
+    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Sostituire senza Annulla",
+    "FIND_REPLACE_TITLE_LABEL"          : "Sostituire",
+    "FIND_REPLACE_TITLE_WITH"           : "con",
 
     "OPEN_FILE"                         : "Apri File",
     "SAVE_FILE_AS"                      : "Salva File",
@@ -210,9 +215,10 @@ define({
      */
     "STATUSBAR_CURSOR_POSITION"             : "Linea {0}, Colonna {1}",
     "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Selezionata {0} colonna",
-    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selezionare {0} colonne",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selezionate {0} colonne",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Selezionata {0} linea",
-    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selezionare {0} linee",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selezionate {0} linee",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} selezioni",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Clicca per passare alla indentazione a spazi",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Clicca per passare alla indentazione a tabulazione",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Clicca per cambiare il numero di spazi usati per l’indentazione",
@@ -222,6 +228,13 @@ define({
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Linea",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Linee",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Estensioni disabilitate",
+    "STATUSBAR_INSERT"                      : "INS",
+    "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Fare clic per cambiare il cursore tra la modalità Inserisci (INS) e Sovrascrivi (OVR)",
+    "STATUSBAR_LANG_TOOLTIP"                : "Clicca per cambiare il tipo di file",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Clicca per attivare pannello dei report.",
+    "STATUSBAR_DEFAULT_LANG"                : "(default)",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Imposta come predefinito per .{0} File",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problemi",
@@ -232,6 +245,8 @@ define({
     "LINT_DISABLED"                         : "Linting disabilitato",
     "NO_LINT_AVAILABLE"                     : "Linter disponibile {0}",
     "NOTHING_TO_LINT"                       : "Niente dal lint",
+    "LINTER_TIMED_OUT"                      : "{0} è scaduto dopo aver atteso per {1} ms",
+    "LINTER_FAILED"                         : "{0} terminato con errore: {1}",
     
     
     /**
@@ -326,6 +341,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"       : "Ordina per nome",
     "CMD_SORT_WORKINGSET_BY_TYPE"       : "Ordina per tipo",
     "CMD_SORT_WORKINGSET_AUTO"          : "Ordinamento automatico",
+    "CMD_THEMES"                        : "Temi\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                     : "Naviga",
@@ -348,7 +364,7 @@ define({
     "CMD_CHECK_FOR_UPDATE"              : "Controlla aggiornamenti",
     "CMD_HOW_TO_USE_BRACKETS"           : "Come usare {APP_NAME}",
     "CMD_FORUM"                         : "Forum di {APP_NAME}",
-    "CMD_RELEASE_NOTES"                 : "Note del lancio",
+    "CMD_RELEASE_NOTES"                 : "Note del rilascio",
     "CMD_REPORT_AN_ISSUE"               : "Segnala un problema",
     "CMD_SHOW_EXTENSIONS_FOLDER"        : "Mostra cartella estensioni",
     "CMD_HOMEPAGE"                      : "Sito WEB di {APP_TITLE}",
@@ -362,7 +378,7 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                : "Build sperimentale",
     "DEVELOPMENT_BUILD"                 : "Build di sviluppo",
-    "CMD_SUGGEST"                       : "Suggerisci una feature",
+    "CMD_SUGGEST"                       : "Suggerisci una funzionalità",
     "CMD_SUPPORT"                       : "Supporto per {APP_NAME}",
     "RELOAD_FROM_DISK"                  : "Ricarica dal disco",
     "CMD_GET_INVOLVED"                  : "Far parte",
@@ -557,5 +573,5 @@ define({
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
 
-/* Last translation of: 2f5acd9c6fb21330cad0dae16e26bf659859583e*/
+/* Last translation of: 884ee8414fa7d7dad0cb85b062573e65b3a827a0*/
 

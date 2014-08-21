@@ -188,7 +188,7 @@ define(function (require, exports, module) {
                     expectNoPreviewAtPos(72, 15);    // cursor on redsox
                     expectNoPreviewAtPos(73, 16);    // cursor on pinky
                     expectNoPreviewAtPos(74, 16);    // cursor on blue in hyphenated word blue-cheese
-                    expectNoPreviewAtPos(75, 18);    // cursor on white in hyphenated word @bc-white
+                    expectNoPreviewAtPos(75, 18);    // cursor on white in hyphenated word @bc-bg-highlight
                 });
             });
         });
@@ -268,7 +268,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     checkGradientAtPos("repeating-linear-gradient(red, blue 50%, red 100%)", 122, 50);
                     checkGradientAtPos("repeating-linear-gradient(red 0%, white 0%, blue 0%)", 123, 50);
-                    checkGradientAtPos("repeating-linear-gradient(red 0%, white 5%, blue 10%)", 124, 50);
+                    checkGradientAtPos("repeating-linear-gradient(red 0%, white 50%, blue 100%)", 124, 50);
                 });
             });
 
