@@ -1069,7 +1069,7 @@ define(function (require, exports, module) {
                 }
 
             } else if (/@(charset|import|namespace|include|extend)/i.test(token) ||
-                            !/\{/.test(token)) {
+                            !/\{/.test(stream.string)) {
                 
                 // This code handles @rules in this format:
                 //   @rule ... ;
