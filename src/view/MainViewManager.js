@@ -310,7 +310,7 @@ define(function (require, exports, module) {
                 newPane = _getPane(newPaneId);
             
             if (!newPane) {
-                throw ("invalid pane id: " + newPaneId);
+                throw new Error("invalid pane id: " + newPaneId);
             }
             
             _activePaneId = newPaneId;
