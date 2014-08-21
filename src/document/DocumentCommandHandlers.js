@@ -340,7 +340,7 @@ define(function (require, exports, module) {
                         filteredPaths.forEach(function (file) {
                             filesToOpen.push(FileSystem.getFileForPath(file));
                         });
-                        MainViewManager.addViews(paneId, filesToOpen);
+                        MainViewManager.addListToWorkingSet(paneId, filesToOpen);
                         
                         _doOpen(filteredPaths[filteredPaths.length - 1], silent, paneId)
                             .done(function (file) {
@@ -449,7 +449,7 @@ define(function (require, exports, module) {
             // When opening a file with a custom viewer, we get a null doc.
             // So check it before we add it to the pane view list.
             var paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
-            MainViewManager.addView(paneId, doc.file, commandData.index, commandData.forceRedraw);
+            MainViewManager.addToWorkingSet(paneId, doc.file, commandData.index, commandData.forceRedraw);
         });
     }
 

@@ -617,7 +617,7 @@ define(function (require, exports, module) {
      * @param {boolean=} forceRedraw - If true, a pane view list change notification is always sent
      *    (useful if suppressRedraw was used with removeView() earlier)
      */
-    function addView(paneId, file, index, force) {
+    function addToWorkingSet(paneId, file, index, force) {
         // look for the file to have already been added to another pane
         var pane = _getPane(paneId),
             existingPaneId = getPaneIdForPath(file.fullPath);
@@ -655,7 +655,7 @@ define(function (require, exports, module) {
      * @param {!string} paneId - The id of the pane in which to add the file object to or ACTIVE_PANE
      * @param {!Array.<File>} fileList
      */
-    function addViews(paneId, fileList) {
+    function addListToWorkingSet(paneId, fileList) {
         var uniqueFileList,
             pane = _getPane(paneId);
 
@@ -676,7 +676,7 @@ define(function (require, exports, module) {
         // Use the pane id of the first one in the list that couldn't be added as the pane id and recurse
         //  if we add more panes, then this will recurse until all items in the list are satisified
         if (unsolvedList.length) {
-            addViews(getPaneIdForPath(unsolvedList[0].fullPath), unsolvedList);
+            addListToWorkingSet(getPaneIdForPath(unsolvedList[0].fullPath), unsolvedList);
         }
     }
     
@@ -1076,7 +1076,7 @@ define(function (require, exports, module) {
         // If file is untitled or otherwise not within project tree, add it to
         // working set right now (don't wait for it to become dirty)
         if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
-            addView(paneId, doc.file);
+            addToWorkingSet(paneId, doc.file);
         }
         
         EditorManager.openDocument(doc, pane);
@@ -1256,12 +1256,17 @@ define(function (require, exports, module) {
             throw new Error("_destroyEditorIfUnneeded() should be passed a Document");
         }
         if (document._masterEditor) {
+            // findPaneForDocument tries to locate the pane in which the document
+            //  is either opened or will be opened (in the event that the document is
+            //  in a working set but has yet to be opened) and then asks the pane
+            //  to destroy the view if it doesn't need it anymore
             var pane = _findPaneForDocument(document);
             
             if (pane) {
+                // let the pane deceide if it wants to destroy the view if it's no needed
                 pane.destroyViewIfNotNeeded(document._masterEditor);
             } else {
-                // not referenced in a working set or current view
+                // in this case, the document isn't referenced at all so just destroy it
                 document._masterEditor.destroy();
             }
         }
@@ -1507,9 +1512,9 @@ define(function (require, exports, module) {
     exports._initialize                 = _initialize;
     exports._getPane                    = _getPane;
         
-    // PaneView Management  
-    exports.addView                     = addView;
-    exports.addViews                    = addViews;
+    // WOrkingSet Management  
+    exports.addToWorkingSet                     = addToWorkingSet;
+    exports.addListToWorkingSet         = addListToWorkingSet;
     exports.getViewCount                = getViewCount;
     exports.getViews                    = getViews;
     exports.removeAllViews              = removeAllViews;
@@ -1561,5 +1566,5 @@ define(function (require, exports, module) {
     
     // Constants
     exports.ALL_PANES                   = ALL_PANES;
-    exports.ACTIVE_PANE                = ACTIVE_PANE;
+    exports.ACTIVE_PANE                 = ACTIVE_PANE;
 });

@@ -198,19 +198,19 @@ define(function (require, exports, module) {
     
     /**
      * Adds the given file to the end of the working set list.
-     * @deprecated Use MainViewManager.addView() instead 
+     * @deprecated Use MainViewManager.addToWorkingSet() instead 
      * @param {!File} file
      * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
      * @param {boolean=} forceRedraw  If true, a working set change notification is always sent
      *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
      */
     function addToWorkingSet(file, index, forceRedraw) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.addView() instead of DocumentManager.addToWorkingSet()", true);
-        MainViewManager.addView(MainViewManager.ACTIVE_PANE, file, index, forceRedraw);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.addToWorkingSet() instead of DocumentManager.addToWorkingSet()", true);
+        MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, file, index, forceRedraw);
     }
     
     /**
-     * @deprecated Use MainViewManager.addViews() instead 
+     * @deprecated Use MainViewManager.addListToWorkingSet() instead 
      * Adds the given file list to the end of the working set list.
      * If a file in the list has its own custom viewer, then it 
      * is not added into the working set.
@@ -220,8 +220,8 @@ define(function (require, exports, module) {
      * @param {!Array.<File>} fileList
      */
     function addListToWorkingSet(fileList) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.addViews() instead of DocumentManager.addListToWorkingSet()", true);
-        MainViewManager.addViews(MainViewManager.ACTIVE_PANE, fileList);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.addListToWorkingSet() instead of DocumentManager.addListToWorkingSet()", true);
+        MainViewManager.addListToWorkingSet(MainViewManager.ACTIVE_PANE, fileList);
     }
     
     /**
@@ -593,7 +593,7 @@ define(function (require, exports, module) {
         .on("_dirtyFlagChange", function (event, doc) {
             $(exports).triggerHandler("dirtyFlagChange", doc);
             if (doc.isDirty) {
-                MainViewManager.addView(MainViewManager.ACTIVE_PANE, doc.file);
+                MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, doc.file);
             }
         })
         .on("_documentSaved", function (event, doc) {
