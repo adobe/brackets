@@ -70,9 +70,25 @@ define(function (require, exports, module) {
                 return d;
             }
             
+            function syncAddArrayElements(arg) {
+                var sum = 0;
+                arg.forEach(function (element) {
+                    sum += element;
+                });
+                return sum;
+            }
+            
+            function syncException() {
+                var d = new Promise(function (resolve, reject) {
+                    throw new Error("sync error");
+                });
+                return d;
+            }
+            
             function createArrayComparator(arrayOne) {
                 return function (arrayTwo) {
                     var i, l;
+                    expect(!arrayOne).toBe(!arrayTwo);
                     if (arrayOne && arrayTwo) {
                         expect(arrayOne.length).toBe(arrayTwo.length);
                         l = Math.min(arrayOne.length, arrayTwo.length);
@@ -106,7 +122,7 @@ define(function (require, exports, module) {
                     }, function () {
                         done = true;
                         success = false;
-                        // on fail, only args from failing promise is returned
+                        // on fail, only args from first failing promise is returned
                         response = arguments["0"];
                     });
                 });
@@ -117,27 +133,30 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect(success).toBe(shouldSucceed);
+
                     if (response) {
+                        // should be single comparator for single response
                         responseComparator(response);
                     } else if (responses) {
-                        responses.forEach(function (response) {
-                            responseComparator(response);
+                        // should be array of comparators for array of responses
+                        responses.forEach(function (response, index) {
+                            (responseComparator[index])(response);
                         });
                     }
                 });
             }
             
             describe("Zero-argument deferreds", function () {
-                it("[zero-arg] work with a null argument array", function () {
+                it("[no-arg] work with a null argument array", function () {
                     expectChainHelper(
                         [noArgThatSucceeds, noArgThatSucceeds, noArgThatSucceeds],
                         null,
                         true,
-                        createArrayComparator(null)
+                        [createArrayComparator(null), createArrayComparator(null), createArrayComparator(null)]
                     );
                 });
                 
-                it("[zero-arg] call error callback when first deferred fails", function () {
+                it("[no-arg] call error callback when first deferred fails", function () {
                     expectChainHelper(
                         [noArgThatFails, noArgThatSucceeds, noArgThatSucceeds],
                         null,
@@ -146,7 +165,7 @@ define(function (require, exports, module) {
                     );
                 });
                 
-                it("[zero-arg] call error callback when middle deferred fails", function () {
+                it("[no-arg] call error callback when middle deferred fails", function () {
                     expectChainHelper(
                         [noArgThatSucceeds, noArgThatFails, noArgThatSucceeds],
                         null,
@@ -155,7 +174,7 @@ define(function (require, exports, module) {
                     );
                 });
                 
-                it("[zero-arg] call error callback when last deferred fails", function () {
+                it("[no-arg] call error callback when last deferred fails", function () {
                     expectChainHelper(
                         [noArgThatSucceeds, noArgThatSucceeds, noArgThatFails],
                         null,
@@ -164,21 +183,21 @@ define(function (require, exports, module) {
                     );
                 });
                 
-                it("[zero-arg] call success callback when all deferreds succeed", function () {
+                it("[no-arg] call success callback when all deferreds succeed", function () {
                     expectChainHelper(
                         [noArgThatSucceeds, noArgThatSucceeds, noArgThatSucceeds],
                         null,
                         true,
-                        createArrayComparator(null)
+                        [createArrayComparator(null), createArrayComparator(null), createArrayComparator(null)]
                     );
                 });
                 
-                it("[zero-arg] call success callback immediately if there are no deferreds", function () {
+                it("[no-arg] call success callback immediately if there are no deferreds", function () {
                     expectChainHelper(
                         [],
                         null,
                         true,
-                        createArrayComparator(null)
+                        [createArrayComparator(null), createArrayComparator(null), createArrayComparator(null)]
                     );
                 });
             });
@@ -216,7 +235,7 @@ define(function (require, exports, module) {
                         [withArgThatSucceeds, withArgThatSucceeds, withArgThatSucceeds],
                         [1, 2],
                         true,
-                        createArrayComparator([1, 2])
+                        [createArrayComparator([1, 2]), createArrayComparator([1, 2]), createArrayComparator([1, 2])]
                     );
                 });
                 
@@ -225,7 +244,7 @@ define(function (require, exports, module) {
                         [],
                         [1, 2],
                         true,
-                        createArrayComparator([1, 2])
+                        [createArrayComparator([1, 2]), createArrayComparator([1, 2]), createArrayComparator([1, 2])]
                     );
                 });
             });
@@ -258,7 +277,7 @@ define(function (require, exports, module) {
                         wrapFail    = false;
                     
                     runs(function () {
-                        promiseBase    = promiseThatSucceeds(5);
+                        promiseBase = promiseThatSucceeds(5);
                         promiseBase.then(function () {
                             baseSuccess = true;
                         }, function () {
@@ -292,7 +311,7 @@ define(function (require, exports, module) {
                         wrapFail    = false;
                     
                     runs(function () {
-                        promiseBase    = promiseThatFails(5);
+                        promiseBase = promiseThatFails(5);
                         promiseBase.then(function () {
                             baseSuccess = true;
                         }, function () {
@@ -326,7 +345,7 @@ define(function (require, exports, module) {
                         wrapFail    = false;
                     
                     runs(function () {
-                        promiseBase    = promiseThatSucceeds(10);
+                        promiseBase = promiseThatSucceeds(10);
                         promiseBase.then(function () {
                             baseSuccess = true;
                         }, function () {
@@ -363,7 +382,7 @@ define(function (require, exports, module) {
                         wrapFail    = false;
                     
                     runs(function () {
-                        promiseBase    = promiseThatFails(10);
+                        promiseBase = promiseThatFails(10);
                         promiseBase.then(function () {
                             baseSuccess = true;
                         }, function () {
@@ -389,6 +408,88 @@ define(function (require, exports, module) {
                     runs(function () {
                         expect(baseSuccess).toBe(false);
                         expect(baseFail).toBe(true);
+                    });
+                });
+            });
+            
+            describe("Async/sync mix", function () {
+                it("[async/sync] succeed with sync command at beginning", function () {
+                    expectChainHelper(
+                        [syncAddArrayElements, withArgThatSucceeds, withArgThatSucceeds],
+                        [1, 2],
+                        true,
+                        [createArrayComparator(3), createArrayComparator([1, 2]), createArrayComparator([1, 2])]
+                    );
+                });
+                
+                it("[async/sync] succeed with sync command at middle", function () {
+                    expectChainHelper(
+                        [withArgThatSucceeds, syncAddArrayElements, withArgThatSucceeds],
+                        [1, 2],
+                        true,
+                        [createArrayComparator([1, 2]), createArrayComparator(3), createArrayComparator([1, 2])]
+                    );
+                });
+                
+                it("[async/sync] succeed with sync command at end", function () {
+                    expectChainHelper(
+                        [withArgThatSucceeds, withArgThatSucceeds, syncAddArrayElements],
+                        [1, 2],
+                        true,
+                        [createArrayComparator([1, 2]), createArrayComparator([1, 2]), createArrayComparator(3)]
+                    );
+                });
+                
+                it("[async/sync] call error callback if sync command fails", function () {
+                    expectChainHelper(
+                        [withArgThatSucceeds, syncException, withArgThatSucceeds],
+                        [1, 2],
+                        false,
+                        function (response) {
+                            expect(response instanceof Error).toBe(true);
+                        }
+                    );
+                });
+                
+                // ES6 Promise shim does not execute callbacks synchronously when promise resolved or rejected synchronously
+                xit("[async/sync] two sync commands in order are executed completely synchronously", function () {
+                    var result = null,
+                        flag = true;
+                    
+                    runs(function () {
+                        
+                        function negate(b) {
+                            return !b;
+                        }
+                        function setFlag(b) {
+                            flag = b;
+                            return flag;
+                        }
+                        
+                        var functions = [negate, setFlag],
+                            promises  = [];
+
+                        functions.forEach(function (fn) {
+                            promises.push(fn(flag));
+                        });
+                        result = Promise.all(promises);
+                        result.then(function (b) {
+                            expect(b).toBe(flag);
+                        }, null);
+
+                        // note, we WANT to test this synchronously. This is not a bug
+                        // in the unit test. A series of synchronous functions should
+                        // execute synchronously.
+                        expect(flag).toBe(false);
+                    });
+                    
+                    runs(function () {
+                        // With (the current version) of jQuery promises, resolution and
+                        // resolution handlers will get called synchronously. However, if we
+                        // move to a different promise implementation (e.g. Q) then resolution
+                        // handlers will get called asynchronously. So, we check completion
+                        // of the promise on a separate pass.
+                        waitsForFulfillment(result, "The chain to complete", 100);
                     });
                 });
             });
