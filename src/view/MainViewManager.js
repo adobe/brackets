@@ -294,10 +294,14 @@ define(function (require, exports, module) {
      * @param {!string} paneId - the id of the pane to activate
      */
     function setActivePaneId(newPaneId) {
-        if (_paneViews.hasOwnProperty(newPaneId) && (newPaneId !== _activePaneId)) {
+        if (newPaneId !== _activePaneId) {
             var oldPaneId = _activePaneId,
                 oldPane = _getPane(ACTIVE_PANE),
                 newPane = _getPane(newPaneId);
+            
+            if (!newPane) {
+                throw ("invalid pane id: " + newPaneId);
+            }
             
             _activePaneId = newPaneId;
             
@@ -389,23 +393,33 @@ define(function (require, exports, module) {
         }
     }
     
+    
+    /**
+     * Iterates over the pane or ALL_PANES and calls the callback function for each.
+     * @param {!string} paneId - id of the pane in which to adjust the scroll state, ALL_PANES or ACTIVE_PANE
+     * @param {!function(!pane:Pane):boolean} callback - function to callback on to perform work. 
+     * The callback will receive a Pane and should return false to stop iterating.
+     * @private
+     */
+    function _forEachPaneOrPanes(paneId, callback) {
+        if (paneId === ALL_PANES) {
+            _.forEach(_paneViews, callback);
+        } else {
+            callback(_getPane(paneId));
+        }
+    }
+    
     /**
      * Caches the specified pane's current scroll state
      * If there was already cached state for the specified pane, it is discarded and overwritten
      * @param {!string} paneId - id of the pane in which to cache the scroll state, ALL_PANES or ACTIVE_PANE
      */
     function cacheScrollState(paneId) {
-        if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
-                _paneScrollStates[pane.id] = pane.getScrollState();
-            });
-        } else {
-            var pane = _getPane(paneId);
-            if (pane) {
-                _paneScrollStates[pane.id] = pane.getScrollState();
-            }
-        }
+        _forEachPaneOrPanes(paneId, function (pane) {
+            _paneScrollStates[pane.id] = pane.getScrollState();
+        });
     }
+
     
     /**
      * Restores scroll state from the cache and applies it to the current pane's view after a call to cacheScrollState.
@@ -417,50 +431,32 @@ define(function (require, exports, module) {
      * @param {!number} heightDelta - delta H to apply to the scroll state
      */
     function restoreAdjustedScrollState(paneId, heightDelta) {
-        if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
-                if (_paneScrollStates.hasOwnProperty(pane.id)) {
-                    pane.restoreAndAdjustScrollState(_paneScrollStates[pane.id], heightDelta);
-                }
-            });
-            _paneScrollStates = {};
-        } else {
-            var pane = _getPane(paneId);
-            if (pane && _paneScrollStates.hasOwnProperty(pane.id)) {
-                pane.restoreAndAdjustScrollState(_paneScrollStates[pane.id], heightDelta);
-                delete _paneScrollStates[pane.id];
-            }
-        }
+        _forEachPaneOrPanes(paneId, function (pane) {
+            pane.restoreAndAdjustScrollState(_paneScrollStates[pane.id], heightDelta);
+            delete _paneScrollStates[pane.id];
+        });
     }
         
     
     /**
-     * Retrieves the PaneViewList for the given PaneId
+     * Retrieves the PaneViewList for the given PaneId not including temporary views
      * @param {!string} paneId - id of the pane in which to get the view list, ALL_PANES or ACTIVE_PANE
      * @return {Array.<File>}
      */
     function getViews(paneId) {
-        if (paneId === ALL_PANES) {
-            var result = [];
-            
-            _.forEach(_paneViews, function (pane) {
-                var viewList = pane.getViewList();
-                result = _.union(result, viewList);
-            });
-            
-            return result;
-        } else {
-            var pane = _getPane(paneId);
-            if (pane) {
-                return pane.getViewList();
-            }
-        }
-        return null;
+        var result = [];
+
+        _forEachPaneOrPanes(paneId, function (pane) {
+            var viewList = pane.getViewList();
+            result = _.union(result, viewList);
+        });
+
+        return result;
     }
     
     
     /**
-     * Retrieves the list of all open files
+     * Retrieves the list of all open files inlcuding temporary views
      * @return {array.<File>} the list of all open files in all open panes
      */
     function getAllOpenFiles() {
@@ -489,16 +485,9 @@ define(function (require, exports, module) {
      */
     function getViewCount(paneId) {
         var result = 0;
-        if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
-                result += pane.getViewListSize();
-            });
-        } else {
-            var pane = _getPane(paneId);
-            if (pane) {
-                result += pane.getViewListSize();
-            }
-        }
+        _forEachPaneOrPanes(paneId, function (pane) {
+            result += pane.getViewListSize();
+        });
         return result;
     }
     
@@ -520,31 +509,31 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @todo
+     * Helper to abastract the common search cases for searching 
+     * @param {!string} paneId - id of the pane to search or ALL_PANES to search all panes
+     * @param {!string} fullPath - path of the file to locate
+     * @param {!string} method - name of the method to use for searching 
+     *       "findInViewList", "findInViewListAddedOrder" or "FindInViewListMRUOrder" 
+     * 
      * @private
      */
     function _doFindView(paneId, fullPath, method) {
         var result = -1;
-        if (paneId === ALL_PANES) {
-            var index;
-            
-            _.forEach(_paneViews, function (pane) {
-                index = pane[method].call(pane, fullPath);
-                if (index >= 0) {
-                    result = index;
-                    return false;
-                }
-            });
-            
-        } else {
-            var pane = _getPane(paneId);
-            if (pane) {
-                return pane[method].call(pane, fullPath);
+        _forEachPaneOrPanes(paneId, function (pane) {
+            var index = pane[method].call(pane, fullPath);
+            if (index >= 0) {
+                result = index;
+                return false;
             }
-        }
+        });
         return result;
     }
 
+    /**
+     * Finds all views of the specified file
+     * @param {!string} fullPath - path of the file to find views of
+     * @return {Array.<{pane:string, index:number}>} an array of paneId/index records 
+     */
     function findAllViewsOf(fullPath) {
         var index,
             result = [];
@@ -595,7 +584,7 @@ define(function (require, exports, module) {
      * @return {?string} pane id where the file has been opened or null if it wasn't found
      */
     function getPaneIdForPath(fullPath) {
-        // Search all working sets
+        // Search all working sets and pull off the first one
         var info = findAllViewsOf(fullPath).shift();
 
         // Look for a view that has not been added to a working set
@@ -624,15 +613,11 @@ define(function (require, exports, module) {
      *    (useful if suppressRedraw was used with removeView() earlier)
      */
     function addView(paneId, file, index, force) {
-        if (!file) {
-            return;
-        }
-        
         // look for the file to have already been added to another pane
         var pane = _getPane(paneId),
             existingPaneId = getPaneIdForPath(file.fullPath);
 
-        if (!pane || !EditorManager.canOpenFile(file.fullPath) || (findView(ALL_PANES, file.fullPath) !== -1)) {
+        if (!EditorManager.canOpenFile(file.fullPath) || (findView(ALL_PANES, file.fullPath) !== -1)) {
             return;
         }
         
@@ -669,10 +654,6 @@ define(function (require, exports, module) {
         var uniqueFileList,
             pane = _getPane(paneId);
 
-        if (!pane) {
-            return;
-        }
-        
         uniqueFileList = pane.addListToViewList(fileList);
         
         uniqueFileList.forEach(function (file) {
@@ -743,13 +724,9 @@ define(function (require, exports, module) {
      * @param {File} file - file to close 
      */
     function removeView(paneId, file, suppressRedraw) {
-        if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
-                _removeView(pane.id, file, suppressRedraw);
-            });
-        } else {
-            _removeView(paneId, file, suppressRedraw);
-        }
+        _forEachPaneOrPanes(paneId, function (pane) {
+            _removeView(pane.id, file, suppressRedraw);
+        });
     }
     
     /**
@@ -956,24 +933,7 @@ define(function (require, exports, module) {
         // MRU list empty, there is no "next" file
         return null;
     }
-    
-    /**
-     * Get the next or previous file in the pane view list, in MRU order (relative to currentDocument). May
-     * return currentDocument itself if pane view list is length 1.
-     * @param {!string} paneId this will identify which Pane with which the caller wants to traverse
-     * @param {number} inc  -1 for previous, +1 for next; no other values allowed
-     * @return {?File} null if pane view list empty
-     */
-    function traversePaneViewListByMRU(paneId, direction) {
-        var pane = _getPane(paneId);
 
-        if (pane) {
-            return pane.traverseViewListByMRU(direction);
-        }
-        
-        // If no doc open or pane view list empty, there is no "next" file
-        return null;
-    }
 
     /**
      * Indicates that traversal has begun. 
@@ -1174,7 +1134,7 @@ define(function (require, exports, module) {
                 fileList = secondPane.getViewList(),
                 lastViewed = getCurrentlyViewedFile();
             
-            firstPane.mergeWith(secondPane);
+            firstPane.mergeFrom(secondPane);
         
             $(exports).triggerHandler("paneViewRemoveList", [fileList, secondPane.id]);
 
@@ -1233,29 +1193,14 @@ define(function (require, exports, module) {
      * @param {!Array.<File>} fileList - files to close
      */
     function closeList(paneId, fileList) {
-        var closedList,
-            currentFile = _getPane(ACTIVE_PANE).getCurrentlyViewedFile(),
-            currentFileClosed = currentFile ? (fileList.indexOf(currentFile) !== -1) : false;
-
-        if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
-                closedList = pane.doRemoveViews(fileList);
-                closedList.forEach(function (file) {
-                    _removeFileFromMRU(pane.id, file);
-                });
-
-                $(exports).triggerHandler("paneViewRemoveList", [closedList, pane.id]);
-            });
-        } else {
-            var pane = _getPane(paneId);
-            closedList = pane.doRemoveViews(fileList);
+        _forEachPaneOrPanes(paneId, function (pane) {
+            var closedList = pane.doRemoveViews(fileList);
             closedList.forEach(function (file) {
                 _removeFileFromMRU(pane.id, file);
             });
-            
-            
+
             $(exports).triggerHandler("paneViewRemoveList", [closedList, pane.id]);
-        }
+        });
     }
     
     /**
@@ -1263,28 +1208,16 @@ define(function (require, exports, module) {
      * @param {!string} paneId - id of the pane in which to open the document
      */
     function closeAll(paneId, options) {
-        var fileList,
-            currentFile = _getPane(ACTIVE_PANE).getCurrentlyViewedFile();
         
-        if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, function (pane) {
-                fileList = pane.getViewList();
-                fileList.forEach(function (file) {
-                    _removeFileFromMRU(pane.id, file);
-                });
-                
-                pane.doRemoveAllViews();
-                $(exports).triggerHandler("paneViewRemoveList", [fileList, pane.id]);
-            });
-        } else {
-            var pane = _getPane(paneId);
-            fileList = pane.getViewList();
-            fileList.forEach(function (file) {
+        _forEachPaneOrPanes(paneId, function (pane) {
+            var closedList = pane.getViewList();
+            closedList.forEach(function (file) {
                 _removeFileFromMRU(pane.id, file);
             });
+
             pane.doRemoveAllViews();
-            $(exports).triggerHandler("paneViewRemoveList", [fileList, pane.id]);
-        }
+            $(exports).triggerHandler("paneViewRemoveList", [closedList, pane.id]);
+        });
     }
 
     
@@ -1596,7 +1529,6 @@ define(function (require, exports, module) {
     exports.beginTraversal              = beginTraversal;
     exports.endTraversal                = endTraversal;
     exports.traverseViewsByMRU          = traverseViewsByMRU;
-    exports.traversePaneViewListByMRU   = traversePaneViewListByMRU;
     
     // PaneView Attributes
     exports.getActivePaneId             = getActivePaneId;

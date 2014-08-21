@@ -191,26 +191,27 @@ define(function (require, exports, module) {
                     });
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
-                                                                            paneId: "second-pane" });
-                    waitsForFail(promise, Commands.FILE_OPEN);
-                });
-                runs(function () {
+                    var testme = function () {
+                        promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                                                                                paneId: "second-pane" });
+                        waitsForFail(promise, Commands.FILE_OPEN);
+                    };
+                    expect(testme).toThrow();
                     expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toBeFalsy();
                 });
                 runs(function () {
-                    MainViewManager.setActivePaneId("second-pane");
+                    expect(function () {MainViewManager.setActivePaneId("second-pane"); }).toThrow();
                     expect(MainViewManager.getActivePaneId()).toNotEqual("second-pane");
                 });
                 runs(function () {
-                    MainViewManager.addView("second-pane", getFileObject("test.js"));
+                    expect(function () {MainViewManager.addView("second-pane", getFileObject("test.js")); }).toThrow();
                     expect(MainViewManager.findView(MainViewManager.ALL_PANES, testPath + "/test.js")).toEqual(-1);
-                    expect(MainViewManager.findView("second-pane", testPath + "/test.js")).toEqual(-1);
+                    expect(function () {MainViewManager.findView("second-pane", testPath + "/test.js"); }).toThrow();
                 });
                 runs(function () {
-                    MainViewManager.addViews("second-pane", [getFileObject("test.js")]);
+                    expect(function () {MainViewManager.addViews("second-pane", [getFileObject("test.js")]); }).toThrow();
                     expect(MainViewManager.findView(MainViewManager.ALL_PANES, testPath + "/test.js")).toEqual(-1);
-                    expect(MainViewManager.findView("second-pane", testPath + "/test.js")).toEqual(-1);
+                    expect(function () {MainViewManager.findView("second-pane", testPath + "/test.js"); }).toThrow();
                 });
             });
         });

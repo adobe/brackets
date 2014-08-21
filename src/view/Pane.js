@@ -256,13 +256,19 @@ define(function (require, exports, module) {
      * Merges the another Pane object's contents into this Pane 
      * @param {!Pane} Other - Pane from which to copy 
      */
-    Pane.prototype.mergeWith = function (other) {
-        // hide the current views and show the interstitial page
-        other.showInterstitial(true);
-
-        // trigger the change view handler
+    Pane.prototype.mergeFrom = function (other) {
+        // save this because we're setting it to null and we
+        //  may need to destroy it if it's a temporary view
+        var otherCurrentView = other._currentView;
+        
         if (other._currentView) {
-            $(other).triggerHandler("currentViewChange", [null, other._currentView]);
+            // hide the current views and show the interstitial page
+            otherCurrentView.setVisible(false);
+            other.showInterstitial(true);
+            other._currentView = null;
+            // The current view is getting reset later but
+            //  we're going to trigger this now and tell everyone 
+            $(other).triggerHandler("currentViewChange", [null, otherCurrentView]);
         }
 
         // Copy the File lists
@@ -289,8 +295,8 @@ define(function (require, exports, module) {
         });
 
         // 1-off views 
-        if (other._currentView && !_hasView(other._views, other._currentView)) {
-            viewsToDestroy.push(other._currentView);
+        if (otherCurrentView && !_hasView(other._views, otherCurrentView)) {
+            viewsToDestroy.push(otherCurrentView);
         }
         
         // Destroy temporary views
@@ -298,6 +304,8 @@ define(function (require, exports, module) {
             view.destroy();
         });
 
+        // this reset all internal data structures
+        //  and will set the current view to null 
         other._reset();
     };
     
