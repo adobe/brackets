@@ -330,17 +330,12 @@ define(function (require, exports, module) {
      * @param {!jQuery} $container - the container of the item to fetch
      * @return {?string} the id of the pane that matches the container or undefined if a pane doesn't exist for that container
      */
-    function _getPaneIdFromContainer($container) {
-        var paneId;
-        _.forEach(_paneViews, function (pane) {
-            // matching $el to $container doesn't always work 
-            //  i.e. if $container is the result of a query 
-            if (pane.$el.attr("id") === $container.attr("id")) {
-                paneId = pane.id;
-                return false;
+    function _getPaneFromContainer($container) {
+        return _.find(_paneViews, function (pane) {
+            if (pane.$el[0] === $container[0]) {
+                return pane;
             }
         });
-        return paneId;
     }
     
     /**
@@ -374,26 +369,26 @@ define(function (require, exports, module) {
     function _activeEditorChange(e, current) {
         if (current) {
             var $container = current.getContainer(),
-                newPaneId = _getPaneIdFromContainer($container);
+                pane = _getPaneFromContainer($container);
 
-            if (newPaneId) {
+            if (pane) {
                 // Editor is a full editor
-                if (newPaneId !== _activePaneId) {
+                if (pane.id !== _activePaneId) {
                     // we just need to set the active pane in this case
                     //  it will dispatch the currentFileChange message as well
                     //  as dispatching other events when the active pane changes
-                    setActivePaneId(newPaneId);
+                    setActivePaneId(pane.id);
                 }
             } else {
                 // Editor is an inline editor, find the parent pane
                 var parents = $container.parents(".view-pane");
                 if (parents.length === 1) {
                     $container = $(parents[0]);
-                    newPaneId = _getPaneIdFromContainer($container);
-                    if (newPaneId) {
-                        if (newPaneId !== _activePaneId) {
+                    pane = _getPaneFromContainer($container);
+                    if (pane) {
+                        if (pane.id !== _activePaneId) {
                             // activate the pane which will put focus in the pane's doc
-                            setActivePaneId(newPaneId);
+                            setActivePaneId(pane.id);
                             // reset the focus to the inline editor
                             current.focus();
                         }
@@ -1232,17 +1227,16 @@ define(function (require, exports, module) {
 
     
     /**
+     * Finds which pane a document belongs to
+     * @param {!Document} document - the document to locate
+     * @return {?Pane} the pane where the document lives or NULL if it isn't in a pane
      * @private
      */
     function _findPaneForDocument(document) {
-        if (!document || !document.file) {
-            return;
-        }
         // First check for an editor view of the document 
-        var paneId = _getPaneIdFromContainer(document._masterEditor.getContainer()),
-            pane = _paneViews[paneId];
+        var pane = _getPaneFromContainer(document._masterEditor.getContainer());
         
-        if (!paneId) {
+        if (!pane) {
             // No view of the document, it may be in a working set and not yet opened
             var info = findAllViewsOf(document.file.fullPath).shift();
             if (info) {
