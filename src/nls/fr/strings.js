@@ -520,6 +520,7 @@ define({
 	"REGISTRY_SANITY_CHECK_WARNING": "REMARQUE : ces extensions peuvent provenir d’autres sources que l’application {APP_NAME} elle-même. Les extensions ne sont pas contrôlées et disposent de privilèges locaux complets. Soyez prudents lorsque vous installez des extensions provenant d’une source inconnue.",
 	"EXTENSIONS_INSTALLED_TITLE": "Installées",
 	"EXTENSIONS_AVAILABLE_TITLE": "Disponibles",
+	"EXTENSIONS_THEMES_TITLE": "[7676891] !é=Themes=!",
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
     
 	"INLINE_EDITOR_NO_MATCHES": "Aucun résultat.",
