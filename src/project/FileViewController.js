@@ -109,7 +109,6 @@ define(function (require, exports, module) {
      */
     function _activatePane(paneId) {
         if (paneId) {
-            
             MainViewManager.setActivePaneId(paneId);
         } else {
             MainViewManager.focusActivePane();

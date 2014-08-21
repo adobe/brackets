@@ -702,6 +702,9 @@ define(function (require, exports, module) {
             });
             it("should add to the appropriate pane view list", function () {
                 runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
                                                                             paneId: "first-pane" });
                     waitsForDone(promise, Commands.FILE_OPEN);
@@ -823,17 +826,21 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getPaneIdForPath(getFileObject("test.html").fullPath)).toEqual("second-pane");
                 });
             });
-            it("should not add a files to ALL_PANES ", function () {
+            it("should not add list of files to ALL_PANES ", function () {
                 runs(function () {
-                    MainViewManager.addViews(MainViewManager.ALL_PANES, [getFileObject("test.js"),
+                    expect(function () {
+                        MainViewManager.addViews(MainViewManager.ALL_PANES, [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
+                    }).toThrow();
                     expect(MainViewManager.findView(MainViewManager.ALL_PANES, getFileObject("test.js").fullPath)).toEqual(-1);
                     expect(MainViewManager.findView(MainViewManager.ALL_PANES, getFileObject("test.css").fullPath)).toEqual(-1);
                 });
             });
             it("should not add a file to ALL_PANES ", function () {
                 runs(function () {
-                    MainViewManager.addView(MainViewManager.ALL_PANES, getFileObject("test.css"));
+                    expect(function () {
+                        MainViewManager.addView(MainViewManager.ALL_PANES, getFileObject("test.css"));
+                    }).toThrow();
                     expect(MainViewManager.findView(MainViewManager.ALL_PANES, getFileObject("test.css").fullPath)).toEqual(-1);
                 });
             });

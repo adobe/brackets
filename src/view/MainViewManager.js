@@ -290,11 +290,21 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Determines if the pane id is a special pane id
+     * @param {!string} paneId - the id to test
+     * @return {boolean} true if the pane id is a special identifier, false if not
+     */
+    function _isSpecialPaneId(paneId) {
+        return paneId === ACTIVE_PANE || paneId === ALL_PANES;
+    }
+    
+    
+    /**
      * Switch active pane to the specified pane Id
      * @param {!string} paneId - the id of the pane to activate
      */
     function setActivePaneId(newPaneId) {
-        if (newPaneId !== _activePaneId) {
+        if (!_isSpecialPaneId(newPaneId) && newPaneId !== _activePaneId) {
             var oldPaneId = _activePaneId,
                 oldPane = _getPane(ACTIVE_PANE),
                 newPane = _getPane(newPaneId);
