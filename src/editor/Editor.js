@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define, $, window, Promise */
 
 /**
  * Editor is a 1-to-1 wrapper for a CodeMirror editor instance. It layers on Brackets-specific
@@ -1412,53 +1412,57 @@ define(function (require, exports, module) {
      */
     Editor.prototype.addInlineWidget = function (pos, inlineWidget, scrollLineIntoView) {
         var self = this,
-            queue = this._inlineWidgetQueues[pos.line],
-            deferred = new $.Deferred();
-        if (!queue) {
-            queue = new Async.PromiseQueue();
-            this._inlineWidgetQueues[pos.line] = queue;
-        }
-        queue.add(function () {
-            self._addInlineWidgetInternal(pos, inlineWidget, scrollLineIntoView, deferred);
-            return deferred.promise();
-        });
-        return deferred.promise();
-    };
-    
-    /**
-     * @private
-     * Does the actual work of addInlineWidget().
-     */
-    Editor.prototype._addInlineWidgetInternal = function (pos, inlineWidget, scrollLineIntoView, deferred) {
-        var self = this;
-        
-        this.removeAllInlineWidgetsForLine(pos.line).done(function () {
-            if (scrollLineIntoView === undefined) {
-                scrollLineIntoView = true;
-            }
-    
-            if (scrollLineIntoView) {
-                self._codeMirror.scrollIntoView(pos);
-            }
-    
-            inlineWidget.info = self._codeMirror.addLineWidget(pos.line, inlineWidget.htmlContent,
-                                                               { coverGutter: true, noHScroll: true });
-            CodeMirror.on(inlineWidget.info.line, "delete", function () {
-                self._removeInlineWidgetInternal(inlineWidget);
-            });
-            self._inlineWidgets.push(inlineWidget);
+            queue = this._inlineWidgetQueues[pos.line];
 
-            // Set up the widget to start closed, then animate open when its initial height is set.
-            inlineWidget.$htmlContent.height(0);
-            AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
-                .done(function () {
-                    deferred.resolve();
+        var promise = new Promise(function (resolve, reject) {
+            if (!queue) {
+                queue = new Async.PromiseQueue();
+                self._inlineWidgetQueues[pos.line] = queue;
+            }
+
+            // Use setTimeout to call PromiseQueue.add() asynchronously so we can return
+            // reference to promise (otherwise, it's not yet defined).
+            setTimeout(function () {
+                queue.add(function () {
+                
+                    function _addInlineWidgetInternal(pos, inlineWidget, scrollLineIntoView) {
+
+                        self.removeAllInlineWidgetsForLine(pos.line).done(function () {
+                            if (scrollLineIntoView === undefined) {
+                                scrollLineIntoView = true;
+                            }
+
+                            if (scrollLineIntoView) {
+                                self._codeMirror.scrollIntoView(pos);
+                            }
+
+                            inlineWidget.info = self._codeMirror.addLineWidget(pos.line, inlineWidget.htmlContent,
+                                                                               { coverGutter: true, noHScroll: true });
+                            CodeMirror.on(inlineWidget.info.line, "delete", function () {
+                                self._removeInlineWidgetInternal(inlineWidget);
+                            });
+                            self._inlineWidgets.push(inlineWidget);
+
+                            // Set up the widget to start closed, then animate open when its initial height is set.
+                            inlineWidget.$htmlContent.height(0);
+                            AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
+                                .always(function () {
+                                    resolve();
+                                });
+
+                            // Callback to widget once parented to the editor. The widget should call back to
+                            // setInlineWidgetHeight() in order to set its initial height and animate open.
+                            inlineWidget.onAdded();
+                        });
+                    }
+
+                    _addInlineWidgetInternal(pos, inlineWidget, scrollLineIntoView);
+                    return promise;
                 });
-
-            // Callback to widget once parented to the editor. The widget should call back to
-            // setInlineWidgetHeight() in order to set its initial height and animate open.
-            inlineWidget.onAdded();
+            });
         });
+        
+        return promise;
     };
     
     /**

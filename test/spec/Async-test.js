@@ -272,7 +272,7 @@ define(function (require, exports, module) {
                             wrapFail = true;
                         });
                         
-                        waitsForFulfillment(promiseWrapper, "promise resolves before timeout");
+                        waitsForFulfillment(promiseWrapper, "promise resolves before timeout", 100);
                     });
                     
                     runs(function () {
@@ -346,7 +346,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         expect(wrapSuccess).toBe(false);
                         expect(wrapFail).toBe(true);
-                        waitsForFulfillment(promiseBase, "promise resolves after timeout");
+                        waitsForFulfillment(promiseBase, "promise resolves after timeout", 100);
                     });
                     
                     runs(function () {
@@ -377,7 +377,7 @@ define(function (require, exports, module) {
                             wrapFail = true;
                         });
                         
-                        waitsForFulfillment(promiseWrapper, "times out before promise is rejected");
+                        waitsForFulfillment(promiseWrapper, "times out before promise is rejected", 100);
                     });
                     
                     runs(function () {
@@ -511,237 +511,347 @@ define(function (require, exports, module) {
                 queue = new PromiseQueue();
                 calledFns = {};
             });
-            
-            function makeFn(id, resolveNow, rejectNow) {
+
+            function makeFn(id, resolveTimeout, rejectTimeout) {
                 var func;
                 var result = new Promise(function (resolve, reject) {
                     func = function () {
                         calledFns[id] = true;
-                        if (rejectNow) {
-                            reject();
-                        } else if (resolveNow) {
-                            resolve();
+                        if (rejectTimeout !== null) {
+                            if (rejectTimeout === 0) {
+                                reject();
+                            } else {
+                                setTimeout(function () {
+                                    reject();
+                                }, rejectTimeout);
+                            }
+                        } else if (resolveTimeout !== null) {
+                            if (resolveTimeout === 0) {
+                                resolve();
+                            } else {
+                                setTimeout(function () {
+                                    resolve();
+                                }, resolveTimeout);
+                            }
                         }
                         return result;
                     };
                 });
                 return {
                     fn: func,
-                    deferred: result
+                    promise: result
                 };
             }
             
-            xit("should immediately execute a function when the queue is empty", function () {
-                var fnInfo = makeFn("one");
+            it("should immediately execute a function when the queue is empty", function () {
+                var fnInfo;
                 
-                queue.add(fnInfo.fn);
-                expect(calledFns.one).toBe(true);
+                runs(function () {
+                    fnInfo = makeFn("one", 5, null);
+                    queue.add(fnInfo.fn);
+                    expect(calledFns.one).toBe(true);
+                    waitsForFulfillment(fnInfo.promise, "promise one", 100);
+                });
                 
-                fnInfo.deferred.resolve();
-                expect(queue._queue.length).toBe(0);
-                expect(queue._curPromise).toBe(null);
+                runs(function () {
+                    expect(queue._queue.length).toBe(0);
+                    expect(queue._curPromise).toBe(null);
+                });
             });
             
-            xit("should wait to execute the second added function", function () {
-                var fnInfo1 = makeFn("one"),
-                    fnInfo2 = makeFn("two");
+            it("should wait to execute the second added function", function () {
+                var fnInfo1, fnInfo2;
                 
-                queue.add(fnInfo1.fn);
-                expect(calledFns.one).toBe(true);
+                runs(function () {
+                    fnInfo1 = makeFn("one",  5, null);
+                    fnInfo2 = makeFn("two", 10, null);
+                    
+                    queue.add(fnInfo1.fn);
+                    expect(calledFns.one).toBe(true);
+                    queue.add(fnInfo2.fn);
+                    expect(calledFns.two).toBeUndefined();
+
+                    waitsForFulfillment(fnInfo1.promise, "promise one", 100);
+                });
                 
-                queue.add(fnInfo2.fn);
-                expect(calledFns.two).toBeUndefined();
+                runs(function () {
+                    expect(calledFns.two).toBe(true);
+                    waitsForFulfillment(fnInfo2.promise, "promise two", 100);
+                });
                 
-                fnInfo1.deferred.resolve();
-                expect(calledFns.two).toBe(true);
-                
-                fnInfo2.deferred.resolve();
-                expect(queue._queue.length).toBe(0);
-                expect(queue._curPromise).toBe(null);
+                runs(function () {
+                    expect(queue._queue.length).toBe(0);
+                    expect(queue._curPromise).toBe(null);
+                });
             });
             
+            // ES6 Promise shim does not execute callbacks synchronously when promise resolved or rejected synchronously
             xit("should properly handle the case where the first function completes synchronously", function () {
-                var fnInfo1 = makeFn("one", true),
-                    fnInfo2 = makeFn("two");
+                var fnInfo1, fnInfo2;
                 
-                queue.add(fnInfo1.fn);
-                expect(calledFns.one).toBe(true);
+                runs(function () {
+                    fnInfo1 = makeFn("one", 0, null);
+                    fnInfo2 = makeFn("two", 5, null);
+
+                    queue.add(fnInfo1.fn);
+                    expect(calledFns.one).toBe(true);
+
+                    queue.add(fnInfo2.fn);
+                    expect(calledFns.two).toBe(true);
+
+                    waitsForFulfillment(fnInfo2.promise, "promise two", 100);
+                });
                 
-                queue.add(fnInfo2.fn);
-                expect(calledFns.two).toBe(true);
-                
-                fnInfo2.deferred.resolve();
-                expect(queue._queue.length).toBe(0);
-                expect(queue._curPromise).toBe(null);
+                runs(function () {
+                    expect(queue._queue.length).toBe(0);
+                    expect(queue._curPromise).toBe(null);
+                });
             });
             
+            // ES6 Promise shim does not execute callbacks synchronously when promise resolved or rejected synchronously
             xit("should sequentially execute a second and third function if they're both added while the first is executing", function () {
-                var fnInfo1 = makeFn("one"),
-                    fnInfo2 = makeFn("two"),
-                    fnInfo3 = makeFn("three");
+                var fnInfo1, fnInfo2, fnInfo3;
                 
-                queue.add(fnInfo1.fn);
-                expect(calledFns.one).toBe(true);
+                runs(function () {
+                    fnInfo1 = makeFn("one",   5, null);
+                    fnInfo2 = makeFn("two",   0, null);
+                    fnInfo3 = makeFn("three", 0, null);
+
+                    queue.add(fnInfo1.fn);
+                    expect(calledFns.one).toBe(true);
+
+                    queue.add(fnInfo2.fn);
+                    queue.add(fnInfo3.fn);
+                    expect(calledFns.two).toBeUndefined();
+                    expect(calledFns.three).toBeUndefined();
+
+                    waitsForFulfillment(fnInfo1.promise, "promise one", 100);
+                });
                 
-                queue.add(fnInfo2.fn);
-                queue.add(fnInfo3.fn);
-                expect(calledFns.two).toBeUndefined();
-                expect(calledFns.three).toBeUndefined();
+                runs(function () {
+                    expect(calledFns.two).toBe(true);
+                    expect(calledFns.three).toBeUndefined();
+                    waitsForFulfillment(fnInfo2.promise, "promise two", 100);
+                });
                 
-                fnInfo1.deferred.resolve();
-                expect(calledFns.two).toBe(true);
-                expect(calledFns.three).toBeUndefined();
+                runs(function () {
+                    expect(calledFns.three).toBe(true);
+                    waitsForFulfillment(fnInfo3.promise, "promise three", 100);
+                });
                 
-                fnInfo2.deferred.resolve();
-                expect(calledFns.three).toBe(true);
-                
-                fnInfo3.deferred.resolve();
-                expect(queue._queue.length).toBe(0);
-                expect(queue._curPromise).toBe(null);
+                runs(function () {
+                    expect(queue._queue.length).toBe(0);
+                    expect(queue._curPromise).toBe(null);
+                });
             });
     
+            // ES6 Promise shim does not execute callbacks synchronously when promise resolved or rejected synchronously
             xit("should sequentially execute a second and third function if the third is added while the second is executing", function () {
-                var fnInfo1 = makeFn("one"),
-                    fnInfo2 = makeFn("two"),
-                    fnInfo3 = makeFn("three");
+                var fnInfo1, fnInfo2, fnInfo3;
                 
-                queue.add(fnInfo1.fn);
-                expect(calledFns.one).toBe(true);
+                runs(function () {
+                    fnInfo1 = makeFn("one",   0, null);
+                    fnInfo2 = makeFn("two",   5, null);
+                    fnInfo3 = makeFn("three", 0, null);
+
+                    queue.add(fnInfo1.fn);
+                    expect(calledFns.one).toBe(true);
+
+                    queue.add(fnInfo2.fn);
+                    expect(calledFns.two).toBeUndefined();
+
+                    waitsForFulfillment(fnInfo1.promise, "promise one", 100);
+                });
                 
-                queue.add(fnInfo2.fn);
-                expect(calledFns.two).toBeUndefined();
-    
-                fnInfo1.deferred.resolve();
-                expect(calledFns.two).toBe(true);
-    
-                queue.add(fnInfo3.fn);
-                expect(calledFns.three).toBeUndefined();
+                runs(function () {
+                    expect(calledFns.two).toBe(true);
+
+                    queue.add(fnInfo3.fn);
+                    expect(calledFns.three).toBeUndefined();
+
+                    waitsForFulfillment(fnInfo2.promise, "promise two", 100);
+                });
                 
-                fnInfo2.deferred.resolve();
-                expect(calledFns.three).toBe(true);
+                runs(function () {
+                    expect(calledFns.three).toBe(true);
+                    waitsForFulfillment(fnInfo3.promise, "promise three", 100);
+                });
                 
-                fnInfo3.deferred.resolve();
-                expect(queue._queue.length).toBe(0);
-                expect(queue._curPromise).toBe(null);
+                runs(function () {
+                    expect(queue._queue.length).toBe(0);
+                    expect(queue._curPromise).toBe(null);
+                });
             });
             
-            xit("should execute a second function when added to the empty queue after the first function has completed", function () {
-                var fnInfo1 = makeFn("one"),
-                    fnInfo2 = makeFn("two");
+            it("should execute a second function when added to the empty queue after the first function has completed", function () {
+                var fnInfo1, fnInfo2;
                 
-                queue.add(fnInfo1.fn);
-                expect(calledFns.one).toBe(true);
+                runs(function () {
+                    fnInfo1 = makeFn("one", 0, null);
+                    fnInfo2 = makeFn("two", 5, null);
+
+                    queue.add(fnInfo1.fn);
+                    expect(calledFns.one).toBe(true);
+
+                    waitsForFulfillment(fnInfo1.promise, "promise one", 100);
+                });
                 
-                fnInfo1.deferred.resolve();
-                expect(queue._queue.length).toBe(0);
-                expect(queue._curPromise).toBe(null);
+                runs(function () {
+                    expect(queue._queue.length).toBe(0);
+                    expect(queue._curPromise).toBe(null);
+
+                    queue.add(fnInfo2.fn);
+                    expect(calledFns.two).toBe(true);
+
+                    waitsForFulfillment(fnInfo2.promise, "promise two", 100);
+                });
                 
-                queue.add(fnInfo2.fn);
-                expect(calledFns.two).toBe(true);
-    
-                fnInfo2.deferred.resolve();
-                expect(queue._queue.length).toBe(0);
-                expect(queue._curPromise).toBe(null);
+                runs(function () {
+                    expect(queue._queue.length).toBe(0);
+                    expect(queue._curPromise).toBe(null);
+                });
             });
             
-            xit("should execute the second function if the first function is rejected", function () {
-                var fnInfo1 = makeFn("one"),
-                    fnInfo2 = makeFn("two");
+            it("should execute the second function if the first function is rejected", function () {
+                var fnInfo1, fnInfo2;
                 
-                queue.add(fnInfo1.fn);
-                expect(calledFns.one).toBe(true);
+                runs(function () {
+                    fnInfo1 = makeFn("one", null, 5);
+                    fnInfo2 = makeFn("two",   10, null);
+
+                    queue.add(fnInfo1.fn);
+                    expect(calledFns.one).toBe(true);
+
+                    queue.add(fnInfo2.fn);
+                    expect(calledFns.two).toBeUndefined();
+
+                    waitsForRejection(fnInfo1.promise, "promise one", 100);
+                });
                 
-                queue.add(fnInfo2.fn);
-                expect(calledFns.two).toBeUndefined();
+                runs(function () {
+                    expect(calledFns.two).toBe(true);
+                    waitsForFulfillment(fnInfo2.promise, "promise two", 100);
+                });
                 
-                fnInfo1.deferred.reject();
-                expect(calledFns.two).toBe(true);
-                
-                fnInfo2.deferred.resolve();
-                expect(queue._queue.length).toBe(0);
-                expect(queue._curPromise).toBe(null);
+                runs(function () {
+                    expect(queue._queue.length).toBe(0);
+                    expect(queue._curPromise).toBe(null);
+                });
             });
             
-            xit("should execute the third function after first and second functions are rejected", function () {
-                var fnInfo1 = makeFn("one"),
-                    fnInfo2 = makeFn("two"),
-                    fnInfo3 = makeFn("three");
+            it("should execute the third function after first and second functions are rejected", function () {
+                var fnInfo1, fnInfo2, fnInfo3;
                 
-                queue.add(fnInfo1.fn);
-                expect(calledFns.one).toBe(true);
+                runs(function () {
+                    fnInfo1 = makeFn("one",  null,    5);
+                    fnInfo2 = makeFn("two",  null,   10);
+                    fnInfo3 = makeFn("three",  15, null);
+
+                    queue.add(fnInfo1.fn);
+                    expect(calledFns.one).toBe(true);
+
+                    queue.add(fnInfo2.fn);
+                    queue.add(fnInfo3.fn);
+                    expect(calledFns.two).toBeUndefined();
+                    expect(calledFns.three).toBeUndefined();
+
+                    waitsForRejection(fnInfo1.promise, "promise one", 100);
+                });
                 
-                queue.add(fnInfo2.fn);
-                queue.add(fnInfo3.fn);
-                expect(calledFns.two).toBeUndefined();
-                expect(calledFns.three).toBeUndefined();
+                runs(function () {
+                    expect(calledFns.two).toBe(true);
+                    waitsForRejection(fnInfo2.promise, "promise two", 100);
+                });
                 
-                fnInfo1.deferred.reject();
-                expect(calledFns.two).toBe(true);
+                runs(function () {
+                    expect(calledFns.three).toBe(true);
+                    waitsForFulfillment(fnInfo3.promise, "promise three", 100);
+                });
                 
-                fnInfo2.deferred.reject();
-                expect(calledFns.three).toBe(true);
-                
-                fnInfo3.deferred.resolve();
-                expect(queue._queue.length).toBe(0);
-                expect(queue._curPromise).toBe(null);
+                runs(function () {
+                    expect(queue._queue.length).toBe(0);
+                    expect(queue._curPromise).toBe(null);
+                });
             });
             
+            // ES6 Promise shim does not execute callbacks synchronously when promise resolved or rejected synchronously
             xit("should execute the second function after the already-rejected first function is added to the queue", function () {
-                var fnInfo1 = makeFn("one", false, true),
-                    fnInfo2 = makeFn("two");
+                var fnInfo1, fnInfo2;
                 
-                queue.add(fnInfo1.fn);
-                expect(calledFns.one).toBe(true);
+                runs(function () {
+                    fnInfo1 = makeFn("one", null,    0);
+                    fnInfo2 = makeFn("two",    5, null);
+
+                    queue.add(fnInfo1.fn);
+                    expect(calledFns.one).toBe(true);
+
+                    queue.add(fnInfo2.fn);
+                    expect(calledFns.two).toBe(true);
+
+                    waitsForFulfillment(fnInfo2.promise, "promise two", 100);
+                });
                 
-                queue.add(fnInfo2.fn);
-                expect(calledFns.two).toBe(true);
-                
-                fnInfo2.deferred.resolve();
-                expect(queue._queue.length).toBe(0);
-                expect(queue._curPromise).toBe(null);
+                runs(function () {
+                    expect(queue._queue.length).toBe(0);
+                    expect(queue._curPromise).toBe(null);
+                });
             });
             
-            xit("should be able to run two queues simultaneously without clashing", function () {
-                var queue2 = new PromiseQueue(),
-                    q1FnInfo1 = makeFn("one"),
-                    q1FnInfo2 = makeFn("two"),
-                    q2FnInfo3 = makeFn("three"),
-                    q2FnInfo4 = makeFn("four");
+            it("should be able to run two queues simultaneously without clashing", function () {
+                var queue2, q1FnInfo1, q1FnInfo2, q2FnInfo3, q2FnInfo4;
                 
-                //queue one
-                queue.add(q1FnInfo1.fn);
-                queue.add(q1FnInfo2.fn);
-                expect(calledFns.one).toBe(true);
-                expect(calledFns.two).toBeUndefined();
-                //queue one should have one in _queue,
-                //queue two should have zero in _queue
-                expect(queue._queue.length).toBe(1);
-                expect(queue2._queue.length).toBe(0);
+                runs(function () {
+                    queue2 = new PromiseQueue();
+                    q1FnInfo1 = makeFn("one",    5, null);
+                    q1FnInfo2 = makeFn("two",   10, null);
+                    q2FnInfo3 = makeFn("three",  5, null);
+                    q2FnInfo4 = makeFn("four",  10, null);
+
+                    //queue one
+                    queue.add(q1FnInfo1.fn);
+                    queue.add(q1FnInfo2.fn);
+                    expect(calledFns.one).toBe(true);
+                    expect(calledFns.two).toBeUndefined();
+                    
+                    //queue one should have one in _queue,
+                    //queue two should have zero in _queue
+                    expect(queue._queue.length).toBe(1);
+                    expect(queue2._queue.length).toBe(0);
+
+                    //queue two
+                    queue2.add(q2FnInfo3.fn);
+                    queue2.add(q2FnInfo4.fn);
+                    expect(calledFns.three).toBe(true);
+                    expect(calledFns.four).toBeUndefined();
+                    
+                    //queue one and two should have one in _queue
+                    expect(queue._queue.length).toBe(1);
+                    expect(queue2._queue.length).toBe(1);
+                    waitsForFulfillment(q1FnInfo1.promise, "promise one", 100);
+                });
                 
-                //queue two
-                queue2.add(q2FnInfo3.fn);
-                queue2.add(q2FnInfo4.fn);
-                expect(calledFns.three).toBe(true);
-                expect(calledFns.four).toBeUndefined();
-                //queue one and two should have one in _queue
-                expect(queue._queue.length).toBe(1);
-                expect(queue2._queue.length).toBe(1);
+                runs(function () {
+                    expect(calledFns.two).toBe(true);
+                    expect(queue._queue.length).toBe(0);
+                    waitsForFulfillment(q1FnInfo2.promise, "promise two", 100);
+                });
                 
-                q1FnInfo1.deferred.resolve();
-                expect(calledFns.two).toBe(true);
-                expect(queue._queue.length).toBe(0);
+                runs(function () {
+                    expect(queue._queue.length).toBe(0);
+                    expect(queue._curPromise).toBe(null);
+                    waitsForFulfillment(q2FnInfo3.promise, "promise three", 100);
+                });
                 
-                q1FnInfo2.deferred.resolve();
-                expect(queue._queue.length).toBe(0);
-                expect(queue._curPromise).toBe(null);
+                runs(function () {
+                    expect(calledFns.three).toBe(true);
+                    expect(queue2._queue.length).toBe(0);
+                    waitsForFulfillment(q2FnInfo4.promise, "promise four", 100);
+                });
                 
-                q2FnInfo3.deferred.resolve();
-                expect(calledFns.three).toBe(true);
-                expect(queue2._queue.length).toBe(0);
-                
-                q2FnInfo4.deferred.resolve();
-                expect(queue2._queue.length).toBe(0);
-                expect(queue2._curPromise).toBe(null);
+                runs(function () {
+                    expect(queue2._queue.length).toBe(0);
+                    expect(queue2._curPromise).toBe(null);
+                });
             });
         });
     });

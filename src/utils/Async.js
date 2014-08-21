@@ -534,75 +534,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Chains a series of synchronous and asynchronous (jQuery promise-returning) functions 
-     * together, using the result of each successive function as the argument(s) to the next. 
-     * A promise is returned that resolves with the result of the final call if all calls 
-     * resolve or return normally. Otherwise, if any of the functions reject or throw, the 
-     * computation is halted immediately and the promise is rejected with this halting error.
-     * 
-     * @param {Array.<function(*)>} functions Functions to be chained
-     * @param {?Array} args Arguments to call the first function with
-     * @return {jQuery.Promise} A promise that resolves with the result of the final call, or
-     *      rejects with the first error.
-     */
-/***
-    function chain(functions, args) {
-//        var deferred = $.Deferred();
-//        
-//        function chainHelper(index, args) {
-//            if (functions.length === index) {
-//                deferred.resolveWith(null, args);
-//            } else {
-//                var nextFunction = functions[index++];
-//                try {
-//                    var responseOrPromise = nextFunction.apply(null, args);
-//                    if (responseOrPromise.hasOwnProperty("done") &&
-//                            responseOrPromise.hasOwnProperty("fail")) {
-//                        responseOrPromise.done(function () {
-//                            chainHelper(index, arguments);
-//                        });
-//                        responseOrPromise.fail(function () {
-//                            deferred.rejectWith(null, arguments);
-//                        });
-//                    } else {
-//                        chainHelper(index, [responseOrPromise]);
-//                    }
-//                } catch (e) {
-//                    deferred.reject(e);
-//                }
-//            }
-//        }
-//        
-//        chainHelper(0, args || []);
-//        return deferred.promise();
-
-        return new Promise(function (resolve, reject) {
-
-            function chainHelper(index, args) {
-                if (functions.length === index) {
-                    resolve(args);
-                } else {
-                    var nextFunction = functions[index++];
-                    var responseOrPromise = nextFunction.apply(null, args);
-//                    if (responseOrPromise.hasOwnProperty("then")) {
-                    if (typeof responseOrPromise.then === "function") {
-                        responseOrPromise.then(function () {
-                            chainHelper(index, arguments);
-                        }, function () {
-                            reject(arguments);
-                        });
-                    } else {
-                        chainHelper(index, [responseOrPromise]);
-                    }
-                }
-            }
-
-            chainHelper(0, args || []);
-        });
-    }
-***/
-    
-    /**
      * Utility for converting a method that takes (error, callback) to one that returns a promise;
      * useful for using FileSystem methods (or other Node-style API methods) in a promise-oriented
      * workflow. For example, instead of
@@ -739,7 +670,6 @@ define(function (require, exports, module) {
     exports.withTimeout    = withTimeout;
     exports.waitForAll     = waitForAll;
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
-//    exports.chain          = chain;
     exports.promisify      = promisify;
     exports.PromiseQueue   = PromiseQueue;
 });
