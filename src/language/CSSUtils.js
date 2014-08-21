@@ -1068,10 +1068,12 @@ define(function (require, exports, module) {
                     currentLevel--;
                 }
 
-            } else if (/@(charset|import|namespace|include|extend)/i.test(token)) {
+            } else if (/@(charset|import|namespace|include|extend)/i.test(token) ||
+                            !/\{/.test(token)) {
                 
                 // This code handles @rules in this format:
                 //   @rule ... ;
+                // Or any less variable that starts with @var ... ;
                 // Skip everything until the next ';'
                 while (token !== ";") {
                     if (!_nextTokenSkippingComments()) {
