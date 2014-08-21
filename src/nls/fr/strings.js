@@ -427,7 +427,7 @@ define({
 	"USE_THEME_SCROLLBARS": "Utiliser les barres de défilement du thème",
 	"FONT_SIZE": "Taille de la police ",
 	"FONT_FAMILY": "Famille de polices ",
-	"THEMES_SETTINGS": "[7660433] !é=Themes Settings=!",
+	"THEMES_SETTINGS": "Paramètres des thèmes",
 
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "Nouvelle règle",
@@ -520,7 +520,7 @@ define({
 	"REGISTRY_SANITY_CHECK_WARNING": "REMARQUE : ces extensions peuvent provenir d’autres sources que l’application {APP_NAME} elle-même. Les extensions ne sont pas contrôlées et disposent de privilèges locaux complets. Soyez prudents lorsque vous installez des extensions provenant d’une source inconnue.",
 	"EXTENSIONS_INSTALLED_TITLE": "Installées",
 	"EXTENSIONS_AVAILABLE_TITLE": "Disponibles",
-	"EXTENSIONS_THEMES_TITLE": "[7676891] !é=Themes=!",
+	"EXTENSIONS_THEMES_TITLE": "Thèmes",
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
     
 	"INLINE_EDITOR_NO_MATCHES": "Aucun résultat.",
