@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         
         describe("Chain", function () {
 
-            function zeroArgThatSucceeds() {
+            function noArgThatSucceeds() {
                 var d = new Promise(function (resolve, reject) {
                     setTimeout(function () {
                         resolve();
@@ -43,7 +43,7 @@ define(function (require, exports, module) {
                 return d;
             }
             
-            function zeroArgThatFails() {
+            function noArgThatFails() {
                 var d = new Promise(function (resolve, reject) {
                     setTimeout(function () {
                         reject();
@@ -52,183 +52,183 @@ define(function (require, exports, module) {
                 return d;
             }
 
-            function oneArgThatSucceeds(x) {
+            function withArgThatSucceeds(arg) {
                 var d = new Promise(function (resolve, reject) {
                     setTimeout(function () {
-                        resolve([x]);
-                    }, 1);
-                });
-                return d;
-            }
-
-            function twoArgThatSucceeds(x, y) {
-                var d = new Promise(function (resolve, reject) {
-                    setTimeout(function () {
-                        resolve([x, y]);
+                        resolve(arg);
                     }, 1);
                 });
                 return d;
             }
             
-            function twoArgThatFails(x, y) {
+            function withArgThatFails(arg) {
                 var d = new Promise(function (resolve, reject) {
                     setTimeout(function () {
-                        reject([x, y]);
+                        reject(arg);
                     }, 1);
                 });
                 return d;
             }
             
-            function syncAddTwoArg(x, y) {
-                return x + y;
+            function createArrayComparator(arrayOne) {
+                return function (arrayTwo) {
+                    var i, l;
+                    if (arrayOne && arrayTwo) {
+                        expect(arrayOne.length).toBe(arrayTwo.length);
+                        l = Math.min(arrayOne.length, arrayTwo.length);
+                        for (i = 0; i < l; i++) {
+                            expect(arrayOne[i]).toBe(arrayTwo[i]);
+                        }
+                    }
+                };
             }
             
-            function syncException() {
-                throw new Error("sync error");
+            function expectChainHelper(functions, args, shouldSucceed, responseComparator) {
+                var done      = false,
+                    success   = false,
+                    response  = null,
+                    responses = null;
+                
+                runs(function () {
+                    var result,
+                        promises = [];
+                    
+                    functions.forEach(function (fn) {
+                        promises.push(fn(args));
+                    });
+                    result = Promise.all(promises);
+                    
+                    result.then(function () {
+                        done = true;
+                        success = true;
+                        // on success, an array of args from all promises is returned
+                        responses = arguments["0"];
+                    }, function () {
+                        done = true;
+                        success = false;
+                        // on fail, only args from failing promise is returned
+                        response = arguments["0"];
+                    });
+                });
+                
+                waitsFor(function () {
+                    return done;
+                }, "The chain should complete", 100);
+                
+                runs(function () {
+                    expect(success).toBe(shouldSucceed);
+                    if (response) {
+                        responseComparator(response);
+                    } else if (responses) {
+                        responses.forEach(function (response) {
+                            responseComparator(response);
+                        });
+                    }
+                });
             }
-
-//            function createArrayComparator(arrayOne) {
-//                return function (arrayTwo) {
-//                    var i, l, firstArg;
-//
-//                    expect(arrayOne.length).toBe(arrayTwo.length);
-//                    l = Math.min(arrayOne.length, arrayTwo.length);
-//                    for (i = 0; i < l; i++) {
-//                        expect(arrayOne[i]).toBe(arrayTwo[i]);
-//                    }
-//                };
-//            }
             
-//            function expectChainHelper(functions, args, shouldSucceed, responseComparator) {
-//                var done = false;
-//                var success = false;
-//                var response = null;
-//                runs(function () {
-//                    var result = Async.chain(
-//                        functions,
-//                        args
-//                    );
-//                    result.then(function () {
-//                        done = true;
-//                        success = true;
-//                        response = arguments;
-//                    }, function () {
-//                        done = true;
-//                        success = false;
-//                        response = arguments;
-//                    });
-//                });
-//                waitsFor(function () {
-//                    return done;
-//                }, "The chain should complete", 100);
-//                runs(function () {
-//                    expect(success).toBe(shouldSucceed);
-//                    responseComparator(response);
-//                });
-//            }
+            describe("Zero-argument deferreds", function () {
+                it("[zero-arg] work with a null argument array", function () {
+                    expectChainHelper(
+                        [noArgThatSucceeds, noArgThatSucceeds, noArgThatSucceeds],
+                        null,
+                        true,
+                        createArrayComparator(null)
+                    );
+                });
+                
+                it("[zero-arg] call error callback when first deferred fails", function () {
+                    expectChainHelper(
+                        [noArgThatFails, noArgThatSucceeds, noArgThatSucceeds],
+                        null,
+                        false,
+                        createArrayComparator(null)
+                    );
+                });
+                
+                it("[zero-arg] call error callback when middle deferred fails", function () {
+                    expectChainHelper(
+                        [noArgThatSucceeds, noArgThatFails, noArgThatSucceeds],
+                        null,
+                        false,
+                        createArrayComparator(null)
+                    );
+                });
+                
+                it("[zero-arg] call error callback when last deferred fails", function () {
+                    expectChainHelper(
+                        [noArgThatSucceeds, noArgThatSucceeds, noArgThatFails],
+                        null,
+                        false,
+                        createArrayComparator(null)
+                    );
+                });
+                
+                it("[zero-arg] call success callback when all deferreds succeed", function () {
+                    expectChainHelper(
+                        [noArgThatSucceeds, noArgThatSucceeds, noArgThatSucceeds],
+                        null,
+                        true,
+                        createArrayComparator(null)
+                    );
+                });
+                
+                it("[zero-arg] call success callback immediately if there are no deferreds", function () {
+                    expectChainHelper(
+                        [],
+                        null,
+                        true,
+                        createArrayComparator(null)
+                    );
+                });
+            });
             
-//            xdescribe("Zero-argument deferreds", function () {
-//                it("[zero-arg] work with a null argument array", function () {
-//                    expectChainHelper(
-//                        [zeroArgThatSucceeds, zeroArgThatSucceeds, zeroArgThatSucceeds],
-//                        null,
-//                        true,
-//                        createArrayComparator([])
-//                    );
-//                });
-//                
-//                it("[zero-arg] call error callback when first deferred fails", function () {
-//                    expectChainHelper(
-//                        [zeroArgThatFails, zeroArgThatSucceeds, zeroArgThatSucceeds],
-//                        [],
-//                        false,
-//                        createArrayComparator([])
-//                    );
-//                });
-//                
-//                it("[zero-arg] call error callback when middle deferred fails", function () {
-//                    expectChainHelper(
-//                        [zeroArgThatSucceeds, zeroArgThatFails, zeroArgThatSucceeds],
-//                        [],
-//                        false,
-//                        createArrayComparator([])
-//                    );
-//                });
-//                
-//                it("[zero-arg] call error callback when last deferred fails", function () {
-//                    expectChainHelper(
-//                        [zeroArgThatSucceeds, zeroArgThatSucceeds, zeroArgThatFails],
-//                        [],
-//                        false,
-//                        createArrayComparator([])
-//                    );
-//                });
-//                
-//                it("[zero-arg] call success callback when all deferreds succeed", function () {
-//                    expectChainHelper(
-//                        [zeroArgThatSucceeds, zeroArgThatSucceeds, zeroArgThatSucceeds],
-//                        [],
-//                        true,
-//                        createArrayComparator([])
-//                    );
-//                });
-//                
-//                it("[zero-arg] call success callback immediately if there are no deferreds", function () {
-//                    expectChainHelper(
-//                        [],
-//                        [],
-//                        true,
-//                        createArrayComparator([])
-//                    );
-//                });
-//            });
-            
-//            xdescribe("Nonzero-argument deferreds", function () {
-//                it("[nonzero-arg] call error callback when first deferred fails", function () {
-//                    expectChainHelper(
-//                        [twoArgThatFails, twoArgThatSucceeds, twoArgThatSucceeds],
-//                        [1, 2],
-//                        false,
-//                        createArrayComparator([1, 2])
-//                    );
-//                });
-//                
-//                it("[nonzero-arg] call error callback when middle deferred fails", function () {
-//                    expectChainHelper(
-//                        [twoArgThatSucceeds, twoArgThatFails, twoArgThatSucceeds],
-//                        [1, 2],
-//                        false,
-//                        createArrayComparator([1, 2])
-//                    );
-//                });
-//                
-//                it("[nonzero-arg] call error callback when last deferred fails", function () {
-//                    expectChainHelper(
-//                        [twoArgThatSucceeds, twoArgThatSucceeds, twoArgThatFails],
-//                        [1, 2],
-//                        false,
-//                        createArrayComparator([1, 2])
-//                    );
-//                });
-//                
-//                it("[nonzero-arg] call success callback when all deferreds succeed", function () {
-//                    expectChainHelper(
-//                        [twoArgThatSucceeds, twoArgThatSucceeds, twoArgThatSucceeds],
-//                        [1, 2],
-//                        true,
-//                        createArrayComparator([1, 2])
-//                    );
-//                });
-//                
-//                it("[nonzero-arg] call success callback immediately if there are no deferreds", function () {
-//                    expectChainHelper(
-//                        [],
-//                        [1, 2],
-//                        true,
-//                        createArrayComparator([1, 2])
-//                    );
-//                });
-//            });
+            describe("Nonzero-argument deferreds", function () {
+                it("[nonzero-arg] call error callback when first deferred fails", function () {
+                    expectChainHelper(
+                        [withArgThatFails, withArgThatSucceeds, withArgThatSucceeds],
+                        [1, 2],
+                        false,
+                        createArrayComparator([1, 2])
+                    );
+                });
+                
+                it("[nonzero-arg] call error callback when middle deferred fails", function () {
+                    expectChainHelper(
+                        [withArgThatSucceeds, withArgThatFails, withArgThatSucceeds],
+                        [1, 2],
+                        false,
+                        createArrayComparator([1, 2])
+                    );
+                });
+                
+                it("[nonzero-arg] call error callback when last deferred fails", function () {
+                    expectChainHelper(
+                        [withArgThatSucceeds, withArgThatSucceeds, withArgThatFails],
+                        [1, 2],
+                        false,
+                        createArrayComparator([1, 2])
+                    );
+                });
+                
+                it("[nonzero-arg] call success callback when all deferreds succeed", function () {
+                    expectChainHelper(
+                        [withArgThatSucceeds, withArgThatSucceeds, withArgThatSucceeds],
+                        [1, 2],
+                        true,
+                        createArrayComparator([1, 2])
+                    );
+                });
+                
+                it("[nonzero-arg] call success callback immediately if there are no deferreds", function () {
+                    expectChainHelper(
+                        [],
+                        [1, 2],
+                        true,
+                        createArrayComparator([1, 2])
+                    );
+                });
+            });
             
             
             describe("With Timeout", function () {
@@ -392,85 +392,6 @@ define(function (require, exports, module) {
                     });
                 });
             });
-            
-            
-//            xdescribe("Async/sync mix", function () {
-//                it("[async/sync] succeed with sync command at beginning", function () {
-//                    expectChainHelper(
-//                        [syncAddTwoArg, oneArgThatSucceeds, oneArgThatSucceeds],
-//                        [1, 2],
-//                        true,
-//                        createArrayComparator([3])
-//                    );
-//                });
-//                
-//                it("[async/sync] succeed with sync command at middle", function () {
-//                    expectChainHelper(
-//                        [twoArgThatSucceeds, syncAddTwoArg, oneArgThatSucceeds],
-//                        [1, 2],
-//                        true,
-//                        createArrayComparator([3])
-//                    );
-//                });
-//
-//                it("[async/sync] succeed with sync command at end", function () {
-//                    expectChainHelper(
-//                        [twoArgThatSucceeds, twoArgThatSucceeds, syncAddTwoArg],
-//                        [1, 2],
-//                        true,
-//                        createArrayComparator([3])
-//                    );
-//                });
-//                
-//                it("[async/sync] call error callback if sync command fails", function () {
-//                    expectChainHelper(
-//                        [twoArgThatSucceeds, syncException, twoArgThatSucceeds],
-//                        [1, 2],
-//                        false,
-//                        function (response) {
-//                            expect(response.length).toBe(1);
-//                            expect(response[0] instanceof Error).toBe(true);
-//                        }
-//                    );
-//                });
-//                
-//                it("[async/sync] two sync commands in order are executed completely synchronously", function () {
-//                    var promise = null,
-//                        flag = true;
-//
-//                    runs(function () {
-//                    
-//                        function negate(b) {
-//                            return !b;
-//                        }
-//                        function setFlag(b) {
-//                            flag = b;
-//                            return flag;
-//                        }
-//                    
-//                        promise = Async.chain([negate, setFlag], [flag]);
-//                        promise.then(function (b) {
-//                            expect(b).toBe(flag);
-//                        }, null);
-//                        
-//                        // note, we WANT to test this synchronously. This is not a bug
-//                        // in the unit test. A series of synchronous functions should
-//                        // execute synchronously.
-//                        expect(flag).toBe(false);
-//                    });
-//                    
-//                    runs(function () {
-//                        // With (the current version) of jQuery promises, resolution and
-//                        // resolution handlers will get called synchronously. However, if we
-//                        // move to a different promise implementation (e.g. Q) then resolution
-//                        // handlers will get called asynchronously. So, we check completion
-//                        // of the promise on a separate pass.
-//                        waitsForFulfillment(promise, "The chain to complete");
-//                    });
-//                });
-//                
-//            });
-//                        
         });
         
         describe("promisify", function () {
