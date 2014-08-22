@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, FileError, brackets, unescape, window */
+/*global define, $, FileError, brackets, unescape, window, Promise */
 
 /**
  * Set of utilites for working with files and text content.
@@ -45,29 +45,31 @@ define(function (require, exports, module) {
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
      * @param {!File} file File to read
-     * @return {$.Promise} a jQuery promise that will be resolved with the 
+     * @return {Promise} a jQuery promise that will be resolved with the 
      *  file's text content plus its timestamp, or rejected with a FileSystemError string
      *  constant if the file can not be read.
      */
     function readAsText(file) {
-        var result = new $.Deferred();
-
         // Measure performance
         var perfTimerName = PerfUtils.markStart("readAsText:\t" + file.fullPath);
-        result.always(function () {
-            PerfUtils.addMeasurement(perfTimerName);
+        
+        var result = new Promise(function (resolve, reject) {
+            // Read file
+            file.read(function (err, data, stat) {
+                if (!err) {
+                    resolve(data, stat.mtime);
+                } else {
+                    reject(err);
+                }
+            });
         });
 
-        // Read file
-        file.read(function (err, data, stat) {
-            if (!err) {
-                result.resolve(data, stat.mtime);
-            } else {
-                result.reject(err);
-            }
-        });
-        
-        return result.promise();
+        var fnAlways = function () {
+            PerfUtils.addMeasurement(perfTimerName);
+        };
+        result.then(fnAlways, fnAlways);
+
+        return result;
     }
     
     /**
@@ -77,26 +79,28 @@ define(function (require, exports, module) {
      * @param {boolean=} allowBlindWrite Indicates whether or not CONTENTS_MODIFIED
      *      errors---which can be triggered if the actual file contents differ from 
      *      the FileSystem's last-known contents---should be ignored.
-     * @return {$.Promise} a jQuery promise that will be resolved when
+     * @return {Promise} a jQuery promise that will be resolved when
      * file writing completes, or rejected with a FileSystemError string constant.
      */
     function writeText(file, text, allowBlindWrite) {
-        var result = new $.Deferred(),
-            options = {};
-        
-        if (allowBlindWrite) {
-            options.blind = true;
-        }
-        
-        file.write(text, options, function (err) {
-            if (!err) {
-                result.resolve();
-            } else {
-                result.reject(err);
+
+        var result = new Promise(function (resolve, reject) {
+            var options = {};
+
+            if (allowBlindWrite) {
+                options.blind = true;
             }
+
+            file.write(text, options, function (err) {
+                if (!err) {
+                    resolve();
+                } else {
+                    reject(err);
+                }
+            });
         });
         
-        return result.promise();
+        return result;
     }
 
     /**
