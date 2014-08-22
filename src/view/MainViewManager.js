@@ -713,7 +713,7 @@ define(function (require, exports, module) {
     function _removeView(paneId, file, suppressRedraw) {
         var pane = _getPane(paneId);
 
-        if (pane && pane.removeFromViewList(file)) {
+        if (pane && pane.removeView(file)) {
             _removeFileFromMRU(pane.id, file);
             $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw, pane.id]);
         }
@@ -1082,7 +1082,7 @@ define(function (require, exports, module) {
             oldFile = pane.getCurrentlyViewedFile(),
             options = optionsIn || {};
 
-        if (pane.doRemoveView(file, !options.noOpenNextFile)) {
+        if (pane.removeView(file, options.noOpenNextFile)) {
             _removeFileFromMRU(pane.id, file);
             $(exports).triggerHandler("workingSetRemove", [file, false, pane.id]);
         }
@@ -1095,7 +1095,7 @@ define(function (require, exports, module) {
      */
     function closeList(paneId, fileList) {
         _forEachPaneOrPanes(paneId, function (pane) {
-            var closedList = pane.doRemoveViews(fileList);
+            var closedList = pane.removeViews(fileList);
             closedList.forEach(function (file) {
                 _removeFileFromMRU(pane.id, file);
             });
@@ -1116,7 +1116,7 @@ define(function (require, exports, module) {
                 _removeFileFromMRU(pane.id, file);
             });
 
-            pane.doRemoveAllViews();
+            pane.reset();
             $(exports).triggerHandler("workingSetRemoveList", [closedList, pane.id]);
         });
     }
