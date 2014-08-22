@@ -149,6 +149,9 @@ define(function (require, exports, module) {
 
             $item.find("a").addClass("highlight");
             ViewUtils.scrollElementIntoView($view, $item, false);
+
+            // Trigger hint highlight event
+            $(exports).triggerHandler("highlight", [$item.data("hint")]);
         }
     };
 
@@ -244,12 +247,16 @@ define(function (require, exports, module) {
             
             // delegate list item events to the top-level ul list element
             $ul.on("click", "li", function (e) {
+                var $item = $(this);
+
                 // Don't let the click propagate upward (otherwise it will
                 // hit the close handler in bootstrap-dropdown).
                 e.stopPropagation();
                 if (self.handleSelect) {
-                    self.handleSelect($(this).data("hint"));
+                    self.handleSelect($item.data("hint"));
                 }
+
+                $(exports).triggerHandler("selected", [$item.data("hint")]);
             });
             
             // Lists with wide results require different formatting
