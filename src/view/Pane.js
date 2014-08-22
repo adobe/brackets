@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
+        ViewUtils           = require("utils/ViewUtils"),
         paneTemplate        = require("text!htmlContent/pane.html");
     
     
@@ -281,7 +282,7 @@ define(function (require, exports, module) {
         });
 
         // 1-off views 
-        if (otherCurrentView && !other._hasView(otherCurrentView)) {
+        if (otherCurrentView && !other._isViewNeeded(otherCurrentView)) {
             viewsToDestroy.push(otherCurrentView);
         }
         
@@ -578,49 +579,28 @@ define(function (require, exports, module) {
      * @return {?File}  The File object of the next item in the travesal order or null if there isn't one.
      */
     Pane.prototype.traverseViewListByMRU = function (direction, current) {
-        if (Math.abs(direction) !== 1) {
-            console.error("traverseViewList called with unsupported direction: " + direction.toString());
-            return null;
-        }
-
         if (!current && this._currentView) {
             var file = this._currentView.getFile();
             current = file && file.fullPath;
         }
         
         var index = current ? this.findInViewListMRUOrder(current) : -1;
-        if (index === -1) {
-            // If doc not in view list, return most recent view list item
-            if (this._viewListMRUOrder.length > 0) {
-                return this._viewListMRUOrder[0];
-            }
-        } else if (this._viewListMRUOrder.length > 1) {
-            // If doc is in view list, return next/prev item with wrap-around
-            index += direction;
-            if (index >= this._viewListMRUOrder.length) {
-                index = 0;
-            } else if (index < 0) {
-                index = this._viewListMRUOrder.length - 1;
-            }
-
-            return this._viewListMRUOrder[index];
-        }
-        
-        // If no doc open or view list empty, there is no "next" file
-        return null;
+        return ViewUtils.traverseViewArray(this._viewListMRUOrder, index, direction);
     };
     
     /**
      * Event handler when a file changes name
      * @private
      * @param {!JQuery.Event} e - jQuery event object
-     * @return {@return {} oldname - path of the file that was renamed
-     * @return {@return {} newname - the new path to the file
+     * @param {!string} oldname - path of the file that was renamed
+     * @param {!string} newname - the new path to the file
      */
     Pane.prototype._handleFileNameChange = function (e, oldname, newname) {
-        // because we store the File objects then   we don't really need to 
-        // rename the file in the view map and dispatch a change event if we 
-        // had a file object that was renamed so that our listeners can update 
+        // Check to see if we need to dispatch a viewListChange event
+        // The list contains references to file objects and, for a rename event, 
+        // the File object's name has changed by the time we've gotten the event.
+        // So, we need to look for the file by its new name to determine if
+        // if we need to dispatch the event which may look funny
         var dispatchEvent = (this.findInViewList(newname) >= 0);
         
         // rename the view 
@@ -740,25 +720,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Determines if the pane has the specified view in its view list
-     * @private
-     * @param {!View} view - the View object to test
-     */
-    Pane.prototype._hasView = function (view) {
-        var result = false;
-        
-        _.forEach(this._views, function (_view) {
-            if (_view === view) {
-                result = true;
-                return false;
-            }
-        });
-        
-        return result;
-    };
-    
-    
-    /**
      * Determines if the view can be disposed of
      * @private
      * @param {!View} view - the View object to test
@@ -810,13 +771,17 @@ define(function (require, exports, module) {
      * resets the pane to an empty state
      */
     Pane.prototype.reset = function () {
-        var views = _.extend({}, this._views),
+        var views = [],
             view = this._currentView;
 
+        _.forEach(this._views, function (_view) {
+            views.push(_view);
+        });
+        
         // If the current view is a temporary view,
         //  add it to the destroy list to dispose of
-        if (view && !this._hasView(view)) {
-            views = _.extend(views, {"<|?*:temporaryView:*?|>": view});
+        if (this._currentView && views.indexOf(this._currentView) === -1) {
+            views.push(this._currentView);
         }
         
         // This will reinitialize the object back to 
@@ -828,7 +793,7 @@ define(function (require, exports, module) {
         }
 
         // Now destroy the views
-        _.forEach(views, function (_view) {
+        views.forEach(function (_view) {
             _view.destroy();
         });
     };
