@@ -52,6 +52,7 @@ define(function (require, exports, module) {
         StringUtils               = require("utils/StringUtils"),
         LocalizationUtils         = require("utils/LocalizationUtils"),
         mockRegistryText          = require("text!spec/ExtensionManager-test-files/mockRegistry.json"),
+        mockRegistryThemesText    = require("text!spec/ExtensionManager-test-files/mockRegistryThemes.json"),
         mockRegistryForSearch     = require("text!spec/ExtensionManager-test-files/mockRegistryForSearch.json"),
         mockExtensionList         = require("text!spec/ExtensionManager-test-files/mockExtensionList.json"),
         mockRegistry;
@@ -490,7 +491,38 @@ define(function (require, exports, module) {
                     expect(gotEvent).toBe(true);
                 });
             });
-            
+
+
+            describe("when initialized themes from registry", function () {
+                var model;
+
+                beforeEach(function () {
+                    runs(function () {
+                        mockRegistry = JSON.parse(mockRegistryThemesText);
+                        model = new ExtensionManagerViewModel.ThemesViewModel();
+                        waitsForDone(model.initialize(), "model initialization");
+                    });
+                    runs(function () {
+                        // Mock load some extensions, so we can make sure they don't show up in the filtered model in this case.
+                        mockLoadExtensions();
+                    });
+                });
+
+                afterEach(function () {
+                    model.dispose();
+                    model = null;
+                });
+
+                it("should initialize itself from the extension list", function () {
+                    expect(model.extensions).toEqual(ExtensionManager.extensions);
+                });
+
+                it("should start with the full set sorted in reverse publish date order", function () {
+                    expect(model.filterSet).toEqual(["theme-1", "theme-2"]);
+                });
+            });
+
+
             describe("when initialized from local extension list", function () {
                 var model, origExtensions;
                 

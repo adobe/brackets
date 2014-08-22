@@ -525,7 +525,7 @@ define(function (require, exports, module) {
             view.destroy();
         }
         
-        return ((index > -1) || !!view);
+        return ((index > -1) || Boolean(view));
     };
 
     /**
@@ -542,7 +542,7 @@ define(function (require, exports, module) {
     
     /**
      * Sorts items in the pane's view list
-     * @param {function(!string, !string):number} compareFn - the function used to compare items in the viewList
+     * @param {function(paneId:!string, left:!string, right:!string):number} compareFn - the function used to compare items in the viewList
      */
     
     /**
@@ -703,8 +703,7 @@ define(function (require, exports, module) {
         
         var file = view.getFile(),
             newPath = file && file.fullPath,
-            oldView = this._currentView,
-            oldPath = oldView && oldView.getFile() ? oldView.getFile().fullPath : null;
+            oldView = this._currentView;
         
         if (this._currentView) {
             if (file) {
@@ -718,19 +717,11 @@ define(function (require, exports, module) {
         this._currentView = view;
         this._currentView.setVisible(true);
         this.updateLayout();
+        
         $(this).triggerHandler("currentViewChange", [view, oldView]);
         
-        if (oldPath) {
-            // The old view is a temporary view because it 
-            //  we not found in our view list
-            if (this.findInViewList(oldPath) === -1) {
-                delete this._views[oldPath];
-                oldView.destroy();
-            }
-        } else if (oldView) {
-            // Views that do not have a fullPath are always temporary views
-            //  which are destroyed after the view has been hidden
-            oldView.destroy();
+        if (oldView) {
+            this.destroyViewIfNotNeeded(oldView);
         }
         
         if (newPath && (this.findInViewList(newPath) !== -1) && (!this._views.hasOwnProperty(newPath))) {
@@ -807,7 +798,7 @@ define(function (require, exports, module) {
      * @param {View} view - the view to destroy
      */
     Pane.prototype.destroyViewIfNotNeeded = function (view) {
-        if (view && !this._isViewNeeded(view)) {
+        if (!this._isViewNeeded(view)) {
             var file = view.getFile(),
                 path = file && file.fullPath;
             delete this._views[path];
@@ -822,16 +813,21 @@ define(function (require, exports, module) {
         var views = _.extend({}, this._views),
             view = this._currentView;
 
+        // If the current view is a temporary view,
+        //  add it to the destroy list to dispose of
         if (view && !this._hasView(view)) {
             views = _.extend(views, {"<|?*:temporaryView:*?|>": view});
         }
         
+        // This will reinitialize the object back to 
+        //  the default state
         this._initialize();
         
         if (view) {
             $(this).triggerHandler("currentViewChange", [null, view]);
         }
-        
+
+        // Now destroy the views
         _.forEach(views, function (_view) {
             _view.destroy();
         });
@@ -910,7 +906,7 @@ define(function (require, exports, module) {
      * @param {boolean=} true if the pane is active, false if not
      */
     Pane.prototype.notifySetActive = function (active) {
-        this.$el.toggleClass("active-pane", !!active);
+        this.$el.toggleClass("active-pane", Boolean(active));
     };
     
     /**

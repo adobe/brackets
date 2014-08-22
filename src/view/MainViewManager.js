@@ -67,7 +67,7 @@
  *                              listeners should discard all working set info and rebuilt it from the pane 
  *                              by calling getWorkingSet()
  *          (e, paneId:string)
- *    - _paneViewDisableAutoSort -- When the working set is reordered by manually dragging a file. 
+ *    - _workingSetDisableAutoSort -- When the working set is reordered by manually dragging a file. 
  *          (e, paneId:string) For Internal Use Only.
  *
  * These are jQuery events, so to listen for them you do something like this:
@@ -258,8 +258,9 @@ define(function (require, exports, module) {
      * @param {!File} File - the file
      * @param {!string} paneId - the paneId
      * @return {{file:File, paneId:string}}
+     * @private
      */
-    function makeFileListEntry(file, paneId) {
+    function _makeFileListEntry(file, paneId) {
         return {file: file, paneId: paneId};
     }
     
@@ -306,6 +307,49 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Makes the file the most recent for the pane and the global mru lists
+     * @param {!string} paneId - id of the pane to mae th file most recent or ACTIVE_PANE
+     * @param {!File} file - File object to make most recent
+     * @private
+     */
+    function _makeFileMostRecent(paneId, file) {
+        var index,
+            entry,
+            pane = _getPane(paneId);
+
+        if (!_traversingFileList) {
+            pane.makeViewMostRecent(file);
+        
+            index = _.findIndex(_mruList, function (record) {
+                return (record.file === file && record.paneId === paneId);
+            });
+
+            entry = _makeFileListEntry(file, pane.id);
+
+            if (index !== -1) {
+                _mruList.splice(index, 1);
+                _mruList.unshift(entry);
+            }
+        }
+    }
+
+    /**
+     * Makes the Pane's current file the most recent
+     * @param {!string} paneId - id of the pane to mae th file most recent or ACTIVE_PANE
+     * @param {!File} file - File object to make most recent
+     * @private
+     */
+    function _makePaneMostRecent(paneId) {
+        var index,
+            entry,
+            pane = _getPane(paneId);
+
+        if (pane.getCurrentlyViewedFile()) {
+            _makeFileMostRecent(paneId, pane.getCurrentlyViewedFile());
+        }
+    }
+    
+    /**
      * Switch active pane to the specified pane Id
      * @param {!string} paneId - the id of the pane to activate
      */
@@ -329,6 +373,8 @@ define(function (require, exports, module) {
             
             oldPane.notifySetActive(false);
             newPane.notifySetActive(true);
+            
+            _makePaneMostRecent(_activePaneId);
         }
         
         focusActivePane();
@@ -347,7 +393,7 @@ define(function (require, exports, module) {
         });
     }
     
-    /** 
+    /**
      * Determines if a file can be opened
      * @param {!File} file - file object to test
      * @return (boolean} true if the file can be opened, false if not
@@ -480,7 +526,7 @@ define(function (require, exports, module) {
      */
     function getWorkingSet(paneId) {
         var result = [];
-            
+
         _forEachPaneOrPanes(paneId, function (pane) {
             var viewList = pane.getViewList();
             result = _.union(result, viewList);
@@ -667,7 +713,7 @@ define(function (require, exports, module) {
         }
         
         var result = pane.reorderItem(file, index, force),
-            entry = makeFileListEntry(file, pane.id);
+            entry = _makeFileListEntry(file, pane.id);
 
         if (result === pane.ITEM_FOUND_NEEDS_SORT) {
             $(exports).triggerHandler("workingSetSort", [pane.id]);
@@ -697,7 +743,7 @@ define(function (require, exports, module) {
         uniqueFileList = pane.addListToViewList(fileList);
         
         uniqueFileList.forEach(function (file) {
-            _mruList.push(makeFileListEntry(file, pane.id));
+            _mruList.push(_makeFileListEntry(file, pane.id));
         });
         
         $(exports).triggerHandler("workingSetAddList", [uniqueFileList, pane.id]);
@@ -754,37 +800,6 @@ define(function (require, exports, module) {
         }
     }
     
-    /**
-     * Makes the file the most recent for the selected pane's view list
-     * @param {!string} paneId - id of the pane to mae th file most recent or ACTIVE_PANE
-     * @param {!File} file - File object to make most recent
-     */
-    function _makePaneViewMostRecent(paneId, file) {
-        var index,
-            entry,
-            pane = _getPane(paneId);
-
-        if (pane && !_traversingFileList) {
-            pane.makeViewMostRecent(file);
-        
-            index = _.findIndex(_mruList, function (record) {
-                return (record.file === file && record.paneId === paneId);
-            });
-
-            entry = makeFileListEntry(file, pane.id);
-
-            if (index !== -1) {
-                _mruList.splice(index, 1);
-                _mruList.unshift(entry);
-            }
-        }
-    }
-    
-    /**
-     * Removes a file that has been deleted from the MRU list
-     * @param {!jQuery.Event} e - event
-     * @param {!string} fullPath - path of the file that was deleted
-     */
     function _removeDeletedFileFromMRU(e, fullPath) {
         var index,
             compare = function (record) {
@@ -809,20 +824,10 @@ define(function (require, exports, module) {
      * @privaate
      */
     function _sortWorkingSet(paneId, compareFn) {
-        var doSort = function (pane) {
-            if (pane) {
-                pane.sortViewList(compareFn);
-                $(exports).triggerHandler("workingSetSort", [pane.id]);
-            }
-        };
-        
-        if (paneId === ALL_PANES) {
-            _.forEach(_panes, function (pane) {
-                doSort(pane);
-            });
-        } else {
-            doSort(_getPane(paneId));
-        }
+        _forEachPaneOrPanes(paneId, function (pane) {
+            pane.sortViewList(compareFn);
+            $(exports).triggerHandler("workingSetSort", [pane.id]);
+        });
     }
 
     /**
@@ -835,11 +840,9 @@ define(function (require, exports, module) {
     function _swapWorkingSetListIndexes(paneId, index1, index2) {
         var pane = _getPane(paneId);
 
-        if (pane) {
-            pane.swapViewListIndexes(index1, index2);
-            $(exports).triggerHandler("workingSetSort", [pane.id]);
-            $(exports).triggerHandler("_paneViewDisableAutoSort", [pane.id]);
-        }
+        pane.swapViewListIndexes(index1, index2);
+        $(exports).triggerHandler("workingSetSort", [pane.id]);
+        $(exports).triggerHandler("_workingSetDisableAutoSort", [pane.id]);
     }
     
     /**
@@ -874,7 +877,6 @@ define(function (require, exports, module) {
         // MRU list empty, there is no "next" file
         return null;
     }
-    
 
     /**
      * Indicates that traversal has begun. 
@@ -894,7 +896,7 @@ define(function (require, exports, module) {
         if (_traversingFileList) {
             _traversingFileList = false;
             
-            _makePaneViewMostRecent(pane.id, pane.getCurrentlyViewedFile());
+            _makeFileMostRecent(pane.id, pane.getCurrentlyViewedFile());
         }
     }
     
@@ -1025,7 +1027,7 @@ define(function (require, exports, module) {
         
         // open document will show the editor if there is one already
         EditorManager.openDocument(doc, pane);
-        _makePaneViewMostRecent(paneId, doc.file);
+        _makeFileMostRecent(paneId, doc.file);
     }
     
     /**
@@ -1195,7 +1197,7 @@ define(function (require, exports, module) {
             closedList.forEach(function (file) {
                 _removeFileFromMRU(pane.id, file);
             });
-                
+
             pane.reset();
             $(exports).triggerHandler("workingSetRemoveList", [closedList, pane.id]);
         });
@@ -1330,7 +1332,7 @@ define(function (require, exports, module) {
                     var fileList = pane.getViewList();
 
                     fileList.forEach(function (file) {
-                        _mruList.push(makeFileListEntry(file, pane.id));
+                        _mruList.push(_makeFileListEntry(file, pane.id));
                     });
                     $(exports).triggerHandler("workingSetAddList", [fileList, pane.id]);
                 });
@@ -1551,5 +1553,5 @@ define(function (require, exports, module) {
     
     // Constants
     exports.ALL_PANES                   = ALL_PANES;
-    exports.ACTIVE_PANE                = ACTIVE_PANE;
+    exports.ACTIVE_PANE                 = ACTIVE_PANE;
 });

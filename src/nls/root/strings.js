@@ -285,7 +285,7 @@ define({
     "CMD_FILE_NEW"                        : "New File",
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
-    "CMD_ADD_TO_PANE_AND_OPEN"            : "Add To Pane and Open",
+    "CMD_ADD_TO_WORKINGSET_AND_OPEN"      : "Add To Working Set and Open",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
     "CMD_FILE_CLOSE"                      : "Close",
@@ -364,10 +364,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
     "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Files on Save",
-    "CMD_SORT_PANE_VIEW_LIST_BY_ADDED"    : "Sort by Added",
-    "CMD_SORT_PANE_VIEW_LIST_BY_NAME"     : "Sort by Name",
-    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE"     : "Sort by Type",
-    "CMD_SORT_PANE_VIEW_TOGGLE_AUTO"                : "Automatic Sort",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Sort by Added",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Sort by Name",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sort by Type",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatic Sort",
     "CMD_THEMES"                          : "Themes\u2026",
 
     // Navigate menu Commands
@@ -529,6 +529,7 @@ define({
     "REGISTRY_SANITY_CHECK_WARNING"        : "NOTE: These extensions may come from different authors than {APP_NAME} itself. Extensions are not reviewed and have full local privileges. Be cautious when installing extensions from an unknown source.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
+    "EXTENSIONS_THEMES_TITLE"              : "Themes",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
     
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",

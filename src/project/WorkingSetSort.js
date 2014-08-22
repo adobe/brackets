@@ -68,9 +68,9 @@ define(function (require, exports, module) {
      * @type {object.<string: string>} oldname: newname
      */
     var _sortPrefConversionMap = {
-        "view.sortWorkingSetByAdded" : "cmd.sortPaneViewListByAdded",
-        "view.sortWorkingSetByName"  : "cmd.sortPaneViewListByName",
-        "view.sortWorkingSetByType"  : "cmd.sortPaneViewListByType"
+        "view.sortWorkingSetByAdded" : "cmd.sortWorkingSetByAdded",
+        "view.sortWorkingSetByName"  : "cmd.sortWorkingSetByName",
+        "view.sortWorkingSetByType"  : "cmd.sortWorkingSetByType"
     };
     
     /**
@@ -78,7 +78,7 @@ define(function (require, exports, module) {
      * @constant {string} 
      * @private
      */
-    var _SORT_EVENT_NAMES = "workingSetAdd paneViewAddList";
+    var _SORT_EVENT_NAMES = "workingSetAdd workingSetAddList";
     
     /**
      * Preference name
@@ -157,7 +157,7 @@ define(function (require, exports, module) {
     function setAutomatic(enable) {
         _automaticSort = enable;
         PreferencesManager.setViewState("automaticSort", _automaticSort);
-        CommandManager.get(Commands.CMD_SORT_PANE_VIEW_TOGGLE_AUTO).setChecked(_automaticSort);
+        CommandManager.get(Commands.CMD_WORKING_SORT_TOGGLE_AUTO).setChecked(_automaticSort);
         _currentSort.setChecked(_automaticSort);
         
         if (_automaticSort) {
@@ -177,7 +177,7 @@ define(function (require, exports, module) {
                 .on(_currentSort.getEvents(), function () {
                     _currentSort.sort();
                 })
-                .on("_paneViewDisableAutoSort.sort", function () {
+                .on("_workingSetDisableAutoSort.sort", function () {
                     setAutomatic(false);
                 });
         }
@@ -199,7 +199,7 @@ define(function (require, exports, module) {
                 newSort.setChecked(true);
             }
             
-            CommandManager.get(Commands.CMD_SORT_PANE_VIEW_TOGGLE_AUTO).setEnabled(!!newSort.getEvents());
+            CommandManager.get(Commands.CMD_WORKING_SORT_TOGGLE_AUTO).setEnabled(!!newSort.getEvents());
             PreferencesManager.setViewState(_PANE_SORT_PREF, newSort.getCommandID());
             _currentSort = newSort;
         }
@@ -325,7 +325,7 @@ define(function (require, exports, module) {
     
     
     /** 
-     * Command Handler for CMD_SORT_PANE_VIEW_TOGGLE_AUTO
+     * Command Handler for CMD_WORKING_SORT_TOGGLE_AUTO
      * @private
      */
     function _handleToggleAutoSort() {
@@ -333,7 +333,7 @@ define(function (require, exports, module) {
     }
     
     /** 
-     * Command Handler for CMD_SORT_PANE_VIEW_LIST_BY_* 
+     * Command Handler for CMD_WORKINGSET_SORT_BY_* 
      * @private
      * @param {!string} commandId identifies the sort method to use 
      */
@@ -345,7 +345,7 @@ define(function (require, exports, module) {
      * Register Sort Methods 
      */
     register(
-        Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED,
+        Commands.CMD_WORKINGSET_SORT_BY_ADDED,
         function (paneId, file1, file2) {
             var index1 = MainViewManager.findInWorkingSetByAddedOrder(paneId, file1.fullPath),
                 index2 = MainViewManager.findInWorkingSetByAddedOrder(paneId, file2.fullPath);
@@ -355,14 +355,14 @@ define(function (require, exports, module) {
         _SORT_EVENT_NAMES
     );
     register(
-        Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME,
+        Commands.CMD_WORKINGSET_SORT_BY_NAME,
         function (paneId, file1, file2) {
             return FileUtils.compareFilenames(file1.name, file2.name, false);
         },
         _SORT_EVENT_NAMES
     );
     register(
-        Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,
+        Commands.CMD_WORKINGSET_SORT_BY_TYPE,
         function (paneId, file1, file2) {
             return FileUtils.compareFilenames(file1.name, file2.name, true);
         },
@@ -373,10 +373,10 @@ define(function (require, exports, module) {
     /**
      * Register Command Handlers
      */
-    CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_ADDED, Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED, _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED));
-    CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_NAME,  Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME,  _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME));
-    CommandManager.register(Strings.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,  Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE,  _.partial(_handleSort, Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE));
-    CommandManager.register(Strings.CMD_SORT_PANE_VIEW_TOGGLE_AUTO,   Commands.CMD_SORT_PANE_VIEW_TOGGLE_AUTO,    _handleToggleAutoSort);
+    CommandManager.register(Strings.CMD_WORKINGSET_SORT_BY_ADDED, Commands.CMD_WORKINGSET_SORT_BY_ADDED, _.partial(_handleSort, Commands.CMD_WORKINGSET_SORT_BY_ADDED));
+    CommandManager.register(Strings.CMD_WORKINGSET_SORT_BY_NAME,  Commands.CMD_WORKINGSET_SORT_BY_NAME,  _.partial(_handleSort, Commands.CMD_WORKINGSET_SORT_BY_NAME));
+    CommandManager.register(Strings.CMD_WORKINGSET_SORT_BY_TYPE,  Commands.CMD_WORKINGSET_SORT_BY_TYPE,  _.partial(_handleSort, Commands.CMD_WORKINGSET_SORT_BY_TYPE));
+    CommandManager.register(Strings.CMD_WORKING_SORT_TOGGLE_AUTO,   Commands.CMD_WORKING_SORT_TOGGLE_AUTO,    _handleToggleAutoSort);
     
     
     /**
@@ -402,7 +402,7 @@ define(function (require, exports, module) {
         }
 
         if (!sortMethod) {
-            sortMethod = Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED;
+            sortMethod = Commands.CMD_WORKINGSET_SORT_BY_ADDED;
         }
         return sortMethod;
     }

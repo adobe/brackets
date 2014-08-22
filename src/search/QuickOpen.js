@@ -357,7 +357,7 @@ define(function (require, exports, module) {
                 // So we call `prepareClose()` first, and finish the close later.
                 doClose = false;
                 this.modalBar.prepareClose();
-                CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, {fullPath: fullPath})
+                CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath})
                     .done(function () {
                         if (cursorPos) {
                             var editor = EditorManager.getCurrentFullEditor();

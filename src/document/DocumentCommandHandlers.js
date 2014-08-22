@@ -453,7 +453,7 @@ define(function (require, exports, module) {
         // do "View Source" from Adobe Scout version 1.2 or newer (this will use decorated paths of the form "path:line:column")
     }
 
-  /**
+    /**
      * Opens the given file, makes it the current file, AND adds it to the pane view list
      * only if the file does not have a custom viewer.
      * @param {FileCommandData} commandData  
@@ -492,9 +492,13 @@ define(function (require, exports, module) {
      *   optional PaneId (defaults to active pane)
      * @return {$.Promise} a jQuery promise that will be resolved with a @type {File} 
      */
-    function handleAddToPaneViewList(commandData) {
+    function handleFileAddToWorkingSetAndOpen(commandData) {
         return handleFileOpen(commandData).done(function (file) {
-            
+            // TODO: This will not work for images since they do not
+            //          have document objects... 
+            // addView is synchronous
+            // When opening a file with a custom viewer, we get a null doc.
+            // So check it before we add it to the pane view list.
             var paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
             MainViewManager.addToWorkingSet(paneId, file, commandData.index, commandData.forceRedraw);
         });
@@ -514,10 +518,10 @@ define(function (require, exports, module) {
         // This is a legacy deprecated command that 
         //  will use the new command and resolve with a document
         //  as the legacy command would only support.
-        DeprecationWarning.deprecationWarning("Commands.FILE_ADD_TO_WORKING_SET has been deprecated.  Use Commands.CMD_ADD_TO_PANE_AND_OPEN instead.");
+        DeprecationWarning.deprecationWarning("Commands.FILE_ADD_TO_WORKING_SET has been deprecated.  Use Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN instead.");
         var result = new $.Deferred();
         
-        handleAddToPaneViewList(commandData)
+        handleFileAddToWorkingSetAndOpen(commandData)
             .done(function (file) {
                 // if we succeeded with an open file
                 //  then we need to resolve that to a document.
@@ -532,7 +536,7 @@ define(function (require, exports, module) {
         
         return result.promise();
     }
-    
+
     /**
      * @private
      * Ensures the suggested file name doesn't already exit.
@@ -852,7 +856,7 @@ define(function (require, exports, module) {
                     MainViewManager._removeView(info.paneId, doc.file, true);
                     
                     // Add new file to pane view list, and ensure we now redraw (even if index hasn't changed)
-                    fileOpenPromise = handleAddToPaneViewList({fullPath: path, paneId: info.paneId, index: info.index, forceRedraw: true});
+                    fileOpenPromise = handleFileAddToWorkingSetAndOpen({fullPath: path, paneId: info.paneId, index: info.index, forceRedraw: true});
                 }
 
                 // always configure editor after file is opened
@@ -1667,30 +1671,36 @@ define(function (require, exports, module) {
     }
 
     // Deprecated commands
-    CommandManager.register(Strings.CMD_ADD_TO_PANE_AND_OPEN,   Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
+    CommandManager.register(Strings.CMD_ADD_TO_WORKINGSET_AND_OPEN,  Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);
+    CommandManager.register(Strings.CMD_FILE_OPEN,                   Commands.FILE_OPEN,                      handleDocumentOpen);
     
-    // Register global commands
-    CommandManager.register(Strings.CMD_FILE_OPEN,              Commands.FILE_OPEN, handleDocumentOpen);
-    CommandManager.register(Strings.CMD_FILE_OPEN,              Commands.CMD_OPEN, handleFileOpen);
-    CommandManager.register(Strings.CMD_ADD_TO_PANE_AND_OPEN,  Commands.CMD_ADD_TO_PANE_AND_OPEN, handleAddToPaneViewList);
-    CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,      Commands.FILE_NEW_UNTITLED, handleFileNew);
-    CommandManager.register(Strings.CMD_FILE_NEW,               Commands.FILE_NEW, handleFileNewInProject);
-    CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,        Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
-    CommandManager.register(Strings.CMD_FILE_SAVE,              Commands.FILE_SAVE, handleFileSave);
-    CommandManager.register(Strings.CMD_FILE_SAVE_ALL,          Commands.FILE_SAVE_ALL, handleFileSaveAll);
-    CommandManager.register(Strings.CMD_FILE_SAVE_AS,           Commands.FILE_SAVE_AS, handleFileSaveAs);
-    CommandManager.register(Strings.CMD_FILE_RENAME,            Commands.FILE_RENAME, handleFileRename);
-    CommandManager.register(Strings.CMD_FILE_DELETE,            Commands.FILE_DELETE, handleFileDelete);
+    // New commands
+    CommandManager.register(Strings.CMD_FILE_OPEN,                   Commands.CMD_OPEN,                       handleFileOpen);
+    CommandManager.register(Strings.CMD_ADD_TO_WORKINGSET_AND_OPEN,  Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, handleFileAddToWorkingSetAndOpen);
     
-    CommandManager.register(Strings.CMD_FILE_CLOSE,             Commands.FILE_CLOSE, handleFileClose);
-    CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,         Commands.FILE_CLOSE_ALL, handleFileCloseAll);
-    CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,        Commands.FILE_CLOSE_LIST, handleFileCloseList);
-    CommandManager.register(quitString,                         Commands.FILE_QUIT, handleFileQuit);
+    // File Commands
+    CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,           Commands.FILE_NEW_UNTITLED,              handleFileNew);
+    CommandManager.register(Strings.CMD_FILE_NEW,                    Commands.FILE_NEW,                       handleFileNewInProject);
+    CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,             Commands.FILE_NEW_FOLDER,                handleNewFolderInProject);
+    CommandManager.register(Strings.CMD_FILE_SAVE,                   Commands.FILE_SAVE,                      handleFileSave);
+    CommandManager.register(Strings.CMD_FILE_SAVE_ALL,               Commands.FILE_SAVE_ALL,                  handleFileSaveAll);
+    CommandManager.register(Strings.CMD_FILE_SAVE_AS,                Commands.FILE_SAVE_AS,                   handleFileSaveAs);
+    CommandManager.register(Strings.CMD_FILE_RENAME,                 Commands.FILE_RENAME,                    handleFileRename);
+    CommandManager.register(Strings.CMD_FILE_DELETE,                 Commands.FILE_DELETE,                    handleFileDelete);
     
-    CommandManager.register(Strings.CMD_NEXT_DOC,               Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
-    CommandManager.register(Strings.CMD_PREV_DOC,               Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
-    CommandManager.register(Strings.CMD_SHOW_IN_TREE,           Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
-    CommandManager.register(showInOS,                           Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
+    // Close Commands
+    CommandManager.register(Strings.CMD_FILE_CLOSE,                  Commands.FILE_CLOSE,                     handleFileClose);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,              Commands.FILE_CLOSE_ALL,                 handleFileCloseAll);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,             Commands.FILE_CLOSE_LIST,                handleFileCloseList);
+    
+    // Traversal
+    CommandManager.register(Strings.CMD_NEXT_DOC,                    Commands.NAVIGATE_NEXT_DOC,              handleGoNextDoc);
+    CommandManager.register(Strings.CMD_PREV_DOC,                    Commands.NAVIGATE_PREV_DOC,              handleGoPrevDoc);
+
+    // Special Commands
+    CommandManager.register(showInOS,                                Commands.NAVIGATE_SHOW_IN_OS,            handleShowInOS);
+    CommandManager.register(quitString,                              Commands.FILE_QUIT,                      handleFileQuit);
+    CommandManager.register(Strings.CMD_SHOW_IN_TREE,                Commands.NAVIGATE_SHOW_IN_FILE_TREE,     handleShowInTree);
 
     // These commands have no UI representation and are only used internally
     CommandManager.registerInternal(Commands.APP_ABORT_QUIT,            handleAbortQuit);

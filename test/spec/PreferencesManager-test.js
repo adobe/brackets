@@ -136,7 +136,7 @@ define(function (require, exports, module) {
             runs(function () {
                 expect(PreferencesManager.get("spaceUnits")).toBe(9);
                 waitsForDone(FileViewController.openAndSelectDocument(nonProjectFile,
-                             FileViewController.PANE_VIEW_LIST_VIEW));
+                             FileViewController.WORKINGSET_VIEW));
             
             });
             

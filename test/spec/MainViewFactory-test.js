@@ -112,8 +112,8 @@ define(function (require, exports, module) {
             });
             it("should add an image to the working set", function () {
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/images/events.jpg" });
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/images/events.jpg" });
+                    waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
                 });
                 runs(function () {
                     expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("events.jpg");
@@ -126,24 +126,24 @@ define(function (require, exports, module) {
             it("Image Views should Reparent", function () {
                 runs(function () {
                     MainViewManager.setLayoutScheme(1, 2);
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/images/events.jpg",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/images/events.jpg",
                                                                                             paneId: "first-pane"});
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/images/lrg_logo.jpg",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/images/lrg_logo.jpg",
                                                                                             paneId: "second-pane"});
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/images/specials.jpg",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/images/specials.jpg",
                                                                                             paneId: "second-pane"});
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,  { fullPath: testPath + "/images/lrg_hero.jpg",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/images/lrg_hero.jpg",
                                                                                             paneId: "second-pane"});
-                    waitsForDone(promise, Commands.CMD_ADD_TO_PANE_AND_OPEN);
+                    waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
                 });
                 runs(function () {
                     MainViewManager.setLayoutScheme(1, 1);

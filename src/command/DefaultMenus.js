@@ -228,11 +228,11 @@ define(function (require, exports, module) {
         pane_view_list_cmenu.addMenuItem(Commands.FILE_CLOSE);
         
         var pane_view_list_configuration_menu = Menus.registerContextMenu(Menus.ContextMenuIds.PANE_VIEW_LIST_CONFIG_MENU);
-        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED);
-        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME);
-        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE);
+        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_WORKINGSET_SORT_BY_ADDED);
+        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_WORKINGSET_SORT_BY_NAME);
+        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_WORKINGSET_SORT_BY_TYPE);
         pane_view_list_configuration_menu.addMenuDivider();
-        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_SORT_PANE_VIEW_TOGGLE_AUTO);
+        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_WORKING_SORT_TOGGLE_AUTO);
         
         
         /*
