@@ -140,7 +140,7 @@ define(function (require, exports, module) {
      * @param {!Editor} editor - editor to cache data for
      */
     function _saveEditorViewState(editor) {
-        ViewStateManager.setViewState(editor.document.file, editor.getViewState());
+        ViewStateManager.updateViewState(editor);
     }
     
     /** 

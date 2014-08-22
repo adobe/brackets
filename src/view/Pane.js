@@ -706,8 +706,8 @@ define(function (require, exports, module) {
             oldView = this._currentView;
         
         if (this._currentView) {
-            if (file) {
-                ViewStateManager.setViewState(file, oldView.getViewState());
+            if (this._currentView.getFile()) {
+                ViewStateManager.updateViewState(this._currentView);
             }
             this._currentView.setVisible(false);
         } else {
@@ -957,7 +957,7 @@ define(function (require, exports, module) {
 
         // Save the current view state first
         if (this._currentView && this._currentView.getFile()) {
-            ViewStateManager.setViewState(this._currentView.getFile(), this._currentView.getViewState());
+            ViewStateManager.updateViewState(this._currentView);
         }
         
         // walk the list of views and save

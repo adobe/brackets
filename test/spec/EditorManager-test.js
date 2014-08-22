@@ -119,7 +119,7 @@ define(function (require, exports, module) {
             it("should remember a file's view state", function () {
                 ViewStateManager.addViewStates({ a: "1234" });
                 expect(ViewStateManager.getViewState({fullPath: "a"})).toEqual("1234");
-                ViewStateManager.setViewState({ fullPath: "b"}, "Jeff was here");
+                ViewStateManager.addViewStates({ b: "Jeff was here" });
                 expect(ViewStateManager.getViewState({fullPath: "B"})).toBeUndefined();
                 expect(ViewStateManager.getViewState({fullPath: "b"})).toEqual("Jeff was here");
             });
@@ -135,6 +135,20 @@ define(function (require, exports, module) {
                 ViewStateManager.reset();
                 expect(ViewStateManager.getViewState({fullPath: "a"})).toBeUndefined();
                 expect(ViewStateManager.getViewState({fullPath: "b"})).toBeUndefined();
+            });
+            it("should update the view state cache", function () {
+                var myView = {
+                    getFile: function () {
+                        return {
+                            fullPath: "a"
+                        };
+                    },
+                    getViewState: function () {
+                        return "1234";
+                    }
+                };
+                ViewStateManager.updateViewState(myView);
+                expect(ViewStateManager.getViewState({fullPath: "a"})).toEqual("1234");
             });
         });
     });

@@ -49,8 +49,18 @@ define(function (require, exports, module) {
      * @param {!File} file - the file to record the view state for
      * @param {?*} viewState - any data that the view needs to restore the view state.  
      */
-    function setViewState(file, viewState) {
+    function _setViewState(file, viewState) {
         _viewStateCache[file.fullPath] = viewState;
+    }
+    
+    
+    /**
+     * Updates the view state for the specified view
+     * @param {!{!getFile:function():File, getViewState:function():*}} view - the to save state
+     * @param {?*} viewState - any data that the view needs to restore the view state.  
+     */
+    function updateViewState(view) {
+        _setViewState(view.getFile(), view.getViewState());
     }
     
     /**
@@ -74,7 +84,7 @@ define(function (require, exports, module) {
      * Public API
      */
     exports.reset           = reset;
-    exports.setViewState    = setViewState;
+    exports.updateViewState = updateViewState;
     exports.getViewState    = getViewState;
     exports.addViewStates   = addViewStates;
 });
