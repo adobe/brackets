@@ -216,7 +216,7 @@ define(function (require, exports, module) {
                 myPane.showView(myView);
                 secondPane.showView(secondView);
                 
-                myPane.mergeWith(secondPane);
+                myPane.mergeFrom(secondPane);
                 expect(secondView.switchContainers).toHaveBeenCalled();
                 expect(secondView.destroy).not.toHaveBeenCalled();
                 
@@ -235,7 +235,7 @@ define(function (require, exports, module) {
                 myPane.showView(myView);
                 secondPane.showView(secondView);
                 
-                myPane.mergeWith(secondPane);
+                myPane.mergeFrom(secondPane);
                 expect(secondView.destroy).toHaveBeenCalled();
 
                 secondPane.destroy();
@@ -251,7 +251,7 @@ define(function (require, exports, module) {
                 myPane.showView(myView);
                 secondPane.showView(secondView);
                 
-                myPane.mergeWith(secondPane);
+                myPane.mergeFrom(secondPane);
                 expect(secondPane.$el.find(".not-editor").css("display")).toBeFalsy();
                 
                 secondPane.destroy();

@@ -76,7 +76,7 @@ define(function (require, exports, module) {
     /** 
      * Change the doc selection to the working set when ever a new file is added to the working set
      */
-    $(MainViewManager).on("paneViewAdd", function (event, addedFile) {
+    $(MainViewManager).on("workingSetAdd", function (event, addedFile) {
         _fileSelectionFocus = PANE_VIEW_LIST_VIEW;
         $(exports).triggerHandler("documentSelectionFocusChange");
     });
@@ -89,7 +89,7 @@ define(function (require, exports, module) {
         if (!_curDocChangedDueToMe) {
             // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
             perfTimerName = PerfUtils.markStart("FileViewController._oncurrentFileChange():\t" + (file ? (file.fullPath) : "(no open file)"));
-            if (file && MainViewManager.findView(paneId,  file.fullPath) !== -1) {
+            if (file && MainViewManager.findInWorkingSet(paneId,  file.fullPath) !== -1) {
                 _fileSelectionFocus = PANE_VIEW_LIST_VIEW;
             } else {
                 _fileSelectionFocus = PROJECT_MANAGER;

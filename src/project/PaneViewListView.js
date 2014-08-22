@@ -367,7 +367,7 @@ define(function (require, exports, module) {
             selected        = $listItem.hasClass("selected"),
             prevSelected    = $prevListItem.hasClass("selected"),
             nextSelected    = $nextListItem.hasClass("selected"),
-            index           = MainViewManager.findView(self.paneId, $listItem.data(_FILE_KEY).fullPath),
+            index           = MainViewManager.findInWorkingSet(self.paneId, $listItem.data(_FILE_KEY).fullPath),
             height          = $listItem.height(),
             startPageY      = event.pageY,
             listItemTop     = startPageY - $listItem.offset().top,
@@ -398,13 +398,13 @@ define(function (require, exports, module) {
                         $prevListItem.insertAfter($listItem);
                         startPageY -= height;
                         top = top + height;
-                        MainViewManager.swapPaneViewListIndexes(self.paneId, index, --index);
+                        MainViewManager.swapWorkingSetListIndexes(self.paneId, index, --index);
                     // If moving down, place the next item before the moving item
                     } else {
                         $nextListItem.insertBefore($listItem);
                         startPageY += height;
                         top = top - height;
-                        MainViewManager.swapPaneViewListIndexes(self.paneId, index, ++index);
+                        MainViewManager.swapWorkingSetListIndexes(self.paneId, index, ++index);
                     }
                     
                     // Update the selection when the previows or next element were selected
@@ -698,7 +698,7 @@ define(function (require, exports, module) {
     };
 
     /** 
-     * paneViewRemove event handler
+     * workingSetRemove event handler
      * @private 
      * @param {jQuery.Event} e - event object
      * @param {!File} file - the file that was removed
@@ -725,7 +725,7 @@ define(function (require, exports, module) {
     };
 
     /** 
-     * paneViewRemoveList event handler
+     * workingSetRemoveList event handler
      * @private
      * @param {jQuery.Event} e - event object
      * @param {!Array.<File>} files - the files that were removed
@@ -798,11 +798,11 @@ define(function (require, exports, module) {
         this.$openFilesList = this.$el.find("ul");
         
         // Register listeners
-        $(MainViewManager).on(this._makeEventName("paneViewAdd"), _.bind(this._handleFileAdded, this));
-        $(MainViewManager).on(this._makeEventName("paneViewAddList"), _.bind(this._handleFileListAdded, this));
-        $(MainViewManager).on(this._makeEventName("paneViewRemove"), _.bind(this._handleFileRemoved, this));
-        $(MainViewManager).on(this._makeEventName("paneViewRemoveList"), _.bind(this._handleRemoveList, this));
-        $(MainViewManager).on(this._makeEventName("paneViewSort"), _.bind(this._handlepaneViewSort, this));
+        $(MainViewManager).on(this._makeEventName("workingSetAdd"), _.bind(this._handleFileAdded, this));
+        $(MainViewManager).on(this._makeEventName("workingSetAddList"), _.bind(this._handleFileListAdded, this));
+        $(MainViewManager).on(this._makeEventName("workingSetRemove"), _.bind(this._handleFileRemoved, this));
+        $(MainViewManager).on(this._makeEventName("workingSetRemoveList"), _.bind(this._handleRemoveList, this));
+        $(MainViewManager).on(this._makeEventName("workingSetSort"), _.bind(this._handlepaneViewSort, this));
         $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
         $(MainViewManager).on(this._makeEventName("paneLayoutChange"), _.bind(this._handlePaneLayoutChange, this));
         $(MainViewManager).on(this._makeEventName("paneViewUpdate"), _.bind(this._handlepaneViewUpdate, this));

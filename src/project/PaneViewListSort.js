@@ -78,7 +78,7 @@ define(function (require, exports, module) {
      * @constant {string} 
      * @private
      */
-    var _SORT_EVENT_NAMES = "paneViewAdd paneViewAddList";
+    var _SORT_EVENT_NAMES = "workingSetAdd paneViewAddList";
     
     /**
      * Preference name
@@ -269,7 +269,7 @@ define(function (require, exports, module) {
     Sort.prototype.sort = function () {
         if (_currentSort === this) {
             _removeListeners();
-            MainViewManager.sortViews(MainViewManager.ALL_PANES, this._compareFn);
+            MainViewManager._sortWorkingSet(MainViewManager.ALL_PANES, this._compareFn);
             _addListeners();
         }
     };
@@ -347,8 +347,8 @@ define(function (require, exports, module) {
     register(
         Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED,
         function (paneId, file1, file2) {
-            var index1 = MainViewManager.findViewByAddedOrder(paneId, file1.fullPath),
-                index2 = MainViewManager.findViewByAddedOrder(paneId, file2.fullPath);
+            var index1 = MainViewManager.findInWorkingSetByAddedOrder(paneId, file1.fullPath),
+                index2 = MainViewManager.findInWorkingSetByAddedOrder(paneId, file2.fullPath);
             
             return index1 - index2;
         },

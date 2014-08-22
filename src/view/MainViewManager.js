@@ -57,9 +57,9 @@
  *          (e, fileAdded:File, index:number, paneId:string)
  *    - paneViewAddList -- When multiple files are added to the working set 
  *          (e, fileAdded:Array.<File>, paneId:string)
- *    - paneViewRemove -- When a file is removed from the working set 
+ *    - workingSetRemove -- When a file is removed from the working set 
  *          (e, fileRemoved:File, suppressRedraw:boolean, paneId:string)
- *    - paneViewRemoveList -- When multiple files are removed from the working set 
+ *    - workingSetRemoveList -- When multiple files are removed from the working set 
  *          (e, filesRemoved:Array.<File>, paneId:string)
  *    - paneViewSort -- When a pane's view array is reordered without additions or removals.
  *          (e, paneId:string)
@@ -539,7 +539,7 @@ define(function (require, exports, module) {
      * @param {!string} fullPath - path of the file to find views of
      * @return {Array.<{pane:string, index:number}>} an array of paneId/index records 
      */
-    function findAllViewsOf(fullPath) {
+    function findInAllWorkingSets(fullPath) {
         var index,
             result = [];
         
@@ -559,7 +559,7 @@ define(function (require, exports, module) {
      * @param {!string} fullPath - full path of the file to search for
      * @return {number} index, -1 if not found.
      */
-    function findView(paneId, fullPath) {
+    function findInWorkingSet(paneId, fullPath) {
         return _doFindView(paneId, fullPath, "findInViewList");
     }
     
@@ -569,7 +569,7 @@ define(function (require, exports, module) {
      * @param {!string} fullPath - full path of the file to search for
      * @return {number} index, -1 if not found.
      */
-    function findViewByAddedOrder(paneId, fullPath) {
+    function findInWorkingSetByAddedOrder(paneId, fullPath) {
         return _doFindView(paneId, fullPath, "findInViewListAddedOrder");
     }
     
@@ -579,7 +579,7 @@ define(function (require, exports, module) {
      * @param {!string} fullPath - full path of the file to search for
      * @return {number} index, -1 if not found.
      */
-    function findViewByMruOrder(paneId, fullPath) {
+    function findInWorkingSetByMruOrder(paneId, fullPath) {
         return _doFindView(paneId, fullPath, "findInViewListMRUOrder");
     }
 
@@ -590,7 +590,7 @@ define(function (require, exports, module) {
      */
     function getPaneIdForPath(fullPath) {
         // Search all working sets and pull off the first one
-        var info = findAllViewsOf(fullPath).shift();
+        var info = findInAllWorkingSets(fullPath).shift();
 
         // Look for a view that has not been added to a working set
         if (!info) {
@@ -622,7 +622,7 @@ define(function (require, exports, module) {
         var pane = _getPane(paneId),
             existingPaneId = getPaneIdForPath(file.fullPath);
 
-        if (!EditorManager.canOpenFile(file.fullPath) || (findView(ALL_PANES, file.fullPath) !== -1)) {
+        if (!EditorManager.canOpenFile(file.fullPath) || (findInWorkingSet(ALL_PANES, file.fullPath) !== -1)) {
             return;
         }
         
@@ -635,7 +635,7 @@ define(function (require, exports, module) {
             entry = makeFileListEntry(file, pane.id);
 
         if (result === pane.ITEM_FOUND_NEEDS_SORT) {
-            $(exports).triggerHandler("paneViewSort", [pane.id]);
+            $(exports).triggerHandler("workingSetSort", [pane.id]);
         } else if (result === pane.ITEM_NOT_FOUND) {
             index = pane.addToViewList(file, index);
 
@@ -646,7 +646,7 @@ define(function (require, exports, module) {
                 _mruList.push(entry);
             }
 
-            $(exports).triggerHandler("paneViewAdd", [file, index, pane.id]);
+            $(exports).triggerHandler("workingSetAdd", [file, index, pane.id]);
         }
     }
 
@@ -665,7 +665,7 @@ define(function (require, exports, module) {
             _mruList.push(makeFileListEntry(file, pane.id));
         });
         
-        $(exports).triggerHandler("paneViewAddList", [uniqueFileList, pane.id]);
+        $(exports).triggerHandler("workingSetAddList", [uniqueFileList, pane.id]);
         
         //  find all of the files that could be added but were not added to the pane that was passed to us
         var unsolvedList = fileList.filter(function (item) {
@@ -715,7 +715,7 @@ define(function (require, exports, module) {
 
         if (pane && pane.removeFromViewList(file)) {
             _removeFileFromMRU(pane.id, file);
-            $(exports).triggerHandler("paneViewRemove", [file, suppressRedraw, pane.id]);
+            $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw, pane.id]);
         }
     }
     
@@ -766,12 +766,13 @@ define(function (require, exports, module) {
      * @param {sortFunctionCallback} compareFn - callback to determine sort order (called on each item)
      * @see {@link Pane.sortViewList()} for more information
      * @see {@link https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort|Sort Array - MDN}
+     * @privaate
      */
-    function sortViews(paneId, compareFn) {
+    function _sortWorkingSet(paneId, compareFn) {
         var doSort = function (pane) {
             if (pane) {
                 pane.sortViewList(compareFn);
-                $(exports).triggerHandler("paneViewSort", [pane.id]);
+                $(exports).triggerHandler("workingSetSort", [pane.id]);
             }
         };
         
@@ -789,13 +790,14 @@ define(function (require, exports, module) {
      * @param {!string} paneId - id of the pane to swap indices or ACTIVE_PANE
      * @param {!number} index1 - the index on the left
      * @param {!number} index2 - the index on the rigth
+     * @private
      */
-    function swapPaneViewListIndexes(paneId, index1, index2) {
+    function _swapWorkingSetListIndexes(paneId, index1, index2) {
         var pane = _getPane(paneId);
 
         if (pane) {
             pane.swapViewListIndexes(index1, index2);
-            $(exports).triggerHandler("paneViewSort", [pane.id]);
+            $(exports).triggerHandler("workingSetSort", [pane.id]);
             $(exports).triggerHandler("_paneViewDisableAutoSort", [pane.id]);
         }
     }
@@ -1035,7 +1037,7 @@ define(function (require, exports, module) {
             
             firstPane.mergeFrom(secondPane);
         
-            $(exports).triggerHandler("paneViewRemoveList", [fileList, secondPane.id]);
+            $(exports).triggerHandler("workingSetRemoveList", [fileList, secondPane.id]);
 
             setActivePaneId(firstPane.id);
             
@@ -1045,7 +1047,7 @@ define(function (require, exports, module) {
             secondPane.destroy();
             delete _paneViews[SECOND_PANE];
             $(exports).triggerHandler("paneDestroy", secondPane.id);
-            $(exports).triggerHandler("paneViewAddList", [fileList, firstPane.id]);
+            $(exports).triggerHandler("workingSetAddList", [fileList, firstPane.id]);
 
             _mruList.forEach(function (record) {
                 if (record.paneId === secondPane.id) {
@@ -1082,7 +1084,7 @@ define(function (require, exports, module) {
 
         if (pane.doRemoveView(file, !options.noOpenNextFile)) {
             _removeFileFromMRU(pane.id, file);
-            $(exports).triggerHandler("paneViewRemove", [file, false, pane.id]);
+            $(exports).triggerHandler("workingSetRemove", [file, false, pane.id]);
         }
     }
 
@@ -1098,7 +1100,7 @@ define(function (require, exports, module) {
                 _removeFileFromMRU(pane.id, file);
             });
 
-            $(exports).triggerHandler("paneViewRemoveList", [closedList, pane.id]);
+            $(exports).triggerHandler("workingSetRemoveList", [closedList, pane.id]);
         });
     }
     
@@ -1115,7 +1117,7 @@ define(function (require, exports, module) {
             });
 
             pane.doRemoveAllViews();
-            $(exports).triggerHandler("paneViewRemoveList", [closedList, pane.id]);
+            $(exports).triggerHandler("workingSetRemoveList", [closedList, pane.id]);
         });
     }
 
@@ -1132,7 +1134,7 @@ define(function (require, exports, module) {
         
         if (!pane) {
             // No view of the document, it may be in a working set and not yet opened
-            var info = findAllViewsOf(document.file.fullPath).shift();
+            var info = findInAllWorkingSets(document.file.fullPath).shift();
             if (info) {
                 pane = _paneViews[info.paneId];
             }
@@ -1250,7 +1252,7 @@ define(function (require, exports, module) {
                     fileList.forEach(function (file) {
                         _mruList.push(makeFileListEntry(file, pane.id));
                     });
-                    $(exports).triggerHandler("paneViewAddList", [fileList, pane.id]);
+                    $(exports).triggerHandler("workingSetAddList", [fileList, pane.id]);
                 });
             });
         }
@@ -1408,24 +1410,24 @@ define(function (require, exports, module) {
         
     // Private Helpers
     exports._removeView                 = _removeView;
+    exports._sortWorkingSet             = _sortWorkingSet;
+    exports._swapWorkingSetListIndexes  = _swapWorkingSetListIndexes;
     
     // WorkingSet Management  
     exports.addToWorkingSet             = addToWorkingSet;
     exports.addListToWorkingSet         = addListToWorkingSet;
     exports.getWorkingSetSize           = getWorkingSetSize;
     exports.getWorkingSet               = getWorkingSet;
-    exports.sortViews                   = sortViews;
-    exports.swapPaneViewListIndexes     = swapPaneViewListIndexes;
     
     // Pane state
     exports.cacheScrollState            = cacheScrollState;
     exports.restoreAdjustedScrollState  = restoreAdjustedScrollState;
 
     // Searching
-    exports.findView                    = findView;
-    exports.findViewByAddedOrder        = findViewByAddedOrder;
-    exports.findViewByMruOrder          = findViewByMruOrder;
-    exports.findAllViewsOf              = findAllViewsOf;
+    exports.findInWorkingSet             = findInWorkingSet;
+    exports.findInWorkingSetByAddedOrder = findInWorkingSetByAddedOrder;
+    exports.findInWorkingSetByMruOrder   = findInWorkingSetByMruOrder;
+    exports.findInAllWorkingSets         = findInAllWorkingSets;
     
     // Traversal
     exports.beginTraversal              = beginTraversal;

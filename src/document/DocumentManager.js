@@ -165,17 +165,13 @@ define(function (require, exports, module) {
 
     /**
      * Returns the index of the file matching fullPath in the working set.
-     * @deprecated Use MainViewManager.findView() instead
+     * @deprecated Use MainViewManager.findInWorkingSet() instead
      * @param {!string} fullPath
      * @return {number} index, -1 if not found
      */
-    function findInWorkingSet(fullPath, list) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.findView() instead of DocumentManager.findInWorkingSet()", true);
-        if (list) {
-            DeprecationWarning.deprecationWarning("DocumentManager.findInWorkingSet() no longer supports an arbitrary array", true);
-            return [];
-        }
-        return MainViewManager.findView(MainViewManager.ACTIVE_PANE, fullPath);
+    function findInWorkingSet(fullPath) {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.findInWorkingSet() instead of DocumentManager.findInWorkingSet()", true);
+        return MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, fullPath);
     }
     
     /**
@@ -607,16 +603,16 @@ define(function (require, exports, module) {
     
     /**
      * Creates a deprecation warning event handler
-     * @param {!string} the event being deprecated
-     * @param {!string} the new event to use
+     * @param {!string} eventName - the event being deprecated. 
+     *  The Event Name doesn't change just which object dispatches it
      */
-    function _deprecateEvent(oldEventName, newEventName) {
+    function _deprecateEvent(eventName) {
         DeprecationWarning.deprecateEvent(exports,
                                           MainViewManager,
-                                          oldEventName,
-                                          newEventName,
-                                          "DocumentManager." + oldEventName,
-                                          "MainViewManager." + newEventName);
+                                          eventName,
+                                          eventName,
+                                          "DocumentManager." + eventName,
+                                          "MainViewManager." + eventName);
     }
     
     /* 
@@ -625,18 +621,18 @@ define(function (require, exports, module) {
      * handler chain which gives the system a chance to process them
      * before they are dispatched to extensions.  
      * 
-     * Extensions that listen to the new event (paneViewXXX events) are 
-     * always added to the end so this effectively puts the legacy events 
+     * Extensions that listen to the new MainViewManager working set events 
+     * are always added to the end so this effectively puts the legacy events 
      * at the end of the event list. This prevents extensions from 
      * handling the event too soon. (e.g.  paneViewListView needs to 
      * process these events before the Extension Highlighter extension)
      */
     AppInit.extensionsLoaded(function () {
-        _deprecateEvent("workingSetAdd",         "paneViewAdd");
-        _deprecateEvent("workingSetAddList",     "paneViewAddList");
-        _deprecateEvent("workingSetRemove",      "paneViewRemove");
-        _deprecateEvent("workingSetRemoveList",  "paneViewRemoveList");
-        _deprecateEvent("workingSetSort",        "paneViewSort");
+        _deprecateEvent("workingSetAdd");
+        _deprecateEvent("workingSetAddList");
+        _deprecateEvent("workingSetRemove");
+        _deprecateEvent("workingSetRemoveList");
+        _deprecateEvent("workingSetSort");
     });
     
     PreferencesManager.convertPreferences(module, {"files_": "user"}, true, _checkPreferencePrefix);

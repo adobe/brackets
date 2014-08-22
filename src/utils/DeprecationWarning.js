@@ -122,7 +122,7 @@ define(function (require, exports, module) {
      *    DeprecationWarning.deprecateEvent($(exports), 
      *                                      $(MainViewManager), 
      *                                      "workingSetAdd", 
-     *                                      "paneViewAdd", 
+     *                                      "workingSetAdd", 
      *                                      "DocumentManager.workingSetAdd", 
      *                                      "MainViewManager.paneViewAdd");
      * ```
