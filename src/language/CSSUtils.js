@@ -62,7 +62,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if text has any non whitespace character
      */
     function _hasNonWhitespace(text) {
-        /\S/.test(text);
+        return (/\S/.test(text));
     }
     
     /**
