@@ -99,7 +99,8 @@ define(function (require, exports, module) {
                 var hasFailed = false;
 
                 items.forEach(function (item, i) {
-                    var itemPromise = beginProcessItem(item, i);
+                    // Convert to Promise
+                    var itemPromise = Promise.resolve(beginProcessItem(item, i));
                     promises.push(itemPromise);
 
                     itemPromise.then(null, function () {
@@ -177,7 +178,8 @@ define(function (require, exports, module) {
                     return;
                 }
 
-                var itemPromise = beginProcessItem(items[i], i);
+                // Convert to Promise
+                var itemPromise = Promise.resolve(beginProcessItem(items[i], i));
 
                 itemPromise.done(function () {
                     doItem(i + 1);
@@ -260,7 +262,8 @@ define(function (require, exports, module) {
             var parallelResult = doInParallel(
                 items,
                 function (item, i) {
-                    var itemResult = beginProcessItem(item, i);
+                    // Convert to Promise
+                    var itemResult = Promise.resolve(beginProcessItem(item, i));
                     itemResult.then(null, function (error) {
                         errors.push({ item: item, error: error });
                     });

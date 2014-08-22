@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window, WebSocket */
+/*global define, $, brackets, window, WebSocket, Promise */
 
 define(function (require, exports, module) {
     "use strict";
@@ -244,18 +244,10 @@ define(function (require, exports, module) {
      * - be rejected if the file can not be read.
      */
     function doOpen(fullPath, silent) {
-        var result = new $.Deferred();
-        
-        // workaround for https://github.com/adobe/brackets/issues/6001
-        // TODO should be removed once bug is closed.
-        // if we are already displaying a file do nothing but resolve immediately.
-        // this fixes timing issues in test cases.
-        if (EditorManager.getCurrentlyViewedPath() === fullPath) {
-            result.resolve(DocumentManager.getCurrentDocument());
-            return result.promise();
-        }
+        var perfTimerName, result;
         
         function _cleanup(fullFilePath) {
+            
             if (!fullFilePath || EditorManager.showingCustomViewerForPath(fullFilePath)) {
                 // We get here only after the user renames a file that makes it no longer belong to a
                 // custom viewer but the file is still showing in the current custom viewer. This only
@@ -270,54 +262,70 @@ define(function (require, exports, module) {
                 DocumentManager.removeFromWorkingSet(FileSystem.getFileForPath(fullFilePath));
                 EditorManager.focusEditor();
             }
-            result.reject();
         }
+        
         function _showErrorAndCleanUp(fileError, fullFilePath) {
             if (silent) {
                 _cleanup(fullFilePath);
             } else {
-                FileUtils.showFileOpenError(fileError, fullFilePath).done(function () {
+                FileUtils.showFileOpenError(fileError, fullFilePath).then(function () {
                     _cleanup(fullFilePath);
-                });
+                }, null);
             }
         }
         
-        if (!fullPath) {
-            console.error("doOpen() called without fullPath");
-            result.reject();
-        } else {
-            var perfTimerName = PerfUtils.markStart("Open File:\t" + fullPath);
-            result.always(function () {
-                PerfUtils.addMeasurement(perfTimerName);
-            });
-
-            var viewProvider = EditorManager.getCustomViewerForPath(fullPath);
-            if (viewProvider) {
-                var file = FileSystem.getFileForPath(fullPath);
-                file.exists(function (fileError, fileExists) {
-                    if (fileExists) {
-                        EditorManager._showCustomViewer(viewProvider, fullPath);
-                        result.resolve();
-                    } else {
-                        fileError = fileError || FileSystemError.NOT_FOUND;
-                        _showErrorAndCleanUp(fileError);
-                    }
-                });
+        result = new Promise(function (resolve, reject) {
+            if (EditorManager.getCurrentlyViewedPath() === fullPath) {
+                // workaround for https://github.com/adobe/brackets/issues/6001
+                // TODO should be removed once bug is closed.
+                // if we are already displaying a file do nothing but resolve immediately.
+                // this fixes timing issues in test cases.
+                resolve(DocumentManager.getCurrentDocument());
+                
+            } else if (!fullPath) {
+                console.error("doOpen() called without fullPath");
+                reject();
                 
             } else {
-                // Load the file if it was never open before, and then switch to it in the UI
-                DocumentManager.getDocumentForPath(fullPath)
-                    .done(function (doc) {
-                        DocumentManager.setCurrentDocument(doc);
-                        result.resolve(doc);
-                    })
-                    .fail(function (fileError) {
-                        _showErrorAndCleanUp(fileError, fullPath);
+                perfTimerName = PerfUtils.markStart("Open File:\t" + fullPath);
+                var viewProvider = EditorManager.getCustomViewerForPath(fullPath);
+                if (viewProvider) {
+                    var file = FileSystem.getFileForPath(fullPath);
+                    file.exists(function (fileError, fileExists) {
+                        if (fileExists) {
+                            EditorManager._showCustomViewer(viewProvider, fullPath);
+                            resolve();
+                        } else {
+                            fileError = fileError || FileSystemError.NOT_FOUND;
+                            _showErrorAndCleanUp(fileError);
+                            reject();
+                        }
                     });
-            }
-        }
 
-        return result.promise();
+                } else {
+                    // Load the file if it was never open before, and then switch to it in the UI
+                    DocumentManager.getDocumentForPath(fullPath).then(
+                        function (doc) {
+                            DocumentManager.setCurrentDocument(doc);
+                            resolve(doc);
+                        },
+                        function (fileError) {
+                            _showErrorAndCleanUp(fileError, fullPath);
+                            reject();
+                        }
+                    );
+                }
+            }
+        });
+        
+        if (perfTimerName) {
+            var fnAlways = function () {
+                PerfUtils.addMeasurement(perfTimerName);
+            };
+            result.then(fnAlways, fnAlways);
+        }
+        
+        return result;
     }
 
     /**
@@ -339,49 +347,52 @@ define(function (require, exports, module) {
     function _doOpenWithOptionalPath(fullPath, silent) {
         var result;
         if (!fullPath) {
-            // Create placeholder deferred
-            result = new $.Deferred();
-            
-            //first time through, default to the current project path
-            if (!_defaultOpenDialogFullPath) {
-                _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
-            }
-            // Prompt the user with a dialog
-            FileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null, function (err, paths) {
-                if (!err) {
-                    if (paths.length > 0) {
-                        // Add all files to the working set without verifying that
-                        // they still exist on disk (for faster opening)
-                        var filesToOpen = [],
-                            filteredPaths = DragAndDrop.filterFilesToOpen(paths);
-                        
-                        filteredPaths.forEach(function (file) {
-                            filesToOpen.push(FileSystem.getFileForPath(file));
-                        });
-                        DocumentManager.addListToWorkingSet(filesToOpen);
-                        
-                        doOpen(filteredPaths[filteredPaths.length - 1], silent)
-                            .done(function (doc) {
-                                //  doc may be null, i.e. if an image has been opened.
-                                // Then we do not add the opened file to the working set.
-                                if (doc) {
-                                    DocumentManager.addToWorkingSet(doc.file);
-                                }
-                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(EditorManager.getCurrentlyViewedPath());
-                            })
-                            // Send the resulting document that was opened
-                            .then(result.resolve, result.reject);
-                    } else {
-                        // Reject if the user canceled the dialog
-                        result.reject();
-                    }
+            // Create placeholder promise
+            result = new Promise(function (resolve, reject) {
+
+                //first time through, default to the current project path
+                if (!_defaultOpenDialogFullPath) {
+                    _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
                 }
+                // Prompt the user with a dialog
+                FileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null, function (err, paths) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        if (paths.length > 0) {
+                            // Add all files to the working set without verifying that
+                            // they still exist on disk (for faster opening)
+                            var filesToOpen = [],
+                                filteredPaths = DragAndDrop.filterFilesToOpen(paths);
+
+                            filteredPaths.forEach(function (file) {
+                                filesToOpen.push(FileSystem.getFileForPath(file));
+                            });
+                            DocumentManager.addListToWorkingSet(filesToOpen);
+
+                            doOpen(filteredPaths[filteredPaths.length - 1], silent)
+                                .then(function (doc) {
+                                    //  doc may be null, i.e. if an image has been opened.
+                                    // Then we do not add the opened file to the working set.
+                                    if (doc) {
+                                        DocumentManager.addToWorkingSet(doc.file);
+                                    }
+                                    _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(EditorManager.getCurrentlyViewedPath());
+                                }, null)
+                                // Send the resulting document that was opened
+                                .then(resolve, reject);
+                        } else {
+                            // Reject if the user canceled the dialog
+                            reject();
+                        }
+                    }
+                });
             });
         } else {
             result = doOpen(fullPath, silent);
         }
         
-        return result.promise();
+        return result;
     }
 
     /**
@@ -418,20 +429,24 @@ define(function (require, exports, module) {
     function handleFileOpen(commandData) {
         var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
             silent = commandData ? commandData.silent : false;
-        return _doOpenWithOptionalPath(fileInfo.path, silent)
-            .always(function () {
-                // If a line and column number were given, position the editor accordingly.
-                if (fileInfo.line !== null) {
-                    if (fileInfo.column === null || (fileInfo.column <= 0)) {
-                        fileInfo.column = 1;
-                    }
-                    // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
-                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1, fileInfo.column - 1, true);
+        
+        var fnAlways = function () {
+            // If a line and column number were given, position the editor accordingly.
+            if (fileInfo.line !== null) {
+                if (fileInfo.column === null || (fileInfo.column <= 0)) {
+                    fileInfo.column = 1;
                 }
-                
-                // Give the editor focus
-                EditorManager.focusEditor();
-            });
+                // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
+                EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1, fileInfo.column - 1, true);
+            }
+
+            // Give the editor focus
+            EditorManager.focusEditor();
+        };
+        
+        return _doOpenWithOptionalPath(fileInfo.path, silent)
+            .then(fnAlways, fnAlways);
+        
         // Testing notes: here are some recommended manual tests for handleFileOpen, on macintosh.
         // Do all tests with brackets already running, and also with brackets not already running.
         //
@@ -452,14 +467,14 @@ define(function (require, exports, module) {
      *   working set list (defaults to last); optional flag to force working set redraw
      */
     function handleFileAddToWorkingSet(commandData) {
-        return handleFileOpen(commandData).done(function (doc) {
+        return handleFileOpen(commandData).then(function (doc) {
             // addToWorkingSet is synchronous
             // When opening a file with a custom viewer, we get a null doc.
             // So check it before we add it to the working set.
             if (doc) {
                 DocumentManager.addToWorkingSet(doc.file, commandData.index, commandData.forceRedraw);
             }
-        });
+        }, null);
     }
 
     /**
@@ -472,28 +487,28 @@ define(function (require, exports, module) {
      *   the given base name
      */
     function _getUntitledFileSuggestion(dir, baseFileName, isFolder) {
-        var suggestedName   = baseFileName + "-" + _nextUntitledIndexToUse++,
-            deferred        = $.Deferred();
+        var suggestedName   = baseFileName + "-" + _nextUntitledIndexToUse++;
         
-        if (_nextUntitledIndexToUse > 9999) {
-            //we've tried this enough
-            deferred.reject();
-        } else {
-            var path = dir.fullPath + suggestedName,
-                entry = isFolder ? FileSystem.getDirectoryForPath(path)
-                                 : FileSystem.getFileForPath(path);
-            
-            entry.exists(function (err, exists) {
-                if (err || exists) {
-                    _getUntitledFileSuggestion(dir, baseFileName, isFolder)
-                        .then(deferred.resolve, deferred.reject);
-                } else {
-                    deferred.resolve(suggestedName);
-                }
-            });
-        }
+        return new Promise(function (resolve, reject) {
 
-        return deferred.promise();
+            if (_nextUntitledIndexToUse > 9999) {
+                //we've tried this enough
+                reject();
+            } else {
+                var path = dir.fullPath + suggestedName,
+                    entry = isFolder ? FileSystem.getDirectoryForPath(path)
+                                     : FileSystem.getFileForPath(path);
+
+                entry.exists(function (err, exists) {
+                    if (err || exists) {
+                        _getUntitledFileSuggestion(dir, baseFileName, isFolder)
+                            .then(resolve, reject);
+                    } else {
+                        resolve(suggestedName);
+                    }
+                });
+            }
+        });
     }
 
     /**
@@ -536,12 +551,17 @@ define(function (require, exports, module) {
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
         function createWithSuggestedName(suggestedName) {
+            
+            var fnAlways = function () {
+                fileNewInProgress = false;
+            };
+            
             return ProjectManager.createNewItem(baseDirEntry, suggestedName, false, isFolder)
-                .always(function () { fileNewInProgress = false; });
+                .then(fnAlways, fnAlways);
         }
         
         return _getUntitledFileSuggestion(baseDirEntry, Strings.UNTITLED, isFolder)
-            .then(createWithSuggestedName, createWithSuggestedName.bind(undefined, Strings.UNTITLED));
+            .then(createWithSuggestedName, createWithSuggestedName.bind(undefined, Strings.UNTITLED), null);
     }
 
     /**
@@ -559,7 +579,9 @@ define(function (require, exports, module) {
         DocumentManager.setCurrentDocument(doc);
         EditorManager.focusEditor();
         
-        return new $.Deferred().resolve(doc).promise();
+        return new Promise(function (resolve, reject) {
+            resolve(doc);
+        });
     }
 
     /**
@@ -603,98 +625,105 @@ define(function (require, exports, module) {
      *   the API of _doSaveAs()). Rejected in case of IO error (after error dialog dismissed).
      */
     function doSave(docToSave, force) {
-        var result = new $.Deferred(),
-            file = docToSave.file;
-        
-        function handleError(error) {
-            _showSaveFileError(error, file.fullPath)
-                .done(function () {
-                    result.reject(error);
-                });
-        }
-        
-        function handleContentsModified() {
-            Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_ERROR,
-                Strings.EXT_MODIFIED_TITLE,
-                StringUtils.format(
-                    Strings.EXT_MODIFIED_WARNING,
-                    StringUtils.breakableUrl(docToSave.file.fullPath)
-                ),
-                [
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
-                        id        : Dialogs.DIALOG_BTN_SAVE_AS,
-                        text      : Strings.SAVE_AS
-                    },
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
-                        id        : Dialogs.DIALOG_BTN_CANCEL,
-                        text      : Strings.CANCEL
-                    },
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                        id        : Dialogs.DIALOG_BTN_OK,
-                        text      : Strings.SAVE_AND_OVERWRITE
-                    }
-                ]
-            )
-                .done(function (id) {
-                    if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                        result.reject();
-                    } else if (id === Dialogs.DIALOG_BTN_OK) {
-                        // Re-do the save, ignoring any CONTENTS_MODIFIED errors
-                        doSave(docToSave, true).then(result.resolve, result.reject);
-                    } else if (id === Dialogs.DIALOG_BTN_SAVE_AS) {
-                        // Let the user choose a different path at which to write the file
-                        handleFileSaveAs({doc: docToSave}).then(result.resolve, result.reject);
-                    }
-                });
-        }
-            
-        function trySave() {
-            // We don't want normalized line endings, so it's important to pass true to getText()
-            FileUtils.writeText(file, docToSave.getText(true), force)
-                .done(function () {
-                    docToSave.notifySaved();
-                    result.resolve(file);
-                })
-                .fail(function (err) {
-                    if (err === FileSystemError.CONTENTS_MODIFIED) {
-                        handleContentsModified();
-                    } else {
-                        handleError(err);
-                    }
-                });
-        }
+        var file = docToSave.file;
 
-        if (docToSave.isDirty) {
-            var writeError = false;
-            
-            if (docToSave.keepChangesTime) {
-                // The user has decided to keep conflicting changes in the editor. Check to make sure
-                // the file hasn't changed since they last decided to do that.
-                docToSave.file.stat(function (err, stat) {
-                    // If the file has been deleted on disk, the stat will return an error, but that's fine since
-                    // that means there's no file to overwrite anyway, so the save will succeed without us having
-                    // to set force = true.
-                    if (!err && docToSave.keepChangesTime === stat.mtime.getTime()) {
-                        // OK, it's safe to overwrite the file even though we never reloaded the latest version,
-                        // since the user already said s/he wanted to ignore the disk version.
-                        force = true;
-                    }
-                    trySave();
-                });
-            } else {
-                trySave();
+        var result = new Promise(function (resolve, reject) {
+
+            function handleError(error) {
+                _showSaveFileError(error, file.fullPath)
+                    .then(function () {
+                        reject(error);
+                    }, null);
             }
-        } else {
-            result.resolve(file);
-        }
-        result.always(function () {
-            EditorManager.focusEditor();
+
+            function handleContentsModified() {
+                Dialogs.showModalDialog(
+                    DefaultDialogs.DIALOG_ID_ERROR,
+                    Strings.EXT_MODIFIED_TITLE,
+                    StringUtils.format(
+                        Strings.EXT_MODIFIED_WARNING,
+                        StringUtils.breakableUrl(docToSave.file.fullPath)
+                    ),
+                    [
+                        {
+                            className : Dialogs.DIALOG_BTN_CLASS_LEFT,
+                            id        : Dialogs.DIALOG_BTN_SAVE_AS,
+                            text      : Strings.SAVE_AS
+                        },
+                        {
+                            className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                            id        : Dialogs.DIALOG_BTN_CANCEL,
+                            text      : Strings.CANCEL
+                        },
+                        {
+                            className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                            id        : Dialogs.DIALOG_BTN_OK,
+                            text      : Strings.SAVE_AND_OVERWRITE
+                        }
+                    ]
+                )
+                    .then(function (id) {
+                        if (id === Dialogs.DIALOG_BTN_CANCEL) {
+                            reject();
+                        } else if (id === Dialogs.DIALOG_BTN_OK) {
+                            // Re-do the save, ignoring any CONTENTS_MODIFIED errors
+                            doSave(docToSave, true).then(resolve, reject);
+                        } else if (id === Dialogs.DIALOG_BTN_SAVE_AS) {
+                            // Let the user choose a different path at which to write the file
+                            handleFileSaveAs({doc: docToSave}).then(resolve, reject);
+                        }
+                    }, null);
+            }
+
+            function trySave() {
+                // We don't want normalized line endings, so it's important to pass true to getText()
+                FileUtils.writeText(file, docToSave.getText(true), force).then(
+                    function () {
+                        docToSave.notifySaved();
+                        resolve(file);
+                    },
+                    function (err) {
+                        if (err === FileSystemError.CONTENTS_MODIFIED) {
+                            handleContentsModified();
+                        } else {
+                            handleError(err);
+                        }
+                    }
+                );
+            }
+
+            if (docToSave.isDirty) {
+                var writeError = false;
+
+                if (docToSave.keepChangesTime) {
+                    // The user has decided to keep conflicting changes in the editor. Check to make sure
+                    // the file hasn't changed since they last decided to do that.
+                    docToSave.file.stat(function (err, stat) {
+                        // If the file has been deleted on disk, the stat will return an error, but that's fine since
+                        // that means there's no file to overwrite anyway, so the save will succeed without us having
+                        // to set force = true.
+                        if (!err && docToSave.keepChangesTime === stat.mtime.getTime()) {
+                            // OK, it's safe to overwrite the file even though we never reloaded the latest version,
+                            // since the user already said s/he wanted to ignore the disk version.
+                            force = true;
+                        }
+                        trySave();
+                    });
+                } else {
+                    trySave();
+                }
+            } else {
+                resolve(file);
+            }
         });
-        return result.promise();
+        
+        var fnAlways = function () {
+            EditorManager.focusEditor();
+        };
+        
+        result.then(fnAlways, fnAlways);
+        
+        return result;
     }
 
     /**
@@ -708,25 +737,26 @@ define(function (require, exports, module) {
      *      dialog to the user).
      */
     function doRevert(doc, suppressError) {
-        var result = new $.Deferred();
         
-        FileUtils.readAsText(doc.file)
-            .done(function (text, readTimestamp) {
-                doc.refreshText(text, readTimestamp);
-                result.resolve();
-            })
-            .fail(function (error) {
-                if (suppressError) {
-                    result.resolve();
-                } else {
-                    FileUtils.showFileOpenError(error, doc.file.fullPath)
-                        .done(function () {
-                            result.reject(error);
-                        });
+        return new Promise(function (resolve, reject) {
+
+            FileUtils.readAsText(doc.file).then(
+                function (text, readTimestamp) {
+                    doc.refreshText(text, readTimestamp);
+                    resolve();
+                },
+                function (error) {
+                    if (suppressError) {
+                        resolve();
+                    } else {
+                        FileUtils.showFileOpenError(error, doc.file.fullPath)
+                            .then(function () {
+                                reject(error);
+                            }, null);
+                    }
                 }
-            });
-        
-        return result.promise();
+            );
+        });
     }
 
     /**
@@ -745,118 +775,125 @@ define(function (require, exports, module) {
     function _doSaveAs(doc, settings) {
         var origPath,
             saveAsDefaultPath,
-            defaultName,
-            result = new $.Deferred();
+            defaultName;
         
-        function _doSaveAfterSaveDialog(path) {
-            var newFile;
-            
-            // Reconstruct old doc's editor's view state, & finally resolve overall promise
-            function _configureEditorAndResolve() {
-                var editor = EditorManager.getActiveEditor();
-                if (editor) {
-                    if (settings) {
-                        editor.setSelections(settings.selections);
-                        editor.setScrollPos(settings.scrollPos.x, settings.scrollPos.y);
+        var result = new Promise(function (resolve, reject) {
+
+            function _doSaveAfterSaveDialog(path) {
+                var newFile;
+
+                // Reconstruct old doc's editor's view state, & finally resolve overall promise
+                function _configureEditorAndResolve() {
+                    var editor = EditorManager.getActiveEditor();
+                    if (editor) {
+                        if (settings) {
+                            editor.setSelections(settings.selections);
+                            editor.setScrollPos(settings.scrollPos.x, settings.scrollPos.y);
+                        }
                     }
-                }
-                result.resolve(newFile);
-            }
-            
-            // Replace old document with new one in open editor & working set
-            function openNewFile() {
-                var fileOpenPromise;
-
-                if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
-                    // If selection is in the tree, leave working set unchanged - even if orig file is in the list
-                    fileOpenPromise = FileViewController
-                        .openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
-                } else {
-                    // If selection is in working set, replace orig item in place with the new file
-                    var index = DocumentManager.findInWorkingSet(doc.file.fullPath);
-                    // Remove old file from working set; no redraw yet since there's a pause before the new file is opened
-                    DocumentManager.removeFromWorkingSet(doc.file, true);
-                    // Add new file to working set, and ensure we now redraw (even if index hasn't changed)
-                    fileOpenPromise = handleFileAddToWorkingSet({fullPath: path, index: index, forceRedraw: true});
+                    resolve(newFile);
                 }
 
-                // always configure editor after file is opened
-                fileOpenPromise.always(function () {
-                    _configureEditorAndResolve();
-                });
-            }
-            
-            // Same name as before - just do a regular Save
-            if (path === origPath) {
-                doSave(doc).then(result.resolve, result.reject);
-                return;
-            }
-            
-            doc.isSaving = true;    // mark that we're saving the document
-            
-            // First, write document's current text to new file
-            newFile = FileSystem.getFileForPath(path);
-            
-            // Save as warns you when you're about to overwrite a file, so we
-            // explictly allow "blind" writes to the filesystem in this case,
-            // ignoring warnings about the contents being modified outside of
-            // the editor.
-            FileUtils.writeText(newFile, doc.getText(), true)
-                .done(function () {
-                    // If there were unsaved changes before Save As, they don't stay with the old
-                    // file anymore - so must revert the old doc to match disk content.
-                    // Only do this if the doc was dirty: doRevert on a file that is not dirty and
-                    // not in the working set has the side effect of adding it to the working set.
-                    if (doc.isDirty && !(doc.isUntitled())) {
-                        // if the file is dirty it must be in the working set
-                        // doRevert is side effect free in this case
-                        doRevert(doc).always(openNewFile);
+                // Replace old document with new one in open editor & working set
+                function openNewFile() {
+                    var fileOpenPromise;
+
+                    if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
+                        // If selection is in the tree, leave working set unchanged - even if orig file is in the list
+                        fileOpenPromise = FileViewController
+                            .openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
                     } else {
-                        openNewFile();
+                        // If selection is in working set, replace orig item in place with the new file
+                        var index = DocumentManager.findInWorkingSet(doc.file.fullPath);
+                        // Remove old file from working set; no redraw yet since there's a pause before the new file is opened
+                        DocumentManager.removeFromWorkingSet(doc.file, true);
+                        // Add new file to working set, and ensure we now redraw (even if index hasn't changed)
+                        fileOpenPromise = handleFileAddToWorkingSet({fullPath: path, index: index, forceRedraw: true});
                     }
-                })
-                .fail(function (error) {
-                    _showSaveFileError(error, path)
-                        .done(function () {
-                            result.reject(error);
-                        });
-                })
-                .always(function () {
-                    // mark that we're done saving the document
-                    doc.isSaving = false;
-                });
-        }
-        
-        if (doc) {
-            origPath = doc.file.fullPath;
-            // If the document is an untitled document, we should default to project root.
-            if (doc.isUntitled()) {
-                // (Issue #4489) if we're saving an untitled document, go ahead and switch to this document
-                //   in the editor, so that if we're, for example, saving several files (ie. Save All),
-                //   then the user can visually tell which document we're currently prompting them to save.
-                DocumentManager.setCurrentDocument(doc);
 
-                // If the document is untitled, default to project root.
-                saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
+                    // always configure editor after file is opened
+                    var fnAlways = function () {
+                        _configureEditorAndResolve();
+                    };
+                    fileOpenPromise.then(fnAlways, fnAlways);
+                }
+
+                // Same name as before - just do a regular Save
+                if (path === origPath) {
+                    doSave(doc).then(resolve, reject);
+                    return;
+                }
+
+                doc.isSaving = true;    // mark that we're saving the document
+
+                // First, write document's current text to new file
+                newFile = FileSystem.getFileForPath(path);
+
+                // Save as warns you when you're about to overwrite a file, so we
+                // explictly allow "blind" writes to the filesystem in this case,
+                // ignoring warnings about the contents being modified outside of
+                // the editor.
+                FileUtils.writeText(newFile, doc.getText(), true).then(
+                    function () {
+                        // If there were unsaved changes before Save As, they don't stay with the old
+                        // file anymore - so must revert the old doc to match disk content.
+                        // Only do this if the doc was dirty: doRevert on a file that is not dirty and
+                        // not in the working set has the side effect of adding it to the working set.
+                        if (doc.isDirty && !(doc.isUntitled())) {
+                            // if the file is dirty it must be in the working set
+                            // doRevert is side effect free in this case
+                            doRevert(doc).then(openNewFile, openNewFile);
+                        } else {
+                            openNewFile();
+                        }
+                        
+                        // mark that we're done saving the document
+                        doc.isSaving = false;
+                    },
+                    function (error) {
+                        _showSaveFileError(error, path)
+                            .then(function () {
+                                reject(error);
+                            }, null);
+                        
+                        // mark that we're done saving the document
+                        doc.isSaving = false;
+                    }
+                );
+            }
+
+            if (doc) {
+                origPath = doc.file.fullPath;
+                // If the document is an untitled document, we should default to project root.
+                if (doc.isUntitled()) {
+                    // (Issue #4489) if we're saving an untitled document, go ahead and switch to this document
+                    //   in the editor, so that if we're, for example, saving several files (ie. Save All),
+                    //   then the user can visually tell which document we're currently prompting them to save.
+                    DocumentManager.setCurrentDocument(doc);
+
+                    // If the document is untitled, default to project root.
+                    saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
+                } else {
+                    saveAsDefaultPath = FileUtils.getDirectoryPath(origPath);
+                }
+                defaultName = FileUtils.getBaseName(origPath);
+                FileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName, function (err, selectedPath) {
+                    if (!err) {
+                        if (selectedPath) {
+                            _doSaveAfterSaveDialog(selectedPath);
+                        } else {
+                            reject(USER_CANCELED);
+                        }
+                    } else {
+                        reject(err);
+                    }
+                });
             } else {
-                saveAsDefaultPath = FileUtils.getDirectoryPath(origPath);
+                reject();
             }
-            defaultName = FileUtils.getBaseName(origPath);
-            FileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName, function (err, selectedPath) {
-                if (!err) {
-                    if (selectedPath) {
-                        _doSaveAfterSaveDialog(selectedPath);
-                    } else {
-                        result.reject(USER_CANCELED);
-                    }
-                } else {
-                    result.reject(err);
-                }
-            });
-        } else {
-            result.reject();
-        }
-        return result.promise();
+        });
+        
+        return result;
     }
 
     /**
@@ -888,7 +925,9 @@ define(function (require, exports, module) {
             }
         }
         
-        return $.Deferred().reject().promise();
+        return new Promise(function (resolve, reject) {
+            reject();
+        });
     }
 
     /**
@@ -914,32 +953,37 @@ define(function (require, exports, module) {
             function (file) {
                 // Abort remaining saves if user canceled any Save As dialog
                 if (userCanceled) {
-                    return (new $.Deferred()).reject().promise();
+                    return (new Promise(function (resolve, reject) {
+                        reject();
+                    }));
                 }
                 
                 var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 if (doc) {
                     var savePromise = handleFileSave({doc: doc});
-                    savePromise
-                        .done(function (newFile) {
+                    savePromise.then(
+                        function (newFile) {
                             filesAfterSave.push(newFile);
-                        })
-                        .fail(function (error) {
+                        },
+                        function (error) {
                             if (error === USER_CANCELED) {
                                 userCanceled = true;
                             }
-                        });
+                        }
+                    );
                     return savePromise;
                 } else {
                     // working set entry that was never actually opened - ignore
                     filesAfterSave.push(file);
-                    return (new $.Deferred()).resolve().promise();
+                    return new Promise(function (resolve, reject) {
+                        resolve();
+                    });
                 }
             },
             false  // if any save fails, continue trying to save other files anyway; then reject at end
         ).then(function () {
             return filesAfterSave;
-        });
+        }, null);
     }
 
     /**
@@ -1020,124 +1064,129 @@ define(function (require, exports, module) {
             }
         }
 
-        var result = new $.Deferred(), promise = result.promise();
-        
-        function doCloseCustomViewer() {
-            if (!promptOnly) {
-                var nextFile = DocumentManager.getNextPrevFile(1);
-                if (nextFile) {
-                    // opening a text file will automatically close the custom viewer.
-                    // This is done in the currentDocumentChange handler in EditorManager
-                    doOpen(nextFile.fullPath).always(function () {
-                        EditorManager.focusEditor();
-                        result.resolve();
-                    });
-                } else {
-                    EditorManager._closeCustomViewer();
-                    result.resolve();
+        var result = new Promise(function (resolve, reject) {
+
+            function doCloseCustomViewer() {
+                if (!promptOnly) {
+                    var nextFile = DocumentManager.getNextPrevFile(1);
+                    if (nextFile) {
+                        // opening a text file will automatically close the custom viewer.
+                        // This is done in the currentDocumentChange handler in EditorManager
+                        var fnAlways = function () {
+                            EditorManager.focusEditor();
+                            resolve();
+                        };
+                        doOpen(nextFile.fullPath).then(fnAlways, fnAlways);
+                    } else {
+                        EditorManager._closeCustomViewer();
+                        resolve();
+                    }
                 }
             }
-        }
 
-        // Close custom viewer if, either
-        // - a custom viewer is currently displayed and no file specified in command data
-        // - a custom viewer is currently displayed and the file specified in command data
-        //   is the file in the custom viewer
-        if (!DocumentManager.getCurrentDocument()) {
-            if ((EditorManager.getCurrentlyViewedPath() && !file) ||
-                    (file && file.fullPath === EditorManager.getCurrentlyViewedPath())) {
-                doCloseCustomViewer();
-                return promise;
+            // Close custom viewer if, either
+            // - a custom viewer is currently displayed and no file specified in command data
+            // - a custom viewer is currently displayed and the file specified in command data
+            //   is the file in the custom viewer
+            if (!DocumentManager.getCurrentDocument()) {
+                if ((EditorManager.getCurrentlyViewedPath() && !file) ||
+                        (file && file.fullPath === EditorManager.getCurrentlyViewedPath())) {
+                    doCloseCustomViewer();
+                    return;
+                }
             }
-        }
-        
-        // Default to current document if doc is null
-        if (!file && DocumentManager.getCurrentDocument()) {
-            file = DocumentManager.getCurrentDocument().file;
-        }
-        
-        // No-op if called when nothing is open; TODO: (issue #273) should command be grayed out instead?
-        if (!file) {
-            result.resolve();
-            return promise;
-        }
-        
-        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-        
-        if (doc && doc.isDirty && !_forceClose) {
-            // Document is dirty: prompt to save changes before closing
-            var filename = FileUtils.getBaseName(doc.file.fullPath);
-            
-            Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
-                Strings.SAVE_CLOSE_TITLE,
-                StringUtils.format(
-                    Strings.SAVE_CLOSE_MESSAGE,
-                    StringUtils.breakableUrl(filename)
-                ),
-                [
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
-                        id        : Dialogs.DIALOG_BTN_DONTSAVE,
-                        text      : Strings.DONT_SAVE
-                    },
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
-                        id        : Dialogs.DIALOG_BTN_CANCEL,
-                        text      : Strings.CANCEL
-                    },
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                        id        : Dialogs.DIALOG_BTN_OK,
-                        text      : Strings.SAVE
-                    }
-                ]
-            )
-                .done(function (id) {
-                    if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                        result.reject();
-                    } else if (id === Dialogs.DIALOG_BTN_OK) {
-                        // "Save" case: wait until we confirm save has succeeded before closing
-                        handleFileSave({doc: doc})
-                            .done(function (newFile) {
-                                doClose(newFile);
-                                result.resolve();
-                            })
-                            .fail(function () {
-                                result.reject();
-                            });
-                    } else {
-                        // "Don't Save" case: even though we're closing the main editor, other views of
-                        // the Document may remain in the UI. So we need to revert the Document to a clean
-                        // copy of whatever's on disk.
-                        doClose(file);
-                        
-                        // Only reload from disk if we've executed the Close for real.
-                        if (promptOnly) {
-                            result.resolve();
-                        } else {
-                            // Even if there are no listeners attached to the document at this point, we want
-                            // to do the revert anyway, because clients who are listening to the global documentChange
-                            // event from the Document module (rather than attaching to the document directly),
-                            // such as the Find in Files panel, should get a change event. However, in that case,
-                            // we want to ignore errors during the revert, since we don't want a failed revert
-                            // to throw a dialog if the document isn't actually open in the UI.
-                            var suppressError = !DocumentManager.getOpenDocumentForPath(file.fullPath);
-                            doRevert(doc, suppressError)
-                                .then(result.resolve, result.reject);
+
+            // Default to current document if doc is null
+            if (!file && DocumentManager.getCurrentDocument()) {
+                file = DocumentManager.getCurrentDocument().file;
+            }
+
+            // No-op if called when nothing is open; TODO: (issue #273) should command be grayed out instead?
+            if (!file) {
+                resolve();
+                return;
+            }
+
+            var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+
+            if (doc && doc.isDirty && !_forceClose) {
+                // Document is dirty: prompt to save changes before closing
+                var filename = FileUtils.getBaseName(doc.file.fullPath);
+
+                Dialogs.showModalDialog(
+                    DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
+                    Strings.SAVE_CLOSE_TITLE,
+                    StringUtils.format(
+                        Strings.SAVE_CLOSE_MESSAGE,
+                        StringUtils.breakableUrl(filename)
+                    ),
+                    [
+                        {
+                            className : Dialogs.DIALOG_BTN_CLASS_LEFT,
+                            id        : Dialogs.DIALOG_BTN_DONTSAVE,
+                            text      : Strings.DONT_SAVE
+                        },
+                        {
+                            className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                            id        : Dialogs.DIALOG_BTN_CANCEL,
+                            text      : Strings.CANCEL
+                        },
+                        {
+                            className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                            id        : Dialogs.DIALOG_BTN_OK,
+                            text      : Strings.SAVE
                         }
-                    }
-                });
-            result.always(function () {
-                EditorManager.focusEditor();
-            });
-        } else {
-            // File is not open, or IS open but Document not dirty: close immediately
-            doClose(file);
+                    ]
+                )
+                    .then(function (id) {
+                        if (id === Dialogs.DIALOG_BTN_CANCEL) {
+                            reject();
+                        } else if (id === Dialogs.DIALOG_BTN_OK) {
+                            // "Save" case: wait until we confirm save has succeeded before closing
+                            handleFileSave({doc: doc}).then(
+                                function (newFile) {
+                                    doClose(newFile);
+                                    resolve();
+                                },
+                                function () {
+                                    reject();
+                                }
+                            );
+                        } else {
+                            // "Don't Save" case: even though we're closing the main editor, other views of
+                            // the Document may remain in the UI. So we need to revert the Document to a clean
+                            // copy of whatever's on disk.
+                            doClose(file);
+
+                            // Only reload from disk if we've executed the Close for real.
+                            if (promptOnly) {
+                                resolve();
+                            } else {
+                                // Even if there are no listeners attached to the document at this point, we want
+                                // to do the revert anyway, because clients who are listening to the global documentChange
+                                // event from the Document module (rather than attaching to the document directly),
+                                // such as the Find in Files panel, should get a change event. However, in that case,
+                                // we want to ignore errors during the revert, since we don't want a failed revert
+                                // to throw a dialog if the document isn't actually open in the UI.
+                                var suppressError = !DocumentManager.getOpenDocumentForPath(file.fullPath);
+                                doRevert(doc, suppressError)
+                                    .then(resolve, reject);
+                            }
+                        }
+                    }, null);
+            } else {
+                // File is not open, or IS open but Document not dirty: close immediately
+                doClose(file);
+                resolve();
+            }
+        });
+        
+        var fnAlways = function () {
             EditorManager.focusEditor();
-            result.resolve();
-        }
-        return promise;
+        };
+        result.then(fnAlways, fnAlways);
+        
+        return result;
     }
 
     /**
@@ -1147,86 +1196,91 @@ define(function (require, exports, module) {
      * @param {boolean} _forceClose Whether to force all the documents to close even if they have unsaved changes. For unit testing only.
      */
     function _closeList(list, promptOnly, clearCurrentDoc, _forceClose) {
-        var result      = new $.Deferred(),
-            unsavedDocs = [];
-        
-        list.forEach(function (file) {
-            var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-            if (doc && doc.isDirty) {
-                unsavedDocs.push(doc);
+        var unsavedDocs = [];
+
+        var result = new Promise(function (resolve, reject) {
+
+            list.forEach(function (file) {
+                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                if (doc && doc.isDirty) {
+                    unsavedDocs.push(doc);
+                }
+            });
+
+            if (unsavedDocs.length === 0 || _forceClose) {
+                // No unsaved changes or we want to ignore them, so we can proceed without a prompt
+                resolve();
+
+            } else if (unsavedDocs.length === 1) {
+                // Only one unsaved file: show the usual single-file-close confirmation UI
+                var fileCloseArgs = { file: unsavedDocs[0].file, promptOnly: promptOnly };
+
+                handleFileClose(fileCloseArgs).then(function () {
+                    // still need to close any other, non-unsaved documents
+                    resolve();
+                }, function () {
+                    reject();
+                });
+
+            } else {
+                // Multiple unsaved files: show a single bulk prompt listing all files
+                var message = Strings.SAVE_CLOSE_MULTI_MESSAGE + FileUtils.makeDialogFileList(_.map(unsavedDocs, _shortTitleForDocument));
+
+                Dialogs.showModalDialog(
+                    DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
+                    Strings.SAVE_CLOSE_TITLE,
+                    message,
+                    [
+                        {
+                            className : Dialogs.DIALOG_BTN_CLASS_LEFT,
+                            id        : Dialogs.DIALOG_BTN_DONTSAVE,
+                            text      : Strings.DONT_SAVE
+                        },
+                        {
+                            className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                            id        : Dialogs.DIALOG_BTN_CANCEL,
+                            text      : Strings.CANCEL
+                        },
+                        {
+                            className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                            id        : Dialogs.DIALOG_BTN_OK,
+                            text      : Strings.SAVE
+                        }
+                    ]
+                )
+                    .then(function (id) {
+                        if (id === Dialogs.DIALOG_BTN_CANCEL) {
+                            reject();
+                        } else if (id === Dialogs.DIALOG_BTN_OK) {
+                            // Save all unsaved files, then if that succeeds, close all
+                            _saveFileList(list).then(
+                                function (listAfterSave) {
+                                    // List of files after save may be different, if any were Untitled
+                                    resolve(listAfterSave);
+                                },
+                                function () {
+                                    reject();
+                                }
+                            );
+                        } else {
+                            // "Don't Save" case--we can just go ahead and close all files.
+                            resolve();
+                        }
+                    }, null);
             }
         });
         
-        if (unsavedDocs.length === 0 || _forceClose) {
-            // No unsaved changes or we want to ignore them, so we can proceed without a prompt
-            result.resolve();
-            
-        } else if (unsavedDocs.length === 1) {
-            // Only one unsaved file: show the usual single-file-close confirmation UI
-            var fileCloseArgs = { file: unsavedDocs[0].file, promptOnly: promptOnly };
-
-            handleFileClose(fileCloseArgs).done(function () {
-                // still need to close any other, non-unsaved documents
-                result.resolve();
-            }).fail(function () {
-                result.reject();
-            });
-            
-        } else {
-            // Multiple unsaved files: show a single bulk prompt listing all files
-            var message = Strings.SAVE_CLOSE_MULTI_MESSAGE + FileUtils.makeDialogFileList(_.map(unsavedDocs, _shortTitleForDocument));
-            
-            Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
-                Strings.SAVE_CLOSE_TITLE,
-                message,
-                [
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
-                        id        : Dialogs.DIALOG_BTN_DONTSAVE,
-                        text      : Strings.DONT_SAVE
-                    },
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
-                        id        : Dialogs.DIALOG_BTN_CANCEL,
-                        text      : Strings.CANCEL
-                    },
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                        id        : Dialogs.DIALOG_BTN_OK,
-                        text      : Strings.SAVE
-                    }
-                ]
-            )
-                .done(function (id) {
-                    if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                        result.reject();
-                    } else if (id === Dialogs.DIALOG_BTN_OK) {
-                        // Save all unsaved files, then if that succeeds, close all
-                        _saveFileList(list).done(function (listAfterSave) {
-                            // List of files after save may be different, if any were Untitled
-                            result.resolve(listAfterSave);
-                        }).fail(function () {
-                            result.reject();
-                        });
-                    } else {
-                        // "Don't Save" case--we can just go ahead and close all files.
-                        result.resolve();
-                    }
-                });
-        }
-        
         // If all the unsaved-changes confirmations pan out above, then go ahead & close all editors
-        // NOTE: this still happens before any done() handlers added by our caller, because jQ
-        // guarantees that handlers run in the order they are added.
-        result.done(function (listAfterSave) {
+        // NOTE: this still happens before any fulfullment handlers added by our caller, because
+        // Promises guarantees that handlers run in the order they are added.
+        result.then(function (listAfterSave) {
             listAfterSave = listAfterSave || list;
             if (!promptOnly) {
                 DocumentManager.removeListFromWorkingSet(listAfterSave, clearCurrentDoc);
             }
-        });
+        }, null);
         
-        return result.promise();
+        return result;
     }
 
     /**
@@ -1242,19 +1296,19 @@ define(function (require, exports, module) {
      */
     function handleFileCloseAll(commandData) {
         return _closeList(DocumentManager.getWorkingSet(),
-                                    (commandData && commandData.promptOnly), true, (commandData && commandData._forceClose)).done(function () {
+                          (commandData && commandData.promptOnly), true, (commandData && commandData._forceClose)).then(function () {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager._closeCustomViewer();
             }
-        });
+        }, null);
     }
 
     function handleFileCloseList(commandData) {
-        return _closeList(commandData.fileList, false, false).done(function () {
+        return _closeList(commandData.fileList, false, false).then(function () {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager._closeCustomViewer();
             }
-        });
+        }, null);
     }
 
     /**
@@ -1270,11 +1324,13 @@ define(function (require, exports, module) {
     function _handleWindowGoingAway(commandData, postCloseHandler, failHandler) {
         if (_windowGoingAway) {
             //if we get called back while we're closing, then just return
-            return (new $.Deferred()).reject().promise();
+            return new Promise(function (resolve, reject) {
+                reject();
+            });
         }
 
-        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
-            .done(function () {
+        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).then(
+            function () {
                 _windowGoingAway = true;
                 
                 // Give everyone a chance to save their state - but don't let any problems block
@@ -1287,14 +1343,15 @@ define(function (require, exports, module) {
                 
                 PreferencesManager.savePreferences();
                 
-                PreferencesManager.finalize().always(postCloseHandler);
-            })
-            .fail(function () {
+                PreferencesManager.finalize().then(postCloseHandler, postCloseHandler);
+            },
+            function () {
                 _windowGoingAway = false;
                 if (failHandler) {
                     failHandler();
                 }
-            });
+            }
+        );
     }
 
     /**
@@ -1424,11 +1481,11 @@ define(function (require, exports, module) {
                     }
                 ]
             )
-                .done(function (id) {
+                .then(function (id) {
                     if (id === Dialogs.DIALOG_BTN_OK) {
                         ProjectManager.deleteItem(entry);
                     }
-                });
+                }, null);
         } else {
             ProjectManager.deleteItem(entry);
         }
@@ -1451,36 +1508,38 @@ define(function (require, exports, module) {
      * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
      */
     function _disableCache() {
-        var result = new $.Deferred();
-        
-        if (brackets.inBrowser) {
-            result.resolve();
-        } else {
-            var port = brackets.app.getRemoteDebuggingPort ? brackets.app.getRemoteDebuggingPort() : 9234;
-            Inspector.getDebuggableWindows("127.0.0.1", port)
-                .fail(result.reject)
-                .done(function (response) {
-                    var page = response[0];
-                    if (!page || !page.webSocketDebuggerUrl) {
-                        result.reject();
-                        return;
+        return new Promise(function (resolve, reject) {
+
+            if (brackets.inBrowser) {
+                resolve();
+            } else {
+                var port = brackets.app.getRemoteDebuggingPort ? brackets.app.getRemoteDebuggingPort() : 9234;
+                Inspector.getDebuggableWindows("127.0.0.1", port).then(
+                    function (response) {
+                        var page = response[0];
+                        if (!page || !page.webSocketDebuggerUrl) {
+                            reject();
+                            return;
+                        }
+                        var _socket = new WebSocket(page.webSocketDebuggerUrl);
+                        // Disable the cache
+                        _socket.onopen = function _onConnect() {
+                            _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
+                        };
+                        // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
+                        _socket.onmessage = function _onMessage(e) {
+                            _socket.close();
+                            resolve();
+                        };
+                        // In case of an error
+                        _socket.onerror = reject;
+                    },
+                    function () {
+                        reject();
                     }
-                    var _socket = new WebSocket(page.webSocketDebuggerUrl);
-                    // Disable the cache
-                    _socket.onopen = function _onConnect() {
-                        _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
-                    };
-                    // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
-                    _socket.onmessage = function _onMessage(e) {
-                        _socket.close();
-                        result.resolve();
-                    };
-                    // In case of an error
-                    _socket.onerror = result.reject;
-                });
-        }
-         
-        return result.promise();
+                );
+            }
+        });
     }
 
     /**
@@ -1494,33 +1553,37 @@ define(function (require, exports, module) {
         
         _isReloading = true;
         
-        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).done(function () {
-            // Give everyone a chance to save their state - but don't let any problems block
-            // us from quitting
-            try {
-                $(ProjectManager).triggerHandler("beforeAppClose");
-            } catch (ex) {
-                console.error(ex);
-            }
-            
-            // Disable the cache to make reloads work
-            _disableCache().always(function () {
-                // Remove all menus to assure every part of Brackets is reloaded
-                _.forEach(Menus.getAllMenus(), function (value, key) {
-                    Menus.removeMenu(key);
-                });
-                
-                // If there's a fragment in both URLs, setting location.href won't actually reload
-                var fragment = href.indexOf("#");
-                if (fragment !== -1) {
-                    href = href.substr(0, fragment);
+        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).then(
+            function () {
+                // Give everyone a chance to save their state - but don't let any problems block
+                // us from quitting
+                try {
+                    $(ProjectManager).triggerHandler("beforeAppClose");
+                } catch (ex) {
+                    console.error(ex);
                 }
-                
-                window.location.href = href;
-            });
-        }).fail(function () {
-            _isReloading = false;
-        });
+
+                // Disable the cache to make reloads work
+                var fnAlways = function () {
+                    // Remove all menus to assure every part of Brackets is reloaded
+                    _.forEach(Menus.getAllMenus(), function (value, key) {
+                        Menus.removeMenu(key);
+                    });
+
+                    // If there's a fragment in both URLs, setting location.href won't actually reload
+                    var fragment = href.indexOf("#");
+                    if (fragment !== -1) {
+                        href = href.substr(0, fragment);
+                    }
+
+                    window.location.href = href;
+                };
+                _disableCache().then(fnAlways, fnAlways);
+            },
+            function () {
+                _isReloading = false;
+            }
+        );
     }
 
     function handleReload() {
