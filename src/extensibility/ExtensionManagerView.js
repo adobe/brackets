@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, window, $, brackets, Mustache */
+/*global define, window, $, brackets, Mustache, Promise */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -47,12 +47,12 @@ define(function (require, exports, module) {
     /**
      * Initializes the view to show a set of extensions.
      * @param {ExtensionManagerViewModel} model Model object containing extension data to view
-     * @return {$.Promise} a promise that's resolved once the view has been initialized. Never
+     * @return {Promise} a promise that's resolved once the view has been initialized. Never
      *     rejected.
      */
     ExtensionManagerView.prototype.initialize = function (model) {
-        var self = this,
-            result = new $.Deferred();
+        var self = this;
+        
         this.model = model;
         this._itemTemplate = Mustache.compile(itemTemplate);
         this._itemViews = {};
@@ -63,14 +63,17 @@ define(function (require, exports, module) {
             .appendTo(this.$el).html(this.model.infoMessage);
         this._$table = $("<table class='table'/>").appendTo(this.$el);
         
-        this.model.initialize().done(function () {
-            self._setupEventHandlers();
-        }).always(function () {
-            self._render();
-            result.resolve();
+        return new Promise(function (resolve, reject) {
+            var fnAlways = function () {
+                self._render();
+                resolve();
+            };
+            self.model.initialize()
+                .then(function () {
+                    self._setupEventHandlers();
+                }, null)
+                .then(fnAlways, fnAlways);
         });
-        
-        return result.promise();
     };
     
     /**
@@ -340,7 +343,7 @@ define(function (require, exports, module) {
             
             // TODO: this should set .done on the returned promise
             if (_isUpdate) {
-                InstallExtensionDialog.updateUsingDialog(url).done(ExtensionManager.updateFromDownload);
+                InstallExtensionDialog.updateUsingDialog(url).then(ExtensionManager.updateFromDownload, null);
             } else {
                 InstallExtensionDialog.installUsingDialog(url);
             }

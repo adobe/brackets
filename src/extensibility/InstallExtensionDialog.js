@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets, Mustache, document */
+/*global define, window, $, brackets, Mustache, document, Promise */
 /*unittests: Install Extension Dialog*/
 
 define(function (require, exports, module) {
@@ -120,7 +120,7 @@ define(function (require, exports, module) {
     /**
      * A deferred that's resolved/rejected when the dialog is closed and
      * something has/hasn't been installed successfully.
-     * @type {$.Deferred}
+     * @type {Promise}
      */
     InstallExtensionDialog.prototype._dialogDeferred = null;
     
@@ -175,8 +175,8 @@ define(function (require, exports, module) {
                 .append("<span class='spinner inline spin'/>");
             this.$msgArea.show();
             this.$okButton.prop("disabled", true);
-            this._installer.install(url)
-                .done(function (result) {
+            this._installer.install(url).then(
+                function (result) {
                     self._installResult = result;
                     if (result.installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
                             result.installationStatus === Package.InstallationStatuses.OLDER_VERSION ||
@@ -187,8 +187,8 @@ define(function (require, exports, module) {
                     } else {
                         self._enterState(STATE_INSTALLED);
                     }
-                })
-                .fail(function (err) {
+                },
+                function (err) {
                     // If the "failure" is actually a user-requested cancel, don't show an error UI
                     if (err === "CANCELED") {
                         console.assert(self._state === STATE_CANCELING_INSTALL || self._state === STATE_CANCELING_HUNG);
@@ -197,7 +197,8 @@ define(function (require, exports, module) {
                         self._errorMessage = Package.formatError(err);
                         self._enterState(STATE_INSTALL_FAILED);
                     }
-                });
+                }
+            );
             break;
             
         case STATE_CANCELING_INSTALL:
@@ -355,7 +356,7 @@ define(function (require, exports, module) {
      * Initialize and show the dialog.
      * @param {string=} urlToInstall If specified, immediately starts installing the given file as if the user had
      *     specified it.
-     * @return {$.Promise} A promise object that will be resolved when the selected extension
+     * @return {Promise} A promise object that will be resolved when the selected extension
      *     has finished installing, or rejected if the dialog is cancelled.
      */
     InstallExtensionDialog.prototype.show = function (urlToInstall) {
@@ -399,6 +400,8 @@ define(function (require, exports, module) {
             this._enterState(STATE_INSTALLING);
         }
 
+        // TODO: keep this promise as jQuery for now
+        //       Need to figure out how to resolve/reject Promise callback. New event?
         this._dialogDeferred = new $.Deferred();
         return this._dialogDeferred.promise();
     };
@@ -412,38 +415,46 @@ define(function (require, exports, module) {
     InstallerFacade.prototype.install = function (url) {
         if (this.pendingInstall) {
             console.error("Extension installation already pending");
-            return new $.Deferred().reject("DOWNLOAD_ID_IN_USE").promise();
+            return new Promise(function (resolve, reject) {
+                reject("DOWNLOAD_ID_IN_USE");
+            });
         }
 
         if (this._isLocalFile) {
-            var deferred = new $.Deferred();
+            var deferred = new Promise(function (resolve, reject) {
+                Package.installFromPath(url).then(
+                    function (installationResult) {
+                        // Flag to keep zip files for local file installation
+                        installationResult.keepFile = true;
+                        resolve(installationResult);
+                    },
+                    reject
+                );
+            });
 
             this.pendingInstall = {
-                promise: deferred.promise(),
+                promise: deferred,
                 cancel: function () {
                     // Can't cancel local zip installs
                 }
             };
 
-            Package.installFromPath(url).then(function (installationResult) {
-                // Flag to keep zip files for local file installation
-                installationResult.keepFile = true;
-                deferred.resolve(installationResult);
-            }, deferred.reject);
         } else {
             this.pendingInstall = Package.installFromURL(url);
         }
         
         // Store now since we'll null pendingInstall immediately if the promise was resolved synchronously
-        var promise = this.pendingInstall.promise;
+        var promise = this.pendingInstall.promise,
+            self = this;
         
-        var self = this;
-        this.pendingInstall.promise.always(function () {
+        var fnAlways = function () {
             self.pendingInstall = null;
-        });
+        };
+        this.pendingInstall.promise.then(fnAlways, fnAlways);
         
         return promise;
     };
+    
     InstallerFacade.prototype.cancel = function () {
         this.pendingInstall.cancel();
     };
@@ -451,7 +462,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Show a dialog that allows the user to enter the URL of an extension ZIP file to install.
-     * @return {$.Promise} A promise object that will be resolved when the selected extension
+     * @return {Promise} A promise object that will be resolved when the selected extension
      *     has finished installing, or rejected if the dialog is cancelled.
      */
     function showDialog() {
@@ -464,7 +475,7 @@ define(function (require, exports, module) {
      * Show the installation dialog and automatically begin installing the given URL.
      * @param {(string|File)=} urlOrFileToInstall If specified, immediately starts installing the given file as if the user had
      *     specified it.
-     * @return {$.Promise} A promise object that will be resolved when the selected extension
+     * @return {Promise} A promise object that will be resolved when the selected extension
      *     has finished installing, or rejected if the dialog is cancelled.
      */
     function installUsingDialog(urlOrFileToInstall, _isUpdate) {
@@ -478,7 +489,7 @@ define(function (require, exports, module) {
      * @private
      * Show the update dialog and automatically begin downloading the update from the given URL.
      * @param {string} urlToUpdate URL to download
-     * @return {$.Promise} A promise object that will be resolved when the selected extension
+     * @return {Promise} A promise object that will be resolved when the selected extension
      *     has finished downloading, or rejected if the dialog is cancelled.
      */
     function updateUsingDialog(urlToUpdate) {

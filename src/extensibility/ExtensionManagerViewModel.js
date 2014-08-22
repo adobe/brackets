@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, window, $, brackets, Mustache */
+/*global define, window, $, brackets, Mustache, Promise */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -124,7 +124,7 @@ define(function (require, exports, module) {
     ExtensionManagerViewModel.prototype.notifyCount = 0;
     
     /**
-     * @private {$.Promise}
+     * @private {Promise}
      * Internal use only to track when initialization fails, see usage in _updateMessage.
      */
     ExtensionManagerViewModel.prototype._initializeFromSourcePromise = null;
@@ -159,9 +159,10 @@ define(function (require, exports, module) {
     ExtensionManagerViewModel.prototype.initialize = function () {
         var self = this;
 
-        this._initializeFromSourcePromise = this._initializeFromSource().always(function () {
-            self._updateMessage();
-        });
+        this._initializeFromSourcePromise = this._initializeFromSource().then(
+            self._updateMessage,
+            self._updateMessage
+        );
         
         return this._initializeFromSourcePromise;
     };
@@ -314,13 +315,13 @@ define(function (require, exports, module) {
     
     /**
      * Initializes the model from the remote extension registry.
-     * @return {$.Promise} a promise that's resolved with the registry JSON data
+     * @return {Promise} a promise that's resolved with the registry JSON data
      * or rejected if the server can't be reached.
      */
     RegistryViewModel.prototype._initializeFromSource = function () {
         var self = this;
-        return ExtensionManager.downloadRegistry()
-            .done(function () {
+        return ExtensionManager.downloadRegistry().then(
+            function () {
                 self.extensions = ExtensionManager.extensions;
                 
                 // Sort the registry by last published date and store the sorted list of IDs.
@@ -332,12 +333,13 @@ define(function (require, exports, module) {
                         return entry.registryInfo.metadata.name;
                     });
                 self._setInitialFilter();
-            })
-            .fail(function () {
+            },
+            function () {
                 self.extensions = [];
                 self.sortedFullSet = [];
                 self.filterSet = [];
-            });
+            }
+        );
     };
     
     /**
@@ -389,7 +391,7 @@ define(function (require, exports, module) {
     /**
      * Initializes the model from the set of locally installed extensions, sorted
      * alphabetically by id (or name of the extension folder for legacy extensions).
-     * @return {$.Promise} a promise that's resolved when we're done initializing.
+     * @return {Promise} a promise that's resolved when we're done initializing.
      */
     InstalledViewModel.prototype._initializeFromSource = function () {
         var self = this;
@@ -403,7 +405,9 @@ define(function (require, exports, module) {
         this._setInitialFilter();
         this._countUpdates();
         
-        return new $.Deferred().resolve().promise();
+        return new Promise(function (resolve, reject) {
+            resolve();
+        });
     };
     
     /**

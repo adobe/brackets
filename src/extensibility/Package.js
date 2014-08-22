@@ -24,7 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true,
 indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils */
+/*global define, $, brackets, PathUtils, Promise */
 
 /**
  * Functions for working with extension packages
@@ -72,6 +72,7 @@ define(function (require, exports, module) {
      * A deferred which is resolved with a NodeConnection or rejected if
      * we are unable to connect to Node.
      */
+// TODO: keep as jQuery Deferred for now - need to make this work for ES6 Promise
     var _nodeConnectionDeferred = $.Deferred();
     
     /**
@@ -83,7 +84,9 @@ define(function (require, exports, module) {
         if (_nodeConnection.domains.extensionManager) {
             return callback(_nodeConnection.domains.extensionManager);
         } else {
-            return new $.Deferred().reject("extensionManager domain is undefined").promise();
+            return new Promise(function (resolve, reject) {
+                reject("extensionManager domain is undefined");
+            });
         }
     }
 
@@ -100,24 +103,23 @@ define(function (require, exports, module) {
      *
      * @param {string} Absolute path to the package zip file
      * @param {{requirePackageJSON: ?boolean}} validation options
-     * @return {$.Promise} A promise that is resolved with information about the package
+     * @return {Promise} A promise that is resolved with information about the package
      */
     function validate(path, options) {
         return _extensionManagerCall(function (extensionManager) {
-            var d = new $.Deferred();
-            
-            extensionManager.validate(path, options)
-                .done(function (result) {
-                    d.resolve({
-                        errors: result.errors,
-                        metadata: result.metadata
-                    });
-                })
-                .fail(function (error) {
-                    d.reject(error);
-                });
-    
-            return d.promise();
+            return new Promise(function (resolve, reject) {
+                extensionManager.validate(path, options).then(
+                    function (result) {
+                        resolve({
+                            errors: result.errors,
+                            metadata: result.metadata
+                        });
+                    },
+                    function (error) {
+                        reject(error);
+                    }
+                );
+            });
         });
     }
     
@@ -141,48 +143,49 @@ define(function (require, exports, module) {
      * @param {?string} nameHint Hint for the extension folder's name (used in favor of
      *          path's filename if present, and if no package metadata present).
      * @param {?boolean} _doUpdate private argument used to signal an update
-     * @return {$.Promise} A promise that is resolved with information about the package
+     * @return {Promise} A promise that is resolved with information about the package
      *          (which may include errors, in which case the extension was disabled), or
      *          rejected with an error object.
      */
     function install(path, nameHint, _doUpdate) {
         return _extensionManagerCall(function (extensionManager) {
-            var d                       = new $.Deferred(),
-                destinationDirectory    = ExtensionLoader.getUserExtensionPath(),
-                disabledDirectory       = destinationDirectory.replace(/\/user$/, "/disabled"),
-                systemDirectory         = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default/";
-            
-            var operation = _doUpdate ? "update" : "install";
-            extensionManager[operation](path, destinationDirectory, {
-                disabledDirectory: disabledDirectory,
-                systemExtensionDirectory: systemDirectory,
-                apiVersion: brackets.metadata.apiVersion,
-                nameHint: nameHint
-            })
-                .done(function (result) {
-                    result.keepFile = false;
-                    
-                    if (result.installationStatus !== InstallationStatuses.INSTALLED || _doUpdate) {
-                        d.resolve(result);
-                    } else {
-                        // This was a new extension and everything looked fine.
-                        // We load it into Brackets right away.
-                        ExtensionLoader.loadExtension(result.name, {
-                            // On Windows, it looks like Node converts Unix-y paths to backslashy paths.
-                            // We need to convert them back.
-                            baseUrl: FileUtils.convertWindowsPathToUnixPath(result.installedTo)
-                        }, "main").then(function () {
-                            d.resolve(result);
-                        }, function () {
-                            d.reject(Errors.ERROR_LOADING);
-                        });
+            return new Promise(function (resolve, reject) {
+                var destinationDirectory    = ExtensionLoader.getUserExtensionPath(),
+                    disabledDirectory       = destinationDirectory.replace(/\/user$/, "/disabled"),
+                    systemDirectory         = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default/";
+
+                var operation = _doUpdate ? "update" : "install";
+                
+                extensionManager[operation](path, destinationDirectory, {
+                    disabledDirectory: disabledDirectory,
+                    systemExtensionDirectory: systemDirectory,
+                    apiVersion: brackets.metadata.apiVersion,
+                    nameHint: nameHint
+                }).then(
+                    function (result) {
+                        result.keepFile = false;
+
+                        if (result.installationStatus !== InstallationStatuses.INSTALLED || _doUpdate) {
+                            resolve(result);
+                        } else {
+                            // This was a new extension and everything looked fine.
+                            // We load it into Brackets right away.
+                            ExtensionLoader.loadExtension(result.name, {
+                                // On Windows, it looks like Node converts Unix-y paths to backslashy paths.
+                                // We need to convert them back.
+                                baseUrl: FileUtils.convertWindowsPathToUnixPath(result.installedTo)
+                            }, "main").then(function () {
+                                resolve(result);
+                            }, function () {
+                                reject(Errors.ERROR_LOADING);
+                            });
+                        }
+                    },
+                    function (error) {
+                        reject(error);
                     }
-                })
-                .fail(function (error) {
-                    d.reject(error);
-                });
-            
-            return d.promise();
+                );
+            });
         });
     }
     
@@ -223,43 +226,44 @@ define(function (require, exports, module) {
      * 
      * @param {string} url URL of the file to be downloaded
      * @param {number} downloadId Unique number to identify this request
-     * @return {$.Promise}
+     * @return {Promise}
      */
     function download(url, downloadId) {
         return _extensionManagerCall(function (extensionManager) {
-            var d = new $.Deferred();
-            
-            // Validate URL
-            // TODO: PathUtils fails to parse URLs that are missing the protocol part (e.g. starts immediately with "www...")
-            var parsed = PathUtils.parseUrl(url);
-            if (!parsed.hostname) {  // means PathUtils failed to parse at all
-                d.reject(Errors.MALFORMED_URL);
-                return d.promise();
-            }
-            if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-                d.reject(Errors.UNSUPPORTED_PROTOCOL);
-                return d.promise();
-            }
-            
-            var urlInfo = { url: url, parsed: parsed, filenameHint: parsed.filename };
-            githubURLFilter(urlInfo);
-            
-            // Decide download destination
-            var filename = urlInfo.filenameHint;
-            filename = filename.replace(/[^a-zA-Z0-9_\- \(\)\.]/g, "_"); // make sure it's a valid filename
-            if (!filename) {  // in case of URL ending in "/"
-                filename = "extension.zip";
-            }
-            
-            // Download the bits (using Node since brackets-shell doesn't support binary file IO)
-            var r = extensionManager.downloadFile(downloadId, urlInfo.url, PreferencesManager.get("proxy"));
-            r.done(function (result) {
-                d.resolve({ localPath: FileUtils.convertWindowsPathToUnixPath(result), filenameHint: urlInfo.filenameHint });
-            }).fail(function (err) {
-                d.reject(err);
+            return new Promise(function (resolve, reject) {
+
+                // Validate URL
+                // TODO: PathUtils fails to parse URLs that are missing the protocol part (e.g. starts immediately with "www...")
+                var parsed = PathUtils.parseUrl(url);
+                if (!parsed.hostname) {  // means PathUtils failed to parse at all
+                    reject(Errors.MALFORMED_URL);
+                    return;
+                }
+                if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+                    reject(Errors.UNSUPPORTED_PROTOCOL);
+                    return;
+                }
+
+                var urlInfo = { url: url, parsed: parsed, filenameHint: parsed.filename };
+                githubURLFilter(urlInfo);
+
+                // Decide download destination
+                var filename = urlInfo.filenameHint;
+                filename = filename.replace(/[^a-zA-Z0-9_\- \(\)\.]/g, "_"); // make sure it's a valid filename
+                if (!filename) {  // in case of URL ending in "/"
+                    filename = "extension.zip";
+                }
+
+                // Download the bits (using Node since brackets-shell doesn't support binary file IO)
+                extensionManager.downloadFile(downloadId, urlInfo.url, PreferencesManager.get("proxy")).then(
+                    function (result) {
+                        resolve({ localPath: FileUtils.convertWindowsPathToUnixPath(result), filenameHint: urlInfo.filenameHint });
+                    },
+                    function (err) {
+                        reject(err);
+                    }
+                );
             });
-            
-            return d.promise();
         });
     }
     
@@ -287,40 +291,40 @@ define(function (require, exports, module) {
      * @param {string} path Absolute path to the package zip file
      * @param {?string} filenameHint Hint for the extension folder's name (used in favor of
      *          path's filename if present, and if no package metadata present).
-     * @return {$.Promise} A promise that is rejected if there are errors during
+     * @return {Promise} A promise that is rejected if there are errors during
      *          install or the extension is disabled.
      */
     function installFromPath(path, filenameHint) {
-        var d = new $.Deferred();
+        return new Promise(function (resolve, reject) {
 
-        install(path, filenameHint)
-            .done(function (result) {
-                result.keepFile = true;
-                
-                var installationStatus = result.installationStatus;
-                if (installationStatus === InstallationStatuses.ALREADY_INSTALLED ||
-                        installationStatus === InstallationStatuses.NEEDS_UPDATE ||
-                        installationStatus === InstallationStatuses.SAME_VERSION ||
-                        installationStatus === InstallationStatuses.OLDER_VERSION) {
-                    d.resolve(result);
-                } else {
-                    if (result.errors && result.errors.length > 0) {
-                        // Validation errors - for now, only return the first one
-                        d.reject(result.errors[0]);
-                    } else if (result.disabledReason) {
-                        // Extension valid but left disabled (wrong API version, extension name collision, etc.)
-                        d.reject(result.disabledReason);
+            install(path, filenameHint).then(
+                function (result) {
+                    result.keepFile = true;
+
+                    var installationStatus = result.installationStatus;
+                    if (installationStatus === InstallationStatuses.ALREADY_INSTALLED ||
+                            installationStatus === InstallationStatuses.NEEDS_UPDATE ||
+                            installationStatus === InstallationStatuses.SAME_VERSION ||
+                            installationStatus === InstallationStatuses.OLDER_VERSION) {
+                        resolve(result);
                     } else {
-                        // Success! Extension is now running in Brackets
-                        d.resolve(result);
+                        if (result.errors && result.errors.length > 0) {
+                            // Validation errors - for now, only return the first one
+                            reject(result.errors[0]);
+                        } else if (result.disabledReason) {
+                            // Extension valid but left disabled (wrong API version, extension name collision, etc.)
+                            reject(result.disabledReason);
+                        } else {
+                            // Success! Extension is now running in Brackets
+                            resolve(result);
+                        }
                     }
+                },
+                function (err) {
+                    reject(err);
                 }
-            })
-            .fail(function (err) {
-                d.reject(err);
-            });
-
-        return d.promise();
+            );
+        });
     }
     
     /**
@@ -336,7 +340,7 @@ define(function (require, exports, module) {
      * succeed. If cancel() succeeds, the Promise is rejected with a CANCELED error code. If we're unable
      * to cancel, the Promise is resolved or rejected normally, as if cancel() had never been called.
      * 
-     * @return {{promise: $.Promise, cancel: function():boolean}}
+     * @return {{promise: Promise, cancel: function():boolean}}
      */
     function installFromURL(url) {
         var STATE_DOWNLOADING = 1,
@@ -344,44 +348,48 @@ define(function (require, exports, module) {
             STATE_SUCCEEDED = 3,
             STATE_FAILED = 4;
         
-        var d = new $.Deferred();
-        var state = STATE_DOWNLOADING;
+        var state = STATE_DOWNLOADING,
+            downloadId = (_uniqueId++);
         
-        var downloadId = (_uniqueId++);
-        download(url, downloadId)
-            .done(function (downloadResult) {
-                state = STATE_INSTALLING;
-                
-                installFromPath(downloadResult.localPath, downloadResult.filenameHint)
-                    .done(function (result) {
-                        var installationStatus = result.installationStatus;
+        var d = new Promise(function (resolve, reject) {
+            
+            download(url, downloadId).then(
+                function (downloadResult) {
+                    state = STATE_INSTALLING;
 
-                        state = STATE_SUCCEEDED;
-                        result.localPath = downloadResult.localPath;
-                        result.keepFile = false;
+                    installFromPath(downloadResult.localPath, downloadResult.filenameHint).then(
+                        function (result) {
+                            var installationStatus = result.installationStatus;
 
-                        if (installationStatus === InstallationStatuses.INSTALLED) {
-                            // Delete temp file
+                            state = STATE_SUCCEEDED;
+                            result.localPath = downloadResult.localPath;
+                            result.keepFile = false;
+
+                            if (installationStatus === InstallationStatuses.INSTALLED) {
+                                // Delete temp file
+                                FileSystem.getFileForPath(downloadResult.localPath).unlink();
+                            }
+
+                            resolve(result);
+                        },
+                        function (err) {
+                            // File IO errors, internal error in install()/validate(), or extension startup crashed
+                            state = STATE_FAILED;
                             FileSystem.getFileForPath(downloadResult.localPath).unlink();
+                            reject(err);  // TODO: needs to be err.message ?
                         }
-
-                        d.resolve(result);
-                    })
-                    .fail(function (err) {
-                        // File IO errors, internal error in install()/validate(), or extension startup crashed
-                        state = STATE_FAILED;
-                        FileSystem.getFileForPath(downloadResult.localPath).unlink();
-                        d.reject(err);  // TODO: needs to be err.message ?
-                    });
-            })
-            .fail(function (err) {
-                // Download error (the Node-side download code cleans up any partial ZIP file)
-                state = STATE_FAILED;
-                d.reject(err);
-            });
+                    );
+                },
+                function (err) {
+                    // Download error (the Node-side download code cleans up any partial ZIP file)
+                    state = STATE_FAILED;
+                    reject(err);
+                }
+            );
+        });
         
         return {
-            promise: d.promise(),
+            promise: d,
             cancel: function () {
                 if (state === STATE_DOWNLOADING) {
                     // This will trigger download()'s fail() handler with CANCELED as the err code
@@ -421,7 +429,7 @@ define(function (require, exports, module) {
      * Removes the extension at the given path.
      *
      * @param {string} path The absolute path to the extension to remove.
-     * @return {$.Promise} A promise that's resolved when the extension is removed, or
+     * @return {Promise} A promise that's resolved when the extension is removed, or
      *     rejected if there was an error.
      */
     function remove(path) {
@@ -443,23 +451,24 @@ define(function (require, exports, module) {
      * @param {string} path to package file
      * @param {?string} nameHint Hint for the extension folder's name (used in favor of
      *          path's filename if present, and if no package metadata present).
-     * @return {$.Promise} A promise that is resolved when the extension is successfully
+     * @return {Promise} A promise that is resolved when the extension is successfully
      *      installed or rejected if there is a problem.
      */
     function installUpdate(path, nameHint) {
-        var d = new $.Deferred();
-        install(path, nameHint, true)
-            .done(function (result) {
-                if (result.installationStatus !== InstallationStatuses.INSTALLED) {
-                    d.reject(result.errors);
-                } else {
-                    d.resolve(result);
+        return new Promise(function (resolve, reject) {
+            install(path, nameHint, true).then(
+                function (result) {
+                    if (result.installationStatus !== InstallationStatuses.INSTALLED) {
+                        reject(result.errors);
+                    } else {
+                        resolve(result);
+                    }
+                },
+                function (error) {
+                    reject(error);
                 }
-            })
-            .fail(function (error) {
-                d.reject(error);
-            });
-        return d.promise();
+            );
+        });
     }
         
     /**
@@ -492,7 +501,7 @@ define(function (require, exports, module) {
                         _nodeConnectionDeferred.reject();
                     }
                 );
-        });
+        }, null);
     });
 
     // For unit tests only

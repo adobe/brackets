@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets, semver */
+/*global define, window, $, brackets, semver, Promise */
 /*unittests: ExtensionManager*/
 
 /**
@@ -176,31 +176,35 @@ define(function (require, exports, module) {
      * Downloads the registry of Brackets extensions and stores the information in our
      * extension info.
      *
-     * @return {$.Promise} a promise that's resolved with the registry JSON data
+     * @return {Promise} a promise that's resolved with the registry JSON data
      * or rejected if the server can't be reached.
      */
     function downloadRegistry() {
-        var result = new $.Deferred();
-        $.ajax({
-            url: brackets.config.extension_registry,
-            dataType: "json",
-            cache: false
-        })
-            .done(function (data) {
-                Object.keys(data).forEach(function (id) {
-                    if (!extensions[id]) {
-                        extensions[id] = {};
-                    }
-                    extensions[id].registryInfo = data[id];
-                    synchronizeEntry(id);
-                });
-                $(exports).triggerHandler("registryDownload");
-                result.resolve();
-            })
-            .fail(function () {
-                result.reject();
-            });
-        return result.promise();
+        return new Promise(function (resolve, reject) {
+            
+            Promise.resolve(
+                $.ajax({
+                    url: brackets.config.extension_registry,
+                    dataType: "json",
+                    cache: false
+                })
+            ).then(
+                function (data) {
+                    Object.keys(data).forEach(function (id) {
+                        if (!extensions[id]) {
+                            extensions[id] = {};
+                        }
+                        extensions[id].registryInfo = data[id];
+                        synchronizeEntry(id);
+                    });
+                    $(exports).triggerHandler("registryDownload");
+                    resolve();
+                },
+                function () {
+                    reject();
+                }
+            );
+        });
     }
 
 
@@ -243,11 +247,11 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("statusChange", [id]);
         }
 
-        ExtensionUtils.loadPackageJson(path)
-            .done(function (metadata) {
+        ExtensionUtils.loadPackageJson(path).then(
+            function (metadata) {
                 setData(metadata.name, metadata);
-            })
-            .fail(function () {
+            },
+            function () {
                 // If there's no package.json, this is a legacy extension. It was successfully loaded,
                 // but we don't have an official ID or metadata for it, so we just create an id and
                 // "title" for it (which is the last segment of its pathname)
@@ -256,7 +260,8 @@ define(function (require, exports, module) {
                     name = (match && match[1]) || path,
                     metadata = { name: name, title: name };
                 setData(name, metadata);
-            });
+            }
+        );
     }
 
     /**
@@ -348,25 +353,26 @@ define(function (require, exports, module) {
     /**
      * Removes the installed extension with the given id.
      * @param {string} id The id of the extension to remove.
-     * @return {$.Promise} A promise that's resolved when the extension is removed or
+     * @return {Promise} A promise that's resolved when the extension is removed or
      *     rejected with an error if there's a problem with the removal.
      */
     function remove(id) {
-        var result = new $.Deferred();
-        if (extensions[id] && extensions[id].installInfo) {
-            Package.remove(extensions[id].installInfo.path)
-                .done(function () {
-                    extensions[id].installInfo = null;
-                    result.resolve();
-                    $(exports).triggerHandler("statusChange", [id]);
-                })
-                .fail(function (err) {
-                    result.reject(err);
-                });
-        } else {
-            result.reject(StringUtils.format(Strings.EXTENSION_NOT_INSTALLED, id));
-        }
-        return result.promise();
+        return new Promise(function (resolve, reject) {
+            if (extensions[id] && extensions[id].installInfo) {
+                Package.remove(extensions[id].installInfo.path).then(
+                    function () {
+                        extensions[id].installInfo = null;
+                        resolve();
+                        $(exports).triggerHandler("statusChange", [id]);
+                    },
+                    function (err) {
+                        reject(err);
+                    }
+                );
+            } else {
+                reject(StringUtils.format(Strings.EXTENSION_NOT_INSTALLED, id));
+            }
+        });
     }
 
     /**
@@ -374,15 +380,15 @@ define(function (require, exports, module) {
      * @param {string} id of the extension
      * @param {string} packagePath path to the package file
      * @param {boolean=} keepFile Flag to keep extension package file, default=false
-     * @return {$.Promise} A promise that's resolved when the extension is updated or
+     * @return {Promise} A promise that's resolved when the extension is updated or
      *     rejected with an error if there's a problem with the update.
      */
     function update(id, packagePath, keepFile) {
-        return Package.installUpdate(packagePath, id).done(function () {
+        return Package.installUpdate(packagePath, id).then(function () {
             if (!keepFile) {
                 FileSystem.getFileForPath(packagePath).unlink();
             }
-        });
+        }, null);
     }
 
     /**
@@ -499,7 +505,7 @@ define(function (require, exports, module) {
 
     /**
      * Removes extensions previously marked for removal.
-     * @return {$.Promise} A promise that's resolved when all extensions are removed, or rejected
+     * @return {Promise} A promise that's resolved when all extensions are removed, or rejected
      *     if one or more extensions can't be removed. When rejected, the argument will be an
      *     array of error objects, each of which contains an "item" property with the id of the
      *     failed extension and an "error" property with the actual error.
@@ -515,7 +521,7 @@ define(function (require, exports, module) {
 
     /**
      * Updates extensions previously marked for update.
-     * @return {$.Promise} A promise that's resolved when all extensions are updated, or rejected
+     * @return {Promise} A promise that's resolved when all extensions are updated, or rejected
      *     if one or more extensions can't be updated. When rejected, the argument will be an
      *     array of error objects, each of which contains an "item" property with the id of the
      *     failed extension and an "error" property with the actual error.
