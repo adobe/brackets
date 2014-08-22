@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, PathUtils, Mustache */
+/*global define, $, brackets, window, PathUtils, Mustache, Promise */
 
 define(function (require, exports, module) {
     "use strict";
@@ -95,36 +95,42 @@ define(function (require, exports, module) {
         
         $spinner.addClass("spin");
         
-        function loadContributors(rawUrl, page, contributors, deferred) {
-            deferred = deferred || new $.Deferred();
-            contributors = contributors || [];
-            var url = StringUtils.format(rawUrl, CONTRIBUTORS_PER_PAGE, page);
+        var promise = new Promise(function (resolve, reject) {
 
-            $.ajax({
-                url: url,
-                dataType: "json",
-                cache: false
-            })
-                .done(function (response) {
-                    contributors = contributors.concat(response || []);
-                    if (page && response.length === CONTRIBUTORS_PER_PAGE) {
-                        loadContributors(rawUrl, page + 1, contributors, deferred);
-                    } else {
-                        deferred.resolve(contributors);
-                    }
-                })
-                .fail(function () {
-                    if (contributors.length) { // we weren't able to fetch this page, but previous fetches were successful
-                        deferred.resolve(contributors);
-                    } else {
-                        deferred.reject();
-                    }
-                });
-            return deferred.promise();
-        }
+            function loadContributors(rawUrl, page, contributors) {
+                contributors = contributors || [];
+                var url = StringUtils.format(rawUrl, CONTRIBUTORS_PER_PAGE, page);
 
-        loadContributors(contributorsUrl, page) // Load the contributors
-            .done(function (allContributors) {
+                Promise.resolve(
+                    $.ajax({
+                        url: url,
+                        dataType: "json",
+                        cache: false
+                    })
+                ).then(
+                    function (response) {
+                        contributors = contributors.concat(response || []);
+                        if (page && response.length === CONTRIBUTORS_PER_PAGE) {
+                            loadContributors(rawUrl, page + 1, contributors);
+                        } else {
+                            resolve(contributors);
+                        }
+                    },
+                    function () {
+                        if (contributors.length) { // we weren't able to fetch this page, but previous fetches were successful
+                            resolve(contributors);
+                        } else {
+                            reject();
+                        }
+                    }
+                );
+            }
+
+            loadContributors(contributorsUrl, page); // Load the contributors
+        });
+        
+        promise.then(
+            function (allContributors) {
                 // Populate the contributors data
                 var totalContributors = allContributors.length,
                     contributorsCount = 0;
@@ -150,23 +156,24 @@ define(function (require, exports, module) {
                         $(this).trigger("load");
                     }
                 });
-            })
-            .fail(function () {
+            },
+            function () {
                 $spinner.removeClass("spin");
                 $contributors.html(Mustache.render("<p class='dialog-message'>{{ABOUT_TEXT_LINE6}}</p>", Strings));
-            });
+            }
+        );
     }
 
     // Read "build number" SHAs off disk immediately at APP_READY, instead
     // of later, when they may have been updated to a different version
     AppInit.appReady(function () {
-        BuildInfoUtils.getBracketsSHA().done(function (branch, sha, isRepo) {
+        BuildInfoUtils.getBracketsSHA().then(function (branch, sha, isRepo) {
             // If we've successfully determined a "build number" via .git metadata, add it to dialog
             sha = sha ? sha.substr(0, 9) : "";
             if (branch || sha) {
                 buildInfo = StringUtils.format("({0} {1})", branch, sha).trim();
             }
-        });
+        }, null);
     });
 
     CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,       Commands.HELP_CHECK_FOR_UPDATE,     _handleCheckForUpdates);
