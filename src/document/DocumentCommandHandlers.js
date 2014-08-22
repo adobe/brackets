@@ -264,8 +264,8 @@ define(function (require, exports, module) {
         
         function _cleanup(fullFilePath) {
             if (fullFilePath) {
-                // For performance, we do lazy checking of file existence, so it may be in a pane view 
-                MainViewManager.removeView(paneId, FileSystem.getFileForPath(fullFilePath));
+                // For performance, we do lazy checking of file existence, so it may be in pane view list
+                MainViewManager._removeView(paneId, FileSystem.getFileForPath(fullFilePath));
                 MainViewManager.focusActivePane();
             }
             result.reject();
@@ -342,7 +342,7 @@ define(function (require, exports, module) {
                         filteredPaths.forEach(function (file) {
                             filesToOpen.push(FileSystem.getFileForPath(file));
                         });
-                        MainViewManager.addViews(paneId, filesToOpen);
+                        MainViewManager.addListToWorkingSet(paneId, filesToOpen);
                         
                         _doOpen(filteredPaths[filteredPaths.length - 1], silent, paneId)
                             .done(function (file) {
@@ -453,26 +453,6 @@ define(function (require, exports, module) {
         // do "View Source" from Adobe Scout version 1.2 or newer (this will use decorated paths of the form "path:line:column")
     }
 
-    
-    /**
-     * Opens the given file, makes it the current file, AND adds it to the pane view list
-     * only if the file does not have a custom viewer.
-     * @param {!PaneCommandData} commandData
-     *   File to open; 
-     *   optional index to position in pane view list (defaults to last); 
-     *   optional flag to suppress error messages; 
-     *   optional flag to force pane view list redraw; 
-     *   optional PaneId (defaults to active pane)
-     * @return {$.Promise} a jQuery promise that will be resolved with a @type {File} 
-     */
-    function handleAddToPaneViewList(commandData) {
-        return handleFileOpen(commandData).done(function (file) {
-            
-            var paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
-            MainViewManager.addView(paneId, file, commandData.index, commandData.forceRedraw);
-        });
-    }
-    
   /**
      * Opens the given file, makes it the current file, AND adds it to the pane view list
      * only if the file does not have a custom viewer.
@@ -499,6 +479,25 @@ define(function (require, exports, module) {
 
         return result.promise();
         
+    }
+    
+    /**
+     * Opens the given file, makes it the current file, AND adds it to the pane view list
+     * only if the file does not have a custom viewer.
+     * @param {!PaneCommandData} commandData
+     *   File to open; 
+     *   optional index to position in pane view list (defaults to last); 
+     *   optional flag to suppress error messages; 
+     *   optional flag to force pane view list redraw; 
+     *   optional PaneId (defaults to active pane)
+     * @return {$.Promise} a jQuery promise that will be resolved with a @type {File} 
+     */
+    function handleAddToPaneViewList(commandData) {
+        return handleFileOpen(commandData).done(function (file) {
+            
+            var paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
+            MainViewManager.addToWorkingSet(paneId, file, commandData.index, commandData.forceRedraw);
+        });
     }
 
     /**
@@ -847,10 +846,10 @@ define(function (require, exports, module) {
                         .openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
                 } else {
                     // If selection is in pane view list, replace orig item in place with the new file
-                    var info = MainViewManager.findAllViewsOf(doc.file.fullPath).shift();
+                    var info = MainViewManager.findInAllWorkingSets(doc.file.fullPath).shift();
                     
                     // Remove old file from pane view list; no redraw yet since there's a pause before the new file is opened
-                    MainViewManager.removeView(info.paneId, doc.file, true);
+                    MainViewManager._removeView(info.paneId, doc.file, true);
                     
                     // Add new file to pane view list, and ensure we now redraw (even if index hasn't changed)
                     fileOpenPromise = handleAddToPaneViewList({fullPath: path, paneId: info.paneId, index: info.index, forceRedraw: true});
@@ -910,7 +909,7 @@ define(function (require, exports, module) {
                 // (Issue #4489) if we're saving an untitled document, go ahead and switch to this document
                 //   in the editor, so that if we're, for example, saving several files (ie. Save All),
                 //   then the user can visually tell which document we're currently prompting them to save.
-                var info = MainViewManager.findAllViewsOf(origPath).shift();
+                var info = MainViewManager.findInAllWorkingSets(origPath).shift();
                 
                 if (info) {
                     MainViewManager.open(info.paneId, doc.file);
@@ -1027,7 +1026,7 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function saveAll() {
-        return _saveFileList(MainViewManager.getViews(MainViewManager.ALL_PANES));
+        return _saveFileList(MainViewManager.getWorkingSet(MainViewManager.ALL_PANES));
     }
 
     /**
@@ -1673,7 +1672,7 @@ define(function (require, exports, module) {
     // Register global commands
     CommandManager.register(Strings.CMD_FILE_OPEN,              Commands.FILE_OPEN, handleDocumentOpen);
     CommandManager.register(Strings.CMD_FILE_OPEN,              Commands.CMD_OPEN, handleFileOpen);
-    CommandManager.register(Strings.CMD_ADD_TO_PANE_AND_OPEN,   Commands.CMD_ADD_TO_PANE_AND_OPEN, handleAddToPaneViewList);
+    CommandManager.register(Strings.CMD_ADD_TO_PANE_AND_OPEN,  Commands.CMD_ADD_TO_PANE_AND_OPEN, handleAddToPaneViewList);
     CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,      Commands.FILE_NEW_UNTITLED, handleFileNew);
     CommandManager.register(Strings.CMD_FILE_NEW,               Commands.FILE_NEW, handleFileNewInProject);
     CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,        Commands.FILE_NEW_FOLDER, handleNewFolderInProject);

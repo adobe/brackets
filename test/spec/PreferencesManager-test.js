@@ -129,7 +129,7 @@ define(function (require, exports, module) {
         });
 
         it("should find preferences in the project", function () {
-            var projectWithoutSettings = SpecRunnerUtils.getTestPath("/spec/PaneViewListView-test-files"),
+            var projectWithoutSettings = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files"),
                 FileViewController = testWindow.brackets.test.FileViewController;
             waitsForDone(SpecRunnerUtils.openProjectFiles(".brackets.json"));
             

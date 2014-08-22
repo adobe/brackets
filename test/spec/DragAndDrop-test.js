@@ -145,8 +145,8 @@ define(function (require, exports, module) {
                 });
             
                 runs(function () {
-                    expect(MainViewManager.findView(MainViewManager.ALL_PANES, imagesPath + "/thermo.jpg")).toNotEqual(-1);
-                    expect(MainViewManager.findView(MainViewManager.ALL_PANES, imagesPath + "/check.png")).toNotEqual(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, imagesPath + "/thermo.jpg")).toNotEqual(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, imagesPath + "/check.png")).toNotEqual(-1);
                 });
             });
         });

@@ -794,7 +794,7 @@ define(function (require, exports, module) {
     PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
 
     $(MainViewManager).on("currentFileChange", _handlecurrentFileChange);
-    $(MainViewManager).on("paneViewRemove paneViewRemoveList", _handleRemoveFromPaneView);
+    $(MainViewManager).on("workingSetRemove workingSetRemoveList", _handleRemoveFromPaneView);
 
     
     // For unit tests and internal use only

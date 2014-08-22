@@ -155,12 +155,12 @@ define(function (require, exports, module) {
     
     /**
      * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
-     * @deprecated Use MainViewManager.getViews() instead
+     * @deprecated Use MainViewManager.getWorkingSet() instead
      * @return {Array.<File>}
      */
     function getWorkingSet() {
         DeprecationWarning.deprecationWarning("Use MainViewManager.getViews() instead of DocumentManager.getWorkingSet()", true);
-        return MainViewManager.getViews(MainViewManager.ALL_PANES)
+        return MainViewManager.getWorkingSet(MainViewManager.ALL_PANES)
             .filter(function (file) {
                 // Document.file objects were added to Working Sets
                 //  so filter the result set from the new API
@@ -171,17 +171,13 @@ define(function (require, exports, module) {
 
     /**
      * Returns the index of the file matching fullPath in the working set.
-     * @deprecated Use MainViewManager.findView() instead
+     * @deprecated Use MainViewManager.findInWorkingSet() instead
      * @param {!string} fullPath
      * @return {number} index, -1 if not found
      */
-    function findInWorkingSet(fullPath, list) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.findView() instead of DocumentManager.findInWorkingSet()", true);
-        if (list) {
-            DeprecationWarning.deprecationWarning("DocumentManager.findInWorkingSet() no longer supports an arbitrary array", true);
-            return [];
-        }
-        return MainViewManager.findView(MainViewManager.ACTIVE_PANE, fullPath);
+    function findInWorkingSet(fullPath) {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.findInWorkingSet() instead of DocumentManager.findInWorkingSet()", true);
+        return MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, fullPath);
     }
     
     /**
@@ -204,19 +200,19 @@ define(function (require, exports, module) {
     
     /**
      * Adds the given file to the end of the working set list.
-     * @deprecated Use MainViewManager.addView() instead 
+     * @deprecated Use MainViewManager.addToWorkingSet() instead 
      * @param {!File} file
      * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
      * @param {boolean=} forceRedraw  If true, a working set change notification is always sent
      *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
      */
     function addToWorkingSet(file, index, forceRedraw) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.addView() instead of DocumentManager.addToWorkingSet()", true);
-        MainViewManager.addView(MainViewManager.ACTIVE_PANE, file, index, forceRedraw);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.addToWorkingSet() instead of DocumentManager.addToWorkingSet()", true);
+        MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, file, index, forceRedraw);
     }
     
     /**
-     * @deprecated Use MainViewManager.addViews() instead 
+     * @deprecated Use MainViewManager.addListToWorkingSet() instead 
      * Adds the given file list to the end of the working set list.
      * If a file in the list has its own custom viewer, then it 
      * is not added into the working set.
@@ -226,31 +222,15 @@ define(function (require, exports, module) {
      * @param {!Array.<File>} fileList
      */
     function addListToWorkingSet(fileList) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.addViews() instead of DocumentManager.addListToWorkingSet()", true);
-        MainViewManager.addViews(MainViewManager.ACTIVE_PANE, fileList);
-    }
-    
-    /**
-     * Removes the given file from the working set list, if it was in the list. 
-     * @deprecated Use MainViewManager.removeView() instead 
-     * @param {!File} file
-     * @param {boolean=} true to suppress redraw after removal
-     */
-    function removeFromWorkingSet(file, suppressRedraw) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.removeView() instead of DocumentManager.removeFromWorkingSet()", true);
-        MainViewManager.removeView(MainViewManager.ALL_PANES, file, suppressRedraw);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.addListToWorkingSet() instead of DocumentManager.addListToWorkingSet()", true);
+        MainViewManager.addListToWorkingSet(MainViewManager.ACTIVE_PANE, fileList);
     }
 
     
     /**
-     * Removes a list of files from the working set and closes their respective editors
-     * @deprecated Use MainViewManager.removeViews() instead
-     * @param {Array.<File>=} list of files to close and remove from the working set
-     
      */
     function removeListFromWorkingSet(list) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.removeViews() instead of DocumentManager.removeListFromWorkingSet()", true);
-        MainViewManager.removeViews(MainViewManager.ALL_PANES, list);
+        throw new Error("removeListFromWorkingSet() has been deprecated.  Use Command.FILE_CLOSE_LIST instead.");
     }
         
     /**
@@ -599,7 +579,7 @@ define(function (require, exports, module) {
         .on("_dirtyFlagChange", function (event, doc) {
             $(exports).triggerHandler("dirtyFlagChange", doc);
             if (doc.isDirty) {
-                MainViewManager.addView(MainViewManager.ACTIVE_PANE, doc.file);
+                MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, doc.file);
             }
         })
         .on("_documentSaved", function (event, doc) {
@@ -629,16 +609,16 @@ define(function (require, exports, module) {
     
     /**
      * Creates a deprecation warning event handler
-     * @param {!string} the event being deprecated
-     * @param {!string} the new event to use
+     * @param {!string} eventName - the event being deprecated. 
+     *  The Event Name doesn't change just which object dispatches it
      */
-    function _deprecateEvent(oldEventName, newEventName) {
+    function _deprecateEvent(eventName) {
         DeprecationWarning.deprecateEvent(exports,
                                           MainViewManager,
-                                          oldEventName,
-                                          newEventName,
-                                          "DocumentManager." + oldEventName,
-                                          "MainViewManager." + newEventName);
+                                          eventName,
+                                          eventName,
+                                          "DocumentManager." + eventName,
+                                          "MainViewManager." + eventName);
     }
     
     /* 
@@ -647,18 +627,18 @@ define(function (require, exports, module) {
      * handler chain which gives the system a chance to process them
      * before they are dispatched to extensions.  
      * 
-     * Extensions that listen to the new event (paneViewXXX events) are 
-     * always added to the end so this effectively puts the legacy events 
+     * Extensions that listen to the new MainViewManager working set events 
+     * are always added to the end so this effectively puts the legacy events 
      * at the end of the event list. This prevents extensions from 
      * handling the event too soon. (e.g.  paneViewListView needs to 
      * process these events before the Extension Highlighter extension)
      */
     AppInit.extensionsLoaded(function () {
-        _deprecateEvent("workingSetAdd",         "paneViewAdd");
-        _deprecateEvent("workingSetAddList",     "paneViewAddList");
-        _deprecateEvent("workingSetRemove",      "paneViewRemove");
-        _deprecateEvent("workingSetRemoveList",  "paneViewRemoveList");
-        _deprecateEvent("workingSetSort",        "paneViewSort");
+        _deprecateEvent("workingSetAdd");
+        _deprecateEvent("workingSetAddList");
+        _deprecateEvent("workingSetRemove");
+        _deprecateEvent("workingSetRemoveList");
+        _deprecateEvent("workingSetSort");
     });
     
     PreferencesManager.convertPreferences(module, {"files_": "user"}, true, _checkPreferencePrefix);

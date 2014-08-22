@@ -96,7 +96,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("events.jpg");
                     // should not have been added to the working set
-                    expect(MainViewManager.getViewCount(MainViewManager.ALL_PANES)).toEqual(0);
+                    expect(MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES)).toEqual(0);
                 });
             });
             it("should close an image", function () {
@@ -107,7 +107,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.close(MainViewManager.ACTIVE_PANE, getFileObject("/images/events.jpg"));
                     expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
-                    expect(MainViewManager.getViewCount(MainViewManager.ALL_PANES)).toEqual(0);
+                    expect(MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES)).toEqual(0);
                 });
             });
             it("should add an image to the working set", function () {
@@ -117,8 +117,8 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("events.jpg");
-                    expect(MainViewManager.getViewCount(MainViewManager.ALL_PANES)).toEqual(1);
-                    expect(MainViewManager.findView(MainViewManager.ACTIVE_PANE, testPath + "/images/events.jpg")).not.toEqual(-1);
+                    expect(MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES)).toEqual(1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, testPath + "/images/events.jpg")).not.toEqual(-1);
                 });
             });
         });

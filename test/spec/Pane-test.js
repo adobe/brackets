@@ -169,7 +169,7 @@ define(function (require, exports, module) {
                 spyOn(myView, "destroy");
                 
                 myPane.showView(myView);
-                myPane.doRemoveAllViews();
+                myPane.reset();
                 
                 expect(Object.keys(myPane._views).length).toBe(0);
                 expect(myView.destroy).toHaveBeenCalled();
@@ -180,7 +180,7 @@ define(function (require, exports, module) {
                 myPane.showView(myView);
                 expect(myPane.$el.find(".not-editor").css("display")).toEqual("none");
                 
-                myPane.doRemoveAllViews();
+                myPane.reset();
                 expect(myPane.$el.find(".not-editor").css("display")).toBeFalsy();
             });
             it("should destroy view when new view is added", function () {
@@ -220,7 +220,7 @@ define(function (require, exports, module) {
                 myPane.showView(myView);
                 secondPane.showView(secondView);
                 
-                myPane.mergeWith(secondPane);
+                myPane.mergeFrom(secondPane);
                 expect(secondView.switchContainers).toHaveBeenCalled();
                 expect(secondView.destroy).not.toHaveBeenCalled();
                 
@@ -239,7 +239,7 @@ define(function (require, exports, module) {
                 myPane.showView(myView);
                 secondPane.showView(secondView);
                 
-                myPane.mergeWith(secondPane);
+                myPane.mergeFrom(secondPane);
                 expect(secondView.destroy).toHaveBeenCalled();
 
                 secondPane.destroy();
@@ -255,7 +255,7 @@ define(function (require, exports, module) {
                 myPane.showView(myView);
                 secondPane.showView(secondView);
                 
-                myPane.mergeWith(secondPane);
+                myPane.mergeFrom(secondPane);
                 expect(secondPane.$el.find(".not-editor").css("display")).toBeFalsy();
                 
                 secondPane.destroy();
@@ -274,7 +274,7 @@ define(function (require, exports, module) {
                 
                 spyOn(secondView, "setVisible");
                 
-                myPane.mergeWith(secondPane);
+                myPane.mergeFrom(secondPane);
                 
                 expect(secondView.setVisible).toHaveBeenCalled();
                 expect(secondView.setVisible.calls[0].args[0]).toBeFalsy();
@@ -302,7 +302,7 @@ define(function (require, exports, module) {
                 myPane.showView(myView);
                 myPane.showView(secondView);
                 
-                myPane.doRemoveView(secondView.getFile(), true);
+                myPane.removeView(secondView.getFile());
                 expect(myPane._currentView).toEqual(myView);
             });
             it("should not switch views when removing view", function () {
@@ -317,7 +317,7 @@ define(function (require, exports, module) {
                 myPane.showView(myView);
                 myPane.showView(secondView);
                 
-                myPane.doRemoveView(secondView.getFile());
+                myPane.removeView(secondView.getFile(), true);
                 expect(myPane._currentView).toEqual(null);
                 expect(myPane._execOpenFile).not.toHaveBeenCalled();
             });
@@ -346,7 +346,7 @@ define(function (require, exports, module) {
                 myPane.addToViewList(myView.getFile());
                 myPane.addView(myView);
                 myPane.showView(myView);
-                myPane.removeFromViewList(myView.getFile());
+                myPane.removeView(myView.getFile());
 
                 expect(myPane._viewList.length).toEqual(0);
                 expect(myPane._viewListAddedOrder.length).toEqual(0);
@@ -366,7 +366,7 @@ define(function (require, exports, module) {
                 var secondView = createMockView("second-view");
 
                 myPane.addListToViewList([myView.getFile(), secondView.getFile()]);
-                myPane.removeListFromViewList([myView.getFile(), secondView.getFile()]);
+                myPane.removeViews([myView.getFile(), secondView.getFile()]);
 
                 expect(myPane._viewList.length).toEqual(0);
                 expect(myPane._viewListAddedOrder.length).toEqual(0);
@@ -501,7 +501,7 @@ define(function (require, exports, module) {
                 
                 myPane.addToViewList(myView.getFile());
                 myPane.showView(myView);
-                myPane.doRemoveAllViews();
+                myPane.reset();
 
                 expect(eventHandler.callCount).toBe(2);
                 $(myPane).off(".test");

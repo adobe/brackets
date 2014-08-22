@@ -39,21 +39,6 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         paneTemplate        = require("text!htmlContent/pane.html");
     
-    /* Helper
-     * @private
-     */
-    function _hasView(obj, view) {
-        var result = false;
-        
-        _.forEach(obj, function (_view) {
-            if (_view === view) {
-                result = true;
-                return false;
-            }
-        });
-        
-        return result;
-    }
     
     /**
      * Pane objects host views of files, editors, etc... 
@@ -76,7 +61,7 @@ define(function (require, exports, module) {
      *
      * Views that have a longer life span are added by calling addView to associate the view with a 
      * filename in the _views object.  These views are not destroyed until they are removed from the pane
-     * by calling one of the following: doRemoveView, removeFromViewList. removeListFromViewList, or removeAllFromViewList
+     * by calling one of the following: removeView, removeViews. , or reset
      *
      * Pane Object Events:
      * viewListChange - triggered whenever there is a change the the pane's view state
@@ -171,7 +156,7 @@ define(function (require, exports, module) {
      * @param {!JQuery} $container - The parent $container to place the pane view
      */
     function Pane(id, $container) {
-        this._reset();
+        this._initialize();
         
         // Setup the container and the element we're inserting
         var $el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id);
@@ -231,10 +216,10 @@ define(function (require, exports, module) {
     Pane.prototype.$el = null;
   
     /**
-     * Resets the Pane back to its default state
+     * Initializes the Pane to its default state
      * @private
      */
-    Pane.prototype._reset = function () {
+    Pane.prototype._initialize = function () {
         this._viewList = [];
         this._viewListMRUOrder = [];
         this._viewListAddedOrder = [];
@@ -258,16 +243,19 @@ define(function (require, exports, module) {
      * Merges the another Pane object's contents into this Pane 
      * @param {!Pane} Other - Pane from which to copy 
      */
-    Pane.prototype.mergeWith = function (other) {
-        // hide the current views and show the interstitial page
-        if (other._currentView) {
-            other._currentView.setVisible(false);
-        }
-        other.showInterstitial(true);
+    Pane.prototype.mergeFrom = function (other) {
+        // save this because we're setting it to null and we
+        //  may need to destroy it if it's a temporary view
+        var otherCurrentView = other._currentView;
         
-        // trigger the change view handler
         if (other._currentView) {
-            $(other).triggerHandler("currentViewChange", [null, other._currentView]);
+        // hide the current views and show the interstitial page
+            otherCurrentView.setVisible(false);
+            other.showInterstitial(true);
+            other._currentView = null;
+            // The current view is getting reset later but
+            //  we're going to trigger this now and tell everyone 
+            $(other).triggerHandler("currentViewChange", [null, otherCurrentView]);
         }
 
         // Copy the File lists
@@ -291,10 +279,10 @@ define(function (require, exports, module) {
                 viewsToDestroy.push(view);
             }
         });
-        
+
         // 1-off views 
-        if (other._currentView && !_hasView(other._views, other._currentView)) {
-            viewsToDestroy.push(other._currentView);
+        if (otherCurrentView && !other._hasView(otherCurrentView)) {
+            viewsToDestroy.push(otherCurrentView);
         }
         
         // Destroy temporary views
@@ -302,7 +290,9 @@ define(function (require, exports, module) {
             view.destroy();
         });
 
-        other._reset();
+        // this reset all internal data structures
+        //  and will set the current view to null 
+        other._initialize();
     };
     
     /**
@@ -539,55 +529,6 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Removes the specifed file from all internal lists, destroys the view of the file (if there is one)
-     *  and shows the interstitial page if the current view is destroyed
-     * @param {!File} file
-     * @return {boolean} true if removed, false if the file was not found either in a list or view
-     */
-    Pane.prototype.removeFromViewList = function (file) {
-        return this._removeFromViewList(file);
-    };
-    
-    
-    /**
-     * Removes the specifed file from all internal lists, destroys the view of the file (if there is one)
-     *  and shows the interstitial page if the current view is destroyed
-     * @param {!Array.<File>}  list - Array of files to remove
-     * @return {!Array.<File>} Array of File objects removed 
-     */
-    Pane.prototype.removeListFromViewList = function (list) {
-        var self = this,
-            fileList = [];
-        
-        if (!list) {
-            return;
-        }
-        
-        list.forEach(function (file) {
-            if (self._removeFromViewList(file)) {
-                fileList.push(file);
-            }
-        });
-        
-        return fileList;
-    };
-    
-    /**
-     * Removes all files from all internal lists, destroys the view of those files
-     *  and shows the interstitial page if the current view is destroyed.  
-     * This function only destroys the files that are open, if there is a temporary 
-     *  view of a file (a view that has been constructed and viewed but not added to the working set)
-     *  then it will not be destroyed. To destroy all Views call doRemoveAllViews()
-     * @param {!File} file
-     * @return {!Array.<File>} Array of File objecgts removed 
-     */
-    Pane.prototype.removeAllFromViewList = function () {
-        var fileList = this.getViewList();
-        this.removeListFromViewList(fileList);
-        return fileList;
-    };
-    
-    /**
      * Moves the specified file to the front of the MRU list
      * @param {!File} file
      */
@@ -703,7 +644,7 @@ define(function (require, exports, module) {
      * @return {@return {} fullPath - path of the file that was deleted
      */
     Pane.prototype._handleFileDeleted = function (e, fullPath) {
-        if (this.doRemoveView({fullPath: fullPath})) {
+        if (this.removeView({fullPath: fullPath})) {
             $(this).triggerHandler("viewListChange");
         }
     };
@@ -808,6 +749,25 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Determines if the pane has the specified view in its view list
+     * @private
+     * @param {!View} view - the View object to test
+     */
+    Pane.prototype._hasView = function (view) {
+        var result = false;
+        
+        _.forEach(this._views, function (_view) {
+            if (_view === view) {
+                result = true;
+                return false;
+            }
+        });
+        
+        return result;
+    };
+    
+    
+    /**
      * Determines if the view can be disposed of
      * @private
      * @param {!View} view - the View object to test
@@ -856,22 +816,17 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Destroys all views and resets the state of the pane
+     * resets the pane to an empty state
      */
-    Pane.prototype.doRemoveAllViews = function () {
+    Pane.prototype.reset = function () {
         var views = _.extend({}, this._views),
             view = this._currentView;
 
-        if (view && !_hasView(views, view)) {
+        if (view && !this._hasView(view)) {
             views = _.extend(views, {"<|?*:temporaryView:*?|>": view});
         }
         
-        // kill any views added with MainViewManager.showView()
-        if (this._currentView && !this._currentView.getFile()) {
-            this._currentView.destroy();
-        }
-        
-        this._reset();
+        this._initialize();
         
         if (view) {
             $(this).triggerHandler("currentViewChange", [null, view]);
@@ -880,18 +835,7 @@ define(function (require, exports, module) {
         _.forEach(views, function (_view) {
             _view.destroy();
         });
-
     };
-    
-    /**
-     * Destroys the requested views 
-     * @param {Array.<File>} fileList - the list of files to close
-     * @return {!Array.<File>} the list of files actually close
-     */
-    Pane.prototype.doRemoveViews = function (fileList) {
-        return this.removeListFromViewList(fileList);
-    };
-    
     
     /**
      * Executes a FILE_OPEN command to open a file
@@ -905,12 +849,12 @@ define(function (require, exports, module) {
     /**
      * Destroys the requested view
      * @param {File} file - the file to close
-     * @param {boolean} openNextFile - open the next in MRU order
+     * @param {boolean} suppressOpenNextFile - suppresses opening the next file in MRU order
      * @return {boolean} true if removed, false if the file was not found either in a list or view
      */
-    Pane.prototype.doRemoveView = function (file, openNextFile) {
-        var nextFile = openNextFile && this.traverseViewListByMRU(1, file.fullPath);
-        if (nextFile && nextFile.fullPath !== file.fullPath) {
+    Pane.prototype.removeView = function (file, suppressOpenNextFile) {
+        var nextFile = !suppressOpenNextFile && this.traverseViewListByMRU(1, file.fullPath);
+        if (nextFile && nextFile.fullPath !== file.fullPath && this.getCurrentlyViewedFile() === file) {
             var fullPath = nextFile.fullPath,
                 needOpenNextFile = this._views.hasOwnProperty(fullPath);
             
@@ -923,6 +867,29 @@ define(function (require, exports, module) {
             return false;
         }
         return this._removeFromViewList(file);
+    };
+    
+    /**
+     * Removes the specifed file from all internal lists, destroys the view of the file (if there is one)
+     *  and shows the interstitial page if the current view is destroyed
+     * @param {!Array.<File>}  list - Array of files to remove
+     * @return {!Array.<File>} Array of File objects removed 
+     */
+    Pane.prototype.removeViews = function (list) {
+        var self = this,
+            fileList = [];
+        
+        if (!list) {
+            return;
+        }
+        
+        list.forEach(function (file) {
+            if (self.removeView(file)) {
+                fileList.push(file);
+            }
+        });
+        
+        return fileList;
     };
     
     /**

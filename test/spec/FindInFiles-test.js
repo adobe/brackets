@@ -499,7 +499,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Verify document is not yet in working set
-                    expect(MainViewManager.findView(MainViewManager.ALL_PANES, filePath)).toBe(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, filePath)).toBe(-1);
 
                     // Get list in panel
                     var $panelResults = $("#find-in-files-results table.bottom-panel-table tr");
@@ -511,7 +511,7 @@ define(function (require, exports, module) {
                     $firstHit.dblclick();
 
                     // Verify document is now in working set
-                    expect(MainViewManager.findView(MainViewManager.ALL_PANES, filePath)).not.toBe(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, filePath)).not.toBe(-1);
                     waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
                 });
             });
@@ -527,7 +527,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Verify document is not yet in working set
-                    expect(MainViewManager.findView(MainViewManager.ALL_PANES, filePath)).toBe(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, filePath)).toBe(-1);
 
                     // Get list in panel
                     $panelResults = $("#find-in-files-results table.bottom-panel-table tr");
@@ -1491,7 +1491,7 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     runs(function () {
-                        MainViewManager.addView(MainViewManager.ACTIVE_PANE, FileSystem.getFileForPath(testPath + "/css/foo.css"));
+                        MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, FileSystem.getFileForPath(testPath + "/css/foo.css"));
                     });
 
                     doInMemoryTest({
@@ -1526,7 +1526,7 @@ define(function (require, exports, module) {
                     });
 
                     runs(function () {
-                        var workingSet = MainViewManager.getViews(MainViewManager.ALL_PANES);
+                        var workingSet = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
                         expect(workingSet.some(function (file) { return file.fullPath === openFilePath; })).toBe(true);
                         doc.releaseRef();
                     });

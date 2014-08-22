@@ -1128,7 +1128,7 @@ define(function (require, exports, module) {
         FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), _shouldShowName, function (err) {
             if (err === FileSystemError.TOO_MANY_ENTRIES) {
                 if (!_projectWarnedForTooManyFiles) {
-                    _showErrorDialog(ERR_TYPE_MAX_FILES);
+                _showErrorDialog(ERR_TYPE_MAX_FILES);
                     _projectWarnedForTooManyFiles = true;
                 }
             } else if (err) {
@@ -2016,7 +2016,7 @@ define(function (require, exports, module) {
         
         // Trigger notifications after tree updates are complete
         arr.forEach(function (entry) {
-            DocumentManager.notifyPathDeleted(entry.fullPath);
+                DocumentManager.notifyPathDeleted(entry.fullPath);
         });
     }
 
@@ -2111,28 +2111,28 @@ define(function (require, exports, module) {
         _getAllFilesCache()
             .done(function (result) {
             // Add working set entries, if requested
-                if (includeWorkingSet) {
-                    MainViewManager.getViews(MainViewManager.ALL_PANES).forEach(function (file) {
-                        if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
-                            result.push(file);
-                        }
-                    });
-                }
+            if (includeWorkingSet) {
+                MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).forEach(function (file) {
+                    if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
+                        result.push(file);
+                    }
+                });
+            }
             
-                // Filter list, if requested
-                if (filter) {
-                    result = result.filter(filter);
-                }
-
-                // If a done handler attached to the returned filtered files promise
-                // throws an exception that isn't handled here then it will leave
-                // _allFilesCachePromise in an inconsistent state such that no
-                // additional done handlers will ever be called!
-                try {
-                    filteredFilesDeferred.resolve(result);
-                } catch (e) {
-                    console.warn("Unhandled exception in getAllFiles handler: ", e);
-                }
+            // Filter list, if requested
+            if (filter) {
+                result = result.filter(filter);
+            }
+            
+            // If a done handler attached to the returned filtered files promise
+            // throws an exception that isn't handled here then it will leave
+            // _allFilesCachePromise in an inconsistent state such that no
+            // additional done handlers will ever be called!
+            try {
+                filteredFilesDeferred.resolve(result);
+            } catch (e) {
+                console.warn("Unhandled exception in getAllFiles handler: ", e);
+            }
             })
             .fail(function (err) {
                 // resolve with empty list
@@ -2141,7 +2141,7 @@ define(function (require, exports, module) {
                 } catch (e) {
                     console.warn("Unhandled exception in getAllFiles handler: ", e);
                 }
-            });
+        });
         
         return filteredFilesDeferred.promise();
     }

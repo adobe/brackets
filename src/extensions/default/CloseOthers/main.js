@@ -55,8 +55,8 @@ define(function (require, exports, module) {
      * @param {string} mode
      */
     function handleClose(mode) {
-        var targetIndex  = MainViewManager.findView(MainViewManager.ACTIVE_PANE, MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)),
-            paneViewList = MainViewManager.getViews(MainViewManager.ACTIVE_PANE),
+        var targetIndex  = MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)),
+            paneViewList = MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE),
             start        = (mode === closeBelow) ? (targetIndex + 1) : 0,
             end          = (mode === closeAbove) ? (targetIndex) : (paneViewList.length),
             files        = [],
@@ -78,8 +78,8 @@ define(function (require, exports, module) {
         var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
         
         if (file) {
-            var targetIndex  = MainViewManager.findView(MainViewManager.ACTIVE_PANE, file.fullPath),
-                paneViewListSize = MainViewManager.getViewCount(MainViewManager.ACTIVE_PANE);
+            var targetIndex  = MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, file.fullPath),
+                paneViewListSize = MainViewManager.getWorkingSetSize(MainViewManager.ACTIVE_PANE);
             
             if (targetIndex === paneViewListSize - 1) { // hide "Close Others Below" if the last file in Working Files is selected
                 CommandManager.get(closeBelow).setEnabled(false);

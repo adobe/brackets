@@ -26,7 +26,7 @@
 /*global define, $, window, brackets, Mustache  */
 
 /**
- * PaneViewListView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
+ * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
  * The UI allows the user to see what files are open/dirty and allows them to close files and specify the current editor.
  *
  */
@@ -50,7 +50,7 @@ define(function (require, exports, module) {
     /**
      * Currently open views
      * @private
-     * @type {Array.PaneViewListView}
+     * @type {Array.WorkingSetView}
      * 
      */
     var _views = [];
@@ -131,12 +131,12 @@ define(function (require, exports, module) {
     }
     
     /* 
-     * PaneViewListView constructor
+     * WorkingSetView constructor
      * @constructor
      * @param {!jQuery} $container - owning container
      * @param {!string} paneId - paneId of this view pertains to
      */
-    function PaneViewListView($container, paneId) {
+    function WorkingSetView($container, paneId) {
         var id = "pane-view-list-" + paneId;
         
         this.$header = null;
@@ -153,7 +153,7 @@ define(function (require, exports, module) {
     /*
      * updates the visibility state of the gear button
      */
-    PaneViewListView.prototype.updateOptionsButton = function () {
+    WorkingSetView.prototype.updateOptionsButton = function () {
         var visible = (MainViewManager.getActivePaneId() === this.paneId);
         this.$el.find(".pane-view-option-btn").toggle(visible);
     };
@@ -162,7 +162,7 @@ define(function (require, exports, module) {
      * paneLayoutChange event listener
      * @private
      */
-    PaneViewListView.prototype._handlePaneLayoutChange = function () {
+    WorkingSetView.prototype._handlePaneLayoutChange = function () {
         var $titleEl = this.$el.find(".pane-view-header-title"),
             title = Strings.OPEN_PANES;
         
@@ -180,7 +180,7 @@ define(function (require, exports, module) {
      * @param {!File} file
      * @return {HTMLLIItem} returns the DOM element of the item. null if one could not be found
      */
-    PaneViewListView.prototype._findListItemFromFile = function (file) {
+    WorkingSetView.prototype._findListItemFromFile = function (file) {
         var result = null;
 
         if (file) {
@@ -203,7 +203,7 @@ define(function (require, exports, module) {
      * use an empty string to get just the event name to turn off all events in the namespace
      * @private
      */
-    PaneViewListView.prototype._makeEventName = function (name) {
+    WorkingSetView.prototype._makeEventName = function (name) {
         return name + ".paneList" + this.paneId;
     };
     
@@ -212,7 +212,7 @@ define(function (require, exports, module) {
      * Scrolls the selected file into view
      * @private
      */
-    PaneViewListView.prototype._scrollSelectedFileIntoView = function () {
+    WorkingSetView.prototype._scrollSelectedFileIntoView = function () {
         if (FileViewController.getFileSelectionFocus() !== FileViewController.PANE_VIEW_LIST_VIEW) {
             return;
         }
@@ -231,7 +231,7 @@ define(function (require, exports, module) {
      * Redraw selection when list size changes or DocumentManager currentDocument changes.
      * @private
      */
-    PaneViewListView.prototype._fireSelectionChanged = function () {
+    WorkingSetView.prototype._fireSelectionChanged = function () {
         this._scrollSelectedFileIntoView();
 
         if (FileViewController.getFileSelectionFocus() === FileViewController.PANE_VIEW_LIST_VIEW && this.$el.hasClass("active")) {
@@ -247,7 +247,7 @@ define(function (require, exports, module) {
      * adds the style 'vertical-scroll' if a vertical scroll bar is present
      * @private
      */
-    PaneViewListView.prototype._adjustForScrollbars = function () {
+    WorkingSetView.prototype._adjustForScrollbars = function () {
         if (this.$openFilesContainer[0].scrollHeight > this.$openFilesContainer[0].clientHeight) {
             if (!this.$openFilesContainer.hasClass("vertical-scroll")) {
                 this.$openFilesContainer.addClass("vertical-scroll");
@@ -262,7 +262,7 @@ define(function (require, exports, module) {
      * @private
      * @param {Array.<File>} filesList - list of Files with the same filename
      */
-    PaneViewListView.prototype._addDirectoryNamesToWorkingTreeFiles = function (filesList) {
+    WorkingSetView.prototype._addDirectoryNamesToWorkingTreeFiles = function (filesList) {
         // filesList must have at least two files in it for this to make sense
         if (filesList.length <= 1) {
             return;
@@ -291,10 +291,10 @@ define(function (require, exports, module) {
      * and adds a parent directory name to them
      * @private
      */
-    PaneViewListView.prototype._checkForDuplicatesInWorkingTree = function () {
+    WorkingSetView.prototype._checkForDuplicatesInWorkingTree = function () {
         var self = this,
             map = {},
-            fileList = MainViewManager.getViews(this.paneId);
+            fileList = MainViewManager.getWorkingSet(this.paneId);
 
         // We need to always clear current directories as files could be removed from working tree.
         this.$openFilesContainer.find("ul > li > a > span.directory").remove();
@@ -322,8 +322,8 @@ define(function (require, exports, module) {
      * Shows/Hides open files list based on working set content.
      * @private
      */
-    PaneViewListView.prototype._redraw = function () {
-        var fileList = MainViewManager.getViews(this.paneId),
+    WorkingSetView.prototype._redraw = function () {
+        var fileList = MainViewManager.getWorkingSet(this.paneId),
             paneId = MainViewManager.getActivePaneId();
         
         if (paneId === this.paneId) {
@@ -349,7 +349,7 @@ define(function (require, exports, module) {
      * activePaneChange event handler
      * @private
      */
-    PaneViewListView.prototype._handleActivePaneChange = function () {
+    WorkingSetView.prototype._handleActivePaneChange = function () {
         this._redraw();
     };
     
@@ -360,14 +360,14 @@ define(function (require, exports, module) {
      * @param {!HTMLLIElement} $listItem - jQuery element
      * @param {?bool} fromClose - true if reorder was called from the close icon
      */
-    PaneViewListView.prototype._reorderListItem = function (event, $listItem, fromClose) {
+    WorkingSetView.prototype._reorderListItem = function (event, $listItem, fromClose) {
         var self            = this,
             $prevListItem   = $listItem.prev(),
             $nextListItem   = $listItem.next(),
             selected        = $listItem.hasClass("selected"),
             prevSelected    = $prevListItem.hasClass("selected"),
             nextSelected    = $nextListItem.hasClass("selected"),
-            index           = MainViewManager.findView(self.paneId, $listItem.data(_FILE_KEY).fullPath),
+            index           = MainViewManager.findInWorkingSet(self.paneId, $listItem.data(_FILE_KEY).fullPath),
             height          = $listItem.height(),
             startPageY      = event.pageY,
             listItemTop     = startPageY - $listItem.offset().top,
@@ -398,13 +398,13 @@ define(function (require, exports, module) {
                         $prevListItem.insertAfter($listItem);
                         startPageY -= height;
                         top = top + height;
-                        MainViewManager.swapPaneViewListIndexes(self.paneId, index, --index);
+                        MainViewManager.swapWorkingSetListIndexes(self.paneId, index, --index);
                     // If moving down, place the next item before the moving item
                     } else {
                         $nextListItem.insertBefore($listItem);
                         startPageY += height;
                         top = top - height;
-                        MainViewManager.swapPaneViewListIndexes(self.paneId, index, ++index);
+                        MainViewManager.swapWorkingSetListIndexes(self.paneId, index, ++index);
                     }
                     
                     // Update the selection when the previows or next element were selected
@@ -563,7 +563,7 @@ define(function (require, exports, module) {
      * @param {bool} isDirty 
      * @param {bool} canClose
      */
-    PaneViewListView.prototype._updateFileStatusIcon = function (listElement, isDirty, canClose) {
+    WorkingSetView.prototype._updateFileStatusIcon = function (listElement, isDirty, canClose) {
         var self = this,
             $fileStatusIcon = listElement.find(".file-status-icon"),
             showIcon = isDirty || canClose;
@@ -603,7 +603,7 @@ define(function (require, exports, module) {
      * @param {File} file
      * @return {HTMLLIElement} newListItem
      */
-    PaneViewListView.prototype._createNewListItem = function (file) {
+    WorkingSetView.prototype._createNewListItem = function (file) {
         var self = this,
             selectedFile = MainViewManager.getCurrentlyViewedFile(this.paneId);
 
@@ -638,9 +638,9 @@ define(function (require, exports, module) {
      * Deletes all the list items in the view and rebuilds them from the working set model
      * @private
      */
-    PaneViewListView.prototype._rebuildViewList = function (forceRedraw) {
+    WorkingSetView.prototype._rebuildViewList = function (forceRedraw) {
         var self = this,
-            fileList = MainViewManager.getViews(this.paneId);
+            fileList = MainViewManager.getWorkingSet(this.paneId);
 
         this.$openFilesContainer.find("ul").empty();
         
@@ -657,7 +657,7 @@ define(function (require, exports, module) {
      * Updates the pane view's selection marker and scrolls the item into view
      * @private
      */
-    PaneViewListView.prototype._updateListSelection = function () {
+    WorkingSetView.prototype._updateListSelection = function () {
         var file = MainViewManager.getCurrentlyViewedFile(this.paneId);
             
         // Iterate through working set list and update the selection on each
@@ -678,7 +678,7 @@ define(function (require, exports, module) {
      * @param {!number} index - index where the file was added
      * @param {!string} paneId - the id of the pane the item that was to
      */
-    PaneViewListView.prototype._handleFileAdded = function (e, fileAdded, index, paneId) {
+    WorkingSetView.prototype._handleFileAdded = function (e, fileAdded, index, paneId) {
         if (paneId === this.paneId) {
             this._rebuildViewList(true);
         }
@@ -691,21 +691,21 @@ define(function (require, exports, module) {
      * @param {!Array.<File>} files - the files that were added
      * @param {!string} paneId - the id of the pane the item that was to
      */
-    PaneViewListView.prototype._handleFileListAdded = function (e, files, paneId) {
+    WorkingSetView.prototype._handleFileListAdded = function (e, files, paneId) {
         if (paneId === this.paneId) {
             this._rebuildViewList(true);
         }
     };
 
     /** 
-     * paneViewRemove event handler
+     * workingSetRemove event handler
      * @private 
      * @param {jQuery.Event} e - event object
      * @param {!File} file - the file that was removed
      * @param {?boolean} suppressRedraw If true, suppress redraw
      * @param {!string} paneId - the id of the pane the item that was to
      */
-    PaneViewListView.prototype._handleFileRemoved = function (e, file, suppressRedraw, paneId) {
+    WorkingSetView.prototype._handleFileRemoved = function (e, file, suppressRedraw, paneId) {
         if (paneId === this.paneId && !suppressRedraw) {
             var $listItem = this._findListItemFromFile(file);
             if ($listItem) {
@@ -725,13 +725,13 @@ define(function (require, exports, module) {
     };
 
     /** 
-     * paneViewRemoveList event handler
+     * workingSetRemoveList event handler
      * @private
      * @param {jQuery.Event} e - event object
      * @param {!Array.<File>} files - the files that were removed
      * @param {!string} paneId - the id of the pane the item that was to
      */
-    PaneViewListView.prototype._handleRemoveList = function (e, files, paneId) {
+    WorkingSetView.prototype._handleRemoveList = function (e, files, paneId) {
         var self = this;
         if (paneId === this.paneId) {
             files.forEach(function (file) {
@@ -751,7 +751,7 @@ define(function (require, exports, module) {
      * @param {jQuery.Event} e - event object
      * @param {!string} paneId - the id of the pane to sort
      */
-    PaneViewListView.prototype._handlepaneViewSort = function (e, paneId) {
+    WorkingSetView.prototype._handlepaneViewSort = function (e, paneId) {
         if (!this.suppressSortRedraw && paneId === this.paneId) {
             this._rebuildViewList(true);
         }
@@ -763,7 +763,7 @@ define(function (require, exports, module) {
      * @param {jQuery.Event} e - event object
      * @param {Document} doc - document whose dirty state has changed
      */
-    PaneViewListView.prototype._handleDirtyFlagChanged = function (e, doc) {
+    WorkingSetView.prototype._handleDirtyFlagChanged = function (e, doc) {
         var listItem = this._findListItemFromFile(doc.file);
         if (listItem) {
             var canClose = $(listItem).find(".can-close").length === 1;
@@ -777,7 +777,7 @@ define(function (require, exports, module) {
      * @param {jQuery.Event} e - event object
      * @param {!string} paneId - the id of the pane to update
      */
-    PaneViewListView.prototype._handlepaneViewUpdate = function (e, paneId) {
+    WorkingSetView.prototype._handlepaneViewUpdate = function (e, paneId) {
         if (this.paneId === paneId) {
             this._rebuildViewList(true);
         }
@@ -785,9 +785,9 @@ define(function (require, exports, module) {
     
 
     /** 
-     * Initializes the PaneViewListView object
+     * Initializes the WorkingSetView object
      */
-    PaneViewListView.prototype.init = function () {
+    WorkingSetView.prototype.init = function () {
         // Init DOM element
         var self = this;
         
@@ -798,11 +798,11 @@ define(function (require, exports, module) {
         this.$openFilesList = this.$el.find("ul");
         
         // Register listeners
-        $(MainViewManager).on(this._makeEventName("paneViewAdd"), _.bind(this._handleFileAdded, this));
-        $(MainViewManager).on(this._makeEventName("paneViewAddList"), _.bind(this._handleFileListAdded, this));
-        $(MainViewManager).on(this._makeEventName("paneViewRemove"), _.bind(this._handleFileRemoved, this));
-        $(MainViewManager).on(this._makeEventName("paneViewRemoveList"), _.bind(this._handleRemoveList, this));
-        $(MainViewManager).on(this._makeEventName("paneViewSort"), _.bind(this._handlepaneViewSort, this));
+        $(MainViewManager).on(this._makeEventName("workingSetAdd"), _.bind(this._handleFileAdded, this));
+        $(MainViewManager).on(this._makeEventName("workingSetAddList"), _.bind(this._handleFileListAdded, this));
+        $(MainViewManager).on(this._makeEventName("workingSetRemove"), _.bind(this._handleFileRemoved, this));
+        $(MainViewManager).on(this._makeEventName("workingSetRemoveList"), _.bind(this._handleRemoveList, this));
+        $(MainViewManager).on(this._makeEventName("workingSetSort"), _.bind(this._handlepaneViewSort, this));
         $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
         $(MainViewManager).on(this._makeEventName("paneLayoutChange"), _.bind(this._handlePaneLayoutChange, this));
         $(MainViewManager).on(this._makeEventName("paneViewUpdate"), _.bind(this._handlepaneViewUpdate, this));
@@ -827,7 +827,7 @@ define(function (require, exports, module) {
     /** 
      * Installs the gear and context menu handlers
      */
-    PaneViewListView.prototype.installMenuHandlers = function () {
+    WorkingSetView.prototype.installMenuHandlers = function () {
         var self = this;
         
         this.$openFilesContainer.on("contextmenu", function (e) {
@@ -859,9 +859,9 @@ define(function (require, exports, module) {
     };
     
     /** 
-     * Destroys the PaneViewListView DOM element and removes all event handlers
+     * Destroys the WorkingSetView DOM element and removes all event handlers
      */
-    PaneViewListView.prototype.destroy = function () {
+    WorkingSetView.prototype.destroy = function () {
         this.$el.remove();
         $(MainViewManager).off(this._makeEventName(""));
         $(DocumentManager).off(this._makeEventName(""));
@@ -885,11 +885,11 @@ define(function (require, exports, module) {
     });
     
     /** 
-     * Creates a new PaneViewListView object for the specified pane
-     * @param {!jQuery} $container - the PaneViewListView's DOM parent node
+     * Creates a new WorkingSetView object for the specified pane
+     * @param {!jQuery} $container - the WorkingSetView's DOM parent node
      * @param {!string} paneId - the id of the pane the view is being created for
      */
-    function createPaneViewListViewForPane($container, paneId) {
+    function createWorkingSetViewForPane($container, paneId) {
         // make sure the pane doesn't already have a view
         var index = _.findIndex(_views, function (paneViewListView) {
             return paneViewListView.paneId === paneId;
@@ -897,7 +897,7 @@ define(function (require, exports, module) {
 
         // if there wasn't already a view for the pane then create a new one
         if (index === -1) {
-            _views.push(new PaneViewListView($container, paneId));
+            _views.push(new WorkingSetView($container, paneId));
         }
     }
 
@@ -911,6 +911,6 @@ define(function (require, exports, module) {
     }
     
     // Public API
-    exports.createPaneViewListViewForPane = createPaneViewListViewForPane;
-    exports.refresh                       =  refresh;
+    exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
+    exports.refresh                       = refresh;
 });
