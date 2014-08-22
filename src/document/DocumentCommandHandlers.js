@@ -441,7 +441,7 @@ define(function (require, exports, module) {
      *   pane view list list (defaults to last); optional flag to force pane view list redraw
      * @return {$.Promise} a jQuery promise that will be resolved with a document object
      */
-    function handleAddToPaneViewList(commandData) {
+    function handleAddToWorkingSetAndOpen(commandData) {
         return handleFileOpen(commandData).done(function (doc) {
             // TODO: This will not work for images since they do not
             //          have document objects... 
@@ -772,7 +772,7 @@ define(function (require, exports, module) {
                     MainViewManager._removeView(info.paneId, doc.file, true);
                     
                     // Add new file to pane view list, and ensure we now redraw (even if index hasn't changed)
-                    fileOpenPromise = handleAddToPaneViewList({fullPath: path, paneId: info.paneId, index: info.index, forceRedraw: true});
+                    fileOpenPromise = handleAddToWorkingSetAndOpen({fullPath: path, paneId: info.paneId, index: info.index, forceRedraw: true});
                 }
 
                 // always configure editor after file is opened
@@ -1588,26 +1588,26 @@ define(function (require, exports, module) {
     }
 
     // Register global commands
-    CommandManager.register(Strings.CMD_FILE_OPEN,              Commands.FILE_OPEN, handleFileOpen);
-    CommandManager.register(Strings.CMD_ADD_TO_PANE_AND_OPEN,  Commands.CMD_ADD_TO_PANE_AND_OPEN, handleAddToPaneViewList);
-    CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,      Commands.FILE_NEW_UNTITLED, handleFileNew);
-    CommandManager.register(Strings.CMD_FILE_NEW,               Commands.FILE_NEW, handleFileNewInProject);
-    CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,        Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
-    CommandManager.register(Strings.CMD_FILE_SAVE,              Commands.FILE_SAVE, handleFileSave);
-    CommandManager.register(Strings.CMD_FILE_SAVE_ALL,          Commands.FILE_SAVE_ALL, handleFileSaveAll);
-    CommandManager.register(Strings.CMD_FILE_SAVE_AS,           Commands.FILE_SAVE_AS, handleFileSaveAs);
-    CommandManager.register(Strings.CMD_FILE_RENAME,            Commands.FILE_RENAME, handleFileRename);
-    CommandManager.register(Strings.CMD_FILE_DELETE,            Commands.FILE_DELETE, handleFileDelete);
+    CommandManager.register(Strings.CMD_FILE_OPEN,                  Commands.FILE_OPEN, handleFileOpen);
+    CommandManager.register(Strings.CMD_ADD_TO_WORKINGSET_AND_OPEN, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, handleAddToWorkingSetAndOpen);
+    CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,          Commands.FILE_NEW_UNTITLED, handleFileNew);
+    CommandManager.register(Strings.CMD_FILE_NEW,                   Commands.FILE_NEW, handleFileNewInProject);
+    CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,            Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
+    CommandManager.register(Strings.CMD_FILE_SAVE,                  Commands.FILE_SAVE, handleFileSave);
+    CommandManager.register(Strings.CMD_FILE_SAVE_ALL,              Commands.FILE_SAVE_ALL, handleFileSaveAll);
+    CommandManager.register(Strings.CMD_FILE_SAVE_AS,               Commands.FILE_SAVE_AS, handleFileSaveAs);
+    CommandManager.register(Strings.CMD_FILE_RENAME,                Commands.FILE_RENAME, handleFileRename);
+    CommandManager.register(Strings.CMD_FILE_DELETE,                Commands.FILE_DELETE, handleFileDelete);
     
-    CommandManager.register(Strings.CMD_FILE_CLOSE,             Commands.FILE_CLOSE, handleFileClose);
-    CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,         Commands.FILE_CLOSE_ALL, handleFileCloseAll);
-    CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,        Commands.FILE_CLOSE_LIST, handleFileCloseList);
-    CommandManager.register(quitString,                         Commands.FILE_QUIT, handleFileQuit);
+    CommandManager.register(Strings.CMD_FILE_CLOSE,                 Commands.FILE_CLOSE, handleFileClose);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,             Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,            Commands.FILE_CLOSE_LIST, handleFileCloseList);
+    CommandManager.register(quitString,                             Commands.FILE_QUIT, handleFileQuit);
     
-    CommandManager.register(Strings.CMD_NEXT_DOC,               Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
-    CommandManager.register(Strings.CMD_PREV_DOC,               Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
-    CommandManager.register(Strings.CMD_SHOW_IN_TREE,           Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
-    CommandManager.register(showInOS,                           Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
+    CommandManager.register(Strings.CMD_NEXT_DOC,                   Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
+    CommandManager.register(Strings.CMD_PREV_DOC,                   Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
+    CommandManager.register(Strings.CMD_SHOW_IN_TREE,               Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
+    CommandManager.register(showInOS,                               Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
 
     // These commands have no UI representation and are only used internally
     CommandManager.registerInternal(Commands.APP_ABORT_QUIT,            handleAbortQuit);

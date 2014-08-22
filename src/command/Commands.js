@@ -115,12 +115,11 @@ define(function (require, exports, module) {
     exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";      // EditorOptionHandlers.js      _getToggler()
     exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";        // EditorOptionHandlers.js      _getToggler()
 
-    exports.CMD_ADD_TO_PANE_AND_OPEN   = "cmd.addToPaneAndOpen";          // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()
-    
-    exports.CMD_SORT_PANE_VIEW_LIST_BY_ADDED  = "cmd.sortPaneViewListByAdded";    // paneViewSort.js          _handleSort()
-    exports.CMD_SORT_PANE_VIEW_LIST_BY_NAME   = "cmd.sortPaneViewListByName";     // paneViewSort.js          _handleSort()
-    exports.CMD_SORT_PANE_VIEW_LIST_BY_TYPE   = "cmd.sortPaneViewListByType";     // paneViewSort.js          _handleSort()
-    exports.CMD_SORT_PANE_VIEW_TOGGLE_AUTO    = "cmd.sortPaneViewToggleAuto";     // paneViewSort.js          _handleToggleAutoSort()
+    exports.CMD_ADD_TO_WORKINGSET_AND_OPEN  = "cmd.addToWorkingSetAndOpen";          // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()
+    exports.CMD_WORKINGSET_SORT_BY_ADDED    = "cmd.sortWorkingSetByAdded";           // WorkingSetSort.js          _handleSort()
+    exports.CMD_WORKINGSET_SORT_BY_NAME     = "cmd.sortWorkingSetByName";            // WorkingSetSort.js          _handleSort()
+    exports.CMD_WORKINGSET_SORT_BY_TYPE     = "cmd.sortWorkingSetByType";            // WorkingSetSort.js          _handleSort()
+    exports.CMD_WORKING_SORT_TOGGLE_AUTO    = "cmd.sortWorkingSetToggleAuto";        // WorkingSetSort.js          _handleToggleAutoSort()
     
     // NAVIGATE
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";           // DocumentCommandHandlers.js   handleGoNextDoc()
@@ -161,11 +160,11 @@ define(function (require, exports, module) {
     exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";       // DocumentCommandHandlers.js   handleBeforeMenuPopup()
     
     // DEPRECATED: Working Set Commands
-    DeprecationWarning.deprecateConstant(exports, "FILE_ADD_TO_WORKING_SET",    "CMD_ADD_TO_PANE_AND_OPEN");
-    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_ADDED",   "CMD_SORT_PANE_VIEW_LIST_BY_ADDED");
-    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_NAME",    "CMD_SORT_PANE_VIEW_LIST_BY_NAME");
-    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_TYPE",    "CMD_SORT_PANE_VIEW_LIST_BY_TYPE");
-    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_AUTO",       "CMD_SORT_PANE_VIEW_TOGGLE_AUTO");
+    DeprecationWarning.deprecateConstant(exports, "FILE_ADD_TO_WORKING_SET",    "CMD_ADD_TO_WORKINGSET_AND_OPEN");
+    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_ADDED",   "CMD_WORKINGSET_SORT_BY_ADDED");
+    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_NAME",    "CMD_WORKINGSET_SORT_BY_NAME");
+    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_TYPE",    "CMD_WORKINGSET_SORT_BY_TYPE");
+    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_AUTO",       "CMD_WORKING_SORT_TOGGLE_AUTO");
               
     // DEPRECATED: Edit commands that were moved from the Edit Menu to the Find Menu
     DeprecationWarning.deprecateConstant(exports, "EDIT_FIND",                  "CMD_FIND");

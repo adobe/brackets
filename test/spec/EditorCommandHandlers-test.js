@@ -131,7 +131,7 @@ define(function (require, exports, module) {
             var promise;
             
             runs(function () {
-                promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, {fullPath: testPath + "/test.html"});
+                promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/test.html"});
                 waitsForDone(promise, "Open into working set");
             });
             
@@ -3764,7 +3764,7 @@ define(function (require, exports, module) {
                     var promise,
                         selection;
                     runs(function () {
-                        promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, {fullPath: testPath + "/test.js"});
+                        promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/test.js"});
                         waitsForDone(promise, "Open into working set");
                     });
                     runs(function () {

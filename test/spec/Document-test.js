@@ -485,7 +485,7 @@ define(function (require, exports, module) {
                     cssMasterEditor;
                 
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN, {fullPath: HTML_FILE});
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: HTML_FILE});
                     waitsForDone(promise, "Open into working set");
                 });
                 runs(function () {

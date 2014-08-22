@@ -117,7 +117,7 @@ define(function (require, exports, module) {
 
         it("should sort list by name", function () {
             // sort list by name
-            CommandManager.execute(Commands.CMD_SORT_PANE_VIEW_LIST_BY_NAME);
+            CommandManager.execute(Commands.CMD_WORKINGSET_SORT_BY_NAME);
 
             // confirm files sorted correctly
             var $listItems = testWindow.$(".open-files-container > ul").children();
@@ -130,7 +130,7 @@ define(function (require, exports, module) {
 
         it("should sort list as added", function () {
             // sort list as added
-            CommandManager.execute(Commands.CMD_SORT_PANE_VIEW_LIST_BY_ADDED);
+            CommandManager.execute(Commands.CMD_WORKINGSET_SORT_BY_ADDED);
 
             // confirm files sorted correctly
             var $listItems = testWindow.$(".open-files-container > ul").children();
@@ -143,7 +143,7 @@ define(function (require, exports, module) {
 
         it("should sort list by type", function () {
             // sort list by type
-            CommandManager.execute(Commands.CMD_SORT_PANE_VIEW_LIST_BY_TYPE);
+            CommandManager.execute(Commands.CMD_WORKINGSET_SORT_BY_TYPE);
 
             // confirm files sorted correctly
             var $listItems = testWindow.$(".open-files-container > ul").children();
@@ -156,7 +156,7 @@ define(function (require, exports, module) {
 
         it("should sort list by type automatically", function () {
             // toggle the auto sort on
-            CommandManager.execute(Commands.CMD_SORT_PANE_VIEW_TOGGLE_AUTO);
+            CommandManager.execute(Commands.CMD_WORKING_SORT_TOGGLE_AUTO);
 
             // open another file, which should be added and auto-sorted into the list
             openAndMakeDirty(testPath + "/file_one.js");
@@ -177,7 +177,7 @@ define(function (require, exports, module) {
 
         it("should not sort list by type automatically", function () {
             // toggle the auto sort off
-            CommandManager.execute(Commands.CMD_SORT_PANE_VIEW_TOGGLE_AUTO);
+            CommandManager.execute(Commands.CMD_WORKING_SORT_TOGGLE_AUTO);
 
             // open another file, which should not be added and auto-sorted into the list
             openAndMakeDirty(testPath + "/file_three.js");

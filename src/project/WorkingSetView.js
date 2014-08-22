@@ -213,7 +213,7 @@ define(function (require, exports, module) {
      * @private
      */
     WorkingSetView.prototype._scrollSelectedFileIntoView = function () {
-        if (FileViewController.getFileSelectionFocus() !== FileViewController.PANE_VIEW_LIST_VIEW) {
+        if (FileViewController.getFileSelectionFocus() !== FileViewController.WORKINGSET_VIEW) {
             return;
         }
 
@@ -234,7 +234,7 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._fireSelectionChanged = function () {
         this._scrollSelectedFileIntoView();
 
-        if (FileViewController.getFileSelectionFocus() === FileViewController.PANE_VIEW_LIST_VIEW && this.$el.hasClass("active")) {
+        if (FileViewController.getFileSelectionFocus() === FileViewController.WORKINGSET_VIEW && this.$el.hasClass("active")) {
             this.$openFilesList.trigger("selectionChanged");
         } else {
             this.$openFilesList.trigger("selectionHide");
@@ -505,7 +505,7 @@ define(function (require, exports, module) {
                 } else {
                     // Normal right and left click - select the item
                     FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath,
-                                                             FileViewController.PANE_VIEW_LIST_VIEW,
+                                                             FileViewController.WORKINGSET_VIEW,
                                                              self.paneId);
                 }
             

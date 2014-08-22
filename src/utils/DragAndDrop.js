@@ -117,7 +117,7 @@ define(function (require, exports, module) {
                         }
                     }
                     
-                    CommandManager.execute(Commands.CMD_ADD_TO_PANE_AND_OPEN,
+                    CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,
                                            {fullPath: path, silent: true})
                         .done(function () {
                             result.resolve();
