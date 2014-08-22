@@ -1256,6 +1256,9 @@ define(function LiveDevelopment(require, exports, module) {
     /**
      * If the current editor is for a preprocessor file, then add it to the style sheet 
      * so that we can track cursor positions in the editor to show live preview highlighting.
+     * For normal CSS we only do highlighting from files we know for sure are referenced by the 
+     * current live preview document, but for preprocessors we just assume that any preprocessor 
+     * file you edit is probably related to the live preview.
      *
      * @param {Event} event (unused)
      * @param {Editor} current Current editor

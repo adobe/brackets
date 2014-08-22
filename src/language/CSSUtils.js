@@ -51,9 +51,15 @@ define(function (require, exports, module) {
         INVALID_FLOW_NAMES = ["none", "inherit", "default", "auto", "initial"],
         IGNORED_FLOW_NAMES = RESERVED_FLOW_NAMES.concat(INVALID_FLOW_NAMES);
     
-    var bracketPairs = { "{": "}",
-                         "[": "]",
-                         "(": ")" };
+    /**
+     * List of all bracket pairs that is keyed by opening brackets, and the inverted list
+     * that is keyed by closing brackets.
+     * @type {{string: string}}
+     */
+    var _bracketPairs = { "{": "}",
+                          "[": "]",
+                          "(": ")" },
+        _invertedBracketPairs = _.invert(_bracketPairs);
     
     /**
      * @private
@@ -620,23 +626,23 @@ define(function (require, exports, module) {
      * Return a string that shows the literal parent hierarchy of the selector
      * in selectorInfo.
      *
-     * @param {!SelectorInfo} selectorInfo SelectorInfo object with `selector`, `selectorGroup`, `parentSelectors` and other properties
+     * @param {!SelectorInfo} info SelectorInfo object with `selector`, `selectorGroup`, `parentSelectors` and other properties
      * @param {boolean=} useGroup true to append selectorGroup instead of selector
      * @return {string} the literal parent hierarchy of the selector
      */
-    function getCompleteSelectors(selectorInfo, useGroup) {
-        if (selectorInfo.parentSelectors) {
+    function getCompleteSelectors(info, useGroup) {
+        if (info.parentSelectors) {
             // Show parents with / separators.
-            var completeSelectors = selectorInfo.parentSelectors + " / ";
-            if (useGroup && selectorInfo.selectorGroup) {
-                completeSelectors += selectorInfo.selectorGroup;
+            var completeSelectors = info.parentSelectors + " / ";
+            if (useGroup && info.selectorGroup) {
+                completeSelectors += info.selectorGroup;
             } else {
-                completeSelectors += selectorInfo.selector;
+                completeSelectors += info.selector;
             }
             return completeSelectors;
         }
         
-        return selectorInfo.selector;
+        return info.selector;
     }
     
     /**
@@ -816,7 +822,7 @@ define(function (require, exports, module) {
                 // #{$class} in scss files won't be missed.
                 if ((startChar === "{" && /\{$/.test(token)) || startChar === token) {
                     unmatchedBraces++;
-                } else if (token === bracketPairs[startChar]) {
+                } else if (token === _bracketPairs[startChar]) {
                     unmatchedBraces--;
                     if (unmatchedBraces === 0) {
                         skippedText += token;
@@ -1411,16 +1417,14 @@ define(function (require, exports, module) {
         }
         
         function _skipToOpeningBracket(ctx, startChar) {
-            var matchingBracket,
-                unmatchedBraces = 0;
+            var unmatchedBraces = 0;
             if (!startChar) {
                 startChar = "}";
             }
-            matchingBracket = _.invert(bracketPairs)[startChar];
             while (true) {
                 if (startChar === ctx.token.string) {
                     unmatchedBraces++;
-                } else if (ctx.token.string.match(matchingBracket)) {
+                } else if (ctx.token.string.match(_invertedBracketPairs[startChar])) {
                     unmatchedBraces--;
                     if (unmatchedBraces === 0) {
                         return;
