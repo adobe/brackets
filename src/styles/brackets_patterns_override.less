@@ -1391,29 +1391,51 @@ input[type="color"],
 }
 
 .tooltip-inner {
+    background: @bc-menu-bg;
     box-shadow: 0 3px 9px @bc-shadow;
-    color: @bc-text;
+    color: @bc-menu-text;
     max-width: 220px;
     text-align: left;
 
     .dark & {
+        background: @dark-bc-menu-bg;
         box-shadow: 0 3px 9px @dark-bc-shadow;
-        color: @dark-bc-text;
+        color: @dark-bc-menu-text;
     }
 }
 
 .tooltip {
     &.top .tooltip-arrow {
+        border-top-color: @bc-menu-bg;
         left: 50%;
+        
+        .dark & {
+            border-top-color: @dark-bc-menu-bg;
+        }
     }
     &.right .tooltip-arrow {
+        border-right-color: @bc-menu-bg;
         top: 15px;
+        
+        .dark & {
+            border-right-color: @dark-bc-menu-bg;
+        }
     }
     &.left .tooltip-arrow {
+        border-left-color: @bc-menu-bg;
         top: 15px;
+        
+        .dark & {
+            border-left-color: @dark-bc-menu-bg;
+        }
     }
     &.bottom .tooltip-arrow {
+        border-bottom-color: @bc-menu-bg;
         left: 50%;
+        
+        .dark & {
+            border-bottom-color: @dark-bc-menu-bg;
+        }
     }
 }
 
