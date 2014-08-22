@@ -91,6 +91,7 @@ define(function (require, exports, module) {
         WorkspaceManager    = require("view/WorkspaceManager"),
         InMemoryFile        = require("document/InMemoryFile"),
         AsyncUtils          = require("utils/Async"),
+        ViewUtils           = require("utils/ViewUtils"),
         Pane                = require("view/Pane").Pane;
         
 
@@ -822,24 +823,7 @@ define(function (require, exports, module) {
                 return (record.file === file && record.paneId === paneId);
             });
         
-        if (index === -1) {
-            if (_mruList.length > 0) {
-                return _mruList[0];
-            }
-        } else if (_mruList.length > 1) {
-            // If doc is in view list, return next/prev item with wrap-around
-            index += direction;
-            if (index >= _mruList.length) {
-                index = 0;
-            } else if (index < 0) {
-                index = _mruList.length - 1;
-            }
-
-            return _mruList[index];
-        }
-        
-        // MRU list empty, there is no "next" file
-        return null;
+        return ViewUtils.traverseViewArray(_mruList, index, direction);
     }
     
     /**
