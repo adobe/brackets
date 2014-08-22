@@ -34,7 +34,7 @@
  * the cursor position in the editor.
  *
  */
-define(function CSSCSSPreprocessorDocumentModule(require, exports, module) {
+define(function CSSPreprocessorDocumentModule(require, exports, module) {
     "use strict";
 
     var _               = require("thirdparty/lodash"),
