@@ -211,7 +211,7 @@ define(function (require, exports, module) {
      * @param {string} commandID A valid command identifier.
      * @param {function(File, File): number} compareFn A valid sort
      *      function (see register for a longer explanation).
-     * @param {string} events Space-separated PaneViewListSort possible events
+     * @param {string} events Space-separated WorkingSetSort possible events
      *      ending with ".sort".
      */
     function Sort(commandID, compareFn, events, automaticFn) {

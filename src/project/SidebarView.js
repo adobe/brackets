@@ -42,7 +42,7 @@ define(function (require, exports, module) {
     
     var AppInit             = require("utils/AppInit"),
         ProjectManager      = require("project/ProjectManager"),
-        PaneViewListView    = require("project/PaneViewListView"),
+        WorkingSetView    = require("project/WorkingSetView"),
         MainViewManager     = require("view/MainViewManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
@@ -150,7 +150,7 @@ define(function (require, exports, module) {
         });
         
         $sidebar.on("panelExpanded", function (evt, width) {
-            PaneViewListView.refresh();
+            WorkingSetView.refresh();
             _resizeSidebarSelection();
             $sidebar.find(".scroller-shadow").css("display", "block");
             $sidebar.find(".sidebar-selection-triangle").css("left", width);
@@ -167,12 +167,12 @@ define(function (require, exports, module) {
         
         // wire up an event handler to monitor when panes are created
         $(MainViewManager).on("paneCreate", function (evt, paneId) {
-            PaneViewListView.createPaneViewListViewForPane($paneViewListContainer, paneId);
+            WorkingSetView.createWorkingSetViewForPane($paneViewListContainer, paneId);
         });
         
-        // create PaneViewListViews for each pane already created
+        // create WorkingSetViews for each pane already created
         _.forEach(MainViewManager.getPaneIdList(), function (paneId) {
-            PaneViewListView.createPaneViewListViewForPane($paneViewListContainer, paneId);
+            WorkingSetView.createWorkingSetViewForPane($paneViewListContainer, paneId);
         });
     });
     

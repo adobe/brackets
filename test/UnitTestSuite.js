@@ -80,6 +80,6 @@ define(function (require, exports, module) {
     require("spec/ValidationUtils-test");
     //require("spec/ViewCommandHandlers-test");
     require("spec/ViewUtils-test");
-    require("spec/PaneViewListView-test");
-    require("spec/PaneViewListSort-test");
+    require("spec/WorkingSetView-test");
+    require("spec/WorkingSetSort-test");
 });

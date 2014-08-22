@@ -36,11 +36,11 @@ define(function (require, exports, module) {
         SpecRunnerUtils         = require("spec/SpecRunnerUtils");
 
 
-    describe("PaneViewListSort", function () {
+    describe("WorkingSetSort", function () {
         
         this.category = "integration";
     
-        var testPath = SpecRunnerUtils.getTestPath("/spec/PaneViewListView-test-files"),
+        var testPath = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files"),
             testWindow,
             paneViewListItemCount = 0;
         

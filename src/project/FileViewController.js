@@ -26,8 +26,8 @@
 
 /**
  * Responsible for coordinating file selection between views by permitting only one view
- * to show the current file selection at a time. Currently, only PaneViewListView and 
- * ProjectManager can show file selection. In general the PaneViewListView takes higher
+ * to show the current file selection at a time. Currently, only WorkingSetView and 
+ * ProjectManager can show file selection. In general the WorkingSetView takes higher
  * priority until the user selects a file in the ProjectManager.
  *
  * Events dispatched:
@@ -38,10 +38,10 @@
  *   set and the project tree, but the document selection has NOT changed
  *
  * Current file selection rules in views:
- * - select a file in PaneViewListView > select in PaneViewListView
- * - add a file to the PaneViewListView > select in PaneViewListView
+ * - select a file in WorkingSetView > select in WorkingSetView
+ * - add a file to the WorkingSetView > select in WorkingSetView
  * - select a file in ProjectManager > select in ProjectManager
- * - open a file from places other than the PaneViewListView or ProjectManager > 
+ * - open a file from places other than the WorkingSetView or ProjectManager > 
  *       select file in WorkignSetView if its in the working set, otherwise select in ProjectManager
  */
 
@@ -64,7 +64,7 @@ define(function (require, exports, module) {
      * @private 
      */
     var _curDocChangedDueToMe = false;
-    var PANE_VIEW_LIST_VIEW = "PaneViewListView";
+    var PANE_VIEW_LIST_VIEW = "WorkingSetView";
     var PROJECT_MANAGER = "ProjectManager";
 
     /**
@@ -181,7 +181,7 @@ define(function (require, exports, module) {
 
     /** 
      * Opens the specified document if it's not already open, adds it to the working set,
-     * and selects it in the PaneViewListView
+     * and selects it in the WorkingSetView
      * @param {!fullPath}
      * @param {string=} paneId - Pane in which to add the view.  If omitted, the command default is to use the ACTIVE_PANE 
      * @return {!$.Promise}
@@ -210,7 +210,7 @@ define(function (require, exports, module) {
     
     /** 
      * Opens the specified document if it's not already open, adds it to the working set,
-     * and selects it in the PaneViewListView
+     * and selects it in the WorkingSetView
      * @deprecated use FileViewController.addToPaneViewAndSelect() instead
      * @param {!fullPath}
      * @return {!$.Promise}
