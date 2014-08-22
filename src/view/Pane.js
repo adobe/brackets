@@ -81,7 +81,7 @@ define(function (require, exports, module) {
      *      adjustScrollPos: function(state:Object=, heightDelta:number) - called to restore the scroll state and adjust the height by heightDelta
      *      switchContainers: function($newContainer:jQuery} - called to reparent the view to a new container
      *      getContainer: function() - called to get the current container @return {!jQuery} - the view's parent container
-     *      getViewState: function() @return {?*} - Called when the pane wants the view to save its view state.  Return any data you needed to restore the view state later or undefined to not store any state
+     *      getViewState: function() @return {?*} - Called when the pane wants the view to save its view state.  Return any data you needed to restore the view state later or undefined to not store any state.  The view state must be JSON friendly or serializing the state will fail.
      *      restoreViewState: function(!viewState:*) - Called to restore the view state. The viewState argument is whatever data was returned from getViewState()
      * }
      *  
