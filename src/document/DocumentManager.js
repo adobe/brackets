@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, Promise */
 
 /**
  * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in
@@ -550,11 +550,10 @@ define(function (require, exports, module) {
             // Switch editor to next document (or blank it out)
             if (nextFile && !skipAutoSelect) {
                 CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath })
-                    .done(function () {
+                    .then(function () {
                         // (Now we're guaranteed that the current document is not the one we're closing)
                         console.assert(!(_currentDocument && _currentDocument.file.fullPath === file.fullPath));
-                    })
-                    .fail(function () {
+                    }, function () {
                         // File chosen to be switched to could not be opened, and the original file
                         // is still in editor. Close it again so code will try to open the next file,
                         // or empty the editor if there are no other files.
@@ -671,13 +670,17 @@ define(function (require, exports, module) {
 
         if (doc) {
             // use existing document
-            return new $.Deferred().resolve(doc).promise();
+            return new Promise(function (resolve, reject) {
+                resolve(doc);
+            });
         } else {
             
             // Should never get here if the fullPath refers to an Untitled document
             if (fullPath.indexOf(_untitledDocumentPath) === 0) {
                 console.error("getDocumentForPath called for non-open untitled document: " + fullPath);
-                return new $.Deferred().reject().promise();
+                return new Promise(function (resolve, reject) {
+                    reject();
+                });
             }
             
             var file            = FileSystem.getFileForPath(fullPath),
@@ -687,39 +690,39 @@ define(function (require, exports, module) {
                 // wait for the result of a previous request
                 return pendingPromise;
             } else {
-                var result = new $.Deferred(),
-                    promise = result.promise();
+                var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+                
+                var result = new Promise(function (resolve, reject) {
+
+                    // create a new document
+                    FileUtils.readAsText(file).then(
+                        function (rawText, readTimestamp) {
+                            delete getDocumentForPath._pendingDocumentPromises[file.id];
+                            
+                            doc = new DocumentModule.Document(file, readTimestamp, rawText);
+
+                            // This is a good point to clean up any old dangling Documents
+                            _gcDocuments();
+
+                            resolve(doc);
+                        },
+                        function (fileError) {
+                            delete getDocumentForPath._pendingDocumentPromises[file.id];
+                            reject(fileError);
+                        }
+                    );
+                });
                 
                 // log this document's Promise as pending
-                getDocumentForPath._pendingDocumentPromises[file.id] = promise;
-    
-                // create a new document
-                var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
-    
-                result.done(function () {
+                getDocumentForPath._pendingDocumentPromises[file.id] = result;
+
+                result.then(function () {
                     PerfUtils.addMeasurement(perfTimerName);
-                }).fail(function () {
+                }, function () {
                     PerfUtils.finalizeMeasurement(perfTimerName);
                 });
-    
-                FileUtils.readAsText(file)
-                    .always(function () {
-                        // document is no longer pending
-                        delete getDocumentForPath._pendingDocumentPromises[file.id];
-                    })
-                    .done(function (rawText, readTimestamp) {
-                        doc = new DocumentModule.Document(file, readTimestamp, rawText);
-                                
-                        // This is a good point to clean up any old dangling Documents
-                        _gcDocuments();
-                        
-                        result.resolve(doc);
-                    })
-                    .fail(function (fileError) {
-                        result.reject(fileError);
-                    });
-                
-                return promise;
+
+                return result;
             }
         }
     }
@@ -756,24 +759,24 @@ define(function (require, exports, module) {
      *     or rejected with a filesystem error.
      */
     function getDocumentText(file, checkLineEndings) {
-        var result = new $.Deferred(),
-            doc = getOpenDocumentForPath(file.fullPath);
-        if (doc) {
-            result.resolve(doc.getText(), doc.diskTimestamp, checkLineEndings ? doc._lineEndings : null);
-        } else {
-            file.read(function (err, contents, stat) {
-                if (err) {
-                    result.reject(err);
-                } else {
-                    // Normalize line endings the same way Document would, but don't actually
-                    // new up a Document (which entails a bunch of object churn).
-                    var originalLineEndings = checkLineEndings ? FileUtils.sniffLineEndings(contents) : null;
-                    contents = DocumentModule.Document.normalizeText(contents);
-                    result.resolve(contents, stat.mtime, originalLineEndings);
-                }
-            });
-        }
-        return result.promise();
+        return new Promise(function (resolve, reject) {
+            var doc = getOpenDocumentForPath(file.fullPath);
+            if (doc) {
+                resolve(doc.getText(), doc.diskTimestamp, checkLineEndings ? doc._lineEndings : null);
+            } else {
+                file.read(function (err, contents, stat) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        // Normalize line endings the same way Document would, but don't actually
+                        // new up a Document (which entails a bunch of object churn).
+                        var originalLineEndings = checkLineEndings ? FileUtils.sniffLineEndings(contents) : null;
+                        contents = DocumentModule.Document.normalizeText(contents);
+                        resolve(contents, stat.mtime, originalLineEndings);
+                    }
+                });
+            }
+        });
     }
     
     
