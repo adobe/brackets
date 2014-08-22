@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, _parseRuleList: true */
+/*global define, $, Promise, _parseRuleList: true */
 
 // JSLint Note: _parseRuleList() is cyclical dependency, not a global function.
 // It was added to this list to prevent JSLint warning about being used before being defined.
@@ -1092,38 +1092,36 @@ define(function (require, exports, module) {
     
     /** Finds matching selectors in CSS files; adds them to 'resultSelectors' */
     function _findMatchingRulesInCSSFiles(selector, resultSelectors) {
-        var result          = new $.Deferred();
-        
-        // Load one CSS file and search its contents
-        function _loadFileAndScan(fullPath, selector) {
-            var oneFileResult = new $.Deferred();
+        return new Promise(function (resultResolve, resultReject) {
             
-            DocumentManager.getDocumentForPath(fullPath)
-                .done(function (doc) {
-                    // Find all matching rules for the given CSS file's content, and add them to the
-                    // overall search result
-                    var oneCSSFileMatches = _findAllMatchingSelectorsInText(doc.getText(), selector);
-                    _addSelectorsToResults(resultSelectors, oneCSSFileMatches, doc, 0);
-                    
-                    oneFileResult.resolve();
-                })
-                .fail(function (error) {
-                    oneFileResult.reject(error);
+            // Load one CSS file and search its contents
+            function _loadFileAndScan(fullPath, selector) {
+                return new Promise(function (oneFileResolve, oneFileReject) {
+                    DocumentManager.getDocumentForPath(fullPath).then(
+                        function (doc) {
+                            // Find all matching rules for the given CSS file's content, and add them to the
+                            // overall search result
+                            var oneCSSFileMatches = _findAllMatchingSelectorsInText(doc.getText(), selector);
+                            _addSelectorsToResults(resultSelectors, oneCSSFileMatches, doc, 0);
+
+                            oneFileResolve();
+                        },
+                        function (error) {
+                            oneFileReject(error);
+                        }
+                    );
                 });
-        
-            return oneFileResult.promise();
-        }
-        
-        ProjectManager.getAllFiles(ProjectManager.getLanguageFilter("css"))
-            .done(function (cssFiles) {
-                // Load index of all CSS files; then process each CSS file in turn (see above)
-                Async.doInParallel(cssFiles, function (fileInfo, number) {
-                    return _loadFileAndScan(fileInfo.fullPath, selector);
-                })
-                    .then(result.resolve, result.reject);
-            });
-        
-        return result.promise();
+            }
+
+            ProjectManager.getAllFiles(ProjectManager.getLanguageFilter("css"))
+                .then(function (cssFiles) {
+                    // Load index of all CSS files; then process each CSS file in turn (see above)
+                    Async.doInParallel(cssFiles, function (fileInfo, number) {
+                        return _loadFileAndScan(fileInfo.fullPath, selector);
+                    })
+                        .then(resultResolve, resultReject);
+                }, null);
+        });
     }
     
     /** Finds matching selectors in the <style> block of a single HTML file; adds them to 'resultSelectors' */
@@ -1163,30 +1161,31 @@ define(function (require, exports, module) {
      *
      * @param {!string} selector The selector to match. This can be a tag selector, class selector or id selector
      * @param {?Document} htmlDocument An HTML file for context (so we can search <style> blocks)
-     * @return {$.Promise} that will be resolved with an Array of objects containing the
+     * @return {Promise} that will be resolved with an Array of objects containing the
      *      source document, start line, and end line (0-based, inclusive range) for each matching declaration list.
      *      Does not addRef() the documents returned in the array.
      */
     function findMatchingRules(selector, htmlDocument) {
-        var result          = new $.Deferred(),
-            resultSelectors = [];
-        
-        // Synchronously search for matches in <style> blocks
-        if (htmlDocument) {
-            _findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors);
-        }
-        
-        // Asynchronously search for matches in all the project's CSS files
-        // (results are appended together in same 'resultSelectors' array)
-        _findMatchingRulesInCSSFiles(selector, resultSelectors)
-            .done(function () {
-                result.resolve(resultSelectors);
-            })
-            .fail(function (error) {
-                result.reject(error);
-            });
-        
-        return result.promise();
+
+        return new Promise(function (resolve, reject) {
+            var resultSelectors = [];
+
+            // Synchronously search for matches in <style> blocks
+            if (htmlDocument) {
+                _findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors);
+            }
+
+            // Asynchronously search for matches in all the project's CSS files
+            // (results are appended together in same 'resultSelectors' array)
+            _findMatchingRulesInCSSFiles(selector, resultSelectors).then(
+                function () {
+                    resolve(resultSelectors);
+                },
+                function (error) {
+                    reject(error);
+                }
+            );
+        });
     }
     
     /**

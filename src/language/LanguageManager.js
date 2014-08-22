@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, Promise */
 /*unittests: LanguageManager*/
 
 /**
@@ -47,9 +47,9 @@
  *
  * To use that language and its related mode, wait for the returned promise to be resolved:
  *
- *     LanguageManager.defineLanguage("haskell", definition).done(function (language) {
+ *     LanguageManager.defineLanguage("haskell", definition).then(function (language) {
  *         console.log("Language " + language.getName() + " is now available!");
- *     });
+ *     }, null);
  *
  * The extension can also contain dots:
  *
@@ -182,13 +182,13 @@ define(function (require, exports, module) {
      * Checks whether value is a non-empty string. Reports an error otherwise.
      * If no deferred is passed, console.error is called.
      * Otherwise the deferred is rejected with the error message.
-     * @param {*}                value         The value to validate
-     * @param {!string}          description   A helpful identifier for value
-     * @param {?jQuery.Deferred} deferred      A deferred to reject with the error message in case of an error
-     * @return {boolean} True if the value is a non-empty string, false otherwise
+     * @param {*}         value         The value to validate
+     * @param {!string}   description   A helpful identifier for value
+     * @param {?function} rejectFunc    A reject function to reject with the error message in case of an error
+     * @return {boolean}  True if the value is a non-empty string, false otherwise
      */
-    function _validateNonEmptyString(value, description, deferred) {
-        var reportError = deferred ? deferred.reject : console.error;
+    function _validateNonEmptyString(value, description, rejectFunc) {
+        var reportError = rejectFunc || console.error;
         
         // http://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript
         if (Object.prototype.toString.call(value) !== "[object String]") {
@@ -531,58 +531,57 @@ define(function (require, exports, module) {
      * @param {(string|Array.<string>)} mode  CodeMirror mode (e.g. "htmlmixed"), optionally paired with a MIME mode defined by
      *      that mode (e.g. ["clike", "text/x-c++src"]). Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js,
      *      you need to first load it yourself.
-     * @return {$.Promise} A promise object that will be resolved when the mode is loaded and set
+     * @return {Promise} A promise object that will be resolved when the mode is loaded and set
      */
     Language.prototype._loadAndSetMode = function (mode) {
-        var result      = new $.Deferred(),
-            self        = this,
-            mimeMode; // Mode can be an array specifying a mode plus a MIME mode defined by that mode ["clike", "text/x-c++src"]
-        
-        if (Array.isArray(mode)) {
-            if (mode.length !== 2) {
-                result.reject("Mode must either be a string or an array containing two strings");
-                return result.promise();
-            }
-            mimeMode = mode[1];
-            mode = mode[0];
-        }
-        
-        // mode must not be empty. Use "null" (the string "null") mode for plain text
-        if (!_validateNonEmptyString(mode, "mode", result)) {
-            result.reject();
-            return result.promise();
-        }
-        
-        var finish = function () {
-            if (!CodeMirror.modes[mode]) {
-                result.reject("CodeMirror mode \"" + mode + "\" is not loaded");
-                return;
-            }
-            
-            if (mimeMode) {
-                var modeConfig = CodeMirror.mimeModes[mimeMode];
-                
-                if (!modeConfig) {
-                    result.reject("CodeMirror MIME mode \"" + mimeMode + "\" not found");
+        return new Promise(function (resolve, reject) {
+
+            var self        = this,
+                mimeMode; // Mode can be an array specifying a mode plus a MIME mode defined by that mode ["clike", "text/x-c++src"]
+
+            if (Array.isArray(mode)) {
+                if (mode.length !== 2) {
+                    reject("Mode must either be a string or an array containing two strings");
                     return;
                 }
+                mimeMode = mode[1];
+                mode = mode[0];
             }
-            
-            // This mode is now only about what to tell CodeMirror
-            // The base mode was only necessary to load the proper mode file
-            self._mode = mimeMode || mode;
-            self._wasModified();
-            
-            result.resolve(self);
-        };
-        
-        if (CodeMirror.modes[mode]) {
-            finish();
-        } else {
-            require(["thirdparty/CodeMirror2/mode/" + mode + "/" + mode], finish);
-        }
-        
-        return result.promise();
+
+            // mode must not be empty. Use "null" (the string "null") mode for plain text
+            if (!_validateNonEmptyString(mode, "mode", reject)) {
+                return;
+            }
+
+            var finish = function () {
+                if (!CodeMirror.modes[mode]) {
+                    reject("CodeMirror mode \"" + mode + "\" is not loaded");
+                    return;
+                }
+
+                if (mimeMode) {
+                    var modeConfig = CodeMirror.mimeModes[mimeMode];
+
+                    if (!modeConfig) {
+                        reject("CodeMirror MIME mode \"" + mimeMode + "\" not found");
+                        return;
+                    }
+                }
+
+                // This mode is now only about what to tell CodeMirror
+                // The base mode was only necessary to load the proper mode file
+                self._mode = mimeMode || mode;
+                self._wasModified();
+
+                resolve(self);
+            };
+
+            if (CodeMirror.modes[mode]) {
+                finish();
+            } else {
+                require(["thirdparty/CodeMirror2/mode/" + mode + "/" + mode], finish);
+            }
+        });
     };
     
     /**
@@ -884,89 +883,89 @@ define(function (require, exports, module) {
      * @param {(string|Array.<string>)} definition.mode         CodeMirror mode (e.g. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
      *                                                          Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
      *
-     * @return {$.Promise} A promise object that will be resolved with a Language object
+     * @return {Promise} A promise object that will be resolved with a Language object
      **/
     function defineLanguage(id, definition) {
-        var result = new $.Deferred();
-        
-        if (_pendingLanguages[id]) {
-            result.reject("Language \"" + id + "\" is waiting to be resolved.");
-            return result.promise();
-        }
-        if (_languages[id]) {
-            result.reject("Language \"" + id + "\" is already defined");
-            return result.promise();
-        }
 
-        var language       = new Language(),
-            name           = definition.name,
-            fileExtensions = definition.fileExtensions,
-            fileNames      = definition.fileNames,
-            blockComment   = definition.blockComment,
-            lineComment    = definition.lineComment,
-            i,
-            l;
-        
-        function _finishRegisteringLanguage() {
-            if (fileExtensions) {
-                for (i = 0, l = fileExtensions.length; i < l; i++) {
-                    language.addFileExtension(fileExtensions[i]);
-                }
+        return new Promise(function (resolve, reject) {
+            if (_pendingLanguages[id]) {
+                reject("Language \"" + id + "\" is waiting to be resolved.");
+                return;
             }
-            // register language file names after mode has loaded
-            if (fileNames) {
-                for (i = 0, l = fileNames.length; i < l; i++) {
-                    language.addFileName(fileNames[i]);
-                }
+            if (_languages[id]) {
+                reject("Language \"" + id + "\" is already defined");
+                return;
             }
-            
-            language._setBinary(!!definition.isBinary);
-            
-            // store language to language map
-            _languages[language.getId()] = language;
-        }
-        
-        if (!language._setId(id) || !language._setName(name) ||
-                (blockComment && !language.setBlockCommentSyntax(blockComment[0], blockComment[1])) ||
-                (lineComment && !language.setLineCommentSyntax(lineComment))) {
-            result.reject();
-            return result.promise();
-        }
 
-        
-        if (definition.isBinary) {
-            // add file extensions and store language to language map
-            _finishRegisteringLanguage();
-            
-            result.resolve(language);
-            // Not notifying DocumentManager via event LanguageAdded, because DocumentManager
-            // does not care about binary files.
-        } else {
-            // track languages that are currently loading
-            _pendingLanguages[id] = language;
-            
-            language._loadAndSetMode(definition.mode).done(function () {
-  
-                // globally associate mode to language
-                _setLanguageForMode(language.getMode(), language);
-                
+            var language       = new Language(),
+                name           = definition.name,
+                fileExtensions = definition.fileExtensions,
+                fileNames      = definition.fileNames,
+                blockComment   = definition.blockComment,
+                lineComment    = definition.lineComment,
+                i,
+                l;
+
+            function _finishRegisteringLanguage() {
+                if (fileExtensions) {
+                    for (i = 0, l = fileExtensions.length; i < l; i++) {
+                        language.addFileExtension(fileExtensions[i]);
+                    }
+                }
+                // register language file names after mode has loaded
+                if (fileNames) {
+                    for (i = 0, l = fileNames.length; i < l; i++) {
+                        language.addFileName(fileNames[i]);
+                    }
+                }
+
+                language._setBinary(!!definition.isBinary);
+
+                // store language to language map
+                _languages[language.getId()] = language;
+            }
+
+            if (!language._setId(id) || !language._setName(name) ||
+                    (blockComment && !language.setBlockCommentSyntax(blockComment[0], blockComment[1])) ||
+                    (lineComment && !language.setLineCommentSyntax(lineComment))) {
+                reject();
+                return;
+            }
+
+
+            if (definition.isBinary) {
                 // add file extensions and store language to language map
                 _finishRegisteringLanguage();
-                
-                // fire an event to notify DocumentManager of the new language
-                _triggerLanguageAdded(language);
-                
-                result.resolve(language);
-            }).fail(function (error) {
-                console.error(error);
-                result.reject(error);
-            }).always(function () {
-                // delete from pending languages after success and failure
-                delete _pendingLanguages[id];
-            });
-        }
-        
-        return result.promise();
+
+                resolve(language);
+                // Not notifying DocumentManager via event LanguageAdded, because DocumentManager
+                // does not care about binary files.
+            } else {
+                // track languages that are currently loading
+                _pendingLanguages[id] = language;
+
+                language._loadAndSetMode(definition.mode).then(
+                    function () {
+                        // globally associate mode to language
+                        _setLanguageForMode(language.getMode(), language);
+
+                        // add file extensions and store language to language map
+                        _finishRegisteringLanguage();
+
+                        // fire an event to notify DocumentManager of the new language
+                        _triggerLanguageAdded(language);
+
+                        resolve(language);
+                        delete _pendingLanguages[id];
+                    },
+                    function (error) {
+                        console.error(error);
+                        reject(error);
+                        delete _pendingLanguages[id];
+                    }
+                );
+            }
+        });
     }
     
     /**
@@ -1075,7 +1074,7 @@ define(function (require, exports, module) {
     }, false);
     
     // Get the object for HTML
-    _ready.always(function () {
+    var fnAlways = function () {
         var html = getLanguage("html");
         
         // The htmlmixed mode uses the xml mode internally for the HTML parts, so we map it to HTML
@@ -1112,7 +1111,8 @@ define(function (require, exports, module) {
             _updateFromPrefs(_EXTENSION_MAP_PREF);
             _updateFromPrefs(_NAME_MAP_PREF);
         });
-    });
+    };
+    _ready.then(fnAlways, fnAlways);
     
     // Private for unit tests
     exports._EXTENSION_MAP_PREF         = _EXTENSION_MAP_PREF;

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4 */
-/*global define, $, Mustache, brackets */
+/*global define, $, Mustache, brackets, Promise */
 
 /**
  * Manages linters and other code inspections on a per-language basis. Provides a UI and status indicator for
@@ -121,7 +121,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type {{languageId:string, Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):Object}>}}
+     * @type {{languageId:string, Array.<{name:string, scanFileAsync:?function(string, string):!{Promise}, scanFile:?function(string, string):Object}>}}
      */
     var _providers = {};
 
@@ -136,7 +136,7 @@ define(function (require, exports, module) {
      * to cause updates of the UI.
      *
      * @private
-     * @type {$.Promise}
+     * @type {Promise}
      */
     var _currentPromise = null;
 
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
      * Decision is made depending on the file extension.
      *
      * @param {!string} filePath
-     * @return ?{Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>} provider
+     * @return ?{Array.<{name:string, scanFileAsync:?function(string, string):!{Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>} provider
      */
     function getProvidersForPath(filePath) {
         return _providers[LanguageManager.getLanguageForPath(filePath).getId()];
@@ -176,92 +176,96 @@ define(function (require, exports, module) {
      * If there are no providers registered for this file, the Promise yields null instead.
      *
      * @param {!File} file File that will be inspected for errors.
-     * @param {?Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>} providerList
-     * @return {$.Promise} a jQuery promise that will be resolved with ?Array.<{provider:Object, result: ?{errors:!Array, aborted:boolean}}>
+     * @param {?Array.<{name:string, scanFileAsync:?function(string, string):!{Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>} providerList
+     * @return {Promise} a jQuery promise that will be resolved with ?Array.<{provider:Object, result: ?{errors:!Array, aborted:boolean}}>
      */
     function inspectFile(file, providerList) {
-        var response = new $.Deferred(),
-            results = [];
-
-        providerList = (providerList || getProvidersForPath(file.fullPath)) || [];
-
-        if (!providerList.length) {
-            response.resolve(null);
-            return response.promise();
-        }
         
-        DocumentManager.getDocumentText(file)
-            .done(function (fileText) {
-                var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + file.fullPath),
-                    masterPromise;
+        return new Promise(function (responseResolve, responseReject) {
+            var results = [];
 
-                masterPromise = Async.doInParallel(providerList, function (provider) {
-                    var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath),
-                        runPromise = new $.Deferred();
-                    
-                    runPromise.done(function (scanResult) {
-                        results.push({provider: provider, result: scanResult});
-                    });
-                    
-                    if (provider.scanFileAsync) {
-                        window.setTimeout(function () {
-                            // timeout error
-                            var errTimeout = {
-                                pos: { line: -1, col: 0},
-                                message: StringUtils.format(Strings.LINTER_TIMED_OUT, provider.name, prefs.get(PREF_ASYNC_TIMEOUT)),
-                                type: Type.ERROR
-                            };
-                            runPromise.resolve({errors: [errTimeout]});
-                        }, prefs.get(PREF_ASYNC_TIMEOUT));
-                        provider.scanFileAsync(fileText, file.fullPath)
-                            .done(function (scanResult) {
-                                PerfUtils.addMeasurement(perfTimerProvider);
-                                runPromise.resolve(scanResult);
-                            })
-                            .fail(function (err) {
-                                var errError = {
-                                    pos: {line: -1, col: 0},
-                                    message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
-                                    type: Type.ERROR
-                                };
-                                console.error("[CodeInspection] Provider " + provider.name + " (async) failed: " + err);
-                                runPromise.resolve({errors: [errError]});
-                            });
-                    } else {
-                        try {
-                            var scanResult = provider.scanFile(fileText, file.fullPath);
-                            PerfUtils.addMeasurement(perfTimerProvider);
-                            runPromise.resolve(scanResult);
-                        } catch (err) {
-                            var errError = {
-                                pos: {line: -1, col: 0},
-                                message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
-                                type: Type.ERROR
-                            };
-                            console.error("[CodeInspection] Provider " + provider.name + " (sync) threw an error: " + err);
-                            runPromise.resolve({errors: [errError]});
-                        }
-                    }
-                    return runPromise.promise();
+            providerList = (providerList || getProvidersForPath(file.fullPath)) || [];
 
-                }, false);
-                
-                masterPromise.then(function () {
-                    // sync async may have pushed results in different order, restore the original order
-                    results.sort(function (a, b) {
-                        return providerList.indexOf(a.provider) - providerList.indexOf(b.provider);
-                    });
-                    PerfUtils.addMeasurement(perfTimerInspector);
-                    response.resolve(results);
-                });
+            if (!providerList.length) {
+                responseResolve(null);
+                return;
+            }
 
-            })
-            .fail(function (err) {
-                console.error("[CodeInspection] Could not read file for inspection: " + file.fullPath);
-                response.reject(err);
-            });
+            DocumentManager.getDocumentText(file).then(
+                function (fileText) {
+                    var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + file.fullPath),
+                        masterPromise;
 
-        return response.promise();
+                    masterPromise = Async.doInParallel(providerList, function (provider) {
+                        var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath);
+
+                        var runPromise = new Promise(function (runResolve, runReject) {
+                            if (provider.scanFileAsync) {
+                                window.setTimeout(function () {
+                                    // timeout error
+                                    var errTimeout = {
+                                        pos: { line: -1, col: 0},
+                                        message: StringUtils.format(Strings.LINTER_TIMED_OUT, provider.name, prefs.get(PREF_ASYNC_TIMEOUT)),
+                                        type: Type.ERROR
+                                    };
+                                    runResolve({errors: [errTimeout]});
+                                }, prefs.get(PREF_ASYNC_TIMEOUT));
+                                provider.scanFileAsync(fileText, file.fullPath).then(
+                                    function (scanResult) {
+                                        PerfUtils.addMeasurement(perfTimerProvider);
+                                        runResolve(scanResult);
+                                    },
+                                    function (err) {
+                                        var errError = {
+                                            pos: {line: -1, col: 0},
+                                            message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
+                                            type: Type.ERROR
+                                        };
+                                        console.error("[CodeInspection] Provider " + provider.name + " (async) failed: " + err);
+                                        runResolve({errors: [errError]});
+                                    }
+                                );
+                            } else {
+                                try {
+                                    var scanResult = provider.scanFile(fileText, file.fullPath);
+                                    PerfUtils.addMeasurement(perfTimerProvider);
+                                    runResolve(scanResult);
+                                } catch (err) {
+                                    var errError = {
+                                        pos: {line: -1, col: 0},
+                                        message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
+                                        type: Type.ERROR
+                                    };
+                                    console.error("[CodeInspection] Provider " + provider.name + " (sync) threw an error: " + err);
+                                    runResolve({errors: [errError]});
+                                }
+                            }
+                        });
+
+                        runPromise.then(function (scanResult) {
+                            results.push({provider: provider, result: scanResult});
+                        }, null);
+
+                        return runPromise;
+
+                    }, false);
+
+                    masterPromise.then(function () {
+                        // sync async may have pushed results in different order, restore the original order
+                        results.sort(function (a, b) {
+                            return providerList.indexOf(a.provider) - providerList.indexOf(b.provider);
+                        });
+                        PerfUtils.addMeasurement(perfTimerInspector);
+                        responseResolve(results);
+                    }, null);
+
+                },
+                function (err) {
+                    console.error("[CodeInspection] Could not read file for inspection: " + file.fullPath);
+                    responseReject(err);
+                }
+            );
+        });
     }
 
     /**
@@ -269,7 +273,7 @@ define(function (require, exports, module) {
      * change based on the number of problems reported and how many provider reported problems.
      * 
      * @param {Number} numProblems - total number of problems across all providers
-     * @param {Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):Object}>} providersReportingProblems - providers that reported problems
+     * @param {Array.<{name:string, scanFileAsync:?function(string, string):!{Promise}, scanFile:?function(string, string):Object}>} providersReportingProblems - providers that reported problems
      * @param {boolean} aborted - true if any provider returned a result with the 'aborted' flag set
      */
     function updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted) {
@@ -333,7 +337,8 @@ define(function (require, exports, module) {
             var providersReportingProblems = [];
 
             // run all the providers registered for this file type
-            (_currentPromise = inspectFile(currentDoc.file, providerList)).then(function (results) {
+            _currentPromise = inspectFile(currentDoc.file, providerList);
+            _currentPromise.then(function (results) {
                 // check if promise has not changed while inspectFile was running
                 if (this !== _currentPromise) {
                     return;
@@ -411,7 +416,7 @@ define(function (require, exports, module) {
                 setGotoEnabled(true);
 
                 PerfUtils.addMeasurement(perfTimerDOM);
-            });
+            }, null);
 
         } else {
             // No provider for current file
@@ -439,11 +444,11 @@ define(function (require, exports, module) {
      * 
      * Providers implement scanFile() if results are available synchronously, or scanFileAsync() if results
      * may require an async wait (if both are implemented, scanFile() is ignored). scanFileAsync() returns
-     * a {$.Promise} object resolved with the same type of value as scanFile() is expected to return.
+     * a {Promise} object resolved with the same type of value as scanFile() is expected to return.
      * Rejecting the promise is treated as an internal error in the provider.
      * 
      * @param {string} languageId
-     * @param {{name:string, scanFileAsync:?function(string, string):!{$.Promise},
+     * @param {{name:string, scanFileAsync:?function(string, string):!{Promise},
      *         scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}} provider
      *
      * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }

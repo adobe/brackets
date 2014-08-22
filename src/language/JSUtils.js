@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define, $, brackets, Promise */
 
 /**
  * Set of utilities for simple parsing of JS text.
@@ -192,62 +192,38 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @private
-     * Read a file and build a function list. Result is cached in fileInfo.
-     * @param {!FileInfo} fileInfo File to parse
-     * @param {!$.Deferred} result Deferred to resolve with all functions found and the document
-     */
-    function _readFile(fileInfo, result) {
-        DocumentManager.getDocumentForPath(fileInfo.fullPath)
-            .done(function (doc) {
-                var allFunctions = _findAllFunctionsInText(doc.getText());
-                
-                // Cache the result in the fileInfo object
-                fileInfo.JSUtils = {};
-                fileInfo.JSUtils.functions = allFunctions;
-                fileInfo.JSUtils.timestamp = doc.diskTimestamp;
-                
-                result.resolve({doc: doc, functions: allFunctions});
-            })
-            .fail(function (error) {
-                result.reject(error);
-            });
-    }
-    
-    /**
      * Determines if the document function cache is up to date. 
      * @param {FileInfo} fileInfo
-     * @return {$.Promise} A promise resolved with true with true when a function cache is available for the document. Resolves
+     * @return {Promise} A promise resolved with true with true when a function cache is available for the document. Resolves
      *   with false when there is no cache or the cache is stale.
      */
     function _shouldGetFromCache(fileInfo) {
-        var result = new $.Deferred(),
-            isChanged = _changedDocumentTracker.isPathChanged(fileInfo.fullPath);
-        
-        if (isChanged && fileInfo.JSUtils) {
-            // See if it's dirty and in the working set first
-            var doc = DocumentManager.getOpenDocumentForPath(fileInfo.fullPath);
-            
-            if (doc && doc.isDirty) {
-                result.resolve(false);
-            } else {
-                // If a cache exists, check the timestamp on disk
-                var file = FileSystem.getFileForPath(fileInfo.fullPath);
-                
-                file.stat(function (err, stat) {
-                    if (!err) {
-                        result.resolve(fileInfo.JSUtils.timestamp.getTime() === stat.mtime.getTime());
-                    } else {
-                        result.reject(err);
-                    }
-                });
-            }
-        } else {
-            // Use the cache if the file did not change and the cache exists
-            result.resolve(!isChanged && fileInfo.JSUtils);
-        }
+        return new Promise(function (resolve, reject) {
+            var isChanged = _changedDocumentTracker.isPathChanged(fileInfo.fullPath);
 
-        return result.promise();
+            if (isChanged && fileInfo.JSUtils) {
+                // See if it's dirty and in the working set first
+                var doc = DocumentManager.getOpenDocumentForPath(fileInfo.fullPath);
+
+                if (doc && doc.isDirty) {
+                    resolve(false);
+                } else {
+                    // If a cache exists, check the timestamp on disk
+                    var file = FileSystem.getFileForPath(fileInfo.fullPath);
+
+                    file.stat(function (err, stat) {
+                        if (!err) {
+                            resolve(fileInfo.JSUtils.timestamp.getTime() === stat.mtime.getTime());
+                        } else {
+                            reject(err);
+                        }
+                    });
+                }
+            } else {
+                // Use the cache if the file did not change and the cache exists
+                resolve(!isChanged && fileInfo.JSUtils);
+            }
+        });
     }
     
     /**
@@ -256,111 +232,130 @@ define(function (require, exports, module) {
      * @param {!Array.<{doc: Document, fileInfo: FileInfo, functions: Array.<offsetStart: number, offsetEnd: number>}>} docEntries
      * @param {!string} functionName
      * @param {!Array.<document: Document, name: string, lineStart: number, lineEnd: number>} rangeResults
-     * @return {$.Promise} A promise resolved with an array of document ranges to populate a MultiRangeInlineEditor.
+     * @return {Promise} A promise resolved with an array of document ranges to populate a MultiRangeInlineEditor.
      */
     function _getOffsetsForFunction(docEntries, functionName) {
         // Filter for documents that contain the named function
-        var result              = new $.Deferred(),
-            matchedDocuments    = [],
-            rangeResults        = [];
-        
-        docEntries.forEach(function (docEntry) {
-            // Need to call _.has here since docEntry.functions could have an
-            // entry for "hasOwnProperty", which results in an error if trying
-            // to invoke docEntry.functions.hasOwnProperty().
-            if (_.has(docEntry.functions, functionName)) {
-                var functionsInDocument = docEntry.functions[functionName];
-                matchedDocuments.push({doc: docEntry.doc, fileInfo: docEntry.fileInfo, functions: functionsInDocument});
-            }
+        return new Promise(function (resultResolve, resultReject) {
+            var matchedDocuments    = [],
+                rangeResults        = [];
+
+            docEntries.forEach(function (docEntry) {
+                // Need to call _.has here since docEntry.functions could have an
+                // entry for "hasOwnProperty", which results in an error if trying
+                // to invoke docEntry.functions.hasOwnProperty().
+                if (_.has(docEntry.functions, functionName)) {
+                    var functionsInDocument = docEntry.functions[functionName];
+                    matchedDocuments.push({doc: docEntry.doc, fileInfo: docEntry.fileInfo, functions: functionsInDocument});
+                }
+            });
+
+            Async.doInParallel(matchedDocuments, function (docEntry) {
+                return new Promise(function (oneResultResolve, oneResultReject) {
+                    var doc = docEntry.doc;
+
+                    // doc will be undefined if we hit the cache
+                    if (!doc) {
+                        DocumentManager.getDocumentForPath(docEntry.fileInfo.fullPath).then(
+                            function (fetchedDoc) {
+                                _computeOffsets(fetchedDoc, functionName, docEntry.functions, rangeResults);
+                                oneResultResolve();
+                            },
+                            function () {
+                                oneResultResolve();
+                            }
+                        );
+                    } else {
+                        _computeOffsets(doc, functionName, docEntry.functions, rangeResults);
+                        oneResultResolve();
+                    }
+                });
+
+            }).then(function () {
+                resultResolve(rangeResults);
+            }, null);
         });
-        
-        Async.doInParallel(matchedDocuments, function (docEntry) {
-            var doc         = docEntry.doc,
-                oneResult   = new $.Deferred();
-            
-            // doc will be undefined if we hit the cache
-            if (!doc) {
-                DocumentManager.getDocumentForPath(docEntry.fileInfo.fullPath)
-                    .done(function (fetchedDoc) {
-                        _computeOffsets(fetchedDoc, functionName, docEntry.functions, rangeResults);
-                    })
-                    .always(function () {
-                        oneResult.resolve();
-                    });
-            } else {
-                _computeOffsets(doc, functionName, docEntry.functions, rangeResults);
-                oneResult.resolve();
-            }
-            
-            return oneResult.promise();
-        }).done(function () {
-            result.resolve(rangeResults);
-        });
-        
-        return result.promise();
     }
     
     /**
      * Resolves with a record containing the Document or FileInfo and an Array of all
      * function names with offsets for the specified file. Results may be cached.
      * @param {FileInfo} fileInfo
-     * @return {$.Promise} A promise resolved with a document info object that
+     * @return {Promise} A promise resolved with a document info object that
      *   contains a map of all function names from the document and each function's start offset. 
      */
     function _getFunctionsForFile(fileInfo) {
-        var result = new $.Deferred();
-            
-        _shouldGetFromCache(fileInfo)
-            .done(function (useCache) {
-                if (useCache) {
-                    // Return cached data. doc property is undefined since we hit the cache.
-                    // _getOffsets() will fetch the Document if necessary.
-                    result.resolve({/*doc: undefined,*/fileInfo: fileInfo, functions: fileInfo.JSUtils.functions});
-                } else {
-                    _readFile(fileInfo, result);
+        return new Promise(function (resolve, reject) {
+
+            _shouldGetFromCache(fileInfo).then(
+                function (useCache) {
+                    if (useCache) {
+                        // Return cached data. doc property is undefined since we hit the cache.
+                        // _getOffsets() will fetch the Document if necessary.
+                        resolve({/*doc: undefined,*/fileInfo: fileInfo, functions: fileInfo.JSUtils.functions});
+                    } else {
+                        
+                        DocumentManager.getDocumentForPath(fileInfo.fullPath).then(
+                            function (doc) {
+                                var allFunctions = _findAllFunctionsInText(doc.getText());
+
+                                // Cache the result in the fileInfo object
+                                fileInfo.JSUtils = {};
+                                fileInfo.JSUtils.functions = allFunctions;
+                                fileInfo.JSUtils.timestamp = doc.diskTimestamp;
+
+                                resolve({doc: doc, functions: allFunctions});
+                            },
+                            function (error) {
+                                reject(error);
+                            }
+                        );
+                    }
+                },
+                function (err) {
+                    reject(err);
                 }
-            }).fail(function (err) {
-                result.reject(err);
-            });
-        
-        return result.promise();
+            );
+        });
     }
     
     /**
      * @private
      * Get all functions for each FileInfo.
      * @param {Array.<FileInfo>} fileInfos
-     * @return {$.Promise} A promise resolved with an array of document info objects that each
+     * @return {Promise} A promise resolved with an array of document info objects that each
      *   contain a map of all function names from the document and each function's start offset.
      */
     function _getFunctionsInFiles(fileInfos) {
-        var result          = new $.Deferred(),
-            docEntries      = [];
-        
-        PerfUtils.markStart(PerfUtils.JSUTILS_GET_ALL_FUNCTIONS);
-        
-        Async.doInParallel(fileInfos, function (fileInfo) {
-            var oneResult = new $.Deferred();
+        return new Promise(function (resultResolve, resultReject) {
+            var docEntries = [];
+
+            PerfUtils.markStart(PerfUtils.JSUTILS_GET_ALL_FUNCTIONS);
             
-            _getFunctionsForFile(fileInfo)
-                .done(function (docInfo) {
-                    docEntries.push(docInfo);
-                })
-                .always(function (error) {
-                    // If one file fails, continue to search
-                    oneResult.resolve();
+            var fnAlways = function () {
+                // Reset ChangedDocumentTracker now that the cache is up to date.
+                _changedDocumentTracker.reset();
+
+                PerfUtils.addMeasurement(PerfUtils.JSUTILS_GET_ALL_FUNCTIONS);
+                resultResolve(docEntries);
+            };
+
+            Async.doInParallel(fileInfos, function (fileInfo) {
+                return new Promise(function (oneResultResolve, oneResultReject) {
+                    _getFunctionsForFile(fileInfo).then(
+                        function (docInfo) {
+                            docEntries.push(docInfo);
+                            oneResultResolve();
+                        },
+                        function (error) {
+                            // If one file fails, continue to search
+                            oneResultResolve();
+                        }
+                    );
                 });
-            
-            return oneResult.promise();
-        }).always(function () {
-            // Reset ChangedDocumentTracker now that the cache is up to date.
-            _changedDocumentTracker.reset();
-            
-            PerfUtils.addMeasurement(PerfUtils.JSUTILS_GET_ALL_FUNCTIONS);
-            result.resolve(docEntries);
+
+            }).then(fnAlways, fnAlways);
         });
-        
-        return result.promise();
     }
     
     /**
@@ -369,33 +364,33 @@ define(function (require, exports, module) {
      * @param {!String} functionName The name to match.
      * @param {!Array.<File>} fileInfos The array of files to search.
      * @param {boolean=} keepAllFiles If true, don't ignore non-javascript files.
-     * @return {$.Promise} that will be resolved with an Array of objects containing the
+     * @return {Promise} that will be resolved with an Array of objects containing the
      *      source document, start line, and end line (0-based, inclusive range) for each matching function list.
      *      Does not addRef() the documents returned in the array.
      */
     function findMatchingFunctions(functionName, fileInfos, keepAllFiles) {
-        var result          = new $.Deferred(),
-            jsFiles         = [],
-            docEntries      = [];
-        
-        if (!keepAllFiles) {
-            // Filter fileInfos for .js files
-            jsFiles = fileInfos.filter(function (fileInfo) {
-                return FileUtils.getFileExtension(fileInfo.fullPath).toLowerCase() === "js";
-            });
-        } else {
-            jsFiles = fileInfos;
-        }
-        
-        // RegExp search (or cache lookup) for all functions in the project
-        _getFunctionsInFiles(jsFiles).done(function (docEntries) {
-            // Compute offsets for all matched functions
-            _getOffsetsForFunction(docEntries, functionName).done(function (rangeResults) {
-                result.resolve(rangeResults);
-            });
+        return new Promise(function (resolve, reject) {
+
+            var jsFiles         = [],
+                docEntries      = [];
+
+            if (!keepAllFiles) {
+                // Filter fileInfos for .js files
+                jsFiles = fileInfos.filter(function (fileInfo) {
+                    return FileUtils.getFileExtension(fileInfo.fullPath).toLowerCase() === "js";
+                });
+            } else {
+                jsFiles = fileInfos;
+            }
+
+            // RegExp search (or cache lookup) for all functions in the project
+            _getFunctionsInFiles(jsFiles).then(function (docEntries) {
+                // Compute offsets for all matched functions
+                _getOffsetsForFunction(docEntries, functionName).then(function (rangeResults) {
+                    resolve(rangeResults);
+                }, null);
+            }, null);
         });
-        
-        return result.promise();
     }
 
     /**
