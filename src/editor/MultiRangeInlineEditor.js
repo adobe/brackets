@@ -24,7 +24,7 @@
 // FUTURE: Merge part (or all) of this class with InlineTextEditor
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define, $, window, Promise */
 
 /**
  * An inline editor for displaying and editing multiple text ranges. Each range corresponds to a 
@@ -88,7 +88,7 @@ define(function (require, exports, module) {
     /**
      * @constructor
      * @param {Array.<{name:String,document:Document,lineStart:number,lineEnd:number}>} ranges The text ranges to display.
-     * @param {function(): $.Promise} messageCB An optional callback that returns a promise that will be resolved with a message to show
+     * @param {function(): Promise} messageCB An optional callback that returns a promise that will be resolved with a message to show
      *      when no matches are available.
      * @param {function(range): string} labelCB An optional callback that returns an updated label string for the given range. Called
      *      when we detect that the content of one of the ranges has changed.
@@ -288,9 +288,9 @@ define(function (require, exports, module) {
             // show the message div
             this.setInlineContent(null);
             if (this._messageCB) {
-                this._messageCB().done(function (msg) {
+                this._messageCB().then(function (msg) {
                     self.$messageDiv.html(msg);
-                });
+                }, null);
             } else {
                 this.$messageDiv.text(Strings.INLINE_EDITOR_NO_MATCHES);
             }
@@ -441,44 +441,46 @@ define(function (require, exports, module) {
 
     MultiRangeInlineEditor.prototype._updateSelectedMarker = function (animate) {
         if (this._selectedRangeIndex < 0) {
-            return new $.Deferred().resolve().promise();
+            return new Promise(function (resolve, reject) {
+                resolve();
+            });
         }
         
-        var result = new $.Deferred(),
-            $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
-        
-        // scroll the selection to the rangeItem, use setTimeout to wait for DOM updates
-        var self = this;
-        window.setTimeout(function () {
-            var containerHeight = self.$relatedContainer.height(),
-                itemTop = $rangeItem.position().top,
-                scrollTop = self.$relatedContainer.scrollTop();
-            
-            self.$selectedMarker
-                .toggleClass("animate", animate)
-                .css("top", itemTop)
-                .height($rangeItem.outerHeight());
-            
-            if (containerHeight <= 0) {
-                return;
-            }
-            
-            var paddingTop = _parseStyleSize($rangeItem.parent(), "paddingTop");
-            
-            if ((itemTop - paddingTop) < scrollTop) {
-                self.$relatedContainer.scrollTop(itemTop - paddingTop);
-            } else {
-                var itemBottom = itemTop + $rangeItem.height() + _parseStyleSize($rangeItem.parent(), "paddingBottom");
-                
-                if (itemBottom > (scrollTop + containerHeight)) {
-                    self.$relatedContainer.scrollTop(itemBottom - containerHeight);
+        return new Promise(function (resolve, reject) {
+
+            var $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
+
+            // scroll the selection to the rangeItem, use setTimeout to wait for DOM updates
+            var self = this;
+            window.setTimeout(function () {
+                var containerHeight = self.$relatedContainer.height(),
+                    itemTop = $rangeItem.position().top,
+                    scrollTop = self.$relatedContainer.scrollTop();
+
+                self.$selectedMarker
+                    .toggleClass("animate", animate)
+                    .css("top", itemTop)
+                    .height($rangeItem.outerHeight());
+
+                if (containerHeight <= 0) {
+                    return;
                 }
-            }
-            
-            result.resolve();
-        }, 0);
-        
-        return result.promise();
+
+                var paddingTop = _parseStyleSize($rangeItem.parent(), "paddingTop");
+
+                if ((itemTop - paddingTop) < scrollTop) {
+                    self.$relatedContainer.scrollTop(itemTop - paddingTop);
+                } else {
+                    var itemBottom = itemTop + $rangeItem.height() + _parseStyleSize($rangeItem.parent(), "paddingBottom");
+
+                    if (itemBottom > (scrollTop + containerHeight)) {
+                        self.$relatedContainer.scrollTop(itemBottom - containerHeight);
+                    }
+                }
+
+                resolve();
+            }, 0);
+        });
     };
 
     /**

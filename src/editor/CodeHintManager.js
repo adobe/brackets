@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define, $, brackets, Promise */
 
 /*
  * __CodeHintManager Overview:__
@@ -142,7 +142,7 @@
  * hinting session will remain open and the value of the selectInitial
  * property is irrelevant.
  *
- * Alternatively, the provider may return a jQuery.Deferred object
+ * Alternatively, the provider may return a Promise object
  * that resolves with an object with the structure described above. In
  * this case, the manager will initially render the hint list window with
  * a throbber and will render the actual list once the deferred object
@@ -175,7 +175,7 @@
  * Either null, if the request to update the hint list was a result of
  * navigation, or a single character that represents the last insertion.
  *
- *     return {jQuery.Deferred|{
+ *     return {Promise|{
  *          hints: Array.<string|jQueryObject>,
  *          match: string,
  *          selectInitial: boolean,
@@ -437,9 +437,10 @@ define(function (require, exports, module) {
                 } else {
                     hintList.open(response);
                 }
-            } else { // response is a deferred
-                deferredHints = response;
-                response.done(function (hints) {
+            } else {
+                // response is a promise. Convert to Promise
+                deferredHints = Promise.resolve(response);
+                response.then(function (hints) {
                     // Guard against timing issues where the session ends before the
                     // response gets a chance to execute the callback.  If the session
                     // ends first while still waiting on the response, then hintList
@@ -454,7 +455,7 @@ define(function (require, exports, module) {
                     } else {
                         hintList.open(hints);
                     }
-                });
+                }, null);
             }
         }
     }

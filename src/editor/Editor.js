@@ -1427,7 +1427,7 @@ define(function (require, exports, module) {
                 
                     function _addInlineWidgetInternal(pos, inlineWidget, scrollLineIntoView) {
 
-                        self.removeAllInlineWidgetsForLine(pos.line).done(function () {
+                        self.removeAllInlineWidgetsForLine(pos.line).then(function () {
                             if (scrollLineIntoView === undefined) {
                                 scrollLineIntoView = true;
                             }
@@ -1446,14 +1446,14 @@ define(function (require, exports, module) {
                             // Set up the widget to start closed, then animate open when its initial height is set.
                             inlineWidget.$htmlContent.height(0);
                             AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
-                                .always(function () {
+                                .then(function () {
                                     resolve();
-                                });
+                                }, null);
 
                             // Callback to widget once parented to the editor. The widget should call back to
                             // setInlineWidgetHeight() in order to set its initial height and animate open.
                             inlineWidget.onAdded();
-                        });
+                        }, null);
                     }
 
                     _addInlineWidgetInternal(pos, inlineWidget, scrollLineIntoView);
@@ -1484,37 +1484,41 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise that is resolved when the inline widget is fully closed and removed from the DOM.
      */
     Editor.prototype.removeInlineWidget = function (inlineWidget) {
-        var deferred = new $.Deferred(),
-            self = this;
-
-        function finishRemoving() {
-            self._codeMirror.removeLineWidget(inlineWidget.info);
-            self._removeInlineWidgetInternal(inlineWidget);
-            deferred.resolve();
-        }
-            
+        var self = this;
+        
         if (!inlineWidget.closePromise) {
-            var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
+            var promise = new Promise(function (resolve, reject) {
+
+                function finishRemoving() {
+                    self._codeMirror.removeLineWidget(inlineWidget.info);
+                    self._removeInlineWidgetInternal(inlineWidget);
+                    resolve();
+                }
+
+                var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
+
+                // Remove the inline widget from our internal list immediately, so
+                // everyone external to us knows it's essentially already gone. We
+                // don't want to wait until it's done animating closed (but we do want
+                // the other stuff in _removeInlineWidgetInternal to wait until then).
+                self._removeInlineWidgetFromList(inlineWidget);
+
+                // If we're not visible (in which case the widget will have 0 client height),
+                // don't try to do the animation, because nothing will happen and we won't get
+                // called back right away. (The animation would happen later when we switch
+                // back to the editor.)
+                if (self.isFullyVisible()) {
+                    AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
+                        .then(finishRemoving, null);
+                    inlineWidget.$htmlContent.height(0);
+                } else {
+                    finishRemoving();
+                }
+            });
             
-            // Remove the inline widget from our internal list immediately, so
-            // everyone external to us knows it's essentially already gone. We
-            // don't want to wait until it's done animating closed (but we do want
-            // the other stuff in _removeInlineWidgetInternal to wait until then).
-            self._removeInlineWidgetFromList(inlineWidget);
-            
-            // If we're not visible (in which case the widget will have 0 client height),
-            // don't try to do the animation, because nothing will happen and we won't get
-            // called back right away. (The animation would happen later when we switch
-            // back to the editor.)
-            if (self.isFullyVisible()) {
-                AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
-                    .done(finishRemoving);
-                inlineWidget.$htmlContent.height(0);
-            } else {
-                finishRemoving();
-            }
-            inlineWidget.closePromise = deferred.promise();
+            inlineWidget.closePromise = promise;
         }
+        
         return inlineWidget.closePromise;
     };
     
@@ -1542,12 +1546,16 @@ define(function (require, exports, module) {
                     if (inlineWidget) {
                         return self.removeInlineWidget(inlineWidget);
                     } else {
-                        return new $.Deferred().resolve().promise();
+                        return new Promise(function (resolve, reject) {
+                            resolve();
+                        });
                     }
                 }
             );
         } else {
-            return new $.Deferred().resolve().promise();
+            return new Promise(function (resolve, reject) {
+                resolve();
+            });
         }
     };
     
@@ -1702,7 +1710,7 @@ define(function (require, exports, module) {
         _addListeners();
 
         // Animate open
-        AnimationUtils.animateUsingClass(this._$messagePopover[0], "animateOpen").done(function () {
+        AnimationUtils.animateUsingClass(this._$messagePopover[0], "animateOpen").then(function () {
             // Make sure we still have a popover
             if (self._$messagePopover && self._$messagePopover.length > 0) {
                 self._$messagePopover.addClass("open");
@@ -1713,9 +1721,9 @@ define(function (require, exports, module) {
 
                 // Animate closed -- which includes delay to show message
                 AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose", 6000)
-                    .done(_removeMessagePopover);
+                    .then(_removeMessagePopover, null);
             }
-        });
+        }, null);
     };
     
     /**
