@@ -68,38 +68,38 @@ define(function LiveDevelopment(require, exports, module) {
     var _ = require("thirdparty/lodash");
 
     // Status Codes
-    var STATUS_ERROR          = exports.STATUS_ERROR          = -1;
-    var STATUS_INACTIVE       = exports.STATUS_INACTIVE       =  0;
-    var STATUS_CONNECTING     = exports.STATUS_CONNECTING     =  1;
-    var STATUS_LOADING_AGENTS = exports.STATUS_LOADING_AGENTS =  2;
-    var STATUS_ACTIVE         = exports.STATUS_ACTIVE         =  3;
-    var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    =  4;
-    var STATUS_SYNC_ERROR     = exports.STATUS_SYNC_ERROR     =  5;
+    var STATUS_ERROR            = exports.STATUS_ERROR          = -1;
+    var STATUS_INACTIVE         = exports.STATUS_INACTIVE       =  0;
+    var STATUS_CONNECTING       = exports.STATUS_CONNECTING     =  1;
+    var STATUS_LOADING_AGENTS   = exports.STATUS_LOADING_AGENTS =  2;
+    var STATUS_ACTIVE           = exports.STATUS_ACTIVE         =  3;
+    var STATUS_OUT_OF_SYNC      = exports.STATUS_OUT_OF_SYNC    =  4;
+    var STATUS_SYNC_ERROR       = exports.STATUS_SYNC_ERROR     =  5;
 
-    var Async                = require("utils/Async"),
-        Dialogs              = require("widgets/Dialogs"),
-        DefaultDialogs       = require("widgets/DefaultDialogs"),
-        DocumentManager      = require("document/DocumentManager"),
-        EditorManager        = require("editor/EditorManager"),
-        FileServer           = require("LiveDevelopment/Servers/FileServer").FileServer,
-        FileSystemError      = require("filesystem/FileSystemError"),
-        FileUtils            = require("file/FileUtils"),
-        LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
-        NativeApp            = require("utils/NativeApp"),
-        PreferencesDialogs   = require("preferences/PreferencesDialogs"),
-        ProjectManager       = require("project/ProjectManager"),
-        Strings              = require("strings"),
-        StringUtils          = require("utils/StringUtils"),
-        UserServer           = require("LiveDevelopment/Servers/UserServer").UserServer;
+    var Async                   = require("utils/Async"),
+        Dialogs                 = require("widgets/Dialogs"),
+        DefaultDialogs          = require("widgets/DefaultDialogs"),
+        DocumentManager         = require("document/DocumentManager"),
+        EditorManager           = require("editor/EditorManager"),
+        FileServer              = require("LiveDevelopment/Servers/FileServer").FileServer,
+        FileSystemError         = require("filesystem/FileSystemError"),
+        FileUtils               = require("file/FileUtils"),
+        LiveDevServerManager    = require("LiveDevelopment/LiveDevServerManager"),
+        NativeApp               = require("utils/NativeApp"),
+        PreferencesDialogs      = require("preferences/PreferencesDialogs"),
+        ProjectManager          = require("project/ProjectManager"),
+        Strings                 = require("strings"),
+        StringUtils             = require("utils/StringUtils"),
+        UserServer              = require("LiveDevelopment/Servers/UserServer").UserServer;
 
     // Inspector
-    var Inspector            = require("LiveDevelopment/Inspector/Inspector");
+    var Inspector               = require("LiveDevelopment/Inspector/Inspector");
 
     // Documents
-    var CSSDocument          = require("LiveDevelopment/Documents/CSSDocument"),
-        HTMLDocument         = require("LiveDevelopment/Documents/HTMLDocument"),
-        JSDocument           = require("LiveDevelopment/Documents/JSDocument"),
-        PreprocessorDocument = require("LiveDevelopment/Documents/PreprocessorDocument");
+    var CSSDocument             = require("LiveDevelopment/Documents/CSSDocument"),
+        CSSPreprocessorDocument = require("LiveDevelopment/Documents/CSSPreprocessorDocument"),
+        HTMLDocument            = require("LiveDevelopment/Documents/HTMLDocument"),
+        JSDocument              = require("LiveDevelopment/Documents/JSDocument");
     
     // Document errors
     var SYNC_ERROR_CLASS = "live-preview-sync-error";
@@ -209,7 +209,7 @@ define(function LiveDevelopment(require, exports, module) {
         switch (doc.getLanguage().getId()) {
         case "less":
         case "scss":
-            return PreprocessorDocument;
+            return CSSPreprocessorDocument;
         case "css":
             return CSSDocument;
         case "javascript":
@@ -488,7 +488,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         docPromise.done(function (doc) {
             if ((_classForDocument(doc) === CSSDocument ||
-                    _classForDocument(doc) === PreprocessorDocument) &&
+                    _classForDocument(doc) === CSSPreprocessorDocument) &&
                     (!_liveDocument || (doc !== _liveDocument.doc))) {
                 // The doc may already have an editor (e.g. starting live preview from an css file),
                 // so pass the editor if any
@@ -1264,7 +1264,7 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function onActiveEditorChange(event, current, previous) {
         if (previous && previous.document &&
-                /(less|scss)/i.test(FileUtils.getFileExtension(previous.document.file.fullPath))) {
+                FileUtils.isCSSPreprocessorFile(previous.document.file.fullPath)) {
             var prevDocUrl = _server && _server.pathToUrl(previous.document.file.fullPath);
             
             if (_relatedDocuments && _relatedDocuments[prevDocUrl]) {
@@ -1272,7 +1272,7 @@ define(function LiveDevelopment(require, exports, module) {
             }
         }
         if (current && current.document &&
-                /(less|scss)/i.test(FileUtils.getFileExtension(current.document.file.fullPath))) {
+                FileUtils.isCSSPreprocessorFile(current.document.file.fullPath)) {
             var docUrl = _server && _server.pathToUrl(current.document.file.fullPath);
             _styleSheetAdded(null, docUrl);
         }

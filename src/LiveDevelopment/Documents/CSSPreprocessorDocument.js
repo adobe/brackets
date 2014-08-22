@@ -26,15 +26,15 @@
 /*global define, $ */
 
 /**
- * PreprocessorDocument manages a single LESS or SASS source document
+ * CSSPreprocessorDocument manages a single LESS or SASS source document
  *
  * __HIGHLIGHTING__
  *
- * PreprocessorDocument supports highlighting all DOMNode corresponding to the rule at 
+ * CSSPreprocessorDocument supports highlighting all DOMNode corresponding to the rule at 
  * the cursor position in the editor.
  *
  */
-define(function PreprocessorDocumentModule(require, exports, module) {
+define(function CSSCSSPreprocessorDocumentModule(require, exports, module) {
     "use strict";
 
     var _               = require("thirdparty/lodash"),
@@ -50,7 +50,7 @@ define(function PreprocessorDocumentModule(require, exports, module) {
      *                  we always need to get the active editor for a preprocessor document
      *                  and not the one passed in `editor`.
      */
-    var PreprocessorDocument = function PreprocessorDocument(doc, editor) {
+    var CSSPreprocessorDocument = function CSSPreprocessorDocument(doc, editor) {
         this.doc = doc;
 
         this.onCursorActivity = this.onCursorActivity.bind(this);
@@ -63,31 +63,31 @@ define(function PreprocessorDocumentModule(require, exports, module) {
     };
 
     /** Close the document */
-    PreprocessorDocument.prototype.close = function close() {
-        $(this.doc).off(".PreprocessorDocument");
+    CSSPreprocessorDocument.prototype.close = function close() {
+        $(this.doc).off(".CSSPreprocessorDocument");
         $(EditorManager).off("activeEditorChange", this.onActiveEditorChange);
         this.doc.releaseRef();
         this.detachFromEditor();
     };
 
-    PreprocessorDocument.prototype.attachToEditor = function (editor) {
+    CSSPreprocessorDocument.prototype.attachToEditor = function (editor) {
         this.editor = editor;
         
         if (this.editor) {
-            $(this.editor).on("cursorActivity.PreprocessorDocument", this.onCursorActivity);
+            $(this.editor).on("cursorActivity.CSSPreprocessorDocument", this.onCursorActivity);
             this.updateHighlight();
         }
     };
     
-    PreprocessorDocument.prototype.detachFromEditor = function () {
+    CSSPreprocessorDocument.prototype.detachFromEditor = function () {
         if (this.editor) {
             HighlightAgent.hide();
-            $(this.editor).off(".PreprocessorDocument");
+            $(this.editor).off(".CSSPreprocessorDocument");
             this.editor = null;
         }
     };
 
-    PreprocessorDocument.prototype.updateHighlight = function () {
+    CSSPreprocessorDocument.prototype.updateHighlight = function () {
         if (Inspector.config.highlight && this.editor) {
             var editor = this.editor,
                 codeMirror = editor._codeMirror,
@@ -109,12 +109,12 @@ define(function PreprocessorDocumentModule(require, exports, module) {
     /** Event Handlers *******************************************************/
 
     /** Triggered on cursor activity of the editor */
-    PreprocessorDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
+    CSSPreprocessorDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
         this.updateHighlight();
     };
 
     /** Triggered when the active editor changes */
-    PreprocessorDocument.prototype.onActiveEditorChange = function (event, newActive, oldActive) {
+    CSSPreprocessorDocument.prototype.onActiveEditorChange = function (event, newActive, oldActive) {
         this.detachFromEditor();
         
         if (newActive && newActive.document === this.doc) {
@@ -123,5 +123,5 @@ define(function PreprocessorDocumentModule(require, exports, module) {
     };
     
     // Export the class
-    module.exports = PreprocessorDocument;
+    module.exports = CSSPreprocessorDocument;
 });

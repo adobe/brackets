@@ -51,6 +51,19 @@ define(function (require, exports, module) {
         INVALID_FLOW_NAMES = ["none", "inherit", "default", "auto", "initial"],
         IGNORED_FLOW_NAMES = RESERVED_FLOW_NAMES.concat(INVALID_FLOW_NAMES);
     
+    var bracketPairs = { "{": "}",
+                         "[": "]",
+                         "(": ")" };
+    
+    /**
+     * @private
+     * Helper function to check whether the given text string has any non whitespace character.
+     * @param {!string} text
+     * @return {boolean} true if text has any non whitespace character
+     */
+    function _hasNonWhitespace(text) {
+        /\S/.test(text);
+    }
     
     /**
      * @private
@@ -195,7 +208,7 @@ define(function (require, exports, module) {
         if (ctx.token.type === "property" || ctx.token.type === "property error" ||
                 ctx.token.type === "tag") {
             propName = tokenString;
-            if (TokenUtils.movePrevToken(ctx) && /\S/.test(ctx.token.string) &&
+            if (TokenUtils.movePrevToken(ctx) && _hasNonWhitespace(ctx.token.string) &&
                     excludedCharacters.indexOf(ctx.token.string) === -1) {
                 propName = ctx.token.string + tokenString;
                 offset += ctx.token.string.length;
@@ -207,7 +220,7 @@ define(function (require, exports, module) {
                     ctx.token.type === "tag")) {
                 propName += ctx.token.string;
             }
-        } else if (/\S/.test(tokenString) && excludedCharacters.indexOf(tokenString) === -1) {
+        } else if (_hasNonWhitespace(tokenString) && excludedCharacters.indexOf(tokenString) === -1) {
             // We're not inside the property name context.
             return createInfo();
         } else {
@@ -371,14 +384,14 @@ define(function (require, exports, module) {
         
         // Skip the ":" and any leading whitespace
         while (TokenUtils.moveNextToken(startCtx)) {
-            if (/\S/.test(startCtx.token.string)) {
+            if (_hasNonWhitespace(startCtx.token.string)) {
                 break;
             }
         }
         
         // Skip the trailing whitespace and property separators.
         while (endCtx.token.string === ";" || endCtx.token.string === "}" ||
-                !/\S/.test(endCtx.token.string)) {
+                !_hasNonWhitespace(endCtx.token.string)) {
             TokenUtils.movePrevToken(endCtx);
         }
         
@@ -613,10 +626,8 @@ define(function (require, exports, module) {
      */
     function getCompleteSelectors(selectorInfo, useGroup) {
         if (selectorInfo.parentSelectors) {
-            var completeSelectors = "";
-
             // Show parents with / separators.
-            completeSelectors = selectorInfo.parentSelectors + " / ";
+            var completeSelectors = selectorInfo.parentSelectors + " / ";
             if (useGroup && selectorInfo.selectorGroup) {
                 completeSelectors += selectorInfo.selectorGroup;
             } else {
@@ -656,19 +667,23 @@ define(function (require, exports, module) {
      * @return {Array.<Object>} Array with objects specifying selectors.
      */
     function extractAllSelectors(text, documentMode) {
-        var selectors = [];
-        var mode = CodeMirror.getMode({indentUnit: 2}, documentMode || "css");
-        var state, lines, lineCount;
-        var token, style, stream, line;
-        var currentSelector = "";
-        var currentLevel = 0;
-        var ruleStartChar = -1, ruleStartLine = -1;
-        var selectorStartChar = -1, selectorStartLine = -1;
-        var selectorGroupStartLine = -1, selectorGroupStartChar = -1;
-        var declListStartLine = -1, declListStartChar = -1;
-        var escapePattern = new RegExp("\\\\[^\\\\]+", "g");
-        var validationPattern = new RegExp("\\\\([a-f0-9]{6}|[a-f0-9]{4}(\\s|\\\\|$)|[a-f0-9]{2}(\\s|\\\\|$)|.)", "i");
-        var _parseRuleList;
+        var state, lines, lineCount,
+            token, style, stream, line,
+            selectors              = [],
+            mode                   = CodeMirror.getMode({indentUnit: 2}, documentMode || "css"),
+            currentSelector        = "",
+            currentLevel           = 0,
+            ruleStartChar          = -1,
+            ruleStartLine          = -1,
+            selectorStartChar      = -1,
+            selectorStartLine      = -1,
+            selectorGroupStartLine = -1,
+            selectorGroupStartChar = -1,
+            declListStartLine      = -1,
+            declListStartChar      = -1,
+            escapePattern          = new RegExp("\\\\[^\\\\]+", "g"),
+            validationPattern      = new RegExp("\\\\([a-f0-9]{6}|[a-f0-9]{4}(\\s|\\\\|$)|[a-f0-9]{2}(\\s|\\\\|$)|.)", "i"),
+            _parseRuleList;
         
         // implement _firstToken()/_nextToken() methods to
         // provide a single stream of tokens
@@ -679,7 +694,7 @@ define(function (require, exports, module) {
                 if (line >= lineCount) {
                     return false;
                 }
-                if (/\S/.test(currentSelector)) {
+                if (_hasNonWhitespace(currentSelector)) {
                     // If we are in a current selector and starting a newline,
                     // make sure there is whitespace in the selector
                     currentSelector += " ";
@@ -721,7 +736,7 @@ define(function (require, exports, module) {
             if (!_firstToken()) {
                 return false;
             }
-            while (!/\S/.test(token)) {
+            while (!_hasNonWhitespace(token)) {
                 if (!_nextToken()) {
                     return false;
                 }
@@ -733,7 +748,7 @@ define(function (require, exports, module) {
             if (!_nextToken()) {
                 return false;
             }
-            while (!/\S/.test(token)) {
+            while (!_hasNonWhitespace(token)) {
                 if (!_nextToken()) {
                     return false;
                 }
@@ -775,8 +790,8 @@ define(function (require, exports, module) {
         }
 
         function _maybeProperty() {
-            return (stream.string.indexOf(";") !== -1 &&
-                    (state.state !== "top" && state.state !== "block"));
+            return (state.state !== "top" && state.state !== "block" &&
+                    stream.string.indexOf(";") !== -1);
         }
 
         function _skipProperty() {
@@ -791,10 +806,7 @@ define(function (require, exports, module) {
         }
         
         function _skipToClosingBracket(startChar) {
-            var bracketPairs = { "{": "}",
-                                 "[": "]",
-                                 "(": ")" },
-                skippedText = "",
+            var skippedText = "",
                 unmatchedBraces = 0;
             if (!startChar) {
                 startChar = "{";
@@ -853,7 +865,7 @@ define(function (require, exports, module) {
                     // commas inside the parentheses won't be identified as selector separators
                     // by while loop.
                     currentSelector += _skipToClosingBracket("(");
-                } else if (/\S/.test(token) || /\S/.test(currentSelector)) {
+                } else if (_hasNonWhitespace(token) || _hasNonWhitespace(currentSelector)) {
                     currentSelector += token;
                 }
                 if (!_nextTokenSkippingComments()) {
@@ -1117,7 +1129,7 @@ define(function (require, exports, module) {
                     // Skip the property.
                     _skipProperty();
                     // If we find a "{" or "}" while skipping a property, then don't skip it in
-                    // this while loop.Otherwise, we will get into an infinite loop in parsing
+                    // this while loop. Otherwise, we will get into an infinite loop in parsing
                     // since we miss to handle the opening or closing of a block properly.
                     if (token === "{" || token === "}") {
                         return false;
@@ -1399,17 +1411,16 @@ define(function (require, exports, module) {
         }
         
         function _skipToOpeningBracket(ctx, startChar) {
-            var bracketPairs = { "}": "{",
-                                 "]": "[",
-                                 ")": "(" },
+            var matchingBracket,
                 unmatchedBraces = 0;
             if (!startChar) {
                 startChar = "}";
             }
+            matchingBracket = _.invert(bracketPairs)[startChar];
             while (true) {
                 if (startChar === ctx.token.string) {
                     unmatchedBraces++;
-                } else if (ctx.token.string.match(bracketPairs[startChar])) {
+                } else if (ctx.token.string.match(matchingBracket)) {
                     unmatchedBraces--;
                     if (unmatchedBraces === 0) {
                         return;
@@ -1461,7 +1472,7 @@ define(function (require, exports, module) {
         
         // If the cursor is inside a non-whitespace token with "block" or "top" state, then it is inside a 
         // selector. The only exception is when it is immediately after the '{'.
-        if (isPreprocessorDoc && /\S/.test(ctx.token.string) && ctx.token.string !== "{" &&
+        if (isPreprocessorDoc && _hasNonWhitespace(ctx.token.string) && ctx.token.string !== "{" &&
                 (ctx.token.state.state === "block" || ctx.token.state.state === "top")) {
             foundChars = true;
         }
@@ -1493,7 +1504,7 @@ define(function (require, exports, module) {
                         break;
                     }
                 } else {
-                    if (!isPreprocessorDoc && /\S/.test(ctx.token.string)) {
+                    if (!isPreprocessorDoc && _hasNonWhitespace(ctx.token.string)) {
                         foundChars = true;
                     }
                 }
@@ -1515,7 +1526,7 @@ define(function (require, exports, module) {
         // token so that we can collect the current selector if the cursor is inside it.
         if ((!selector && !foundChars && !isPreprocessorDoc) ||
                 (isPreprocessorDoc && (ctx.token.string === "" || /\s+/.test(ctx.token.string)))) {
-            if (TokenUtils.moveNextToken(ctx) && ctx.token.type !== "comment" && /\S/.test(ctx.token.string)) {
+            if (TokenUtils.moveNextToken(ctx) && ctx.token.type !== "comment" && _hasNonWhitespace(ctx.token.string)) {
                 foundChars = true;
                 ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
             }
