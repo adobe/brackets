@@ -1389,7 +1389,7 @@ define(function (require, exports, module) {
                 group = [];
             _.forEach(selectorArray, function (selector) {
                 selector = _stripAtRules(selector);
-                group = selector.split(", ");
+                group = selector.split(",");
                 parentSelectorArray = [];
                 _.forEach(group, function (cs) {
                     var ampersandIndex = cs.indexOf("&");
@@ -1398,9 +1398,9 @@ define(function (require, exports, module) {
                             if (ps.length) {
                                 ps += " ";
                             }
-                            ps += cs;
+                            ps += _stripAtRules(cs);
                         } else {
-                            ps = cs.replace("&", ps);
+                            ps = _stripAtRules(cs.replace("&", ps));
                         }
                         parentSelectorArray.push(ps);
                     });
@@ -1542,7 +1542,7 @@ define(function (require, exports, module) {
                 if (ctx.token.type !== "comment") {
                     if (ctx.token.string === "{") {
                         selector = _parseSelector(ctx);
-                        if (isPreprocessorDoc) {
+                        if (isPreprocessorDoc && !/^\s*@media/i.test(selector)) {
                             selectorArray.push(selector);
                         }
                         break;
