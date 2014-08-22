@@ -84,6 +84,9 @@ define(function (require, exports, module) {
         this.queryInfo = null;
         this.foundAny = false;
         this.marked = [];
+        this.resultSet = [];
+        this.matchIndex = -1;
+        this.markedCurrent = null;
     }
 
     function getSearchState(cm) {
@@ -138,30 +141,71 @@ define(function (require, exports, module) {
             state.parsedQuery = parseQuery(queryInfo);
         }
     }
-
+    
+    /**
+     * @private
+     * Show the current match index by finding matchRange in the resultSet stored 
+     * in the search state if this is the first call for a new search query. For
+     * subsequent calls, just compare matchRange with the next match in the resultSet
+     * based on the search direction and show the next match if they are the same. 
+     * If not, then find the match index by searching matchRange in the entire resultSet.
+     *
+     * @param {!SearchState} state The search state that has the array of search result
+     * @param {!{from: {line: number, ch: number}, to: {line: number, ch: number}}} matchRange - the range of current match
+     * @param {!boolean} searchBackwards true if searching backwards
+     */
+    function _updateFindBarWithMatchInfo(state, matchRange, searchBackwards) {
+        // Bail if there is no result set.
+        if (!state.foundAny) {
+            return;
+        }
+        
+        if (findBar) {
+            if (state.matchIndex === -1) {
+                state.matchIndex = _.findIndex(state.resultSet, matchRange);
+            } else {
+                state.matchIndex = searchBackwards ? state.matchIndex - 1 : state.matchIndex + 1;
+                // Adjust matchIndex for modulo wraparound
+                state.matchIndex = (state.matchIndex + state.resultSet.length) % state.resultSet.length;
+                
+                // Confirm that we find the right matchIndex. If not, then search 
+                // matchRange in the entire resultSet.
+                if (!_.isEqual(state.resultSet[state.matchIndex], matchRange)) {
+                    state.matchIndex = _.findIndex(state.resultSet, matchRange);
+                }
+            }
+        
+            if (state.matchIndex !== -1) {
+                // Convert to 1-based by adding one before showing the index.
+                findBar.showFindCount(StringUtils.format(Strings.FIND_MATCH_INDEX,
+                                                        state.matchIndex + 1, state.resultSet.length));
+            }
+        }
+    }
+       
     /**
      * @private
      * Returns the next match for the current query (from the search state) before/after the given position. Wraps around
      * the end of the document if no match is found before the end.
      *
      * @param {!Editor} editor The editor to search in
-     * @param {boolean} rev True to search backwards
+     * @param {boolean} searchBackwards true to search backwards
      * @param {{line: number, ch: number}=} pos The position to start from. Defaults to the current primary selection's
      *      head cursor position.
      * @param {boolean=} wrap Whether to wrap the search around if we hit the end of the document. Default true.
      * @return {?{start: {line: number, ch: number}, end: {line: number, ch: number}}} The range for the next match, or
      *      null if there is no match.
      */
-    function _getNextMatch(editor, rev, pos, wrap) {
+    function _getNextMatch(editor, searchBackwards, pos, wrap) {
         var cm = editor._codeMirror;
         var state = getSearchState(cm);
-        var cursor = getSearchCursor(cm, state, pos || editor.getCursorPos(false, rev ? "start" : "end"));
+        var cursor = getSearchCursor(cm, state, pos || editor.getCursorPos(false, searchBackwards ? "start" : "end"));
 
-        state.lastMatch = cursor.find(rev);
+        state.lastMatch = cursor.find(searchBackwards);
         if (!state.lastMatch && wrap !== false) {
             // If no result found before hitting edge of file, try wrapping around
-            cursor = getSearchCursor(cm, state, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
-            state.lastMatch = cursor.find(rev);
+            cursor = getSearchCursor(cm, state, searchBackwards ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
+            state.lastMatch = cursor.find(searchBackwards);
         }
         if (!state.lastMatch) {
             // No result found, period: clear selection & bail
@@ -368,38 +412,58 @@ define(function (require, exports, module) {
         }
     }
 
+    /** Removes the current-match highlight, leaving all matches marked in the generic highlight style */
+    function clearCurrentMatchHighlight(cm, state) {
+        if (state.markedCurrent) {
+            state.markedCurrent.clear();
+        }
+    }
+    
     /**
-     * Selects the next match (or prev match, if rev==true) starting from either the current position
+     * Selects the next match (or prev match, if searchBackwards==true) starting from either the current position
      * (if pos unspecified) or the given position (if pos specified explicitly). The starting position
      * need not be an existing match. If a new match is found, sets to state.lastMatch either the regex
      * match result, or simply true for a plain-string match. If no match found, sets state.lastMatch
      * to false.
      * @param {!Editor} editor
-     * @param {?boolean} rev
+     * @param {?boolean} searchBackwards
      * @param {?boolean} preferNoScroll
      * @param {?Pos} pos
      */
-    function findNext(editor, rev, preferNoScroll, pos) {
+    function findNext(editor, searchBackwards, preferNoScroll, pos) {
         var cm = editor._codeMirror;
         cm.operation(function () {
-            var nextMatch = _getNextMatch(editor, rev, pos);
+            var state = getSearchState(cm);
+            clearCurrentMatchHighlight(cm, state);
+            
+            var nextMatch = _getNextMatch(editor, searchBackwards, pos);
             if (nextMatch) {
+                _updateFindBarWithMatchInfo(getSearchState(editor._codeMirror),
+                                            {from: nextMatch.start, to: nextMatch.end}, searchBackwards);
                 _selectAndScrollTo(editor, [nextMatch], true, preferNoScroll);
+                state.markedCurrent = cm.markText(nextMatch.start, nextMatch.end,
+                     { className: "searching-current-match", startStyle: "searching-first", endStyle: "searching-last" });
             } else {
                 cm.setCursor(editor.getCursorPos());  // collapses selection, keeping cursor in place to avoid scrolling
             }
         });
     }
 
+    /** Clears all match highlights, including the current match */
     function clearHighlights(cm, state) {
         cm.operation(function () {
             state.marked.forEach(function (markedRange) {
                 markedRange.clear();
             });
+            clearCurrentMatchHighlight(cm, state);
         });
         state.marked.length = 0;
+        state.markedCurrent = null;
         
         ScrollTrackMarkers.clear();
+
+        state.resultSet = [];
+        state.matchIndex = -1;
     }
 
     function clearSearch(cm) {
@@ -461,37 +525,36 @@ define(function (require, exports, module) {
             var cursor = getSearchCursor(cm, state);
             if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
                 // FUTURE: if last query was prefix of this one, could optimize by filtering last result set
-                var resultSet = [];
+                state.resultSet = [];
                 while (cursor.findNext()) {
-                    resultSet.push(cursor.pos);  // pos is unique obj per search result
+                    state.resultSet.push(cursor.pos);  // pos is unique obj per search result
                 }
                 
                 // Highlight all matches if there aren't too many
-                if (resultSet.length <= FIND_HIGHLIGHT_MAX) {
+                if (state.resultSet.length <= FIND_HIGHLIGHT_MAX) {
                     toggleHighlighting(editor, true);
                     
-                    resultSet.forEach(function (result) {
+                    state.resultSet.forEach(function (result) {
                         state.marked.push(cm.markText(result.from, result.to,
                              { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
                     });
-                    var scrollTrackPositions = resultSet.map(function (result) {
+                    var scrollTrackPositions = state.resultSet.map(function (result) {
                         return result.from;
                     });
                     
                     ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
                 }
                 
-                var countInfo;
-                if (resultSet.length === 0) {
-                    countInfo = Strings.FIND_NO_RESULTS;
-                } else if (resultSet.length === 1) {
-                    countInfo = Strings.FIND_RESULT_COUNT_SINGLE;
-                } else {
-                    countInfo = StringUtils.format(Strings.FIND_RESULT_COUNT, resultSet.length);
+                // Here we only update find bar with no result. In the case of a match 
+                // a findNext() call is guaranteed to be followed by this function call,
+                // and findNext() in turn calls _updateFindBarWithMatchInfo() to show the 
+                // match index.
+                if (state.resultSet.length === 0) {
+                    findBar.showFindCount(Strings.FIND_NO_RESULTS);
                 }
-                findBar.showFindCount(countInfo);
-                state.foundAny = (resultSet.length > 0);
-                indicateHasMatches(resultSet.length);
+
+                state.foundAny = (state.resultSet.length > 0);
+                indicateHasMatches(state.resultSet.length);
                 
             } else {
                 // On huge documents, just look for first match & then stop
@@ -547,15 +610,7 @@ define(function (require, exports, module) {
             // Use the previous query. This can happen if the user switches from Find to Replace.
             initialQuery = findBar.getQueryInfo().query;
         } else {
-            // Prepopulate with the current primary selection, if any
-            var sel = editor.getSelection();
-            initialQuery = cm.getRange(sel.start, sel.end);
-            
-            // Eliminate newlines since we don't generally support searching across line boundaries (#2960)
-            var newline = initialQuery.indexOf("\n");
-            if (newline !== -1) {
-                initialQuery = initialQuery.substr(0, newline);
-            }
+            initialQuery = FindUtils.getInitialQueryFromSelection(editor);
         }
         
         // Close our previous find bar, if any. (The open() of the new findBar will
@@ -577,8 +632,8 @@ define(function (require, exports, module) {
             .on("queryChange.FindReplace", function (e) {
                 handleQueryChange(editor, state);
             })
-            .on("doFind.FindReplace", function (e, rev) {
-                findNext(editor, rev);
+            .on("doFind.FindReplace", function (e, searchBackwards) {
+                findNext(editor, searchBackwards);
             })
             .on("close.FindReplace", function (e) {
                 // Clear highlights but leave search state in place so Find Next/Previous work after closing
@@ -596,12 +651,12 @@ define(function (require, exports, module) {
     
     /**
      * If no search pending, opens the Find dialog. If search bar already open, moves to
-     * next/prev result (depending on 'rev')
+     * next/prev result (depending on 'searchBackwards')
      */
-    function doSearch(editor, rev) {
+    function doSearch(editor, searchBackwards) {
         var state = getSearchState(editor._codeMirror);
         if (state.parsedQuery) {
-            findNext(editor, rev);
+            findNext(editor, searchBackwards);
             return;
         }
         

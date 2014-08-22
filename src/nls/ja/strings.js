@@ -83,7 +83,7 @@ define({
     
     // ProjectManager max files error string
 	"ERROR_MAX_FILES_TITLE": "ファイルのインデックス時にエラーが発生しました。",
-	"ERROR_MAX_FILES": "インデックス化できるファイルの最大数に達しました。インデックス内でファイルを見つける機能は正しく動作しないことがあります。",
+	"ERROR_MAX_FILES": "このプロジェクトには 30,000 個以上のファイルが含まれています。複数のファイルを操作する機能が無効になるか、プロジェクトが空であるかのように動作します。<a href='https://github.com/adobe/brackets/wiki/Large-Projects'>大きいプロジェクトの操作方法の詳細を表示</a>。",
 
     // Live Preview error strings
 	"ERROR_LAUNCHING_BROWSER_TITLE": "ブラウザーの起動時にエラーが発生しました。",
@@ -137,8 +137,7 @@ define({
 	"BUTTON_NO": "いいえ",
     
     // Find, Replace, Find in Files
-	"FIND_RESULT_COUNT": "{0} 件",
-	"FIND_RESULT_COUNT_SINGLE": "1 件",
+	"FIND_MATCH_INDEX": "{0} / {1}",
 	"FIND_NO_RESULTS": "該当なし",
 	"FIND_QUERY_PLACEHOLDER": "検索\u2026",
 	"REPLACE_PLACEHOLDER": "\u2026 に置換",
@@ -248,7 +247,11 @@ define({
 	"STATUSBAR_USER_EXTENSIONS_DISABLED": "拡張機能無効",
 	"STATUSBAR_INSERT": "INS",
 	"STATUSBAR_OVERWRITE": "OVR",
+	"STATUSBAR_INSOVR_TOOLTIP": "クリックして挿入 (INS) モードと上書き (OVR) モード間のカーソルを切り替え",
+	"STATUSBAR_LANG_TOOLTIP": "クリックしてファイルタイプを変更",
+	"STATUSBAR_CODE_INSPECTION_TOOLTIP": "{0}。クリックしてレポートパネルを切り替えます。",
 	"STATUSBAR_DEFAULT_LANG": "(指定なし)",
+	"STATUSBAR_SET_DEFAULT_LANG": ".{0} ファイルのデフォルトとして設定",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} 個の問題",
@@ -424,6 +427,7 @@ define({
 	"USE_THEME_SCROLLBARS": "テーマスクロールバーを使用",
 	"FONT_SIZE": "フォントサイズ",
 	"FONT_FAMILY": "フォントファミリー",
+	"THEMES_SETTINGS": "テーマ設定",
 
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "新規ルール",
@@ -513,9 +517,10 @@ define({
 	"EXTENSION_NOT_INSTALLED": "インストールされていなかったため、拡張機能 {0} を削除できませんでした。",
 	"NO_EXTENSIONS": "インストールされている拡張機能はまだありません。<br>上の「入手可能」タブをクリックしてインストールしてください。",
 	"NO_EXTENSION_MATCHES": "検索条件に一致する拡張機能がありません。",
-	"REGISTRY_SANITY_CHECK_WARNING": "不明なソースから拡張機能をインストールするときは十分に注意してください。",
+	"REGISTRY_SANITY_CHECK_WARNING": "注意 : これらの拡張機能の作成元が {APP_NAME} 以外である可能性があります。拡張機能はレビューされず、ローカルアクセス権が一杯です。不明なソースから拡張機能をインストールするときは十分に注意してください。",
 	"EXTENSIONS_INSTALLED_TITLE": "インストール済み",
 	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
+	"EXTENSIONS_THEMES_TITLE": "テーマ",
 	"EXTENSIONS_UPDATES_TITLE": "アップデート",
     
 	"INLINE_EDITOR_NO_MATCHES": "一致するものがありません。",

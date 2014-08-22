@@ -53,6 +53,14 @@ define(function (require, exports, module) {
     var semver = require("extensibility/node/node_modules/semver/semver.browser");
 
     /**
+     * @private
+     * @type {$.Deferred} Keeps track of the current registry download so that if a request is already
+     * in progress and another request to download the registry comes in, we don't send yet another request.
+     * This is primarily used when multiple view models need to download the registry at the same time.
+     */
+    var pendingDownloadRegistry = null;
+
+    /**
      * Extension status constants.
      */
     var ENABLED      = "enabled",
@@ -180,7 +188,12 @@ define(function (require, exports, module) {
      * or rejected if the server can't be reached.
      */
     function downloadRegistry() {
-        var result = new $.Deferred();
+        if (pendingDownloadRegistry) {
+            return pendingDownloadRegistry.promise();
+        }
+
+        pendingDownloadRegistry = new $.Deferred();
+
         $.ajax({
             url: brackets.config.extension_registry,
             dataType: "json",
@@ -195,12 +208,17 @@ define(function (require, exports, module) {
                     synchronizeEntry(id);
                 });
                 $(exports).triggerHandler("registryDownload");
-                result.resolve();
+                pendingDownloadRegistry.resolve();
             })
             .fail(function () {
-                result.reject();
+                pendingDownloadRegistry.reject();
+            })
+            .always(function () {
+                // Make sure to clean up the pending registry so that new requests can be made.
+                pendingDownloadRegistry = null;
             });
-        return result.promise();
+
+        return pendingDownloadRegistry.promise();
     }
 
 
@@ -378,7 +396,11 @@ define(function (require, exports, module) {
      *     rejected with an error if there's a problem with the update.
      */
     function update(id, packagePath, keepFile) {
-        return Package.installUpdate(packagePath, id, keepFile);
+        return Package.installUpdate(packagePath, id).done(function () {
+            if (!keepFile) {
+                FileSystem.getFileForPath(packagePath).unlink();
+            }
+        });
     }
 
     /**
@@ -443,6 +465,10 @@ define(function (require, exports, module) {
      * @param {Object} installationResult info about the install provided by the Package.download function
      */
     function updateFromDownload(installationResult) {
+        if (installationResult.keepFile === undefined) {
+            installationResult.keepFile = false;
+        }
+
         var installationStatus = installationResult.installationStatus;
         if (installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
                 installationStatus === Package.InstallationStatuses.NEEDS_UPDATE ||

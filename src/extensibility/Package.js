@@ -41,7 +41,7 @@ define(function (require, exports, module) {
         NodeConnection       = require("utils/NodeConnection"),
         PreferencesManager   = require("preferences/PreferencesManager");
     
-    PreferencesManager.definePreference("proxy", "string");
+    PreferencesManager.definePreference("proxy", "string", undefined);
     
     var Errors = {
         ERROR_LOADING: "ERROR_LOADING",
@@ -160,6 +160,8 @@ define(function (require, exports, module) {
                 nameHint: nameHint
             })
                 .done(function (result) {
+                    result.keepFile = false;
+                    
                     if (result.installationStatus !== InstallationStatuses.INSTALLED || _doUpdate) {
                         d.resolve(result);
                     } else {
@@ -293,6 +295,8 @@ define(function (require, exports, module) {
 
         install(path, filenameHint)
             .done(function (result) {
+                result.keepFile = true;
+                
                 var installationStatus = result.installationStatus;
                 if (installationStatus === InstallationStatuses.ALREADY_INSTALLED ||
                         installationStatus === InstallationStatuses.NEEDS_UPDATE ||
@@ -354,6 +358,7 @@ define(function (require, exports, module) {
 
                         state = STATE_SUCCEEDED;
                         result.localPath = downloadResult.localPath;
+                        result.keepFile = false;
 
                         if (installationStatus === InstallationStatuses.INSTALLED) {
                             // Delete temp file
@@ -438,11 +443,10 @@ define(function (require, exports, module) {
      * @param {string} path to package file
      * @param {?string} nameHint Hint for the extension folder's name (used in favor of
      *          path's filename if present, and if no package metadata present).
-     * @param {boolean=} keepFile Flag to keep extension update, default=false
      * @return {$.Promise} A promise that is resolved when the extension is successfully
      *      installed or rejected if there is a problem.
      */
-    function installUpdate(path, nameHint, keepFile) {
+    function installUpdate(path, nameHint) {
         var d = new $.Deferred();
         install(path, nameHint, true)
             .done(function (result) {
@@ -454,11 +458,6 @@ define(function (require, exports, module) {
             })
             .fail(function (error) {
                 d.reject(error);
-            })
-            .always(function () {
-                if (!keepFile) {
-                    FileSystem.getFileForPath(path).unlink();
-                }
             });
         return d.promise();
     }

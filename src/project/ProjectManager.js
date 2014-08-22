@@ -218,6 +218,14 @@ define(function (require, exports, module) {
     /**
      * @private
      * @type {boolean}
+     * A flag to remember when user has been warned about too many files, so they
+     * are only warned once per project/session.
+     */
+    var _projectWarnedForTooManyFiles = false;
+    
+    /**
+     * @private
+     * @type {boolean}
      * Current sort order for the tree, true if directories are first. This is
      * initialized in _generateSortPrefixes.
      */
@@ -1119,7 +1127,10 @@ define(function (require, exports, module) {
 
         FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), _shouldShowName, function (err) {
             if (err === FileSystemError.TOO_MANY_ENTRIES) {
-                _showErrorDialog(ERR_TYPE_MAX_FILES);
+                if (!_projectWarnedForTooManyFiles) {
+                    _showErrorDialog(ERR_TYPE_MAX_FILES);
+                    _projectWarnedForTooManyFiles = true;
+                }
             } else if (err) {
                 console.error("Error watching project root: ", rootPath, err);
             }
@@ -1175,8 +1186,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Loads the given folder as a project. Normally, you would call openProject() instead to let the
-     * user choose a folder.
+     * Loads the given folder as a project. Does NOT prompt about any unsaved changes - use openProject()
+     * instead to check for unsaved changes and (optionally) let the user choose the folder to open.
      *
      * @param {!string} rootPath  Absolute path to the root folder of the project.
      *  A trailing "/" on the path is optional (unlike many Brackets APIs that assume a trailing "/").
@@ -1213,8 +1224,9 @@ define(function (require, exports, module) {
             DocumentManager.closeAll();
     
             _unwatchProjectRoot().always(function () {
-                // Done closing old project (if any)
+                // Finish closing old project (if any)
                 if (_projectRoot) {
+                    LanguageManager._resetPathLanguageOverrides();
                     PreferencesManager._reloadUserPrefs(_projectRoot);
                     $(exports).triggerHandler("projectClose", _projectRoot);
                 }
@@ -1257,6 +1269,7 @@ define(function (require, exports, module) {
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectRoot = rootEntry;
+                        _projectWarnedForTooManyFiles = false;
                         
                         if (projectRootChanged) {
                             _reloadProjectPreferencesScope();
@@ -2061,8 +2074,11 @@ define(function (require, exports, module) {
             
             getProjectRoot().visit(allFilesVisitor, function (err) {
                 if (err) {
-                    deferred.reject();
-                    _allFilesCachePromise = null;
+                    if (err === FileSystemError.TOO_MANY_ENTRIES && !_projectWarnedForTooManyFiles) {
+                        _showErrorDialog(ERR_TYPE_MAX_FILES);
+                        _projectWarnedForTooManyFiles = true;
+                    }
+                    deferred.reject(err);
                 } else {
                     deferred.resolve(allFiles);
                 }
@@ -2096,31 +2112,40 @@ define(function (require, exports, module) {
         var filteredFilesDeferred = new $.Deferred();
         
         // First gather all files in project proper
-        _getAllFilesCache().done(function (result) {
-            // Add working set entries, if requested
-            if (includeWorkingSet) {
-                DocumentManager.getWorkingSet().forEach(function (file) {
-                    if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
-                        result.push(file);
-                    }
-                });
-            }
-            
-            // Filter list, if requested
-            if (filter) {
-                result = result.filter(filter);
-            }
-            
-            // If a done handler attached to the returned filtered files promise
-            // throws an exception that isn't handled here then it will leave
-            // _allFilesCachePromise in an inconsistent state such that no
-            // additional done handlers will ever be called!
-            try {
-                filteredFilesDeferred.resolve(result);
-            } catch (e) {
-                console.warn("Unhandled exception in getAllFiles handler: ", e);
-            }
-        });
+        _getAllFilesCache()
+            .done(function (result) {
+                // Add working set entries, if requested
+                if (includeWorkingSet) {
+                    DocumentManager.getWorkingSet().forEach(function (file) {
+                        if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
+                            result.push(file);
+                        }
+                    });
+                }
+
+                // Filter list, if requested
+                if (filter) {
+                    result = result.filter(filter);
+                }
+
+                // If a done handler attached to the returned filtered files promise
+                // throws an exception that isn't handled here then it will leave
+                // _allFilesCachePromise in an inconsistent state such that no
+                // additional done handlers will ever be called!
+                try {
+                    filteredFilesDeferred.resolve(result);
+                } catch (e) {
+                    console.warn("Unhandled exception in getAllFiles handler: ", e);
+                }
+            })
+            .fail(function (err) {
+                // resolve with empty list
+                try {
+                    filteredFilesDeferred.resolve([]);
+                } catch (e) {
+                    console.warn("Unhandled exception in getAllFiles handler: ", e);
+                }
+            });
         
         return filteredFilesDeferred.promise();
     }

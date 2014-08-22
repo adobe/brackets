@@ -115,6 +115,7 @@ define(function (require, exports, module) {
             });
         }
         
+        
         describe("New Untitled File", function () {
             var filePath,
                 newFilename,
@@ -658,7 +659,8 @@ define(function (require, exports, module) {
                 });
             });
         });
-
+        
+        
         describe("Open File", function () {
             it("should open a file in the editor", function () {
                 var promise;
@@ -691,7 +693,8 @@ define(function (require, exports, module) {
                 });
             });
         });
-
+        
+        
         describe("Save File", function () {
             it("should save changes", function () {
                 var filePath    = testPath + "/test.js",
@@ -797,7 +800,8 @@ define(function (require, exports, module) {
                 });
             });
         });
-
+        
+        
         describe("Save As", function () {
             var filePath,
                 newFilename,
@@ -967,6 +971,7 @@ define(function (require, exports, module) {
             });
         });
         
+        
         describe("Dirty File Handling", function () {
 
             beforeEach(function () {
@@ -1111,6 +1116,7 @@ define(function (require, exports, module) {
 
         });
         
+        
         describe("Decorated Path Parser", function () {
             it("should correctly parse decorated paths", function () {
                 var path = testPath + "/test.js";
@@ -1121,7 +1127,8 @@ define(function (require, exports, module) {
                 expect(DocumentCommandHandlers._parseDecoratedPath(path + ":123:456")).toEqual({path: path, line: 123, column: 456});
             });
         });
-
+        
+        
         describe("Open image files", function () {
             it("should return null after opening an image", function () {
                 var path = testPath + "/couz.png",
@@ -1172,11 +1179,9 @@ define(function (require, exports, module) {
             });
             
             it("opening image while nothing open should NOT fire currentDocumentChange and activeEditorChange events", function () {
-
                 var promise,
                     docChangeListener = jasmine.createSpy(),
                     activeEditorChangeListener = jasmine.createSpy();
-
 
                 runs(function () {
                     _$(DocumentManager).on("currentDocumentChange", docChangeListener);
@@ -1204,11 +1209,9 @@ define(function (require, exports, module) {
             });
         
             it("opening text file while other text open should fire currentDocumentChange and activeEditorChange events", function () {
-
                 var promise,
                     docChangeListener = jasmine.createSpy(),
                     activeEditorChangeListener = jasmine.createSpy();
-
 
                 runs(function () {
                     _$(DocumentManager).on("currentDocumentChange", docChangeListener);
@@ -1257,7 +1260,33 @@ define(function (require, exports, module) {
                 });
             });
         });
-                
+        
+        
+        describe("Scrolling", function () {
+            it("should scroll when moving the cursor to the end of a really long line", function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
+                    waitsForDone(promise, Commands.FILE_NEW_UNTITLED);
+                });
+
+                runs(function () {
+                    var myEditor = EditorManager.getActiveEditor();
+                    // turn off word-wrap
+                    myEditor._codeMirror.setOption("lineWrapping", false);
+                    myEditor.document.setText("ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd some really long line");
+                    myEditor.setCursorPos(1, 1);
+                    myEditor._codeMirror.execCommand("goLineEnd");
+
+                    var se = myEditor.getScrollerElement(),
+                        sp = se.scrollLeft,
+                        $se = _$(se);
+
+                    // really big number -- will scroll to the end of the line
+                    $se.scrollLeft(99999999);
+                    expect(sp).toEqual(se.scrollLeft);
+                });
+            });
+        });
 
     });
 });
