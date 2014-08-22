@@ -95,9 +95,9 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         InMemoryFile        = require("document/InMemoryFile"),
         CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
         Async               = require("utils/Async"),
         PerfUtils           = require("utils/PerfUtils"),
-        Commands            = require("command/Commands"),
         LanguageManager     = require("language/LanguageManager"),
         Strings             = require("strings");
 
@@ -240,7 +240,7 @@ define(function (require, exports, module) {
      */
     function closeAll() {
         DeprecationWarning.deprecationWarning("Use MainViewManager.closeAll() instead of DocumentManager.closeAll()", true);
-        MainViewManager.closeAll(MainViewManager.ALL_PANES);
+        CommandManager.execute(Commands.FILE_CLOSE_ALL, {PaneId: MainViewManager.ALL_PANES});
     }
 
     /**
@@ -250,7 +250,7 @@ define(function (require, exports, module) {
      */
     function closeFullEditor(file) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.close() instead of DocumentManager.closeFullEditor()", true);
-        return MainViewManager.close(MainViewManager.ALL_PANES, file);
+        CommandManager.execute(Commands.FILE_CLOSE, {File: file});
     }
     
     /**
@@ -260,8 +260,7 @@ define(function (require, exports, module) {
      */
     function setCurrentDocument(doc) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.edit() instead of DocumentManager.setCurrentDocument()", true);
-        var result = MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
-        return result;
+        return MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
     }
 
     
