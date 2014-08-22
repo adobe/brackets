@@ -1378,7 +1378,7 @@ define(function (require, exports, module) {
         var cm = editor._codeMirror;
         var ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
         var selector = "", inSelector = false, foundChars = false;
-        var isPreprocessorDoc = /(scss|less)/i.test(FileUtils.getFileExtension(editor.document.file.fullPath));
+        var isPreprocessorDoc = FileUtils.isCSSPreprocessorFile(editor.document.file.fullPath);
         var selectorArray = [];
 
         function _stripAtRules(selector) {
