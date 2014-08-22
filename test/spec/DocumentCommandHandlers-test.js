@@ -40,6 +40,7 @@ define(function (require, exports, module) {
         SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
         FileUtils                = require("file/FileUtils"),
         StringUtils              = require("utils/StringUtils"),
+        FileSystemError          = require("filesystem/FileSystemError"),
         Editor                   = require("editor/Editor");
                     
     
@@ -670,6 +671,25 @@ define(function (require, exports, module) {
                     expect(DocumentManager.getCurrentDocument().getText()).toBe(TEST_JS_CONTENT);
                 });
             });
+            
+            it("should resolve with FileSystemError when opening fails", function () {
+                runs(function () {
+                    // Dismiss expected error dialog instantly so promise completes & test can proceed
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
+                        return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
+                    });
+                    
+                    // Open nonexistent file to trigger error result
+                    var promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/doesNotExist.js"});
+                    waitsForFail(promise, "FILE_OPEN");
+                    promise.fail(function (err) {
+                        expect(err).toEqual(FileSystemError.NOT_FOUND);
+                    });
+                });
+                runs(function () {
+                    expect(DocumentManager.getCurrentDocument()).toBeNull();
+                });
+            });
         });
 
         describe("Save File", function () {
@@ -1102,7 +1122,7 @@ define(function (require, exports, module) {
             });
         });
 
-        describe("Opens image file and validates EditorManager APIs", function () {
+        describe("Open image files", function () {
             it("should return null after opening an image", function () {
                 var path = testPath + "/couz.png",
                     promise;
@@ -1120,10 +1140,8 @@ define(function (require, exports, module) {
                     expect(d).toEqual(null);
                 });
             });
-        });
         
-        describe("Open image file while a text file is open", function () {
-            it("should fire currentDocumentChange and activeEditorChange events", function () {
+            it("opening image while text file open should fire currentDocumentChange and activeEditorChange events", function () {
                 var promise,
                     docChangeListener = jasmine.createSpy(),
                     activeEditorChangeListener = jasmine.createSpy();
@@ -1152,10 +1170,8 @@ define(function (require, exports, module) {
                     _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
                 });
             });
-        });
-        
-        describe("Open image file while neither text editor nor image file is open", function () {
-            it("should NOT fire currentDocumentChange and activeEditorChange events", function () {
+            
+            it("opening image while nothing open should NOT fire currentDocumentChange and activeEditorChange events", function () {
 
                 var promise,
                     docChangeListener = jasmine.createSpy(),
@@ -1186,10 +1202,8 @@ define(function (require, exports, module) {
                 });
     
             });
-        });
         
-        describe("Open a text file while a text file is open", function () {
-            it("should fire currentDocumentChange and activeEditorChange events", function () {
+            it("opening text file while other text open should fire currentDocumentChange and activeEditorChange events", function () {
 
                 var promise,
                     docChangeListener = jasmine.createSpy(),
@@ -1220,9 +1234,7 @@ define(function (require, exports, module) {
                     _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
                 });
             });
-        });
         
-        describe("Opens text file and validates EditorManager APIs", function () {
             it("should return an editor after opening a text file", function () {
                 var path = testPath + "/test.js",
                     promise;
