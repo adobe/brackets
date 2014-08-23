@@ -229,10 +229,10 @@ define(function (require, exports, module) {
                         var item = searchItem.items[$row.data("item-index")];
 
                         CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath})
-                            .done(function (doc) {
+                            .then(function (doc) {
                                 // Opened document is now the current main editor
                                 EditorManager.getCurrentFullEditor().setSelection(item.start, item.end, true);
-                            });
+                            }, null);
                     }
                 }
             });

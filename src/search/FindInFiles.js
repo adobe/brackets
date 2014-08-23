@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $, window, Mustache, Promise */
 
 /*
  * The core search functionality used by Find in Files and single-file Replace Batch.
@@ -275,7 +275,7 @@ define(function (require, exports, module) {
      * Finds all candidate files to search in the given scope's subtree that are not binary content. Does NOT apply
      * the current filter yet.
      * @param {?FileSystemEntry} scope Search scope, or null if whole project
-     * @return {$.Promise} A promise that will be resolved with the list of files in the scope. Never rejected.
+     * @return {Promise} A promise that will be resolved with the list of files in the scope. Never rejected.
      */
     function getCandidateFiles(scope) {
         function filter(file) {
@@ -286,7 +286,9 @@ define(function (require, exports, module) {
         // trying to use ProjectManager.getAllFiles(), both for performance and because an individual
         // in-memory file might be an untitled document that doesn't show up in getAllFiles().
         if (scope && scope.isFile) {
-            return new $.Deferred().resolve(filter(scope) ? [scope] : []).promise();
+            return new Promise(function (resolve, reject) {
+                resolve(filter(scope) ? [scope] : []);
+            });
         } else {
             return ProjectManager.getAllFiles(filter, true);
         }
@@ -352,35 +354,35 @@ define(function (require, exports, module) {
      * candidate.
      * 
      * @param {!File} file
-     * @return {$.Promise}
+     * @return {Promise}
      */
     function _doSearchInOneFile(file) {
-        var result = new $.Deferred();
-        
-        DocumentManager.getDocumentText(file)
-            .done(function (text, timestamp) {
-                // Note that we don't fire a model change here, since this is always called by some outer batch
-                // operation that will fire it once it's done.
-                var matches = _getSearchMatches(text, searchModel.queryExpr);
-                searchModel.setResults(file.fullPath, {matches: matches, timestamp: timestamp});
-                result.resolve(!!matches.length);
-            })
-            .fail(function () {
-                // Always resolve. If there is an error, this file
-                // is skipped and we move on to the next file.
-                result.resolve(false);
-            });
-        
-        return result.promise();
+        return new Promise(function (resolve, reject) {
+
+            DocumentManager.getDocumentText(file).then(
+                function (text, timestamp) {
+                    // Note that we don't fire a model change here, since this is always called by some outer batch
+                    // operation that will fire it once it's done.
+                    var matches = _getSearchMatches(text, searchModel.queryExpr);
+                    searchModel.setResults(file.fullPath, {matches: matches, timestamp: timestamp});
+                    resolve(!!matches.length);
+                },
+                function () {
+                    // Always resolve. If there is an error, this file
+                    // is skipped and we move on to the next file.
+                    resolve(false);
+                }
+            );
+        });
     }
     
     /**
      * @private
      * Executes the Find in Files search inside the current scope.
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object
-     * @param {!$.Promise} candidateFilesPromise Promise from getCandidateFiles(), which was called earlier
+     * @param {!Promise} candidateFilesPromise Promise from getCandidateFiles(), which was called earlier
      * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
-     * @return {?$.Promise} A promise that's resolved with the search results (or ZERO_FILES_TO_SEARCH) or rejected when the find competes. 
+     * @return {?Promise} A promise that's resolved with the search results (or ZERO_FILES_TO_SEARCH) or rejected when the find competes. 
      *      Will be null if the query is invalid.
      */
     function _doSearch(queryInfo, candidateFilesPromise, filter) {
@@ -445,9 +447,9 @@ define(function (require, exports, module) {
      * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
      * @param {?string} replaceText If this is a replacement, the text to replace matches with. This is just
      *      stored in the model for later use - the replacement is not actually performed right now.
-     * @param {?$.Promise} candidateFilesPromise If specified, a promise that should resolve with the same set of files that
+     * @param {?Promise} candidateFilesPromise If specified, a promise that should resolve with the same set of files that
      *      getCandidateFiles(scope) would return.
-     * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
+     * @return {Promise} A promise that's resolved with the search results or rejected when the find competes.
      */
     function doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise) {
         clearSearch();
@@ -470,16 +472,17 @@ define(function (require, exports, module) {
      *          replacements on disk. Note that even if this is false, files that are already open in editors will have replacements
      *          done in memory.
      *      isRegexp: boolean - Whether the original query was a regexp. If true, $-substitution is performed on the replaceText.
-     * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an array of errors
+     * @return {Promise} A promise that's resolved when the replacement is finished or rejected with an array of errors
      *      if there were one or more errors. Each individual item in the array will be a {item: string, error: string} object,
      *      where item is the full path to the file that could not be updated, and error is either a FileSystem error or one 
      *      of the `FindInFiles.ERROR_*` constants.
      */
     function doReplace(results, replaceText, options) {
-        return FindUtils.performReplacements(results, replaceText, options).always(function () {
+        var fnAlways = function () {
             // For UI integration testing only
             exports._replaceDone = true;
-        });
+        };
+        return FindUtils.performReplacements(results, replaceText, options).then(fnAlways, fnAlways);
     }
     
     /**
@@ -536,40 +539,42 @@ define(function (require, exports, module) {
          * @return {jQuery.Promise} Resolves when the results have been added
          */
         function _addSearchResultsForEntry(entry) {
-            var addedFiles = [],
-                deferred = new $.Deferred();
-            
-            // gather up added files
-            var visitor = function (child) {
-                // Replicate filtering that getAllFiles() does
-                if (ProjectManager.shouldShow(child)) {
-                    if (child.isFile && _isReadableText(child.name)) {
-                        // Re-check the filtering that the initial search applied
-                        if (_inSearchScope(child)) {
-                            addedFiles.push(child);
+
+            return new Promise(function (resolve, reject) {
+                var addedFiles = [];
+
+                // gather up added files
+                var visitor = function (child) {
+                    // Replicate filtering that getAllFiles() does
+                    if (ProjectManager.shouldShow(child)) {
+                        if (child.isFile && _isReadableText(child.name)) {
+                            // Re-check the filtering that the initial search applied
+                            if (_inSearchScope(child)) {
+                                addedFiles.push(child);
+                            }
                         }
+                        return true;
                     }
-                    return true;
-                }
-                return false;
-            };
-    
-            entry.visit(visitor, function (err) {
-                if (err) {
-                    deferred.reject(err);
-                    return;
-                }
-                
-                // find additional matches in all added files
-                Async.doInParallel(addedFiles, function (file) {
-                    return _doSearchInOneFile(file)
-                        .done(function (foundMatches) {
-                            resultsChanged = resultsChanged || foundMatches;
-                        });
-                }).always(deferred.resolve);
+                    return false;
+                };
+
+                entry.visit(visitor, function (err) {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+
+                    // find additional matches in all added files
+                    Async.doInParallel(addedFiles, function (file) {
+                        return _doSearchInOneFile(file).then(
+                            function (foundMatches) {
+                                resultsChanged = resultsChanged || foundMatches;
+                            },
+                            null
+                        );
+                    }).then(resolve, resolve);
+                });
             });
-    
-            return deferred.promise();
         }
         
         if (!entry) {
@@ -584,10 +589,10 @@ define(function (require, exports, module) {
                 // don't know which child files/folders may have been added or removed.
                 _removeSearchResultsForEntry(entry);
                 
-                var deferred = $.Deferred();
-                addPromise = deferred.promise();
-                entry.getContents(function (err, entries) {
-                    Async.doInParallel(entries, _addSearchResultsForEntry).always(deferred.resolve);
+                addPromise = new Promise(function (resolve, reject) {
+                    entry.getContents(function (err, entries) {
+                        Async.doInParallel(entries, _addSearchResultsForEntry).then(resolve, resolve);
+                    });
                 });
             } else {
                 removed.forEach(_removeSearchResultsForEntry);
@@ -598,12 +603,13 @@ define(function (require, exports, module) {
             addPromise = _addSearchResultsForEntry(entry);
         }
         
-        addPromise.always(function () {
+        var fnAlways = function () {
             // Restore the results if needed
             if (resultsChanged) {
                 searchModel.fireChanged();
             }
-        });
+        };
+        addPromise.then(fnAlways, fnAlways);
     };
     
     // Public exports

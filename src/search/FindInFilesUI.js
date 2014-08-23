@@ -73,8 +73,8 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
      */
     function searchAndShowResults(queryInfo, scope, filter, replaceText, candidateFilesPromise) {
-        return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
-            .done(function (zeroFilesToken) {
+        return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise).then(
+            function (zeroFilesToken) {
                 // Done searching all files: show results
                 if (FindInFiles.searchModel.hasResults()) {
                     _resultsView.open();
@@ -100,11 +100,12 @@ define(function (require, exports, module) {
                 }
 
                 StatusBar.hideBusyIndicator();
-            })
-            .fail(function (err) {
+            },
+            function (err) {
                 console.log("find in files failed: ", err);
                 StatusBar.hideBusyIndicator();
-            });
+            }
+        );
     }
     
     /**
@@ -122,9 +123,9 @@ define(function (require, exports, module) {
         }
         
         if (scope instanceof InMemoryFile) {
-            CommandManager.execute(Commands.FILE_OPEN, { fullPath: scope.fullPath }).done(function () {
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: scope.fullPath }).then(function () {
                 CommandManager.execute(Commands.CMD_FIND);
-            });
+            }, null);
             return;
         }
         
@@ -280,7 +281,7 @@ define(function (require, exports, module) {
         function processReplace(forceFilesOpen) {
             StatusBar.showBusyIndicator(true);
             FindInFiles.doReplace(resultsClone, replaceText, { forceFilesOpen: forceFilesOpen, isRegexp: isRegexp })
-                .fail(function (errors) {
+                .then(null, function (errors) {
                     var message = Strings.REPLACE_IN_FILES_ERRORS + FileUtils.makeDialogFileList(
                             errors.map(function (errorInfo) {
                                 return ProjectManager.makeProjectRelativeIfPossible(errorInfo.item);
@@ -300,9 +301,7 @@ define(function (require, exports, module) {
                         ]
                     );
                 })
-                .always(function () {
-                    StatusBar.hideBusyIndicator();
-                });
+                .then(StatusBar.hideBusyIndicator, StatusBar.hideBusyIndicator);
         }
                 
         if (replacedFiles.length <= MAX_IN_MEMORY) {
@@ -327,12 +326,12 @@ define(function (require, exports, module) {
                     }
                 ]
             )
-                .done(function (id) {
+                .then(function (id) {
                     if (id === Dialogs.DIALOG_BTN_OK) {
                         _resultsView.close();
                         processReplace(false);
                     }
-                });
+                }, null);
         }
     }
 

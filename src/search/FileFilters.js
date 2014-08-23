@@ -322,7 +322,7 @@ define(function (require, exports, module) {
             });
         }
         
-        dialog.done(function (buttonId) {
+        dialog.then(function (buttonId) {
             if (buttonId === Dialogs.DIALOG_BTN_OK) {
                 // Update saved filter preference
                 setActiveFilter({ name: $nameField.val(), patterns: getValue() }, index);
@@ -330,13 +330,13 @@ define(function (require, exports, module) {
                 _doPopulate();
             }
             lastFocus.focus();  // restore focus to old pos
-        });
+        }, null);
         
         // Code to update the file count readout at bottom of dialog (if context provided)
         var $fileCount = dialog.getElement().find(".exclusions-filecount");
         
         function updateFileCount() {
-            _context.promise.done(function (files) {
+            _context.then(function (files) {
                 var filter = getValue();
                 if (filter.length) {
                     var filtered = filterFileList(compile(filter), files);
@@ -344,7 +344,7 @@ define(function (require, exports, module) {
                 } else {
                     $fileCount.html(StringUtils.format(Strings.FILTER_FILE_COUNT_ALL, files.length, _context.label));
                 }
-            });
+            }, null);
         }
         
         // Code to enable/disable the OK button at the bottom of dialog (whether filter is empty or not)

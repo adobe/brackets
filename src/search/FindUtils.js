@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, Promise */
 
 define(function (require, exports, module) {
     "use strict";
@@ -92,7 +92,7 @@ define(function (require, exports, module) {
      * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`. Might be mutated.
      * @param {string} replaceText The text to replace each result with.
      * @param {boolean=} isRegexp Whether the original query was a regexp.
-     * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
+     * @return {Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
      */
     function _doReplaceInDocument(doc, matchInfo, replaceText, isRegexp) {
         // Double-check that the open document's timestamp matches the one we recorded. This
@@ -103,7 +103,9 @@ define(function (require, exports, module) {
         // This will *not* handle cases where the document has been edited in memory since 
         // the matchInfo was generated.
         if (doc.diskTimestamp.getTime() !== matchInfo.timestamp.getTime()) {
-            return new $.Deferred().reject(exports.ERROR_FILE_CHANGED).promise();
+            return new Promise(function (resolve, reject) {
+                reject(exports.ERROR_FILE_CHANGED);
+            });
         }
 
         // Do the replacements in reverse document order so the offsets continue to be correct.
@@ -115,7 +117,9 @@ define(function (require, exports, module) {
             });
         });
         
-        return new $.Deferred().resolve().promise();
+        return new Promise(function (resolve, reject) {
+            resolve();
+        });
     }
     
     /**
@@ -124,7 +128,7 @@ define(function (require, exports, module) {
      * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`.
      * @param {string} replaceText The text to replace each result with.
      * @param {boolean=} isRegexp Whether the original query was a regexp.
-     * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
+     * @return {Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
      */
     function _doReplaceOnDisk(fullPath, matchInfo, replaceText, isRegexp) {
         var file = FileSystem.getFileForPath(fullPath);
@@ -132,7 +136,9 @@ define(function (require, exports, module) {
             if (timestamp.getTime() !== matchInfo.timestamp.getTime()) {
                 // Return a promise that we'll reject immediately. (We can't just return the
                 // error since this is the success handler.)
-                return new $.Deferred().reject(exports.ERROR_FILE_CHANGED).promise();
+                return new Promise(function (resolve, reject) {
+                    reject(exports.ERROR_FILE_CHANGED);
+                });
             }
 
             // Note that this assumes that the matches are sorted.
@@ -169,7 +175,7 @@ define(function (require, exports, module) {
      *          replacements on disk. Note that even if this is false, files that are already open in editors will have replacements
      *          done in memory.
      *      isRegexp: boolean - Whether the original query was a regexp. If true, $-substitution is performed on the replaceText.
-     * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
+     * @return {Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
      */
     function _doReplaceInOneFile(fullPath, matchInfo, replaceText, options) {
         var doc = DocumentManager.getOpenDocumentForPath(fullPath);
@@ -215,7 +221,7 @@ define(function (require, exports, module) {
      *          replacements on disk. Note that even if this is false, files that are already open in editors will have replacements
      *          done in memory.
      *      isRegexp: boolean - Whether the original query was a regexp. If true, $-substitution is performed on the replaceText.
-     * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an array of errors
+     * @return {Promise} A promise that's resolved when the replacement is finished or rejected with an array of errors
      *      if there were one or more errors. Each individual item in the array will be a {item: string, error: string} object,
      *      where item is the full path to the file that could not be updated, and error is either a FileSystem error or one 
      *      of the `FindUtils.ERROR_*` constants.
@@ -223,7 +229,7 @@ define(function (require, exports, module) {
     function performReplacements(results, replaceText, options) {
         return Async.doInParallel_aggregateErrors(Object.keys(results), function (fullPath) {
             return _doReplaceInOneFile(fullPath, results[fullPath], replaceText, options);
-        }).done(function () {
+        }).then(function () {
             if (options && options.forceFilesOpen) {
                 // If the currently selected document wasn't modified by the search, or there is no open document,
                 // then open the first modified document.
@@ -249,7 +255,7 @@ define(function (require, exports, module) {
                     }
                 }
             }
-        });
+        }, null);
     }
     
     /**

@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, setTimeout */
+/*global define, $, window, setTimeout, Promise */
 /*unittests: QuickOpen*/
 
 /*
@@ -80,7 +80,7 @@ define(function (require, exports, module) {
     
     /**
      * File list promise
-     * @type {$.Promise}
+     * @type {Promise}
      */
     var fileListPromise;
 
@@ -223,9 +223,9 @@ define(function (require, exports, module) {
      * @private
      * If the dialog is closing, this will contain a deferred that is resolved
      * when it's done closing.
-     * @type {$.Deferred}
+     * @type {Promise}
      */
-    QuickNavigateDialog.prototype._closeDeferred = null;
+    QuickNavigateDialog.prototype._closePromise = null;
     
 
     /**
@@ -356,15 +356,13 @@ define(function (require, exports, module) {
                 doClose = false;
                 this.modalBar.prepareClose();
                 CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
-                    .done(function () {
+                    .then(function () {
                         if (cursorPos) {
                             var editor = EditorManager.getCurrentFullEditor();
                             editor.setCursorPos(cursorPos.line, cursorPos.ch, true);
                         }
-                    })
-                    .always(function () {
-                        self.close();
-                    });
+                    }, null)
+                    .then(self.close, self.close);
             } else if (cursorPos) {
                 EditorManager.getCurrentFullEditor().setCursorPos(cursorPos.line, cursorPos.ch, true);
             }
@@ -480,58 +478,58 @@ define(function (require, exports, module) {
      *     position when closing the ModalBar.
      * @param Array.<{{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed:boolean}}>
      *     selections If specified, restore the given selections when closing the ModalBar.
-     * @return {$.Promise} Resolved when the search bar is entirely closed.
+     * @return {Promise} Resolved when the search bar is entirely closed.
      */
     QuickNavigateDialog.prototype.close = function (scrollPos, selections) {
         if (!this.isOpen) {
-            return this._closeDeferred.promise();
+            return this._closePromise;
         }
         this.isOpen = false;
         
         // We can't just return the ModalBar's `close()` promise because we need to do it on a
-        // setTimeout, so we create our own Deferred and cache it so we can return it if multiple
+        // setTimeout, so we create our own Promise and cache it so we can return it if multiple
         // callers happen to call `close()`.
-        this._closeDeferred = new $.Deferred();
-
-        var i;
-        for (i = 0; i < plugins.length; i++) {
-            var plugin = plugins[i];
-            if (plugin.done) {
-                plugin.done();
+        this._closePromise = new Promise(function (closeResolve, closeReject) {
+            var i;
+            for (i = 0; i < plugins.length; i++) {
+                var plugin = plugins[i];
+                if (plugin.done) {
+                    plugin.done();
+                }
             }
-        }
 
-        // Make sure Smart Autocomplete knows its popup is getting closed (in cases where there's no
-        // editor to give focus to below, it won't notice otherwise).
-        this.$searchField.trigger("lostFocus");
-        
-        // Closing the dialog is a little tricky (see #1384): some Smart Autocomplete code may run later (e.g.
-        // (because it's a later handler of the event that just triggered close()), and that code expects to
-        // find metadata that it stuffed onto the DOM node earlier. But $.remove() strips that metadata.
-        // So we wait until after this call chain is complete before actually closing the dialog.
-        var self = this;
-        setTimeout(function () {
-            self.modalBar.close(!scrollPos).done(function () {
-                self._closeDeferred.resolve();
-            });
+            // Make sure Smart Autocomplete knows its popup is getting closed (in cases where there's no
+            // editor to give focus to below, it won't notice otherwise).
+            this.$searchField.trigger("lostFocus");
 
-            // Note that we deliberately reset the scroll position synchronously on return from
-            // `ModalBar.close()` (before the animation completes).
-            // See description of `restoreScrollPos` in `ModalBar.close()`.
-            var editor = EditorManager.getCurrentFullEditor();
-            if (selections) {
-                editor.setSelections(selections);
-            }
-            if (scrollPos) {
-                editor.setScrollPos(scrollPos.x, scrollPos.y);
-            }
-        }, 0);
-        
-        $(".smart_autocomplete_container").remove();
+            // Closing the dialog is a little tricky (see #1384): some Smart Autocomplete code may run later (e.g.
+            // (because it's a later handler of the event that just triggered close()), and that code expects to
+            // find metadata that it stuffed onto the DOM node earlier. But $.remove() strips that metadata.
+            // So we wait until after this call chain is complete before actually closing the dialog.
+            var self = this;
+            setTimeout(function () {
+                self.modalBar.close(!scrollPos).then(function () {
+                    closeResolve();
+                }, null);
 
-        $(window.document).off("mousedown", this._handleDocumentMouseDown);
+                // Note that we deliberately reset the scroll position synchronously on return from
+                // `ModalBar.close()` (before the animation completes).
+                // See description of `restoreScrollPos` in `ModalBar.close()`.
+                var editor = EditorManager.getCurrentFullEditor();
+                if (selections) {
+                    editor.setSelections(selections);
+                }
+                if (scrollPos) {
+                    editor.setScrollPos(scrollPos.x, scrollPos.y);
+                }
+            }, 0);
+
+            $(".smart_autocomplete_container").remove();
+
+            $(window.document).off("mousedown", this._handleDocumentMouseDown);
+        }.bind(this));
         
-        return this._closeDeferred.promise();
+        return this._closePromise;
     };
     
     /**
@@ -551,19 +549,19 @@ define(function (require, exports, module) {
         // The file index may still be loading asynchronously - if so, can't return a result yet
         if (!fileList) {
             // Smart Autocomplete allows us to return a Promise instead...
-            var asyncResult = new $.Deferred();
-            fileListPromise.done(function () {
-                // ...but it's not very robust. If a previous Promise is obsoleted by the query string changing, it
-                // keeps listening to it anyway. So the last Promise to resolve "wins" the UI update even if it's for
-                // a stale query. Guard from that by checking that filter text hasn't changed while we were waiting:
-                if (!queryIsStale(query)) {
-                    // We're still the current query. Synchronously re-run the search call and resolve with its results
-                    asyncResult.resolve(searchFileList(query, matcher));
-                } else {
-                    asyncResult.reject();
-                }
+            return new Promise(function (asyncResolve, asyncReject) {
+                fileListPromise.then(function () {
+                    // ...but it's not very robust. If a previous Promise is obsoleted by the query string changing, it
+                    // keeps listening to it anyway. So the last Promise to resolve "wins" the UI update even if it's for
+                    // a stale query. Guard from that by checking that filter text hasn't changed while we were waiting:
+                    if (!queryIsStale(query)) {
+                        // We're still the current query. Synchronously re-run the search call and resolve with its results
+                        asyncResolve(searchFileList(query, matcher));
+                    } else {
+                        asyncReject();
+                    }
+                }, null);
             });
-            return asyncResult.promise();
         }
         
         var cursorPos = extractCursorPos(query);
@@ -883,11 +881,11 @@ define(function (require, exports, module) {
         // an un-prefixed query. If file index caches are out of date, this list might take
         // some time to asynchronously build. See searchFileList() for how this is handled.
         fileListPromise = ProjectManager.getAllFiles(_filter, true)
-            .done(function (files) {
+            .then(function (files) {
                 fileList = files;
                 fileListPromise = null;
                 this._filenameMatcher.reset();
-            }.bind(this));
+            }.bind(this), null);
     };
 
     function getCurrentEditorSelectedText() {
@@ -916,7 +914,7 @@ define(function (require, exports, module) {
                 // then open a new dialog. (Calling close() again returns the
                 // promise for the deferred that was already kicked off when it
                 // started closing.)
-                _curDialog.close().done(createDialog);
+                _curDialog.close().then(createDialog, null);
             }
         } else {
             createDialog();
