@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define, $, Promise */
 
 /**
  * CSSDocument manages a single CSS source document
@@ -97,15 +97,17 @@ define(function CSSDocumentModule(require, exports, module) {
      * CSSStyleSheetBody was removed in protocol 1.1. This method is unused in Brackets 36.
      * Get the browser version of the StyleSheet object
      * @deprecated
-     * @return {jQuery.promise}
+     * @return {Promise}
      */
     CSSDocument.prototype.getStyleSheetFromBrowser = function getStyleSheetFromBrowser() {
-        return new $.Deferred().reject().promise();
+        return new Promise(function (resolve, reject) {
+            reject();
+        });
     };
 
     /**
      * Get the browser version of the source
-     * @return {jQuery.promise} Promise resolved with the text content of this CSS document
+     * @return {Promise} Promise resolved with the text content of this CSS document
      */
     CSSDocument.prototype.getSourceFromBrowser = function getSourceFromBrowser() {
         function getOnlyValue(obj) {
@@ -118,19 +120,19 @@ define(function CSSDocumentModule(require, exports, module) {
             return null;
         }
 
-        var deferred = new $.Deferred(),
-            styleSheetHeader = this._getStyleSheetHeader(),
-            styleSheet = getOnlyValue(styleSheetHeader);
-        
-        if (styleSheet) {
-            Inspector.CSS.getStyleSheetText(styleSheet.styleSheetId).then(function (res) {
-                deferred.resolve(res.text);
-            }, deferred.reject);
-        } else {
-            deferred.reject();
-        }
-        
-        return deferred.promise();
+        return new Promise(function (resolve, reject) {
+
+            var styleSheetHeader = this._getStyleSheetHeader(),
+                styleSheet = getOnlyValue(styleSheetHeader);
+
+            if (styleSheet) {
+                Inspector.CSS.getStyleSheetText(styleSheet.styleSheetId).then(function (res) {
+                    resolve(res.text);
+                }, reject);
+            } else {
+                reject();
+            }
+        });
     };
  
     /** Close the document */
@@ -149,7 +151,7 @@ define(function CSSDocumentModule(require, exports, module) {
         var reloadPromise = CSSAgent.reloadCSSForDocument(this.doc);
 
         if (Inspector.config.highlight) {
-            reloadPromise.done(HighlightAgent.redraw);
+            reloadPromise.then(HighlightAgent.redraw, null);
         }
     };
 

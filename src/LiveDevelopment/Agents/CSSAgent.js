@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, PathUtils */
+/*global define, $, PathUtils, Promise */
 
 /**
  * CSSAgent keeps track of loaded style sheets and allows reloading them
@@ -108,7 +108,7 @@ define(function CSSAgent(require, exports, module) {
      * Reload a CSS style sheet from a document
      * @param {Document} document
      * @param {string=} newContent new content of every stylesheet. Defaults to doc.getText() if omitted
-     * @return {jQuery.Promise}
+     * @return {Promise}
      */
     function reloadCSSForDocument(doc, newContent) {
         var styles = styleForURL(doc.url),
@@ -123,16 +123,18 @@ define(function CSSAgent(require, exports, module) {
         }
         if (!deferreds.length) {
             console.error("Style Sheet for document not loaded: " + doc.url);
-            return new $.Deferred().reject().promise();
+            return new Promise(function (resolve, reject) {
+                reject();
+            });
         }
         // return master deferred
-        return $.when.apply($, deferreds);
+        return Promise.all(deferreds);
     }
 
     /**
      * Empties a CSS style sheet given a document that has been deleted
      * @param {Document} document
-     * @return {jQuery.Promise}
+     * @return {Promise}
      */
     function clearCSSForDocument(doc) {
         return reloadCSSForDocument(doc, "");
@@ -203,17 +205,20 @@ define(function CSSAgent(require, exports, module) {
 
         // Manually fire getAllStyleSheets since it will be removed from
         // Inspector.json in a future update
-        Inspector.send("CSS", "getAllStyleSheets").done(function (res) {
-            res.headers.forEach(function (header) {
-                // _styleSheetAdded will ignore duplicates
-                _getAllStyleSheetsNotFound = false;
-                _styleSheetAdded(null, { header: header });
-            });
-        }).fail(function (err) {
-            // Disable getAllStyleSheets if the first call fails
-            _getAllStyleSheetsNotFound = (err.code === -32601);
-            $(Inspector.Page).off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
-        });
+        Inspector.send("CSS", "getAllStyleSheets").then(
+            function (res) {
+                res.headers.forEach(function (header) {
+                    // _styleSheetAdded will ignore duplicates
+                    _getAllStyleSheetsNotFound = false;
+                    _styleSheetAdded(null, { header: header });
+                });
+            },
+            function (err) {
+                // Disable getAllStyleSheets if the first call fails
+                _getAllStyleSheetsNotFound = (err.code === -32601);
+                $(Inspector.Page).off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
+            }
+        );
     }
 
     /** Enable the domain */

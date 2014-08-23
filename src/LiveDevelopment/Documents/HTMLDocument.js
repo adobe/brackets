@@ -231,39 +231,42 @@ define(function HTMLDocumentModule(require, exports, module) {
     HTMLDocument.prototype._compareWithBrowser = function (change) {
         var self = this;
         
-        RemoteAgent.call("getSimpleDOM").done(function (res) {
-            var browserSimpleDOM = JSON.parse(res.result.value),
-                edits,
-                node,
-                result;
-            
-            try {
-                result = HTMLInstrumentation._getBrowserDiff(self.editor, browserSimpleDOM);
-            } catch (err) {
-                console.error("Error comparing in-browser DOM to in-editor DOM");
-                console.error(err.stack);
-                return;
-            }
-            
-            edits = result.diff.filter(function (delta) {
-                // ignore textDelete in html root element
-                node = result.browser.nodeMap[delta.parentID];
-                
-                if (node && node.tag === "html" && delta.type === "textDelete") {
-                    return false;
+        RemoteAgent.call("getSimpleDOM").then(
+            function (res) {
+                var browserSimpleDOM = JSON.parse(res.result.value),
+                    edits,
+                    node,
+                    result;
+
+                try {
+                    result = HTMLInstrumentation._getBrowserDiff(self.editor, browserSimpleDOM);
+                } catch (err) {
+                    console.error("Error comparing in-browser DOM to in-editor DOM");
+                    console.error(err.stack);
+                    return;
                 }
-                
-                return true;
-            });
-            
-            if (edits.length > 0) {
-                console.warn("Browser DOM does not match after change: " + JSON.stringify(change));
-                
-                edits.forEach(function (delta) {
-                    console.log(delta);
+
+                edits = result.diff.filter(function (delta) {
+                    // ignore textDelete in html root element
+                    node = result.browser.nodeMap[delta.parentID];
+
+                    if (node && node.tag === "html" && delta.type === "textDelete") {
+                        return false;
+                    }
+
+                    return true;
                 });
-            }
-        });
+
+                if (edits.length > 0) {
+                    console.warn("Browser DOM does not match after change: " + JSON.stringify(change));
+
+                    edits.forEach(function (delta) {
+                        console.log(delta);
+                    });
+                }
+            },
+            null
+        );
     };
 
     /**
@@ -297,11 +300,12 @@ define(function HTMLDocumentModule(require, exports, module) {
         if (result.edits) {
             applyEditsPromise = RemoteAgent.call("applyDOMEdits", result.edits);
     
-            applyEditsPromise.always(function () {
+            var fnAlways = function () {
                 if (!isNestedTimer) {
                     PerfUtils.addMeasurement(perfTimerName);
                 }
-            });
+            };
+            applyEditsPromise.then(fnAlways, fnAlways);
         }
 
         this.errors = result.errors || [];
@@ -313,9 +317,12 @@ define(function HTMLDocumentModule(require, exports, module) {
         if (this._debug) {
             console.log("Edits applied to browser were:");
             console.log(JSON.stringify(result.edits, null, 2));
-            applyEditsPromise.done(function () {
-                self._compareWithBrowser(change);
-            });
+            applyEditsPromise.then(
+                function () {
+                    self._compareWithBrowser(change);
+                },
+                null
+            );
         }
         
 //        var marker = HTMLInstrumentation._getMarkerAtDocumentPos(

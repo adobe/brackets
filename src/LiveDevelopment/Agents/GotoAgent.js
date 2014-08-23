@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, brackets, $, window */
+/*global define, brackets, $, window, Promise */
 
 /**
  * GotoAgent constructs and responds to the in-browser goto dialog.
@@ -163,27 +163,28 @@ define(function GotoAgent(require, exports, module) {
     function open(url, location, noFlash) {
         console.assert(url.substr(0, 7) === "file://", "Cannot open non-file URLs");
 
-        var result = new $.Deferred();
+        var result = new Promise(function (resolve, reject) {
 
-        url = _urlWithoutQueryString(url);
-        // Extract the path, also strip the third slash when on Windows
-        var path = url.slice(brackets.platform === "win" ? 8 : 7);
-        // URL-decode the path ('%20' => ' ')
-        path = decodeURI(path);
-        var promise = DocumentManager.getDocumentForPath(path);
-        promise.done(function onDone(doc) {
-            DocumentManager.setCurrentDocument(doc);
-            if (location) {
-                openLocation(location, noFlash);
-            }
-            result.resolve();
+            url = _urlWithoutQueryString(url);
+            // Extract the path, also strip the third slash when on Windows
+            var path = url.slice(brackets.platform === "win" ? 8 : 7);
+            // URL-decode the path ('%20' => ' ')
+            path = decodeURI(path);
+            var promise = DocumentManager.getDocumentForPath(path);
+            promise.then(
+                function onDone(doc) {
+                    DocumentManager.setCurrentDocument(doc);
+                    if (location) {
+                        openLocation(location, noFlash);
+                    }
+                    resolve();
+                },
+                function onErr(err) {
+                    console.error(err);
+                    reject(err);
+                }
+            );
         });
-        promise.fail(function onErr(err) {
-            console.error(err);
-            result.reject(err);
-        });
-
-        return result.promise();
     }
 
     /** Go to the given source node */

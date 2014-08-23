@@ -24,7 +24,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, WebSocket, FileError, window, XMLHttpRequest */
+/*global define, $, WebSocket, FileError, window, XMLHttpRequest, Promise */
 
  /**
  * Inspector manages the connection to Chrome/Chromium's remote debugger.
@@ -93,10 +93,15 @@ define(function Inspector(require, exports, module) {
      * @type {Object.<number, {callback: function, message: Object}}
      */
     var _messageCallbacks = {};
+    
+    /**
+     * Promise callbacks for connect promise
+     * @type {resolve: function, reject: function}
+     */
+    var _connectCallbacks = {};
 
     var _messageId = 1,     // id used for remote method calls, auto-incrementing
         _socket,            // remote debugger WebSocket
-        _connectDeferred,   // The deferred connect
         _userAgent = "";    // user agent string
 
     /** Check a parameter value against the given signature
@@ -128,7 +133,9 @@ define(function Inspector(require, exports, module) {
             // simply ignore this condition. 
             // This race condition will go away once we support multiple inspector connections and turn
             // off auto re-opening when a new HTML file is selected.
-            return (new $.Deferred()).reject().promise();
+            return (new Promise(function (resolve, reject) {
+                reject();
+            }));
         }
 
         var id, callback, args, i, params = {}, promise, msg;
@@ -138,15 +145,15 @@ define(function Inspector(require, exports, module) {
         if (typeof args[args.length - 1] === "function") {
             callback = args.pop();
         } else {
-            var deferred = new $.Deferred();
-            promise = deferred.promise();
-            callback = function (result, error) {
-                if (error) {
-                    deferred.reject(error);
-                } else {
-                    deferred.resolve(result);
-                }
-            };
+            promise = new Promise(function (resolve, reject) {
+                callback = function (result, error) {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(result);
+                    }
+                };
+            });
         }
 
         id = _messageId++;
@@ -188,18 +195,16 @@ define(function Inspector(require, exports, module) {
 
     /** WebSocket reported an error */
     function _onError(error) {
-        if (_connectDeferred) {
-            _connectDeferred.reject();
-            _connectDeferred = null;
+        if (_connectCallbacks.reject) {
+            _connectCallbacks.reject();
         }
         $exports.triggerHandler("error", [error]);
     }
 
     /** WebSocket did open */
     function _onConnect() {
-        if (_connectDeferred) {
-            _connectDeferred.resolve();
-            _connectDeferred = null;
+        if (_connectCallbacks.resolve) {
+            _connectCallbacks.resolve();
         }
         $exports.triggerHandler("connect");
     }
@@ -252,20 +257,20 @@ define(function Inspector(require, exports, module) {
         if (!port) {
             port = 9222;
         }
-        var def = new $.Deferred();
-        var request = new XMLHttpRequest();
-        request.open("GET", "http://" + host + ":" + port + "/json");
-        request.onload = function onLoad() {
-            var sockets = JSON.parse(request.response);
-            def.resolve(sockets);
-        };
-        request.onerror = function onError() {
-            def.reject(request.response);
-        };
+        
+        return new Promise(function (resolve, reject) {
+            var request = new XMLHttpRequest();
+            request.open("GET", "http://" + host + ":" + port + "/json");
+            request.onload = function onLoad() {
+                var sockets = JSON.parse(request.response);
+                resolve(sockets);
+            };
+            request.onerror = function onError() {
+                reject(request.response);
+            };
 
-        request.send(null);
-
-        return def.promise();
+            request.send(null);
+        });
     }
 
     /** Register a handler to be called when the given event is triggered
@@ -286,37 +291,40 @@ define(function Inspector(require, exports, module) {
 
     /**
      * Disconnect from the remote debugger WebSocket
-     * @return {jQuery.Promise} Promise that is resolved immediately if not
-     *     currently connected or asynchronously when the socket is closed.
+     * @return {Promise} Promise that is resolved immediately if not
+     *     currently connected or asynchronously when the socket is closed
+     *     or after 5 sec timeout.
      */
     function disconnect() {
-        var deferred = new $.Deferred(),
-            promise = deferred.promise();
+        var promise = new Promise(function (resolve, reject) {
 
-        if (_socket && (_socket.readyState === WebSocket.OPEN)) {
-            _socket.onclose = function () {
-                // trigger disconnect event
-                _onDisconnect();
+            if (_socket && (_socket.readyState === WebSocket.OPEN)) {
+                _socket.onclose = function () {
+                    // trigger disconnect event
+                    _onDisconnect();
 
-                deferred.resolve();
-            };
+                    resolve();
+                };
 
-            promise = Async.withTimeout(promise, 5000);
+                _socket.close();
+            } else {
+                if (_socket) {
+                    delete _socket.onmessage;
+                    delete _socket.onopen;
+                    delete _socket.onclose;
+                    delete _socket.onerror;
 
-            _socket.close();
-        } else {
-            if (_socket) {
-                delete _socket.onmessage;
-                delete _socket.onopen;
-                delete _socket.onclose;
-                delete _socket.onerror;
+                    _socket = undefined;
+                }
 
-                _socket = undefined;
+                resolve();
             }
-            
-            deferred.resolve();
+        });
+        
+        if (_socket && (_socket.readyState === WebSocket.OPEN)) {
+            promise = Async.withTimeout(promise, 5000);
         }
-
+        
         return promise;
     }
     
@@ -326,42 +334,55 @@ define(function Inspector(require, exports, module) {
      * @param {string} WebSocket URL
      */
     function connect(socketURL) {
-        disconnect().done(function () {
+        disconnect().then(function () {
             _socket = new WebSocket(socketURL);
             _socket.onmessage = _onMessage;
             _socket.onopen = _onConnect;
             _socket.onclose = _onDisconnect;
             _socket.onerror = _onError;
-        });
+        }, null);
     }
 
     /** Connect to the remote debugger of the page that is at the given URL
      * @param {string} url
      */
     function connectToURL(url) {
-        if (_connectDeferred) {
+        if (_connectCallbacks.reject) {
             // reject an existing connection attempt
-            _connectDeferred.reject("CANCEL");
+            _connectCallbacks.reject("CANCEL");
         }
-        var deferred = new $.Deferred();
-        _connectDeferred = deferred;
-        var promise = getDebuggableWindows();
-        promise.done(function onGetAvailableSockets(response) {
-            var i, page;
-            for (i in response) {
-                page = response[i];
-                if (page.webSocketDebuggerUrl && page.url.indexOf(url) === 0) {
-                    connect(page.webSocketDebuggerUrl);
-                    // _connectDeferred may be resolved by onConnect or rejected by onError
-                    return;
+        
+        var connectPromise = new Promise(function (connectResolve, connectReject) {
+            _connectCallbacks = {
+                resolve: connectResolve,
+                reject:  connectReject
+            };
+
+            getDebuggableWindows().then(
+                function (response) {       // onGetAvailableSockets
+                    var i, page;
+                    for (i in response) {
+                        page = response[i];
+                        if (page.webSocketDebuggerUrl && page.url.indexOf(url) === 0) {
+                            // Promise may be resolved by onConnect or rejected by onError
+                            connect(page.webSocketDebuggerUrl);
+                            return;
+                        }
+                    }
+                    connectReject(FileError.ERR_NOT_FOUND); // Reject with a "not found" error
+                },
+                function (err) {
+                    connectReject(err);
                 }
-            }
-            deferred.reject(FileError.ERR_NOT_FOUND); // Reject with a "not found" error
+            );
         });
-        promise.fail(function onFail(err) {
-            deferred.reject(err);
-        });
-        return deferred.promise();
+        
+        var fnAlways = function () {
+            _connectCallbacks = {};
+        };
+        connectPromise.then(fnAlways, fnAlways);
+        
+        return connectPromise;
     }
 
     /** Check if the inspector is connected */

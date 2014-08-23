@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define, $, Promise */
 
 /**
  * ScriptAgent tracks all executed scripts, defines internal breakpoints, and
@@ -35,7 +35,6 @@ define(function ScriptAgent(require, exports, module) {
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");
 
-    var _load; // the load promise
     var _urlToScript; // url -> script info
     var _idToScript; // id -> script info
     var _insertTrace; // the last recorded trace of a DOM insertion
@@ -63,12 +62,6 @@ define(function ScriptAgent(require, exports, module) {
      */
     function scriptForURL(url) {
         return _urlToScript[url];
-    }
-
-    // DOMAgent Event: Document root loaded
-    function _onGetDocument(event, res) {
-        Inspector.DOMDebugger.setDOMBreakpoint(res.root.nodeId, "subtree-modified");
-        _load.resolve();
     }
 
     // WebInspector Event: DOM.childNodeInserted
@@ -138,25 +131,33 @@ define(function ScriptAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _reset();
-        _load = new $.Deferred();
-
-        var enableResult = new $.Deferred();
-
-        Inspector.Debugger.enable().done(function () {
-            Inspector.Debugger.setPauseOnExceptions("uncaught").done(function () {
-                enableResult.resolve();
-            });
-        });
 
         $(Inspector.Page).on("frameNavigated.ScriptAgent", _onFrameNavigated);
-        $(DOMAgent).on("getDocument.ScriptAgent", _onGetDocument);
         $(Inspector.Debugger)
             .on("scriptParsed.ScriptAgent", _onScriptParsed)
             .on("scriptFailedToParse.ScriptAgent", _onScriptFailedToParse)
             .on("paused.ScriptAgent", _onPaused);
         $(Inspector.DOM).on("childNodeInserted.ScriptAgent", _onChildNodeInserted);
 
-        return $.when(_load.promise(), enableResult.promise());
+        var enablePromise = new Promise(function (enableResolve, enableReject) {
+            Inspector.Debugger.enable().then(function () {
+                Inspector.Debugger.setPauseOnExceptions("uncaught").then(function () {
+                    enableResolve();
+                }, null);
+            }, null);
+        });
+
+        var loadPromise = new Promise(function (loadResolve, loadReject) {
+            // DOMAgent Event: Document root loaded
+            function _onGetDocument(event, res) {
+                Inspector.DOMDebugger.setDOMBreakpoint(res.root.nodeId, "subtree-modified");
+                loadResolve();
+            }
+
+            $(DOMAgent).on("getDocument.ScriptAgent", _onGetDocument);
+        });
+
+        return Promise.all([loadPromise, enablePromise]);
     }
 
     /** Clean up */

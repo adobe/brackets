@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, XMLHttpRequest */
+/*global define, $, XMLHttpRequest, Promise */
 
 /**
  * DOMAgent constructs and maintains a tree of {DOMNode}s that represents the
@@ -46,9 +46,8 @@ define(function DOMAgent(require, exports, module) {
     var DOMNode = require("LiveDevelopment/Agents/DOMNode");
     var DOMHelpers = require("LiveDevelopment/Agents/DOMHelpers");
 
-    var _load; // {$.Deferred} load promise
-    var _idToNode; // {nodeId -> node}
-    var _pendingRequests; // {integer} number of pending requests before initial loading is complete
+    var _idToNode;          // {nodeId -> node}
+    var _pendingRequests;   // {integer} number of pending requests before initial loading is complete
 
     /** Get the last node before the given location
      * @param {integer} location
@@ -173,27 +172,6 @@ define(function DOMAgent(require, exports, module) {
         });
     }
 
-    /** Load the source document and match it with the DOM tree*/
-    function _onFinishedLoadingDOM() {
-        var request = new XMLHttpRequest();
-        request.open("GET", exports.url);
-        request.onload = function onLoad() {
-            if ((request.status >= 200 && request.status < 300) ||
-                    request.status === 304 || request.status === 0) {
-                _mapDocumentToSource(request.response);
-                _load.resolve();
-            } else {
-                var msg = "Received status " + request.status + " from XMLHttpRequest while attempting to load source file at " + exports.url;
-                _load.reject(msg, { message: msg });
-            }
-        };
-        request.onerror = function onError() {
-            var msg = "Could not load source file at " + exports.url;
-            _load.reject(msg, { message: msg });
-        };
-        request.send(null);
-    }
-
     // WebInspector Event: Page.loadEventFired
     function _onLoadEventFired(event, res) {
         // res = {timestamp}
@@ -217,16 +195,6 @@ define(function DOMAgent(require, exports, module) {
      // WebInspector Event: DOM.documentUpdated
     function _onDocumentUpdated(event, res) {
         // res = {}
-    }
-
-    // WebInspector Event: DOM.setChildNodes
-    function _onSetChildNodes(event, res) {
-        // res = {parentId, nodes}
-        var node = nodeWithId(res.parentId);
-        node.setChildrenPayload(res.nodes);
-        if (_pendingRequests > 0 && --_pendingRequests === 0) {
-            _onFinishedLoadingDOM();
-        }
     }
 
     // WebInspector Event: DOM.childNodeCountUpdated
@@ -302,17 +270,45 @@ define(function DOMAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        _load = new $.Deferred();
         $(Inspector.Page)
             .on("frameNavigated.DOMAgent", _onFrameNavigated)
             .on("loadEventFired.DOMAgent", _onLoadEventFired);
         $(Inspector.DOM)
             .on("documentUpdated.DOMAgent", _onDocumentUpdated)
-            .on("setChildNodes.DOMAgent", _onSetChildNodes)
             .on("childNodeCountUpdated.DOMAgent", _onChildNodeCountUpdated)
             .on("childNodeInserted.DOMAgent", _onChildNodeInserted)
             .on("childNodeRemoved.DOMAgent", _onChildNodeRemoved);
-        return _load.promise();
+        
+        return new Promise(function (resolve, reject) {
+            // WebInspector Event: DOM.setChildNodes
+            function _onSetChildNodes(event, res) {
+                // res = {parentId, nodes}
+                var node = nodeWithId(res.parentId);
+                node.setChildrenPayload(res.nodes);
+                if (_pendingRequests > 0 && --_pendingRequests === 0) {
+                    // Load the source document and match it with the DOM tree
+                    var request = new XMLHttpRequest();
+                    request.open("GET", exports.url);
+                    request.onload = function onLoad() {
+                        if ((request.status >= 200 && request.status < 300) ||
+                                request.status === 304 || request.status === 0) {
+                            _mapDocumentToSource(request.response);
+                            resolve();
+                        } else {
+                            var msg = "Received status " + request.status + " from XMLHttpRequest while attempting to load source file at " + exports.url;
+                            reject(msg, { message: msg });
+                        }
+                    };
+                    request.onerror = function onError() {
+                        var msg = "Could not load source file at " + exports.url;
+                        reject(msg, { message: msg });
+                    };
+                    request.send(null);
+                }
+            }
+
+            $(Inspector.DOM).on("setChildNodes.DOMAgent", _onSetChildNodes);
+        });
     }
 
     /** Clean up */

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define, $, Promise */
 
 /**
  * DOMNode represents a node in the DOM tree. It is constructed from a payload
@@ -221,18 +221,18 @@ define(function DOMNodeModule(require, exports, module) {
 
     /** Resolve the node and retrieve its objectId from the remote debugger */
     DOMNode.prototype.resolve = function resolve() {
-        var def = new $.Deferred();
-        if (this.objectId) {
-            def.resolve(this);
-        } else if (!this.nodeId) {
-            def.reject();
-        } else {
-            this.agent.resolveNode(this, function onResolve(res) {
-                this.objectId = res.object.objectId;
-                def.resolve(this);
-            }.bind(this));
-        }
-        return def.promise();
+        return new Promise(function (resolve, reject) {
+            if (this.objectId) {
+                resolve(this);
+            } else if (!this.nodeId) {
+                reject();
+            } else {
+                this.agent.resolveNode(this, function onResolve(res) {
+                    this.objectId = res.object.objectId;
+                    resolve(this);
+                }.bind(this));
+            }
+        });
     };
 
 

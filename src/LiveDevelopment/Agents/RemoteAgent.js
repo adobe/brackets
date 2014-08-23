@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, XMLHttpRequest, window */
+/*global define, $, XMLHttpRequest, window, Promise */
 
 /**
  * RemoteAgent defines and provides an interface for custom remote functions
@@ -41,7 +41,6 @@ define(function RemoteAgent(require, exports, module) {
         Inspector       = require("LiveDevelopment/Inspector/Inspector"),
         RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
 
-    var _load; // deferred load
     var _objectId; // the object id of the remote object
     var _intervalId; // interval used to send keepAlive events
 
@@ -57,8 +56,7 @@ define(function RemoteAgent(require, exports, module) {
     function _call(objectId, method, varargs) {
         console.assert(objectId, "Attempted to call remote method without objectId set.");
         var args = Array.prototype.slice.call(arguments, 2),
-            callback,
-            deferred = new $.Deferred();
+            callback;
 
         // if the last argument is a function it is the callback function
         if (typeof args[args.length - 1] === "function") {
@@ -74,22 +72,25 @@ define(function RemoteAgent(require, exports, module) {
             return arg;
         });
 
-        $.when.apply(undefined, args).done(function onResolvedAllNodes() {
-            var params = [];
+        return new Promise(function (resolve, reject) {
 
-            args.forEach(function (arg) {
-                if (arg.objectId) {
-                    params.push({objectId: arg.objectId});
-                } else {
-                    params.push({value: arg});
-                }
-            });
+            //$.when.apply(undefined, args).done(function onResolvedAllNodes() {
+            // TODO: why is first param undefined?
+            Promise.all(args.unshift(undefined)).then(function onResolvedAllNodes() {
+                var params = [];
 
-            Inspector.Runtime.callFunctionOn(objectId, method, params, undefined, callback)
-                .then(deferred.resolve, deferred.reject);
+                args.forEach(function (arg) {
+                    if (arg.objectId) {
+                        params.push({objectId: arg.objectId});
+                    } else {
+                        params.push({value: arg});
+                    }
+                });
+
+                Inspector.Runtime.callFunctionOn(objectId, method, params, undefined, callback)
+                    .then(resolve, reject);
+            }, null);
         });
-
-        return deferred.promise();
     }
 
     /** Call a remote function
@@ -122,39 +123,40 @@ define(function RemoteAgent(require, exports, module) {
         }, 1000);
     }
     
-    // WebInspector Event: Page.frameNavigated
-    function _onFrameNavigated(event, res) {
-        // res = {frame}
-        // Re-inject RemoteFunctions when navigating to a new page, but not if an iframe was loaded
-        if (res.frame.parentId) {
-            return;
-        }
-
-        _stopKeepAliveInterval();
-
-        // inject RemoteFunctions
-        var command = "window._LD=" + RemoteFunctions + "(" + LiveDevelopment.config.experimental + ");";
-
-        Inspector.Runtime.evaluate(command, function onEvaluate(response) {
-            if (response.error || response.wasThrown) {
-                _load.reject(response.error);
-            } else {
-                _objectId = response.result.objectId;
-                _load.resolve();
-
-                _startKeepAliveInterval();
-            }
-        });
-    }
 
     /** Initialize the agent */
     function load() {
-        _load = new $.Deferred();
-        $(Inspector.Page).on("frameNavigated.RemoteAgent", _onFrameNavigated);
         $(Inspector.Page).on("frameStartedLoading.RemoteAgent", _stopKeepAliveInterval);
         $(Inspector.DOM).on("attributeModified.RemoteAgent", _onAttributeModified);
 
-        return _load.promise();
+        return new Promise(function (resolve, reject) {
+            // WebInspector Event: Page.frameNavigated
+            function _onFrameNavigated(event, res) {
+                // res = {frame}
+                // Re-inject RemoteFunctions when navigating to a new page, but not if an iframe was loaded
+                if (res.frame.parentId) {
+                    return;
+                }
+
+                _stopKeepAliveInterval();
+
+                // inject RemoteFunctions
+                var command = "window._LD=" + RemoteFunctions + "(" + LiveDevelopment.config.experimental + ");";
+
+                Inspector.Runtime.evaluate(command, function onEvaluate(response) {
+                    if (response.error || response.wasThrown) {
+                        reject(response.error);
+                    } else {
+                        _objectId = response.result.objectId;
+                        resolve();
+
+                        _startKeepAliveInterval();
+                    }
+                });
+            }
+            
+            $(Inspector.Page).on("frameNavigated.RemoteAgent", _onFrameNavigated);
+        });
     }
 
     /** Clean up */

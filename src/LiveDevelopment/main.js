@@ -134,9 +134,12 @@ define(function main(require, exports, module) {
                     DefaultDialogs.DIALOG_ID_INFO,
                     Strings.LIVE_DEVELOPMENT_INFO_TITLE,
                     Strings.LIVE_DEVELOPMENT_INFO_MESSAGE
-                ).done(function (id) {
-                    LiveDevelopment.open();
-                });
+                ).then(
+                    function (id) {
+                        LiveDevelopment.open();
+                    },
+                    null
+                );
             } else {
                 LiveDevelopment.open();
             }

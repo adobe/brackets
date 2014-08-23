@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, Promise */
 
 define(function (require, exports, module) {
     "use strict";
@@ -143,12 +143,14 @@ define(function (require, exports, module) {
      * is resolved or rejected. If the promise is rejected, an error window
      * is shown and Live Development does not start..
      *
-     * @return {jQuery.Promise} Promise that may be asynchronously resolved
+     * @return {Promise} Promise that may be asynchronously resolved
      *  when the server is ready to handle HTTP requests.
      */
     BaseServer.prototype.readyToServe = function () {
         // Base implementation always resolves
-        return $.Deferred().resolve().promise();
+        return new Promise(function (resolve, reject) {
+            resolve();
+        });
     };
     
     /**
