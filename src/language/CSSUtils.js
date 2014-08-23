@@ -624,9 +624,9 @@ define(function (require, exports, module) {
     
     /**
      * Return a string that shows the literal parent hierarchy of the selector
-     * in selectorInfo.
+     * in info.
      *
-     * @param {!SelectorInfo} info SelectorInfo object with `selector`, `selectorGroup`, `parentSelectors` and other properties
+     * @param {!SelectorInfo} info
      * @param {boolean=} useGroup true to append selectorGroup instead of selector
      * @return {string} the literal parent hierarchy of the selector
      */
@@ -646,8 +646,27 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @typedef {{selector: !string,
+     *            ruleStartLine: number,
+     *            ruleStartChar: number,
+     *            selectorStartLine: number,
+     *            selectorStartChar: number,
+     *            selectorEndLine: number,
+     *            selectorEndChar: number,
+     *            selectorGroupStartLine: number,
+     *            selectorGroupStartChar: number,
+     *            selectorGroup: ?string,
+     *            declListStartLine: number,
+     *            declListStartChar: number,
+     *            declListEndLine: number,
+     *            declListEndChar: number,
+     *            level: number,
+     *            parentSelectors: ?string}} SelectorInfo 
+     */
+    
+    /**
      * Extracts all CSS selectors from the given text
-     * Returns an array of selectors. Each selector is an object with the following properties:
+     * Returns an array of SelectorInfo. Each SelectorInfo is an object with the following properties:
          selector:                 the text of the selector (note: comma separated selector groups like 
                                    "h1, h2" are broken into separate selectors)
          ruleStartLine:            line in the text where the rule (including preceding comment) appears
@@ -666,11 +685,14 @@ define(function (require, exports, module) {
          declListStartChar:        column in line where the declaration list for the rule starts
          declListEndLine:          line where the declaration list for the rule ends
          declListEndChar:          column in the line where the declaration list for the rule ends
-         level:                    the level of the current selector
+         level:                    the level of the current selector including any containing @media block in the 
+                                   nesting level count. Use this property with caution since it is primarily for internal
+                                   parsing use. For example, two sibling selectors may have different levels if one
+                                   of them is nested inside an @media block and it should not be used for sibling info.
          parentSelectors:          all ancestor selectors separated with '/' if the current selector is a nested one 
      * @param {!string} text CSS text to extract from
-     * @param {!string} documentMode language mode of the document that text belongs to
-     * @return {Array.<Object>} Array with objects specifying selectors.
+     * @param {?string} documentMode language mode of the document that text belongs to, default to css if undefined.
+     * @return {Array.<SelectorInfo>} Array with objects specifying selectors.
      */
     function extractAllSelectors(text, documentMode) {
         var state, lines, lineCount,
@@ -802,12 +824,12 @@ define(function (require, exports, module) {
 
         function _skipProperty() {
             while (token !== ";") {
-                // If there is a '{' or '}' or a comment before the ';',
+                // If there is a '{' or '}' before the ';',
                 // then stop skipping.
-                if (token === "{" || token === "}" || style === "comment") {
+                if (token === "{" || token === "}") {
                     return;
                 }
-                _nextTokenSkippingWhitespace();
+                _nextTokenSkippingComments();
             }
         }
         
@@ -818,9 +840,7 @@ define(function (require, exports, module) {
                 startChar = "{";
             }
             while (true) {
-                // Use regexp to detect '{' so that something like
-                // #{$class} in scss files won't be missed.
-                if ((startChar === "{" && /\{$/.test(token)) || startChar === token) {
+                if (token.indexOf(startChar) !== -1) {
                     unmatchedBraces++;
                 } else if (token === _bracketPairs[startChar]) {
                     unmatchedBraces--;
@@ -1248,7 +1268,7 @@ define(function (require, exports, module) {
      * Converts the results of _findAllMatchingSelectorsInText() into a simpler bag of data and
      * appends those new objects to the given 'resultSelectors' Array.
      * @param {Array.<{document:Document, lineStart:number, lineEnd:number}>} resultSelectors
-     * @param {Array.<{selectorGroupStartLine:number, declListEndLine:number, selector:string}>} selectorsToAdd
+     * @param {Array.<SelectorInfo>} selectorsToAdd
      * @param {!Document} sourceDoc
      * @param {!number} lineOffset Amount to offset all line number info by. Used if the first line
      *          of the parsed CSS text is not the first line of the sourceDoc.
