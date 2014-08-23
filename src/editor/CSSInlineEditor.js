@@ -47,7 +47,7 @@ define(function (require, exports, module) {
         _newRuleHandlers = [];
 
     function _getCSSFilesInProject() {
-        return ProjectManager.getAllFiles(ProjectManager.getLanguageFilter("css"));
+        return ProjectManager.getAllFiles(ProjectManager.getLanguageFilter(["css", "less", "scss"]));
     }
     
     /**

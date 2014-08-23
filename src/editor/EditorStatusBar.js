@@ -403,9 +403,10 @@ define(function (require, exports, module) {
     // Initialize: status bar focused listener
     $(EditorManager).on("activeEditorChange", _onActiveEditorChange);
     
-    // Add an event listener when the list of languages change
-    $(LanguageManager).on("languageAdded languageModified", _populateLanguageDropdown);
-    
     AppInit.htmlReady(_init);
-    AppInit.appReady(_populateLanguageDropdown);
+    AppInit.appReady(function () {
+        // Populate language switcher with all languages after startup; update it later if this set changes
+        _populateLanguageDropdown();
+        $(LanguageManager).on("languageAdded languageModified", _populateLanguageDropdown);
+    });
 });

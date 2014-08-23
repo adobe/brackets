@@ -2157,7 +2157,12 @@ define(function (require, exports, module) {
      */
     function getLanguageFilter(languageId) {
         return function languageFilter(file) {
-            return (LanguageManager.getLanguageForPath(file.fullPath).getId() === languageId);
+            var id = LanguageManager.getLanguageForPath(file.fullPath).getId();
+            if (typeof languageId === "string") {
+                return (id === languageId);
+            } else {
+                return (languageId.indexOf(id) !== -1);
+            }
         };
     }
         

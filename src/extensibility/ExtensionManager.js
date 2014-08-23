@@ -53,6 +53,14 @@ define(function (require, exports, module) {
     var semver = require("extensibility/node/node_modules/semver/semver.browser");
 
     /**
+     * @private
+     * @type {Promise} Keeps track of the current registry download so that if a request is already
+     * in progress and another request to download the registry comes in, we don't send yet another request.
+     * This is primarily used when multiple view models need to download the registry at the same time.
+     */
+    var pendingDownloadRegistry = null;
+
+    /**
      * Extension status constants.
      */
     var ENABLED      = "enabled",
@@ -180,7 +188,11 @@ define(function (require, exports, module) {
      * or rejected if the server can't be reached.
      */
     function downloadRegistry() {
-        return new Promise(function (resolve, reject) {
+        if (pendingDownloadRegistry) {
+            return pendingDownloadRegistry;
+        }
+        
+        pendingDownloadRegistry = new Promise(function (resolve, reject) {
             
             Promise.resolve(
                 $.ajax({
@@ -199,12 +211,20 @@ define(function (require, exports, module) {
                     });
                     $(exports).triggerHandler("registryDownload");
                     resolve();
+                    
+                    // Make sure to clean up the pending registry so that new requests can be made.
+                    pendingDownloadRegistry = null;
                 },
                 function () {
                     reject();
+                    
+                    // Make sure to clean up the pending registry so that new requests can be made.
+                    pendingDownloadRegistry = null;
                 }
             );
         });
+        
+        return pendingDownloadRegistry;
     }
 
 
@@ -456,7 +476,7 @@ define(function (require, exports, module) {
         if (installationResult.keepFile === undefined) {
             installationResult.keepFile = false;
         }
-        
+
         var installationStatus = installationResult.installationStatus;
         if (installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
                 installationStatus === Package.InstallationStatuses.NEEDS_UPDATE ||
