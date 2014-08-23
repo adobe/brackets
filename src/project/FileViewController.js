@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, Promise */
 
 /**
  * Responsible for coordinating file selection between views by permitting only one view
@@ -104,7 +104,7 @@ define(function (require, exports, module) {
     
     /** 
      * @private
-     * @return {$.Promise}
+     * @return {Promise}
      */
     function _selectCurrentDocument() {
         // If fullPath corresonds to the current doc being viewed then opening the file won't
@@ -136,7 +136,7 @@ define(function (require, exports, module) {
      * fileSelectionFocus
      * @param {!fullPath}
      * @param {string} - must be either WORKING_SET_VIEW or PROJECT_MANAGER
-     * @return {$.Promise}
+     * @return {Promise}
      */
     function openAndSelectDocument(fullPath, fileSelectionFocus) {
         var result;
@@ -160,15 +160,18 @@ define(function (require, exports, module) {
         if (curDoc && curDoc.file.fullPath === fullPath &&
                 !EditorManager.getCustomViewerForPath(fullPath)) {
             _selectCurrentDocument();
-            result = (new $.Deferred()).resolve().promise();
+            result = new Promise(function (resolve, reject) {
+                resolve();
+            });
         } else {
             result = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath});
         }
         
         // clear after notification is done
-        result.always(function () {
+        var fnAlways = function () {
             _curDocChangedDueToMe = false;
-        });
+        };
+        result.then(fnAlways, fnAlways);
         
         return result;
     }
@@ -180,32 +183,35 @@ define(function (require, exports, module) {
      * @param {?String} selectIn - specify either WORING_SET_VIEW or PROJECT_MANAGER.
      *      Default is WORING_SET_VIEW.
      * @param {number=} index - insert into the working set list at this 0-based index
-     * @return {!$.Promise}
+     * @return {!Promise}
      */
     function addToWorkingSetAndSelect(fullPath, selectIn, index) {
-        var result = new $.Deferred(),
-            promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath, index: index});
+        return new Promise(function (resolve, reject) {
 
-        // This properly handles sending the right nofications in cases where the document
-        // is already the current one. In that case we will want to notify with
-        // documentSelectionFocusChange so the views change their selection
-        promise.done(function (doc) {
-            // FILE_ADD_TO_WORKING_SET command sets the current document. Update the 
-            // selection focus only if doc is not null. When double-clicking on an
-            // image file, we get a null doc here but we still want to keep _fileSelectionFocus
-            // as PROJECT_MANAGER. Regardless of doc is null or not, call _selectCurrentDocument
-            // to trigger documentSelectionFocusChange event.
-            if (doc) {
-                _fileSelectionFocus = selectIn || WORKING_SET_VIEW;
-            }
-            _selectCurrentDocument();
-            
-            result.resolve(doc);
-        }).fail(function (err) {
-            result.reject(err);
+            var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath, index: index});
+
+            // This properly handles sending the right nofications in cases where the document
+            // is already the current one. In that case we will want to notify with
+            // documentSelectionFocusChange so the views change their selection
+            promise.then(
+                function (doc) {
+                    // FILE_ADD_TO_WORKING_SET command sets the current document. Update the 
+                    // selection focus only if doc is not null. When double-clicking on an
+                    // image file, we get a null doc here but we still want to keep _fileSelectionFocus
+                    // as PROJECT_MANAGER. Regardless of doc is null or not, call _selectCurrentDocument
+                    // to trigger documentSelectionFocusChange event.
+                    if (doc) {
+                        _fileSelectionFocus = selectIn || WORKING_SET_VIEW;
+                    }
+                    _selectCurrentDocument();
+
+                    resolve(doc);
+                },
+                function (err) {
+                    reject(err);
+                }
+            );
         });
-
-        return result.promise();
     }
 
     /**

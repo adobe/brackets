@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define, $, brackets, Promise */
 
 /**
  * FileSyncManager is a set of utilities to help track external modifications to the files and folders
@@ -100,7 +100,7 @@ define(function (require, exports, module) {
      *  deleteConflicts - deleted on disk; also dirty in Brackets
      *
      * @param {!Array.<Document>} docs
-     * @return {$.Promise}  Resolved when all scanning done, or rejected immediately if there's any
+     * @return {Promise}  Resolved when all scanning done, or rejected immediately if there's any
      *      error while reading file timestamps. Errors are logged but no UI is shown.
      */
     function findExternalChanges(docs) {
@@ -111,63 +111,62 @@ define(function (require, exports, module) {
         deleteConflicts = [];
     
         function checkDoc(doc) {
-            var result = new $.Deferred();
-            
-            // Check file timestamp / existence
-            
-            if (doc.isUntitled()) {
-                result.resolve();
-            } else {
-                doc.file.stat(function (err, stat) {
-                    if (!err) {
-                        // Does file's timestamp differ from last sync time on the Document?
-                        var fileTime = stat.mtime.getTime();
-                        if (fileTime !== doc.diskTimestamp.getTime()) {
-                            // If the user has chosen to keep changes that conflict with the
-                            // current state of the file on disk, then do nothing. This means
-                            // that even if the user later undoes back to clean, we won't
-                            // automatically reload the file on window reactivation. We could
-                            // make it do that, but it seems better to be consistent with the
-                            // deletion case below, where it seems clear that you don't want
-                            // to auto-delete the file on window reactivation just because you
-                            // undid back to clean.
-                            if (doc.keepChangesTime !== fileTime) {
-                                if (doc.isDirty) {
-                                    editConflicts.push({doc: doc, fileTime: fileTime});
-                                } else {
-                                    toReload.push(doc);
-                                }
-                            }
-                        }
-                        result.resolve();
-                    } else {
-                        // File has been deleted externally
-                        if (err === FileSystemError.NOT_FOUND) {
-                            // If the user has chosen to keep changes previously, and the file
-                            // has been deleted, then do nothing. Like the case above, this
-                            // means that even if the user later undoes back to clean, we won't
-                            // then automatically delete the file on window reactivation.
-                            // (We use -1 as the "mod time" to indicate that the file didn't
-                            // exist, since there's no actual modification time to keep track of
-                            // and -1 isn't a valid mod time for a real file.)
-                            if (doc.keepChangesTime !== -1) {
-                                if (doc.isDirty) {
-                                    deleteConflicts.push({doc: doc, fileTime: -1});
-                                } else {
-                                    toClose.push(doc);
-                                }
-                            }
-                            result.resolve();
-                        } else {
-                            // Some other error fetching metadata: treat as a real error
-                            console.log("Error checking modification status of " + doc.file.fullPath, err);
-                            result.reject();
-                        }
-                    }
-                });
-            }
 
-            return result.promise();
+            return new Promise(function (resolve, reject) {
+                // Check file timestamp / existence
+
+                if (doc.isUntitled()) {
+                    resolve();
+                } else {
+                    doc.file.stat(function (err, stat) {
+                        if (!err) {
+                            // Does file's timestamp differ from last sync time on the Document?
+                            var fileTime = stat.mtime.getTime();
+                            if (fileTime !== doc.diskTimestamp.getTime()) {
+                                // If the user has chosen to keep changes that conflict with the
+                                // current state of the file on disk, then do nothing. This means
+                                // that even if the user later undoes back to clean, we won't
+                                // automatically reload the file on window reactivation. We could
+                                // make it do that, but it seems better to be consistent with the
+                                // deletion case below, where it seems clear that you don't want
+                                // to auto-delete the file on window reactivation just because you
+                                // undid back to clean.
+                                if (doc.keepChangesTime !== fileTime) {
+                                    if (doc.isDirty) {
+                                        editConflicts.push({doc: doc, fileTime: fileTime});
+                                    } else {
+                                        toReload.push(doc);
+                                    }
+                                }
+                            }
+                            resolve();
+                        } else {
+                            // File has been deleted externally
+                            if (err === FileSystemError.NOT_FOUND) {
+                                // If the user has chosen to keep changes previously, and the file
+                                // has been deleted, then do nothing. Like the case above, this
+                                // means that even if the user later undoes back to clean, we won't
+                                // then automatically delete the file on window reactivation.
+                                // (We use -1 as the "mod time" to indicate that the file didn't
+                                // exist, since there's no actual modification time to keep track of
+                                // and -1 isn't a valid mod time for a real file.)
+                                if (doc.keepChangesTime !== -1) {
+                                    if (doc.isDirty) {
+                                        deleteConflicts.push({doc: doc, fileTime: -1});
+                                    } else {
+                                        toClose.push(doc);
+                                    }
+                                }
+                                resolve();
+                            } else {
+                                // Some other error fetching metadata: treat as a real error
+                                console.log("Error checking modification status of " + doc.file.fullPath, err);
+                                reject();
+                            }
+                        }
+                    });
+                }
+            });
         }
         
         // Check all docs in parallel
@@ -186,25 +185,24 @@ define(function (require, exports, module) {
         });
         
         function checkWorkingSetFile(file) {
-            var result = new $.Deferred();
-            
-            file.stat(function (err, stat) {
-                if (!err) {
-                    // File still exists
-                    result.resolve();
-                } else {
-                    // File has been deleted externally
-                    if (err === FileSystemError.NOT_FOUND) {
-                        DocumentManager.notifyFileDeleted(file);
-                        result.resolve();
+            return new Promise(function (resolve, reject) {
+                file.stat(function (err, stat) {
+                    if (!err) {
+                        // File still exists
+                        resolve();
                     } else {
-                        // Some other error fetching metadata: treat as a real error
-                        console.log("Error checking for deletion of " + file.fullPath, err);
-                        result.reject();
+                        // File has been deleted externally
+                        if (err === FileSystemError.NOT_FOUND) {
+                            DocumentManager.notifyFileDeleted(file);
+                            resolve();
+                        } else {
+                            // Some other error fetching metadata: treat as a real error
+                            console.log("Error checking for deletion of " + file.fullPath, err);
+                            reject();
+                        }
                     }
-                }
+                });
             });
-            return result.promise();
         }
         
         // Check all these files in parallel
@@ -216,26 +214,28 @@ define(function (require, exports, module) {
      * Reloads the Document's contents from disk, discarding any unsaved changes in the editor.
      *
      * @param {!Document} doc
-     * @return {$.Promise} Resolved after editor has been refreshed; rejected if unable to load the
+     * @return {Promise} Resolved after editor has been refreshed; rejected if unable to load the
      *      file's new content. Errors are logged but no UI is shown.
      */
     function reloadDoc(doc) {
         
         var promise = FileUtils.readAsText(doc.file);
         
-        promise.done(function (text, readTimestamp) {
-            doc.refreshText(text, readTimestamp);
-        });
-        promise.fail(function (error) {
-            console.log("Error reloading contents of " + doc.file.fullPath, error);
-        });
+        promise.then(
+            function (text, readTimestamp) {
+                doc.refreshText(text, readTimestamp);
+            },
+            function (error) {
+                console.log("Error reloading contents of " + doc.file.fullPath, error);
+            }
+        );
         return promise;
     }
     
     /**
      * Reloads all the documents in "toReload" silently (no prompts). The operations are all run
      * in parallel.
-     * @return {$.Promise} Resolved/rejected after all reloads done; will be rejected if any one
+     * @return {Promise} Resolved/rejected after all reloads done; will be rejected if any one
      *      file's reload failed. Errors are logged (by reloadDoc()) but no UI is shown.
      */
     function reloadChangedDocs() {
@@ -277,7 +277,7 @@ define(function (require, exports, module) {
      * prompt is not shown until after the reload has completed.
      *
      * @param {string} title Title of the dialog.
-     * @return {$.Promise} Resolved/rejected after all documents have been prompted and (if
+     * @return {Promise} Resolved/rejected after all documents have been prompted and (if
      *      applicable) reloaded (and any resulting error UI has been dismissed). Rejected if any
      *      one reload failed.
      */
@@ -286,21 +286,10 @@ define(function (require, exports, module) {
         var allConflicts = editConflicts.concat(deleteConflicts);
         
         function presentConflict(docInfo, i) {
-            var result = new $.Deferred(),
-                promise = result.promise(),
-                doc = docInfo.doc,
+            var doc = docInfo.doc,
                 fileTime = docInfo.fileTime;
             
-            // If window has been re-focused, skip all remaining conflicts so the sync can bail & restart
-            if (_restartPending) {
-                result.resolve();
-                return promise;
-            }
-            
-            var toClose;
-            var dialogId;
-            var message;
-            var buttons;
+            var toClose, dialogId, message, buttons;
             
             // Prompt UI varies depending on whether the file on disk was modified vs. deleted
             if (i < editConflicts.length) {
@@ -348,47 +337,59 @@ define(function (require, exports, module) {
                 ];
             }
             
-            Dialogs.showModalDialog(dialogId, title, message, buttons)
-                .done(function (id) {
-                    if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
-                        if (toClose) {
-                            // Discard - close all editors
-                            DocumentManager.notifyFileDeleted(doc.file);
-                            result.resolve();
-                        } else {
-                            // Discard - load changes from disk
-                            reloadDoc(doc)
-                                .done(function () {
-                                    result.resolve();
-                                })
-                                .fail(function (error) {
-                                    // Unable to load changed version from disk - show error UI
-                                    showReloadError(error, doc)
-                                        .done(function () {
-                                            // After user dismisses, move on to next conflict prompt
-                                            result.reject();
-                                        });
-                                });
-                        }
-                        
-                    } else {
-                        // Cancel - if user doesn't manually save or close, remember that they
-                        // chose to keep the changes in the editor and don't prompt again unless the
-                        // file changes again
-                        // OR programmatically canceled due to _resetPending - we'll skip all
-                        // remaining files in the conflicts list (see above)
+            return new Promise(function (resolve, reject) {
 
-                        // If this wasn't programmatically cancelled, remember that the user 
-                        // has accepted conflicting changes as of this file version.
-                        if (!_restartPending) {
-                            doc.keepChangesTime = fileTime;
+                // If window has been re-focused, skip all remaining conflicts so the sync can bail & restart
+                if (_restartPending) {
+                    resolve();
+                    return;
+                }
+
+                Dialogs.showModalDialog(dialogId, title, message, buttons).then(
+                    function (id) {
+                        if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
+                            if (toClose) {
+                                // Discard - close all editors
+                                DocumentManager.notifyFileDeleted(doc.file);
+                                resolve();
+                            } else {
+                                // Discard - load changes from disk
+                                reloadDoc(doc).then(
+                                    function () {
+                                        resolve();
+                                    },
+                                    function (error) {
+                                        // Unable to load changed version from disk - show error UI
+                                        showReloadError(error, doc).then(
+                                            function () {
+                                                // After user dismisses, move on to next conflict prompt
+                                                reject();
+                                            },
+                                            null
+                                        );
+                                    }
+                                );
+                            }
+
+                        } else {
+                            // Cancel - if user doesn't manually save or close, remember that they
+                            // chose to keep the changes in the editor and don't prompt again unless the
+                            // file changes again
+                            // OR programmatically canceled due to _resetPending - we'll skip all
+                            // remaining files in the conflicts list (see above)
+
+                            // If this wasn't programmatically cancelled, remember that the user 
+                            // has accepted conflicting changes as of this file version.
+                            if (!_restartPending) {
+                                doc.keepChangesTime = fileTime;
+                            }
+
+                            resolve();
                         }
-                            
-                        result.resolve();
-                    }
-                });
-            
-            return promise;
+                    },
+                    null
+                );
+            });
         }
         
         // Begin walking through the conflicts, one at a time
@@ -441,57 +442,63 @@ define(function (require, exports, module) {
         // 1) Check for external modifications
         var allDocs = DocumentManager.getAllOpenDocuments();
         
-        findExternalChanges(allDocs)
-            .done(function () {
+        findExternalChanges(allDocs).then(
+            function () {
                 // 2) Check un-open working set entries for deletion (& "close" if needed)
-                syncUnopenWorkingSet()
-                    .always(function () {
-                        // If we were unable to check any un-open files for deletion, silently ignore
-                        // (after logging to console). This doesn't have any bearing on syncing truly
-                        // open Documents (which we've already successfully checked).
+                var fnSyncUnopenAlways = function () {
+                    // If we were unable to check any un-open files for deletion, silently ignore
+                    // (after logging to console). This doesn't have any bearing on syncing truly
+                    // open Documents (which we've already successfully checked).
+
+                    // 3) Reload clean docs as needed
+
+                    // Note: if any auto-reloads failed, we silently ignore (after logging to console)
+                    // and we still continue onto phase 4 and try to process those files anyway.
+                    // (We'll retry the auto-reloads next time window is activated... and evenually
+                    // we'll also be double checking before each Save).
+                    var fnReloadAlways = function () {
+                        // 4) Close clean docs as needed
+                        // This phase completes synchronously
+                        closeDeletedDocs();
+
+                        // 5) Prompt for dirty editors (conflicts)
+                        var fnPresentConflictsAlways = function () {
+                            if (_restartPending) {
+                                // Restart the sync if needed
+                                _restartPending = false;
+                                _alreadyChecking = false;
+                                syncOpenDocuments();
+                            } else {
+                                // We're really done!
+                                _alreadyChecking = false;
+
+                                // If we showed a dialog, restore focus to editor
+                                if (editConflicts.length > 0 || deleteConflicts.length > 0) {
+                                    EditorManager.focusEditor();
+                                }
+
+                                // (Any errors that ocurred during presentConflicts() have already
+                                // shown UI & been dismissed, so there's no fail() handler here)
+                            }
+                        };
                         
-                        // 3) Reload clean docs as needed
-                        reloadChangedDocs()
-                            .always(function () {
-                                // 4) Close clean docs as needed
-                                // This phase completes synchronously
-                                closeDeletedDocs();
-                                
-                                // 5) Prompt for dirty editors (conflicts)
-                                presentConflicts(title)
-                                    .always(function () {
-                                        if (_restartPending) {
-                                            // Restart the sync if needed
-                                            _restartPending = false;
-                                            _alreadyChecking = false;
-                                            syncOpenDocuments();
-                                        } else {
-                                            // We're really done!
-                                            _alreadyChecking = false;
-                                            
-                                            // If we showed a dialog, restore focus to editor
-                                            if (editConflicts.length > 0 || deleteConflicts.length > 0) {
-                                                EditorManager.focusEditor();
-                                            }
-                                            
-                                            // (Any errors that ocurred during presentConflicts() have already
-                                            // shown UI & been dismissed, so there's no fail() handler here)
-                                        }
-                                    });
-                            });
-                            // Note: if any auto-reloads failed, we silently ignore (after logging to console)
-                            // and we still continue onto phase 4 and try to process those files anyway.
-                            // (We'll retry the auto-reloads next time window is activated... and evenually
-                            // we'll also be double checking before each Save).
-                    });
-            }).fail(function () {
+                        presentConflicts(title).then(fnPresentConflictsAlways, fnPresentConflictsAlways);
+                    };
+                    
+                    reloadChangedDocs().then(fnReloadAlways, fnReloadAlways);
+                };
+                
+                syncUnopenWorkingSet().then(fnSyncUnopenAlways, fnSyncUnopenAlways);
+            },
+            function () {   // onReject
                 // Unable to fetch timestamps for some reason - silently ignore (after logging to console)
                 // (We'll retry next time window is activated... and evenually we'll also be double
                 // checking before each Save).
                 
                 // We can't go on without knowing which files are dirty, so bail now
                 _alreadyChecking = false;
-            });
+            }
+        );
         
     }
     
