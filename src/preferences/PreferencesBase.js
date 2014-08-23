@@ -21,7 +21,7 @@
  * 
  */
 
-/*global define, $, localStorage, brackets, console */
+/*global define, $, localStorage, brackets, console, Promise */
 /*unittests: Preferences Base */
 
 /**
@@ -94,9 +94,9 @@ define(function (require, exports, module) {
          * @return {Promise} promise that is already resolved
          */
         load: function () {
-            var result = new $.Deferred();
-            result.resolve(this.data);
-            return result.promise();
+            return new Promise(function (resolve, reject) {
+                resolve(this.data);
+            });
         },
         
         /**
@@ -107,10 +107,11 @@ define(function (require, exports, module) {
          * @return {Promise} promise that is already resolved
          */
         save: function (newData) {
-            var result = new $.Deferred();
             this.data = newData;
-            result.resolve();
-            return result.promise();
+            
+            return new Promise(function (resolve, reject) {
+                resolve();
+            });
         },
         
         /**
@@ -159,41 +160,40 @@ define(function (require, exports, module) {
          * @return {Promise} Resolved with the data once it has been parsed.
          */
         load: function () {
-            var result = new $.Deferred();
-            var path = this.path;
-            var createIfNew = this.createIfNew;
-            var self = this;
-            
-            if (path) {
-                var prefFile = FileSystem.getFileForPath(path);
-                prefFile.read({}, function (err, text) {
-                    if (err) {
-                        if (createIfNew) {
-                            result.resolve({});
+            return new Promise(function (resolve, reject) {
+                var path = this.path;
+                var createIfNew = this.createIfNew;
+                var self = this;
+
+                if (path) {
+                    var prefFile = FileSystem.getFileForPath(path);
+                    prefFile.read({}, function (err, text) {
+                        if (err) {
+                            if (createIfNew) {
+                                resolve({});
+                            } else {
+                                reject(new Error("Unable to load prefs at " + path + " " + err));
+                            }
+                            return;
+                        }
+
+                        self._lineEndings = FileUtils.sniffLineEndings(text);
+
+                        // If the file is empty, turn it into an empty object
+                        if (/^\s*$/.test(text)) {
+                            resolve({});
                         } else {
-                            result.reject(new Error("Unable to load prefs at " + path + " " + err));
+                            try {
+                                resolve(JSON.parse(text));
+                            } catch (e) {
+                                reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
+                            }
                         }
-                        return;
-                    }
-                    
-                    self._lineEndings = FileUtils.sniffLineEndings(text);
-                    
-                    // If the file is empty, turn it into an empty object
-                    if (/^\s*$/.test(text)) {
-                        result.resolve({});
-                    } else {
-                        try {
-                            result.resolve(JSON.parse(text));
-                        } catch (e) {
-                            result.reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
-                        }
-                    }
-                });
-            } else {
-                result.resolve({});
-            }
-            
-            return result.promise();
+                    });
+                } else {
+                    resolve({});
+                }
+            });
         },
         
         /**
@@ -203,30 +203,31 @@ define(function (require, exports, module) {
          * @return {Promise} Promise resolved (with no arguments) once the data has been saved
          */
         save: function (newData) {
-            var result = new $.Deferred();
+            var self = this;
             var path = this.path;
             var prefFile = FileSystem.getFileForPath(path);
             
-            if (path) {
-                try {
-                    var text = JSON.stringify(newData, null, 4);
-                    
-                    // maintain the original line endings
-                    text = FileUtils.translateLineEndings(text, this._lineEndings);
-                    prefFile.write(text, {}, function (err) {
-                        if (err) {
-                            result.reject("Unable to save prefs at " + path + " " + err);
-                        } else {
-                            result.resolve();
-                        }
-                    });
-                } catch (e) {
-                    result.reject("Unable to convert prefs to JSON" + e.toString());
+            return new Promise(function (resolve, reject) {
+                if (path) {
+                    try {
+                        var text = JSON.stringify(newData, null, 4);
+
+                        // maintain the original line endings
+                        text = FileUtils.translateLineEndings(text, self._lineEndings);
+                        prefFile.write(text, {}, function (err) {
+                            if (err) {
+                                reject("Unable to save prefs at " + path + " " + err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    } catch (e) {
+                        reject("Unable to convert prefs to JSON" + e.toString());
+                    }
+                } else {
+                    resolve();
                 }
-            } else {
-                result.resolve();
-            }
-            return result.promise();
+            });
         },
         
         /**
@@ -279,20 +280,23 @@ define(function (require, exports, module) {
          * @return {Promise} Promise that is resolved once loading is complete
          */
         load: function () {
-            var result = new $.Deferred();
-            this.storage.load()
-                .then(function (data) {
-                    var oldKeys = this.getKeys();
-                    this.data = data;
-                    result.resolve();
-                    $(this).trigger(PREFERENCE_CHANGE, {
-                        ids: _.union(this.getKeys(), oldKeys)
-                    });
-                }.bind(this))
-                .fail(function (error) {
-                    result.reject(error);
-                });
-            return result.promise();
+            var self = this;
+            
+            return new Promise(function (resolve, reject) {
+                self.storage.load().then(
+                    function (data) {
+                        var oldKeys = self.getKeys();
+                        self.data = data;
+                        resolve();
+                        $(self).trigger(PREFERENCE_CHANGE, {
+                            ids: _.union(self.getKeys(), oldKeys)
+                        });
+                    }.bind(self),
+                    function (error) {
+                        reject(error);
+                    }
+                );
+            });
         },
             
         /**
@@ -306,7 +310,9 @@ define(function (require, exports, module) {
                 self._dirty = false;
                 return this.storage.save(this.data);
             } else {
-                return (new $.Deferred()).resolve().promise();
+                return new Promise(function (resolve, reject) {
+                    resolve();
+                });
             }
         },
         
@@ -1065,14 +1071,15 @@ define(function (require, exports, module) {
             _shadowScopeOrder: [{
                 id: "default",
                 scope: this._scopes["default"],
-                promise: (new $.Deferred()).resolve().promise()
+                promise: (new Promise(function (resolve, reject) { resolve(); }))
             }]
         };
         
         this._pendingScopes = {};
         
         this._saveInProgress = null;
-        this._nextSaveDeferred = null;
+        this._nextSavePromise = null;
+        this._nextSaveCallbacks = {};
         this.finalized = false;
         
         // The objects that define the different kinds of path-based Scope handlers.
@@ -1185,9 +1192,14 @@ define(function (require, exports, module) {
                 }),
                 $this = $(this),
                 done = false,
-                i = index + 1;
+                i = index + 1,
+                fnAlways;
             
             // Find an appropriate scope of lower priority to add it before
+            
+// TODO - not sure how to determine resolved vs pending vs rejected
+console.log("PreferencesBase: _tryAddToScopeOrder - MUST FIX $.Deferred.state() code!");
+/*
             while (i < shadowScopeOrder.length) {
                 if (shadowScopeOrder[i].promise.state() === "pending" ||
                         shadowScopeOrder[i].promise.state() === "resolved") {
@@ -1195,12 +1207,15 @@ define(function (require, exports, module) {
                 }
                 i++;
             }
-            switch (shadowScopeOrder[i].promise.state()) {
+*/
+//            switch (shadowScopeOrder[i].promise.state()) {
+            switch ("resolved") {
             case "pending":
                 // cannot decide now, lookup once pending promise is settled
-                shadowScopeOrder[i].promise.always(function () {
+                fnAlways = function () {
                     this._tryAddToScopeOrder(shadowEntry);
-                }.bind(this));
+                }.bind(this);
+                shadowScopeOrder[i].promise.then(fnAlways, fnAlways);
                 break;
             case "resolved":
                 this._pushToScopeOrder(shadowEntry.id, shadowScopeOrder[i].id);
@@ -1236,7 +1251,7 @@ define(function (require, exports, module) {
          * 
          * @param {string} id Name of the new Scope
          * @param {Scope} scope The scope object to add
-         * @param {$.Promise} promise Scope's load promise
+         * @param {Promise} promise Scope's load promise
          * @param {?string} addBefore Name of the Scope before which this new one is added
          */
         _addToScopeOrder: function (id, scope, promise, addBefore) {
@@ -1285,15 +1300,16 @@ define(function (require, exports, module) {
             }
             
             if (!isPending) {
-                promise
-                    .then(function () {
+                promise.then(
+                    function () {
                         this._scopes[id] = scope;
                         this._tryAddToScopeOrder(shadowEntry);
-                    }.bind(this))
-                    .fail(function (err) {
+                    }.bind(this),
+                    function (err) {
                         // clean up all what's been done up to this point
                         _.pull(shadowScopeOrder, shadowEntry);
-                    }.bind(this));
+                    }.bind(this)
+                );
                 if (this._pendingScopes[id]) {
                     var pending = this._pendingScopes[id];
                     delete this._pendingScopes[id];
@@ -1392,14 +1408,16 @@ define(function (require, exports, module) {
 
             this._addToScopeOrder(id, scope, promise, options.before);
             
-            promise
-                .fail(function (err) {
+            promise.then(
+                null,
+                function (err) {
                     // With preferences, it is valid for there to be no file.
                     // It is not valid to have an unparseable file.
                     if (err instanceof ParsingError) {
                         console.error(err);
                     }
-                });
+                }
+            );
             
             return promise;
         },
@@ -1568,39 +1586,57 @@ define(function (require, exports, module) {
         save: function () {
             if (this.finalized) {
                 console.log("PreferencesSystem.save() called after finalized!");
-                return (new $.Deferred()).reject().promise();
+                return new Promise(function (finalizedResolve, finalizedReject) {
+                    finalizedReject();
+                });
             }
-            
+
+            // If necessary, create `_nextSavePromise`
+            if (!this._nextSavePromise) {
+                this._nextSavePromise = new Promise(function (nextSaveResolve, nextSaveReject) {
+                    this._nextSaveCallbacks = {
+                        resolve: nextSaveResolve,
+                        reject:  nextSaveReject
+                    };
+                }.bind(this));
+
+                var fnAlways = function () {
+                    this._nextSaveCallbacks = {};
+                }.bind(this);
+                this._nextSavePromise.then(fnAlways, fnAlways);
+            }
+
+            // If there's a `_saveInProgress` we're done
             if (this._saveInProgress) {
-                if (!this._nextSaveDeferred) {
-                    this._nextSaveDeferred = new $.Deferred();
-                }
-                return this._nextSaveDeferred.promise();
+                return this._nextSavePromise;
             }
             
-            var deferred = this._nextSaveDeferred || (new $.Deferred());
-            this._saveInProgress = deferred;
-            this._nextSaveDeferred = null;
-            
+            // Move `_nextSavePromise` to `_saveInProgress`
+            this._saveInProgress = this._nextSavePromise;
+            this._nextSavePromise = null;
+
             Async.doInParallel(_.values(this._scopes), function (scope) {
                 if (scope) {
                     return scope.save();
                 } else {
-                    return (new $.Deferred()).resolve().promise();
+                    return new Promise(function (resolve, reject) {
+                        resolve();
+                    });
                 }
-            }.bind(this))
-                .then(function () {
+            }.bind(this)).then(
+                function () {
                     this._saveInProgress = null;
-                    if (this._nextSaveDeferred) {
+                    if (this._nextSavePromise) {
                         this.save();
                     }
-                    deferred.resolve();
-                }.bind(this))
-                .fail(function (err) {
-                    deferred.reject(err);
-                });
+                    this._nextSaveCallbacks.resolve();
+                }.bind(this),
+                function (err) {
+                    this._nextSaveCallbacks.reject(err);
+                }
+            );
             
-            return deferred.promise();
+            return this._saveInProgress;
         },
         
         /**
@@ -1765,25 +1801,25 @@ define(function (require, exports, module) {
          * @return {Promise} Resolved when the preferences are done saving.
          */
         _finalize: function () {
-            var deferred = new $.Deferred(),
-                self = this;
+            var self = this;
+            
+            return new Promise(function (resolve, reject) {
 
-            // Don't resolve promise until last `_saveInProgress` promise completes.
-            // There will only ever be a `_nextSaveDeferred`, if there is already a
-            // `_saveInProgress` and it will become the new `_saveInProgress` as soon as
-            // previous `_saveInProgress` resolves, so only need to wait for `_saveInProgress`.
-            function checkForSaveAndFinalize() {
-                if (self._saveInProgress) {
-                    self._saveInProgress.done(checkForSaveAndFinalize);
-                } else {
-                    self.finalized = true;
-                    deferred.resolve();
+                // Don't resolve promise until last `_saveInProgress` promise completes.
+                // There will only ever be a `_nextSavePromise`, if there is already a
+                // `_saveInProgress` and it will become the new `_saveInProgress` as soon as
+                // previous `_saveInProgress` resolves, so only need to wait for `_saveInProgress`.
+                function checkForSaveAndFinalize() {
+                    if (self._saveInProgress) {
+                        self._saveInProgress.then(checkForSaveAndFinalize, null);
+                    } else {
+                        self.finalized = true;
+                        resolve();
+                    }
                 }
-            }
 
-            checkForSaveAndFinalize();
-
-            return deferred.promise();
+                checkForSaveAndFinalize();
+            });
         }
     });
     

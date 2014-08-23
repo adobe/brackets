@@ -22,7 +22,7 @@
  */
 
 
-/*global define, $, localStorage, brackets, console */
+/*global define, $, localStorage, brackets, console, Promise */
 
 /**
  * Generates the fully configured preferences systems used throughout Brackets. This is intended
@@ -44,9 +44,12 @@ define(function (require, exports, module) {
     /**
      * A deferred object which is used to indicate PreferenceManager readiness during the start-up.
      * @private
-     * @type {$.Deferred}
+     * @type {Promise}
      */
-    var _prefManagerReadyDeferred = new $.Deferred();
+    var _prefManagerReadyResolve;
+    var _prefManagerReadyPromise = new Promise(function (resolve, reject) {
+        _prefManagerReadyResolve = resolve;
+    });
 
     /** 
      * A boolean property indicating if the user scope configuration file is malformed.
@@ -60,7 +63,7 @@ define(function (require, exports, module) {
     /**
      * Promises to add scopes. Used at init time only. 
      * @private
-     * @type {Array.<$.Promise>}
+     * @type {Array.<Promise>}
      */
     var _addScopePromises = [];
 
@@ -79,30 +82,32 @@ define(function (require, exports, module) {
     _addScopePromises.push(userScopeLoading);
 
     // Set up the .brackets.json file handling
+    var fnUserScopeAlways = function () {
+        _addScopePromises.push(manager.addScope("project", projectScope, {
+            before: "user"
+        }));
+
+        // Session Scope is for storing prefs in memory only but with the highest precedence.
+        _addScopePromises.push(manager.addScope("session", new PreferencesBase.MemoryStorage()));
+
+        Async.waitForAll(_addScopePromises)
+            .then(_prefManagerReadyResolve, _prefManagerReadyResolve);
+    };
+    
     userScopeLoading
-        .fail(function (err) {
-            _addScopePromises.push(manager.addScope("user", new PreferencesBase.MemoryStorage(), {
-                before: "default"
-            }));
+        .then(
+            null,
+            function (err) {
+                _addScopePromises.push(manager.addScope("user", new PreferencesBase.MemoryStorage(), {
+                    before: "default"
+                }));
 
-            if (err.name && err.name === "ParsingError") {
-                userScopeCorrupt = true;
+                if (err.name && err.name === "ParsingError") {
+                    userScopeCorrupt = true;
+                }
             }
-        })
-        .always(function () {
-            _addScopePromises.push(manager.addScope("project", projectScope, {
-                before: "user"
-            }));
-
-            // Session Scope is for storing prefs in memory only but with the highest precedence.
-            _addScopePromises.push(manager.addScope("session", new PreferencesBase.MemoryStorage()));
-
-            Async.waitForAll(_addScopePromises)
-                .always(function () {
-                    _prefManagerReadyDeferred.resolve();
-                });
-        });
-
+        )
+        .then(fnUserScopeAlways, fnUserScopeAlways);
     
     // "State" is stored like preferences but it is not generally intended to be user-editable.
     // It's for more internal, implicit things like window size, working set, etc.
@@ -135,7 +140,7 @@ define(function (require, exports, module) {
     exports.smUserScopeLoading  = smUserScopeLoading;
     exports.userPrefFile        = userPrefFile;
     exports.isUserScopeCorrupt  = isUserScopeCorrupt;
-    exports.managerReady        = _prefManagerReadyDeferred.promise();
+    exports.managerReady        = _prefManagerReadyPromise;
     exports.reloadUserPrefs     = _reloadUserPrefs;
     exports.STATE_FILENAME      = STATE_FILENAME;
     exports.SETTINGS_FILENAME   = SETTINGS_FILENAME;

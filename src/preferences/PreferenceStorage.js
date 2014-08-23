@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, Promise */
 
 /**
  * PreferenceStorage defines an interface for persisting preference data as
@@ -205,8 +205,7 @@ define(function (require, exports, module) {
         var prefs = this._json,
             self = this,
             complete = true,
-            manager  = isViewState ? PreferencesManager.stateManager : PreferencesManager,
-            deferred = new $.Deferred();
+            manager  = isViewState ? PreferencesManager.stateManager : PreferencesManager;
         
         if (!convertedKeys) {
             convertedKeys = [];
@@ -257,18 +256,22 @@ define(function (require, exports, module) {
             }
         });
         
-        if (convertedKeys.length > 0) {
-            manager.save().done(function () {
-                _commit();
-                deferred.resolve(complete, convertedKeys);
-            }).fail(function (error) {
-                deferred.reject(error);
-            });
-        } else {
-            deferred.resolve(complete, convertedKeys);
-        }
-        
-        return deferred.promise();
+        return new Promise(function (resolve, reject) {
+
+            if (convertedKeys.length > 0) {
+                manager.save().then(
+                    function () {
+                        _commit();
+                        resolve({complete: complete, convertedKeys: convertedKeys});
+                    },
+                    function (error) {
+                        reject(error);
+                    }
+                );
+            } else {
+                resolve({complete: complete, convertedKeys: convertedKeys});
+            }
+        });
     };
     
     exports.PreferenceStorage = PreferenceStorage;

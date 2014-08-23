@@ -101,18 +101,20 @@ define(function (require, exports, module) {
         
         dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, templateVars));
         
-        dialog.done(function (id) {
-            if (id === Dialogs.DIALOG_BTN_OK) {
-                var baseUrlValue = $baseUrlControl.val();
-                var result = _validateBaseUrl(baseUrlValue);
-                if (result === "") {
-                    ProjectManager.setBaseUrl(baseUrlValue);
-                } else {
-                    // Re-invoke dialog with result (error message)
-                    showProjectPreferencesDialog(baseUrlValue, result);
+        dialog.then(
+            function (id) {
+                if (id === Dialogs.DIALOG_BTN_OK) {
+                    var baseUrlValue = $baseUrlControl.val();
+                    var result = _validateBaseUrl(baseUrlValue);
+                    if (result === "") {
+                        ProjectManager.setBaseUrl(baseUrlValue);
+                    } else {
+                        // Re-invoke dialog with result (error message)
+                        showProjectPreferencesDialog(baseUrlValue, result);
+                    }
                 }
             }
-        });
+        );
 
         // Give focus to first control
         $baseUrlControl = dialog.getElement().find(".url");
