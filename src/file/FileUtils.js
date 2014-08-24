@@ -387,7 +387,7 @@ define(function (require, exports, module) {
      * File extensions - hard-coded for now, but may want to make these preferences
      * @const {Array.<string>}
      */
-    var _staticHtmlFileExts = ["htm", "html"],
+    var _staticHtmlFileExts = ["htm", "html", "xhtml"],
         _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
 
     /**
@@ -417,6 +417,15 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Determine if file extension is a CSS preprocessor file extension that Brackets supports.
+     * @param {string} filePath could be a path, a file name
+     * @return {boolean} Returns true if file extension is either less or scss.
+     */
+    function isCSSPreprocessorFile(filePath) {
+        return (/(less|scss)/i.test(getFileExtension(filePath)));
+    }
+    
+    /**
      * Get the parent directory of a file. If a directory is passed in the directory is returned.
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the path to the parent directory of a file or the path of a directory,
@@ -427,12 +436,11 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
      * Get the file name without the extension.
      * @param {string} filename File name of a file or directory
      * @return {string} Returns the file name without the extension
      */
-    function _getFilenameWithoutExtension(filename) {
+    function getFilenameWithoutExtension(filename) {
         var index = filename.lastIndexOf(".");
         return index === -1 ? filename : filename.slice(0, index);
     }
@@ -452,8 +460,8 @@ define(function (require, exports, module) {
             cmpNames;
         
         if (brackets.platform === "win") {
-            filename1 = _getFilenameWithoutExtension(filename1);
-            filename2 = _getFilenameWithoutExtension(filename2);
+            filename1 = getFilenameWithoutExtension(filename1);
+            filename2 = getFilenameWithoutExtension(filename2);
         }
         cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase(), undefined, {numeric: true});
         
@@ -511,11 +519,13 @@ define(function (require, exports, module) {
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
     exports.canonicalizeFolderPath         = canonicalizeFolderPath;
     exports.stripTrailingSlash             = stripTrailingSlash;
+    exports.isCSSPreprocessorFile          = isCSSPreprocessorFile;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getBaseName                    = getBaseName;
     exports.getRelativeFilename            = getRelativeFilename;
+    exports.getFilenameWithoutExtension    = getFilenameWithoutExtension;
     exports.getFileExtension               = getFileExtension;
     exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;

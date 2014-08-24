@@ -286,7 +286,7 @@ define(function (require, exports, module) {
                 HighlightAgentModule.load();
                 
                 // module spies
-                spyOn(CSSAgentModule, "styleForURL").andReturn("");
+                spyOn(CSSAgentModule, "styleForURL").andReturn([]);
                 spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return new $.Deferred().resolve(); });
                 spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
                 spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
@@ -587,11 +587,27 @@ define(function (require, exports, module) {
                 });
 
                 openLiveDevelopmentAndWait();
- 
+
                 runs(function () {
                     expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_ACTIVE);
                     
                     var doc = DocumentManager.getOpenDocumentForPath(tempDir + "/simple1.html");
+                    expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
+                });
+            });
+            
+            it("should establish a browser connection for an opened xhtml file", function () {
+                //open a file
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["test.xhtml"]), "SpecRunnerUtils.openProjectFiles test.xhtml", 1000);
+                });
+
+                openLiveDevelopmentAndWait();
+
+                runs(function () {
+                    expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_ACTIVE);
+                    
+                    var doc = DocumentManager.getOpenDocumentForPath(tempDir + "/test.xhtml");
                     expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
                 });
             });
@@ -626,6 +642,10 @@ define(function (require, exports, module) {
                 doOneTest("simple1Query.html", "simple1.css");
             });
             
+            it("should push changes after loading an iframe", function () {
+                doOneTest("simple1iframe.html", "simple1.css");
+            });
+
             it("should push in memory css changes made before the session starts", function () {
                 var localText,
                     browserText;
@@ -750,6 +770,10 @@ define(function (require, exports, module) {
                     // Verify that we still have modified text
                     expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
+            });
+
+            it("should push changes to the iframes' css file", function () {
+                doOneTest("simple1iframe.html", "iframe.css");
             });
         });
         

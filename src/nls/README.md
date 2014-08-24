@@ -137,7 +137,7 @@ for a new locale section for adding a new one.
 ### Branch and Pull Request
 For either case, if you have not yet forked the brackets repository in your
 github account (`https://github.com/user1/brackets`), it's done automatically.
-A new branch will be created in your brackets fork with a unique name
+A new branch will be created in your Brackets fork with a unique name
 which is something like `patch-1` that contains your changes.
 
 You are then taken to the New Pull Request dialog which is filled in
@@ -145,23 +145,30 @@ with all of the information from previous dialog.
 It also shows contents of new file or a "diff" of changes to existing file.
 You can make any changes if desired, then click "Send Pull Request" when done
 (or close page to Cancel).
-A pull request for your branch is created and submitted to the brackets "repo".
+A pull request for your branch is created and submitted to the Brackets "repo".
 
 ### Code Review
 Someone on the Brackets team will review the pull request. If it's ok, it will
 be merged. If changes need to be made, the reviewer will post comments in the
 pull request which will send you an e-mail notification.
 
-You should make updates in the `patch-1` branch in your github fork of brackets
+### Updating Existing Branch and Pull Request
+
+If you need to make changes to an existing branch, 
+you should make updates in the `patch-1` branch in your Github fork of Brackets
 so all of your changes for this update are in a single branch.
 Creating a new branch for every update makes it difficult for core team
 to see all changes at once, and can even create conflicts that are
-very difficult to resolve.
+very difficult to resolve. For example:
 
-Follow the link in the notification e-mail to the pull request if you need
-to determine which branch to edit. Once in the branch, navigate to the file
-to edit (same as you would in main repo) and click "Edit" button.
-Make any changes following directions for Editing an Existing Translation.
+1. After submitting your pull request, look at the top where it says something like:
+
+    `user1` wants to merge 1 commit into `adobe:master` from `user1:patch-1`
+    
+2. Go to your github fork of brackets page: `github.com/user1/brackets`
+3. Click on the Branches Tab: `github.com/user1/brackets/branches`
+4. Click on the link to the branch: `github.com/user1/brackets/tree/patch-1`
+5. This is where you make changes to your `patch-1` branch.
 
 Saved edits show up as a new commit, so they automatically show up in the original
 pull request. After making an update, add a comment to the pull request such as
