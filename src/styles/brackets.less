@@ -225,7 +225,7 @@ a, img {
         height: inherit;
         line-height: inherit;
         margin: 0;
-        padding: 0 20px 0 10px;
+        padding: 0 21px 0 10px;
         vertical-align: top;
         width: auto;
         cursor: pointer;
@@ -240,6 +240,10 @@ a, img {
             cursor: inherit;
             background: none;
             text-decoration: none;
+        }
+        &::after {
+            top: 10px;
+            right: 8px;
         }
     }
     
