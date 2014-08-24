@@ -427,6 +427,7 @@ define({
 	"USE_THEME_SCROLLBARS": "テーマスクロールバーを使用",
 	"FONT_SIZE": "フォントサイズ",
 	"FONT_FAMILY": "フォントファミリー",
+	"THEMES_SETTINGS": "テーマ設定",
 
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "新規ルール",
@@ -519,6 +520,7 @@ define({
 	"REGISTRY_SANITY_CHECK_WARNING": "注意 : これらの拡張機能の作成元が {APP_NAME} 以外である可能性があります。拡張機能はレビューされず、ローカルアクセス権が一杯です。不明なソースから拡張機能をインストールするときは十分に注意してください。",
 	"EXTENSIONS_INSTALLED_TITLE": "インストール済み",
 	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
+	"EXTENSIONS_THEMES_TITLE": "テーマ",
 	"EXTENSIONS_UPDATES_TITLE": "アップデート",
     
 	"INLINE_EDITOR_NO_MATCHES": "一致するものがありません。",

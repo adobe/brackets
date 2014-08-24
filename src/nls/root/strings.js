@@ -427,6 +427,7 @@ define({
     "USE_THEME_SCROLLBARS"                 : "Use Theme Scrollbars",
     "FONT_SIZE"                            : "Font Size",
     "FONT_FAMILY"                          : "Font Family",
+    "THEMES_SETTINGS"                      : "Themes Settings",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "New Rule",
@@ -519,6 +520,7 @@ define({
     "REGISTRY_SANITY_CHECK_WARNING"        : "NOTE: These extensions may come from different authors than {APP_NAME} itself. Extensions are not reviewed and have full local privileges. Be cautious when installing extensions from an unknown source.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
+    "EXTENSIONS_THEMES_TITLE"              : "Themes",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
     
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
