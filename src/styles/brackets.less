@@ -639,8 +639,9 @@ a, img {
     text-shadow: none;
     overflow: hidden;
     
-    .dark & {
-        background: @dark-bc-sidebar-bg;
+    > div {
+        background-color: @dark-bc-sidebar-bg;
+        opacity: 1;
     }
 }
 
@@ -652,10 +653,6 @@ a, img {
     .sprite-icon(0, 0, 13px, 13px, "images/topcoat-settings-13.svg");
     background-position: center;
     opacity: 0.8;
-}
-
-#working-set-option-btn:hover {
-    opacity: 1;
 }
 
 #sidebar {
