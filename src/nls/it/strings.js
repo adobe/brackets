@@ -137,9 +137,9 @@ define({
     "BUTTON_PREV_HINT"                  : "Corrispondenza precedente",
     "BUTTON_CASESENSITIVE_HINT"         : "Rispetta maiuscole/minuscole",
     "BUTTON_REGEXP_HINT"                : "Espressione regolare",
-    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Sostituire senza Annulla",
-    "REPLACE_WITHOUT_UNDO_WARNING"      : "Perché più di {0} file hanno bisogno di essere sostituiti, {APP_NAME} modificherà i file aperti sul disco.<br />Non sarai in grado di annullare le sostituzioni in quei file.",
-    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Sostituire senza Annulla",
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Sostituire senza Annullare",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Poichè più di un file deve essere modificato, {APP_NAME} modificherà i file aperti sul disco.<br />Non sarai in grado di annullare le modifiche in quei file.",
+    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Sostituire senza Annullare",
     "FIND_REPLACE_TITLE_LABEL"          : "Sostituire",
     "FIND_REPLACE_TITLE_WITH"           : "con",
 
