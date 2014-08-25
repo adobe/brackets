@@ -179,4 +179,32 @@
             box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.12) inset;
         }
     }
+
+    &.platform-mac {
+        .CodeMirror-scrollbar-filler,
+        .CodeMirror-gutter-filler {
+            background-color: transparent;
+        }
+
+        // Note: when changing padding/margins, may need to adjust metrics in ScrollTrackMarkers.js
+
+        ::-webkit-scrollbar {
+            width: 7px;
+            height: 7px;
+            background-color: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            border-radius: 999px;
+            box-shadow: 0 0 0 12px rgba(255, 255, 255, 0.5) inset;
+        }
+
+        ::-webkit-scrollbar-thumb:active {
+            box-shadow: 0 0 0 12px rgba(255, 255, 255, 0.5) inset;
+        }
+
+        ::-webkit-scrollbar-thumb:window-inactive {
+            box-shadow: 0 0 0 12px rgba(255, 255, 255, 0.12) inset;
+        }
+    }
 }
