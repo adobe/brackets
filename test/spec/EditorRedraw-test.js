@@ -40,7 +40,7 @@ define(function (require, exports, module) {
             MainViewManager.edit(MainViewManager.ACTIVE_PANE, testDoc);
             testEditor = testDoc._masterEditor;
             $root = $(testEditor.getRootElement());
-            WorkspaceManager._setMockDOM($("#mock-main-view"), testEditor.$editorHolder);
+            WorkspaceManager._setMockDOM($("#mock-main-view"),  $root.parent());
         });
 
         afterEach(function () {

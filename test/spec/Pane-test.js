@@ -44,7 +44,9 @@ define(function (require, exports, module) {
         }
 
         function createMockView(name) {
+            var $view = $("<div>");
             return {
+                $el: $view,
                 file: {
                     fullPath: name
                 },
@@ -75,7 +77,7 @@ define(function (require, exports, module) {
                 },
                 adjustScrollPos: function () {
                 },
-                switchContainers: function () {
+                notifyContainerChange: function () {
                 }
             };
         }
@@ -205,7 +207,7 @@ define(function (require, exports, module) {
                 var secondView = createMockView("second-view"),
                     secondPane = createMockPane("second-pane");
                 
-                spyOn(secondView, "switchContainers");
+                spyOn(secondView, "notifyContainerChange");
                 spyOn(secondView, "destroy");
                 
                 myPane.addToViewList(myView.getFile());
@@ -217,7 +219,7 @@ define(function (require, exports, module) {
                 secondPane.showView(secondView);
                 
                 myPane.mergeFrom(secondPane);
-                expect(secondView.switchContainers).toHaveBeenCalled();
+                expect(secondView.notifyContainerChange).toHaveBeenCalled();
                 expect(secondView.destroy).not.toHaveBeenCalled();
                 
                 secondPane.destroy();
