@@ -383,12 +383,12 @@ define(function (require, exports, module) {
     
     /**
      * Retrieves the Pane ID for the specified container
-     * @param {!jQuery} $container - the container of the item to fetch
-     * @return {?Pane} the pane that matches the container or undefined if a pane doesn't exist for that container
+     * @param {!jQuery} $el - the element of the pane to fetch
+     * @return {?string} the id of the pane that matches the container or undefined if a pane doesn't exist for that container
      */
-    function _getPaneFromContainer($container) {
+    function _getPaneFromElement($el) {
         return _.find(_panes, function (pane) {
-            if (pane.$el[0] === $container[0]) {
+            if (pane.$el[0] === $el[0]) {
                 return pane;
             }
         });
@@ -443,8 +443,8 @@ define(function (require, exports, module) {
      */
     function _activeEditorChange(e, current) {
         if (current) {
-            var $container = current.getContainer(),
-                pane = _getPaneFromContainer($container);
+            var $container = current.$el.parent(),
+                pane = _getPaneFromElement($container);
 
             if (pane) {
                 // Editor is a full editor
@@ -459,7 +459,7 @@ define(function (require, exports, module) {
                 var parents = $container.parents(".view-pane");
                 if (parents.length === 1) {
                     $container = $(parents[0]);
-                    pane = _getPaneFromContainer($container);
+                    pane = _getPaneFromElement($container);
                     if (pane) {
                         if (pane.id !== _activePaneId) {
                             // activate the pane which will put focus in the pane's doc
@@ -861,7 +861,7 @@ define(function (require, exports, module) {
         
         return ViewUtils.traverseViewArray(_mruList, index, direction);
     }
-
+    
     /**
      * Indicates that traversal has begun. 
      * Can be called any number of times.
@@ -1196,7 +1196,7 @@ define(function (require, exports, module) {
      */
     function _findPaneForDocument(document) {
         // First check for an editor view of the document 
-        var pane = _getPaneFromContainer(document._masterEditor.getContainer());
+        var pane = _getPaneFromElement($(document._masterEditor.$el.parent()));
         
         if (!pane) {
             // No view of the document, it may be in a working set and not yet opened

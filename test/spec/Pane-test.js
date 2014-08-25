@@ -44,7 +44,9 @@ define(function (require, exports, module) {
         }
 
         function createMockView(name) {
+            var $view = $("<div>");
             return {
+                $el: $view,
                 file: {
                     fullPath: name
                 },
@@ -53,9 +55,6 @@ define(function (require, exports, module) {
                 },
                 getFile: function () {
                     return this.file;
-                },
-                setVisible : function (visible) {
-                    this._visible = visible;
                 },
                 updateLayout: function (hint) {
                 },
@@ -77,9 +76,10 @@ define(function (require, exports, module) {
                 },
                 getViewState: function () {
                 },
-                restoreViewState: function () {
+                notifyContainerChange: function () {
                 },
-                switchContainers: function () {
+                notifyVisibilityChange: function (visible) {
+                    this._visible = visible;
                 }
             };
         }
@@ -122,14 +122,14 @@ define(function (require, exports, module) {
                 expect(myPane._views[myView.getFullPath()]).toEqual(myView);
             });
             it("should show a view", function () {
-                spyOn(myView, "setVisible").andCallThrough();
+                spyOn(myView, "notifyVisibilityChange").andCallThrough();
                 spyOn(myView, "getFile").andCallThrough();
                 spyOn(myView, "updateLayout");
                 
                 myPane.showView(myView);
                 
-                expect(myView.setVisible).toHaveBeenCalled();
-                expect(myView.updateLayout).toHaveBeenCalled();
+                expect(myView.notifyVisibilityChange).toHaveBeenCalled();
+                expect(myView.resizeToFit).toHaveBeenCalled();
                 expect(myView.getFile).toHaveBeenCalled();
                 expect(myView._visible).toBeTruthy();
             });
@@ -209,7 +209,7 @@ define(function (require, exports, module) {
                 var secondView = createMockView("second-view"),
                     secondPane = createMockPane("second-pane");
                 
-                spyOn(secondView, "switchContainers");
+                spyOn(secondView, "notifyContainerChange");
                 spyOn(secondView, "destroy");
                 
                 myPane.addToViewList(myView.getFile());
@@ -221,7 +221,7 @@ define(function (require, exports, module) {
                 secondPane.showView(secondView);
                 
                 myPane.mergeFrom(secondPane);
-                expect(secondView.switchContainers).toHaveBeenCalled();
+                expect(secondView.notifyContainerChange).toHaveBeenCalled();
                 expect(secondView.destroy).not.toHaveBeenCalled();
                 
                 secondPane.destroy();

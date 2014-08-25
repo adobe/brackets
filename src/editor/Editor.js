@@ -209,13 +209,12 @@ define(function (require, exports, module) {
         this.document = document;
         document.addRef();
         
-        if (!container.jquery) {
-            this.$editorHolder = $(container);
-        } else {
-            this.$editorHolder = container;
+        if (container.jquery) {
             // CodeMirror wants a DOM element, not a jQuery wrapper
             container = container.get(0);
         }
+        
+        var $container = $(container);
         
         if (range) {    // attach this first: want range updated before we process a change
             this._visibleRange = new TextRange(document, range.startLine, range.endLine);
@@ -279,7 +278,7 @@ define(function (require, exports, module) {
         //  to the edge of the editor which makes it not easy to read.  The code below to handle
         //  that the option change only applies the class to panes that have already been created
         // This line ensures that the class is applied to any editor created after the fact
-        this.$editorHolder.toggleClass("show-line-padding", !this._getOption("showLineNumbers"));
+        $container.toggleClass("show-line-padding", !this._getOption("showLineNumbers"));
         
         // Create the CodeMirror instance
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
@@ -344,6 +343,13 @@ define(function (require, exports, module) {
         Object.defineProperty(this, "scrollTop", {
             get: function () {
                 return this._codeMirror.getScrollInfo().top;
+            }
+        });
+        
+        // Add an $el getter for Pane Views
+        Object.defineProperty(this,  "$el", {
+            get: function () {
+                return $(this.getRootElement());
             }
         });
     }
@@ -916,27 +922,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * gets the container
-    * This is a required Pane-View interface method
-     * @return {!jQueryObject} container
-     */
-    Editor.prototype.getContainer = function () {
-        return this.$editorHolder;
-    };
-    
-    
-    /**
-     * reparents the Editor's DOM element to a new container
-     * This is a required Pane-View interface method
-     * @return {!jQueryObject} newContainer - the new parent to append to.
-     */
-    Editor.prototype.switchContainers = function ($newContainer) {
-        var wrapper = this._codeMirror.getWrapperElement();
-        this.$editorHolder = $newContainer;
-        $(wrapper).detach().appendTo($newContainer);
-    };
-    
-    /**
      * Gets the current cursor position within the editor.
      * @param {boolean} expandTabs  If true, return the actual visual column number instead of the character offset in
      *      the "ch" property.
@@ -1414,6 +1399,7 @@ define(function (require, exports, module) {
     Editor.prototype.getRootElement = function () {
         return this._codeMirror.getWrapperElement();
     };
+
     
     /**
      * Gets the lineSpace element within the editor (the container around the individual lines of code).
@@ -1969,14 +1955,8 @@ define(function (require, exports, module) {
         this._codeMirror.redo();
     };
     
-    /**
-     * Shows or hides the editor within its parent. Does not force its ancestors to
-     * become visible.
-     * @param {boolean} show true to show the editor, false to hide it
-     * @param {boolean} refresh true (default) to refresh the editor, false to skip refreshing it
-     */
-    Editor.prototype.setVisible = function (show, refresh) {
-        $(this.getRootElement()).css("display", (show ? "" : "none"));
+    
+    Editor.prototype.notifyVisibilityChange = function (show, refresh) {
         if (show && (refresh || refresh === undefined)) {
             this.refresh();
         }
@@ -1985,6 +1965,17 @@ define(function (require, exports, module) {
                 inlineWidget.onParentShown();
             });
         }
+    };
+    
+    /**
+     * Shows or hides the editor within its parent. Does not force its ancestors to
+     * become visible.
+     * @param {boolean} show true to show the editor, false to hide it
+     * @param {boolean} refresh true (default) to refresh the editor, false to skip refreshing it
+     */
+    Editor.prototype.setVisible = function (show, refresh) {
+        this.$el.css("display", (show ? "" : "none"));
+        this.notifyVisibilityChange(show, refresh);
     };
     
     /**
@@ -2098,11 +2089,6 @@ define(function (require, exports, module) {
      */
     Editor.prototype.document = null;
 
-    /**
-     * The Editor's container
-     * @type {!jQuery}
-     */
-    Editor.prototype.$editorHolder = null;
 
     /**
      * The Editor's container
@@ -2226,7 +2212,8 @@ define(function (require, exports, module) {
     Editor.prototype.updateLayout = function (forceRefresh) {
         var curRoot = this.getRootElement(),
             curWidth = $(curRoot).width(),
-            editorAreaHt = this.$editorHolder.height();
+            $editorHolder = this.$el.parent(),
+            editorAreaHt = $editorHolder.height();
         
         if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
             // Call setSize() instead of $.height() to allow CodeMirror to
@@ -2407,8 +2394,9 @@ define(function (require, exports, module) {
         // apply class to all pane DOM nodes
         var $holders = [];
         _instances.forEach(function (editor) {
-            if ($holders.indexOf(editor.$editorHolder) === -1) {
-                $holders.push(editor.$editorHolder);
+            var $editorHolder = editor.$el.parent();
+            if ($holders.indexOf($editorHolder) === -1) {
+                $holders.push($editorHolder);
             }
         });
         

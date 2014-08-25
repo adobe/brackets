@@ -50,11 +50,10 @@ define(function (require, exports, module) {
      * @param {!jQuery} container - The container to render the image view in
      */
     function ImageView(file, $container) {
-        this.$container = $container;
         this.file = file;
-        this.$view = $(Mustache.render(ImageViewTemplate, {fullPath: file.fullPath}));
+        this.$el = $(Mustache.render(ImageViewTemplate, {fullPath: file.fullPath}));
         
-        $container.append(this.$view);
+        $container.append(this.$el);
 
         this._naturalWidth = 0;
         this._naturalHeight = 0;
@@ -63,18 +62,18 @@ define(function (require, exports, module) {
         
         this.relPath = ProjectManager.makeProjectRelativeIfPossible(this.file.fullPath);
 
-        this.$imagePath = this.$view.find(".image-path");
-        this.$imagePreview = this.$view.find(".image-preview");
-        this.$imageData = this.$view.find(".image-data");
+        this.$imagePath = this.$el.find(".image-path");
+        this.$imagePreview = this.$el.find(".image-preview");
+        this.$imageData = this.$el.find(".image-data");
 
-        this.$image = this.$view.find(".image");
-        this.$imageTip = this.$view.find(".image-tip");
-        this.$imageGuides = this.$view.find(".image-guide");
-        this.$imageScale = this.$view.find(".image-scale");
-        this.$x_value = this.$view.find(".x-value");
-        this.$y_value = this.$view.find(".y-value");
-        this.$horzGuide = this.$view.find(".horz-guide");
-        this.$vertGuide = this.$view.find(".vert-guide");
+        this.$image = this.$el.find(".image");
+        this.$imageTip = this.$el.find(".image-tip");
+        this.$imageGuides = this.$el.find(".image-guide");
+        this.$imageScale = this.$el.find(".image-scale");
+        this.$x_value = this.$el.find(".x-value");
+        this.$y_value = this.$el.find(".y-value");
+        this.$horzGuide = this.$el.find(".horz-guide");
+        this.$vertGuide = this.$el.find(".vert-guide");
         
         this.$imagePath.text(this.relPath).attr("title", this.relPath);
         this.$imagePreview.on("load", _.bind(this._onImageLoaded, this));
@@ -358,28 +357,22 @@ define(function (require, exports, module) {
     };
     
     /* 
-     * Shows/Hides the view
-     * @param {boolean} visible - true to show, false to hide
-     */
-    ImageView.prototype.setVisible = function (visible) {
-        this.$view.css("display", (visible) ? "block" : "none");
-    };
-    
-    /* 
      * Updates the layout of the view
      */
     ImageView.prototype.updateLayout = function () {
         this._hideGuidesAndTip();
         
-        var pos = this.$container.position(),
-            iWidth = this.$container.innerWidth(),
-            iHeight = this.$container.innerHeight(),
-            oWidth = this.$container.outerWidth(),
-            oHeight = this.$container.outerHeight();
+        var $container = this.$el.parent();
+        
+        var pos = $container.position(),
+            iWidth = $container.innerWidth(),
+            iHeight = $container.innerHeight(),
+            oWidth = $container.outerWidth(),
+            oHeight = $container.outerHeight();
             
         // $view is "position:absolute" so 
         //  we have to update the height, width and position
-        this.$view.css({top: pos.top + ((oHeight - iHeight) / 2),
+        this.$el.css({top: pos.top + ((oHeight - iHeight) / 2),
                         left: pos.left + ((oWidth - iWidth) / 2),
                         width: iWidth,
                         height: iHeight});
@@ -393,7 +386,7 @@ define(function (require, exports, module) {
         delete _viewers[this.file.fullPath];
         $(DocumentManager).off("fileNameChange", _.bind(this._onFilenameChange, this));
         this.$image.off(".ImageView");
-        this.$view.remove();
+        this.$el.remove();
     };
     
     /* 
@@ -401,7 +394,7 @@ define(function (require, exports, module) {
      * @return true if the view has focus, false if not.
      */
     ImageView.prototype.hasFocus = function () {
-        return this.$view.has(":focus");
+        return this.$el.has(":focus");
     };
 
     /* 
@@ -417,7 +410,7 @@ define(function (require, exports, module) {
      * Gives focus to the view
      */
     ImageView.prototype.focus = function () {
-        this.$view.focus();
+        this.$el.focus();
     };
 
     /* 
@@ -444,23 +437,6 @@ define(function (require, exports, module) {
      * Required interface - does nothing 
      */
     ImageView.prototype.restoreViewState = function () {
-    };
-    
-    /* 
-     * Reparents the view 
-     * @param {!jQuery} $container - the new parent
-     */
-    ImageView.prototype.switchContainers = function ($container) {
-        this.$view.detach().appendTo($container);
-        this.$container = $container;
-    };
-    
-    /* 
-     * Retrieves the parent container
-     * @return {!jQuery} parent
-     */
-    ImageView.prototype.getContainer = function () {
-        return this.$container;
     };
     
     /* 

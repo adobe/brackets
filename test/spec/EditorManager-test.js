@@ -78,8 +78,8 @@ define(function (require, exports, module) {
                 spyOn(pane, "showView");
                 var editor = SpecRunnerUtils.createEditorInstance(testDoc, pane.$el);
                 EditorManager.openDocument(testDoc, pane);
-                expect(pane.showView).toHaveBeenCalled();
                 expect(pane.addView).toHaveBeenCalled();
+                expect(pane.showView).toHaveBeenCalled();
                 expect(pane.addView.calls[0].args[0]).toEqual(editor);
             });
         });
