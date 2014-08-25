@@ -1151,8 +1151,10 @@ define(function (require, exports, module) {
             while ((!escapeToken) || token !== escapeToken) {
                 if (_isStartAtRule()) {
                     // @rule
-                    if (!_parseAtRule(level)) {
+                    if (!_parseAtRule(level) && level > 0) {
                         skipNext = false;
+                    } else {
+                        skipNext = true;
                     }
                 } else if (_isStartComment()) {
                     // comment - make this part of style rule
@@ -1171,6 +1173,7 @@ define(function (require, exports, module) {
                         return false;
                     }
                 } else {
+                    skipNext = true;    // reset skipNext
                     // Otherwise, it's style rule
                     if (!_parseRule(level === undefined ? 0 : level) && level > 0) {
                         return false;
