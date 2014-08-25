@@ -100,10 +100,10 @@ define({
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "实时预览 (保存文件并刷新)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "实时预览 (由于语法错误没有更新)",
 
-    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "由于浏览器开发人员工具已打开, 实施预览已关闭.",
-    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "由于浏览器中页面已关闭, 实施预览已关闭",
-    "LIVE_DEV_NAVIGATED_AWAY"                  : "由于浏览器打开一个不属于本项目的页面, 实施预览已关闭",
-    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "未知原因 ({0}) 导致实施预览关闭",
+    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "由于浏览器开发人员工具已打开, 实时预览已关闭.",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "由于浏览器中页面已关闭, 实时预览已关闭",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "由于浏览器打开一个不属于本项目的页面, 实时预览已关闭",
+    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "未知原因 ({0}) 导致实时预览关闭",
     
     "SAVE_CLOSE_TITLE"                  : "保存更新",
     "SAVE_CLOSE_MESSAGE"                : "保存 <span class='dialog-filename'>{0}</span> 文件中所做的修改?",
