@@ -417,6 +417,15 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Determine if file extension is a CSS preprocessor file extension that Brackets supports.
+     * @param {string} filePath could be a path, a file name
+     * @return {boolean} Returns true if file extension is either less or scss.
+     */
+    function isCSSPreprocessorFile(filePath) {
+        return (/(less|scss)/i.test(getFileExtension(filePath)));
+    }
+    
+    /**
      * Get the parent directory of a file. If a directory is passed in the directory is returned.
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the path to the parent directory of a file or the path of a directory,
@@ -510,6 +519,7 @@ define(function (require, exports, module) {
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
     exports.canonicalizeFolderPath         = canonicalizeFolderPath;
     exports.stripTrailingSlash             = stripTrailingSlash;
+    exports.isCSSPreprocessorFile          = isCSSPreprocessorFile;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;

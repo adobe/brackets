@@ -48,7 +48,7 @@ define(function (require, exports, module) {
 
         var selectorList = [];
         var docText = doc.getText();
-        return CSSUtils.extractAllSelectors(docText);
+        return CSSUtils.extractAllSelectors(docText, doc.getLanguage().getMode());
     }
 
 
@@ -66,7 +66,7 @@ define(function (require, exports, module) {
         
         // Filter and rank how good each match is
         var filteredList = $.map(selectorList, function (itemInfo) {
-            var searchResult = matcher.match(itemInfo.selector, query);
+            var searchResult = matcher.match(CSSUtils.getCompleteSelectors(itemInfo), query);
             if (searchResult) {
                 searchResult.selectorInfo = itemInfo;
             }
@@ -116,7 +116,7 @@ define(function (require, exports, module) {
     QuickOpen.addQuickOpenPlugin(
         {
             name: "CSS Selectors",
-            languageIds: ["css"],
+            languageIds: ["css", "less", "scss"],
             search: search,
             match: match,
             itemFocus: itemFocus,
