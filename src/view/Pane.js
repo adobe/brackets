@@ -82,7 +82,7 @@ define(function (require, exports, module) {
      *      getScrollPos: function() - called to get the current view scroll state. @return {Object=}
      *      adjustScrollPos: function(state:Object=, heightDelta:number) - called to restore the scroll state and adjust the height by heightDelta
      *      notifyContainerChange: function() - called when the container has been changed
-     *      notifyVisiblityChange: function() - called when the view's visiblity state has changed
+     *      notifyVisibilityChange: function() - called when the view's visiblity state has changed
      * }
      *  
      * When views are created they can be added to the pane by calling pane.addView().  Views can be created and parented by attaching directly
@@ -138,7 +138,7 @@ define(function (require, exports, module) {
      *
      *  Optional Notification callback called when the container changes.  The view can perform any synchronization or state update it needs to do when its parent container changes.
      *  
-     *  notifyVisiblityChange
+     *  notifyVisibilityChange
      * 
      *  Optional Notification callback called when the view's vsibility changes.  The view can perform any synchronization or state update it needs to do when its visiblity state changes.
      *
@@ -252,7 +252,7 @@ define(function (require, exports, module) {
     Pane.prototype._reparent = function (view) {
         view.$el.appendTo(this.$el);
         this._views[view.getFile().fullPath] = view;
-        if (view.hasOwnProperty("notifyContainerChange")) {
+        if (view.notifyContainerChange) {
             view.notifyContainerChange();
         }
     };
@@ -692,7 +692,7 @@ define(function (require, exports, module) {
      */
     Pane.prototype._setViewVisibility = function (view, visible) {
         view.$el.css("display", (visible ? "" : "none"));
-        if (view.hasOwnProperty("notifyVisibilityChange")) {
+        if (view.notifyVisibilityChange) {
             view.notifyVisibilityChange(visible);
         }
     };

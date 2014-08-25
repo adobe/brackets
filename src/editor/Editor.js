@@ -1921,7 +1921,12 @@ define(function (require, exports, module) {
         this._codeMirror.redo();
     };
     
-    
+    /**
+     * View API Visibility Change Notification handler.  This is also
+     * called by the native "setVisible" API which refresh can be optimized
+     * @param {boolean} show true to show the editor, false to hide it
+     * @param {boolean} refresh true (default) to refresh the editor, false to skip refreshing it
+     */
     Editor.prototype.notifyVisibilityChange = function (show, refresh) {
         if (show && (refresh || refresh === undefined)) {
             this.refresh();
