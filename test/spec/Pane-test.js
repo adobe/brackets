@@ -129,7 +129,7 @@ define(function (require, exports, module) {
                 myPane.showView(myView);
                 
                 expect(myView.notifyVisibilityChange).toHaveBeenCalled();
-                expect(myView.resizeToFit).toHaveBeenCalled();
+                expect(myView.updateLayout).toHaveBeenCalled();
                 expect(myView.getFile).toHaveBeenCalled();
                 expect(myView._visible).toBeTruthy();
             });
@@ -272,12 +272,13 @@ define(function (require, exports, module) {
                 myPane.addView(myView, true);
                 secondPane.addView(secondView, true);
                 
-                spyOn(secondView, "setVisible");
+                spyOn(myPane, "_setViewVisibility");
                 
                 myPane.mergeFrom(secondPane);
                 
-                expect(secondView.setVisible).toHaveBeenCalled();
-                expect(secondView.setVisible.calls[0].args[0]).toBeFalsy();
+                expect(myPane._setViewVisibility).toHaveBeenCalled();
+                expect(myPane._setViewVisibility.calls[0].args[0]).toBe(secondView);
+                expect(myPane._setViewVisibility.calls[0].args[1]).toBeFalsy();
 
                 secondPane.destroy();
             });
