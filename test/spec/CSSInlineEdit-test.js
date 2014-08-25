@@ -32,6 +32,11 @@ define(function (require, exports, module) {
 
     var testPath                   = SpecRunnerUtils.getTestPath("/spec/CSSInlineEdit-test-files");
 
+    // TODO:
+    // - make changes in inline editor -> css/scss/less files are added to Workingset and get dirty
+    // - check hierachical rules in related content
+    // - multiple inline edit widgets
+
     describe("CSS Inline Edit", function () {
         this.category = "integration";
 
@@ -257,7 +262,7 @@ define(function (require, exports, module) {
                     var ranges = inlineWidget._ranges[0];
                     var document = ranges.textRange.document;
 
-                    expect(document.getRange({line: ranges.textRange.startLine, ch: 0}, {line: ranges.textRange.endLine, ch: document.getLine(ranges.textRange.endLine).length})).toEqual(".banner-new2 {\n    background-color: blue;\n}");
+                    expect(document.getRange({line: ranges.textRange.startLine, ch: 0}, {line: ranges.textRange.endLine, ch: document.getLine(ranges.textRange.endLine).length})).toEqual("    &.banner-new2 {\n        background-color: blue;\n    }");
 
                     var files = inlineWidget.$relatedContainer.find(".related ul>li");
                     expect(files.length).toBe(2);
