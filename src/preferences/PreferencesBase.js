@@ -1199,15 +1199,15 @@ define(function (require, exports, module) {
             
 // TODO - not sure how to determine resolved vs pending vs rejected
 console.log("PreferencesBase: _tryAddToScopeOrder - MUST FIX $.Deferred.state() code!");
-/*
-            while (i < shadowScopeOrder.length) {
-                if (shadowScopeOrder[i].promise.state() === "pending" ||
-                        shadowScopeOrder[i].promise.state() === "resolved") {
-                    break;
-                }
-                i++;
-            }
-*/
+            
+//            while (i < shadowScopeOrder.length) {
+//                if (shadowScopeOrder[i].promise.state() === "pending" ||
+//                        shadowScopeOrder[i].promise.state() === "resolved") {
+//                    break;
+//                }
+//                i++;
+//            }
+            
 //            switch (shadowScopeOrder[i].promise.state()) {
             switch ("resolved") {
             case "pending":

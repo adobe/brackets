@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, Promise */
 
 /**
  * A "modal bar" component. This is a lightweight replacement for modal dialogs that
@@ -186,46 +186,45 @@ define(function (require, exports, module) {
      *     function if you call it first).
      * @param {boolean=} animate If true (the default), animate the closing of the ModalBar,
      *     otherwise close it immediately.
-     * @return {$.Promise} promise resolved when close is finished
+     * @return {Promise} promise resolved when close is finished
      */
     ModalBar.prototype.close = function (restoreScrollPos, animate) {
-        var result = new $.Deferred(),
-            self = this;
-
-        if (restoreScrollPos === undefined) {
-            restoreScrollPos = true;
-        }
-        if (animate === undefined) {
-            animate = true;
-        }
+        var self = this;
         
-        // If someone hasn't already called `prepareClose()` to pop the ModalBar out of the flow
-        // and resize the editor, then do that here.
-        if (!this._$root.hasClass("popout")) {
-            this.prepareClose(restoreScrollPos);
-        }
+        return new Promise(function (resolve, reject) {
+            if (restoreScrollPos === undefined) {
+                restoreScrollPos = true;
+            }
+            if (animate === undefined) {
+                animate = true;
+            }
 
-        if (this._autoClose) {
-            window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
-        }
+            // If someone hasn't already called `prepareClose()` to pop the ModalBar out of the flow
+            // and resize the editor, then do that here.
+            if (!this._$root.hasClass("popout")) {
+                this.prepareClose(restoreScrollPos);
+            }
 
-        $(this).triggerHandler("close");
-        
-        function doRemove() {
-            self._$root.remove();
-            result.resolve();
-        }
-        
-        if (animate) {
-            AnimationUtils.animateUsingClass(this._$root.get(0), "offscreen")
-                .done(doRemove);
-        } else {
-            doRemove();
-        }
-        
-        EditorManager.focusEditor();
+            if (this._autoClose) {
+                window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
+            }
 
-        return result.promise();
+            $(this).triggerHandler("close");
+
+            function doRemove() {
+                self._$root.remove();
+                resolve();
+            }
+
+            if (animate) {
+                AnimationUtils.animateUsingClass(this._$root.get(0), "offscreen")
+                    .then(doRemove, null);
+            } else {
+                doRemove();
+            }
+
+            EditorManager.focusEditor();
+        });
     };
     
     /**

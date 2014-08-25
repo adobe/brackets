@@ -181,18 +181,20 @@ define(function (require, exports, module) {
                 // Convert to Promise
                 var itemPromise = Promise.resolve(beginProcessItem(items[i], i));
 
-                itemPromise.done(function () {
-                    doItem(i + 1);
-                });
-                itemPromise.then(null, function () {
-                    if (failAndStopFast) {
-                        reject();
-                        // note: we do NOT process any further items in this case
-                    } else {
-                        hasFailed = true;
+                itemPromise.then(
+                    function () {
                         doItem(i + 1);
+                    },
+                    function () {
+                        if (failAndStopFast) {
+                            reject();
+                            // note: we do NOT process any further items in this case
+                        } else {
+                            hasFailed = true;
+                            doItem(i + 1);
+                        }
                     }
-                });
+                );
             }
 
             doItem(0);

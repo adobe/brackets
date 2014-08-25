@@ -236,9 +236,12 @@ define(function (require, exports, module) {
      * Updates an optional message displayed to the user along with the extension list.
      */
     ExtensionManagerViewModel.prototype._updateMessage = function () {
-        if (this._initializeFromSourcePromise && this._initializeFromSourcePromise.state() === "rejected") {
-            this.message = Strings.EXTENSION_MANAGER_ERROR_LOAD;
-        } else if (this.filterSet && this.filterSet.length === 0) {
+        // TODO: can no longer do this with ES6 Promises
+        //       use `this._initializeFromSourcePromise.then(null, onReject)` callback instead?
+//        if (this._initializeFromSourcePromise && this._initializeFromSourcePromise.state() === "rejected") {
+//            this.message = Strings.EXTENSION_MANAGER_ERROR_LOAD;
+//        } else
+        if (this.filterSet && this.filterSet.length === 0) {
             this.message = this.sortedFullSet && this.sortedFullSet.length ? Strings.NO_EXTENSION_MATCHES : Strings.NO_EXTENSIONS;
         } else {
             this.message = null;
@@ -536,8 +539,8 @@ define(function (require, exports, module) {
      */
     ThemesViewModel.prototype._initializeFromSource = function () {
         var self = this;
-        return ExtensionManager.downloadRegistry()
-            .done(function () {
+        return ExtensionManager.downloadRegistry().then(
+            function () {
                 self.extensions = ExtensionManager.extensions;
 
                 // Sort the registry by last published date and store the sorted list of IDs.
@@ -549,12 +552,13 @@ define(function (require, exports, module) {
                         return entry.registryInfo.metadata.name;
                     });
                 self._setInitialFilter();
-            })
-            .fail(function () {
+            },
+            function () {
                 self.extensions = [];
                 self.sortedFullSet = [];
                 self.filterSet = [];
-            });
+            }
+        );
     };
 
     /**

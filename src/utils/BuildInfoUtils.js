@@ -58,11 +58,14 @@ define(function (require, exports, module) {
                             refRelPath  = text.substr(5).trim(),
                             branch      = text.substr(16).trim();
 
-                        _loadSHA(basePath + "/" + refRelPath, callback).done(function (data) {
-                            resolve({ branch: branch, sha: data.sha.trim() });
-                        }).fail(function () {
-                            resolve({ branch: branch });
-                        });
+                        _loadSHA(basePath + "/" + refRelPath, callback).then(
+                            function (data) {
+                                resolve({ branch: branch, sha: data.sha.trim() });
+                            },
+                            function () {
+                                resolve({ branch: branch });
+                            }
+                        );
                     } else {
                         resolve({ sha: text });
                     }

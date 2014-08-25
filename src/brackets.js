@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, brackets: true, $, window, navigator, Mustache */
+/*global require, define, brackets: true, $, window, navigator, Mustache, Promise */
 
 // TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
 
@@ -240,45 +240,46 @@ define(function (require, exports, module) {
         }
 
         // Load default languages and preferences
-        Async.waitForAll([LanguageManager.ready, PreferencesManager.ready]).always(function () {
+        var fnLoadLanguagesPreferenceAlways = function () {
             // Load all extensions. This promise will complete even if one or more
             // extensions fail to load.
             var extensionPathOverride = params.get("extensions");  // used by unit tests
             var extensionLoaderPromise = ExtensionLoader.init(extensionPathOverride ? extensionPathOverride.split(",") : null);
             
             // Load the initial project after extensions have loaded
-            extensionLoaderPromise.always(function () {
+            var fnExtensionLoaderAlways = function () {
                 // Finish UI initialization
                 ViewCommandHandlers.restoreFontSize();
                 var initialProjectPath = ProjectManager.getInitialProjectPath();
-                ProjectManager.openProject(initialProjectPath).always(function () {
+                
+                var fnOpenProjectAlways = function () {
                     _initTest();
                     
                     // If this is the first launch, and we have an index.html file in the project folder (which should be
                     // the samples folder on first launch), open it automatically. (We explicitly check for the
                     // samples folder in case this is the first time we're launching Brackets after upgrading from
                     // an old version that might not have set the "afterFirstLaunch" pref.)
-                    var deferred = new $.Deferred();
-                    
-                    if (!params.get("skipSampleProjectLoad") && !PreferencesManager.getViewState("afterFirstLaunch")) {
-                        PreferencesManager.setViewState("afterFirstLaunch", "true");
-                        if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
-                            FileSystem.resolve(initialProjectPath + "index.html", function (err, file) {
-                                if (!err) {
-                                    var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: file.fullPath });
-                                    promise.then(deferred.resolve, deferred.reject);
-                                } else {
-                                    deferred.reject();
-                                }
-                            });
+                    var firstLaunchPromise = new Promise(function (resolve, reject) {
+                        if (!params.get("skipSampleProjectLoad") && !PreferencesManager.getViewState("afterFirstLaunch")) {
+                            PreferencesManager.setViewState("afterFirstLaunch", "true");
+                            if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
+                                FileSystem.resolve(initialProjectPath + "index.html", function (err, file) {
+                                    if (!err) {
+                                        var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: file.fullPath });
+                                        promise.then(resolve, reject);
+                                    } else {
+                                        reject();
+                                    }
+                                });
+                            } else {
+                                resolve();
+                            }
                         } else {
-                            deferred.resolve();
+                            resolve();
                         }
-                    } else {
-                        deferred.resolve();
-                    }
+                    });
                     
-                    deferred.always(function () {
+                    var fnFirstLaunchAlways = function () {
                         // Signal that Brackets is loaded
                         AppInit._dispatchReady(AppInit.APP_READY);
                         
@@ -290,12 +291,12 @@ define(function (require, exports, module) {
                                 Strings.ERROR_PREFS_CORRUPT_TITLE,
                                 Strings.ERROR_PREFS_CORRUPT
                             )
-                                .done(function () {
+                                .then(function () {
                                     CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
-                                });
+                                }, null);
                         }
-                        
-                    });
+                    };
+                    firstLaunchPromise.then(fnFirstLaunchAlways, fnFirstLaunchAlways);
                     
                     // See if any startup files were passed to the application
                     if (brackets.app.getPendingFilesToOpen) {
@@ -303,9 +304,14 @@ define(function (require, exports, module) {
                             DragAndDrop.openDroppedFiles(files);
                         });
                     }
-                });
-            });
-        });
+                };
+                ProjectManager.openProject(initialProjectPath).then(fnOpenProjectAlways, fnOpenProjectAlways);
+            };
+            extensionLoaderPromise.then(fnLoadLanguagesPreferenceAlways, fnLoadLanguagesPreferenceAlways);
+        };
+        Async
+            .waitForAll([LanguageManager.ready, PreferencesManager.ready])
+            .then(fnLoadLanguagesPreferenceAlways, fnLoadLanguagesPreferenceAlways);
         
         // Check for updates
         if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
@@ -448,11 +454,13 @@ define(function (require, exports, module) {
     
     // Wait for view state to load.
     var viewStateTimer = PerfUtils.markStart("User viewstate loading");
-    PreferencesManager._smUserScopeLoading.always(function () {
+    
+    var fnUserScopeLoadingAlways = function () {
         PerfUtils.addMeasurement(viewStateTimer);
         // Dispatch htmlReady event
         _beforeHTMLReady();
         AppInit._dispatchReady(AppInit.HTML_READY);
         $(window.document).ready(_onReady);
-    });
+    };
+    PreferencesManager._smUserScopeLoading.then(fnUserScopeLoadingAlways, fnUserScopeLoadingAlways);
 });

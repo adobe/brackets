@@ -69,7 +69,10 @@ define(function (require, exports, module) {
                           "at a breakpoint. If you are NOT at a breakpoint, please " +
                           "file a bug and mention this comment. Stack depth = " + stackDepth + ".");
         }
-        return (promise && promise.state() === "rejected") ? false : true;
+        
+        // This can no longer be determined with ES6 Promises
+        //return (promise && promise.state() === "rejected") ? false : true;
+        return true;
     }
 
     AppInit.appReady(function () {

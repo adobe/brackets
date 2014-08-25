@@ -159,11 +159,11 @@ define(function (require, exports, module) {
     function loadExtension(name, config, entryPoint) {
         var promise = new Promise(function (resolve, reject) {
             // Try to load the package.json to figure out if we are loading a theme.
-            ExtensionUtils.loadPackageJson(config.baseUrl).always(resolve);
+            ExtensionUtils.loadPackageJson(config.baseUrl).then(resolve, resolve);
         });
 
         return promise
-            .then(function(metadata) {
+            .then(function (metadata) {
                 // No special handling for themes... Let the promise propagate into the ExtensionManager
                 if (metadata && "theme" in metadata) {
                     return;
@@ -321,10 +321,7 @@ define(function (require, exports, module) {
                             paths: config.paths
                         };
                         return processExtension(item, extConfig, entryPoint);
-                    }).always(function () {
-                        // Always resolve the promise even if some extensions had errors
-                        resolve();
-                    });
+                    }).then(resolve, resolve);
                 } else {
                     console.error("[Extension] Error -- could not read native directory: " + directory);
                     reject();
@@ -421,9 +418,10 @@ define(function (require, exports, module) {
             return loadAllExtensionsInNativeDirectory(extensionPath);
         }, false);
         
-        promise.always(function () {
+        var fnAlways = function () {
             _init = true;
-        });
+        };
+        promise.then(fnAlways, fnAlways);
         
         return promise;
     }

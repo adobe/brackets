@@ -247,7 +247,7 @@ define(function (require, exports, module) {
         sessionProvider  = null,
         sessionEditor    = null,
         hintList         = null,
-        deferredHints    = null,
+        hintsPromise     = {},
         keyDownEditor    = null,
         codeHintsEnabled = true;
 
@@ -377,9 +377,8 @@ define(function (require, exports, module) {
         keyDownEditor = null;
         sessionProvider = null;
         sessionEditor = null;
-        if (deferredHints) {
-            deferredHints.reject();
-            deferredHints = null;
+        if (hintsPromise.reject) {
+            hintsPromise.reject();
         }
     }
 
@@ -395,8 +394,7 @@ define(function (require, exports, module) {
     function _inSession(editor) {
         if (sessionEditor) {
             if (sessionEditor === editor &&
-                    (hintList.isOpen() ||
-                     (deferredHints && deferredHints.state() === "pending"))) {
+                    (hintList.isOpen() || hintsPromise.promise)) {
                 return true;
             } else {
                 // the editor has changed
@@ -413,9 +411,9 @@ define(function (require, exports, module) {
      * Assumes that it is called when a session is active (i.e. sessionProvider is not null).
      */
     function _updateHintList() {
-        if (deferredHints) {
-            deferredHints.reject();
-            deferredHints = null;
+        if (hintsPromise.reject) {
+            hintsPromise.reject();
+            hintsPromise = {};      // this gets done asynchronously, so do explicitly for this function
         }
 
         var response = sessionProvider.getHints(lastChar);
@@ -438,9 +436,16 @@ define(function (require, exports, module) {
                     hintList.open(response);
                 }
             } else {
-                // response is a promise. Convert to Promise
-                deferredHints = Promise.resolve(response);
-                response.then(function (hints) {
+                // `response` comes from an extension, so it may be a jQuery promise. Convert to Promise.
+                var responsePromise = Promise.resolve(response);
+                
+                // We can only reject, not resolve
+                var rejectablePromise = new Promise(function (resolve, reject) {
+                    hintsPromise.reject = reject;
+                });
+                
+                hintsPromise.promise = Promise.all([responsePromise, rejectablePromise]);
+                hintsPromise.promise.then(function (hints) {
                     // Guard against timing issues where the session ends before the
                     // response gets a chance to execute the callback.  If the session
                     // ends first while still waiting on the response, then hintList
@@ -456,6 +461,11 @@ define(function (require, exports, module) {
                         hintList.open(hints);
                     }
                 }, null);
+                
+                var fnHintsPromiseAlways = function () {
+                    hintsPromise = {};
+                };
+                hintsPromise.promise.then(fnHintsPromiseAlways, fnHintsPromiseAlways);
             }
         }
     }

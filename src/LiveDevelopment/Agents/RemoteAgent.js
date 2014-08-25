@@ -74,8 +74,6 @@ define(function RemoteAgent(require, exports, module) {
 
         return new Promise(function (resolve, reject) {
 
-            //$.when.apply(undefined, args).done(function onResolvedAllNodes() {
-            // TODO: why is first param undefined?
             Promise.all(args.unshift(undefined)).then(function onResolvedAllNodes() {
                 var params = [];
 

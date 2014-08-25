@@ -116,7 +116,7 @@ define(function (require, exports, module) {
                 }
             });
 
-        Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
+        Dialogs.showModalDialogUsingTemplate($template).then(function (id) {
             var setterFn;
 
             if (id === "save") {
@@ -137,7 +137,7 @@ define(function (require, exports, module) {
                 // Make sure we revert any changes to theme selection
                 prefs.set("theme", currentSettings.theme);
             }
-        });
+        }, null);
     }
 
     /**

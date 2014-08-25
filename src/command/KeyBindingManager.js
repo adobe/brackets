@@ -523,7 +523,10 @@ define(function (require, exports, module) {
             // Generally, commands decide whether they can run or not synchronously,
             // and reject immediately, so we can test for that synchronously.
             var promise = CommandManager.execute(_keyMap[key].commandID);
-            return (promise.state() !== "rejected");
+            
+            // This can no longer be determined synchronously with ES6 Promises
+            //return (promise.state() !== "rejected");
+            return true;
         }
         return false;
     }

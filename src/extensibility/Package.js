@@ -482,7 +482,7 @@ define(function (require, exports, module) {
      * @private
      * @return {Promise} The promise that manages the node connection
      */
-    function _getNodeConnectionDeferred() {
+    function _getNodeConnectionPromise() {
         return _nodeConnectionPromise;
     }
     
@@ -508,7 +508,7 @@ define(function (require, exports, module) {
     });
 
     // For unit tests only
-    exports._getNodeConnectionDeferred = _getNodeConnectionDeferred;
+    exports._getNodeConnectionPromise = _getNodeConnectionPromise;
 
     exports.installFromURL = installFromURL;
     exports.installFromPath = installFromPath;

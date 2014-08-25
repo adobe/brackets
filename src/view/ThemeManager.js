@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, regexp: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, require, less */
+/*global $, define, require, less, Promise */
 
 define(function (require, exports, module) {
     "use strict";
@@ -158,24 +158,24 @@ define(function (require, exports, module) {
      *
      * @param {string} content is the css/less string to be processed
      * @param {Theme} theme is the object the css/less corresponds to
-     * @return {$.Promise} promsie with the processed css/less as the resolved value
+     * @return {Promise} promsie with the processed css/less as the resolved value
      */
     function lessifyTheme(content, theme) {
-        var deferred = new $.Deferred();
-        var parser   = new less.Parser({
-            rootpath: fixPath(stylesPath),
-            filename: fixPath(theme.file._path)
-        });
+        
+        return new Promise(function (resolve, reject) {
+            var parser   = new less.Parser({
+                rootpath: fixPath(stylesPath),
+                filename: fixPath(theme.file._path)
+            });
 
-        parser.parse("#editor-holder {" + content + "\n}", function (err, tree) {
-            if (err) {
-                deferred.reject(err);
-            } else {
-                deferred.resolve(tree.toCSS());
-            }
+            parser.parse("#editor-holder {" + content + "\n}", function (err, tree) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(tree.toCSS());
+                }
+            });
         });
-
-        return deferred.promise();
     }
 
 
@@ -236,7 +236,7 @@ define(function (require, exports, module) {
      * @private
      * Process and load the current theme into the editor
      *
-     * @return {$.Promise} promise object resolved with the theme object and all
+     * @return {Promise} promise object resolved with the theme object and all
      *    corresponding new css/less and scrollbar information
      */
     function loadCurrentTheme() {
@@ -245,19 +245,19 @@ define(function (require, exports, module) {
         var pending = theme && FileUtils.readAsText(theme.file)
             .then(function (lessContent) {
                 return lessifyTheme(lessContent.replace(commentRegex, ""), theme);
-            })
+            }, null)
             .then(function (content) {
                 var result = extractScrollbars(content);
                 theme.scrollbar = result.scrollbar;
                 return result.content;
-            })
+            }, null)
             .then(function (cssContent) {
                 $("body").toggleClass("dark", theme.dark);
                 styleNode.text(cssContent);
                 return theme;
-            });
+            }, null);
 
-        return $.when(pending);
+        return Promise.resolve(pending);
     }
 
 
@@ -271,7 +271,7 @@ define(function (require, exports, module) {
             currentTheme = null;
         }
 
-        $.when(force && loadCurrentTheme()).done(function () {
+        Promise.resolve(force && loadCurrentTheme()).then(function () {
             var editor = EditorManager.getActiveEditor();
             if (!editor || !editor._codeMirror) {
                 return;
@@ -279,7 +279,7 @@ define(function (require, exports, module) {
 
             var cm = editor._codeMirror;
             ThemeView.updateThemes(cm);
-        });
+        }, null);
     }
 
 
@@ -289,35 +289,35 @@ define(function (require, exports, module) {
      * @param {string} fileName is the full path to the file to be opened
      * @param {Object} options is an optional parameter to specify metadata
      *    for the theme.
-     * @return {$.Promise} promise object resolved with the theme to be loaded from fileName
+     * @return {Promise} promise object resolved with the theme to be loaded from fileName
      */
     function loadFile(fileName, options) {
-        var deferred         = new $.Deferred(),
-            file             = FileSystem.getFileForPath(fileName),
-            currentThemeName = prefs.get("theme");
+        
+        return new Promise(function (resolve, reject) {
+            var file             = FileSystem.getFileForPath(fileName),
+                currentThemeName = prefs.get("theme");
 
-        file.exists(function (err, exists) {
-            var theme;
+            file.exists(function (err, exists) {
+                var theme;
 
-            if (exists) {
-                theme = new Theme(file, options);
-                loadedThemes[theme.name] = theme;
-                ThemeSettings._setThemes(loadedThemes);
+                if (exists) {
+                    theme = new Theme(file, options);
+                    loadedThemes[theme.name] = theme;
+                    ThemeSettings._setThemes(loadedThemes);
 
-                // For themes that are loaded after ThemeManager has been loaded,
-                // we should check if it's the current theme.  If it is, then we just
-                // load it.
-                if (currentThemeName === theme.name) {
-                    refresh(true);
+                    // For themes that are loaded after ThemeManager has been loaded,
+                    // we should check if it's the current theme.  If it is, then we just
+                    // load it.
+                    if (currentThemeName === theme.name) {
+                        refresh(true);
+                    }
+
+                    resolve(theme);
+                } else if (err || !exists) {
+                    reject(err);
                 }
-
-                deferred.resolve(theme);
-            } else if (err || !exists) {
-                deferred.reject(err);
-            }
+            });
         });
-
-        return deferred.promise();
     }
 
 
@@ -325,7 +325,7 @@ define(function (require, exports, module) {
      * Loads a theme from an extension package.
      *
      * @param {Object} themePackage is a package from the extension manager for the theme to be loaded.
-     * @return {$.Promise} promise object resolved with the theme to be loaded from the pacakge
+     * @return {Promise} promise object resolved with the theme to be loaded from the pacakge
      */
     function loadPackage(themePackage) {
         var fileName = themePackage.path + "/" + themePackage.metadata.theme.file;
