@@ -819,7 +819,9 @@ define(function (require, exports, module) {
 
         function _maybeProperty() {
             return (state.state !== "top" && state.state !== "block" &&
-                    stream.string.indexOf(";") !== -1);
+                    // Has a semicolon as in "rgb(0,0,0);", but not one of those after a LESS 
+                    // mixin parameter variable as in ".size(@width; @height)"
+                    stream.string.indexOf(";") !== -1 && !/\([^)]+;/.test(stream.string));
         }
 
         function _skipProperty() {
@@ -840,11 +842,12 @@ define(function (require, exports, module) {
                 startChar = "{";
             }
             while (true) {
-                if (token.indexOf(startChar) !== -1) {
+                if (token.indexOf(startChar) !== -1 && token.indexOf(_bracketPairs[startChar]) === -1) {
+                    // Found an opening bracket but not the matching closing bracket in the same token
                     unmatchedBraces++;
                 } else if (token === _bracketPairs[startChar]) {
                     unmatchedBraces--;
-                    if (unmatchedBraces === 0) {
+                    if (unmatchedBraces <= 0) {
                         skippedText += token;
                         return skippedText;
                     }
@@ -876,17 +879,18 @@ define(function (require, exports, module) {
             // Everything until the next ',' or '{' is part of the current selector
             while (token !== "," && token !== "{") {
                 if (token === "}" &&
-                        (!currentSelector || /:\s*\S/.test(currentSelector) || !/\{\w/.test(currentSelector))) {
+                        (!currentSelector || /:\s*\S/.test(currentSelector) || !/#\{.+/.test(currentSelector))) {
                     // Either empty currentSelector or currentSelector is a CSS property
                     // but not a selector that is in the form of #{$class}
                     return false;
                 }
-                if (token === ";" ||
+                // Clear currentSelector if we're in a property, but make sure we don't treat
+                // the semicolors inside a parameter as a property separators.
+                if ((token === ";" && state.state !== "parens") ||
                         // Make sure that something like `> li > a {` is not identified as a property
                         (state.state === "prop" && !/\{/.test(stream.string))) {
-                    // Clear currentSelector if we're in a property.
                     currentSelector = "";
-                } else if (token === "(" && /,/.test(stream.string)) {
+                } else if (token === "(") {
                     // Collect everything inside the parentheses as a whole chunk so that
                     // commas inside the parentheses won't be identified as selector separators
                     // by while loop.
@@ -1084,13 +1088,13 @@ define(function (require, exports, module) {
                 // Skip everything until the opening '{'
                 while (token !== "{") {
                     if (!_nextTokenSkippingComments()) {
-                        return; // eof
+                        return false; // eof
                     }
                 }
 
                 // skip past '{', to next non-ws token
                 if (!_nextTokenSkippingWhitespace()) {
-                    return; // eof
+                    return false; // eof
                 }
 
                 if (currentLevel <= level) {
@@ -1106,7 +1110,7 @@ define(function (require, exports, module) {
                     currentLevel--;
                 }
 
-            } else if (/@(charset|import|namespace|include|extend)/i.test(token) ||
+            } else if (/@(charset|import|namespace|include|extend|warn)/i.test(token) ||
                             !/\{/.test(stream.string)) {
                 
                 // This code handles @rules in this format:
@@ -1115,7 +1119,7 @@ define(function (require, exports, module) {
                 // Skip everything until the next ';'
                 while (token !== ";") {
                     if (!_nextTokenSkippingComments()) {
-                        return; // eof
+                        return false; // eof
                     }
                 }
                 
@@ -1125,7 +1129,11 @@ define(function (require, exports, module) {
                 // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
                 // Skip everything including nested braces until the next matching '}'
                 _skipToClosingBracket("{");
+                if (token === "}") {
+                    return false;
+                }
             }
+            return true;
         }
 
         // parse a style rule
@@ -1139,11 +1147,13 @@ define(function (require, exports, module) {
         }
         
         _parseRuleList = function (escapeToken, level) {
+            var skipNext = true;
             while ((!escapeToken) || token !== escapeToken) {
                 if (_isStartAtRule()) {
                     // @rule
-                    _parseAtRule(level);
-    
+                    if (!_parseAtRule(level)) {
+                        skipNext = false;
+                    }
                 } else if (_isStartComment()) {
                     // comment - make this part of style rule
                     if (includeCommentInNextRule()) {
@@ -1174,7 +1184,7 @@ define(function (require, exports, module) {
                     ruleStartLine = -1;
                 }
                 
-                if (!_nextTokenSkippingWhitespace()) {
+                if (skipNext && !_nextTokenSkippingWhitespace()) {
                     break;
                 }
             }
@@ -1446,7 +1456,7 @@ define(function (require, exports, module) {
                     unmatchedBraces++;
                 } else if (ctx.token.string.match(_invertedBracketPairs[startChar])) {
                     unmatchedBraces--;
-                    if (unmatchedBraces === 0) {
+                    if (unmatchedBraces <= 0) {
                         return;
                     }
                 }
