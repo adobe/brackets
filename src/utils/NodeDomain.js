@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, Promise */
 
 define(function (require, exports, module) {
     "use strict";
@@ -43,13 +43,14 @@ define(function (require, exports, module) {
      *     var myDomain = new NodeDomain("someDomain", "/path/to/SomeDomainDef.js"),
      *         $result = myDomain.exec("someCommand", arg1, arg2);
      *     
-     *     $result.done(function (value) {
-     *         // the command succeeded!
-     *     });
-     *     
-     *     $result.fail(function (err) {
-     *         // the command failed; act accordingly!
-     *     });
+     *     $result.then(
+     *         function (value) {
+     *             // the command succeeded!
+     *         },
+     *         function (err) {
+     *             // the command failed; act accordingly!
+     *         }
+     *     );
      * 
      * To handle domain events, just listen for the event on the domain:
      * 
@@ -68,12 +69,12 @@ define(function (require, exports, module) {
         this._domainLoaded = false;
         this._load = this._load.bind(this);
         this._connectionPromise = connection.connect(true)
-            .then(this._load);
+            .then(this._load, null);
         
         $(connection).on("close", function (event, promise) {
             $(this.connection).off(EVENT_NAMESPACE);
             this._domainLoaded = false;
-            this._connectionPromise = promise.then(this._load);
+            this._connectionPromise = promise.then(this._load, null);
         }.bind(this));
     }
     
@@ -88,7 +89,7 @@ define(function (require, exports, module) {
      * A promise that is resolved once the NodeConnection is connected and the
      * domain has been loaded.
      * 
-     * @type {?jQuery.Promise}
+     * @type {?Promise}
      * @private
      */
     NodeDomain.prototype._connectionPromise = null;
@@ -122,13 +123,13 @@ define(function (require, exports, module) {
      * domain's commands as methods on this object. Assumes the underlying
      * connection has already been opened.
      * 
-     * @return {jQuery.Promise} Resolves once the domain is been loaded.
+     * @return {Promise} Resolves once the domain is been loaded.
      * @private
      */
     NodeDomain.prototype._load = function () {
         var connection = this.connection;
-        return connection.loadDomains(this._domainPath, true)
-            .done(function () {
+        return connection.loadDomains(this._domainPath, true).then(
+            function () {
                 this._domainLoaded = true;
                 this._connectionPromise = null;
                 
@@ -141,10 +142,11 @@ define(function (require, exports, module) {
                         $(this).triggerHandler(domainEvent, params);
                     }.bind(this));
                 }, this);
-            }.bind(this))
-            .fail(function (err) {
+            }.bind(this),
+            function (err) {
                 console.error("[NodeDomain] Error loading domain \"" + this._domainName + "\": " + err);
-            }.bind(this));
+            }.bind(this)
+        );
     };
     
     /**
@@ -161,21 +163,19 @@ define(function (require, exports, module) {
      * Get a promise that resolves when the connection is open and the domain
      * is loaded.
      *
-     * @return {jQuery.Promise}
+     * @return {Promise}
      */
     NodeDomain.prototype.promise = function () {
         if (this._connectionPromise) {
             return this._connectionPromise;
         } else {
-            var deferred = new $.Deferred();
-            
-            if (this.ready()) {
-                deferred.resolve();
-            } else {
-                deferred.reject();
-            }
-            
-            return deferred.promise();
+            return new Promise(function (resolve, reject) {
+                if (this.ready()) {
+                    resolve();
+                } else {
+                    reject();
+                }
+            });
         }
     };
     
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
      * domain has finished loading.
      * 
      * @param {string} name The name of the domain command to execute
-     * @return {jQuery.Promise} Resolves with the result of the command
+     * @return {Promise} Resolves with the result of the command
      */
     NodeDomain.prototype.exec = function (name) {
         var connection = this.connection,
@@ -200,7 +200,9 @@ define(function (require, exports, module) {
                 if (fn) {
                     execResult = fn.apply(domain, params);
                 } else {
-                    execResult = new $.Deferred().reject().promise();
+                    execResult = new Promise(function (resolve, reject) {
+                        reject();
+                    });
                 }
                 return execResult;
             }.bind(this);
@@ -211,7 +213,9 @@ define(function (require, exports, module) {
         } else if (this._connectionPromise) {
             result = this._connectionPromise.then(execConnected);
         } else {
-            result = new $.Deferred.reject().promise();
+            result = new Promise(function (resolve, reject) {
+                reject();
+            });
         }
         return result;
     };

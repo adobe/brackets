@@ -24,7 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4,
 maxerr: 50, browser: true */
-/*global $, define, brackets, WebSocket, ArrayBuffer, Uint32Array */
+/*global $, define, brackets, WebSocket, ArrayBuffer, Uint32Array, Promise */
 
 define(function (require, exports, module) {
     "use strict";
@@ -63,11 +63,15 @@ define(function (require, exports, module) {
      * If the deferred is resolved/rejected manually, then the timeout is
      * automatically cleared.
      */
-    function setDeferredTimeout(deferred, delay) {
+    function setPromiseTimeout(promise, delay, promiseReject) {
         var timer = setTimeout(function () {
-            deferred.reject("timeout");
+            promiseReject("timeout");
         }, delay);
-        deferred.always(function () { clearTimeout(timer); });
+        
+        var fnAlways = function () {
+            clearTimeout(timer);
+        };
+        promise.then(fnAlways, fnAlways);
     }
     
     /**
@@ -75,40 +79,48 @@ define(function (require, exports, module) {
      * Helper function to attempt a single connection to the node server
      */
     function attemptSingleConnect() {
-        var deferred = $.Deferred();
-        var port = null;
-        var ws = null;
-        setDeferredTimeout(deferred, CONNECTION_TIMEOUT);
+        var promiseReject;
         
-        brackets.app.getNodeState(function (err, nodePort) {
-            if (!err && nodePort && deferred.state() !== "rejected") {
-                port = nodePort;
-                ws = new WebSocket("ws://localhost:" + port);
-                
-                // Expect ArrayBuffer objects from Node when receiving binary
-                // data instead of DOM Blobs, which are the default.
-                ws.binaryType = "arraybuffer";
-                
-                // If the server port isn't open, we get a close event
-                // at some point in the future (and will not get an onopen 
-                // event)
-                ws.onclose = function () {
-                    deferred.reject("WebSocket closed");
-                };
+        var promise = new Promise(function (resolve, reject) {
+            var port = null;
+            var ws = null;
 
-                ws.onopen = function () {
-                    // If we successfully opened, remove the old onclose 
-                    // handler (which was present to detect failure to 
-                    // connect at all).
-                    ws.onclose = null;
-                    deferred.resolveWith(null, [ws, port]);
-                };
-            } else {
-                deferred.reject("brackets.app.getNodeState error: " + err);
-            }
+            brackets.app.getNodeState(function (err, nodePort) {
+                promiseReject = reject;
+                
+                // TODO: I don't see how promise could be rejected  by this point...
+                //if (!err && nodePort && promise.state() !== "rejected") {
+                if (!err) {
+                    port = nodePort;
+                    ws = new WebSocket("ws://localhost:" + port);
+
+                    // Expect ArrayBuffer objects from Node when receiving binary
+                    // data instead of DOM Blobs, which are the default.
+                    ws.binaryType = "arraybuffer";
+
+                    // If the server port isn't open, we get a close event
+                    // at some point in the future (and will not get an onopen 
+                    // event)
+                    ws.onclose = function () {
+                        reject("WebSocket closed");
+                    };
+
+                    ws.onopen = function () {
+                        // If we successfully opened, remove the old onclose 
+                        // handler (which was present to detect failure to 
+                        // connect at all).
+                        ws.onclose = null;
+                        resolve([ws, port]);
+                    };
+                } else {
+                    reject("brackets.app.getNodeState error: " + err);
+                }
+            });
         });
         
-        return deferred.promise();
+        setPromiseTimeout(promise, CONNECTION_TIMEOUT, promiseReject);
+        
+        return promise;
     }
     
     /**
@@ -118,8 +130,8 @@ define(function (require, exports, module) {
     function NodeConnection() {
         this.domains = {};
         this._registeredModules = [];
-        this._pendingInterfaceRefreshDeferreds = [];
-        this._pendingCommandDeferreds = [];
+        this._pendingInterfaceRefreshPromises = [];
+        this._pendingCommandPromises = [];
     }
     
     /**
@@ -174,19 +186,19 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {Array.<jQuery.Deferred>}
+     * @type {Array.<Promise>}
      * List of deferred objects that should be resolved pending
      * a successful refresh of the API
      */
-    NodeConnection.prototype._pendingInterfaceRefreshDeferreds = null;
+    NodeConnection.prototype._pendingInterfaceRefreshPromises = null;
     
     /**
      * @private
-     * @type {Array.<jQuery.Deferred>}
+     * @type {Array.<Promise>}
      * Array (indexed on command ID) of deferred objects that should be
      * resolved/rejected with the response of commands.
      */
-    NodeConnection.prototype._pendingCommandDeferreds = null;
+    NodeConnection.prototype._pendingCommandPromises = null;
     
     /**
      * @private
@@ -220,13 +232,13 @@ define(function (require, exports, module) {
                 this._ws.close();
             } catch (e) { }
         }
-        var failedDeferreds = this._pendingInterfaceRefreshDeferreds
-            .concat(this._pendingCommandDeferreds);
-        failedDeferreds.forEach(function (d) {
+        var failedPromises = this._pendingInterfaceRefreshPromises
+            .concat(this._pendingCommandPromises);
+        failedPromises.forEach(function (d) {
             d.reject("cleanup");
         });
-        this._pendingInterfaceRefreshDeferreds = [];
-        this._pendingCommandDeferreds = [];
+        this._pendingInterfaceRefreshPromises = [];
+        this._pendingCommandPromises = [];
         
         this._ws = null;
         this._port = null;
@@ -249,81 +261,80 @@ define(function (require, exports, module) {
     NodeConnection.prototype.connect = function (autoReconnect) {
         var self = this;
         self._autoReconnect = autoReconnect;
-        var deferred = $.Deferred();
         var attemptCount = 0;
         var attemptTimestamp = null;
         
-        // Called after a successful connection to do final setup steps
-        function registerHandlersAndDomains(ws, port) {
-            // Called if we succeed at the final setup
-            function success() {
-                self._ws.onclose = function () {
-                    if (self._autoReconnect) {
-                        var $promise = self.connect(true);
-                        $(self).triggerHandler("close", [$promise]);
-                    } else {
-                        self._cleanup();
-                        $(self).triggerHandler("close");
-                    }
-                };
-                deferred.resolve();
-            }
-            // Called if we fail at the final setup
-            function fail(err) {
-                self._cleanup();
-                deferred.reject(err);
-            }
+        return new Promise(function (resolve, reject) {
             
-            self._ws = ws;
-            self._port = port;
-            self._ws.onmessage = self._receive.bind(self);
-            
-            // refresh the current domains, then re-register any
-            // "autoregister" modules
-            self._refreshInterface().then(
-                function () {
-                    if (self._registeredModules.length > 0) {
-                        self.loadDomains(self._registeredModules, false).then(
-                            success,
-                            fail
-                        );
-                    } else {
-                        success();
-                    }
-                },
-                fail
-            );
-        }
-        
-        // Repeatedly tries to connect until we succeed or until we've
-        // failed CONNECTION_ATTEMPT times. After each attempt, waits
-        // at least RETRY_DELAY before trying again.
-        function doConnect() {
-            attemptCount++;
-            attemptTimestamp = new Date();
-            attemptSingleConnect().then(
-                registerHandlersAndDomains, // succeded
-                function () { // failed this attempt, possibly try again
-                    if (attemptCount < CONNECTION_ATTEMPTS) { //try again
-                        // Calculate how long we should wait before trying again
-                        var now = new Date();
-                        var delay = Math.max(
-                            RETRY_DELAY - (now - attemptTimestamp),
-                            1
-                        );
-                        setTimeout(doConnect, delay);
-                    } else { // too many attempts, give up
-                        deferred.reject("Max connection attempts reached");
-                    }
+            // Called after a successful connection to do final setup steps
+            function registerHandlersAndDomains(ws, port) {
+                
+                // Called if we succeed at the final setup
+                function success() {
+                    self._ws.onclose = function () {
+                        if (self._autoReconnect) {
+                            var $promise = self.connect(true);
+                            $(self).triggerHandler("close", [$promise]);
+                        } else {
+                            self._cleanup();
+                            $(self).triggerHandler("close");
+                        }
+                    };
+                    resolve();
                 }
-            );
-        }
-        
-        // Start the connection process
-        self._cleanup();
-        doConnect();
+                // Called if we fail at the final setup
+                function fail(err) {
+                    self._cleanup();
+                    reject(err);
+                }
 
-        return deferred.promise();
+                self._ws = ws;
+                self._port = port;
+                self._ws.onmessage = self._receive.bind(self);
+
+                // refresh the current domains, then re-register any
+                // "autoregister" modules
+                self._refreshInterface().then(
+                    function () {
+                        if (self._registeredModules.length > 0) {
+                            self.loadDomains(self._registeredModules, false).then(success, fail);
+                        } else {
+                            success();
+                        }
+                    },
+                    fail
+                );
+            }
+
+            // Repeatedly tries to connect until we succeed or until we've
+            // failed CONNECTION_ATTEMPT times. After each attempt, waits
+            // at least RETRY_DELAY before trying again.
+            function doConnect() {
+                attemptCount++;
+                attemptTimestamp = new Date();
+                attemptSingleConnect().then(
+                    registerHandlersAndDomains, // succeded
+                    function () { // failed this attempt, possibly try again
+                        if (attemptCount < CONNECTION_ATTEMPTS) { //try again
+                            // Calculate how long we should wait before trying again
+                            var now = new Date();
+                            var delay = Math.max(
+                                RETRY_DELAY - (now - attemptTimestamp),
+                                1
+                            );
+                            setTimeout(doConnect, delay);
+                        } else { // too many attempts, give up
+                            reject("Max connection attempts reached");
+                        }
+                    },
+                    null
+                );
+            }
+
+            // Start the connection process
+            self._cleanup();
+            doConnect();
+        });
     };
 
     /**
@@ -356,9 +367,9 @@ define(function (require, exports, module) {
      *    or that rejects on failure. 
      */
     NodeConnection.prototype.loadDomains = function (paths, autoReload) {
-        var deferred = $.Deferred();
-        setDeferredTimeout(deferred, CONNECTION_TIMEOUT);
-        var pathArray = paths;
+        var promiseResolve, promiseReject,
+            pathArray = paths;
+        
         if (!Array.isArray(paths)) {
             pathArray = [paths];
         }
@@ -366,29 +377,41 @@ define(function (require, exports, module) {
         if (autoReload) {
             Array.prototype.push.apply(this._registeredModules, pathArray);
         }
-
-        if (this.domains.base && this.domains.base.loadDomainModulesFromPaths) {
-            this.domains.base.loadDomainModulesFromPaths(pathArray).then(
-                function (success) { // command call succeeded
-                    if (!success) {
-                        // response from commmand call was "false" so we know
-                        // the actual load failed.
-                        deferred.reject("loadDomainModulesFromPaths failed");
-                    }
-                    // if the load succeeded, we wait for the API refresh to
-                    // resolve the deferred.
-                },
-                function (reason) { // command call failed
-                    deferred.reject("Unable to load one of the modules: " + pathArray + (reason ? ", reason: " + reason : ""));
-                }
-            );
-
-            this._pendingInterfaceRefreshDeferreds.push(deferred);
-        } else {
-            deferred.reject("this.domains.base is undefined");
-        }
         
-        return deferred.promise();
+        var promise = new Promise(function (resolve, reject) {
+            promiseResolve = resolve;
+            promiseReject  = reject;
+            
+            if (this.domains.base && this.domains.base.loadDomainModulesFromPaths) {
+                this.domains.base.loadDomainModulesFromPaths(pathArray).then(
+                    function (success) { // command call succeeded
+                        if (!success) {
+                            // response from commmand call was "false" so we know
+                            // the actual load failed.
+                            reject("loadDomainModulesFromPaths failed");
+                        }
+                        // if the load succeeded, we wait for the API refresh to
+                        // resolve the promise.
+                    },
+                    function (reason) { // command call failed
+                        reject("Unable to load one of the modules: " + pathArray + (reason ? ", reason: " + reason : ""));
+                    }
+                );
+
+            } else {
+                reject("this.domains.base is undefined");
+            }
+        });
+
+        this._pendingInterfaceRefreshPromises.push({
+            promise: promise,
+            resolve: promiseResolve,
+            reject:  promiseReject
+        });
+    
+        setPromiseTimeout(promise, CONNECTION_TIMEOUT);
+        
+        return promise;
     };
     
     /**
@@ -432,7 +455,7 @@ define(function (require, exports, module) {
      * @param {WebSocket.Message} message Message object from WebSocket
      */
     NodeConnection.prototype._receive = function (message) {
-        var responseDeferred = null;
+        var responsePromise = null;
         var data = message.data;
         var m;
         
@@ -482,20 +505,17 @@ define(function (require, exports, module) {
                                    m.message.parameters);
             break;
         case "commandResponse":
-            responseDeferred = this._pendingCommandDeferreds[m.message.id];
-            if (responseDeferred) {
-                responseDeferred.resolveWith(this, [m.message.response]);
-                delete this._pendingCommandDeferreds[m.message.id];
+            responsePromise = this._pendingCommandPromises[m.message.id];
+            if (responsePromise) {
+                responsePromise.resolve([m.message.response]).bind(this);
+                delete this._pendingCommandPromises[m.message.id];
             }
             break;
         case "commandError":
-            responseDeferred = this._pendingCommandDeferreds[m.message.id];
-            if (responseDeferred) {
-                responseDeferred.rejectWith(
-                    this,
-                    [m.message.message, m.message.stack]
-                );
-                delete this._pendingCommandDeferreds[m.message.id];
+            responsePromise = this._pendingCommandPromises[m.message.id];
+            if (responsePromise) {
+                responsePromise.reject([m.message.message, m.message.stack]).bind(this);
+                delete this._pendingCommandPromises[m.message.id];
             }
             break;
         case "error":
@@ -514,63 +534,73 @@ define(function (require, exports, module) {
      * event from the server, and also called at connection time.
      */
     NodeConnection.prototype._refreshInterface = function () {
-        var deferred = $.Deferred();
         var self = this;
+        var pendingPromises = this._pendingInterfaceRefreshPromises;
+        this._pendingInterfaceRefreshPromises = [];
         
-        var pendingDeferreds = this._pendingInterfaceRefreshDeferreds;
-        this._pendingInterfaceRefreshDeferreds = [];
-        deferred.then(
+        var outerPromise = new Promise(function (outerResolve, outerReject) {
+            
+            function refreshInterfaceCallback(spec) {
+                
+                function makeCommandFunction(domainName, commandSpec) {
+                    return function () {
+                        var innerPromise = {};
+                        innerPromise.promise = new Promise(function (innerResolve, innerReject) {
+                            innerPromise.resolve = innerResolve;
+                            innerPromise.reject  = innerReject;
+                        });
+                        var parameters = Array.prototype.slice.call(arguments, 0);
+                        var id = self._getNextCommandID();
+                        self._pendingCommandPromises[id] = innerPromise;
+                        self._send({id: id,
+                                   domain: domainName,
+                                   command: commandSpec.name,
+                                   parameters: parameters
+                                   });
+                        return innerPromise;
+                    };
+                }
+
+                // TODO: Don't replace the domain object every time. Instead, merge.
+                self.domains = {};
+                self.domainEvents = {};
+                spec.forEach(function (domainSpec) {
+                    self.domains[domainSpec.domain] = {};
+                    domainSpec.commands.forEach(function (commandSpec) {
+                        self.domains[domainSpec.domain][commandSpec.name] =
+                            makeCommandFunction(domainSpec.domain, commandSpec);
+                    });
+                    self.domainEvents[domainSpec.domain] = {};
+                    domainSpec.events.forEach(function (eventSpec) {
+                        var parameters = eventSpec.parameters;
+                        self.domainEvents[domainSpec.domain][eventSpec.name] = parameters;
+                    });
+                });
+                outerResolve();
+            }
+
+            if (self.connected()) {
+                $.getJSON("http://localhost:" + self._port + "/api").then(
+                    refreshInterfaceCallback,
+                    function (err) {
+                        outerReject(err);
+                    }
+                );
+            } else {
+                outerPromise.reject("Attempted to call _refreshInterface when not connected.");
+            }
+        });
+        
+        outerPromise.then(
             function () {
-                pendingDeferreds.forEach(function (d) { d.resolve(); });
+                pendingPromises.forEach(function (d) { d.resolve(); });
             },
             function (err) {
-                pendingDeferreds.forEach(function (d) { d.reject(err); });
+                pendingPromises.forEach(function (d) { d.reject(err); });
             }
         );
         
-        function refreshInterfaceCallback(spec) {
-            function makeCommandFunction(domainName, commandSpec) {
-                return function () {
-                    var deferred = $.Deferred();
-                    var parameters = Array.prototype.slice.call(arguments, 0);
-                    var id = self._getNextCommandID();
-                    self._pendingCommandDeferreds[id] = deferred;
-                    self._send({id: id,
-                               domain: domainName,
-                               command: commandSpec.name,
-                               parameters: parameters
-                               });
-                    return deferred;
-                };
-            }
-            
-            // TODO: Don't replace the domain object every time. Instead, merge.
-            self.domains = {};
-            self.domainEvents = {};
-            spec.forEach(function (domainSpec) {
-                self.domains[domainSpec.domain] = {};
-                domainSpec.commands.forEach(function (commandSpec) {
-                    self.domains[domainSpec.domain][commandSpec.name] =
-                        makeCommandFunction(domainSpec.domain, commandSpec);
-                });
-                self.domainEvents[domainSpec.domain] = {};
-                domainSpec.events.forEach(function (eventSpec) {
-                    var parameters = eventSpec.parameters;
-                    self.domainEvents[domainSpec.domain][eventSpec.name] = parameters;
-                });
-            });
-            deferred.resolve();
-        }
-        
-        if (this.connected()) {
-            $.getJSON("http://localhost:" + this._port + "/api")
-                .done(refreshInterfaceCallback)
-                .fail(function (err) { deferred.reject(err); });
-        } else {
-            deferred.reject("Attempted to call _refreshInterface when not connected.");
-        }
-        
-        return deferred.promise();
+        return outerPromise;
     };
     
     /**

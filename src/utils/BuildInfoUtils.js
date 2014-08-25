@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define, $, brackets, Promise */
 
 /**
  * Utilities for determining the git SHA from an optional repository or from the
@@ -43,35 +43,34 @@ define(function (require, exports, module) {
      * and loads the SHA from that file in turn.
      */
     function _loadSHA(path, callback) {
-        var result = new $.Deferred();
-        
-        if (brackets.inBrowser) {
-            result.reject();
-        } else {
-            // HEAD contains a SHA in detached-head mode; otherwise it contains a relative path
-            // to a file in /refs which in turn contains the SHA
-            var file = FileSystem.getFileForPath(path);
-            FileUtils.readAsText(file).done(function (text) {
-                if (text.indexOf("ref: ") === 0) {
-                    // e.g. "ref: refs/heads/branchname"
-                    var basePath    = path.substr(0, path.lastIndexOf("/")),
-                        refRelPath  = text.substr(5).trim(),
-                        branch      = text.substr(16).trim();
-                    
-                    _loadSHA(basePath + "/" + refRelPath, callback).done(function (data) {
-                        result.resolve({ branch: branch, sha: data.sha.trim() });
-                    }).fail(function () {
-                        result.resolve({ branch: branch });
-                    });
-                } else {
-                    result.resolve({ sha: text });
-                }
-            }).fail(function () {
-                result.reject();
-            });
-        }
+        return new Promise(function (resolve, reject) {
 
-        return result.promise();
+            if (brackets.inBrowser) {
+                reject();
+            } else {
+                // HEAD contains a SHA in detached-head mode; otherwise it contains a relative path
+                // to a file in /refs which in turn contains the SHA
+                var file = FileSystem.getFileForPath(path);
+                FileUtils.readAsText(file).then(function (text) {
+                    if (text.indexOf("ref: ") === 0) {
+                        // e.g. "ref: refs/heads/branchname"
+                        var basePath    = path.substr(0, path.lastIndexOf("/")),
+                            refRelPath  = text.substr(5).trim(),
+                            branch      = text.substr(16).trim();
+
+                        _loadSHA(basePath + "/" + refRelPath, callback).done(function (data) {
+                            resolve({ branch: branch, sha: data.sha.trim() });
+                        }).fail(function () {
+                            resolve({ branch: branch });
+                        });
+                    } else {
+                        resolve({ sha: text });
+                    }
+                }, function () {
+                    reject();
+                });
+            }
+        });
     }
     
     /**
@@ -80,27 +79,26 @@ define(function (require, exports, module) {
      *     embedded at build-time in the package.json repository metadata.
      */
     function getBracketsSHA() {
-        var result = new $.Deferred();
-        
-        // Look for Git metadata on disk to load the SHAs for 'brackets'. Done on
-        // startup instead of on demand because the version that's currently running is what was
-        // loaded at startup (the src on disk may be updated to a different version later).
-        // Git metadata may be missing (e.g. in the per-sprint ZIP builds) - silently ignore if so.
-        var bracketsSrc = FileUtils.getNativeBracketsDirectoryPath();
-        
-        // Assumes Brackets is a standalone repo and not a submodule (prior to brackets-shell,
-        // brackets-app was setup this way)
-        var bracketsGitRoot = bracketsSrc.substr(0, bracketsSrc.lastIndexOf("/")) + "/.git/HEAD";
-        
-        _loadSHA(bracketsGitRoot).done(function (data) {
-            // Found a repository
-            result.resolve(data.branch, data.sha, true);
-        }).fail(function () {
-            // If package.json has repository data, Brackets is running from the installed /www folder
-            result.resolve(brackets.metadata.repository.branch, brackets.metadata.repository.SHA, false);
+
+        return new Promise(function (resolve, reject) {
+            // Look for Git metadata on disk to load the SHAs for 'brackets'. Done on
+            // startup instead of on demand because the version that's currently running is what was
+            // loaded at startup (the src on disk may be updated to a different version later).
+            // Git metadata may be missing (e.g. in the per-sprint ZIP builds) - silently ignore if so.
+            var bracketsSrc = FileUtils.getNativeBracketsDirectoryPath();
+
+            // Assumes Brackets is a standalone repo and not a submodule (prior to brackets-shell,
+            // brackets-app was setup this way)
+            var bracketsGitRoot = bracketsSrc.substr(0, bracketsSrc.lastIndexOf("/")) + "/.git/HEAD";
+
+            _loadSHA(bracketsGitRoot).then(function (data) {
+                // Found a repository
+                resolve(data.branch, data.sha, true);
+            }, function () {
+                // If package.json has repository data, Brackets is running from the installed /www folder
+                resolve(brackets.metadata.repository.branch, brackets.metadata.repository.SHA, false);
+            });
         });
-        
-        return result.promise();
     }
 
     exports.getBracketsSHA      = getBracketsSHA;

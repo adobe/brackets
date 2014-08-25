@@ -68,12 +68,15 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {jQuery.Deferred.<NodeConnection>}
-     * A deferred which is resolved with a NodeConnection or rejected if
+     * @type {promise: Promise, resolve: function, reject: function}
+     * A promise which is resolved with a NodeConnection or rejected if
      * we are unable to connect to Node.
      */
-// TODO: keep as jQuery Deferred for now - need to make this work for ES6 Promise
-    var _nodeConnectionDeferred = $.Deferred();
+    var _nodeConnectionPromise = {};
+    _nodeConnectionPromise.promise = new Promise(function (resolve, reject) {
+        _nodeConnectionPromise.resolve = resolve;
+        _nodeConnectionPromise.reject  = reject;
+    });
     
     /**
      * @type {number} Used to generate unique download ids
@@ -472,15 +475,15 @@ define(function (require, exports, module) {
     }
         
     /**
-     * Allows access to the deferred that manages the node connection. This
+     * Allows access to the promise that manages the node connection. This
      * is *only* for unit tests. Messing with this not in testing will
      * potentially break everything.
      *
      * @private
-     * @return {jQuery.Deferred} The deferred that manages the node connection
+     * @return {Promise} The promise that manages the node connection
      */
     function _getNodeConnectionDeferred() {
-        return _nodeConnectionDeferred;
+        return _nodeConnectionPromise;
     }
     
     // Initializes node connection
@@ -494,11 +497,11 @@ define(function (require, exports, module) {
             _nodeConnection.loadDomains(domainPath, true)
                 .then(
                     function () {
-                        _nodeConnectionDeferred.resolve();
+                        _nodeConnectionPromise.resolve();
                     },
                     function () { // Failed to connect
                         console.error("[Extensions] Failed to connect to node", arguments);
-                        _nodeConnectionDeferred.reject();
+                        _nodeConnectionPromise.reject();
                     }
                 );
         }, null);

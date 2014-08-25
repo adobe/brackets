@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils, window, Mustache */
+/*global define, $, brackets, PathUtils, window, Mustache, Promise */
 
 /**
  *  Utilities functions for displaying update notifications
@@ -124,7 +124,6 @@ define(function (require, exports, module) {
         // Last time the versionInfoURL was fetched
         var lastInfoURLFetchTime = PreferencesManager.getViewState("lastInfoURLFetchTime");
 
-        var result = new $.Deferred();
         var fetchData = false;
         var data;
         
@@ -139,90 +138,96 @@ define(function (require, exports, module) {
             fetchData = true;
         }
         
-        // If more than 24 hours have passed since our last fetch, fetch again
-        if ((new Date()).getTime() > lastInfoURLFetchTime + ONE_DAY) {
-            fetchData = true;
-        }
-        
-        if (fetchData) {
-            var lookupPromise = new $.Deferred(),
-                localVersionInfoUrl;
-
-            // If the current locale isn't "en" or "en-US", check whether we actually have a
-            //   locale-specific update notification, and fall back to "en" if not.
-            // Note: we check for both "en" and "en-US" to watch for the general case or
-            //    country-specific English locale.  The former appears default on Mac, while
-            //    the latter appears default on Windows.
-            var locale = brackets.getLocale().toLowerCase();
-            if (locale !== "en" && locale !== "en-us") {
-                localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl();
-                $.ajax({
-                    url: localVersionInfoUrl,
-                    cache: false,
-                    type: "HEAD"
-                }).fail(function (jqXHR, status, error) {
-                    // get rid of any country information from locale and try again
-                    var tmpUrl = _getVersionInfoUrl(brackets.getLocale(), true);
-                    if (tmpUrl !== localVersionInfoUrl) {
-                        $.ajax({
-                            url: tmpUrl,
-                            cache: false,
-                            type: "HEAD"
-                        }).fail(function (jqXHR, status, error) {
-                            localVersionInfoUrl = _getVersionInfoUrl("en");
-                        }).done(function (jqXHR, status, error) {
-                            localVersionInfoUrl = tmpUrl;
-                        }).always(function (jqXHR, status, error) {
-                            lookupPromise.resolve();
-                        });
-                    } else {
-                        localVersionInfoUrl = _getVersionInfoUrl("en");
-                        lookupPromise.resolve();
-                    }
-                }).done(function (jqXHR, status, error) {
-                    lookupPromise.resolve();
-                });
-            } else {
-                localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl("en");
-                lookupPromise.resolve();
+        return new Promise(function (outerResolve, outerReject) {
+            
+            // If more than 24 hours have passed since our last fetch, fetch again
+            if ((new Date()).getTime() > lastInfoURLFetchTime + ONE_DAY) {
+                fetchData = true;
             }
 
-            lookupPromise.done(function () {
-                $.ajax({
-                    url: localVersionInfoUrl,
-                    dataType: "json",
-                    cache: false
-                }).done(function (updateInfo, textStatus, jqXHR) {
-                    if (!dontCache) {
-                        lastInfoURLFetchTime = (new Date()).getTime();
-                        PreferencesManager.setViewState("lastInfoURLFetchTime", lastInfoURLFetchTime);
-                        PreferencesManager.setViewState("updateInfo", updateInfo);
-                    }
-                    result.resolve(updateInfo);
-                }).fail(function (jqXHR, status, error) {
-                    // When loading data for unit tests, the error handler is
-                    // called but the responseText is valid. Try to use it here,
-                    // but *don't* save the results in prefs.
-
-                    if (!jqXHR.responseText) {
-                        // Text is NULL or empty string, reject().
-                        result.reject();
-                        return;
-                    }
-
-                    try {
-                        data = JSON.parse(jqXHR.responseText);
-                        result.resolve(data);
-                    } catch (e) {
-                        result.reject();
+            if (fetchData) {
+                var localVersionInfoUrl;
+                
+                var lookupPromise = new Promise(function (lookupResolve, lookupReject) {
+                    // If the current locale isn't "en" or "en-US", check whether we actually have a
+                    //   locale-specific update notification, and fall back to "en" if not.
+                    // Note: we check for both "en" and "en-US" to watch for the general case or
+                    //    country-specific English locale.  The former appears default on Mac, while
+                    //    the latter appears default on Windows.
+                    var locale = brackets.getLocale().toLowerCase();
+                    if (locale !== "en" && locale !== "en-us") {
+                        localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl();
+                        $.ajax({
+                            url: localVersionInfoUrl,
+                            cache: false,
+                            type: "HEAD"
+                        }).then(null, function (jqXHR, status, error) {
+                            // get rid of any country information from locale and try again
+                            var tmpUrl = _getVersionInfoUrl(brackets.getLocale(), true);
+                            if (tmpUrl !== localVersionInfoUrl) {
+                                $.ajax({
+                                    url: tmpUrl,
+                                    cache: false,
+                                    type: "HEAD"
+                                }).then(function (jqXHR, status, error) {
+                                    localVersionInfoUrl = tmpUrl;
+                                }, function (jqXHR, status, error) {
+                                    localVersionInfoUrl = _getVersionInfoUrl("en");
+                                }).then(lookupResolve, lookupResolve);
+                            } else {
+                                localVersionInfoUrl = _getVersionInfoUrl("en");
+                                lookupResolve();
+                            }
+                        }).then(function (jqXHR, status, error) {
+                            lookupResolve();
+                        }, null);
+                    } else {
+                        localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl("en");
+                        lookupResolve();
                     }
                 });
-            });
-        } else {
-            result.resolve(data);
-        }
 
-        return result.promise();
+                lookupPromise.then(
+                    function () {
+                        $.ajax({
+                            url: localVersionInfoUrl,
+                            dataType: "json",
+                            cache: false
+                        }).then(
+                            function (updateInfo, textStatus, jqXHR) {
+                                if (!dontCache) {
+                                    lastInfoURLFetchTime = (new Date()).getTime();
+                                    PreferencesManager.setViewState("lastInfoURLFetchTime", lastInfoURLFetchTime);
+                                    PreferencesManager.setViewState("updateInfo", updateInfo);
+                                }
+                                outerResolve(updateInfo);
+                            },
+                            function (jqXHR, status, error) {
+                                // When loading data for unit tests, the error handler is
+                                // called but the responseText is valid. Try to use it here,
+                                // but *don't* save the results in prefs.
+
+                                if (!jqXHR.responseText) {
+                                    // Text is NULL or empty string, reject().
+                                    outerReject();
+                                    return;
+                                }
+
+                                try {
+                                    data = JSON.parse(jqXHR.responseText);
+                                    outerResolve(data);
+                                } catch (e) {
+                                    outerReject();
+                                }
+                            }
+                        );
+                    },
+                    null
+                );
+            } else {
+                outerResolve(data);
+            }
+        });
     }
     
     /**
@@ -255,12 +260,12 @@ define(function (require, exports, module) {
      */
     function _showUpdateNotificationDialog(updates) {
         Dialogs.showModalDialogUsingTemplate(Mustache.render(UpdateDialogTemplate, Strings))
-            .done(function (id) {
+            .then(function (id) {
                 if (id === Dialogs.DIALOG_BTN_DOWNLOAD) {
                     // The first entry in the updates array has the latest download link
                     NativeApp.openURLInDefaultBrowser(updates[0].downloadURL);
                 }
-            });
+            }, null);
         
         // Populate the update data
         var $dlg        = $(".update-dialog.instance"),
@@ -300,10 +305,10 @@ define(function (require, exports, module) {
             // icon is gray, no updates available
             if (currentTime > timeOfNextCheck) {
                 // downloadRegistry, will be resolved in _onRegistryDownloaded
-                ExtensionManager.downloadRegistry().done(function () {
+                ExtensionManager.downloadRegistry().then(function () {
                     // schedule another check in 24 hours + 2 minutes
                     setTimeout(checkForExtensionsUpdate, ONE_DAY + TWO_MINUTES);
-                });
+                }, null);
             } else {
                 // schedule the download of the registry in appropriate time
                 setTimeout(checkForExtensionsUpdate, (timeOfNextCheck - currentTime) + TWO_MINUTES);
@@ -320,7 +325,7 @@ define(function (require, exports, module) {
      *
      * @param {boolean} force If true, always show the notification dialog.
      * @param {Object} _testValues This should only be used for testing purposes. See comments for details.
-     * @return {$.Promise} jQuery Promise object that is resolved or rejected after the update check is complete.
+     * @return {Promise} Promise object that is resolved or rejected after the update check is complete.
      */
     function checkForUpdate(force, _testValues) {
         // This is the last version we notified the user about. If checkForUpdate()
@@ -334,100 +339,101 @@ define(function (require, exports, module) {
         // the update notification icon and saving prefs).
         var oldValues;
         var usingOverrides = false; // true if any of the values are overridden.
-        var result = new $.Deferred();
         var versionInfoUrl;
         
-        if (_testValues) {
-            oldValues = {};
+        return new Promise(function (resolve, reject) {
             
-            if (_testValues.hasOwnProperty("_buildNumber")) {
-                oldValues._buildNumber = _buildNumber;
-                _buildNumber = _testValues._buildNumber;
-                usingOverrides = true;
-            }
+            if (_testValues) {
+                oldValues = {};
 
-            if (_testValues.hasOwnProperty("lastNotifiedBuildNumber")) {
-                oldValues.lastNotifiedBuildNumber = lastNotifiedBuildNumber;
-                lastNotifiedBuildNumber = _testValues.lastNotifiedBuildNumber;
-                usingOverrides = true;
-            }
-
-            if (_testValues.hasOwnProperty("_versionInfoURL")) {
-                versionInfoUrl = _testValues._versionInfoURL;
-                usingOverrides = true;
-            }
-        }
-        
-        _getUpdateInformation(force || usingOverrides, usingOverrides, versionInfoUrl)
-            .done(function (versionInfo) {
-                // Get all available updates
-                var allUpdates = _stripOldVersionInfo(versionInfo, _buildNumber);
-                
-                // When running directly from GitHub source (as opposed to
-                // an installed build), _buildNumber is 0. In this case, if the
-                // test is not forced, don't show the update notification icon or
-                // dialog.
-                if (_buildNumber === 0 && !force) {
-                    result.resolve();
-                    return;
+                if (_testValues.hasOwnProperty("_buildNumber")) {
+                    oldValues._buildNumber = _buildNumber;
+                    _buildNumber = _testValues._buildNumber;
+                    usingOverrides = true;
                 }
-                
-                if (allUpdates) {
-                    // Always show the "update available" icon if any updates are available
-                    var $updateNotification = $("#update-notification");
-                    
-                    $updateNotification.css("display", "block");
-                    if (!_addedClickHandler) {
-                        _addedClickHandler = true;
-                        $updateNotification.on("click", function () {
-                            checkForUpdate(true);
-                        });
+
+                if (_testValues.hasOwnProperty("lastNotifiedBuildNumber")) {
+                    oldValues.lastNotifiedBuildNumber = lastNotifiedBuildNumber;
+                    lastNotifiedBuildNumber = _testValues.lastNotifiedBuildNumber;
+                    usingOverrides = true;
+                }
+
+                if (_testValues.hasOwnProperty("_versionInfoURL")) {
+                    versionInfoUrl = _testValues._versionInfoURL;
+                    usingOverrides = true;
+                }
+            }
+
+            _getUpdateInformation(force || usingOverrides, usingOverrides, versionInfoUrl).then(
+                function (versionInfo) {
+                    // Get all available updates
+                    var allUpdates = _stripOldVersionInfo(versionInfo, _buildNumber);
+
+                    // When running directly from GitHub source (as opposed to
+                    // an installed build), _buildNumber is 0. In this case, if the
+                    // test is not forced, don't show the update notification icon or
+                    // dialog.
+                    if (_buildNumber === 0 && !force) {
+                        resolve();
+                        return;
                     }
-                
-                    // Only show the update dialog if force = true, or if the user hasn't been
-                    // alerted of this update
-                    if (force || allUpdates[0].buildNumber >  lastNotifiedBuildNumber) {
-                        _showUpdateNotificationDialog(allUpdates);
-                        
-                        // Update prefs with the last notified build number
-                        lastNotifiedBuildNumber = allUpdates[0].buildNumber;
-                        // Don't save prefs is we have overridden values
-                        if (!usingOverrides) {
-                            PreferencesManager.setViewState("lastNotifiedBuildNumber", lastNotifiedBuildNumber);
+
+                    if (allUpdates) {
+                        // Always show the "update available" icon if any updates are available
+                        var $updateNotification = $("#update-notification");
+
+                        $updateNotification.css("display", "block");
+                        if (!_addedClickHandler) {
+                            _addedClickHandler = true;
+                            $updateNotification.on("click", function () {
+                                checkForUpdate(true);
+                            });
+                        }
+
+                        // Only show the update dialog if force = true, or if the user hasn't been
+                        // alerted of this update
+                        if (force || allUpdates[0].buildNumber >  lastNotifiedBuildNumber) {
+                            _showUpdateNotificationDialog(allUpdates);
+
+                            // Update prefs with the last notified build number
+                            lastNotifiedBuildNumber = allUpdates[0].buildNumber;
+                            // Don't save prefs is we have overridden values
+                            if (!usingOverrides) {
+                                PreferencesManager.setViewState("lastNotifiedBuildNumber", lastNotifiedBuildNumber);
+                            }
+                        }
+                    } else if (force) {
+                        // No updates are available. If force == true, let the user know.
+                        Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_ERROR,
+                            Strings.NO_UPDATE_TITLE,
+                            Strings.NO_UPDATE_MESSAGE
+                        );
+                    }
+
+                    if (oldValues) {
+                        if (oldValues.hasOwnProperty("_buildNumber")) {
+                            _buildNumber = oldValues._buildNumber;
+                        }
+                        if (oldValues.hasOwnProperty("lastNotifiedBuildNumber")) {
+                            lastNotifiedBuildNumber = oldValues.lastNotifiedBuildNumber;
                         }
                     }
-                } else if (force) {
-                    // No updates are available. If force == true, let the user know.
-                    Dialogs.showModalDialog(
-                        DefaultDialogs.DIALOG_ID_ERROR,
-                        Strings.NO_UPDATE_TITLE,
-                        Strings.NO_UPDATE_MESSAGE
-                    );
-                }
-        
-                if (oldValues) {
-                    if (oldValues.hasOwnProperty("_buildNumber")) {
-                        _buildNumber = oldValues._buildNumber;
+                    resolve();
+                },
+                function () {
+                    // Error fetching the update data. If this is a forced check, alert the user
+                    if (force) {
+                        Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_ERROR,
+                            Strings.ERROR_FETCHING_UPDATE_INFO_TITLE,
+                            Strings.ERROR_FETCHING_UPDATE_INFO_MSG
+                        );
                     }
-                    if (oldValues.hasOwnProperty("lastNotifiedBuildNumber")) {
-                        lastNotifiedBuildNumber = oldValues.lastNotifiedBuildNumber;
-                    }
+                    reject();
                 }
-                result.resolve();
-            })
-            .fail(function () {
-                // Error fetching the update data. If this is a forced check, alert the user
-                if (force) {
-                    Dialogs.showModalDialog(
-                        DefaultDialogs.DIALOG_ID_ERROR,
-                        Strings.ERROR_FETCHING_UPDATE_INFO_TITLE,
-                        Strings.ERROR_FETCHING_UPDATE_INFO_MSG
-                    );
-                }
-                result.reject();
-            });
-        
-        return result.promise();
+            );
+        });
     }
     
     /**

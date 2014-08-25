@@ -122,7 +122,7 @@ define(function (require, exports, module) {
      * something has/hasn't been installed successfully.
      * @type {Promise}
      */
-    InstallExtensionDialog.prototype._dialogDeferred = null;
+    InstallExtensionDialog.prototype._dialogPromise = null;
     
     
     /**
@@ -268,9 +268,9 @@ define(function (require, exports, module) {
             Dialogs.cancelModalDialogIfOpen("install-extension-dialog");
             if (prevState === STATE_INSTALLED || prevState === STATE_NEEDS_UPDATE ||
                     prevState === STATE_OVERWRITE_CONFIRMED) {
-                this._dialogDeferred.resolve(this._installResult);
+                this._dialogPromise.resolve(this._installResult);
             } else {
-                this._dialogDeferred.reject();
+                this._dialogPromise.reject();
             }
             break;
         }
@@ -362,7 +362,7 @@ define(function (require, exports, module) {
     InstallExtensionDialog.prototype.show = function (urlToInstall) {
         if (this._state !== STATE_CLOSED) {
             // Somehow the dialog got invoked twice. Just ignore this.
-            return this._dialogDeferred.promise();
+            return this._dialogPromise;
         }
 
         var context = {
@@ -400,10 +400,12 @@ define(function (require, exports, module) {
             this._enterState(STATE_INSTALLING);
         }
 
-        // TODO: keep this promise as jQuery for now
-        //       Need to figure out how to resolve/reject Promise callback. New event?
-        this._dialogDeferred = new $.Deferred();
-        return this._dialogDeferred.promise();
+        this._dialogPromise = {};
+        this._dialogPromise.promise = new Promise(function (resolve, reject) {
+            this._dialogPromise.resolve = resolve;
+            this._dialogPromise.reject  = reject;
+        });
+        return this._dialogPromise;
     };
     
     

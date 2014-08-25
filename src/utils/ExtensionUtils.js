@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, less, PathUtils */
+/*global define, $, brackets, less, PathUtils, Promise */
 
 /**
  * ExtensionUtils defines utility methods for implementing extensions.
@@ -48,10 +48,10 @@ define(function (require, exports, module) {
      * Appends a <link> tag to the document's head.
      *
      * @param {!string} url URL to a style sheet
-     * @param {$.Deferred=} deferred Optionally check for load and error events
+     * @param {{resolve: onFulfillment, reject: onReject}=} promiseCallbacks Optional callbacks for load and error events
      * @return {!HTMLLinkElement} The generated HTML node
      **/
-    function addLinkedStyleSheet(url, deferred) {
+    function addLinkedStyleSheet(url, promiseCallbacks) {
         var attributes = {
             type: "text/css",
             rel:  "stylesheet",
@@ -60,8 +60,8 @@ define(function (require, exports, module) {
         
         var $link = $("<link/>").attr(attributes);
         
-        if (deferred) {
-            $link.on('load', deferred.resolve).on('error', deferred.reject);
+        if (promiseCallbacks) {
+            $link.on('load', promiseCallbacks.resolve).on('error', promiseCallbacks.reject);
         }
         
         $link.appendTo("head");
@@ -90,11 +90,10 @@ define(function (require, exports, module) {
      *
      * @param {!string} code LESS code to parse
      * @param {?string} url URL to the file containing the code
-     * @return {!$.Promise} A promise object that is resolved with CSS code if the LESS code can be parsed
+     * @return {!Promise} A promise object that is resolved with CSS code if the LESS code can be parsed
      */
     function parseLessCode(code, url) {
-        var result = new $.Deferred(),
-            options;
+        var options;
         
         if (url) {
             var dir  = url.slice(0, url.lastIndexOf("/") + 1),
@@ -117,16 +116,16 @@ define(function (require, exports, module) {
             }
         }
         
-        var parser = new less.Parser(options);
-        parser.parse(code, function onParse(err, tree) {
-            if (err) {
-                result.reject(err);
-            } else {
-                result.resolve(tree.toCSS());
-            }
+        return new Promise(function (resolve, reject) {
+            var parser = new less.Parser(options);
+            parser.parse(code, function onParse(err, tree) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(tree.toCSS());
+                }
+            });
         });
-        
-        return result.promise();
     }
     
     /**
@@ -173,7 +172,7 @@ define(function (require, exports, module) {
      * 
      * @param {!module} module Module provided by RequireJS
      * @param {!string} path Relative path from the extension folder to a file
-     * @return {!$.Promise} A promise object that is resolved with the contents of the requested file
+     * @return {!Promise} A promise object that is resolved with the contents of the requested file
      **/
     function loadFile(module, path) {
         var url     = PathUtils.isAbsoluteUrl(path) ? path : getModuleUrl(module, path),
@@ -187,60 +186,56 @@ define(function (require, exports, module) {
      *
      * @param {!module} module Module provided by RequireJS
      * @param {!string} path Relative path from the extension folder to a CSS or LESS file
-     * @return {!$.Promise} A promise object that is resolved with an HTML node if the file can be loaded.
+     * @return {!Promise} A promise object that is resolved with an HTML node if the file can be loaded.
      */
     function loadStyleSheet(module, path) {
-        var result = new $.Deferred();
-
-        loadFile(module, path)
-            .done(function (content) {
-                var url = this.url;
-                
-                if (url.slice(-5) === ".less") {
-                    parseLessCode(content, url)
-                        .done(function (css) {
-                            result.resolve(addEmbeddedStyleSheet(css));
-                        })
-                        .fail(result.reject);
-                } else {
-                    var deferred = new $.Deferred(),
-                        link = addLinkedStyleSheet(url, deferred);
-                    
-                    deferred
-                        .done(function () {
-                            result.resolve(link);
-                        })
-                        .fail(result.reject);
-                }
-            })
-            .fail(result.reject);
         
-        return result.promise();
+        return new Promise(function (outerResolve, outerReject) {
+            loadFile(module, path)
+                .then(function (content) {
+                    var url = this.url;
+
+                    if (url.slice(-5) === ".less") {
+                        parseLessCode(content, url)
+                            .then(function (css) {
+                                outerResolve(addEmbeddedStyleSheet(css));
+                            }, outerReject);
+                    } else {
+                        var link;
+                        var innerPromise = new Promise(function (innerReseolve, innerReject) {
+                            link = addLinkedStyleSheet(url, { resolve: innerReseolve, reject: innerReject});
+                        });
+
+                        innerPromise
+                            .then(function () {
+                                outerResolve(link);
+                            }, outerReject);
+                    }
+                }, outerReject);
+        });
     }
     
     /**
      * Loads the package.json file in the given extension folder.
      *
      * @param {string} folder The extension folder.
-     * @return {$.Promise} A promise object that is resolved with the parsed contents of the package.json file,
+     * @return {Promise} A promise object that is resolved with the parsed contents of the package.json file,
      *     or rejected if there is no package.json or the contents are not valid JSON.
      */
     function loadPackageJson(folder) {
-        var file = FileSystem.getFileForPath(folder + "/package.json"),
-            result = new $.Deferred();
-        FileUtils.readAsText(file)
-            .done(function (text) {
-                try {
-                    var json = JSON.parse(text);
-                    result.resolve(json);
-                } catch (e) {
-                    result.reject();
-                }
-            })
-            .fail(function () {
-                result.reject();
-            });
-        return result.promise();
+        
+        return new Promise(function (resolve, reject) {
+            var file = FileSystem.getFileForPath(folder + "/package.json");
+            FileUtils.readAsText(file)
+                .then(function (text) {
+                    try {
+                        var json = JSON.parse(text);
+                        resolve(json);
+                    } catch (e) {
+                        reject();
+                    }
+                }, reject);
+        });
     }
     
     exports.addEmbeddedStyleSheet = addEmbeddedStyleSheet;

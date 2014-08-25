@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50*/
-/*global $, define, brackets, FileError */
+/*global $, define, brackets, FileError, Promise */
 
 define(function (require, exports, module) {
     "use strict";
@@ -49,55 +49,53 @@ define(function (require, exports, module) {
      * Open the given URL in the user's system browser, optionally enabling debugging.
      * @param {string} url The URL to open.
      * @param {boolean=} enableRemoteDebugging Whether to turn on remote debugging. Default false.
-     * @return {$.Promise} 
+     * @return {Promise} 
      */
     function openLiveBrowser(url, enableRemoteDebugging) {
-        var result = new $.Deferred();
         
-        brackets.app.openLiveBrowser(url, !!enableRemoteDebugging, function onRun(err, pid) {
-            if (!err) {
-                // Undefined ids never get removed from list, so don't push them on
-                if (pid !== undefined) {
-                    liveBrowserOpenedPIDs.push(pid);
+        return new Promise(function (resolve, reject) {
+            brackets.app.openLiveBrowser(url, !!enableRemoteDebugging, function onRun(err, pid) {
+                if (!err) {
+                    // Undefined ids never get removed from list, so don't push them on
+                    if (pid !== undefined) {
+                        liveBrowserOpenedPIDs.push(pid);
+                    }
+                    resolve(pid);
+                } else {
+                    reject(_browserErrToFileError(err));
                 }
-                result.resolve(pid);
-            } else {
-                result.reject(_browserErrToFileError(err));
-            }
+            });
         });
-        
-        return result.promise();
     }
     
     /** closeLiveBrowser
      *
-     * @return {$.Promise}
+     * @return {Promise}
      */
     function closeLiveBrowser(pid) {
-        var result = new $.Deferred();
-        
         if (isNaN(pid)) {
             pid = 0;
         }
-        brackets.app.closeLiveBrowser(function (err) {
-            if (!err) {
-                var i = liveBrowserOpenedPIDs.indexOf(pid);
-                if (i !== -1) {
-                    liveBrowserOpenedPIDs.splice(i, 1);
-                }
-                result.resolve();
-            } else {
-                result.reject(_browserErrToFileError(err));
-            }
-        }, pid);
         
-        return result.promise();
+        return new Promise(function (resolve, reject) {
+            brackets.app.closeLiveBrowser(function (err) {
+                if (!err) {
+                    var i = liveBrowserOpenedPIDs.indexOf(pid);
+                    if (i !== -1) {
+                        liveBrowserOpenedPIDs.splice(i, 1);
+                    }
+                    resolve();
+                } else {
+                    reject(_browserErrToFileError(err));
+                }
+            }, pid);
+        });
     }
     
     /** closeAllLiveBrowsers
      * Closes all the browsers that were tracked on open
      * TODO: does not seem to work on Windows
-     * @return {$.Promise}
+     * @return {Promise}
      */
     function closeAllLiveBrowsers() {
         //make a copy incase the array is edited as we iterate

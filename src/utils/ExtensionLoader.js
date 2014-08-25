@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, Promise */
 
 /**
  * ExtensionLoader searches the filesystem for extensions, then creates a new context for each one and loads it.
@@ -116,34 +116,34 @@ define(function (require, exports, module) {
      * @private
      * Loads optional requirejs-config.json file for an extension
      * @param {Object} baseConfig
-     * @return {$.Promise}
+     * @return {Promise}
      */
     function _mergeConfig(baseConfig) {
-        var deferred = new $.Deferred(),
-            extensionConfigFile = FileSystem.getFileForPath(baseConfig.baseUrl + "/requirejs-config.json");
+        
+        return new Promise(function (resolve, reject) {
+            var extensionConfigFile = FileSystem.getFileForPath(baseConfig.baseUrl + "/requirejs-config.json");
 
-        // Optional JSON config for require.js
-        FileUtils.readAsText(extensionConfigFile).done(function (text) {
-            try {
-                var extensionConfig = JSON.parse(text);
-                
-                // baseConfig.paths properties will override any extension config paths
-                _.extend(extensionConfig.paths, baseConfig.paths);
+            // Optional JSON config for require.js
+            FileUtils.readAsText(extensionConfigFile).then(function (text) {
+                try {
+                    var extensionConfig = JSON.parse(text);
 
-                // Overwrite baseUrl, context, locale (paths is already merged above)
-                _.extend(extensionConfig, _.omit(baseConfig, "paths"));
-                
-                deferred.resolve(extensionConfig);
-            } catch (err) {
-                // Failed to parse requirejs-config.json
-                deferred.reject("failed to parse requirejs-config.json");
-            }
-        }).fail(function () {
-            // If requirejs-config.json isn't specified, resolve with the baseConfig only
-            deferred.resolve(baseConfig);
+                    // baseConfig.paths properties will override any extension config paths
+                    _.extend(extensionConfig.paths, baseConfig.paths);
+
+                    // Overwrite baseUrl, context, locale (paths is already merged above)
+                    _.extend(extensionConfig, _.omit(baseConfig, "paths"));
+
+                    resolve(extensionConfig);
+                } catch (err) {
+                    // Failed to parse requirejs-config.json
+                    reject("failed to parse requirejs-config.json");
+                }
+            }, function () {
+                // If requirejs-config.json isn't specified, resolve with the baseConfig only
+                resolve(baseConfig);
+            });
         });
-
-        return deferred.promise();
     }
     
     /**
@@ -152,15 +152,15 @@ define(function (require, exports, module) {
      * @param {!string} name, used to identify the extension
      * @param {!{baseUrl: string}} config object with baseUrl property containing absolute path of extension
      * @param {!string} entryPoint, name of the main js file to load
-     * @return {!$.Promise} A promise object that is resolved when the extension is loaded, or rejected
+     * @return {!Promise} A promise object that is resolved when the extension is loaded, or rejected
      *              if the extension fails to load or throws an exception immediately when loaded.
      *              (Note: if extension contains a JS syntax error, promise is resolved not rejected).
      */
     function loadExtension(name, config, entryPoint) {
-        var promise = new $.Deferred();
-
-        // Try to load the package.json to figure out if we are loading a theme.
-        ExtensionUtils.loadPackageJson(config.baseUrl).always(promise.resolve);
+        var promise = new Promise(function (resolve, reject) {
+            // Try to load the package.json to figure out if we are loading a theme.
+            ExtensionUtils.loadPackageJson(config.baseUrl).always(resolve);
+        });
 
         return promise
             .then(function(metadata) {
@@ -170,7 +170,7 @@ define(function (require, exports, module) {
                 }
 
                 return loadExtensionModule(name, config, entryPoint);
-            })
+            }, null)
             .then(function () {
                 $(exports).triggerHandler("load", config.baseUrl);
             }, function (err) {
@@ -184,7 +184,7 @@ define(function (require, exports, module) {
      * @param {!string} name, used to identify the extension
      * @param {!{baseUrl: string}} config object with baseUrl property containing absolute path of extension
      * @param {!string} entryPoint, name of the main js file to load
-     * @return {!$.Promise} A promise object that is resolved when the extension is loaded, or rejected
+     * @return {!Promise} A promise object that is resolved when the extension is loaded, or rejected
      *              if the extension fails to load or throws an exception immediately when loaded.
      *              (Note: if extension contains a JS syntax error, promise is resolved not rejected).
      */
@@ -199,15 +199,15 @@ define(function (require, exports, module) {
         
         // Read optional requirejs-config.json
         var promise = _mergeConfig(extensionConfig).then(function (mergedConfig) {
-            // Create new RequireJS context and load extension entry point
-            var extensionRequire = brackets.libRequire.config(mergedConfig),
-                extensionRequireDeferred = new $.Deferred();
+            return new Promise(function (resolve, reject) {
+                // Create new RequireJS context and load extension entry point
+                var extensionRequire = brackets.libRequire.config(mergedConfig);
 
-            contexts[name] = extensionRequire;
-            extensionRequire([entryPoint], extensionRequireDeferred.resolve, extensionRequireDeferred.reject);
+                contexts[name] = extensionRequire;
+                extensionRequire([entryPoint], resolve, reject);
+            });
             
-            return extensionRequireDeferred.promise();
-        }).then(function (module) {
+        }, null).then(function (module) {
             // Extension loaded normally
             var initPromise;
 
@@ -221,16 +221,14 @@ define(function (require, exports, module) {
                 } catch (err) {
                     // Synchronous error while initializing extension
                     console.error("[Extension] Error -- error thrown during initExtension for " + name + ": " + err);
-                    return new $.Deferred().reject(err).promise();
+                    return new Promise(function (resolve, reject) {
+                        reject(err);
+                    });
                 }
 
                 // initExtension may be synchronous and may not return a promise
                 if (initPromise) {
-                    // WARNING: These calls to initPromise.fail() and initPromise.then(),
-                    // could also result in a runtime error if initPromise is not a valid
-                    // promise. Currently, the promise is wrapped via Async.withTimeout(),
-                    // so the call is safe as-is.
-                    initPromise.fail(function (err) {
+                    initPromise.then(null, function (err) {
                         if (err === Async.ERROR_TIMEOUT) {
                             console.error("[Extension] Error -- timeout during initExtension for " + name);
                         } else {
@@ -259,30 +257,30 @@ define(function (require, exports, module) {
      * @param {!string} name, used to identify the extension
      * @param {!{baseUrl: string}} config object with baseUrl property containing absolute path of extension
      * @param {!string} entryPoint, name of the main js file to load
-     * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
+     * @return {!Promise} A promise object that is resolved when all extensions complete loading.
      */
     function testExtension(name, config, entryPoint) {
-        var result = new $.Deferred(),
-            extensionPath = config.baseUrl + "/" + entryPoint + ".js";
         
-        FileSystem.resolve(extensionPath, function (err, entry) {
-            if (!err && entry.isFile) {
-                // unit test file exists
-                var extensionRequire = brackets.libRequire.config({
-                    context: name,
-                    baseUrl: config.baseUrl,
-                    paths: $.extend({}, config.paths, globalConfig)
-                });
-    
-                extensionRequire([entryPoint], function () {
-                    result.resolve();
-                });
-            } else {
-                result.reject();
-            }
+        return new Promise(function (resolve, reject) {
+            var extensionPath = config.baseUrl + "/" + entryPoint + ".js";
+
+            FileSystem.resolve(extensionPath, function (err, entry) {
+                if (!err && entry.isFile) {
+                    // unit test file exists
+                    var extensionRequire = brackets.libRequire.config({
+                        context: name,
+                        baseUrl: config.baseUrl,
+                        paths: $.extend({}, config.paths, globalConfig)
+                    });
+
+                    extensionRequire([entryPoint], function () {
+                        resolve();
+                    });
+                } else {
+                    reject();
+                }
+            });
         });
-        
-        return result.promise();
     }
     
     /**
@@ -294,46 +292,45 @@ define(function (require, exports, module) {
      * @param {!{baseUrl: string}} config object with baseUrl property containing absolute path of extension folder
      * @param {!string} entryPoint Module name to load (without .js suffix)
      * @param {function} processExtension 
-     * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
+     * @return {!Promise} A promise object that is resolved when all extensions complete loading.
      */
     function _loadAll(directory, config, entryPoint, processExtension) {
-        var result = new $.Deferred();
         
-        FileSystem.getDirectoryForPath(directory).getContents(function (err, contents) {
-            if (!err) {
-                var i,
-                    extensions = [];
-                
-                for (i = 0; i < contents.length; i++) {
-                    if (contents[i].isDirectory) {
-                        // FUTURE (JRB): read package.json instead of just using the entrypoint "main".
-                        // Also, load sub-extensions defined in package.json.
-                        extensions.push(contents[i].name);
-                    }
-                }
+        return new Promise(function (resolve, reject) {
+            FileSystem.getDirectoryForPath(directory).getContents(function (err, contents) {
+                if (!err) {
+                    var i,
+                        extensions = [];
 
-                if (extensions.length === 0) {
-                    result.resolve();
-                    return;
+                    for (i = 0; i < contents.length; i++) {
+                        if (contents[i].isDirectory) {
+                            // FUTURE (JRB): read package.json instead of just using the entrypoint "main".
+                            // Also, load sub-extensions defined in package.json.
+                            extensions.push(contents[i].name);
+                        }
+                    }
+
+                    if (extensions.length === 0) {
+                        resolve();
+                        return;
+                    }
+
+                    Async.doInParallel(extensions, function (item) {
+                        var extConfig = {
+                            baseUrl: config.baseUrl + "/" + item,
+                            paths: config.paths
+                        };
+                        return processExtension(item, extConfig, entryPoint);
+                    }).always(function () {
+                        // Always resolve the promise even if some extensions had errors
+                        resolve();
+                    });
+                } else {
+                    console.error("[Extension] Error -- could not read native directory: " + directory);
+                    reject();
                 }
-                
-                Async.doInParallel(extensions, function (item) {
-                    var extConfig = {
-                        baseUrl: config.baseUrl + "/" + item,
-                        paths: config.paths
-                    };
-                    return processExtension(item, extConfig, entryPoint);
-                }).always(function () {
-                    // Always resolve the promise even if some extensions had errors
-                    result.resolve();
-                });
-            } else {
-                console.error("[Extension] Error -- could not read native directory: " + directory);
-                result.reject();
-            }
+            });
         });
-               
-        return result.promise();
     }
     
     /**
@@ -341,7 +338,7 @@ define(function (require, exports, module) {
      *
      * @param {!string} directory, an absolute native path that contains a directory of extensions.
      *                  each subdirectory is interpreted as an independent extension
-     * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
+     * @return {!Promise} A promise object that is resolved when all extensions complete loading.
      */
     function loadAllExtensionsInNativeDirectory(directory) {
         return _loadAll(directory, {baseUrl: directory}, "main", loadExtension);
@@ -352,7 +349,7 @@ define(function (require, exports, module) {
      *
      * @param {!string} directory, an absolute native path that contains a directory of extensions.
      *                  each subdirectory is interpreted as an independent extension
-     * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
+     * @return {!Promise} A promise object that is resolved when all extensions complete loading.
      */
     function testAllExtensionsInNativeDirectory(directory) {
         var bracketsPath = FileUtils.getNativeBracketsDirectoryPath(),
@@ -374,14 +371,16 @@ define(function (require, exports, module) {
      * @param {?Array.<string>} A list containing references to extension source
      *      location. A source location may be either (a) a folder name inside
      *      src/extensions or (b) an absolute path.
-     * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
+     * @return {!Promise} A promise object that is resolved when all extensions complete loading.
      */
     function init(paths) {
         var params = new UrlParams();
         
         if (_init) {
             // Only init once. Return a resolved promise.
-            return new $.Deferred().resolve().promise();
+            return new Promise(function (resolve, reject) {
+                resolve();
+            });
         }
         
         if (!paths) {

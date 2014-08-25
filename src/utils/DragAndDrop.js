@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, brackets */
+/*global define, $, window, brackets, Promise */
 
 define(function (require, exports, module) {
     "use strict";
@@ -102,49 +102,46 @@ define(function (require, exports, module) {
             filteredFiles = filterFilesToOpen(files);
         
         return Async.doInParallel(filteredFiles, function (path, idx) {
-            var result = new $.Deferred();
             
-            // Only open files.
-            FileSystem.resolve(path, function (err, item) {
-                if (!err && item.isFile) {
-                    // If the file is already open, and this isn't the last
-                    // file in the list, return. If this *is* the last file,
-                    // always open it so it gets selected.
-                    if (idx < filteredFiles.length - 1) {
-                        if (DocumentManager.findInWorkingSet(path) !== -1) {
-                            result.resolve();
-                            return;
+            return new Promise(function (resolve, reject) {
+                // Only open files.
+                FileSystem.resolve(path, function (err, item) {
+                    if (!err && item.isFile) {
+                        // If the file is already open, and this isn't the last
+                        // file in the list, return. If this *is* the last file,
+                        // always open it so it gets selected.
+                        if (idx < filteredFiles.length - 1) {
+                            if (DocumentManager.findInWorkingSet(path) !== -1) {
+                                resolve();
+                                return;
+                            }
                         }
+
+                        CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET,
+                                               {fullPath: path, silent: true})
+                            .then(function () {
+                                resolve();
+                            }, function () {
+                                errorFiles.push(path);
+                                reject();
+                            });
+                    } else if (!err && item.isDirectory && filteredFiles.length === 1) {
+                        // One folder was dropped, open it.
+                        ProjectManager.openProject(path)
+                            .then(function () {
+                                resolve();
+                            }, function () {
+                                // User was already notified of the error.
+                                reject();
+                            });
+                    } else {
+                        errorFiles.push(path);
+                        reject();
                     }
-                    
-                    CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET,
-                                           {fullPath: path, silent: true})
-                        .done(function () {
-                            result.resolve();
-                        })
-                        .fail(function () {
-                            errorFiles.push(path);
-                            result.reject();
-                        });
-                } else if (!err && item.isDirectory && filteredFiles.length === 1) {
-                    // One folder was dropped, open it.
-                    ProjectManager.openProject(path)
-                        .done(function () {
-                            result.resolve();
-                        })
-                        .fail(function () {
-                            // User was already notified of the error.
-                            result.reject();
-                        });
-                } else {
-                    errorFiles.push(path);
-                    result.reject();
-                }
+                });
             });
-            
-            return result.promise();
         }, false)
-            .fail(function () {
+            .then(null, function () {
                 if (errorFiles.length > 0) {
                     var message = Strings.ERROR_OPENING_FILES;
                     
