@@ -122,7 +122,7 @@ define(function (require, exports, module) {
                         if (!err) {
                             // Does file's timestamp differ from last sync time on the Document?
                             var fileTime = stat.mtime.getTime();
-                            if (fileTime !== doc.diskTimestamp.getTime()) {
+                            if (doc.diskTimestamp && (fileTime !== doc.diskTimestamp.getTime())) {
                                 // If the user has chosen to keep changes that conflict with the
                                 // current state of the file on disk, then do nothing. This means
                                 // that even if the user later undoes back to clean, we won't

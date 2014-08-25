@@ -307,7 +307,7 @@ define(function (require, exports, module) {
                 };
                 ProjectManager.openProject(initialProjectPath).then(fnOpenProjectAlways, fnOpenProjectAlways);
             };
-            extensionLoaderPromise.then(fnLoadLanguagesPreferenceAlways, fnLoadLanguagesPreferenceAlways);
+            extensionLoaderPromise.then(fnExtensionLoaderAlways, fnExtensionLoaderAlways);
         };
         Async
             .waitForAll([LanguageManager.ready, PreferencesManager.ready])

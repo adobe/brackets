@@ -534,10 +534,10 @@ define(function (require, exports, module) {
      * @return {Promise} A promise object that will be resolved when the mode is loaded and set
      */
     Language.prototype._loadAndSetMode = function (mode) {
-        return new Promise(function (resolve, reject) {
+        var self = this;
 
-            var self        = this,
-                mimeMode; // Mode can be an array specifying a mode plus a MIME mode defined by that mode ["clike", "text/x-c++src"]
+        return new Promise(function (resolve, reject) {
+            var mimeMode; // Mode can be an array specifying a mode plus a MIME mode defined by that mode ["clike", "text/x-c++src"]
 
             if (Array.isArray(mode)) {
                 if (mode.length !== 2) {
