@@ -54,7 +54,8 @@ a:focus {
 
     .dark & {
         color: @dark-bc-text-link;
-        box-shadow: 0 0 0 1px @dark-bc-btn-border-focused-glow;
+        border: 1px solid @dark-bc-btn-border-focused;
+        box-shadow: none;
     }
 }
 
@@ -525,16 +526,16 @@ a:focus {
     height: 0px;
     width: 0px;
     position: absolute;
-    right: 6px;
+    right: 7px;
     top: 11px;
 
     /* dropdown triangle */
-    border-top: 4px solid @bc-btn-triangle;
+    border-top: 5px solid @bc-btn-triangle;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
 
     .dark & {
-        border-top: 4px solid @dark-bc-btn-triangle;
+        border-top: 5px solid @dark-bc-btn-triangle;
     }
 }
 .btn-dropdown.btn-mini::after {
@@ -577,14 +578,6 @@ a:focus {
 
             .dark & {
                 color: @dark-bc-text-thin-quiet;
-            }
-
-            &:hover {
-                background: @bc-menu-bg;
-                
-                .dark & {
-                    background: @dark-bc-bg-highlight;
-                }
             }
         }
     }
@@ -1160,10 +1153,12 @@ a[href^="http"] {
 
         .info-message {
             background-color: @bc-panel-bg;
+            color: @bc-text-thin-quiet;
             padding: 1em;
 
             .dark & {
                 background-color: @dark-bc-panel-bg;
+                color: @dark-bc-text-quiet;
             }
         }
 
@@ -1211,7 +1206,7 @@ a[href^="http"] {
                 color: @bc-text-thin-quiet;
 
                 .dark & {
-                    color: @dark-bc-text-thin-quiet;
+                    color: @dark-bc-text-quiet;
                 }
             }
             .alert {
@@ -1391,29 +1386,51 @@ input[type="color"],
 }
 
 .tooltip-inner {
+    background: @bc-menu-bg;
     box-shadow: 0 3px 9px @bc-shadow;
-    color: @bc-text;
+    color: @bc-menu-text;
     max-width: 220px;
     text-align: left;
 
     .dark & {
+        background: @dark-bc-menu-bg;
         box-shadow: 0 3px 9px @dark-bc-shadow;
-        color: @dark-bc-text;
+        color: @dark-bc-menu-text;
     }
 }
 
 .tooltip {
     &.top .tooltip-arrow {
+        border-top-color: @bc-menu-bg;
         left: 50%;
+        
+        .dark & {
+            border-top-color: @dark-bc-menu-bg;
+        }
     }
     &.right .tooltip-arrow {
+        border-right-color: @bc-menu-bg;
         top: 15px;
+        
+        .dark & {
+            border-right-color: @dark-bc-menu-bg;
+        }
     }
     &.left .tooltip-arrow {
+        border-left-color: @bc-menu-bg;
         top: 15px;
+        
+        .dark & {
+            border-left-color: @dark-bc-menu-bg;
+        }
     }
     &.bottom .tooltip-arrow {
+        border-bottom-color: @bc-menu-bg;
         left: 50%;
+        
+        .dark & {
+            border-bottom-color: @dark-bc-menu-bg;
+        }
     }
 }
 
@@ -1547,7 +1564,7 @@ input[type="color"],
         .dark & {
             background-color: @dark-bc-primary-btn-bg;
             border: 1px solid  @dark-bc-primary-btn-border;
-            box-shadow: inset 0 1px 0 @dark-bc-highlight-hard;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight;
             color: @dark-bc-text-alt
         }
 
@@ -1585,6 +1602,7 @@ input[type="color"],
         color: @bc-text-alt;
         font-weight: @font-weight-semibold;
         text-shadow: 0 -1px 0 @bc-shadow-small;
+        margin-right: 3px;
         
         .dark & {
             background-color: @dark-bc-secondary-btn-bg;

@@ -624,9 +624,9 @@ define(function (require, exports, module) {
     
     /**
      * Return a string that shows the literal parent hierarchy of the selector
-     * in selectorInfo.
+     * in info.
      *
-     * @param {!SelectorInfo} info SelectorInfo object with `selector`, `selectorGroup`, `parentSelectors` and other properties
+     * @param {!SelectorInfo} info
      * @param {boolean=} useGroup true to append selectorGroup instead of selector
      * @return {string} the literal parent hierarchy of the selector
      */
@@ -646,8 +646,27 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @typedef {{selector: !string,
+     *            ruleStartLine: number,
+     *            ruleStartChar: number,
+     *            selectorStartLine: number,
+     *            selectorStartChar: number,
+     *            selectorEndLine: number,
+     *            selectorEndChar: number,
+     *            selectorGroupStartLine: number,
+     *            selectorGroupStartChar: number,
+     *            selectorGroup: ?string,
+     *            declListStartLine: number,
+     *            declListStartChar: number,
+     *            declListEndLine: number,
+     *            declListEndChar: number,
+     *            level: number,
+     *            parentSelectors: ?string}} SelectorInfo 
+     */
+    
+    /**
      * Extracts all CSS selectors from the given text
-     * Returns an array of selectors. Each selector is an object with the following properties:
+     * Returns an array of SelectorInfo. Each SelectorInfo is an object with the following properties:
          selector:                 the text of the selector (note: comma separated selector groups like 
                                    "h1, h2" are broken into separate selectors)
          ruleStartLine:            line in the text where the rule (including preceding comment) appears
@@ -666,11 +685,14 @@ define(function (require, exports, module) {
          declListStartChar:        column in line where the declaration list for the rule starts
          declListEndLine:          line where the declaration list for the rule ends
          declListEndChar:          column in the line where the declaration list for the rule ends
-         level:                    the level of the current selector
+         level:                    the level of the current selector including any containing @media block in the 
+                                   nesting level count. Use this property with caution since it is primarily for internal
+                                   parsing use. For example, two sibling selectors may have different levels if one
+                                   of them is nested inside an @media block and it should not be used for sibling info.
          parentSelectors:          all ancestor selectors separated with '/' if the current selector is a nested one 
      * @param {!string} text CSS text to extract from
-     * @param {!string} documentMode language mode of the document that text belongs to
-     * @return {Array.<Object>} Array with objects specifying selectors.
+     * @param {?string} documentMode language mode of the document that text belongs to, default to css if undefined.
+     * @return {Array.<SelectorInfo>} Array with objects specifying selectors.
      */
     function extractAllSelectors(text, documentMode) {
         var state, lines, lineCount,
@@ -797,17 +819,19 @@ define(function (require, exports, module) {
 
         function _maybeProperty() {
             return (state.state !== "top" && state.state !== "block" &&
-                    stream.string.indexOf(";") !== -1);
+                    // Has a semicolon as in "rgb(0,0,0);", but not one of those after a LESS 
+                    // mixin parameter variable as in ".size(@width; @height)"
+                    stream.string.indexOf(";") !== -1 && !/\([^)]+;/.test(stream.string));
         }
 
         function _skipProperty() {
             while (token !== ";") {
-                // If there is a '{' or '}' or a comment before the ';',
+                // If there is a '{' or '}' before the ';',
                 // then stop skipping.
-                if (token === "{" || token === "}" || style === "comment") {
+                if (token === "{" || token === "}") {
                     return;
                 }
-                _nextTokenSkippingWhitespace();
+                _nextTokenSkippingComments();
             }
         }
         
@@ -818,13 +842,12 @@ define(function (require, exports, module) {
                 startChar = "{";
             }
             while (true) {
-                // Use regexp to detect '{' so that something like
-                // #{$class} in scss files won't be missed.
-                if ((startChar === "{" && /\{$/.test(token)) || startChar === token) {
+                if (token.indexOf(startChar) !== -1 && token.indexOf(_bracketPairs[startChar]) === -1) {
+                    // Found an opening bracket but not the matching closing bracket in the same token
                     unmatchedBraces++;
                 } else if (token === _bracketPairs[startChar]) {
                     unmatchedBraces--;
-                    if (unmatchedBraces === 0) {
+                    if (unmatchedBraces <= 0) {
                         skippedText += token;
                         return skippedText;
                     }
@@ -856,17 +879,18 @@ define(function (require, exports, module) {
             // Everything until the next ',' or '{' is part of the current selector
             while (token !== "," && token !== "{") {
                 if (token === "}" &&
-                        (!currentSelector || /:\s*\S/.test(currentSelector) || !/\{\w/.test(currentSelector))) {
+                        (!currentSelector || /:\s*\S/.test(currentSelector) || !/#\{.+/.test(currentSelector))) {
                     // Either empty currentSelector or currentSelector is a CSS property
                     // but not a selector that is in the form of #{$class}
                     return false;
                 }
-                if (token === ";" ||
+                // Clear currentSelector if we're in a property, but make sure we don't treat
+                // the semicolors inside a parameter as a property separators.
+                if ((token === ";" && state.state !== "parens") ||
                         // Make sure that something like `> li > a {` is not identified as a property
                         (state.state === "prop" && !/\{/.test(stream.string))) {
-                    // Clear currentSelector if we're in a property.
                     currentSelector = "";
-                } else if (token === "(" && /,/.test(stream.string)) {
+                } else if (token === "(") {
                     // Collect everything inside the parentheses as a whole chunk so that
                     // commas inside the parentheses won't be identified as selector separators
                     // by while loop.
@@ -1064,13 +1088,13 @@ define(function (require, exports, module) {
                 // Skip everything until the opening '{'
                 while (token !== "{") {
                     if (!_nextTokenSkippingComments()) {
-                        return; // eof
+                        return false; // eof
                     }
                 }
 
                 // skip past '{', to next non-ws token
                 if (!_nextTokenSkippingWhitespace()) {
-                    return; // eof
+                    return false; // eof
                 }
 
                 if (currentLevel <= level) {
@@ -1086,7 +1110,7 @@ define(function (require, exports, module) {
                     currentLevel--;
                 }
 
-            } else if (/@(charset|import|namespace|include|extend)/i.test(token) ||
+            } else if (/@(charset|import|namespace|include|extend|warn)/i.test(token) ||
                             !/\{/.test(stream.string)) {
                 
                 // This code handles @rules in this format:
@@ -1095,7 +1119,7 @@ define(function (require, exports, module) {
                 // Skip everything until the next ';'
                 while (token !== ";") {
                     if (!_nextTokenSkippingComments()) {
-                        return; // eof
+                        return false; // eof
                     }
                 }
                 
@@ -1105,7 +1129,11 @@ define(function (require, exports, module) {
                 // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
                 // Skip everything including nested braces until the next matching '}'
                 _skipToClosingBracket("{");
+                if (token === "}") {
+                    return false;
+                }
             }
+            return true;
         }
 
         // parse a style rule
@@ -1119,11 +1147,15 @@ define(function (require, exports, module) {
         }
         
         _parseRuleList = function (escapeToken, level) {
+            var skipNext = true;
             while ((!escapeToken) || token !== escapeToken) {
                 if (_isStartAtRule()) {
                     // @rule
-                    _parseAtRule(level);
-    
+                    if (!_parseAtRule(level) && level > 0) {
+                        skipNext = false;
+                    } else {
+                        skipNext = true;
+                    }
                 } else if (_isStartComment()) {
                     // comment - make this part of style rule
                     if (includeCommentInNextRule()) {
@@ -1141,6 +1173,7 @@ define(function (require, exports, module) {
                         return false;
                     }
                 } else {
+                    skipNext = true;    // reset skipNext
                     // Otherwise, it's style rule
                     if (!_parseRule(level === undefined ? 0 : level) && level > 0) {
                         return false;
@@ -1154,7 +1187,7 @@ define(function (require, exports, module) {
                     ruleStartLine = -1;
                 }
                 
-                if (!_nextTokenSkippingWhitespace()) {
+                if (skipNext && !_nextTokenSkippingWhitespace()) {
                     break;
                 }
             }
@@ -1248,7 +1281,7 @@ define(function (require, exports, module) {
      * Converts the results of _findAllMatchingSelectorsInText() into a simpler bag of data and
      * appends those new objects to the given 'resultSelectors' Array.
      * @param {Array.<{document:Document, lineStart:number, lineEnd:number}>} resultSelectors
-     * @param {Array.<{selectorGroupStartLine:number, declListEndLine:number, selector:string}>} selectorsToAdd
+     * @param {Array.<SelectorInfo>} selectorsToAdd
      * @param {!Document} sourceDoc
      * @param {!number} lineOffset Amount to offset all line number info by. Used if the first line
      *          of the parsed CSS text is not the first line of the sourceDoc.
@@ -1426,7 +1459,7 @@ define(function (require, exports, module) {
                     unmatchedBraces++;
                 } else if (ctx.token.string.match(_invertedBracketPairs[startChar])) {
                     unmatchedBraces--;
-                    if (unmatchedBraces === 0) {
+                    if (unmatchedBraces <= 0) {
                         return;
                     }
                 }
