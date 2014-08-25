@@ -62,10 +62,12 @@ define(function (require, exports, module) {
      *
      * Views that have a longer life span are added by calling addView to associate the view with a 
      * filename in the _views object.  These views are not destroyed until they are removed from the pane
-     * by calling one of the following: removeView, removeViews. , or reset
+     * by calling one of the following: removeView, removeViews, or reset
      *
      * Pane Object Events:
-     * viewListChange - triggered whenever there is a change the the pane's view state
+     * viewListChange - triggered wheneever there is a change to _viewList directly handled by this object that would not otherwise
+     *                  dispatch a WorkingSet event from MainViewManger
+     *                  (specificatlly pathRemove and fileNameChange events that are triggered by DocumentManager)
      * currentViewChange - triggered whenever the current view changes
      *
      * View Interface:
@@ -85,8 +87,8 @@ define(function (require, exports, module) {
      * }
      *  
      * When views are created they can be added to the pane by calling pane.addView().  Views can be created and parented by attaching directly
-     * to pane.$el -- if a library requires a parent node to create the view for instance.  All views, must expose an `$el` property so that the
-     * pane can manipulate the DOM when necessary (see showView, _reparent, etc...)
+     * to pane.$el -- if a library requires a parent node to create the view for instance (e.g. this._codeMirror = new CodeMirror(pane.$el, ...)).  
+     * All views, must expose an `$el` property so that the pane can manipulate the DOM element when necessary (e.g. showView, _reparent, etc...)
      *
      * $el
      *
@@ -116,6 +118,15 @@ define(function (require, exports, module) {
      *  Called throughout the life of the View to determine if a child compontent of the view has focus.  If the view has no child
      *  component then the view should just return false when this function is called.
      *
+     * destroy() 
+     *
+     *  Views must implement a destroy method to remove their DOM element at the very least.  There is no default
+     *  implementation and views should be hidden when this is called. The Pane object doesn't make assumptions
+     *  about when it is safe to remove a node. In some instances other cleanup  must take place before a view is
+     *  destroyed so the implementation details are left to the view.  
+     *
+     *  Views can implement a simple destroy by calling `this.$el.remove()` 
+     *
      * focus()
      *
      *  Called to tell the View to take focus.
@@ -140,11 +151,6 @@ define(function (require, exports, module) {
      * notifyVisiblityChange()
      * 
      *  Optional Notification callback called when the view's vsibility changes.  The view can perform any synchronization or state update it needs to do when its visiblity state changes.
-     *
-     * Events Dispatched from Pane Objects:
-     *  
-     *      viewListChange - triggered whenver the interal view list has changed due to the handling of a File object event.
-     *          
      */
     
     /**
@@ -731,7 +737,7 @@ define(function (require, exports, module) {
             this.destroyViewIfNotNeeded(oldView);
         }
         
-        if (newPath && (this.findInViewList(newPath) !== -1) && (!this._views.hasOwnProperty(newPath))) {
+        if (!this._views.hasOwnProperty(newPath)) {
             console.error(newPath + " found in pane working set but pane.addView() has not been called for the view created for it");
         }
     };
