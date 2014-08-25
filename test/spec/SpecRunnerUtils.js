@@ -445,9 +445,7 @@ define(function (require, exports, module) {
             addView: function (path, editor) {
             },
             showView: function (editor) {
-            },
-            reparent: function (editor) {
-                }
+            }
         };
     }
     

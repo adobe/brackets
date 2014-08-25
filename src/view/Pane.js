@@ -82,8 +82,17 @@ define(function (require, exports, module) {
      *      getScrollPos: function() - called to get the current view scroll state. @return {Object=}
      *      adjustScrollPos: function(state:Object=, heightDelta:number) - called to restore the scroll state and adjust the height by heightDelta
      *      notifyContainerChange: function() - called when the container has been changed
+     *      notifyVisiblityChange: function() - called when the view's visiblity state has changed
      * }
      *  
+     * When views are created they can be added to the pane by calling pane.addView().  Views can be created and parented by attaching directly
+     * to pane.$el -- if a library requires a parent node to create the view for instance.  All views, must expose an `$el` property so that the
+     * pane can manipulate the DOM when necessary (see showView, _reparent, etc...)
+     *
+     * $el
+     *
+     *  property that stores the jQuery wrapped DOM element of the view. All views must have one.
+     *
      * getFile()
      *
      *  Called throughout the life of a View when the current file is queried by the system.  Can be NULL
@@ -127,8 +136,12 @@ define(function (require, exports, module) {
      *
      * notifyContainerChange() 
      *
-     *  Notification callback when the container changes.  The view can perform any synchronization or state update it needs to do
+     *  Optional Notification callback called when the container changes.  The view can perform any synchronization or state update it needs to do when its parent container changes.
      *  
+     *  notifyVisiblityChange
+     * 
+     *  Optional Notification callback called when the view's vsibility changes.  The view can perform any synchronization or state update it needs to do when its visiblity state changes.
+     *
      * Events Dispatched from Pane Objects:
      *  
      *      viewListChange - triggered whenver the interal view list has changed due to the handling of a File object event.
@@ -136,7 +149,7 @@ define(function (require, exports, module) {
      */
     
     /**
-     * @typedef {$el: jQuery, getFile:function():File=, setVisible:function(visible:boolean), resizeToFit:function(forceRefresh:boolean), destroy:function(), hasFocus:function():boolean, childHasFocus:function():boolean, focus:function(), getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number)} View   
+     * @typedef {!$el: jQuery, getFile:function():!File, setVisible:function(visible:boolean), resizeToFit:function(forceRefresh:boolean), destroy:function(), hasFocus:function():boolean, childHasFocus:function():boolean, focus:function(), getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number),?notifyContainerChange: function(), ?notifyVisiblityChange: function(visiblit:boolean)} View   
      */
     
     /*
@@ -231,7 +244,12 @@ define(function (require, exports, module) {
         return name + ".pane-" + this.id;
     };
 
-    Pane.prototype.reparent = function (view) {
+   /**
+     * Reparents a view to this pane
+     * @private
+     * @param {!View} view - the view to reparent
+     */
+    Pane.prototype._reparent = function (view) {
         view.$el.appendTo(this.$el);
         this._views[view.getFile().fullPath] = view;
         if (view.hasOwnProperty("notifyContainerChange")) {
@@ -250,7 +268,7 @@ define(function (require, exports, module) {
         
         if (other._currentView) {
             // hide the current views and show the interstitial page
-            other._currentView.setVisible(false);
+            this._setViewVisibility(other._currentView, false);
             other.showInterstitial(true);
             other._currentView = null;
             // The current view is getting reset later but
@@ -273,7 +291,7 @@ define(function (require, exports, module) {
                 fullPath = file && file.fullPath;
             if (fullPath && other.findInViewList(fullPath) !== -1) {
                 // switch the container to this Pane
-                self.reparent(view);
+                self._reparent(view);
             } else {
                 // We don't copy temporary views so destroy them
                 viewsToDestroy.push(view);
@@ -654,9 +672,28 @@ define(function (require, exports, module) {
             return;
         }
         
-        this._views[path] = view;
+        if (view.$el.parent() !== this.$el) {
+            this._reparent(view);
+        } else {
+            this._views[path] = view;
+        }
+
+        
         if (show) {
             this.showView(view);
+        }
+    };
+    
+    /**
+     * Shows or hides a view
+     * @param {!View} view - the to show or hide
+     * @param {boolean} visible - true to show the view, false to hide it
+     * @private
+     */
+    Pane.prototype._setViewVisibility = function (view, visible) {
+        view.$el.css("display", (visible ? "" : "none"));
+        if (view.hasOwnProperty("notifyVisibilityChange")) {
+            view.notifyVisibilityChange(visible);
         }
     };
     
@@ -668,7 +705,7 @@ define(function (require, exports, module) {
      */
     Pane.prototype.showView = function (view) {
         if (this._currentView && this._currentView === view) {
-            this._currentView.setVisible(true);
+            this._setViewVisibility(this._currentView, true);
             this.updateLayout(true);
             return;
         }
@@ -681,13 +718,13 @@ define(function (require, exports, module) {
             if (this._currentView.hasOwnProperty("document")) {
                 EditorManager._saveEditorViewState(this._currentView);
             }
-            this._currentView.setVisible(false);
+            this._setViewVisibility(this._currentView, false);
         } else {
             this.showInterstitial(false);
         }
         
         this._currentView = view;
-        this._currentView.setVisible(true);
+        this._setViewVisibility(this._currentView, true);
         this.updateLayout();
         
         $(this).triggerHandler("currentViewChange", [view, oldView]);

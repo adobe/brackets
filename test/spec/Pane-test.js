@@ -56,9 +56,6 @@ define(function (require, exports, module) {
                 getFile: function () {
                     return this.file;
                 },
-                setVisible : function (visible) {
-                    this._visible = visible;
-                },
                 resizeToFit: function (hint) {
                 },
                 destroy: function () {
@@ -78,6 +75,9 @@ define(function (require, exports, module) {
                 adjustScrollPos: function () {
                 },
                 notifyContainerChange: function () {
+                },
+                notifyVisibilityChange: function (visible) {
+                    this._visible = visible;
                 }
             };
         }
@@ -120,13 +120,13 @@ define(function (require, exports, module) {
                 expect(myPane._views[myView.getFullPath()]).toEqual(myView);
             });
             it("should show a view", function () {
-                spyOn(myView, "setVisible").andCallThrough();
+                spyOn(myView, "notifyVisibilityChange").andCallThrough();
                 spyOn(myView, "getFile").andCallThrough();
                 spyOn(myView, "resizeToFit");
                 
                 myPane.showView(myView);
                 
-                expect(myView.setVisible).toHaveBeenCalled();
+                expect(myView.notifyVisibilityChange).toHaveBeenCalled();
                 expect(myView.resizeToFit).toHaveBeenCalled();
                 expect(myView.getFile).toHaveBeenCalled();
                 expect(myView._visible).toBeTruthy();

@@ -72,14 +72,14 @@ define(function (require, exports, module) {
                 EditorManager.openDocument(testDoc, pane);
                 expect(pane.addView).toHaveBeenCalled();
             });
-            it("should reparent an existing editor for a document and show the editor", function () {
-                spyOn(pane, "reparent");
+            it("should use an existing editor for a document and show the editor", function () {
+                spyOn(pane, "addView");
                 spyOn(pane, "showView");
                 var editor = SpecRunnerUtils.createEditorInstance(testDoc, pane.$el);
                 EditorManager.openDocument(testDoc, pane);
+                expect(pane.addView).toHaveBeenCalled();
                 expect(pane.showView).toHaveBeenCalled();
-                expect(pane.reparent).toHaveBeenCalled();
-                expect(pane.reparent.calls[0].args[0]).toEqual(editor);
+                expect(pane.addView.calls[0].args[0]).toEqual(editor);
             });
             it("should remember a file's view state", function () {
                 EditorManager._addViewStates({ a: "1234" });

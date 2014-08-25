@@ -412,7 +412,7 @@ define(function (require, exports, module) {
      * sole purpose of creating an inline editor so operations that require a master editor can be performed
      * Only called from Document._ensureMasterEditor()
      * The editor view is placed in a hidden part of the DOM but can later be moved to a visible pane 
-     * when the document is opened using pane.reparent()
+     * when the document is opened using pane.addView()
      * @param {!Document} doc - document to create a hidden editor for
      */
     function _createUnattachedMasterEditor(doc) {
@@ -607,9 +607,9 @@ define(function (require, exports, module) {
             // Editor doesn't exist: populate a new Editor with the text
             _createFullEditorForDocument(document, pane);
         } else if (editor.$el.parent() !== pane.$el) {
-            // editor does exist but is not a child of the pane with which
-            //  to show it so we need to add the view and switch the container of the editor
-            pane.reparent(editor);
+            // editor does exist but is not a child of the pane so add it to the 
+            //  pane (which will switch the view's container as well)
+            pane.addView(editor);
         }
 
         // show the view
