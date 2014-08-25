@@ -132,13 +132,13 @@ define(function (require, exports, module) {
      *  scroll the view so that it doesn't appear to have "jumped" when invoking a modal bar. 
      *
      *  Height delta will be a positivewhen the Modal Bar is being shown and negative number when the Modal Bar is being hidden.  
-     *  
+     *
      * notifyContainerChange() 
-     *  
+     *
      *  Optional Notification callback called when the container changes.  The view can perform any synchronization or state update it needs to do when its parent container changes.
-     *
+     *  
      * notifyVisiblityChange()
-     *
+     * 
      *  Optional Notification callback called when the view's vsibility changes.  The view can perform any synchronization or state update it needs to do when its visiblity state changes.
      *
      * Events Dispatched from Pane Objects:
@@ -242,8 +242,8 @@ define(function (require, exports, module) {
     Pane.prototype._makeEventName = function (name) {
         return name + ".pane-" + this.id;
     };
-    
-    /**
+
+   /**
      * Reparents a view to this pane
      * @private
      * @param {!View} view - the view to reparent
@@ -251,7 +251,7 @@ define(function (require, exports, module) {
     Pane.prototype._reparent = function (view) {
         view.$el.appendTo(this.$el);
         this._views[view.getFile().fullPath] = view;
-        if (view.hasOwnProperty("notifyContainerChange")) {
+        if (view.notifyContainerChange) {
             view.notifyContainerChange();
         }
     };
@@ -690,7 +690,7 @@ define(function (require, exports, module) {
      */
     Pane.prototype._setViewVisibility = function (view, visible) {
         view.$el.css("display", (visible ? "" : "none"));
-        if (view.hasOwnProperty("notifyVisibilityChange")) {
+        if (view.notifyVisibilityChange) {
             view.notifyVisibilityChange(visible);
         }
     };
