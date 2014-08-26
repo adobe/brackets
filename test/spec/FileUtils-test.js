@@ -53,6 +53,23 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("convertToNativePath", function () {
+            it("should convert windows URL syntax to Windows native path.", function () {
+                expect(FileUtils.convertToNativePath("/C:/foo/bar/baz.txt")).toBe("C:/foo/bar/baz.txt");
+            });
+			
+			it("should not modify a windows non-URL path syntax.", function () {
+                expect(FileUtils.convertToNativePath("C:/foo/bar/baz.txt")).toBe("C:/foo/bar/baz.txt");
+            });
+			
+			it("should not modify a posix path.", function () {
+                expect(FileUtils.convertToNativePath("/foo/bar/baz.txt")).toBe("/foo/bar/baz.txt");
+				expect(FileUtils.convertToNativePath("foo/bar/baz.txt")).toBe("foo/bar/baz.txt");
+				expect(FileUtils.convertToNativePath("/foo/bar/")).toBe("/foo/bar/");
+				expect(FileUtils.convertToNativePath("foo/bar/")).toBe("foo/bar/");
+	    	});
+        });
+
         describe("getDirectoryPath", function () {
             
             it("should get the parent directory of a normalized win file path", function () {
