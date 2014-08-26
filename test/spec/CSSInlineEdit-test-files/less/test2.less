@@ -13,3 +13,70 @@
         }
     }
 }
+
+/* This is a single line comment that should appear in the inline editor as first line */
+.comment1 {
+    text-align: center;
+}
+
+/* This is a multiline comment
+ * that should appear in the inline editor
+ */
+.comment2 {
+    text-decoration: overline;
+}
+
+.comment3 {
+    text-decoration: underline; /* EOL comment {}(,;:) */
+}
+
+.confuse1 {
+    /* {this comment is special(;:,)} */
+    .special {
+        color: #ff8000;
+    }
+}
+
+.compressed{color:red}
+
+// selector groups
+#main {
+    .uno, .dos {
+        color: red
+    }
+
+    .dos {
+        font-size: 20px;
+    }
+}
+
+#main2 {
+    .tres,
+    .quattro {
+        color: blue;
+    }
+}
+
+// Variables
+@mySelector: testbanner;
+
+// Usage
+.@{mySelector} {
+  font-weight: bold;
+  line-height: 40px;
+  margin: 0 auto;
+}
+
+// Mixins
+.a, #b {
+    color: red;
+}
+
+.mixina-class {
+    .a();
+}
+
+.mixinb-id {
+    #b();
+}
+
