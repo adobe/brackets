@@ -539,7 +539,7 @@ define(function (require, exports, module) {
                 // Sort the registry by last published date and store the sorted list of IDs.
                 self.sortedFullSet = registry_utils.sortRegistry(self.extensions, "registryInfo")
                     .filter(function (entry) {
-                        return entry.installInfo === undefined && entry.registryInfo !== undefined && entry.registryInfo.metadata.theme;
+                        return entry.registryInfo !== undefined && entry.registryInfo.metadata.theme;
                     })
                     .map(function (entry) {
                         return entry.registryInfo.metadata.name;
