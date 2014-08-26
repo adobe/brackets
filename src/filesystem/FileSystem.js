@@ -864,7 +864,8 @@ define(function (require, exports, module) {
         // objects may cache their contents. See FileSystemEntry._isWatched.
         watchedRoot.status = WatchedRoot.STARTING;
         
-        this._watchEntry(entry, watchedRoot, function (err) {
+        this._watchEntry(entry, watchedRoot, function (args) {
+            var err = args[0];
             if (err) {
                 console.warn("Failed to watch root: ", entry.fullPath, err);
                 delete this._watchedRoots[fullPath];
