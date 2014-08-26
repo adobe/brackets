@@ -1,0 +1,17 @@
+$font-size: 10;
+$height: 20;
+$color: red;
+
+p {
+    $font-size: 12px;
+    $line-height: 30px;
+    font: #{$font-size}/#{$line-height};
+}
+
+#scss-1 {
+    background-color: blue;
+}
+
+#scss-2 {
+    background-color: red;
+}

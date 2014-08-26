@@ -112,12 +112,19 @@ define(function (require, exports, module) {
         }
 
         function checkAvailableStylesheets(availableFilesInDropdown) {
-            expect(availableFilesInDropdown.length).toBe(4);
+            expect(availableFilesInDropdown.length).toBe(5);
             expect(availableFilesInDropdown[0].textContent).toEqual("test.css");
             expect(availableFilesInDropdown[1].textContent).toEqual("test.less");
-            expect(availableFilesInDropdown[2].textContent).toEqual("test2.css");
-            expect(availableFilesInDropdown[3].textContent).toEqual("test2.less");
+            expect(availableFilesInDropdown[2].textContent).toEqual("test.scss");
+            expect(availableFilesInDropdown[3].textContent).toEqual("test2.css");
+            expect(availableFilesInDropdown[4].textContent).toEqual("test2.less");
         }
+
+        function getInlineEditorContent(ranges) {
+            var document = ranges.textRange.document;
+
+            return document.getRange({line: ranges.textRange.startLine, ch: 0}, {line: ranges.textRange.endLine, ch: document.getLine(ranges.textRange.endLine).length});
+            }
 
         describe("CSS", function () {
             beforeEach(function () {
@@ -178,7 +185,7 @@ define(function (require, exports, module) {
                     dropdownButton().click();
 
                     var availableFilesInDropdown = dropdownMenu().children();
-                    expect(availableFilesInDropdown.length).toBe(4);
+                    expect(availableFilesInDropdown.length).toBe(5);
                     checkAvailableStylesheets(availableFilesInDropdown);
                     expect(inlineEditorFileName()[0].text).toEqual("test.css : 8");
 
@@ -204,12 +211,6 @@ define(function (require, exports, module) {
             afterEach(function () {
                 closeFilesInTestWindow();
             });
-
-            function getInlineEditorContent(ranges) {
-                var document = ranges.textRange.document;
-
-                return document.getRange({line: ranges.textRange.startLine, ch: 0}, {line: ranges.textRange.endLine, ch: document.getLine(ranges.textRange.endLine).length});
-            }
 
             it("should show no matching rule in inline editor", function () {
                 runs(function () {
@@ -510,6 +511,59 @@ define(function (require, exports, module) {
                             expect(files[0].textContent).toEqual(".mixina-class — test2.less : 75");
                         });
                     });
+                });
+            });
+        });
+
+        describe("SCSS", function () {
+            beforeEach(function () {
+                loadFile("index-css.html");
+            });
+
+            afterEach(function () {
+                closeFilesInTestWindow();
+            });
+
+            // The following tests will succeed, but once the issue is fixed they will fail
+            it("should show one matching rule in inline editor", function () {
+                runs(function () {
+                    var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 25, ch: 10});
+                    waitsForDone(promise, "Open inline editor");
+                });
+
+                runs(function () {
+                    expect(inlineEditorFileName()[0].text).toEqual("test.scss : 5");
+
+                    var inlineWidget = getInlineEditorWidget();
+                    var ranges = inlineWidget._ranges[0];
+
+                    expect(getInlineEditorContent(ranges)).toEqual("p {\n    $font-size: 12px;\n    $line-height: 30px;\n    font: #{$font-size}/#{$line-height};");
+
+                    // It's not visible
+                    var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                    expect(files.length).toBe(1);
+                    expect(files[0].textContent).toEqual("p — test.scss : 5");
+                });
+            });
+
+            xit("should show one matching rule in inline editor which is defined after rule that uses variable interpolation as property value", function () {
+                runs(function () {
+                    var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 28, ch: 20});
+                    waitsForDone(promise, "Open inline editor");
+                });
+
+                runs(function () {
+                    expect(inlineEditorFileName()[0].text).toEqual("test.scss : 11");
+
+                    var inlineWidget = getInlineEditorWidget();
+                    var ranges = inlineWidget._ranges[0];
+
+                    expect(getInlineEditorContent(ranges)).toEqual("p {\n    font-size: ($font-size * 1.20)px;\n    height: ($height + 20)px;\n}");
+
+                    // It's not visible
+                    var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                    expect(files.length).toBe(1);
+                    expect(files[0].textContent).toEqual("p — test.scss : 5");
                 });
             });
         });
