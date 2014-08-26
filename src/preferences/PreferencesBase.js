@@ -160,10 +160,11 @@ define(function (require, exports, module) {
          * @return {Promise} Resolved with the data once it has been parsed.
          */
         load: function () {
+            var self = this;
+            
             return new Promise(function (resolve, reject) {
-                var path = this.path;
-                var createIfNew = this.createIfNew;
-                var self = this;
+                var path = self.path;
+                var createIfNew = self.createIfNew;
 
                 if (path) {
                     var prefFile = FileSystem.getFileForPath(path);
@@ -1629,10 +1630,14 @@ console.log("PreferencesBase: _tryAddToScopeOrder - MUST FIX $.Deferred.state() 
                     if (this._nextSavePromise) {
                         this.save();
                     }
-                    this._nextSaveCallbacks.resolve();
+                    if (this._nextSaveCallbacks.resolve) {
+                        this._nextSaveCallbacks.resolve();
+                    }
                 }.bind(this),
                 function (err) {
-                    this._nextSaveCallbacks.reject(err);
+                    if (this._nextSaveCallbacks.reject) {
+                        this._nextSaveCallbacks.reject(err);
+                    }
                 }
             );
             

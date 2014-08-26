@@ -267,7 +267,9 @@ define(function (require, exports, module) {
         return new Promise(function (resolve, reject) {
             
             // Called after a successful connection to do final setup steps
-            function registerHandlersAndDomains(ws, port) {
+            function registerHandlersAndDomains(args) {
+                var ws   = args[0],
+                    port = args[1];
                 
                 // Called if we succeed at the final setup
                 function success() {
@@ -383,7 +385,7 @@ define(function (require, exports, module) {
             promiseReject  = reject;
             
             if (this.domains.base && this.domains.base.loadDomainModulesFromPaths) {
-                this.domains.base.loadDomainModulesFromPaths(pathArray).then(
+                this.domains.base.loadDomainModulesFromPaths(pathArray).promise.then(
                     function (success) { // command call succeeded
                         if (!success) {
                             // response from commmand call was "false" so we know
@@ -401,7 +403,7 @@ define(function (require, exports, module) {
             } else {
                 reject("this.domains.base is undefined");
             }
-        });
+        }.bind(this));
 
         this._pendingInterfaceRefreshPromises.push({
             promise: promise,
@@ -409,7 +411,7 @@ define(function (require, exports, module) {
             reject:  promiseReject
         });
     
-        setPromiseTimeout(promise, CONNECTION_TIMEOUT);
+        setPromiseTimeout(promise, CONNECTION_TIMEOUT, promiseReject);
         
         return promise;
     };
@@ -506,15 +508,15 @@ define(function (require, exports, module) {
             break;
         case "commandResponse":
             responsePromise = this._pendingCommandPromises[m.message.id];
-            if (responsePromise) {
-                responsePromise.resolve([m.message.response]).bind(this);
+            if (responsePromise && responsePromise.resolve) {
+                (responsePromise.resolve.bind(this))([m.message.response]);
                 delete this._pendingCommandPromises[m.message.id];
             }
             break;
         case "commandError":
             responsePromise = this._pendingCommandPromises[m.message.id];
-            if (responsePromise) {
-                responsePromise.reject([m.message.message, m.message.stack]).bind(this);
+            if (responsePromise && responsePromise.reject) {
+                (responsePromise.reject.bind(this))([m.message.message, m.message.stack]);
                 delete this._pendingCommandPromises[m.message.id];
             }
             break;
@@ -587,7 +589,7 @@ define(function (require, exports, module) {
                     }
                 );
             } else {
-                outerPromise.reject("Attempted to call _refreshInterface when not connected.");
+                outerReject("Attempted to call _refreshInterface when not connected.");
             }
         });
         

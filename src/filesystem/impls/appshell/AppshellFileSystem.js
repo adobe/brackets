@@ -539,7 +539,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            _nodeDomain.exec("watchPath", path)
+            _nodeDomain.exec("watchPath", path).promise
                 .then(callback, callback);
         });
     }
