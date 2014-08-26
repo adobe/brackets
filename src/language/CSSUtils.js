@@ -817,24 +817,6 @@ define(function (require, exports, module) {
             return true;
         }
 
-        function _maybeProperty() {
-            return (state.state !== "top" && state.state !== "block" &&
-                    // Has a semicolon as in "rgb(0,0,0);", but not one of those after a LESS 
-                    // mixin parameter variable as in ".size(@width; @height)"
-                    stream.string.indexOf(";") !== -1 && !/\([^)]+;/.test(stream.string));
-        }
-
-        function _skipProperty() {
-            while (token !== ";") {
-                // If there is a '{' or '}' before the ';',
-                // then stop skipping.
-                if (token === "{" || token === "}") {
-                    return;
-                }
-                _nextTokenSkippingComments();
-            }
-        }
-        
         function _skipToClosingBracket(startChar) {
             var skippedText = "",
                 unmatchedBraces = 0;
@@ -860,6 +842,38 @@ define(function (require, exports, module) {
             }
         }
 
+        function _maybeProperty() {
+            return (state.state !== "top" && state.state !== "block" &&
+                    // Has a semicolon as in "rgb(0,0,0);", but not one of those after a LESS 
+                    // mixin parameter variable as in ".size(@width; @height)"
+                    stream.string.indexOf(";") !== -1 && !/\([^)]+;/.test(stream.string));
+        }
+
+        function _skipProperty() {
+            var prevToken = "";
+            while (token !== ";") {
+                // Skip tokens until the closing brace if we find an interpolated variable.
+                if (/#\{$/.test(token) || (token === "{" && /@$/.test(prevToken))) {
+                    _skipToClosingBracket("{");
+                    if (token === "}") {
+                        _nextToken();   // Skip the closing brace
+                    }
+                    if (token === ";") {
+                        break;
+                    }
+                }
+                // If there is a '{' or '}' before the ';',
+                // then stop skipping.
+                if (token === "{" || token === "}") {
+                    return;
+                }
+                prevToken = token;
+                if (!_nextTokenSkippingComments()) {
+                    break;
+                }
+            }
+        }
+        
         function _getParentSelectors() {
             var j;
             for (j = selectors.length - 1; j >= 0; j--) {
@@ -1077,8 +1091,12 @@ define(function (require, exports, module) {
             return (/^@/.test(token) && !/^@mixin/i.test(token) && token !== "@");
         }
         
+        function _followedByPseudoSelector() {
+            return (/\}:(enabled|disabled|checked|indeterminate|link|visited|hover|active|focus|target|lang|root|nth-|first-|last-|only-|empty|not)/.test(stream.string));
+        }
+                    
         function _isVariableInterpolatedProperty() {
-            return (/@\{\S+\}\s*:/.test(stream.string));
+            return (/[@#]\{\S+\}(\s*:|.*;)/.test(stream.string) && !_followedByPseudoSelector());
         }
         
         function _parseAtRule(level) {
@@ -1159,10 +1177,6 @@ define(function (require, exports, module) {
             var skipNext = true;
             while ((!escapeToken) || token !== escapeToken) {
                 if (_isVariableInterpolatedProperty()) {
-                    // Skip the interpolated variable in the form of @{property}
-                    // including the closing brace.
-                    _skipToClosingBracket("{");
-                    _nextToken();   // skip the closing brace
                     _skipProperty();
                 } else if (_isStartAtRule()) {
                     // @rule
