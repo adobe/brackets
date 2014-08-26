@@ -303,7 +303,7 @@ define(function (require, exports, module) {
         });
 
         // 1-off views 
-        if (otherCurrentView && !other._isViewNeeded(otherCurrentView)) {
+        if (otherCurrentView && !other._isViewNeeded(otherCurrentView) && viewsToDestroy.indexOf(otherCurrentView) === -1) {
             viewsToDestroy.push(otherCurrentView);
         }
         
