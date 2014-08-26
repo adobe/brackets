@@ -877,8 +877,13 @@ define(function (require, exports, module) {
             selectorStartLine = line;
             
             // Everything until the next ',' or '{' is part of the current selector
-            while (token !== "," && token !== "{") {
-                if (token === "}" &&
+            while ((token !== "," && token !== "{") ||
+                    (token === "{" && /@$/.test(currentSelector))) {
+                if (token === "{") {
+                    // Append the interpolated variable to selector
+                    currentSelector += _skipToClosingBracket("{");
+                    _nextToken();  // skip the closing brace
+                } else if (token === "}" &&
                         (!currentSelector || /:\s*\S/.test(currentSelector) || !/#\{.+/.test(currentSelector))) {
                     // Either empty currentSelector or currentSelector is a CSS property
                     // but not a selector that is in the form of #{$class}
@@ -1069,11 +1074,11 @@ define(function (require, exports, module) {
         
         function _isStartAtRule() {
             // Exclude @mixin from at-rule so that we can parse it like a normal rule list
-            return (/^@/.test(token) && !/^@mixin/i.test(token));
+            return (/^@/.test(token) && !/^@mixin/i.test(token) && token !== "@");
         }
         
-        function _isVariableInterpolation() {
-            return (/@\{\S+\}/.test(stream.string));
+        function _isVariableInterpolatedProperty() {
+            return (/@\{\S+\}\s*:/.test(stream.string));
         }
         
         function _parseAtRule(level) {
@@ -1153,11 +1158,12 @@ define(function (require, exports, module) {
         _parseRuleList = function (escapeToken, level) {
             var skipNext = true;
             while ((!escapeToken) || token !== escapeToken) {
-                if (_isVariableInterpolation()) {
+                if (_isVariableInterpolatedProperty()) {
                     // Skip the interpolated variable in the form of @{property}
                     // including the closing brace.
                     _skipToClosingBracket("{");
                     _nextToken();   // skip the closing brace
+                    _skipProperty();
                 } else if (_isStartAtRule()) {
                     // @rule
                     if (!_parseAtRule(level) && level > 0) {
