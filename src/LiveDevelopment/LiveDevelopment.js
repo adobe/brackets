@@ -793,6 +793,34 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /**
+     * If the current editor is for a CSS preprocessor file, then add it to the style sheet 
+     * so that we can track cursor positions in the editor to show live preview highlighting.
+     * For normal CSS we only do highlighting from files we know for sure are referenced by the 
+     * current live preview document, but for preprocessors we just assume that any preprocessor 
+     * file you edit is probably related to the live preview.
+     *
+     * @param {Event} event (unused)
+     * @param {Editor} current Current editor
+     * @param {Editor} previous Previous editor
+     *
+     */
+    function onActiveEditorChange(event, current, previous) {
+        if (previous && previous.document &&
+                FileUtils.isCSSPreprocessorFile(previous.document.file.fullPath)) {
+            var prevDocUrl = _server && _server.pathToUrl(previous.document.file.fullPath);
+            
+            if (_relatedDocuments && _relatedDocuments[prevDocUrl]) {
+                _closeRelatedDocument(_relatedDocuments[prevDocUrl]);
+            }
+        }
+        if (current && current.document &&
+                FileUtils.isCSSPreprocessorFile(current.document.file.fullPath)) {
+            var docUrl = _server && _server.pathToUrl(current.document.file.fullPath);
+            _styleSheetAdded(null, docUrl);
+        }
+    }
+    
+    /**
      * @private
      * While still connected to the Inspector, do cleanup for agents,
      * documents and server.
@@ -804,6 +832,8 @@ define(function LiveDevelopment(require, exports, module) {
         return new Promise(function (resolve, reject) {
             var closePromise,
                 connected = Inspector.connected();
+
+            $(EditorManager).off("activeEditorChange", onActiveEditorChange);
 
             $(Inspector.Page).off(".livedev");
             $(Inspector).off(".livedev");
@@ -1278,6 +1308,15 @@ define(function LiveDevelopment(require, exports, module) {
         
         // open browser to the interstitial page to prepare for loading agents
         _openInterstitialPage();
+
+        // Setup activeEditorChange event listener so that we can track cursor positions in 
+        // CSS preprocessor files and perform live preview highlighting on all elements with 
+        // the current selector in the preprocessor file.
+        $(EditorManager).on("activeEditorChange", onActiveEditorChange);
+
+        // Explicitly trigger onActiveEditorChange so that live preview highlighting
+        // can be set up for the preprocessor files.
+        onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
     }
     
     function _prepareServer(doc) {
@@ -1327,34 +1366,6 @@ define(function LiveDevelopment(require, exports, module) {
         });
     }
 
-    /**
-     * If the current editor is for a preprocessor file, then add it to the style sheet 
-     * so that we can track cursor positions in the editor to show live preview highlighting.
-     * For normal CSS we only do highlighting from files we know for sure are referenced by the 
-     * current live preview document, but for preprocessors we just assume that any preprocessor 
-     * file you edit is probably related to the live preview.
-     *
-     * @param {Event} event (unused)
-     * @param {Editor} current Current editor
-     * @param {Editor} previous Previous editor
-     *
-     */
-    function onActiveEditorChange(event, current, previous) {
-        if (previous && previous.document &&
-                FileUtils.isCSSPreprocessorFile(previous.document.file.fullPath)) {
-            var prevDocUrl = _server && _server.pathToUrl(previous.document.file.fullPath);
-            
-            if (_relatedDocuments && _relatedDocuments[prevDocUrl]) {
-                _closeRelatedDocument(_relatedDocuments[prevDocUrl]);
-            }
-        }
-        if (current && current.document &&
-                FileUtils.isCSSPreprocessorFile(current.document.file.fullPath)) {
-            var docUrl = _server && _server.pathToUrl(current.document.file.fullPath);
-            _styleSheetAdded(null, docUrl);
-        }
-    }
-    
     /**
      * Open the Connection and go live
      *
@@ -1418,10 +1429,6 @@ define(function LiveDevelopment(require, exports, module) {
                 prepareServerPromise.then(
                     function () {
                         _doLaunchAfterServerReady(doc);
-
-                        // Explicitly trigger onActiveEditorChange so that live preview highlighting
-                        // can be set up for the preprocessor files.
-                        onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
                     },
                     function () {
                         _showWrongDocError();
@@ -1584,10 +1591,6 @@ define(function LiveDevelopment(require, exports, module) {
         return _server && _server.getBaseUrl();
     }
 
-    // Setup activeEditorChange event listener so that we can track cursor positions in 
-    // preprocessor files and perform live preview highlighting on all elements with 
-    // the current selector in the preprocessor file.
-    $(EditorManager).on("activeEditorChange", onActiveEditorChange);
 
 
     // For unit testing

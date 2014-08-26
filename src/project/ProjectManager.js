@@ -2170,7 +2170,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns a filter for use with getAllFiles() that filters files based on LanguageManager language id
-     * @param {!string} languageId
+     * @param {!(string|Array.<string>)} languageId a single string of a language id or an array of language ids
      * @return {!function(File):boolean}
      */
     function getLanguageFilter(languageId) {

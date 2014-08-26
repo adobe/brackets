@@ -421,12 +421,13 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Determine if file extension is a CSS preprocessor file extension that Brackets supports.
+     * Determines if file extension is a CSS preprocessor file extension that Brackets supports.
      * @param {string} filePath could be a path, a file name
-     * @return {boolean} Returns true if file extension is either less or scss.
+     * @return {boolean} true if LanguageManager identifies filePath as less or scss language.
      */
     function isCSSPreprocessorFile(filePath) {
-        return (/(less|scss)/i.test(getFileExtension(filePath)));
+        var languageId = LanguageManager.getLanguageForPath(filePath).getId();
+        return (languageId === "less" || languageId === "scss");
     }
     
     /**
