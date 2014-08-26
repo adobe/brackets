@@ -424,7 +424,7 @@ define({
     
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "Thème actuel ",
-	"USE_THEME_SCROLLBARS": "Utiliser les barres de défilement du thème",
+	"USE_THEME_SCROLLBARS": "Utiliser les barres de défilement du thème ",
 	"FONT_SIZE": "Taille de la police ",
 	"FONT_FAMILY": "Famille de polices ",
 	"THEMES_SETTINGS": "Paramètres des thèmes",
