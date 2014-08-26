@@ -1069,7 +1069,11 @@ define(function (require, exports, module) {
         
         function _isStartAtRule() {
             // Exclude @mixin from at-rule so that we can parse it like a normal rule list
-            return (/^@/.test(token) && !/^@mixin/i.test(token) && token !== "@");
+            return (/^@/.test(token) && !/^@mixin/i.test(token));
+        }
+        
+        function _isVariableInterpolation() {
+            return (/@\{\S+\}/.test(stream.string));
         }
         
         function _parseAtRule(level) {
@@ -1149,7 +1153,12 @@ define(function (require, exports, module) {
         _parseRuleList = function (escapeToken, level) {
             var skipNext = true;
             while ((!escapeToken) || token !== escapeToken) {
-                if (_isStartAtRule()) {
+                if (_isVariableInterpolation()) {
+                    // Skip the interpolated variable in the form of @{property}
+                    // including the closing brace.
+                    _skipToClosingBracket("{");
+                    _nextToken();   // skip the closing brace
+                } else if (_isStartAtRule()) {
                     // @rule
                     if (!_parseAtRule(level) && level > 0) {
                         skipNext = false;
@@ -1172,11 +1181,6 @@ define(function (require, exports, module) {
                     if (token === "{" || token === "}") {
                         return false;
                     }
-                } else if (token === "@" && _nextToken() && token === "{") {
-                    // Skip the interpolated variable in the form of @{property}
-                    // including the closing brace.
-                    _skipToClosingBracket("{");
-                    _nextToken();   // skip the closing brace
                 } else {
                     skipNext = true;    // reset skipNext
                     // Otherwise, it's style rule
