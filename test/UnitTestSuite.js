@@ -60,6 +60,7 @@ define(function (require, exports, module) {
     require("spec/LanguageManager-test");
     require("spec/LiveDevelopment-test");
     require("spec/LowLevelFileIO-test");
+    require("spec/MainViewFactory-test");
     require("spec/MainViewManager-test");
     require("spec/Menu-test");
     require("spec/MultiRangeInlineEditor-test");
@@ -78,6 +79,7 @@ define(function (require, exports, module) {
     require("spec/UpdateNotification-test");
     require("spec/UrlParams-test");
     require("spec/ValidationUtils-test");
+    require("spec/ViewFactory-test");
     //require("spec/ViewCommandHandlers-test");
     require("spec/ViewUtils-test");
     require("spec/WorkingSetView-test");

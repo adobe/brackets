@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         FileSystem          = require("filesystem/FileSystem"),
         File                = require("filesystem/File"),
         InMemoryFile        = require("document/InMemoryFile"),
-        EditorManager       = require("editor/EditorManager"),
+        ViewStateManager    = require("view/ViewStateManager"),
         MainViewManager     = require("view/MainViewManager"),
         DocumentManager     = require("document/DocumentManager"),
         CommandManager      = require("command/CommandManager"),
@@ -62,19 +62,20 @@ define(function (require, exports, module) {
      *
      * Views that have a longer life span are added by calling addView to associate the view with a 
      * filename in the _views object.  These views are not destroyed until they are removed from the pane
-     * by calling one of the following: removeView, removeViews. , or reset
+     * by calling one of the following: removeView, removeViews, or reset
      *
      * Pane Object Events:
-     * viewListChange - triggered whenever there is a change the the pane's view state
+     * viewListChange - triggered wheneever there is a change to _viewList directly handled by this object that would not otherwise
+     *                  dispatch a WorkingSet event from MainViewManger
+     *                  (specificatlly pathRemove and fileNameChange events that are triggered by DocumentManager)
      * currentViewChange - triggered whenever the current view changes
      *
      * View Interface:
      *
      * {
      *      $el: the element property of the view
-     *      getFile: function () @return {!File} File object that belongs to the view (may return null)
-     *      setVisible: function(visible:boolean) - shows ore hides the view 
-     *      resizeToFit: function(forceRefresh:boolean) - tells the view to resize its content 
+     *      getFile: function () @return {?File} File object that belongs to the view (may return null)
+     *      updateLayout: function(forceRefresh:boolean) - tells the view to do ignore any cached layout data and do a complete layout of its content 
      *      destroy: function() - called when the view is no longer needed. 
      *      hasFocus:  function() - called to determine if the view has focus.  
      *      childHasFocus: function() - called to determine if a child component of the view has focus.  
@@ -86,8 +87,8 @@ define(function (require, exports, module) {
      * }
      *  
      * When views are created they can be added to the pane by calling pane.addView().  Views can be created and parented by attaching directly
-     * to pane.$el -- if a library requires a parent node to create the view for instance.  All views, must expose an `$el` property so that the
-     * pane can manipulate the DOM when necessary (see showView, _reparent, etc...)
+     * to pane.$el -- if a library requires a parent node to create the view for instance (e.g. this._codeMirror = new CodeMirror(pane.$el, ...)).  
+     * All views, must expose an `$el` property so that the pane can manipulate the DOM element when necessary (e.g. showView, _reparent, etc...)
      *
      * $el
      *
@@ -101,7 +102,7 @@ define(function (require, exports, module) {
      *
      *  Called when the view is shown or hidden.  When temporary views are hidden their destroy() method is called.
      *
-     * resizeToFit(forceRefresh:boolean)
+     * updateLayout(forceRefresh:boolean)
      *  
      *  Called to notify the view that it should be resized to fit its parent container.  This may be called several times
      *  or only once.  Views can ignore the forceRefresh flag. It is used for editor views to force a relayout of the editor 
@@ -116,6 +117,15 @@ define(function (require, exports, module) {
      *
      *  Called throughout the life of the View to determine if a child compontent of the view has focus.  If the view has no child
      *  component then the view should just return false when this function is called.
+     *
+     * destroy() 
+     *
+     *  Views must implement a destroy method to remove their DOM element at the very least.  There is no default
+     *  implementation and views should be hidden when this is called. The Pane object doesn't make assumptions
+     *  about when it is safe to remove a node. In some instances other cleanup  must take place before a view is
+     *  destroyed so the implementation details are left to the view.  
+     *
+     *  Views can implement a simple destroy by calling `this.$el.remove()` 
      *
      * focus()
      *
@@ -138,18 +148,13 @@ define(function (require, exports, module) {
      *
      *  Optional Notification callback called when the container changes.  The view can perform any synchronization or state update it needs to do when its parent container changes.
      *  
-     *  notifyVisibilityChange
+     * notifyVisiblityChange()
      * 
      *  Optional Notification callback called when the view's vsibility changes.  The view can perform any synchronization or state update it needs to do when its visiblity state changes.
-     *
-     * Events Dispatched from Pane Objects:
-     *  
-     *      viewListChange - triggered whenver the interal view list has changed due to the handling of a File object event.
-     *          
      */
     
     /**
-     * @typedef {!$el: jQuery, getFile:function():!File, setVisible:function(visible:boolean), resizeToFit:function(forceRefresh:boolean), destroy:function(), hasFocus:function():boolean, childHasFocus:function():boolean, focus:function(), getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number),?notifyContainerChange: function(), ?notifyVisiblityChange: function(visiblit:boolean)} View   
+     * @typedef {!$el: jQuery, getFile:function():?File, setVisible:function(visible:boolean), updateLayout:function(forceRefresh:boolean), destroy:function(), hasFocus:function():boolean, childHasFocus:function():boolean, focus:function(), getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number), getViewState:function():?*, restoreViewState:function(viewState:!*), notifyContainerChange:function(), notifyVisibilityChange:function(boolean)} View
      */
     
     /*
@@ -286,7 +291,6 @@ define(function (require, exports, module) {
 
         // Copy the views
         _.forEach(other._views, function (view) {
-            
             var file = view.getFile(),
                 fullPath = file && file.fullPath;
             if (fullPath && other.findInViewList(fullPath) !== -1) {
@@ -299,7 +303,7 @@ define(function (require, exports, module) {
         });
 
         // 1-off views 
-        if (otherCurrentView && !other._isViewNeeded(otherCurrentView)) {
+        if (otherCurrentView && !other._isViewNeeded(otherCurrentView) && viewsToDestroy.indexOf(otherCurrentView) === -1) {
             viewsToDestroy.push(otherCurrentView);
         }
         
@@ -464,7 +468,7 @@ define(function (require, exports, module) {
      */
     Pane.prototype._canAddFile = function (file) {
         return ((this._views.hasOwnProperty(file.fullPath) && this.findInViewList(file.fullPath) === -1) ||
-                    (EditorManager.canOpenFile(file.fullPath) && !MainViewManager.getPaneIdForPath(file.fullPath)));
+                    (MainViewManager.canOpenFile(file) && !MainViewManager.getPaneIdForPath(file.fullPath)));
     };
                 
     /**
@@ -715,8 +719,8 @@ define(function (require, exports, module) {
             oldView = this._currentView;
         
         if (this._currentView) {
-            if (this._currentView.hasOwnProperty("document")) {
-                EditorManager._saveEditorViewState(this._currentView);
+            if (this._currentView.getFile()) {
+                ViewStateManager.updateViewState(this._currentView);
             }
             this._setViewVisibility(this._currentView, false);
         } else {
@@ -733,7 +737,7 @@ define(function (require, exports, module) {
             this.destroyViewIfNotNeeded(oldView);
         }
         
-        if (newPath && (this.findInViewList(newPath) !== -1) && (!this._views.hasOwnProperty(newPath))) {
+        if (!this._views.hasOwnProperty(newPath)) {
             console.error(newPath + " found in pane working set but pane.addView() has not been called for the view created for it");
         }
     };
@@ -744,7 +748,7 @@ define(function (require, exports, module) {
      */
     Pane.prototype.updateLayout = function (forceRefresh) {
         if (this._currentView) {
-            this._currentView.resizeToFit(forceRefresh);
+            this._currentView.updateLayout(forceRefresh);
         }
     };
 
@@ -923,10 +927,7 @@ define(function (require, exports, module) {
         
         this.addListToViewList(filesToAdd);
         
-        /*
-         * @todo: Implement a ViewStateManager
-         */
-        EditorManager._addViewStates(viewStates);
+        ViewStateManager.addViewStates(viewStates);
         
         activeFile = activeFile || getInitialViewFilePath();
         
@@ -947,8 +948,8 @@ define(function (require, exports, module) {
             currentlyViewedPath = this.getCurrentlyViewedPath();
 
         // Save the current view state first
-        if (this._currentView) {
-            EditorManager._saveEditorViewState(this._currentView);
+        if (this._currentView && this._currentView.getFile()) {
+            ViewStateManager.updateViewState(this._currentView);
         }
         
         // walk the list of views and save
@@ -958,7 +959,7 @@ define(function (require, exports, module) {
                 result.push({
                     file: file.fullPath,
                     active: (file.fullPath === currentlyViewedPath),
-                    viewState:  EditorManager._getViewState(file.fullPath)
+                    viewState:  ViewStateManager.getViewState(file)
                 });
             }
         });

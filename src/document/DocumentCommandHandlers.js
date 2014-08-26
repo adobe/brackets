@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     var AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
+        DeprecationWarning  = require("utils/DeprecationWarning"),
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
@@ -315,7 +316,8 @@ define(function (require, exports, module) {
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @param {boolean=} silent - If true, don't show error message
      * @param {string=}  paneId - the pane in which to open the file
-     * @return {$.Promise} a jQuery promise resolved with a document object or rejected if the file can not be read.
+     * @return {$.Promise} a jQuery promise resolved with a Document object or 
+     *                      rejected with an err 
      */
     function _doOpenWithOptionalPath(fullPath, silent, paneId) {
         var result;
@@ -344,7 +346,10 @@ define(function (require, exports, module) {
                         
                         _doOpen(filteredPaths[filteredPaths.length - 1], silent, paneId)
                             .done(function (file) {
-                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(MainViewManager.getCurrentlyViewedPath(paneId));
+                                _defaultOpenDialogFullPath =
+                                    FileUtils.getDirectoryPath(
+                                        MainViewManager.getCurrentlyViewedPath(paneId)
+                                    );
                             })
                             // Send the resulting document that was opened
                             .then(result.resolve, result.reject);
@@ -387,12 +392,24 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Opens the given file and makes it the current document. Does NOT add it to the pane view list.
-     * @param {{!fullPath:string}, {silent:boolean}, {paneId:string}} Params for FILE_OPEN command;
-     * the fullPath string is of the form "path[:lineNumber[:columnNumber]]"
-     * lineNumber and columnNumber are 1-origin: the very first line is line 1, and the very first column is column 1.
-     * paneId if omitted will be the ACTIVE_PANE
-     * @return {$.Promise} a jQuery promise that will be resolved with a document object
+     * @typedef {{!fullPath:string, silent:boolean=, paneId:string=}} FileCommandData
+     * fullPath: is in the form "path[:lineNumber[:columnNumber]]"
+     * lineNumber and columnNumber are 1-origin: lines and columns are 1-based
+     */
+
+    /**
+     * @typedef {{!fullPath:string, index:number=, silent:boolean=, forceRedraw:boolean=, paneId:string=}} PaneCommandData
+     * fullPath: is in the form "path[:lineNumber[:columnNumber]]"
+     * lineNumber and columnNumber are 1-origin: lines and columns are 1-based
+     */
+    
+    /**
+     * Opens the given file and makes it the current file. Does NOT add it to the pane view list.
+     * @param {FileCommandData=} commandData - 
+     *   File to open; 
+     *   optional flag to suppress error messages; 
+     *   optional PaneId (defaults to active pane)
+     * @return {$.Promise} a jQuery promise that will be resolved with a file object
      */
     function handleFileOpen(commandData) {
         var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
@@ -411,13 +428,15 @@ define(function (require, exports, module) {
                     }
                     
                     // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
-                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1, fileInfo.column - 1, true);
+                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1,
+                                                                      fileInfo.column - 1,
+                                                                      true);
                 }
                 
-                result.resolve(DocumentManager.getOpenDocumentForPath(file.fullPath));
+                result.resolve(file);
             })
-            .fail(function () {
-                result.reject();
+            .fail(function (err) {
+                result.reject(err);
             });
         
         return result;
@@ -435,22 +454,87 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Opens the given file, makes it the current document, AND adds it to the pane view list
+     * Opens the given file, makes it the current file, AND adds it to the pane view list
      * only if the file does not have a custom viewer.
-     * @param {!{fullPath:string, index:number=, forceRedraw:boolean, paneId:string=}} commandData  File to open; optional position in
-     *   pane view list list (defaults to last); optional flag to force pane view list redraw
-     * @return {$.Promise} a jQuery promise that will be resolved with a document object
+     * @param {FileCommandData} commandData  
+     *   File to open; 
+     *   optional flag to suppress error messages; 
+     *   optional PaneId (defaults to active pane)
+     * @return {$.Promise} a jQuery promise that will be resolved with @type {Document} 
      */
-    function handleAddToWorkingSetAndOpen(commandData) {
-        return handleFileOpen(commandData).done(function (doc) {
+    function handleDocumentOpen(commandData) {
+        var result = new $.Deferred();
+        handleFileOpen(commandData)
+            .done(function (file) {
+                // if we succeeded with an open file
+                //  then we need to resolve that to a document.
+                //  getOpenDocumentForPath will return null if there isn't a 
+                //  supporting document for that file (e.g. an image)
+                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                result.resolve(doc);
+            })
+            .fail(function (err) {
+                result.reject(err);
+            });
+
+        return result.promise();
+        
+    }
+    
+    /**
+     * Opens the given file, makes it the current file, AND adds it to the pane view list
+     * only if the file does not have a custom viewer.
+     * @param {!PaneCommandData} commandData
+     *   File to open; 
+     *   optional index to position in pane view list (defaults to last); 
+     *   optional flag to suppress error messages; 
+     *   optional flag to force pane view list redraw; 
+     *   optional PaneId (defaults to active pane)
+     * @return {$.Promise} a jQuery promise that will be resolved with a @type {File} 
+     */
+    function handleFileAddToWorkingSetAndOpen(commandData) {
+        return handleFileOpen(commandData).done(function (file) {
             // TODO: This will not work for images since they do not
             //          have document objects... 
             // addView is synchronous
             // When opening a file with a custom viewer, we get a null doc.
             // So check it before we add it to the pane view list.
             var paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
-            MainViewManager.addToWorkingSet(paneId, doc.file, commandData.index, commandData.forceRedraw);
+            MainViewManager.addToWorkingSet(paneId, file, commandData.index, commandData.forceRedraw);
         });
+    }
+
+    /**
+     * @deprecated
+     * Opens the given file, makes it the current document, AND adds it to the pane view list
+     * @param {!PaneCommandData} commandData
+     *   File to open; 
+     *   optional index to position in 
+     *   pane view list (defaults to last); optional flag to suppress error messages; 
+     *   optional flag to force pane view list redraw; optional PaneId (defaults to active pane)
+     * @return {$.Promise} a jQuery promise that will be resolved with @type {File} 
+     */
+    function handleFileAddToWorkingSet(commandData) {
+        // This is a legacy deprecated command that 
+        //  will use the new command and resolve with a document
+        //  as the legacy command would only support.
+        DeprecationWarning.deprecationWarning("Commands.FILE_ADD_TO_WORKING_SET has been deprecated.  Use Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN instead.");
+        var result = new $.Deferred();
+        
+        handleFileAddToWorkingSetAndOpen(commandData)
+            .done(function (file) {
+                // if we succeeded with an open file
+                //  then we need to resolve that to a document.
+                //  getOpenDocumentForPath will return null if there isn't a 
+                //  supporting document for that file (e.g. an image)
+                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                result.resolve(doc);
+            })
+            .fail(function (err) {
+                result.reject(err);
+            });
+        
+        return result.promise();
     }
 
     /**
@@ -772,7 +856,7 @@ define(function (require, exports, module) {
                     MainViewManager._removeView(info.paneId, doc.file, true);
                     
                     // Add new file to pane view list, and ensure we now redraw (even if index hasn't changed)
-                    fileOpenPromise = handleAddToWorkingSetAndOpen({fullPath: path, paneId: info.paneId, index: info.index, forceRedraw: true});
+                    fileOpenPromise = handleFileAddToWorkingSetAndOpen({fullPath: path, paneId: info.paneId, index: info.index, forceRedraw: true});
                 }
 
                 // always configure editor after file is opened
@@ -1312,8 +1396,7 @@ define(function (require, exports, module) {
         var entry = ProjectManager.getSelectedItem();
         if (!entry) {
             // Else use current file (not selected in ProjectManager if not visible in tree or pane view list)
-            var doc = DocumentManager.getCurrentDocument();
-            entry = doc && doc.file;
+            entry = MainViewManager.getCurrentlyViewedFile();
         }
         if (entry) {
             ProjectManager.renameItemInline(entry);
@@ -1587,27 +1670,37 @@ define(function (require, exports, module) {
         showInOS    = Strings.CMD_SHOW_IN_FINDER;
     }
 
-    // Register global commands
-    CommandManager.register(Strings.CMD_FILE_OPEN,                  Commands.FILE_OPEN, handleFileOpen);
-    CommandManager.register(Strings.CMD_ADD_TO_WORKINGSET_AND_OPEN, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, handleAddToWorkingSetAndOpen);
-    CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,          Commands.FILE_NEW_UNTITLED, handleFileNew);
-    CommandManager.register(Strings.CMD_FILE_NEW,                   Commands.FILE_NEW, handleFileNewInProject);
-    CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,            Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
-    CommandManager.register(Strings.CMD_FILE_SAVE,                  Commands.FILE_SAVE, handleFileSave);
-    CommandManager.register(Strings.CMD_FILE_SAVE_ALL,              Commands.FILE_SAVE_ALL, handleFileSaveAll);
-    CommandManager.register(Strings.CMD_FILE_SAVE_AS,               Commands.FILE_SAVE_AS, handleFileSaveAs);
-    CommandManager.register(Strings.CMD_FILE_RENAME,                Commands.FILE_RENAME, handleFileRename);
-    CommandManager.register(Strings.CMD_FILE_DELETE,                Commands.FILE_DELETE, handleFileDelete);
+    // Deprecated commands
+    CommandManager.register(Strings.CMD_ADD_TO_WORKINGSET_AND_OPEN,  Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);
+    CommandManager.register(Strings.CMD_FILE_OPEN,                   Commands.FILE_OPEN,                      handleDocumentOpen);
     
-    CommandManager.register(Strings.CMD_FILE_CLOSE,                 Commands.FILE_CLOSE, handleFileClose);
-    CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,             Commands.FILE_CLOSE_ALL, handleFileCloseAll);
-    CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,            Commands.FILE_CLOSE_LIST, handleFileCloseList);
-    CommandManager.register(quitString,                             Commands.FILE_QUIT, handleFileQuit);
+    // New commands
+    CommandManager.register(Strings.CMD_FILE_OPEN,                   Commands.CMD_OPEN,                       handleFileOpen);
+    CommandManager.register(Strings.CMD_ADD_TO_WORKINGSET_AND_OPEN,  Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, handleFileAddToWorkingSetAndOpen);
     
-    CommandManager.register(Strings.CMD_NEXT_DOC,                   Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
-    CommandManager.register(Strings.CMD_PREV_DOC,                   Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
-    CommandManager.register(Strings.CMD_SHOW_IN_TREE,               Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
-    CommandManager.register(showInOS,                               Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
+    // File Commands
+    CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,           Commands.FILE_NEW_UNTITLED,              handleFileNew);
+    CommandManager.register(Strings.CMD_FILE_NEW,                    Commands.FILE_NEW,                       handleFileNewInProject);
+    CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,             Commands.FILE_NEW_FOLDER,                handleNewFolderInProject);
+    CommandManager.register(Strings.CMD_FILE_SAVE,                   Commands.FILE_SAVE,                      handleFileSave);
+    CommandManager.register(Strings.CMD_FILE_SAVE_ALL,               Commands.FILE_SAVE_ALL,                  handleFileSaveAll);
+    CommandManager.register(Strings.CMD_FILE_SAVE_AS,                Commands.FILE_SAVE_AS,                   handleFileSaveAs);
+    CommandManager.register(Strings.CMD_FILE_RENAME,                 Commands.FILE_RENAME,                    handleFileRename);
+    CommandManager.register(Strings.CMD_FILE_DELETE,                 Commands.FILE_DELETE,                    handleFileDelete);
+    
+    // Close Commands
+    CommandManager.register(Strings.CMD_FILE_CLOSE,                  Commands.FILE_CLOSE,                     handleFileClose);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,              Commands.FILE_CLOSE_ALL,                 handleFileCloseAll);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,             Commands.FILE_CLOSE_LIST,                handleFileCloseList);
+    
+    // Traversal
+    CommandManager.register(Strings.CMD_NEXT_DOC,                    Commands.NAVIGATE_NEXT_DOC,              handleGoNextDoc);
+    CommandManager.register(Strings.CMD_PREV_DOC,                    Commands.NAVIGATE_PREV_DOC,              handleGoPrevDoc);
+
+    // Special Commands
+    CommandManager.register(showInOS,                                Commands.NAVIGATE_SHOW_IN_OS,            handleShowInOS);
+    CommandManager.register(quitString,                              Commands.FILE_QUIT,                      handleFileQuit);
+    CommandManager.register(Strings.CMD_SHOW_IN_TREE,                Commands.NAVIGATE_SHOW_IN_FILE_TREE,     handleShowInTree);
 
     // These commands have no UI representation and are only used internally
     CommandManager.registerInternal(Commands.APP_ABORT_QUIT,            handleAbortQuit);

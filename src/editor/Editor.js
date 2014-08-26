@@ -1884,6 +1884,40 @@ define(function (require, exports, module) {
         return (this.getFocusedInlineWidget() !== null);
     };
     
+    /* 
+     * @typedef {scrollPos:{x:number, y:number},Array.<{start:{line:number, ch:number},end:{line:number, ch:number}}>} EditorViewState
+     */
+    
+    /* 
+     * returns the view state for the editor
+     * @return {!EditorViewState}
+     */
+    Editor.prototype.getViewState = function () {
+        return {
+            selections: this.getSelections(),
+            scrollPos: this.getScrollPos()
+        };
+        
+    };
+    
+    /*
+     * Restores the view state
+     * @param {!EditorViewState} viewState - the view state object to restore
+     */
+    Editor.prototype.restoreViewState = function (viewState) {
+        if (viewState.selection) {
+            // We no longer write out single-selection, but there might be some view state
+            // from an older version.
+            this.setSelection(viewState.selection.start, viewState.selection.end);
+        }
+        if (viewState.selections) {
+            this.setSelections(viewState.selections);
+        }
+        if (viewState.scrollPos) {
+            this.setScrollPos(viewState.scrollPos.x, viewState.scrollPos.y);
+        }
+    };
+    
     /**
      * Re-renders the editor UI
      * @param {boolean=} handleResize true if this is in response to resizing the editor. Default false.
@@ -2180,7 +2214,7 @@ define(function (require, exports, module) {
      * @param {boolean=} forceRefresh - forces the editor to update its layout 
      *                                   even if it already matches the container's height / width
      */
-    Editor.prototype.resizeToFit = function (forceRefresh) {
+    Editor.prototype.updateLayout = function (forceRefresh) {
         var curRoot = this.getRootElement(),
             curWidth = $(curRoot).width(),
             $editorHolder = this.$el.parent(),

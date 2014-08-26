@@ -71,7 +71,7 @@
  *          (e, paneId:string) For Internal Use Only.
  *
  * These are jQuery events, so to listen for them you do something like this:
- *    $(MainViewManager).on("eventname", handler);
+ *    `$(MainViewManager).on("eventname", handler);`
  *
  */
 define(function (require, exports, module) {
@@ -81,10 +81,13 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
+        MainViewFactory     = require("view/MainViewFactory"),
+        ViewStateManager    = require("view/ViewStateManager"),
         Menus               = require("command/Menus"),
         Commands            = require("command/Commands"),
         EditorManager       = require("editor/EditorManager"),
         FileSystem          = require("filesystem/FileSystem"),
+        FileSystemError     = require("filesystem/FileSystemError"),
         DocumentManager     = require("document/DocumentManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         ProjectManager      = require("project/ProjectManager"),
@@ -112,12 +115,14 @@ define(function (require, exports, module) {
     var CMD_ID_SPLIT_HORIZONTALLY = "cmd.splitHorizontally";
     
     /** 
+     * Preference setting name for the MainView Saved State
      * @const
      * @private
      */
     var PREFS_NAME          = "mainView.state";
     
     /** 
+     * Legacy Preference setting name used to migrate old preferences
      * @const
      * @private
      */
@@ -160,12 +165,14 @@ define(function (require, exports, module) {
      */
 
     /** 
+     * Vertical layout state name
      * @const
      * @private
      */
     var VERTICAL            = "VERTICAL";
 
     /** 
+     * Horizontal layout state name
      * @const
      * @private
      */
@@ -220,7 +227,7 @@ define(function (require, exports, module) {
      * @type {Object.<string, Pane>} 
      * @private
      */
-    var _paneViews = {};
+    var _panes = {};
     
     
     /**
@@ -277,8 +284,8 @@ define(function (require, exports, module) {
             paneId = getActivePaneId();
         }
         
-        if (_paneViews[paneId]) {
-            return _paneViews[paneId];
+        if (_panes[paneId]) {
+            return _panes[paneId];
         }
         
         return null;
@@ -360,7 +367,10 @@ define(function (require, exports, module) {
             _activePaneId = newPaneId;
             
             $(exports).triggerHandler("activePaneChange", [newPaneId, oldPaneId]);
-            $(exports).triggerHandler("currentFileChange", [_getPane(ACTIVE_PANE).getCurrentlyViewedFile(), newPaneId, oldPane.getCurrentlyViewedFile(), oldPaneId]);
+            $(exports).triggerHandler("currentFileChange", [_getPane(ACTIVE_PANE).getCurrentlyViewedFile(),
+                                                            newPaneId,
+                                                            oldPane.getCurrentlyViewedFile(),
+                                                            oldPaneId]);
             
             oldPane.notifySetActive(false);
             newPane.notifySetActive(true);
@@ -377,11 +387,30 @@ define(function (require, exports, module) {
      * @return {?string} the id of the pane that matches the container or undefined if a pane doesn't exist for that container
      */
     function _getPaneFromElement($el) {
-        return _.find(_paneViews, function (pane) {
+        return _.find(_panes, function (pane) {
             if (pane.$el[0] === $el[0]) {
                 return pane;
             }
         });
+    }
+    
+    /**
+     * Determines if a file can be opened
+     * @param {!File} file - file object to test
+     * @return (boolean} true if the file can be opened, false if not
+     */
+    function canOpenPath(fullPath) {
+        return (EditorManager.canOpenPath(fullPath) ||
+                !!MainViewFactory.findSuitableFactoryForPath(fullPath));
+    }
+    
+    /** 
+     * Determines if a file can be opened
+     * @param {!File} file - file object to test
+     * @return (boolean} true if the file can be opened, false if not
+     */
+    function canOpenFile(file) {
+        return canOpenPath(file.fullPath);
     }
     
     /**
@@ -454,7 +483,7 @@ define(function (require, exports, module) {
      */
     function _forEachPaneOrPanes(paneId, callback) {
         if (paneId === ALL_PANES) {
-            _.forEach(_paneViews, callback);
+            _.forEach(_panes, callback);
         } else {
             callback(_getPane(paneId));
         }
@@ -463,7 +492,8 @@ define(function (require, exports, module) {
     /**
      * Caches the specified pane's current scroll state
      * If there was already cached state for the specified pane, it is discarded and overwritten
-     * @param {!string} paneId - id of the pane in which to cache the scroll state, ALL_PANES or ACTIVE_PANE
+     * @param {!string} paneId - id of the pane in which to cache the scroll state,
+     *                            ALL_PANES or ACTIVE_PANE
      */
     function cacheScrollState(paneId) {
         _forEachPaneOrPanes(paneId, function (pane) {
@@ -473,12 +503,13 @@ define(function (require, exports, module) {
 
     
     /**
-     * Restores scroll state from the cache and applies it to the current pane's view after a call to cacheScrollState.
+     * Restores the scroll state from cache and applies the heightDelta 
      * The view implementation is responsible for applying or ignoring the heightDelta.
-     * This is used primarily when a modal bar opens to keep the  editor from scrolling the current page out
-     * of view in order to maintain the appearance. 
+     * This is used primarily when a modal bar opens to keep the editor from scrolling the current 
+     * page out of view in order to maintain the appearance. 
      * The state is removed from the cache after calling this function.  
-     * @param {!string} paneId - id of the pane in which to adjust the scroll state, ALL_PANES or ACTIVE_PANE
+     * @param {!string} paneId - id of the pane in which to adjust the scroll state, 
+     *                              ALL_PANES or ACTIVE_PANE
      * @param {!number} heightDelta - delta H to apply to the scroll state
      */
     function restoreAdjustedScrollState(paneId, heightDelta) {
@@ -512,7 +543,7 @@ define(function (require, exports, module) {
      */
     function getAllOpenFiles() {
         var result = getWorkingSet(ALL_PANES);
-        _.forEach(_paneViews, function (pane) {
+        _.forEach(_panes, function (pane) {
             var file = pane.getCurrentlyViewedFile();
             if (file) {
                 result = _.union(result, [file]);
@@ -526,12 +557,13 @@ define(function (require, exports, module) {
      * @return {array.<string>} the list of all open panes
      */
     function getPaneIdList() {
-        return Object.keys(_paneViews);
+        return Object.keys(_panes);
     }
     
     /**
      * Retrieves the size of the selected pane's view list
-     * @param {!string} paneId - id of the pane in which to get the pane view list size, ALL_PANES or ACTIVE_PANE
+     * @param {!string} paneId - id of the pane in which to get the pane view list size.
+     *      Can use `ALL_PANES` or `ACTIVE_PANE`
      * @return {!number} the number of items in the specified pane 
      */
     function getWorkingSetSize(paneId) {
@@ -556,7 +588,7 @@ define(function (require, exports, module) {
      * @return {number} 
      */
     function getPaneCount() {
-        return Object.keys(_paneViews).length;
+        return Object.keys(_panes).length;
     }
     
     /**
@@ -589,7 +621,7 @@ define(function (require, exports, module) {
         var index,
             result = [];
         
-        _.forEach(_paneViews, function (pane) {
+        _.forEach(_panes, function (pane) {
             index = pane.findInViewList(fullPath);
             if (index >= 0) {
                 result.push({paneId: pane.id, index: index});
@@ -640,7 +672,7 @@ define(function (require, exports, module) {
 
         // Look for a view that has not been added to a working set
         if (!info) {
-            _.forEach(_paneViews, function (pane) {
+            _.forEach(_panes, function (pane) {
                 if (pane.getCurrentlyViewedPath() === fullPath) {
                     info = {paneId: pane.id};
                     return false;
@@ -668,7 +700,11 @@ define(function (require, exports, module) {
         var pane = _getPane(paneId),
             existingPaneId = getPaneIdForPath(file.fullPath);
 
-        if (!EditorManager.canOpenFile(file.fullPath) || (findInWorkingSet(ALL_PANES, file.fullPath) !== -1)) {
+        if (!pane) {
+            throw new Error("invalid pane id: " + paneId);
+        }
+
+        if (!canOpenPath(file.fullPath) || (findInWorkingSet(ALL_PANES, file.fullPath) !== -1)) {
             return;
         }
         
@@ -699,7 +735,7 @@ define(function (require, exports, module) {
     /**
      * Adds the given file list to the end of the pane view list.
      * @param {!string} paneId - The id of the pane in which to add the file object to or ACTIVE_PANE
-     * @param {!Array.<File>} fileList
+     * @param {!Array.<File>} fileList - Array of files to add to the pane
      */
     function addListToWorkingSet(paneId, fileList) {
         var uniqueFileList,
@@ -713,13 +749,13 @@ define(function (require, exports, module) {
         
         $(exports).triggerHandler("workingSetAddList", [uniqueFileList, pane.id]);
         
-        //  find all of the files that could be added but were not added to the pane that was passed to us
+        //  find all of the files that could be added but were not 
         var unsolvedList = fileList.filter(function (item) {
             // if the file open in another pane, then add it to the list of unsolvedList
             return (pane.findInViewList(item.fullPath) === -1 && getPaneIdForPath(item.fullPath));
         });
 
-        // Use the pane id of the first one in the list that couldn't be added as the pane id and recurse
+        // Use the pane id of the first one in the list for pane id and recurse
         //  if we add more panes, then this will recurse until all items in the list are satisified
         if (unsolvedList.length) {
             addListToWorkingSet(getPaneIdForPath(unsolvedList[0].fullPath), unsolvedList);
@@ -856,10 +892,10 @@ define(function (require, exports, module) {
      * @private
      */
     function _updateLayout(event, viewAreaHeight, forceRefresh) {
-        var panes = Object.keys(_paneViews),
+        var panes = Object.keys(_panes),
             size = 100 / panes.length;
         
-        _.forEach(_paneViews, function (pane) {
+        _.forEach(_panes, function (pane) {
             if (_orientation === VERTICAL) {
                 pane.$el.css({height: "100%",
                               width: size + "%",
@@ -897,9 +933,9 @@ define(function (require, exports, module) {
         var currentPane,
             pane;
         
-        if (!_paneViews.hasOwnProperty(paneId)) {
+        if (!_panes.hasOwnProperty(paneId)) {
             pane = new Pane(paneId, _$container);
-            _paneViews[paneId] = pane;
+            _panes[paneId] = pane;
             
             $(exports).triggerHandler("paneCreate", [pane.id]);
             
@@ -912,12 +948,15 @@ define(function (require, exports, module) {
             });
             $(pane).on("currentViewChange.mainview", function (e, newView, oldView) {
                 if (_activePaneId === pane.id) {
-                    $(exports).triggerHandler("currentFileChange", [newView && newView.getFile(), pane.id, oldView && oldView.getFile(), pane.id]);
+                    $(exports).triggerHandler("currentFileChange",
+                                              [newView && newView.getFile(),
+                                               pane.id, oldView && oldView.getFile(),
+                                               pane.id]);
                 }
             });
         }
         
-        return _paneViews[paneId];
+        return _panes[paneId];
     }
     
     /**
@@ -935,7 +974,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Edits a document in the specified pane
+     * Edits a document in the specified pane.
+     * This function is only used by Unit Tests (which construct Mock Documents), 
+     *  The Deprecated API "setCurrentDocument" and by File > New 
+     *  because there is yet to be an established File object for the Document which is required 
+     *  for the open API.  
+     * Do not use this API unless you have a document object without a file object
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Document} doc - document to edit
      * @param {Object={avoidPaneActivation:boolean}} optionsIn - options 
@@ -965,51 +1009,83 @@ define(function (require, exports, module) {
             addToWorkingSet(paneId, doc.file);
         }
         
+        // open document will show the editor if there is one already
         EditorManager.openDocument(doc, pane);
         _makeFileMostRecent(paneId, doc.file);
     }
     
     /**
      * Opens a file in the specified pane this can be used to open a file with a custom viewer
-     * or a document for editing.  If it's a document for editing, edit is called on the document object
+     * or a document for editing.  If it's a document for editing, edit is called on the document 
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!File} file - file to open
      * @param {Object={avoidPaneActivation:boolean}} optionsIn - options 
+     * @return {jQuery.Promise}  promise that resolves to a File object or 
+     *                           rejects with a File error or string
      */
     function open(paneId, file, optionsIn) {
-        var result = new $.Deferred(),
+        var oldPane = _getPane(ACTIVE_PANE),
+            oldFile = oldPane.getCurrentlyViewedFile(),
+            result = new $.Deferred(),
             options = optionsIn || {};
         
         if (!file || !_getPane(paneId)) {
             throw new Error("bad argument");
         }
 
-        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath),
-            currentPaneId = getPaneIdForPath(file.fullPath);
+        var currentPaneId = getPaneIdForPath(file.fullPath);
 
         if (currentPaneId) {
+            // The file is open in another pane so activate the pane
+            //  unless the caller specified avoidPaneActivation
             paneId = currentPaneId;
             if (!options.avoidPaneActivation) {
                 setActivePaneId(paneId);
             }
         }
         
-        if (doc) {
-            edit(paneId, doc);
-            result.resolve(doc);
-        } else if (EditorManager.canOpenFile(file.fullPath)) {
-            DocumentManager.getDocumentForPath(file.fullPath)
-                .done(function (doc) {
-                    edit(paneId, doc);
-                    result.resolve(doc);
-                })
-                .fail(function (fileError) {
-                    result.reject(fileError);
-                });
+        // See if there is already a view for the file
+        var pane = _getPane(paneId),
+            view = pane.getViewForPath(file.fullPath);
+
+        if (view) {
+            // there is a view already, so we just need to show it
+            pane.showView(view);
+            result.resolve(file);
         } else {
-            result.reject("custom viewers not yet implemented with split view. check back later.");
+            // See if there is a factory to create a view for this file
+            //  we want to do this first because, we don't want our internal 
+            //  editor to edit files for which there are suitable viewfactories
+            var factory = MainViewFactory.findSuitableFactoryForPath(file.fullPath);
+
+            if (factory) {
+                // let the factory open the file and create a view for it
+                factory.openFile(file, pane)
+                    .done(function () {
+                        // if we opened a file that isn't in the project
+                        //  then add the file to the working set
+                        if (!ProjectManager.isWithinProject(file.fullPath)) {
+                            addToWorkingSet(paneId, file);
+                        }
+                        result.resolve(file);
+                    })
+                    .fail(function (fileError) {
+                        result.reject(fileError);
+                    });
+            } else if (EditorManager.canOpenPath(file.fullPath)) {
+                DocumentManager.getDocumentForPath(file.fullPath)
+                    .done(function (doc) {
+                        edit(paneId, doc);
+                        result.resolve(doc.file);
+                    })
+                    .fail(function (fileError) {
+                        result.reject(fileError);
+                    });
+            } else {
+                // Can't do anything with this file
+                result.reject(FileSystemError.UNSUPPORTED_FILETYPE);
+            }
         }
-        
         return result;
     }
     
@@ -1018,10 +1094,10 @@ define(function (require, exports, module) {
      * @private
      */
     function _mergePanes() {
-        if (_paneViews.hasOwnProperty(SECOND_PANE)) {
+        if (_panes.hasOwnProperty(SECOND_PANE)) {
             
-            var firstPane = _paneViews[FIRST_PANE],
-                secondPane = _paneViews[SECOND_PANE],
+            var firstPane = _panes[FIRST_PANE],
+                secondPane = _panes[SECOND_PANE],
                 fileList = secondPane.getViewList(),
                 lastViewed = getCurrentlyViewedFile();
             
@@ -1035,7 +1111,7 @@ define(function (require, exports, module) {
             $(secondPane).off(".mainview");
 
             secondPane.destroy();
-            delete _paneViews[SECOND_PANE];
+            delete _panes[SECOND_PANE];
             $(exports).triggerHandler("paneDestroy", secondPane.id);
             $(exports).triggerHandler("workingSetAddList", [fileList, firstPane.id]);
 
@@ -1126,7 +1202,7 @@ define(function (require, exports, module) {
             // No view of the document, it may be in a working set and not yet opened
             var info = findInAllWorkingSets(document.file.fullPath).shift();
             if (info) {
-                pane = _paneViews[info.paneId];
+                pane = _panes[info.paneId];
             }
         }
         
@@ -1213,7 +1289,7 @@ define(function (require, exports, module) {
         // reset
         _mergePanes();
         _mruList = [];
-        EditorManager._resetViewStates();
+        ViewStateManager.reset();
         
         if (state) {
 
@@ -1236,7 +1312,7 @@ define(function (require, exports, module) {
                     $(exports).triggerHandler("paneLayoutChange", _orientation);
                 }
 
-                _.forEach(_paneViews, function (pane) {
+                _.forEach(_panes, function (pane) {
                     var fileList = pane.getViewList();
 
                     fileList.forEach(function (file) {
@@ -1269,7 +1345,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        _.forEach(_paneViews, function (pane) {
+        _.forEach(_panes, function (pane) {
             state.panes[pane.id] = pane.saveState();
         });
 
@@ -1286,23 +1362,11 @@ define(function (require, exports, module) {
             _$container = $container;
             _createPaneIfNecessary(FIRST_PANE);
             _activePaneId = FIRST_PANE;
-            _paneViews[FIRST_PANE].notifySetActive(true);
+            _panes[FIRST_PANE].notifySetActive(true);
             _updateLayout();
         }
     }
     
-    // Setup a ready event to initialize ourself
-    AppInit.htmlReady(function () {
-        _initialize($("#editor-holder"));
-    });
-    
-    // Event handlers
-    $(ProjectManager).on("projectOpen",                       _loadViewState);
-    $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
-    $(WorkspaceManager).on("workspaceUpdateLayout",           _updateLayout);
-    $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
-    $(DocumentManager).on("pathDeleted",                      _removeDeletedFileFromMRU);
-
     /** 
      * handles the split vertically command
      * @private
@@ -1382,9 +1446,28 @@ define(function (require, exports, module) {
         _updateCommandState();
     });
 
+    /**
+     * Setup a ready event to initialize ourself
+     */
+    AppInit.htmlReady(function () {
+        _initialize($("#editor-holder"));
+    });
+    
+    // Event handlers
+    $(ProjectManager).on("projectOpen",                       _loadViewState);
+    $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
+    $(WorkspaceManager).on("workspaceUpdateLayout",           _updateLayout);
+    $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
+    $(DocumentManager).on("pathDeleted",                      _removeDeletedFileFromMRU);
+    
+    
     // Init
-    _cmdSplitVertically = CommandManager.register("Split Vertically", CMD_ID_SPLIT_VERTICALLY,   _handleSplitVertically);
-    _cmdSplitHorizontally = CommandManager.register("Split Horizontally", CMD_ID_SPLIT_HORIZONTALLY, _handleSplitHorizontially);
+    _cmdSplitVertically = CommandManager.register("Split Vertically",
+                                                  CMD_ID_SPLIT_VERTICALLY,
+                                                  _handleSplitVertically);
+    _cmdSplitHorizontally = CommandManager.register("Split Horizontally",
+                                                    CMD_ID_SPLIT_HORIZONTALLY,
+                                                    _handleSplitHorizontially);
 
     
     _paneTitles[FIRST_PANE] = {};
@@ -1433,6 +1516,8 @@ define(function (require, exports, module) {
     exports.getPaneIdForPath            = getPaneIdForPath;
     
     // Explicit stuff
+    exports.canOpenFile                 = canOpenFile;
+    exports.canOpenPath                 = canOpenPath;
     exports.getAllOpenFiles             = getAllOpenFiles;
     exports.destroyEditorIfNotNeeded    = destroyEditorIfNotNeeded;
     exports.edit                        = edit;

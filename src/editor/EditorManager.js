@@ -64,6 +64,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
+        ViewStateManager    = require("view/ViewStateManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
@@ -73,26 +74,11 @@ define(function (require, exports, module) {
     
     
     /**
-     * view provider registry
-     * @type {?Object}
-     * @private
-     */
-    var _customViewerRegistry = {};
-    
-    /**
      * Currently focused Editor (full-size, inline, or otherwise)
      * @type {?Editor}
      * @private
      */
     var _lastFocusedEditor = null;
-    
-    /**
-     * Maps full path to scroll pos & cursor/selection info. Not kept up to date while an editor is current.
-     * Only updated when switching / closing editor, or when requested explicitly via __getViewState().
-     * @type {Object.<string,{scrollPos:{x:number, y:number},Array.<{start:{line:number, ch:number},end:{line:number, ch:number}>>}
-     * @private
-     */
-    var _viewStateCache = {};
     
     /**
      * Registered inline-editor widget providers sorted descending by priority. 
@@ -154,10 +140,7 @@ define(function (require, exports, module) {
      * @param {!Editor} editor - editor to cache data for
      */
     function _saveEditorViewState(editor) {
-        _viewStateCache[editor.document.file.fullPath] = {
-            selections: editor.getSelections(),
-            scrollPos: editor.getScrollPos()
-        };
+        ViewStateManager.updateViewState(editor);
     }
     
     /** 
@@ -167,47 +150,13 @@ define(function (require, exports, module) {
      */
     function _restoreEditorViewState(editor) {
         // We want to ignore the current state of the editor, so don't call __getViewState()
-        var viewState = _viewStateCache[editor.document.file.fullPath];
+        var viewState = ViewStateManager.getViewState(editor.document.file);
         if (viewState) {
-            if (viewState.selection) {
-                // We no longer write out single-selection, but there might be some view state
-                // from an older version.
-                editor.setSelection(viewState.selection.start, viewState.selection.end);
-            }
-            if (viewState.selections) {
-                editor.setSelections(viewState.selections);
-            }
-            if (viewState.scrollPos) {
-                editor.setScrollPos(viewState.scrollPos.x, viewState.scrollPos.y);
-            }
+            editor.restoreViewState(viewState);
         }
     }
     
-    /** 
-     * @param {!string} fullPath - path of the file to retrieve the view state
-     * @return {ViewState} up-to-date view state for the given file, or null if file not open and no state cached 
-     */
-    function _getViewState(fullPath) {
-        return _viewStateCache[fullPath];
-    }
-    
-    /** 
-     * Initializes the view state cache
-     * @param {Array.<ViewState>} viewStates - serialized view state to initialize cache with
-     */
-    function _resetViewStates(viewStates) {
-        _viewStateCache = viewStates || {};
-    }
 
-    /** 
-     * Adds view states to the view state cache without destroying the existing data
-     * @param {Array.<ViewState>} viewStates - serialized view state to append to the cache
-     */
-    function _addViewStates(viewStates) {
-        _viewStateCache = _.extend(_viewStateCache, viewStates);
-    }
-    
-    
 	/**
      * Editor focus handler to change the currently active editor
      * @private
@@ -650,57 +599,24 @@ define(function (require, exports, module) {
      * Use MainViewManager._initialize() from a unit test to create a Main View attached to a specific DOM element
      */
     function setEditorHolder() {
-        DeprecationWarning.deprecationWarning("EditorManager.setEditorHolder has been deprecated without an equivelent API.  Use MainViewManager._initialize() to create a main view in specified DOM element from within a unit test", true);
+        throw new Error("EditorManager.setEditorHolder() has been removed.");
     }
     
     /**
-     * Registers a new custom viewer provider. To create an extension 
-     * that enables Brackets to view files that cannot be shown as  
-     * text such as binary files, use this method to register a CustomViewer.
-     * 
-     * By registering a CustomViewer with EditorManager  Brackets is
-     * enabled to view files for one or more given file extensions. 
-     * The first argument defines a so called languageId which bundles
-     * file extensions to be handled by the custom viewer, see more
-     * in LanguageManager JSDocs.
-     *
-     * Will be deprecated soon
-     * 
-     * @param {!String} languageId, i.e. string such as image, audio, etc to 
-     *                              identify a language known to LanguageManager 
-     * @param {!Object.<render: function (fullpath, $holder), onRemove: function ()>} Provider the Custom View Provider
+     * @deprecated Register a View Factory instead  
+     * @see MainViewManager.registerViewFactory()
      */
-    function registerCustomViewer(langId, provider) {
-        // 
-        // Custom View Providers must register an object which has the following method signatures:
-        // render(fullpath, $holder) is called to render the HTML Dom Node for the custom viewer at $holder for fullpath.  
-        // onRemove() is called when it's time to remove the DOM node  
-        // 
-        if (!_customViewerRegistry[langId]) {
-            _customViewerRegistry[langId] = provider;
-        } else {
-            console.error("There already is a custom viewer registered for language id  \"" + langId + "\"");
-        }
+    function registerCustomViewer() {
+        throw new Error("EditorManager.registerCustomViewer() has been removed.");
     }
-    
+
     /** 
-     * Will be deprecated soon
-     * Gets the custom viewer view factory for the specified file path
-     * @param {!string} fullPath - file path to match the custom viewer to
-     * @return {?Object} the custom view factory object or null if one doesn't exist for the specified language
+     * Determines if the file can be opened in an editor
+     * @param {!string} fullPath - file to be opened
+     * @return {boolean} true if the file can be opened in an editor, false if not
      */
-    function getCustomViewerForPath(fullPath) {
-        var lang = LanguageManager.getLanguageForPath(fullPath);
-        return _customViewerRegistry[lang.getId()];
-    }
-    
-    /** 
-     * Determines if the file can be opened
-     * @param {!string} fullPath - file path to be checked for a custom viewer
-     * @return {boolean} true if the file can be opened, false if not
-     */
-    function canOpenFile(fullPath) {
-        return !getCustomViewerForPath(fullPath);
+    function canOpenPath(fullPath) {
+        return !LanguageManager.getLanguageForPath(fullPath).isBinary();
     }
     
     /** 
@@ -885,9 +801,6 @@ define(function (require, exports, module) {
     exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;
 
     // Internal Use only
-    exports._getViewState                 = _getViewState;
-    exports._resetViewStates              = _resetViewStates;
-    exports._addViewStates                = _addViewStates;
     exports._saveEditorViewState          = _saveEditorViewState;
     exports._createUnattachedMasterEditor = _createUnattachedMasterEditor;
     
@@ -897,7 +810,7 @@ define(function (require, exports, module) {
     exports.getInlineEditors              = getInlineEditors;
     exports.closeInlineWidget             = closeInlineWidget;
     exports.openDocument                  = openDocument;
-    exports.canOpenFile                   = canOpenFile;
+    exports.canOpenPath                   = canOpenPath;
 
     // Convenience Methods
     exports.getActiveEditor               = getActiveEditor;
@@ -905,14 +818,12 @@ define(function (require, exports, module) {
     exports.getFocusedEditor              = getFocusedEditor;
     
     
-    // CUSTOM VIEWER API (Will be deprecated)
-    exports.registerCustomViewer          = registerCustomViewer;
-    exports.getCustomViewerForPath        = getCustomViewerForPath;
     exports.registerInlineEditProvider    = registerInlineEditProvider;
     exports.registerInlineDocsProvider    = registerInlineDocsProvider;
     exports.registerJumpToDefProvider     = registerJumpToDefProvider;
     
     // Deprecated
+    exports.registerCustomViewer          = registerCustomViewer;
     exports.resizeEditor                  = resizeEditor;
     exports.focusEditor                   = focusEditor;
     exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;

@@ -56,7 +56,7 @@ define(function (require, exports, module) {
                 getFile: function () {
                     return this.file;
                 },
-                resizeToFit: function (hint) {
+                updateLayout: function (hint) {
                 },
                 destroy: function () {
                 },
@@ -73,6 +73,8 @@ define(function (require, exports, module) {
                     return "1234";
                 },
                 adjustScrollPos: function () {
+                },
+                getViewState: function () {
                 },
                 notifyContainerChange: function () {
                 },
@@ -122,12 +124,12 @@ define(function (require, exports, module) {
             it("should show a view", function () {
                 spyOn(myView, "notifyVisibilityChange").andCallThrough();
                 spyOn(myView, "getFile").andCallThrough();
-                spyOn(myView, "resizeToFit");
+                spyOn(myView, "updateLayout");
                 
                 myPane.showView(myView);
                 
                 expect(myView.notifyVisibilityChange).toHaveBeenCalled();
-                expect(myView.resizeToFit).toHaveBeenCalled();
+                expect(myView.updateLayout).toHaveBeenCalled();
                 expect(myView.getFile).toHaveBeenCalled();
                 expect(myView._visible).toBeTruthy();
             });
@@ -256,6 +258,28 @@ define(function (require, exports, module) {
                 myPane.mergeFrom(secondPane);
                 expect(secondPane.$el.find(".not-editor").css("display")).toBeFalsy();
                 
+                secondPane.destroy();
+            });
+            it("should hide current view when merging", function () {
+                var secondView = createMockView("second-view"),
+                    secondPane = createMockPane("second-pane");
+                
+                myPane.addToViewList(myView.getFile());
+                
+                secondPane.addToViewList(secondView.getFile());
+                secondPane.addView(secondView);
+                
+                myPane.addView(myView, true);
+                secondPane.addView(secondView, true);
+                
+                spyOn(myPane, "_setViewVisibility");
+                
+                myPane.mergeFrom(secondPane);
+                
+                expect(myPane._setViewVisibility).toHaveBeenCalled();
+                expect(myPane._setViewVisibility.calls[0].args[0]).toBe(secondView);
+                expect(myPane._setViewVisibility.calls[0].args[1]).toBeFalsy();
+
                 secondPane.destroy();
             });
             it("should not switch views when adding another view", function () {

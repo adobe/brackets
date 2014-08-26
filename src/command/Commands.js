@@ -38,7 +38,7 @@ define(function (require, exports, module) {
     exports.FILE_NEW_UNTITLED           = "file.newDoc";                // DocumentCommandHandlers.js   handleFileNew()
     exports.FILE_NEW                    = "file.newFile";               // DocumentCommandHandlers.js   handleFileNewInProject()
     exports.FILE_NEW_FOLDER             = "file.newFolder";             // DocumentCommandHandlers.js   handleNewFolderInProject()
-    exports.FILE_OPEN                   = "file.open";                  // DocumentCommandHandlers.js   handleFileOpen()
+    exports.FILE_OPEN                   = "file.open";                  // DocumentCommandHandlers.js   handleDocumentOpen()
     exports.FILE_OPEN_FOLDER            = "file.openFolder";            // ProjectManager.js            openProject()
     exports.FILE_SAVE                   = "file.save";                  // DocumentCommandHandlers.js   handleFileSave()
     exports.FILE_SAVE_ALL               = "file.saveAll";               // DocumentCommandHandlers.js   handleFileSaveAll()
@@ -116,6 +116,9 @@ define(function (require, exports, module) {
     exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";        // EditorOptionHandlers.js      _getToggler()
 
     exports.CMD_ADD_TO_WORKINGSET_AND_OPEN  = "cmd.addToWorkingSetAndOpen";          // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()
+    exports.CMD_OPEN                        = "cmd.open";
+    
+    exports.CMD_ADD_TO_WORKINGSET_AND_OPEN  = "cmd.addToWorkingSetAndOpen";          // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()
     exports.CMD_WORKINGSET_SORT_BY_ADDED    = "cmd.sortWorkingSetByAdded";           // WorkingSetSort.js          _handleSort()
     exports.CMD_WORKINGSET_SORT_BY_NAME     = "cmd.sortWorkingSetByName";            // WorkingSetSort.js          _handleSort()
     exports.CMD_WORKINGSET_SORT_BY_TYPE     = "cmd.sortWorkingSetByType";            // WorkingSetSort.js          _handleSort()
@@ -159,8 +162,10 @@ define(function (require, exports, module) {
     exports.APP_ABORT_QUIT              = "app.abort_quit";             // DocumentCommandHandlers.js   handleAbortQuit()
     exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";       // DocumentCommandHandlers.js   handleBeforeMenuPopup()
     
+    // ADD_TO_WORKING_SET is deprectated but we need a handler for it because the new command doesn't return the same result as the legacy command
+    exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";       // Deprecated through DocumentCommandHandlers.js handleFileAddToWorkingSet
+    
     // DEPRECATED: Working Set Commands
-    DeprecationWarning.deprecateConstant(exports, "FILE_ADD_TO_WORKING_SET",    "CMD_ADD_TO_WORKINGSET_AND_OPEN");
     DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_ADDED",   "CMD_WORKINGSET_SORT_BY_ADDED");
     DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_NAME",    "CMD_WORKINGSET_SORT_BY_NAME");
     DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_TYPE",    "CMD_WORKINGSET_SORT_BY_TYPE");

@@ -38,6 +38,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
     "CONTENTS_MODIFIED_ERR"             : "The file has been modified outside of {APP_NAME}.",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} currently only supports UTF-8 encoded text files.",
+    "UNSUPPORTED_FILE_TYPE_ERR"         : "The file is not a supported file type.",
     "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
     "FILE"                              : "file",
     "FILE_TITLE"                        : "File",

@@ -95,9 +95,9 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         InMemoryFile        = require("document/InMemoryFile"),
         CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
         Async               = require("utils/Async"),
         PerfUtils           = require("utils/PerfUtils"),
-        Commands            = require("command/Commands"),
         LanguageManager     = require("language/LanguageManager"),
         Strings             = require("strings");
 
@@ -159,8 +159,14 @@ define(function (require, exports, module) {
      * @return {Array.<File>}
      */
     function getWorkingSet() {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.getWorkingSet() instead of DocumentManager.getWorkingSet()", true);
-        return MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.getViews() instead of DocumentManager.getWorkingSet()", true);
+        return MainViewManager.getWorkingSet(MainViewManager.ALL_PANES)
+            .filter(function (file) {
+                // Document.file objects were added to Working Sets
+                //  so filter the result set from the new API
+                //  for those files who have document objects
+                return getOpenDocumentForPath(file.fullPath);
+            });
     }
 
     /**
@@ -219,7 +225,7 @@ define(function (require, exports, module) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.addListToWorkingSet() instead of DocumentManager.addListToWorkingSet()", true);
         MainViewManager.addListToWorkingSet(MainViewManager.ACTIVE_PANE, fileList);
     }
-    
+
     
     /**
      */
@@ -234,7 +240,7 @@ define(function (require, exports, module) {
      */
     function closeAll() {
         DeprecationWarning.deprecationWarning("Use MainViewManager.closeAll() instead of DocumentManager.closeAll()", true);
-        MainViewManager.closeAll(MainViewManager.ALL_PANES);
+        CommandManager.execute(Commands.FILE_CLOSE_ALL, {PaneId: MainViewManager.ALL_PANES});
     }
 
     /**
@@ -244,7 +250,7 @@ define(function (require, exports, module) {
      */
     function closeFullEditor(file) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.close() instead of DocumentManager.closeFullEditor()", true);
-        return MainViewManager.close(MainViewManager.ALL_PANES, file);
+        CommandManager.execute(Commands.FILE_CLOSE, {File: file});
     }
     
     /**
@@ -254,8 +260,7 @@ define(function (require, exports, module) {
      */
     function setCurrentDocument(doc) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.edit() instead of DocumentManager.setCurrentDocument()", true);
-        var result = MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
-        return result;
+        return MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
     }
 
     

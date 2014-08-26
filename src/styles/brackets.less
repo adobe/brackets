@@ -96,7 +96,7 @@ a, img {
 .main-view {
     background: @bc-menu-bg; // to keep the theme background consistent
     height: 100%;
-    
+
     .dark & {
          background: @dark-bc-menu-bg;
     }
@@ -165,7 +165,7 @@ a, img {
     left: 10px;
     position: absolute;
     white-space: nowrap;
-    
+
     .dark & {
         color: @dark-bc-text;
     }
@@ -190,7 +190,7 @@ a, img {
     right: 0;
     text-align: right;
     white-space: nowrap;
-    
+
     .dark & {
         background: @dark-bc-bg-status-bar;
         color: @dark-bc-text;
@@ -342,152 +342,155 @@ a, img {
         width: 100%;
         border: solid rgba(9, 9, 9, .05) 2px;
         box-sizing: border-box;
-    }
-
-    .active-pane {
-        border: solid rgba(0,0,255, .2) 2px;
-        box-sizing: border-box;
-    }  
     
-    /* Image Preview */
-    #image-holder {
-        overflow: hidden;
-        position: absolute;
-        top: 0px;
-        right: 0px;
-        bottom: 0px;
-        left: 0px;
-        text-align: center;
-        display: none;
-        #img-centering {
+        /* Image Preview */
+        .image-view {
+            overflow: hidden;
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            bottom: 0px;
+            left: 0px;
+            text-align: center;
+            .image-centering {
+                display: inline-block;
+                vertical-align: middle;
+                margin-top: -50px; /* Offset as vertical align takes image metadata into account */
+                max-width: 90%;
+                max-height: 90%;
+            }
+            .image-data {
+                font-weight: @font-weight-semibold;
+            }
+        }
+
+        .image-view:before {
+            content: '';
             display: inline-block;
+            height: 100%;
+            margin-right: -0.25em; /* Adjusts for spacing */
             vertical-align: middle;
-            margin-top: -50px; /* Offset as vertical align takes image metadata into account */
-            max-width: 90%;
+        }
+
+        .image-preview {
+            background: url(images/preview_bg.png);
+            box-shadow: 0 1px 3px @bc-shadow;
             max-height: 90%;
+
+            .dark & {
+                background: url(images/preview_bg_dark.png);
+                box-shadow: 0 1px 3px @dark-bc-shadow;
+            }
         }
-        #img-data {
-            font-weight: @font-weight-semibold;
+
+        .image-header {
+            display: block;
+            width: 100%;
+            height: 38px;
+            margin-bottom: 15px;
+        }
+
+        .image-data,
+        .image-path {
+            text-align: left;
+            .user-select(text);
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .image-data::selection,
+        .image-path::selection {
+            background: @selection-color-focused;
+        }
+
+        .image {
+            position: relative;
+        }
+
+        .image-guide,
+        .image-tip, 
+        .image-scale {
+            pointer-events: none;
+        }
+
+        .image-scale {
+            display: block;
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 40px;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: @bc-text-alt;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px @bc-shadow;
+
+            .dark & {
+                color: @dark-bc-text-alt;
+                box-shadow: 0 1px 3px @dark-bc-shadow;
+            }
+        }
+
+        .image-tip {
+            display: block;
+            position: absolute;
+            text-align: left;
+            white-space: nowrap;
+            padding: 6px 9px;
+            color: @bc-text-alt;
+            background-color: rgba(0, 0, 0, 0.8);
+            font-size: 11px;
+            font-family: SourceCodePro;
+            line-height: 13px;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px @bc-shadow;
+
+            .dark & {
+                color: @dark-bc-text-alt;
+                box-shadow: 0 1px 3px @dark-bc-shadow;
+            }
+        }
+
+        .x-value,
+        .y-value {
+            text-align: right;
+        }
+
+        .tip-container {
+            border: 0;
+        }
+
+        .horz-guide {
+            background-image: url("images/horizontal-dash.svg");
+            background-repeat: repeat-x;
+            width: 8px;
+            height: 1px;
+        }
+
+        .vert-guide {
+            background-image: url("images/vertical-dash.svg");
+            background-repeat: repeat-y;
+            width: 1px;
+            height: 8px;
+        }
+
+        .horz-guide,
+        .vert-guide {
+            position: absolute;
+            display: block;
         }
     }
-
-    #image-holder:before {
-        content: '';
-        display: inline-block;
-        height: 100%;
-        margin-right: -0.25em; /* Adjusts for spacing */
-        vertical-align: middle;
-    }
-
-    #img-preview {
-        background: url(images/preview_bg.png);
-        box-shadow: 0 1px 3px @bc-shadow;
-        max-height: 90%;
+    .active-pane {
+        border: solid rgba(0, 0, 255, .2) 2px;
+        box-sizing: border-box;
         
         .dark & {
-            background: url(images/preview_bg_dark.png);
-            box-shadow: 0 1px 3px @dark-bc-shadow;
+            border: solid rgba(255, 255, 255, .2) 2px;
         }
-    }
-
-    #img-header {
-        display: block;
-        width: 100%;
-        height: 38px;
-        margin-bottom: 15px;
-    }
-
-    #img-data,
-    #img-path {
-        text-align: left;
-        .user-select(text);
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-    }
-
-    #img-data::selection,
-    #img-path::selection {
-        background: @selection-color-focused;
-    }
-
-    #img {
-        position: relative;
-    }
-
-    .img-guide,
-    #img-tip, 
-    #img-scale {
-        pointer-events: none;
-    }
-    
-    #img-scale {
-        display: block;
-        position: absolute;
-        top: 5px;
-        left: 5px;
-        width: 40px;
-        text-align: center;
-        background-color: rgba(0, 0, 0, 0.8);
-        color: @bc-text-alt;
-        border-radius: 3px;
-        box-shadow: 0 1px 3px @bc-shadow;
-        
-        .dark & {
-            color: @dark-bc-text-alt;
-            box-shadow: 0 1px 3px @dark-bc-shadow;
-        }
-    }
-
-    #img-tip {
-        display: block;
-        position: absolute;
-        text-align: left;
-        white-space: nowrap;
-        padding: 6px 9px;
-        color: @bc-text-alt;
-        background-color: rgba(0, 0, 0, 0.8);
-        font-size: 11px;
-        font-family: SourceCodePro;
-        line-height: 13px;
-        border-radius: 3px;
-        box-shadow: 0 1px 3px @bc-shadow;
-        
-        .dark & {
-            color: @dark-bc-text-alt;
-            box-shadow: 0 1px 3px @dark-bc-shadow;
-        }
-    }
-
-    #x-value,
-    #y-value {
-        text-align: right;
-    }
-
-    .tip-container {
-        border: 0;
-    }
-
-    #horiz-guide {
-        background-image: url("images/horizontal-dash.svg");
-        background-repeat: repeat-x;
-        width: 8px;
-        height: 1px;
-    }
-
-    #vert-guide {
-        background-image: url("images/vertical-dash.svg");
-        background-repeat: repeat-y;
-        width: 1px;
-        height: 8px;
-    }
-
-    #horiz-guide,
-    #vert-guide {
-        position: absolute;
-        display: block;
     }
 }
+
 
 .vert-resizer {
     position: absolute;
@@ -680,7 +683,7 @@ a, img {
     top: 7px;
     padding: 4px 6px;
     .sprite-icon(0, 0, 13px, 13px, "images/topcoat-settings-13.svg");
-    background-position: center;
+    background-position:center;
     opacity: 0.8;
 }
 
@@ -740,7 +743,7 @@ a, img {
         padding: 3px (@sidebar-triangle-size * 2) 3px 0;
 
         cursor: default;
-        
+
         .dark & {
             color: @dark-bc-text-alt;
         }
@@ -943,7 +946,7 @@ a, img {
     background-color: @bc-bg-inline-widget;
     min-width: 250px;
     cursor: default;
-    
+
     .dark & {
         background-color: @dark-bc-bg-inline-widget; 
     }
@@ -978,7 +981,7 @@ a, img {
             // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
             // default; but the hand cursor is shut off by Bootstrap's reset stylesheet)
             cursor: pointer;
-            
+
             .dark & {
                 color: @dark-bc-text-thin;
             }
@@ -1059,7 +1062,7 @@ a, img {
     // the window narrow enough. No idea why, since there's no z-index on the button, and
     // the other items in the header go behind the rule list.
     z-index: 1;
-    
+
     .dark & {
         background: @dark-bc-panel-bg;
     }
@@ -1071,7 +1074,7 @@ a, img {
         border-top: none;
         border-bottom: none;
         top: @top-margin;
-        
+
         .dark & {
             background: @dark-bc-panel-bg-selected;
         }
@@ -1123,7 +1126,7 @@ a, img {
             padding: 2px 0px 2px 15px;
             text-overflow: ellipsis;
             white-space: nowrap;
-            
+
             .dark & {
                 color: @dark-bc-text-emphasized;
             }
@@ -1285,7 +1288,7 @@ a, img {
     -webkit-transform: translate(0, 0); // Prefix still required.
     transition: -webkit-transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
     z-index: @z-index-brackets-modalbar;
-    
+
     .dark & {
         color: @dark-bc-text;
         background: @dark-bc-panel-bg;
@@ -1649,7 +1652,7 @@ textarea.exclusions-editor {
      * so these specific padding and margin values are necessary*/
     padding: 0px;
     margin: 9px 0 0;
-    
+
     .dark & {
         background-color: @dark-bc-panel-bg;
         border-radius: 0 0 4px 4px;
@@ -1673,7 +1676,7 @@ textarea.exclusions-editor {
         list-style: none;
         cursor: default;
         padding: 6px 10px;
-        
+
         .dark & {
             color: @dark-bc-text-emphasized;
         }

@@ -747,13 +747,14 @@ define(function (require, exports, module) {
             fullpaths = makeArray(makeAbsolute(paths)),
             keys = makeArray(makeRelative(paths)),
             docs = {},
-            FileViewController = _testWindow.brackets.test.FileViewController;
+            FileViewController = _testWindow.brackets.test.FileViewController,
+            DocumentManager = _testWindow.brackets.test.DocumentManager;
         
         Async.doSequentially(fullpaths, function (path, i) {
             var one = new $.Deferred();
             
-            FileViewController.addToPaneViewAndSelect(path).done(function (doc) {
-                docs[keys[i]] = doc;
+            FileViewController.addToPaneViewAndSelect(path).done(function (file) {
+                docs[keys[i]] = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 one.resolve();
             }).fail(function (err) {
                 one.reject(err);

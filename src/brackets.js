@@ -193,6 +193,7 @@ define(function (require, exports, module) {
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
             MainViewManager         : MainViewManager,
+            MainViewFactory         : require("view/MainViewFactory"),
             Menus                   : Menus,
             MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
             NativeApp               : NativeApp,
