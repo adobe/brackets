@@ -83,7 +83,7 @@ define({
 
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Virhe tiedostojen indeksoinnissa",
-    "ERROR_MAX_FILES"                   : "Suurin sallittu määrä tiedostoja on indeksoitu. Toiminnot, jotka etsivät tiedostoja indeksistä, voivat toimia virheellisesti.",
+    "ERROR_MAX_FILES"                   : "Tämä projekti sisältää yli 30&nbsp;000 tiedostoa. Useiden tiedostojen välillä toimivat ominaisuudet poistetaan käytöstä, tai ne toimivat niin kuin projekti olisi tyhjä. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Lue lisää suurten projektien kanssa työskentelemisestä</a>.",
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Virhe käynnistettäessä selainta",
@@ -137,8 +137,7 @@ define({
     "BUTTON_NO"                         : "Ei",
 
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} tulosta",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 tulos",
+    "FIND_MATCH_INDEX"                  : "{0} / {1}",
     "FIND_NO_RESULTS"                   : "Ei tuloksia",
     "FIND_QUERY_PLACEHOLDER"            : "Etsi\u2026",
     "REPLACE_PLACEHOLDER"               : "Korvaa merkkijonolla\u2026",
@@ -248,7 +247,11 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Laajennukset poistettu käytöstä",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Vaihda kohdistimen sijoitus- (INS) ja korvaus (OVR) -tilojen välillä napsauttamalla",
+    "STATUSBAR_LANG_TOOLTIP"                : "Vaihda tiedostotyyppiä napsauttamalla",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Näytä tai piilota raporttipaneeli napsauttamalla.",
     "STATUSBAR_DEFAULT_LANG"                : "(oletus)",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Aseta oletukseksi .{0}-tiedostoille",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0}-ongelmat",
@@ -424,8 +427,7 @@ define({
     "USE_THEME_SCROLLBARS"                 : "Käytä teeman vierityspalkkeja",
     "FONT_SIZE"                            : "Kirjasimen koko",
     "FONT_FAMILY"                          : "Kirjasinperhe",
-    "LINE_HEIGHT"                          : "Rivikorkeus",
-    "GENERAL"                              : "Yleinen",
+    "THEMES_SETTINGS"                      : "Teemojen asetukset",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Uusi sääntö",
@@ -475,10 +477,10 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Laajennusten hallinta",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Virhe käytettäessä laajennusten rekisteriä. Yritä myöhemmin uudelleen.",
-    "INSTALL_EXTENSION_DRAG"               : "Vedä .zip-tiedosto tänne tai",
-    "INSTALL_EXTENSION_DROP"               : "Pudota .zip-tiedosto asentaaksesi",
+    "INSTALL_EXTENSION_DRAG"               : "Vedä .zip-paketti tähän tai",
+    "INSTALL_EXTENSION_DROP"               : "Asenna pudottamalla .zip-paketti",
     "INSTALL_EXTENSION_DROP_ERROR"         : "Asennus tai päivitys keskeytyi seuraaviin virheisiin:",
-    "INSTALL_FROM_URL"                     : "Asenna URL-osoitteesta\u2026",
+    "INSTALL_FROM_URL"                     : "asenna URL-osoitteesta\u2026",
     "INSTALL_EXTENSION_VALIDATING"         : "Vahvistetaan\u2026",
     "EXTENSION_AUTHOR"                     : "Tekijä",
     "EXTENSION_DATE"                       : "Päivämäärä",
@@ -515,9 +517,10 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Laajennusta {0} ei voida poistaa, koska sitä ei ole asennettu.",
     "NO_EXTENSIONS"                        : "Laajennuksia ei ole vielä asennettu.<br>Napsauta Saatavilla-välilehteä yläpuolelta aloittaaksesi.",
     "NO_EXTENSION_MATCHES"                 : "Ei hakuasi vastaavia laajennuksia.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "Ole varovainen asentaessasi laajennuksia tuntemattomasta lähteestä.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "HUOMAUTUS: Nämä laajennukset voivat olla peräisin eri lähteistä kuin {APP_NAME} itse. Laajennuksia ei ole tarkastettu, ja niillä on täydet paikalliset oikeudet. Ole varovainen asentaessasi laajennuksia tuntemattomasta lähteestä.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Asennettu",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Saatavilla",
+    "EXTENSIONS_THEMES_TITLE"              : "Teemat",
     "EXTENSIONS_UPDATES_TITLE"             : "Päivitykset",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Vastaavuuksia ei saatavilla.",
@@ -557,7 +560,7 @@ define({
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Aika",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Edistyminen",
-    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Siirrä valittua pistettä<br><kbd class='text'>Vaihto</kbd> Siirrä kymmenen yksikköä<br><kbd class='text'>Tab</kbd> Muuta pisteitä",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Siirrä valittua pistettä<br><kbd class='text'>Vaihto</kbd> Siirrä kymmenen yksikköä<br><kbd class='text'>Tab</kbd> Vaihda pistettä",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Lisää tai vähennä askelmia<br><kbd>←</kbd><kbd>→</kbd> ”Start” tai ”end”",
     "INLINE_TIMING_EDITOR_INVALID"              : "Vanha arvo <code>{0}</code> on virheellinen, joten näytetty funktio muutettiin muotoon <code>{1}</code>. Dokumentti päivitetään ensimmäisellä muokkauksella.",
 
@@ -590,4 +593,4 @@ define({
     "DOCS_MORE_LINK"                            : "Lue lisää"
 });
 
-/* Last translated for b67eadbd2b8f51d7131b0fd8223b49cf6473a8a0 */
+/* Last translated for 8712385a6bf12277e6d0788d408e630a40c95a14 */

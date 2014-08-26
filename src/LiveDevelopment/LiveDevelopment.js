@@ -98,6 +98,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     // Documents
     var CSSDocument     = require("LiveDevelopment/Documents/CSSDocument"),
+        CSSPreprocessorDocument = require("LiveDevelopment/Documents/CSSPreprocessorDocument"),
         HTMLDocument    = require("LiveDevelopment/Documents/HTMLDocument"),
         JSDocument      = require("LiveDevelopment/Documents/JSDocument");
     
@@ -207,6 +208,9 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function _classForDocument(doc) {
         switch (doc.getLanguage().getId()) {
+        case "less":
+        case "scss":
+            return CSSPreprocessorDocument;
         case "css":
             return CSSDocument;
         case "javascript":
@@ -484,7 +488,8 @@ define(function LiveDevelopment(require, exports, module) {
         var docPromise = DocumentManager.getDocumentForPath(path);
 
         docPromise.done(function (doc) {
-            if ((_classForDocument(doc) === CSSDocument) &&
+            if ((_classForDocument(doc) === CSSDocument ||
+                    _classForDocument(doc) === CSSPreprocessorDocument) &&
                     (!_liveDocument || (doc !== _liveDocument.doc))) {
                 // The doc may already have an editor (e.g. starting live preview from an css file),
                 // so pass the editor if any
@@ -1250,6 +1255,34 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /**
+     * If the current editor is for a preprocessor file, then add it to the style sheet 
+     * so that we can track cursor positions in the editor to show live preview highlighting.
+     * For normal CSS we only do highlighting from files we know for sure are referenced by the 
+     * current live preview document, but for preprocessors we just assume that any preprocessor 
+     * file you edit is probably related to the live preview.
+     *
+     * @param {Event} event (unused)
+     * @param {Editor} current Current editor
+     * @param {Editor} previous Previous editor
+     *
+     */
+    function onActiveEditorChange(event, current, previous) {
+        if (previous && previous.document &&
+                FileUtils.isCSSPreprocessorFile(previous.document.file.fullPath)) {
+            var prevDocUrl = _server && _server.pathToUrl(previous.document.file.fullPath);
+            
+            if (_relatedDocuments && _relatedDocuments[prevDocUrl]) {
+                _closeRelatedDocument(_relatedDocuments[prevDocUrl]);
+            }
+        }
+        if (current && current.document &&
+                FileUtils.isCSSPreprocessorFile(current.document.file.fullPath)) {
+            var docUrl = _server && _server.pathToUrl(current.document.file.fullPath);
+            _styleSheetAdded(null, docUrl);
+        }
+    }
+    
+    /**
      * Open the Connection and go live
      *
      * @param {!boolean} restart  true if relaunching and _openDeferred already exists
@@ -1294,6 +1327,10 @@ define(function LiveDevelopment(require, exports, module) {
             prepareServerPromise
                 .done(function () {
                     _doLaunchAfterServerReady(doc);
+
+                    // Explicitly trigger onActiveEditorChange so that live preview highlighting
+                    // can be set up for the preprocessor files.
+                    onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
                 })
                 .fail(function () {
                     _showWrongDocError();
@@ -1452,6 +1489,12 @@ define(function LiveDevelopment(require, exports, module) {
     function getServerBaseUrl() {
         return _server && _server.getBaseUrl();
     }
+
+    // Setup activeEditorChange event listener so that we can track cursor positions in 
+    // preprocessor files and perform live preview highlighting on all elements with 
+    // the current selector in the preprocessor file.
+    $(EditorManager).on("activeEditorChange", onActiveEditorChange);
+
 
     // For unit testing
     exports.launcherUrl               = launcherUrl;
