@@ -231,7 +231,7 @@ a, img {
         height: inherit;
         line-height: inherit;
         margin: 0;
-        padding: 0 20px 0 10px;
+        padding: 0 21px 0 10px;
         vertical-align: top;
         width: auto;
         cursor: pointer;
@@ -246,6 +246,10 @@ a, img {
             cursor: inherit;
             background: none;
             text-decoration: none;
+        }
+        &::after {
+            top: 10px;
+            right: 8px;
         }
     }
     
@@ -323,7 +327,11 @@ a, img {
         .vbox;
         .box-pack(center);
         .box-align(center);
-        background: @bc-menu-bg url('images/no_content_bg.svg') no-repeat center 45%; // Same image for both light and dark UI.
+        background: @bc-menu-bg url('images/no_content_bg.svg') no-repeat center 45%;
+
+        .dark & {
+            background: @dark-bc-menu-bg url('images/no_content_bg_dark.svg') no-repeat center 45%;
+        }
     }
 
     .view-pane {
@@ -660,12 +668,12 @@ a, img {
     padding: 10px 0 9px 12px;
     background: @bc-sidebar-bg;
     color: @project-panel-text-2;
-    text-shadow: 0 -1px 0 @bc-shadow-large;
+    text-shadow: none;
     overflow: hidden;
     
-    .dark & {
-        background: @dark-bc-sidebar-bg;
-        text-shadow: 0 -1px 0 @dark-bc-shadow-large;        
+    > div {
+        background-color: @dark-bc-sidebar-bg;
+        opacity: 1;
     }
 }
 
@@ -677,10 +685,6 @@ a, img {
     .sprite-icon(0, 0, 13px, 13px, "images/topcoat-settings-13.svg");
     background-position:center;
     opacity: 0.8;
-}
-
-#working-set-option-btn:hover {
-    opacity: 1;
 }
 
 #sidebar {
@@ -773,12 +777,6 @@ a, img {
     border-bottom: 1px solid @bc-highlight;
     height: 22px;
     position: absolute;
-    
-    .dark & {
-        background: @dark-bc-sidebar-selection;
-        border-top: 1px solid @dark-bc-shadow-small;
-        border-bottom: 1px solid @dark-bc-highlight;        
-    }
 }
 
 .sidebar-selection-triangle {
@@ -791,12 +789,6 @@ a, img {
     position: fixed;
 
     z-index: @z-index-brackets-selection-triangle; /* scroller-shadow appears above this triangle */
-    
-    .dark & {
-        background: @dark-bc-sidebar-selection;
-        border-top: 1px solid @dark-bc-shadow-small;
-        border-bottom: 1px solid @dark-bc-highlight;        
-    }
 }
 
 .sidebar-selection-triangle.triangle-visible:before {
@@ -1079,14 +1071,12 @@ a, img {
         width: 100%;
         background: @bc-panel-bg-selected;
         position: absolute;
-        border-top: 1px solid @bc-shadow-small;
-        border-bottom: 1px solid @bc-highlight;
+        border-top: none;
+        border-bottom: none;
         top: @top-margin;
 
         .dark & {
             background: @dark-bc-panel-bg-selected;
-            border-top: 1px solid @dark-bc-shadow-small;
-            border-bottom: 1px solid @dark-bc-highlight;            
         }
 
         &.animate {
@@ -1749,16 +1739,21 @@ textarea.exclusions-editor {
     box-sizing: border-box;
     width: 14px;
     height: 14px;
-    border-left: 3px solid #78B2F2;
-    border-right: 3px solid #78B2F2;
+    border-left: 3px solid @bc-spinner;
+    border-right: 3px solid @bc-spinner;
     overflow: hidden;
     position: relative;
     visibility: hidden;
 
+    .dark & {
+        border-left: 3px solid @dark-bc-spinner;
+        border-right: 3px solid @dark-bc-spinner;
+    }
+
     &:before,
     &:after {
-        border-left: 3px solid #78B2F2;
-        border-right: 3px solid #78B2F2;
+        border-left: 3px solid @bc-spinner;
+        border-right: 3px solid @bc-spinner;
         box-sizing: border-box;
         content: "";
         display: block;
@@ -1766,6 +1761,11 @@ textarea.exclusions-editor {
         width: 100%;
         height: 3px;
         left: 0;
+
+        .dark & {
+            border-left: 3px solid @dark-bc-spinner;
+            border-right: 3px solid @dark-bc-spinner;
+        }
     }
     &:before {
         top: 0;
@@ -1783,14 +1783,24 @@ textarea.exclusions-editor {
     &.large {
         width: 36px;
         height: 36px;
-        border-left: 9px solid #78B2F2;
-        border-right: 9px solid #78B2F2;
+        border-left: 9px solid @bc-spinner;
+        border-right: 9px solid @bc-spinner;
+
+        .dark & {
+            border-left: 9px solid @dark-bc-spinner;
+            border-right: 9px solid @dark-bc-spinner;
+        }
 
         &:before,
         &:after {
-            border-left: 7px solid #78B2F2;
-            border-right: 7px solid #78B2F2;
+            border-left: 7px solid @bc-spinner;
+            border-right: 7px solid @bc-spinner;
             height: 9px;
+
+            .dark & {
+                border-left: 7px solid @dark-bc-spinner;
+                border-right: 7px solid @dark-bc-spinner;
+            }
         }
     }
     
