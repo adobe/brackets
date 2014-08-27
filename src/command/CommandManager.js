@@ -83,25 +83,22 @@ define(function (require, exports, module) {
     /**
      * Executes the command. Additional arguments are passed to the executing function
      *
-     * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
+     * @return {boolean|Promise} False if command was not executed. True or Promise if command was executed.
      */
     Command.prototype.execute = function () {
         if (!this._enabled) {
-            return new Promise(function (resolve, reject) {
-                reject();
-            });
+            return false;
         }
         
         var result = this._commandFn.apply(this, arguments);
-        if (!result) {
-            // If command does not return a promise, assume that it handled the
-            // command and return a resolved promise
-            return new Promise(function (resolve, reject) {
-                resolve();
-            });
-        } else {
-            return result;
+
+        // For backward compatibility, commands that do not explicitly return `false`
+        // (e.g. don't return anything) are interpreted as returning `true`.
+        if (result === undefined || result === null) {
+            result = true;
         }
+        
+        return result;
     };
 
     /**

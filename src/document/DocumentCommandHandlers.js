@@ -1323,10 +1323,8 @@ define(function (require, exports, module) {
     */
     function _handleWindowGoingAway(commandData, postCloseHandler, failHandler) {
         if (_windowGoingAway) {
-            //if we get called back while we're closing, then just return
-            return new Promise(function (resolve, reject) {
-                reject();
-            });
+            // If we get called back while we're closing, then just return
+            return false;
         }
 
         return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).then(

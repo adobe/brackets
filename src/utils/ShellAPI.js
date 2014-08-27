@@ -41,6 +41,8 @@ define(function (require, exports, module) {
     /**
      * The native function BracketsShellAPI::DispatchBracketsJSCommand calls this function in order to enable
      * calling Brackets commands from the native shell.
+     * @param {string} eventName Name of command to execute
+     * @return {boolean} Success indicator
      */
     function executeCommand(eventName) {
         // Temporary fix for #2616 - don't execute the command if a modal dialog is open.
@@ -58,21 +60,23 @@ define(function (require, exports, module) {
         }
 
         // Use E for Error so that uglify doesn't change this to simply Error()
-        var promise, E = Error, e = new E(), stackDepth = e.stack.split("\n").length;
+        var result,
+            E = Error,
+            e = new E(),
+            stackDepth = e.stack.split("\n").length;
         
         // This function should *only* be called as a top-level function. If the current
         // stack depth is > 2, it is most likely because we are at a breakpoint. 
         if (stackDepth < 3) {
-            promise = CommandManager.execute(eventName);
+            result = CommandManager.execute(eventName);
         } else {
             console.error("Skipping command " + eventName + " because it looks like you are " +
                           "at a breakpoint. If you are NOT at a breakpoint, please " +
                           "file a bug and mention this comment. Stack depth = " + stackDepth + ".");
         }
         
-        // This can no longer be determined with ES6 Promises
-        //return (promise && promise.state() === "rejected") ? false : true;
-        return true;
+        // Commands can return boolean or a Promise, so convert to boolean
+        return !!result;
     }
 
     AppInit.appReady(function () {
