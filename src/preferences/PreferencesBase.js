@@ -1184,54 +1184,42 @@ define(function (require, exports, module) {
          * before.
          *
          * @param {Object} shadowEntry Shadow entry of the resolved scope
+         * @param {number=} index Index of item to "try". Default value is item after shadowEntry.
          */
-        _tryAddToScopeOrder: function (shadowEntry) {
-            var defaultScopeOrder = this._defaultContext.scopeOrder,
-                shadowScopeOrder = this._defaultContext._shadowScopeOrder,
-                index = _.findIndex(shadowScopeOrder, function (entry) {
-                    return entry === shadowEntry;
-                }),
-                $this = $(this),
-                done = false,
-                i = index + 1,
-                fnAlways;
+        _tryAddToScopeOrder: function (shadowEntry, index) {
+            var shadowScopeOrder = this._defaultContext._shadowScopeOrder;
             
-            // Find an appropriate scope of lower priority to add it before
+            // `index` is calculated on initial call. It's then incremented and passed in
+            // for recursive iterations.
+            index = index || _.findIndex(shadowScopeOrder, function (entry) {
+                return entry === shadowEntry;
+            }) + 1;
             
-// TODO - not sure how to determine resolved vs pending vs rejected
-console.log("PreferencesBase: _tryAddToScopeOrder - MUST FIX $.Deferred.state() code!");
-            
-//            while (i < shadowScopeOrder.length) {
-//                if (shadowScopeOrder[i].promise.state() === "pending" ||
-//                        shadowScopeOrder[i].promise.state() === "resolved") {
-//                    break;
-//                }
-//                i++;
-//            }
-            
-//            switch (shadowScopeOrder[i].promise.state()) {
-            switch ("resolved") {
-            case "pending":
-                // cannot decide now, lookup once pending promise is settled
-                fnAlways = function () {
-                    this._tryAddToScopeOrder(shadowEntry);
-                }.bind(this);
-                shadowScopeOrder[i].promise.then(fnAlways, fnAlways);
-                break;
-            case "resolved":
-                this._pushToScopeOrder(shadowEntry.id, shadowScopeOrder[i].id);
-                $this.trigger(SCOPEORDER_CHANGE, {
-                    id: shadowEntry.id,
-                    action: "added"
-                });
-                this._triggerChange({
-                    ids: shadowEntry.scope.getKeys()
-                });
-                break;
-            default:
+            if (index >= shadowScopeOrder.length) {
                 throw new Error("Internal error: no scope found to add before. \"default\" is missing?..");
             }
-
+            
+            // Find a resolved scope of lower priority to add it before.
+            // We can't synchronously determine state of a Promise, so we'll
+            // have to wait for appropriate callback.
+            shadowScopeOrder[index].promise.then(
+                function () {
+                    // onFulfillment - success
+                    this._pushToScopeOrder(shadowEntry.id, shadowScopeOrder[index].id);
+                    $(this).trigger(SCOPEORDER_CHANGE, {
+                        id: shadowEntry.id,
+                        action: "added"
+                    });
+                    this._triggerChange({
+                        ids: shadowEntry.scope.getKeys()
+                    });
+                }.bind(this),
+                
+                function () {
+                    // onRejection - recursively try next scope
+                    this._tryAddToScopeOrder(shadowEntry, index + 1);
+                }.bind(this)
+            );
         },
         
         /**
