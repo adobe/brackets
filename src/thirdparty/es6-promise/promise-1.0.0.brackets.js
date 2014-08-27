@@ -406,20 +406,22 @@ define("promise/promise",
         return thenPromise;
       },
 
+      // Add methods for Brackets
       done: function (fn) {
-        console.log("jQuery promises are deprecated in favor of Promise object - use then() instead of done().");
+//        console.log("jQuery promises are deprecated in favor of Promise object - use then() instead of done().");
         return this.then(fn, null);
       },
 
       fail: function (fn) {
-        console.log("jQuery promises are deprecated in favor of Promise object - use then() instead of fail().");
+//        console.log("jQuery promises are deprecated in favor of Promise object - use then() instead of fail().");
         return this.then(null, fn);
       },
 
       always: function (fn) {
-        console.log("jQuery promises are deprecated in favor of Promise object - use then() instead of always().");
+//        console.log("jQuery promises are deprecated in favor of Promise object - use then() instead of always().");
         return this.then(fn, fn);
       },
+      // end Brackets code
 
       'catch': function(onRejection) {
         return this.then(null, onRejection);

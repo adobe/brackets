@@ -1105,9 +1105,7 @@ define(function (require, exports, module) {
      */
     function ignoreCommand() {
         // Do nothing. The shell will call the native handler for the command.
-        return new Promise(function (resolve, reject) {
-            reject();
-        });
+        return false;
     }
 	
 	function _handleSelectAll() {

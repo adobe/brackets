@@ -287,9 +287,8 @@ define(function (require, exports, module) {
             
             return command.execute.apply(command, Array.prototype.slice.call(arguments, 1));
         } else {
-            return new Promise(function (resolve, reject) {
-                reject();
-            });
+            // Command not handled
+            return false;
         }
     }
 
