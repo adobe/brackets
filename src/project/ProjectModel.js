@@ -206,8 +206,6 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype.projectBaseUrl = null;
     
-    ProjectModel.prototype._renameStatus = null;
-    
     ProjectModel.prototype._selections = null;
     
     /**
@@ -389,10 +387,6 @@ define(function (require, exports, module) {
             }
         });
         return d.promise();
-    };
-    
-    ProjectModel.prototype.toggleDirectory = function (path) {
-        this._viewModel.toggleDirectory(path);
     };
     
     ProjectModel.prototype._getDirectoryContents = function (path) {
