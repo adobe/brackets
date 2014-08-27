@@ -395,25 +395,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Determines if a file can be opened
-     * @param {!File} file - file object to test
-     * @return (boolean} true if the file can be opened, false if not
-     */
-    function canOpenPath(fullPath) {
-        return (EditorManager.canOpenPath(fullPath) ||
-                !!MainViewFactory.findSuitableFactoryForPath(fullPath));
-    }
-    
-    /** 
-     * Determines if a file can be opened
-     * @param {!File} file - file object to test
-     * @return (boolean} true if the file can be opened, false if not
-     */
-    function canOpenFile(file) {
-        return canOpenPath(file.fullPath);
-    }
-    
-    /**
      * Retrieves the currently viewed file of the specified paneId
      * @param {string=} paneId - the id of the pane in which to retrieve the currently viewed file
      * @return {?File} File object of the currently viewed file, null if there isn't one or undefined if there isn't a matching pane
@@ -704,7 +685,7 @@ define(function (require, exports, module) {
             throw new Error("invalid pane id: " + paneId);
         }
 
-        if (!canOpenPath(file.fullPath) || (findInWorkingSet(ALL_PANES, file.fullPath) !== -1)) {
+        if (findInWorkingSet(ALL_PANES, file.fullPath) !== -1) {
             return;
         }
         
@@ -716,7 +697,11 @@ define(function (require, exports, module) {
         var result = pane.reorderItem(file, index, force),
             entry = _makeFileListEntry(file, pane.id);
 
+        
+        // handles the case of save as so that the file remains in the 
+        //  the same location in the working set as the file that was renamed
         if (result === pane.ITEM_FOUND_NEEDS_SORT) {
+            console.warn("pane.reorderItem returned pane.ITEM_FOUND_NEEDS_SORT which shouldn't happen " + file);
             $(exports).triggerHandler("workingSetSort", [pane.id]);
         } else if (result === pane.ITEM_NOT_FOUND) {
             index = pane.addToViewList(file, index);
@@ -1048,44 +1033,36 @@ define(function (require, exports, module) {
         var pane = _getPane(paneId),
             view = pane.getViewForPath(file.fullPath);
 
-        if (view) {
-            // there is a view already, so we just need to show it
-            pane.showView(view);
-            result.resolve(file);
-        } else {
-            // See if there is a factory to create a view for this file
-            //  we want to do this first because, we don't want our internal 
-            //  editor to edit files for which there are suitable viewfactories
-            var factory = MainViewFactory.findSuitableFactoryForPath(file.fullPath);
+        // See if there is a factory to create a view for this file
+        //  we want to do this first because, we don't want our internal 
+        //  editor to edit files for which there are suitable viewfactories
+        var factory = MainViewFactory.findSuitableFactoryForPath(file.fullPath);
 
-            if (factory) {
-                // let the factory open the file and create a view for it
-                factory.openFile(file, pane)
-                    .done(function () {
-                        // if we opened a file that isn't in the project
-                        //  then add the file to the working set
-                        if (!ProjectManager.isWithinProject(file.fullPath)) {
-                            addToWorkingSet(paneId, file);
-                        }
-                        result.resolve(file);
-                    })
-                    .fail(function (fileError) {
-                        result.reject(fileError);
-                    });
-            } else if (EditorManager.canOpenPath(file.fullPath)) {
-                DocumentManager.getDocumentForPath(file.fullPath)
-                    .done(function (doc) {
-                        edit(paneId, doc);
-                        result.resolve(doc.file);
-                    })
-                    .fail(function (fileError) {
-                        result.reject(fileError);
-                    });
-            } else {
-                // Can't do anything with this file
-                result.reject(FileSystemError.UNSUPPORTED_FILETYPE);
-            }
+        if (factory) {
+            // let the factory open the file and create a view for it
+            factory.openFile(file, pane)
+                .done(function () {
+                    // if we opened a file that isn't in the project
+                    //  then add the file to the working set
+                    if (!ProjectManager.isWithinProject(file.fullPath)) {
+                        addToWorkingSet(paneId, file);
+                    }
+                    result.resolve(file);
+                })
+                .fail(function (fileError) {
+                    result.reject(fileError);
+                });
+        } else {
+            DocumentManager.getDocumentForPath(file.fullPath)
+                .done(function (doc) {
+                    edit(paneId, doc);
+                    result.resolve(doc.file);
+                })
+                .fail(function (fileError) {
+                    result.reject(fileError);
+                });
         }
+        
         return result;
     }
     
@@ -1519,8 +1496,6 @@ define(function (require, exports, module) {
     exports.getPaneIdForPath               = getPaneIdForPath;
     
     // Explicit stuff
-    exports.canOpenFile                    = canOpenFile;
-    exports.canOpenPath                    = canOpenPath;
     exports.getAllOpenFiles                = getAllOpenFiles;
     exports.destroyEditorIfNotNeeded       = destroyEditorIfNotNeeded;
     exports.edit                           = edit;

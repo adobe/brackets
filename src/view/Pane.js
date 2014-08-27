@@ -497,17 +497,6 @@ define(function (require, exports, module) {
         this._viewListAddedOrder.unshift(file);
     };
 
-    
-    /**
-     * Determines if a file can be added to our file list
-     * @private
-     * @param {!File} file - file object to test
-     * @return {boolean} true if it can be added, false if not
-     */
-    Pane.prototype._canAddFile = function (file) {
-        return ((this._views.hasOwnProperty(file.fullPath) && this.findInViewList(file.fullPath) === -1) ||
-                    (MainViewManager.canOpenFile(file) && !MainViewManager.getPaneIdForPath(file.fullPath)));
-    };
                 
     /**
      * Adds the given file to the end of the pane view list, if it is not already in the list
@@ -540,10 +529,8 @@ define(function (require, exports, module) {
 
         // Process only files not already in view list
         fileList.forEach(function (file) {
-            if (self._canAddFile(file)) {
-                self._addToViewList(file);
-                uniqueFileList.push(file);
-            }
+            self._addToViewList(file);
+            uniqueFileList.push(file);
         });
 
         return uniqueFileList;
