@@ -1078,9 +1078,8 @@ define(function (require, exports, module) {
         
         this._pendingScopes = {};
         
-        this._saveInProgress = null;
-        this._nextSavePromise = null;
-        this._nextSaveCallbacks = {};
+        this._saveInProgress = {};
+        this._nextSave = {};
         this.finalized = false;
         
         // The objects that define the different kinds of path-based Scope handlers.
@@ -1580,29 +1579,22 @@ define(function (require, exports, module) {
                 });
             }
 
-            // If necessary, create `_nextSavePromise`
-            if (!this._nextSavePromise) {
-                this._nextSavePromise = new Promise(function (nextSaveResolve, nextSaveReject) {
-                    this._nextSaveCallbacks = {
-                        resolve: nextSaveResolve,
-                        reject:  nextSaveReject
-                    };
+            // If necessary, create `_nextSave`
+            if (!this._nextSave.promise) {
+                this._nextSave.promise = new Promise(function (nextSaveResolve, nextSaveReject) {
+                    this._nextSave.resolve = nextSaveResolve;
+                    this._nextSave.reject  = nextSaveReject;
                 }.bind(this));
-
-                var fnAlways = function () {
-                    this._nextSaveCallbacks = {};
-                }.bind(this);
-                this._nextSavePromise.then(fnAlways, fnAlways);
             }
 
             // If there's a `_saveInProgress` we're done
-            if (this._saveInProgress) {
-                return this._nextSavePromise;
+            if (this._saveInProgress.promise) {
+                return this._nextSave.promise;
             }
             
-            // Move `_nextSavePromise` to `_saveInProgress`
-            this._saveInProgress = this._nextSavePromise;
-            this._nextSavePromise = null;
+            // Move `_nextSave` to `_saveInProgress`
+            this._saveInProgress = this._nextSave;
+            this._nextSave = {};
 
             Async.doInParallel(_.values(this._scopes), function (scope) {
                 if (scope) {
@@ -1614,22 +1606,23 @@ define(function (require, exports, module) {
                 }
             }.bind(this)).then(
                 function () {
-                    this._saveInProgress = null;
-                    if (this._nextSavePromise) {
-                        this.save();
+                    if (this._saveInProgress.resolve) {
+                        this._saveInProgress.resolve();
                     }
-                    if (this._nextSaveCallbacks.resolve) {
-                        this._nextSaveCallbacks.resolve();
+                    this._saveInProgress = {};
+                    if (this._nextSave.promise) {
+                        this.save();
                     }
                 }.bind(this),
                 function (err) {
-                    if (this._nextSaveCallbacks.reject) {
-                        this._nextSaveCallbacks.reject(err);
+                    if (this._saveInProgress.reject) {
+                        this._saveInProgress.reject(err);
                     }
+                    this._saveInProgress = {};
                 }
             );
             
-            return this._saveInProgress;
+            return this._saveInProgress.promise;
         },
         
         /**
@@ -1799,12 +1792,12 @@ define(function (require, exports, module) {
             return new Promise(function (resolve, reject) {
 
                 // Don't resolve promise until last `_saveInProgress` promise completes.
-                // There will only ever be a `_nextSavePromise`, if there is already a
+                // There will only ever be a `_nextSave`, if there is already a
                 // `_saveInProgress` and it will become the new `_saveInProgress` as soon as
                 // previous `_saveInProgress` resolves, so only need to wait for `_saveInProgress`.
                 function checkForSaveAndFinalize() {
-                    if (self._saveInProgress) {
-                        self._saveInProgress.then(checkForSaveAndFinalize, null);
+                    if (self._saveInProgress.promise) {
+                        self._saveInProgress.promise.then(checkForSaveAndFinalize, null);
                     } else {
                         self.finalized = true;
                         resolve();

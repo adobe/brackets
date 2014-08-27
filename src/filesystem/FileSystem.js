@@ -294,7 +294,8 @@ define(function (require, exports, module) {
                     return false;
                 };
                 
-                entry.visit(visitor, function (err) {
+                entry.visit(visitor, function (args) {
+                    var err = args && args[0];
                     if (err) {
                         // Unexpected error
                         requestCb(err);
@@ -353,7 +354,8 @@ define(function (require, exports, module) {
      *      watch is complete, possibly with a FileSystemError string.
      */
     FileSystem.prototype._unwatchEntry = function (entry, watchedRoot, callback) {
-        this._watchOrUnwatchEntry(entry, watchedRoot, function (err) {
+        this._watchOrUnwatchEntry(entry, watchedRoot, function (args) {
+            var err = args && args[0];
             // Make sure to clear cached data for all unwatched entries because
             // entries always return cached data if it exists!
             this._index.visitAll(function (child) {
@@ -364,7 +366,7 @@ define(function (require, exports, module) {
                 }
             }.bind(this));
             
-            callback(err);
+            callback(args);
         }.bind(this), false);
     };
     
@@ -746,7 +748,8 @@ define(function (require, exports, module) {
                 return;
             }
             
-            var watchOrUnwatchCallback = function (err) {
+            var watchOrUnwatchCallback = function (args) {
+                var err  = args && args[0];
                 if (err) {
                     console.error("FileSystem error in _handleDirectoryChange after watch/unwatch entries: " + err);
                 }
@@ -865,7 +868,7 @@ define(function (require, exports, module) {
         watchedRoot.status = WatchedRoot.STARTING;
         
         this._watchEntry(entry, watchedRoot, function (args) {
-            var err = args[0];
+            var err = args && args[0];
             if (err) {
                 console.warn("Failed to watch root: ", entry.fullPath, err);
                 delete this._watchedRoots[fullPath];
@@ -903,7 +906,8 @@ define(function (require, exports, module) {
         // This is useful for making sure we don't try to concurrently watch overlapping roots.
         watchedRoot.status = WatchedRoot.INACTIVE;
         
-        this._unwatchEntry(entry, watchedRoot, function (err) {
+        this._unwatchEntry(entry, watchedRoot, function (args) {
+            var err = args && args[0];
             delete this._watchedRoots[fullPath];
             
             this._index.visitAll(function (child) {

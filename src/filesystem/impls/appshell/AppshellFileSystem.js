@@ -553,7 +553,7 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function unwatchPath(path, callback) {
-        _nodeDomain.exec("unwatchPath", path)
+        _nodeDomain.exec("unwatchPath", path).promise
             .then(callback, callback);
     }
     
@@ -565,7 +565,7 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function unwatchAll(callback) {
-        _nodeDomain.exec("unwatchAll")
+        _nodeDomain.exec("unwatchAll").promise
             .then(callback, callback);
     }
     
