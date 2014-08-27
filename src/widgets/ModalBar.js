@@ -201,15 +201,15 @@ define(function (require, exports, module) {
 
             // If someone hasn't already called `prepareClose()` to pop the ModalBar out of the flow
             // and resize the editor, then do that here.
-            if (!this._$root.hasClass("popout")) {
-                this.prepareClose(restoreScrollPos);
+            if (!self._$root.hasClass("popout")) {
+                self.prepareClose(restoreScrollPos);
             }
 
-            if (this._autoClose) {
-                window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
+            if (self._autoClose) {
+                window.document.body.removeEventListener("focusin", self._handleFocusChange, true);
             }
 
-            $(this).triggerHandler("close");
+            $(self).triggerHandler("close");
 
             function doRemove() {
                 self._$root.remove();
@@ -217,7 +217,7 @@ define(function (require, exports, module) {
             }
 
             if (animate) {
-                AnimationUtils.animateUsingClass(this._$root.get(0), "offscreen")
+                AnimationUtils.animateUsingClass(self._$root.get(0), "offscreen")
                     .then(doRemove, null);
             } else {
                 doRemove();
