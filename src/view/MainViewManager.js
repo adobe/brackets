@@ -1252,14 +1252,13 @@ define(function (require, exports, module) {
 
 
         /* convert the view state data */
-        var convertViewState = function () {
-            var files = [],
-                context = { location : { scope: "user",
-                                         layer: "project" } };
-
-            files = PreferencesManager.getViewState(OLD_PREFS_NAME, context);
+        function convertViewState() {
+            var context = { location : { scope: "user",
+                                         layer: "project" } },
+                files = PreferencesManager.getViewState(OLD_PREFS_NAME, context);
 
             if (!files) {
+                // nothing to convert
                 return;
             }
 
@@ -1278,8 +1277,7 @@ define(function (require, exports, module) {
             });
 
             return result;
-        };
-        
+        }
         
         if (!state) {
             // not converted yet
@@ -1461,7 +1459,11 @@ define(function (require, exports, module) {
     $(DocumentManager).on("pathDeleted",                      _removeDeletedFileFromMRU);
     
     
-    // Init
+    // Init 
+    
+    // NOTE: These strings and these commands will go away with the 
+    //        the SplitView UI Story. These are Temporary Commands to
+    //        use the feature.
     _cmdSplitVertically = CommandManager.register("Split Vertically",
                                                   CMD_ID_SPLIT_VERTICALLY,
                                                   _handleSplitVertically);
@@ -1472,70 +1474,71 @@ define(function (require, exports, module) {
     
     _paneTitles[FIRST_PANE] = {};
     _paneTitles[SECOND_PANE] = {};
-    _paneTitles[FIRST_PANE][VERTICAL] = Strings.LEFT;
-    _paneTitles[FIRST_PANE][HORIZONTAL] = Strings.TOP;
-    _paneTitles[SECOND_PANE][VERTICAL] = Strings.RIGHT;
+    
+    _paneTitles[FIRST_PANE][VERTICAL]    = Strings.LEFT;
+    _paneTitles[FIRST_PANE][HORIZONTAL]  = Strings.TOP;
+    _paneTitles[SECOND_PANE][VERTICAL]   = Strings.RIGHT;
     _paneTitles[SECOND_PANE][HORIZONTAL] = Strings.BOTTOM;
     
     // Unit Test Helpers
-    exports._initialize                 = _initialize;
-    exports._getPane                    = _getPane;
+    exports._initialize                   = _initialize;
+    exports._getPane                      = _getPane;
         
     // Private Helpers
-    exports._removeView                 = _removeView;
-    exports._sortWorkingSet             = _sortWorkingSet;
-    exports._swapWorkingSetListIndexes  = _swapWorkingSetListIndexes;
+    exports._removeView                   = _removeView;
+    exports._sortWorkingSet               = _sortWorkingSet;
+    exports._swapWorkingSetListIndexes    = _swapWorkingSetListIndexes;
     
     // WorkingSet Management  
-    exports.addToWorkingSet             = addToWorkingSet;
-    exports.addListToWorkingSet         = addListToWorkingSet;
-    exports.getWorkingSetSize           = getWorkingSetSize;
-    exports.getWorkingSet               = getWorkingSet;
+    exports.addToWorkingSet               = addToWorkingSet;
+    exports.addListToWorkingSet           = addListToWorkingSet;
+    exports.getWorkingSetSize             = getWorkingSetSize;
+    exports.getWorkingSet                 = getWorkingSet;
     
     // Pane state
-    exports.cacheScrollState            = cacheScrollState;
-    exports.restoreAdjustedScrollState  = restoreAdjustedScrollState;
+    exports.cacheScrollState              = cacheScrollState;
+    exports.restoreAdjustedScrollState    = restoreAdjustedScrollState;
 
     // Searching
-    exports.findInWorkingSet             = findInWorkingSet;
-    exports.findInWorkingSetByAddedOrder = findInWorkingSetByAddedOrder;
-    exports.findInWorkingSetByMruOrder   = findInWorkingSetByMruOrder;
-    exports.findInAllWorkingSets         = findInAllWorkingSets;
+    exports.findInWorkingSet               = findInWorkingSet;
+    exports.findInWorkingSetByAddedOrder   = findInWorkingSetByAddedOrder;
+    exports.findInWorkingSetByMruOrder     = findInWorkingSetByMruOrder;
+    exports.findInAllWorkingSets           = findInAllWorkingSets;
     
     // Traversal
-    exports.beginTraversal              = beginTraversal;
-    exports.endTraversal                = endTraversal;
-    exports.traverseViewsByMRU          = traverseViewsByMRU;
+    exports.beginTraversal                 = beginTraversal;
+    exports.endTraversal                   = endTraversal;
+    exports.traverseViewsByMRU             = traverseViewsByMRU;
     
     // PaneView Attributes
-    exports.getActivePaneId             = getActivePaneId;
-    exports.setActivePaneId             = setActivePaneId;
-    exports.getPaneIdList               = getPaneIdList;
-    exports.getPaneTitle                = getPaneTitle;
-    exports.getPaneCount                = getPaneCount;
-    exports.getPaneIdForPath            = getPaneIdForPath;
+    exports.getActivePaneId                = getActivePaneId;
+    exports.setActivePaneId                = setActivePaneId;
+    exports.getPaneIdList                  = getPaneIdList;
+    exports.getPaneTitle                   = getPaneTitle;
+    exports.getPaneCount                   = getPaneCount;
+    exports.getPaneIdForPath               = getPaneIdForPath;
     
     // Explicit stuff
-    exports.canOpenFile                 = canOpenFile;
-    exports.canOpenPath                 = canOpenPath;
-    exports.getAllOpenFiles             = getAllOpenFiles;
-    exports.destroyEditorIfNotNeeded    = destroyEditorIfNotNeeded;
-    exports.edit                        = edit;
-    exports.open                        = open;
-    exports.close                       = close;
-    exports.closeAll                    = closeAll;
-    exports.closeList                   = closeList;
-    exports.focusActivePane             = focusActivePane;
+    exports.canOpenFile                    = canOpenFile;
+    exports.canOpenPath                    = canOpenPath;
+    exports.getAllOpenFiles                = getAllOpenFiles;
+    exports.destroyEditorIfNotNeeded       = destroyEditorIfNotNeeded;
+    exports.edit                           = edit;
+    exports.open                           = open;
+    exports.close                          = close;
+    exports.closeAll                       = closeAll;
+    exports.closeList                      = closeList;
+    exports.focusActivePane                = focusActivePane;
     
     // Layout
-    exports.setLayoutScheme             = setLayoutScheme;
-    exports.getLayoutScheme             = getLayoutScheme;
+    exports.setLayoutScheme                = setLayoutScheme;
+    exports.getLayoutScheme                = getLayoutScheme;
     
     // Convenience
-    exports.getCurrentlyViewedFile      = getCurrentlyViewedFile;
-    exports.getCurrentlyViewedPath      = getCurrentlyViewedPath;
+    exports.getCurrentlyViewedFile         = getCurrentlyViewedFile;
+    exports.getCurrentlyViewedPath         = getCurrentlyViewedPath;
     
     // Constants
-    exports.ALL_PANES                   = ALL_PANES;
-    exports.ACTIVE_PANE                 = ACTIVE_PANE;
+    exports.ALL_PANES                      = ALL_PANES;
+    exports.ACTIVE_PANE                    = ACTIVE_PANE;
 });

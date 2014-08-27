@@ -42,12 +42,16 @@ define(function (require, exports, module) {
     
     
     /**
-     * Pane objects host views of files, editors, etc... 
+     * Pane objects host views of files, editors, etc... Clients cannot access
+     * Pane objects directly. Instead the implementation is protected by the 
+     * MainViewManager -- however View Factories are given a Pane object which 
+     * they can use to add views.  References to Pane objects should not be kept
+     * as they may be destroyed and removed from the DOM.
      * 
      * To get a custom view, there are two components:
      * 
-     *  1) A view provider (which will be implemented later
-     *  2) A view object.
+     *  1) A View Factory 
+     *  2) A View Object
      *
      * View objects are anonymous object that have a particular interface. 
      *
@@ -58,7 +62,9 @@ define(function (require, exports, module) {
      *
      * Tempoary views are added by calling Pane.showView() and passing it the view object. The view 
      * will be destroyed when the next view is shown, the pane is mereged with another pane or the "Close All"
-     * command is exectuted on the Pane.
+     * command is exectuted on the Pane.  Temporary Editor Views do not contain any modifications and are
+     * added to the workingset (and no longer tempoary views) once the document has been modified. They 
+     * will remain in the working set until closed from that point on.
      *
      * Views that have a longer life span are added by calling addView to associate the view with a 
      * filename in the _views object.  These views are not destroyed until they are removed from the pane
@@ -74,16 +80,16 @@ define(function (require, exports, module) {
      *
      * {
      *      $el: the element property of the view
-     *      getFile: function () @return {?File} File object that belongs to the view (may return null)
+     *      getFile: function ():!File File object that belongs to the view
      *      updateLayout: function(forceRefresh:boolean) - tells the view to do ignore any cached layout data and do a complete layout of its content 
      *      destroy: function() - called when the view is no longer needed. 
-     *      hasFocus:  function() - called to determine if the view has focus.  
-     *      childHasFocus: function() - called to determine if a child component of the view has focus.  
+     *      hasFocus:  function():boolean - called to determine if the view has focus.  
+     *      childHasFocus: function():boolean - called to determine if a child component of the view has focus.  
      *      focus: function() - called to tell the view to take focus
-     *      getScrollPos: function() - called to get the current view scroll state. @return {Object=}
+     *      getScrollPos: function():* - called to get the current view scroll state. @return {Object=}
      *      adjustScrollPos: function(state:Object=, heightDelta:number) - called to restore the scroll state and adjust the height by heightDelta
      *      notifyContainerChange: function() - called when the container has been changed
-     *      notifyVisibilityChange: function() - called when the view's visiblity state has changed
+     *      notifyVisibilityChange: function(boolean) - called when the view's visiblity state has changed
      * }
      *  
      * When views are created they can be added to the pane by calling pane.addView().  Views can be created and parented by attaching directly
@@ -225,6 +231,38 @@ define(function (require, exports, module) {
      */
     Pane.prototype.$el = null;
   
+    /**
+     * The list of files views
+     * @type {Array.<File>}
+     */
+    Pane.prototype._viewList = [];
+
+    /**
+     * The list of files views in MRU order
+     * @type {Array.<File>}
+     */
+    Pane.prototype._viewListMRUOrder = [];
+
+    /**
+     * The list of files views in Added order
+     * @type {Array.<File>}
+     */
+    Pane.prototype._viewListAddedOrder = [];
+    
+    /**
+     * Dictionary mapping fullpath to view
+     * @type {Object.<!string, !View>}
+     * @private
+     */
+    Pane.prototype._views = {};
+
+    /**
+     * The current view
+     * @type {?View}
+     * @private
+     */
+    Pane.prototype._currentView = null;
+    
     /**
      * Initializes the Pane to its default state
      * @private
@@ -745,6 +783,8 @@ define(function (require, exports, module) {
     /**
      * Updates the layout causing the current view to redraw itself
      * @param {boolean} forceRefresh - true to force a resize and refresh of the current view, false if just to resize
+     * forceRefresh is only used by Editor views to force a relayout of all editor DOM elements. 
+     * Custom View implemtations should just ignore this flag.
      */
     Pane.prototype.updateLayout = function (forceRefresh) {
         if (this._currentView) {
@@ -759,13 +799,9 @@ define(function (require, exports, module) {
      * @return {boolean}} true if the view can be disposed, false if not
      */
     Pane.prototype._isViewNeeded = function (view) {
-        var file = view.getFile(),
-            path = file && file.fullPath,
+        var path = view.getFile().fullPath,
             currentPath = this.getCurrentlyViewedPath();
         
-        if (!path) {
-            return false;
-        }
         return ((this._currentView && currentPath === path) || (this.findInViewList(path) !== -1));
     };
     
@@ -949,6 +985,11 @@ define(function (require, exports, module) {
 
         // Save the current view state first
         if (this._currentView && this._currentView.getFile()) {
+            // We save the view state of the current view before 
+            //  hiding the view and showing to a different file
+            // But the current view's view state may not be
+            //  up to date in the view state cache so update it
+            //  before we save so we don't JSON-ify stale data.
             ViewStateManager.updateViewState(this._currentView);
         }
         
