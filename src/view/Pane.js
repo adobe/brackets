@@ -316,7 +316,7 @@ define(function (require, exports, module) {
             other._currentView = null;
             // The current view is getting reset later but
             //  we're going to trigger this now and tell everyone 
-            $(other).triggerHandler("currentViewChange", [null, otherCurrentView]);
+            other._notifyCurrentViewChange(null, otherCurrentView);
         }
 
         // Copy the File lists
@@ -536,6 +536,10 @@ define(function (require, exports, module) {
         return uniqueFileList;
     };
     
+    Pane.prototype._notifyCurrentViewChange = function (newView, oldView) {
+        $(this).triggerHandler("currentViewChange", [newView, oldView]);
+    };
+    
     /**
      * Removes the specifed file from all internal lists, destroys the view of the file (if there is one)
      *  and shows the interstitial page if the current view is destroyed
@@ -562,7 +566,7 @@ define(function (require, exports, module) {
             if (this._currentView === view) {
                 this.showInterstitial(true);
                 this._currentView = null;
-                $(this).triggerHandler("currentViewChange", [null, view]);
+                this._notifyCurrentViewChange(null, view);
             }
             delete this._views[file.fullPath];
             view.destroy();
@@ -756,7 +760,7 @@ define(function (require, exports, module) {
         this._setViewVisibility(this._currentView, true);
         this.updateLayout();
         
-        $(this).triggerHandler("currentViewChange", [view, oldView]);
+        this._notifyCurrentViewChange(view, oldView);
         
         if (oldView) {
             this.destroyViewIfNotNeeded(oldView);
@@ -845,7 +849,7 @@ define(function (require, exports, module) {
         this._initialize();
         
         if (view) {
-            $(this).triggerHandler("currentViewChange", [null, view]);
+            this._notifyCurrentViewChange(null, view);
         }
 
         // Now destroy the views
