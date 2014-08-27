@@ -285,8 +285,10 @@ define(function (require, exports, module) {
 
             this.projectRoot.visit(allFilesVisitor, function (err) {
                 if (err) {
-                    deferred.reject();
-                    this._allFilesCachePromise = null;
+                    // TODO handle TOO_MANY_ENTRIES error
+                    // Probably should move the warned flag in here and emit an error
+                    // event.
+                    deferred.reject(err);
                 } else {
                     deferred.resolve(allFiles);
                 }
@@ -348,7 +350,11 @@ define(function (require, exports, module) {
                 console.warn("Unhandled exception in getAllFiles handler: ", e);
             }
         }).fail(function (err) {
-            filteredFilesDeferred.reject(err);
+            try {
+                filteredFilesDeferred.resolve([]);
+            } catch (e) {
+                console.warn("Unhandled exception in getAllFiles handler: ", e);
+            }
         });
 
         return filteredFilesDeferred.promise();

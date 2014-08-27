@@ -218,6 +218,8 @@ define(function (require, exports, module) {
             selectedEntry = model.getSelected();
         }
         if (!selectedEntry) {
+            // TODO: this should possibly be:
+            // var curFile = MainViewManager.getCurrentlyViewedFile();
             var doc = DocumentManager.getCurrentDocument();
             selectedEntry = (doc && doc.file);
         }
@@ -868,7 +870,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns a filter for use with getAllFiles() that filters files based on LanguageManager language id
-     * @param {!string} languageId
+     * @param {!(string|Array.<string>)} languageId a single string of a language id or an array of language ids
      * @return {!function(File):boolean}
      */
     function getLanguageFilter(languageId) {
@@ -1048,7 +1050,7 @@ define(function (require, exports, module) {
         
         var viewFiles;
         if (includeWorkingSet) {
-            viewFiles = MainViewManager.getViews(MainViewManager.ALL_PANES);
+            viewFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
         }
         
         return model.getAllFiles(filter, viewFiles).fail(function (err) {
