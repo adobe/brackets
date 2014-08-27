@@ -66,6 +66,6 @@ define(function (require, exports, module) {
         "tr": true,
         "uk": true,
         "zh-cn": true,
-        "zh-tw": true,
+        "zh-tw": true
     };
 });
