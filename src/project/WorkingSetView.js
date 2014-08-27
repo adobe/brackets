@@ -671,7 +671,7 @@ define(function (require, exports, module) {
     };
 
     /** 
-     * paneViewAdd event handler
+     * workingSetAdd event handler
      * @private
      * @param {jQuery.Event} e - event object
      * @param {!File} fileAdded - the file that was added
@@ -685,7 +685,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * paneViewAddList event handler
+     * workingSetAddList event handler
      * @private
      * @param {jQuery.Event} e - event object
      * @param {!Array.<File>} files - the files that were added
@@ -746,12 +746,12 @@ define(function (require, exports, module) {
     };
     
     /**
-     * paneViewSort event handler
+     * workingSetSort event handler
      * @private
      * @param {jQuery.Event} e - event object
      * @param {!string} paneId - the id of the pane to sort
      */
-    WorkingSetView.prototype._handlepaneViewSort = function (e, paneId) {
+    WorkingSetView.prototype._handleWorkingSetSort = function (e, paneId) {
         if (!this.suppressSortRedraw && paneId === this.paneId) {
             this._rebuildViewList(true);
         }
@@ -772,12 +772,12 @@ define(function (require, exports, module) {
     };
     
     /**
-     * paneViewUpdate event handler
+     * workingSetUpdate event handler
      * @private
      * @param {jQuery.Event} e - event object
      * @param {!string} paneId - the id of the pane to update
      */
-    WorkingSetView.prototype._handlepaneViewUpdate = function (e, paneId) {
+    WorkingSetView.prototype._handleWorkingSetUpdate = function (e, paneId) {
         if (this.paneId === paneId) {
             this._rebuildViewList(true);
         }
@@ -802,10 +802,10 @@ define(function (require, exports, module) {
         $(MainViewManager).on(this._makeEventName("workingSetAddList"), _.bind(this._handleFileListAdded, this));
         $(MainViewManager).on(this._makeEventName("workingSetRemove"), _.bind(this._handleFileRemoved, this));
         $(MainViewManager).on(this._makeEventName("workingSetRemoveList"), _.bind(this._handleRemoveList, this));
-        $(MainViewManager).on(this._makeEventName("workingSetSort"), _.bind(this._handlepaneViewSort, this));
+        $(MainViewManager).on(this._makeEventName("workingSetSort"), _.bind(this._handleWorkingSetSort, this));
         $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
         $(MainViewManager).on(this._makeEventName("paneLayoutChange"), _.bind(this._handlePaneLayoutChange, this));
-        $(MainViewManager).on(this._makeEventName("paneViewUpdate"), _.bind(this._handlepaneViewUpdate, this));
+        $(MainViewManager).on(this._makeEventName("workingSetUpdate"), _.bind(this._handleWorkingSetUpdate, this));
 
         $(DocumentManager).on(this._makeEventName("dirtyFlagChange"), _.bind(this._handleDirtyFlagChanged, this));
 

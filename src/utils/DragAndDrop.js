@@ -34,6 +34,8 @@ define(function (require, exports, module) {
         Dialogs         = require("widgets/Dialogs"),
         DefaultDialogs  = require("widgets/DefaultDialogs"),
         MainViewManager = require("view/MainViewManager"),
+        MainViewFactory = require("view/MainViewFactory"),
+        LanguageManager = require("language/LanguageManager"),
         FileSystem      = require("filesystem/FileSystem"),
         EditorManager   = require("editor/EditorManager"),
         FileUtils       = require("file/FileUtils"),
@@ -50,7 +52,8 @@ define(function (require, exports, module) {
     function filterFilesToOpen(paths) {
         // Filter out file in which we have no registered viewer
         var filteredFiles = paths.filter(function (fullPath) {
-            return MainViewManager.canOpenPath(fullPath);
+            return !LanguageManager.getLanguageForPath(fullPath).isBinary()
+                || MainViewFactory.findSuitableFactoryForPath(fullPath);
         });
         
         return filteredFiles;

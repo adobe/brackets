@@ -301,6 +301,20 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Hides the current view if there is one, shows the 
+     *  interstitial screen and notifies that the view changed
+     */
+    Pane.prototype._hideCurrentView = function () {
+        if (this._currentView) {
+            var currentView = this._currentView;
+            this._setViewVisibility(this._currentView, false);
+            this.showInterstitial(true);
+            this._currentView = null;
+            this._notifyCurrentViewChange(null, currentView);
+        }
+    };
+    
+    /**
      * Merges the another Pane object's contents into this Pane 
      * @param {!Pane} Other - Pane from which to copy 
      */
@@ -309,16 +323,10 @@ define(function (require, exports, module) {
         //  may need to destroy it if it's a temporary view
         var otherCurrentView = other._currentView;
         
-        if (other._currentView) {
-            // hide the current views and show the interstitial page
-            this._setViewVisibility(other._currentView, false);
-            other.showInterstitial(true);
-            other._currentView = null;
-            // The current view is getting reset later but
-            //  we're going to trigger this now and tell everyone 
-            other._notifyCurrentViewChange(null, otherCurrentView);
-        }
-
+        // Hide the current view while we 
+        //  merge the 2 panes together
+        other._hideCurrentView();
+        
         // Copy the File lists
         this._viewList = _.union(this._viewList, other._viewList);
         this._viewListMRUOrder = _.union(this._viewListMRUOrder, other._viewListMRUOrder);
@@ -545,9 +553,17 @@ define(function (require, exports, module) {
      *  and shows the interstitial page if the current view is destroyed
      * @private
      * @param {!File} file - file to remove
+     * @param {boolean} preventViewChange - false to hide the current view if removing the current view, true 
+     *                                      to prevent the current view from changing.
+     *
+     * When passing true for preventViewChange, it is assumed that the caller will perform an OPEN_FILE op
+     * to show the next file in line to view.  Since the file was removed from the workingset in _doRemove
+     * its view is now considered to be a temporary view and the call to showView for the OPEN_FILE op 
+     * will destroy the view. the caller needs to handle the reject case in the event of failure
+     *
      * @return {boolean} true if removed, false if the file was not found either in a list or view
      */
-    Pane.prototype._doRemove = function (file) {
+    Pane.prototype._doRemove = function (file, preventViewChange) {
         
         // If it's in the view list then we need to remove it 
         var index = this.findInViewList(file.fullPath);
@@ -563,13 +579,15 @@ define(function (require, exports, module) {
         var view = this._views[file.fullPath];
 
         if (view) {
-            if (this._currentView === view) {
-                this.showInterstitial(true);
-                this._currentView = null;
-                this._notifyCurrentViewChange(null, view);
+            if (!preventViewChange) {
+                if (this._currentView === view) {
+                    // if we're removing the current
+                    //  view then we need to hide the view
+                    this._hideCurrentView();
+                }
+                delete this._views[file.fullPath];
+                view.destroy();
             }
-            delete this._views[file.fullPath];
-            view.destroy();
         }
         
         return ((index > -1) || Boolean(view));
@@ -878,11 +896,19 @@ define(function (require, exports, module) {
         var nextFile = !suppressOpenNextFile && this.traverseViewListByMRU(1, file.fullPath);
         if (nextFile && nextFile.fullPath !== file.fullPath && this.getCurrentlyViewedFile() === file) {
             var fullPath = nextFile.fullPath,
-                needOpenNextFile = this._views.hasOwnProperty(fullPath);
+                needOpenNextFile = this.findInViewList(fullPath) !== -1;
             
-            if (this._doRemove(file)) {
+            if (this._doRemove(file, needOpenNextFile)) {
                 if (needOpenNextFile) {
-                    this._execOpenFile(fullPath);
+                    this._execOpenFile(fullPath)
+                        .fail(function () {
+                            // the FILE_OPEN op failed so
+                            //  we need to cleanup by hiding and destroying the current view
+                            this._hideCurrentView();
+                            var view = this._views[file.fullPath];
+                            delete this._views[file.fullPath];
+                            view.destroy();
+                        });
                 }
                 return true;
             }

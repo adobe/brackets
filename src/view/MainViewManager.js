@@ -53,17 +53,17 @@
  *      
  *
  *    To listen for working set changes, you must listen to *all* of these events:
- *    - paneViewAdd -- When a file is added to the working set 
+ *    - workingSetAdd -- When a file is added to the working set 
  *          (e, fileAdded:File, index:number, paneId:string)
- *    - paneViewAddList -- When multiple files are added to the working set 
+ *    - workingSetAddList -- When multiple files are added to the working set 
  *          (e, fileAdded:Array.<File>, paneId:string)
  *    - workingSetRemove -- When a file is removed from the working set 
  *          (e, fileRemoved:File, suppressRedraw:boolean, paneId:string)
  *    - workingSetRemoveList -- When multiple files are removed from the working set 
  *          (e, filesRemoved:Array.<File>, paneId:string)
- *    - paneViewSort -- When a pane's view array is reordered without additions or removals.
+ *    - workingSetSort -- When a pane's view array is reordered without additions or removals.
  *          (e, paneId:string)
- *    - paneViewUpdate -- When changes happen due to system events such as a file being deleted.
+ *    - workingSetUpdate -- When changes happen due to system events such as a file being deleted.
  *                              listeners should discard all working set info and rebuilt it from the pane 
  *                              by calling getWorkingSet()
  *          (e, paneId:string)
@@ -929,7 +929,7 @@ define(function (require, exports, module) {
             });
 
             $(pane).on("viewListChange.mainview", function () {
-                $(exports).triggerHandler("paneViewUpdate", [pane.id]);
+                $(exports).triggerHandler("workingSetUpdate", [pane.id]);
             });
             $(pane).on("currentViewChange.mainview", function (e, newView, oldView) {
                 if (_activePaneId === pane.id) {

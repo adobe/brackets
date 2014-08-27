@@ -124,7 +124,7 @@ define(function (require, exports, module) {
      *                                      "workingSetAdd", 
      *                                      "workingSetAdd", 
      *                                      "DocumentManager.workingSetAdd", 
-     *                                      "MainViewManager.paneViewAdd");
+     *                                      "MainViewManager.workingSetAdd");
      * ```
      *
      * @param {Object} outbound - the object with the old event to dispatch
