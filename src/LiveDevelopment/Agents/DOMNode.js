@@ -232,7 +232,7 @@ define(function DOMNodeModule(require, exports, module) {
                     resolve(this);
                 }.bind(this));
             }
-        });
+        }.bind(this));
     };
 
 

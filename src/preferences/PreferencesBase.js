@@ -96,7 +96,7 @@ define(function (require, exports, module) {
         load: function () {
             return new Promise(function (resolve, reject) {
                 resolve(this.data);
-            });
+            }.bind(this));
         },
         
         /**
@@ -292,7 +292,7 @@ define(function (require, exports, module) {
                         $(self).trigger(PREFERENCE_CHANGE, {
                             ids: _.union(self.getKeys(), oldKeys)
                         });
-                    }.bind(self),
+                    },
                     function (error) {
                         reject(error);
                     }
@@ -306,9 +306,8 @@ define(function (require, exports, module) {
          * @return {Promise} promise resolved once the data is saved.
          */
         save: function () {
-            var self = this;
             if (this._dirty) {
-                self._dirty = false;
+                this._dirty = false;
                 return this.storage.save(this.data);
             } else {
                 return new Promise(function (resolve, reject) {
@@ -1184,41 +1183,47 @@ define(function (require, exports, module) {
          *
          * @param {Object} shadowEntry Shadow entry of the resolved scope
          * @param {number=} index Index of item to "try". Default value is item after shadowEntry.
+         * @return {Promise} Resolved when scope added to scope order.
          */
         _tryAddToScopeOrder: function (shadowEntry, index) {
-            var shadowScopeOrder = this._defaultContext._shadowScopeOrder;
             
-            // `index` is calculated on initial call. It's then incremented and passed in
-            // for recursive iterations.
-            index = index || _.findIndex(shadowScopeOrder, function (entry) {
-                return entry === shadowEntry;
-            }) + 1;
-            
-            if (index >= shadowScopeOrder.length) {
-                throw new Error("Internal error: no scope found to add before. \"default\" is missing?..");
-            }
-            
-            // Find a resolved scope of lower priority to add it before.
-            // We can't synchronously determine state of a Promise, so we'll
-            // have to wait for appropriate callback.
-            shadowScopeOrder[index].promise.then(
-                function () {
-                    // onFulfillment - success
-                    this._pushToScopeOrder(shadowEntry.id, shadowScopeOrder[index].id);
-                    $(this).trigger(SCOPEORDER_CHANGE, {
-                        id: shadowEntry.id,
-                        action: "added"
-                    });
-                    this._triggerChange({
-                        ids: shadowEntry.scope.getKeys()
-                    });
-                }.bind(this),
-                
-                function () {
-                    // onRejection - recursively try next scope
-                    this._tryAddToScopeOrder(shadowEntry, index + 1);
-                }.bind(this)
-            );
+            return new Promise(function (resolve, reject) {
+                var shadowScopeOrder = this._defaultContext._shadowScopeOrder;
+
+                // `index` is calculated on initial call. It's then incremented and passed in
+                // for recursive iterations.
+                index = index || _.findIndex(shadowScopeOrder, function (entry) {
+                    return entry === shadowEntry;
+                }) + 1;
+
+                if (index >= shadowScopeOrder.length) {
+                    reject("Internal error: no scope found to add before. \"default\" is missing?..");
+                    return;
+                }
+
+                // Find a resolved scope of lower priority to add it before.
+                // We can't synchronously determine state of a Promise, so we'll
+                // have to wait for appropriate callback.
+                shadowScopeOrder[index].promise.then(
+                    function () {
+                        // onFulfillment - success
+                        this._pushToScopeOrder(shadowEntry.id, shadowScopeOrder[index].id);
+                        $(this).trigger(SCOPEORDER_CHANGE, {
+                            id: shadowEntry.id,
+                            action: "added"
+                        });
+                        this._triggerChange({
+                            ids: shadowEntry.scope.getKeys()
+                        });
+                        resolve();
+                    }.bind(this),
+
+                    function () {
+                        // onRejection - recursively try next scope
+                        this._tryAddToScopeOrder(shadowEntry, index + 1).then(resolve, reject);
+                    }.bind(this)
+                );
+            }.bind(this));
         },
         
         /**
@@ -1239,10 +1244,11 @@ define(function (require, exports, module) {
          * 
          * @param {string} id Name of the new Scope
          * @param {Scope} scope The scope object to add
-         * @param {Promise} promise Scope's load promise
+         * @param {Promise} scopeLoadPromise Scope's load promise
          * @param {?string} addBefore Name of the Scope before which this new one is added
+         * @return {Promise} Resolved when scope added to scope order.
          */
-        _addToScopeOrder: function (id, scope, promise, addBefore) {
+        _addToScopeOrder: function (id, scope, scopeLoadPromise, addBefore) {
             var defaultScopeOrder = this._defaultContext.scopeOrder,
                 shadowScopeOrder = this._defaultContext._shadowScopeOrder,
                 shadowEntry,
@@ -1264,7 +1270,7 @@ define(function (require, exports, module) {
                 /* new scope is being added. */
                 shadowEntry = {
                     id: id,
-                    promise: promise,
+                    promise: scopeLoadPromise,
                     scope: scope
                 };
                 if (!addBefore) {
@@ -1287,24 +1293,37 @@ define(function (require, exports, module) {
                 }
             }
             
-            if (!isPending) {
-                promise.then(
-                    function () {
-                        this._scopes[id] = scope;
-                        this._tryAddToScopeOrder(shadowEntry);
-                    }.bind(this),
-                    function (err) {
-                        // clean up all what's been done up to this point
-                        _.pull(shadowScopeOrder, shadowEntry);
-                    }.bind(this)
-                );
+            if (isPending) {
+                return new Promise(function (resolve, reject) { resolve(); });
+            } else {
+                var tryPromises = [];
+                
+                var tryPromise = new Promise(function (reject, resolve) {
+                    scopeLoadPromise.then(
+                        function () {
+                            this._scopes[id] = scope;
+                            this._tryAddToScopeOrder(shadowEntry).then(resolve, reject);
+                        }.bind(this),
+                        function (err) {
+                            // clean up all what's been done up to this point
+                            _.pull(shadowScopeOrder, shadowEntry);
+                            reject();
+                        }
+                    );
+                }.bind(this));
+                tryPromises.push(tryPromise);
+                
                 if (this._pendingScopes[id]) {
                     var pending = this._pendingScopes[id];
                     delete this._pendingScopes[id];
                     pending.forEach(function (entry) {
-                        this._addToScopeOrder(entry.id, entry.scope, entry.promise, id);
+                        tryPromises.push(
+                            this._addToScopeOrder(entry.id, entry.scope, entry.promise, id)
+                        );
                     }.bind(this));
                 }
+                
+                return Async.waitForAll(tryPromises, true);
             }
         },
         
@@ -1380,7 +1399,7 @@ define(function (require, exports, module) {
          *                   with id and scope.
          */
         addScope: function (id, scope, options) {
-            var promise;
+            var loadScopePromise, addToScopeOrderPromise;
             options = options || {};
             
             if (this._scopes[id]) {
@@ -1392,11 +1411,11 @@ define(function (require, exports, module) {
                 scope = new Scope(scope);
             }
             
-            promise = scope.load();
+            loadScopePromise = scope.load();
 
-            this._addToScopeOrder(id, scope, promise, options.before);
+            addToScopeOrderPromise = this._addToScopeOrder(id, scope, loadScopePromise, options.before);
             
-            promise.then(
+            loadScopePromise.then(
                 null,
                 function (err) {
                     // With preferences, it is valid for there to be no file.
@@ -1407,7 +1426,7 @@ define(function (require, exports, module) {
                 }
             );
             
-            return promise;
+            return Async.waitForAll([loadScopePromise, addToScopeOrderPromise], true);
         },
         
         /**

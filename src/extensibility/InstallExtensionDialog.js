@@ -404,7 +404,7 @@ define(function (require, exports, module) {
         this._dialogPromise.promise = new Promise(function (resolve, reject) {
             this._dialogPromise.resolve = resolve;
             this._dialogPromise.reject  = reject;
-        });
+        }).bind(this);
         return this._dialogPromise;
     };
     
