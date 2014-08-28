@@ -612,6 +612,28 @@ define(function (require, exports, module) {
                     expect(files[0].textContent).toEqual(".button / &-ok — test.scss : 20");
                 });
             });
+
+//            https://github.com/adobe/brackets/issues/8851
+            it("should show matching rules that follow rules using variable interpolation in a selector", function () {
+                runs(function () {
+                    var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 42, ch: 10});
+                    waitsForDone(promise, "Open inline editor");
+                });
+
+                runs(function () {
+                    expect(inlineEditorFileName()[0].text).toEqual("test.scss : 37");
+
+                    var inlineWidget = getInlineEditorWidget();
+                    var ranges = inlineWidget._ranges[0];
+
+                    expect(getInlineEditorContent(ranges)).toEqual("a {\n    color: blue;\n}");
+
+                    // It's not visible
+                    var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                    expect(files.length).toBe(1);
+                    expect(files[0].textContent).toEqual("a — test.scss : 37");
+                });
+            });
         });
     });
 });

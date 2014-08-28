@@ -27,3 +27,13 @@ p {
         background-image: url("custom.png");
     }
 }
+
+$name: foo;
+$attr: border;
+div.#{$name} {
+    #{$attr}-color: blue;
+}
+
+a {
+    color: blue;
+}
