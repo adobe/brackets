@@ -479,6 +479,17 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Determines if a file can be added to our file list
+     * @private
+     * @param {!File} file - file object to test
+     * @return {boolean} true if it can be added, false if not
+     */
+    Pane.prototype._canAddFile = function (file) {
+        return ((this._views.hasOwnProperty(file.fullPath) && this.findInViewList(file.fullPath) === -1) ||
+                    (!MainViewManager.getPaneIdForPath(file.fullPath)));
+    };
+    
+    /**
      * Adds the given file to the end of the pane view list, if it is not already in the list
      * @private
      * @param {!File} file
@@ -537,8 +548,10 @@ define(function (require, exports, module) {
 
         // Process only files not already in view list
         fileList.forEach(function (file) {
-            self._addToViewList(file);
-            uniqueFileList.push(file);
+            if (self._canAddFile(file)) {
+                self._addToViewList(file);
+                uniqueFileList.push(file);
+            }
         });
 
         return uniqueFileList;
@@ -895,7 +908,8 @@ define(function (require, exports, module) {
     Pane.prototype.removeView = function (file, suppressOpenNextFile) {
         var nextFile = !suppressOpenNextFile && this.traverseViewListByMRU(1, file.fullPath);
         if (nextFile && nextFile.fullPath !== file.fullPath && this.getCurrentlyViewedFile() === file) {
-            var fullPath = nextFile.fullPath,
+            var self = this,
+                fullPath = nextFile.fullPath,
                 needOpenNextFile = this.findInViewList(fullPath) !== -1;
             
             if (this._doRemove(file, needOpenNextFile)) {
@@ -904,9 +918,9 @@ define(function (require, exports, module) {
                         .fail(function () {
                             // the FILE_OPEN op failed so
                             //  we need to cleanup by hiding and destroying the current view
-                            this._hideCurrentView();
-                            var view = this._views[file.fullPath];
-                            delete this._views[file.fullPath];
+                            self._hideCurrentView();
+                            var view = self._views[file.fullPath];
+                            delete self._views[file.fullPath];
                             view.destroy();
                         });
                 }
