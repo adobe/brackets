@@ -83,35 +83,35 @@ define({
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Error indexando archivos",
-    "ERROR_MAX_FILES"                   : "Se ha alcanzado el número máximo de archivos indexables. Puede que las acciones que buscan archivos en el índice funcionen de manera incorrecta.",
+    "ERROR_MAX_FILES"                   : "Este proyecto contiene más de 30.000 archivos. Funciones que operan sobre múltiples archivos pueden estar deshabilitadas o funcionar igual que si el proyecto estuviese vacío. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Leer más acerca de cómo trabajar con grandes proyectos</a>.",
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error iniciando navegador",
     "ERROR_CANT_FIND_CHROME"            : "No se pudo encontrar el navegador Google Chrome. Por favor, asegúrate de que esté instalado correctamente.",
     "ERROR_LAUNCHING_BROWSER"           : "Ha ocurrido un error al iniciar el navegador. (error {0})",
     
-    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Error en la Vista Previa en Vivo",
+    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Error en la Vista previa en vivo",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Conectando con el navegador",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para poder iniciar el modo de Vista Previa en Vivo, Chrome debe ser iniciado habilitando la depuración remota.<br /><br />¿Quieres reiniciar Chrome y habilitar la depuración remota?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "No se pudo cargar la página para Vista Previa en Vivo",
-    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Abre un archivo HTML o asegúrate de que haya un index.html en tu proyecto para poder iniciar el modo de Vista Previa en Vivo.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Necesitas especificar una URL base en este proyecto para poder iniciar Vista Previa en Vivo con archivos de servidor.",
-    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para Vista Previa en Vivo. Vuelve a intentarlo, por favor.",
-    "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a la Vista Previa en Vivo!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista Previa en Vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarrollo en Vivo sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br /><br />(No volverás a ver este mensaje.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Para más información, consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Vista Previa en Vivo</a>.",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para poder iniciar el modo de Vista previa en vivo, Chrome debe ser iniciado habilitando la depuración remota.<br /><br />¿Quieres reiniciar Chrome y habilitar la depuración remota?",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "No se pudo cargar la página para Vista previa en vivo",
+    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Abre un archivo HTML o asegúrate de que haya un index.html en tu proyecto para poder iniciar el modo de Vista previa en vivo.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Necesitas especificar una URL base en este proyecto para poder iniciar Vista previa en vivo con archivos de servidor.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para Vista previa en vivo. Vuelve a intentarlo, por favor.",
+    "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a la Vista previa en vivo!",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista previa en vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarrollo en Vivo sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br /><br />(No volverás a ver este mensaje.)",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Para más información, consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Vista previa en vivo</a>.",
     
-    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Vista Previa en Vivo",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Vista Previa en Vivo: Conectando\u2026",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Vista Previa en Vivo: Inicializando\u2026",
-    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Terminar Vista Previa en Vivo",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Vista Previa en Vivo (guarda el archivo para actualizar)",
-    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Vista Previa en Vivo (no se está actualizando debido a un error de sintaxis)",
+    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Vista previa en vivo",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Vista previa en vivo: Conectando\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Vista previa en vivo: Inicializando\u2026",
+    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Terminar Vista previa en vivo",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Vista previa en vivo (guarda el archivo para actualizar)",
+    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Vista previa en vivo (no se está actualizando debido a un error de sintaxis)",
     
-    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Vista Previa en Vivo se ha detenido porque se han abierto las herramientas de desarrollo",
-    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Vista Previa en Vivo se ha detenido porque se ha cerrado la página en el navegador",
-    "LIVE_DEV_NAVIGATED_AWAY"                  : "Vista Previa en Vivo se ha detenido porque se ha accedido a una página que no es parte del proyecto actual",
-    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Vista Previa en Vivo se ha detenido por motivos desconocidos ({0})",
+    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Vista previa en vivo se ha detenido porque se han abierto las herramientas de desarrollo",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Vista previa en vivo se ha detenido porque se ha cerrado la página en el navegador",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "Vista previa en vivo se ha detenido porque se ha accedido a una página que no es parte del proyecto actual",
+    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Vista previa en vivo se ha detenido por motivos desconocidos ({0})",
     
     "SAVE_CLOSE_TITLE"                  : "Guardar cambios",
     "SAVE_CLOSE_MESSAGE"                : "¿Quieres guardar los cambios existentes en el documento <span class='dialog-filename'>{0}</span>?",
@@ -137,8 +137,7 @@ define({
     "BUTTON_NO"                         : "No",
     
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} resultados",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 resultado",
+    "FIND_RESULT_COUNT"                 : "{0} de {1}",
     "FIND_NO_RESULTS"                   : "No hay resultados",
     "FIND_QUERY_PLACEHOLDER"            : "Buscar\u2026",
     "REPLACE_PLACEHOLDER"               : "Reemplazar con\u2026",
@@ -248,7 +247,11 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensiones deshabilitadas",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "SOB",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Haz click para intercambiar entre el modo insertar (INS) y el modo sobrescribir (SOB)",
+    "STATUSBAR_LANG_TOOLTIP"                : "Haz click para cambiar el tipo de archivo",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Haz click para mostrar/ocultar el panel de reportes.",
     "STATUSBAR_DEFAULT_LANG"                : "(por defecto)",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Marcar como predeterminado para los archivos .{0}",
     
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "Problemas de {0}",
@@ -350,7 +353,7 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Mostrar números de línea",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Resaltar línea actual",
     "CMD_TOGGLE_WORD_WRAP"                : "Habilitar ajuste de línea",
-    "CMD_LIVE_HIGHLIGHT"                  : "Resaltado en Vista Previa en Vivo",
+    "CMD_LIVE_HIGHLIGHT"                  : "Resaltado en Vista previa en vivo",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Inspeccionar el código al guardar",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ordenar por Añadido",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por Nombre",
@@ -411,9 +414,9 @@ define({
     "UPDATE_MESSAGE"                       : "¡Hay una nueva versión de {APP_NAME} disponible! Éstas son algunas de las nuevas características:",
     "GET_IT_NOW"                           : "¡Consíguelo ahora!",
     "PROJECT_SETTINGS_TITLE"               : "Configuración del proyecto para: {0}",
-    "PROJECT_SETTING_BASE_URL"             : "URL base para Vista Previa en Vivo",
+    "PROJECT_SETTING_BASE_URL"             : "URL base para Vista previa en vivo",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(deja en blanco para urls de tipo \"file\")",
-    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Vista Previa en Vivo no soporta el protocolo {0}. Por favor, utiliza http: o https: .",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Vista previa en vivo no soporta el protocolo {0}. Por favor, utiliza http: o https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "La URL base no puede contener parámetros de búsqueda como \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "La URL base no puede contener hashes como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Los caracteres especiales como '{0}' deben codificarse en formato %.",
@@ -424,6 +427,7 @@ define({
     "USE_THEME_SCROLLBARS"                 : "Usar scrollbars del tema",
     "FONT_SIZE"                            : "Tamaño de letra",
     "FONT_FAMILY"                          : "Tipo de letra",
+    "THEMES_SETTINGS"                      : "Preferencias de temas",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nueva regla",
@@ -460,7 +464,7 @@ define({
     "API_NOT_COMPATIBLE"                   : "La extensión no es compatible con esta versión de {APP_NAME}. Está en la carpeta de extensiones deshabilitadas.",
     "MISSING_MAIN"                         : "El paquete no contiene el archivo main.js.",
     "EXTENSION_ALREADY_INSTALLED"          : "Instalar este paquete sobrescribirá una extensión instalada previamente. ¿Deseas sobrescribir la antigua extensión?",
-    "EXTENSION_SAME_VERSION"               : "La versión de este paquete es la misma que la instalada actualmente. ¿Deseas sobreescribir la instalación actual?",
+    "EXTENSION_SAME_VERSION"               : "La versión de este paquete es la misma que la instalada actualmente. ¿Deseas sobrescribir la instalación actual?",
     "EXTENSION_OLDER_VERSION"              : "La versión {0} de este paquete es más antigua que la instalada actualmente ({1}). ¿Deseas sobrescribir la instalación actual?",
     "DOWNLOAD_ID_IN_USE"                   : "Error interno: el ID de descarga ya está siendo utilizado.",
     "NO_SERVER_RESPONSE"                   : "No se puede conectar con el servidor.",
@@ -513,9 +517,10 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "No se pudo eliminar la extensión {{0}} porque no se encuentra instalada.",
     "NO_EXTENSIONS"                        : "Todavía no hay ninguna extensión instalada.<br />Haz click en la pestaña Disponibles para empezar.",
     "NO_EXTENSION_MATCHES"                 : "No hay extensiones que coincidan con tu búsqueda.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "Ten cuidado al instalar extensiones desde una fuente desconocida.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "NOTA: Estas extensiones puedem provenir de diferentes autores a {APP_NAME}. Las extensiones no son revisadas y tiene todos los privilegios locales. Tenga cuidado cuando instale extensiones de una fuente desconocida.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Instaladas",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Disponibles",
+    "EXTENSIONS_THEMES_TITLE"              : "Temas",
     "EXTENSIONS_UPDATES_TITLE"             : "Actualizaciones",
     
     "INLINE_EDITOR_NO_MATCHES"             : "No hay coincidencias disponibles.",
@@ -588,4 +593,4 @@ define({
     "DOCS_MORE_LINK"                            : "Más"
 });
 
-/* Last translated for 75c811dfa38164b7e9bd3921dd630d40720e9c2a */
+/* Last translated for 8712385a6bf12277e6d0788d408e630a40c95a14 */
