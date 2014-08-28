@@ -566,6 +566,28 @@ define(function (require, exports, module) {
                     expect(files[0].textContent).toEqual("#scss-1 — test.scss : 11");
                 });
             });
+
+//            https://github.com/adobe/brackets/issues/8895
+            it("should show one matching rule that is defined with parent selector", function () {
+                runs(function () {
+                    var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 38, ch: 25});
+                    waitsForDone(promise, "Open inline editor");
+                });
+
+                runs(function () {
+                    expect(inlineEditorFileName()[0].text).toEqual("test.scss : 20");
+
+                    var inlineWidget = getInlineEditorWidget();
+                    var ranges = inlineWidget._ranges[0];
+
+                    expect(getInlineEditorContent(ranges)).toEqual("    &-ok {\n        background-image: url(\"ok.png\");\n    }");
+
+                    // It's not visible
+                    var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                    expect(files.length).toBe(1);
+                    expect(files[0].textContent).toEqual(".button / &-ok — test.scss : 20");
+                });
+            });
         });
     });
 });

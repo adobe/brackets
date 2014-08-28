@@ -15,3 +15,15 @@ p {
 #scss-2 {
     background-color: red;
 }
+
+.button {
+    &-ok {
+        background-image: url("ok.png");
+    }
+    &-cancel {
+        background-image: url("cancel.png");
+    }
+    &-custom {
+        background-image: url("custom.png");
+    }
+}
