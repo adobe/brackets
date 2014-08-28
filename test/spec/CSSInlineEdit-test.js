@@ -511,6 +511,30 @@ define(function (require, exports, module) {
                         });
                     });
                 });
+
+                describe("Interpolation", function () {
+                    // Verify https://github.com/adobe/brackets/issues/8865
+                    it("should show a rule with variable interpolation in one of its property names", function () {
+                        runs(function () {
+                            var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 71, ch: 25});
+                            waitsForDone(promise, "Open inline editor");
+                        });
+
+                        runs(function () {
+                            expect(inlineEditorFileName()[0].text).toEqual("test2.less : 98");
+
+                            var inlineWidget = getInlineEditorWidget();
+                            var ranges = inlineWidget._ranges[0];
+
+                            expect(getInlineEditorContent(ranges)).toEqual(".widget {\n    @{property}: #0ee;\n    background-@{property}: #999;\n}");
+
+                            // It's not visible
+                            var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                            expect(files.length).toBe(1);
+                            expect(files[0].textContent).toEqual(".widget — test2.less : 98");
+                        });
+                    });
+                });
             });
         });
 
