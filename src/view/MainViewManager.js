@@ -1453,10 +1453,10 @@ define(function (require, exports, module) {
     _paneTitles[FIRST_PANE] = {};
     _paneTitles[SECOND_PANE] = {};
     
-    _paneTitles[FIRST_PANE][VERTICAL]    = Strings.LEFT;
-    _paneTitles[FIRST_PANE][HORIZONTAL]  = Strings.TOP;
-    _paneTitles[SECOND_PANE][VERTICAL]   = Strings.RIGHT;
-    _paneTitles[SECOND_PANE][HORIZONTAL] = Strings.BOTTOM;
+    _paneTitles[FIRST_PANE][VERTICAL]     = Strings.LEFT;
+    _paneTitles[FIRST_PANE][HORIZONTAL]   = Strings.TOP;
+    _paneTitles[SECOND_PANE][VERTICAL]    = Strings.RIGHT;
+    _paneTitles[SECOND_PANE][HORIZONTAL]  = Strings.BOTTOM;
     
     // Unit Test Helpers
     exports._initialize                   = _initialize;
@@ -1469,12 +1469,12 @@ define(function (require, exports, module) {
 
     
     // Private API
-    exports._destroyEditorIfNotNeeded      = _destroyEditorIfNotNeeded;
-    exports._edit                          = _edit;
-    exports._open                          = _open;
-    exports._close                          = _close;
-    exports._closeAll                       = _closeAll;
-    exports._closeList                      = _closeList;
+    exports._destroyEditorIfNotNeeded     = _destroyEditorIfNotNeeded;
+    exports._edit                         = _edit;
+    exports._open                         = _open;
+    exports._close                        = _close;
+    exports._closeAll                     = _closeAll;
+    exports._closeList                    = _closeList;
     
     // WorkingSet Management  
     exports.addToWorkingSet               = addToWorkingSet;
@@ -1487,36 +1487,36 @@ define(function (require, exports, module) {
     exports.restoreAdjustedScrollState    = restoreAdjustedScrollState;
 
     // Searching
-    exports.findInWorkingSet               = findInWorkingSet;
-    exports.findInWorkingSetByAddedOrder   = findInWorkingSetByAddedOrder;
-    exports.findInWorkingSetByMruOrder     = findInWorkingSetByMruOrder;
-    exports.findInAllWorkingSets           = findInAllWorkingSets;
+    exports.findInWorkingSet              = findInWorkingSet;
+    exports.findInWorkingSetByAddedOrder  = findInWorkingSetByAddedOrder;
+    exports.findInWorkingSetByMruOrder    = findInWorkingSetByMruOrder;
+    exports.findInAllWorkingSets          = findInAllWorkingSets;
     
     // Traversal
-    exports.beginTraversal                 = beginTraversal;
-    exports.endTraversal                   = endTraversal;
-    exports.traverseViewsByMRU             = traverseViewsByMRU;
+    exports.beginTraversal                = beginTraversal;
+    exports.endTraversal                  = endTraversal;
+    exports.traverseViewsByMRU            = traverseViewsByMRU;
     
     // PaneView Attributes
-    exports.getActivePaneId                = getActivePaneId;
-    exports.setActivePaneId                = setActivePaneId;
-    exports.getPaneIdList                  = getPaneIdList;
-    exports.getPaneTitle                   = getPaneTitle;
-    exports.getPaneCount                   = getPaneCount;
-    exports.getPaneIdForPath               = getPaneIdForPath;
+    exports.getActivePaneId               = getActivePaneId;
+    exports.setActivePaneId               = setActivePaneId;
+    exports.getPaneIdList                 = getPaneIdList;
+    exports.getPaneTitle                  = getPaneTitle;
+    exports.getPaneCount                  = getPaneCount;
+    exports.getPaneIdForPath              = getPaneIdForPath;
     
-    exports.getAllOpenFiles                = getAllOpenFiles;
-    exports.focusActivePane                = focusActivePane;
+    exports.getAllOpenFiles               = getAllOpenFiles;
+    exports.focusActivePane               = focusActivePane;
     
     // Layout
-    exports.setLayoutScheme                = setLayoutScheme;
-    exports.getLayoutScheme                = getLayoutScheme;
+    exports.setLayoutScheme               = setLayoutScheme;
+    exports.getLayoutScheme               = getLayoutScheme;
     
     // Convenience
-    exports.getCurrentlyViewedFile         = getCurrentlyViewedFile;
-    exports.getCurrentlyViewedPath         = getCurrentlyViewedPath;
+    exports.getCurrentlyViewedFile        = getCurrentlyViewedFile;
+    exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;
     
     // Constants
-    exports.ALL_PANES                      = ALL_PANES;
-    exports.ACTIVE_PANE                    = ACTIVE_PANE;
+    exports.ALL_PANES                     = ALL_PANES;
+    exports.ACTIVE_PANE                   = ACTIVE_PANE;
 });
