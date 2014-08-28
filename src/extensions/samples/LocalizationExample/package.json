@@ -1,10 +1,10 @@
 {
     "name": "localization-example",
-    "title": "LocalizationExample",
-    "description": "LocalizationExample.",
+    "title": "Localization Example",
+    "description": "A guide on how to localize your extension.",
     "homepage": "https://github.com/adobe/brackets/tree/master/src/extensions/samples/LocalizationExample",
     "version": "1.0.0",
-    "author": "",
+    "author": "The Brackets team",
     "license": "MIT",
     "engines": {
         "brackets": ">=0.42.0"
