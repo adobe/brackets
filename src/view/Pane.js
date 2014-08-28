@@ -166,7 +166,7 @@ define(function (require, exports, module) {
         var self = this,
             $el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id);
         
-        $el.on("focusin", function (e) {
+        $el.on("focusin.pane", function (e) {
             self._lastFocusedElement = e.target;
         });
 
@@ -376,6 +376,8 @@ define(function (require, exports, module) {
         }
             
         $(DocumentManager).off(this._makeEventName(""));
+
+        this.$el.off(".pane");
         this.$el.remove();
     };
     
