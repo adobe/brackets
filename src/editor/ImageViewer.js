@@ -390,30 +390,6 @@ define(function (require, exports, module) {
     };
     
     /* 
-     * Determines if the view has focus
-     * @return true if the view has focus, false if not.
-     */
-    ImageView.prototype.hasFocus = function () {
-        return this.$el.has(":focus");
-    };
-
-    /* 
-     * Determines if a child of the view has focus
-     * @return false. this view has no child elements that can receieve focus.
-     */
-    ImageView.prototype.childHasFocus = function () {
-        // we have no children to receive focus
-        return false;
-    };
-    
-    /* 
-     * Gives focus to the view
-     */
-    ImageView.prototype.focus = function () {
-        this.$el.focus();
-    };
-
-    /* 
      * Required interface - does nothing 
      * images are scaled to viewport so they will never scroll
      */

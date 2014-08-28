@@ -85,30 +85,6 @@ define(function (require, exports, module) {
     };
     
     /* 
-     * Determines if the view has focus
-     * @return {boolean} true if the view has focus, false if not
-     */
-    ConfigView.prototype.hasFocus = function () {
-        return this.$view.has(":focus");
-    };
-
-    /* 
-     * Determines if a child of the view has focus
-     * @return {boolean} true if the view has focus, false if not
-     */
-    ConfigView.prototype.childHasFocus = function () {
-        // we have no children to receive focus
-        return false;
-    };
-    
-    /* 
-     * Gives focus to the view
-     */
-    ConfigView.prototype.focus = function () {
-        this.$view.focus();
-    };
-
-    /* 
      * Required interface - does nothing 
      * @returns {undefined}
      */

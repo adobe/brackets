@@ -60,15 +60,6 @@ define(function (require, exports, module) {
                 },
                 destroy: function () {
                 },
-                hasFocus: function () {
-                    return this._hasFocus || false;
-                },
-                childHasFocus: function () {
-                    return false;
-                },
-                focus: function () {
-                    this._hasFocus = true;
-                },
                 getScrollPos: function () {
                     return "1234";
                 },
@@ -132,23 +123,6 @@ define(function (require, exports, module) {
                 expect(myView.updateLayout).toHaveBeenCalled();
                 expect(myView.getFile).toHaveBeenCalled();
                 expect(myView._visible).toBeTruthy();
-            });
-            it("should give focus to view", function () {
-                spyOn(myView, "focus").andCallThrough();
-                spyOn(myView, "hasFocus").andCallThrough();
-                spyOn(myView, "childHasFocus").andCallThrough();
-                
-                myPane.focus();
-                expect(myView._hasFocus).toBeFalsy();
-                
-                myPane.showView(myView);
-                myPane.focus();
-                
-                expect(myView.focus).toHaveBeenCalled();
-                expect(myView.hasFocus).toHaveBeenCalled();
-                expect(myView.childHasFocus).toHaveBeenCalled();
-                
-                expect(myView._hasFocus).toBeTruthy();
             });
             it("should report currents", function () {
                 myPane.showView(myView);

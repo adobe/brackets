@@ -83,9 +83,6 @@ define(function (require, exports, module) {
      *      getFile: function ():!File File object that belongs to the view
      *      updateLayout: function(forceRefresh:boolean) - tells the view to do ignore any cached layout data and do a complete layout of its content 
      *      destroy: function() - called when the view is no longer needed. 
-     *      hasFocus:  function():boolean - called to determine if the view has focus.  
-     *      childHasFocus: function():boolean - called to determine if a child component of the view has focus.  
-     *      focus: function() - called to tell the view to take focus
      *      getScrollPos: function():* - called to get the current view scroll state. @return {Object=}
      *      adjustScrollPos: function(state:Object=, heightDelta:number) - called to restore the scroll state and adjust the height by heightDelta
      *      notifyContainerChange: function() - called when the container has been changed
@@ -114,15 +111,6 @@ define(function (require, exports, module) {
      *  or only once.  Views can ignore the forceRefresh flag. It is used for editor views to force a relayout of the editor 
      *  which probably isn't necessary for most views.  Views should implement their html to be dynamic and not rely on this
      *  function to be called whenever possible.
-     *
-     * hasFocus()
-     *
-     *  Called throughout the life of the View to determine if the view has focus.
-     *
-     * childHasFocus()
-     *
-     *  Called throughout the life of the View to determine if a child compontent of the view has focus.  If the view has no child
-     *  component then the view should just return false when this function is called.
      *
      * destroy() 
      *
@@ -160,7 +148,7 @@ define(function (require, exports, module) {
      */
     
     /**
-     * @typedef {!$el: jQuery, getFile:function():?File, setVisible:function(visible:boolean), updateLayout:function(forceRefresh:boolean), destroy:function(), hasFocus:function():boolean, childHasFocus:function():boolean, focus:function(), getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number), getViewState:function():?*, restoreViewState:function(viewState:!*), notifyContainerChange:function(), notifyVisibilityChange:function(boolean)} View
+     * @typedef {!$el: jQuery, getFile:function():?File, setVisible:function(visible:boolean), updateLayout:function(forceRefresh:boolean), destroy:function(),  getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number), getViewState:function():?*, restoreViewState:function(viewState:!*), notifyContainerChange:function(), notifyVisibilityChange:function(boolean)} View
      */
     
     /*
@@ -175,7 +163,14 @@ define(function (require, exports, module) {
         this._initialize();
         
         // Setup the container and the element we're inserting
-        var $el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id);
+        var self = this,
+            $el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id);
+        
+        $el.on("focusin", function (e) {
+            self._lastFocusedElement = e.target;
+        });
+
+        this._lastFocusedElement = $el[0];
         
         // Make these properties read only
         Object.defineProperty(this,  "id", {
@@ -262,6 +257,13 @@ define(function (require, exports, module) {
      * @private
      */
     Pane.prototype._currentView = null;
+    
+    /**
+     * The last thing that received a focus event
+     * @type {HTMLDomElement}
+     * @private
+     */
+    Pane.prototype._lastFocusedElement = null;
     
     /**
      * Initializes the Pane to its default state
@@ -948,13 +950,13 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Gives focus to the current view if there is one or the pane if there isn't
+     * Gives focus to the last thing that had focus, the current view or the pane in that order
      */
     Pane.prototype.focus = function () {
-        if (this._currentView) {
-            if (!this._currentView.hasFocus() && !this._currentView.childHasFocus()) {
-                this._currentView.focus();
-            }
+        if (this._lastFocusedElement && $(this._lastFocusedElement).is(":visible")) {
+            $(this._lastFocusedElement).focus();
+        } else if (this._currentView) {
+            this._currentView.$el.focus();
         } else {
             this.$el.focus();
         }

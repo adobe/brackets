@@ -1879,11 +1879,6 @@ define(function (require, exports, module) {
         return this._focused;
     };
     
-    /** Returns true if a child editor (inline widget) has focus */
-    Editor.prototype.childHasFocus = function () {
-        return (this.getFocusedInlineWidget() !== null);
-    };
-    
     /* 
      * @typedef {scrollPos:{x:number, y:number},Array.<{start:{line:number, ch:number},end:{line:number, ch:number}}>} EditorViewState
      */
