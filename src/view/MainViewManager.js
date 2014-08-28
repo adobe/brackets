@@ -967,28 +967,25 @@ define(function (require, exports, module) {
      * Do not use this API unless you have a document object without a file object
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Document} doc - document to edit
-     * @param {Object={avoidPaneActivation:boolean}} optionsIn - options 
      * @private
      */
-    function _edit(paneId, doc, optionsIn) {
+    function _edit(paneId, doc) {
         var currentPaneId = getPaneIdForPath(doc.file.fullPath),
             oldPane = _getPane(ACTIVE_PANE),
-            oldFile = oldPane.getCurrentlyViewedFile(),
-            options = optionsIn || {};
+            oldFile = oldPane.getCurrentlyViewedFile();
             
         if (currentPaneId) {
+            // If the doc is open in another pane
+            //  then switch to that pane and call open document
+            //  which will really just show the view as it has always done
+            //  we could just do pane.showView(doc._masterEditor) in that
+            //  case but Editor Manager may do some state syncing 
             paneId = currentPaneId;
-            if (!options.avoidPaneActivation) {
-                setActivePaneId(paneId);
-            }
+            setActivePaneId(paneId);
         }
         
         var pane = _getPane(paneId);
         
-        if (!pane) {
-            return;
-        }
-
         // If file is untitled or otherwise not within project tree, add it to
         // working set right now (don't wait for it to become dirty)
         if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
@@ -1005,15 +1002,13 @@ define(function (require, exports, module) {
      * or a document for editing.  If it's a document for editing, edit is called on the document 
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!File} file - file to open
-     * @param {Object={avoidPaneActivation:boolean}} optionsIn - options 
      * @return {jQuery.Promise}  promise that resolves to a File object or 
      *                           rejects with a File error or string
      */
-    function _open(paneId, file, optionsIn) {
+    function _open(paneId, file) {
         var oldPane = _getPane(ACTIVE_PANE),
             oldFile = oldPane.getCurrentlyViewedFile(),
-            result = new $.Deferred(),
-            options = optionsIn || {};
+            result = new $.Deferred();
         
         if (!file || !_getPane(paneId)) {
             throw new Error("bad argument");
@@ -1022,12 +1017,8 @@ define(function (require, exports, module) {
         var currentPaneId = getPaneIdForPath(file.fullPath);
 
         if (currentPaneId) {
-            // The file is open in another pane so activate the pane
-            //  unless the caller specified avoidPaneActivation
             paneId = currentPaneId;
-            if (!options.avoidPaneActivation) {
-                setActivePaneId(paneId);
-            }
+            setActivePaneId(paneId);
         }
         
         // See if there is already a view for the file
@@ -1104,6 +1095,8 @@ define(function (require, exports, module) {
             _updateCommandState();
             $(exports).triggerHandler("paneLayoutChange", [_orientation]);
 
+            // if the current view before the merger was in the pane
+            //  that went away then reopen it so that it's now the current view again
             if (getCurrentlyViewedFile() !== lastViewed) {
                 exports._open(firstPane.id, lastViewed);
             }
@@ -1115,27 +1108,24 @@ define(function (require, exports, module) {
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!File} file - file to close
      * @param {Object={noOpenNextFile:boolean}} optionsIn - options 
+     * This function does not fail if the file is not open
      */
     function _close(paneId, file, optionsIn) {
-        if (paneId === ALL_PANES) {
-            // search in the list of files in each pane's workingset list
-            paneId = getPaneIdForPath(file.fullPath);
-        }
-
-        var pane = _getPane(paneId),
-            oldFile = pane.getCurrentlyViewedFile(),
-            options = optionsIn || {};
-
-        if (pane.removeView(file, options.noOpenNextFile)) {
-            _removeFileFromMRU(pane.id, file);
-            $(exports).triggerHandler("workingSetRemove", [file, false, pane.id]);
-        }
+        var options = optionsIn || {};
+        _forEachPaneOrPanes(paneId, function (pane) {
+            if (pane.removeView(file, options.noOpenNextFile)) {
+                _removeFileFromMRU(pane.id, file);
+                $(exports).triggerHandler("workingSetRemove", [file, false, pane.id]);
+                return false;
+            }
+        });
     }
 
     /**
      * Closes a list of file in the specified pane or panes
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Array.<File>} fileList - files to close
+     * This function does not fail if the file is not open
      */
     function _closeList(paneId, fileList) {
         _forEachPaneOrPanes(paneId, function (pane) {
@@ -1151,9 +1141,9 @@ define(function (require, exports, module) {
     /**
      * Closes all files in the specified pane or panes
      * @param {!string} paneId - id of the pane in which to open the document
+     * This function does not fail if the file is not open
      */
-    function _closeAll(paneId, options) {
-        
+    function _closeAll(paneId) {
         _forEachPaneOrPanes(paneId, function (pane) {
             var closedList = pane.getViewList();
             closedList.forEach(function (file) {
@@ -1374,7 +1364,7 @@ define(function (require, exports, module) {
      * @summay Rows or Columns may be 1 or 2 but both cannot be 2. 1x2, 2x1 or 1x1 are the legal values
      */
     function setLayoutScheme(rows, columns) {
-        if ((rows < 1) || (rows > 2) || (columns < 1) || (columns > 2) || (columns === rows === 2)) {
+        if ((rows < 1) || (rows > 2) || (columns < 1) || (columns > 2) || (columns === 2 && rows === 2)) {
             console.error("setLayoutScheme unsupported layout " + rows + ", " + columns);
             return false;
         }
@@ -1391,7 +1381,7 @@ define(function (require, exports, module) {
     
     /** 
      * Retrieves the current layout scheme
-     * @return {Object.<rows: number, columns: number>}
+     * @return {!{rows: number, columns: number>}}
      */
     function getLayoutScheme() {
         var result = {
