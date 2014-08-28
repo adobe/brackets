@@ -455,7 +455,7 @@ define(function (require, exports, module) {
      */
     function destroyMockEditor(doc) {
         EditorManager._notifyActiveEditorChanged(null);
-        MainViewManager.destroyEditorIfNotNeeded(doc);
+        MainViewManager._destroyEditorIfNotNeeded(doc);
 
         // Clear editor holder so EditorManager doesn't try to resize destroyed object
         $("#hidden-editors").remove();

@@ -37,14 +37,14 @@ define(function (require, exports, module) {
         var testEditor, testDoc, $root;
         beforeEach(function () {
             testDoc = SpecRunnerUtils.createMockDocument("");
-            MainViewManager.edit(MainViewManager.ACTIVE_PANE, testDoc);
+            MainViewManager._edit(MainViewManager.ACTIVE_PANE, testDoc);
             testEditor = testDoc._masterEditor;
             $root = $(testEditor.getRootElement());
             WorkspaceManager._setMockDOM($("#mock-main-view"),  $root.parent());
         });
 
         afterEach(function () {
-            MainViewManager.closeAll(MainViewManager.ALL_PANES);
+            MainViewManager._closeAll(MainViewManager.ALL_PANES);
             SpecRunnerUtils.destroyMockEditor(testDoc);
             testEditor = null;
             testDoc = null;

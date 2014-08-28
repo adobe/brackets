@@ -968,8 +968,9 @@ define(function (require, exports, module) {
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Document} doc - document to edit
      * @param {Object={avoidPaneActivation:boolean}} optionsIn - options 
+     * @private
      */
-    function edit(paneId, doc, optionsIn) {
+    function _edit(paneId, doc, optionsIn) {
         var currentPaneId = getPaneIdForPath(doc.file.fullPath),
             oldPane = _getPane(ACTIVE_PANE),
             oldFile = oldPane.getCurrentlyViewedFile(),
@@ -1008,7 +1009,7 @@ define(function (require, exports, module) {
      * @return {jQuery.Promise}  promise that resolves to a File object or 
      *                           rejects with a File error or string
      */
-    function open(paneId, file, optionsIn) {
+    function _open(paneId, file, optionsIn) {
         var oldPane = _getPane(ACTIVE_PANE),
             oldFile = oldPane.getCurrentlyViewedFile(),
             result = new $.Deferred(),
@@ -1055,7 +1056,7 @@ define(function (require, exports, module) {
         } else {
             DocumentManager.getDocumentForPath(file.fullPath)
                 .done(function (doc) {
-                    edit(paneId, doc);
+                    _edit(paneId, doc);
                     result.resolve(doc.file);
                 })
                 .fail(function (fileError) {
@@ -1104,7 +1105,7 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("paneLayoutChange", [_orientation]);
 
             if (getCurrentlyViewedFile() !== lastViewed) {
-                exports.open(firstPane.id, lastViewed);
+                exports._open(firstPane.id, lastViewed);
             }
         }
     }
@@ -1115,7 +1116,7 @@ define(function (require, exports, module) {
      * @param {!File} file - file to close
      * @param {Object={noOpenNextFile:boolean}} optionsIn - options 
      */
-    function close(paneId, file, optionsIn) {
+    function _close(paneId, file, optionsIn) {
         if (paneId === ALL_PANES) {
             // search in the list of files in each pane's workingset list
             paneId = getPaneIdForPath(file.fullPath);
@@ -1136,7 +1137,7 @@ define(function (require, exports, module) {
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Array.<File>} fileList - files to close
      */
-    function closeList(paneId, fileList) {
+    function _closeList(paneId, fileList) {
         _forEachPaneOrPanes(paneId, function (pane) {
             var closedList = pane.removeViews(fileList);
             closedList.forEach(function (file) {
@@ -1151,7 +1152,7 @@ define(function (require, exports, module) {
      * Closes all files in the specified pane or panes
      * @param {!string} paneId - id of the pane in which to open the document
      */
-    function closeAll(paneId, options) {
+    function _closeAll(paneId, options) {
         
         _forEachPaneOrPanes(paneId, function (pane) {
             var closedList = pane.getViewList();
@@ -1190,7 +1191,7 @@ define(function (require, exports, module) {
      * Destroys an editor object if a document is no longer referenced
      * @param {!Document} doc - document to destroy
      */
-    function destroyEditorIfNotNeeded(document) {
+    function _destroyEditorIfNotNeeded(document) {
         if (!(document instanceof DocumentManager.Document)) {
             throw new Error("_destroyEditorIfUnneeded() should be passed a Document");
         }
@@ -1465,6 +1466,15 @@ define(function (require, exports, module) {
     exports._removeView                   = _removeView;
     exports._sortWorkingSet               = _sortWorkingSet;
     exports._swapWorkingSetListIndexes    = _swapWorkingSetListIndexes;
+
+    
+    // Private API
+    exports._destroyEditorIfNotNeeded      = _destroyEditorIfNotNeeded;
+    exports._edit                          = _edit;
+    exports._open                          = _open;
+    exports._close                          = _close;
+    exports._closeAll                       = _closeAll;
+    exports._closeList                      = _closeList;
     
     // WorkingSet Management  
     exports.addToWorkingSet               = addToWorkingSet;
@@ -1495,14 +1505,7 @@ define(function (require, exports, module) {
     exports.getPaneCount                   = getPaneCount;
     exports.getPaneIdForPath               = getPaneIdForPath;
     
-    // Explicit stuff
     exports.getAllOpenFiles                = getAllOpenFiles;
-    exports.destroyEditorIfNotNeeded       = destroyEditorIfNotNeeded;
-    exports.edit                           = edit;
-    exports.open                           = open;
-    exports.close                          = close;
-    exports.closeAll                       = closeAll;
-    exports.closeList                      = closeList;
     exports.focusActivePane                = focusActivePane;
     
     // Layout

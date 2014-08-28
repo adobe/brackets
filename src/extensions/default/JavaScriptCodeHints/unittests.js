@@ -55,7 +55,7 @@ define(function (require, exports, module) {
     CommandManager.register("test-file-open", Commands.FILE_OPEN, function (fileInfo) {
         // Register a command for FILE_OPEN, which the jump to def code will call
         return DocumentManager.getDocumentForPath(fileInfo.fullPath).done(function (doc) {
-            MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
+            MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
         });
     });
     
@@ -441,7 +441,7 @@ define(function (require, exports, module) {
 
             // The following call ensures that the document is reloaded
             // from disk before each test
-            MainViewManager.closeAll(MainViewManager.ALL_PANES);
+            MainViewManager._closeAll(MainViewManager.ALL_PANES);
             SpecRunnerUtils.destroyMockEditor(testDoc);
             testEditor = null;
             testDoc = null;

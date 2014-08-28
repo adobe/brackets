@@ -290,7 +290,7 @@ define(function (require, exports, module) {
             });
 
             var file = FileSystem.getFileForPath(fullPath);
-            MainViewManager.open(paneId, file)
+            MainViewManager._open(paneId, file)
                 .done(function () {
                     result.resolve(file);
                 })
@@ -633,7 +633,7 @@ define(function (require, exports, module) {
         var defaultExtension = "";  // disable preference setting for now
         
         var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, defaultExtension);
-        MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
+        MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
         
         return new $.Deferred().resolve(doc).promise();
     }
@@ -916,7 +916,7 @@ define(function (require, exports, module) {
                 var info = MainViewManager.findInAllWorkingSets(origPath).shift();
                 
                 if (info) {
-                    MainViewManager.open(info.paneId, doc.file);
+                    MainViewManager._open(info.paneId, doc.file);
                 }
 
                 // If the document is untitled, default to project root.
@@ -1098,7 +1098,7 @@ define(function (require, exports, module) {
         // utility function for handleFileClose: closes document & removes from pane view list
         function doClose(file) {
             if (!promptOnly) {
-                MainViewManager.close(paneId, file);
+                MainViewManager._close(paneId, file);
             }
         }
 
@@ -1275,7 +1275,7 @@ define(function (require, exports, module) {
         result.done(function (listAfterSave) {
             listAfterSave = listAfterSave || list;
             if (!promptOnly) {
-                MainViewManager.closeList(MainViewManager.ALL_PANES, listAfterSave);
+                MainViewManager._closeList(MainViewManager.ALL_PANES, listAfterSave);
             }
         });
         

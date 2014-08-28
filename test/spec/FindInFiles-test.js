@@ -1735,7 +1735,7 @@ define(function (require, exports, module) {
                         runs(function () {
                             doc = DocumentManager.getOpenDocumentForPath(testPath + "/foo.html");
                             expect(doc).toBeTruthy();
-                            MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
+                            MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                             editor = doc._masterEditor;
                             expect(editor).toBeTruthy();
                             editor.setSelection({line: 4, ch: 7}, {line: 4, ch: 10});
@@ -1758,7 +1758,7 @@ define(function (require, exports, module) {
                         runs(function () {
                             doc = DocumentManager.getOpenDocumentForPath(testPath + "/foo.html");
                             expect(doc).toBeTruthy();
-                            MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
+                            MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                             editor = doc._masterEditor;
                             expect(editor).toBeTruthy();
                             editor.setSelection({line: 4, ch: 7}, {line: 6, ch: 10});

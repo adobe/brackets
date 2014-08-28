@@ -1076,7 +1076,7 @@ define(function (require, exports, module) {
                         );
                         
                         // activate the full editor
-                        MainViewManager.edit(MainViewManager.ACTIVE_PANE, cssDoc);
+                        MainViewManager._edit(MainViewManager.ACTIVE_PANE, cssDoc);
                         fullEditor = EditorManager.getCurrentFullEditor();
                         
                         // sanity check
@@ -1126,7 +1126,7 @@ define(function (require, exports, module) {
                         inlineEditor = hostEditor.getInlineWidgets()[0].editor;
                         
                         // activate the full editor
-                        MainViewManager.edit(MainViewManager.ACTIVE_PANE, cssDoc);
+                        MainViewManager._edit(MainViewManager.ACTIVE_PANE, cssDoc);
                         fullEditor = EditorManager.getCurrentFullEditor();
                         
                         // alias offsets to nice names
@@ -1521,7 +1521,7 @@ define(function (require, exports, module) {
                         inlineEditor = hostEditor.getInlineWidgets()[0].editor;
                         
                         // activate the full editor
-                        MainViewManager.edit(MainViewManager.ACTIVE_PANE, cssDoc);
+                        MainViewManager._edit(MainViewManager.ACTIVE_PANE, cssDoc);
                         fullEditor = EditorManager.getCurrentFullEditor();
                     });
                 });
@@ -1591,7 +1591,7 @@ define(function (require, exports, module) {
                         return testDoc;
                     };
                     
-                    testMainViewManager.edit(testMainViewManager.ACTIVE_PANE, testDoc);
+                    testMainViewManager._edit(testMainViewManager.ACTIVE_PANE, testDoc);
                 });
             });
             

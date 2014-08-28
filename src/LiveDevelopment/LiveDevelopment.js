@@ -1319,7 +1319,7 @@ define(function LiveDevelopment(require, exports, module) {
                 MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, doc.file);
 
                 if (!otherDocumentsInWorkingFiles) {
-                    MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
+                    MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                 }
             }
 

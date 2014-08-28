@@ -245,7 +245,7 @@ define(function (require, exports, module) {
                         var newDoc = DocumentManager.getOpenDocumentForPath(firstPath);
                         // newDoc might be null if the replacement failed.
                         if (newDoc) {
-                            MainViewManager.edit(MainViewManager.ACTIVE_PANE, newDoc);
+                            MainViewManager._edit(MainViewManager.ACTIVE_PANE, newDoc);
                         }
                     }
                 }

@@ -79,7 +79,7 @@ define(function (require, exports, module) {
             // create Editor instance (containing a CodeMirror instance)
             runs(function () {
                 testEditor = createMockEditor(testDocument);
-                MasterMainViewManager.edit(MasterMainViewManager.ACTIVE_PANE, testDocument);
+                MasterMainViewManager._edit(MasterMainViewManager.ACTIVE_PANE, testDocument);
             });
         }
         
@@ -87,7 +87,7 @@ define(function (require, exports, module) {
             runs(function () {
                 // The following call ensures that the document is reloaded
                 // from disk before each test
-                MasterMainViewManager.closeAll(MasterMainViewManager.ALL_PANES);
+                MasterMainViewManager._closeAll(MasterMainViewManager.ALL_PANES);
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testEditor = null;
                 testDocument = null;
@@ -337,7 +337,7 @@ define(function (require, exports, module) {
                 }, "Unable to open test document", 2000);
 
                 runs(function () {
-                    MainViewManager.edit(MainViewManager.ACTIVE_PANE, testDocument);
+                    MainViewManager._edit(MainViewManager.ACTIVE_PANE, testDocument);
                     testEditor = EditorManager.getCurrentFullEditor();
                     testEditor.setCursorPos({ line: 22, ch: 12 });
                     CommandManager.execute(Commands.SHOW_CODE_HINTS);

@@ -74,7 +74,7 @@ define(function (require, exports, module) {
         });
         
         afterEach(function () {
-            MainViewManager.closeAll(MainViewManager.ALL_PANES);
+            MainViewManager._closeAll(MainViewManager.ALL_PANES);
             testWindow              = null;
             CommandManager          = null;
             Commands                = null;
@@ -116,7 +116,7 @@ define(function (require, exports, module) {
         describe("opening and closing files", function () {
             it("should open a file", function () {
                 runs(function () {
-                    promise = MainViewManager.open(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
+                    promise = MainViewManager._open(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, "MainViewManager.doOpen");
                 });
                 runs(function () {
@@ -126,7 +126,7 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getCurrentlyViewedPath("first-pane")).toEqual(testPath + "/test.js");
                     expect(MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES)).toEqual(0);
 
-                    MainViewManager.close(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
+                    MainViewManager._close(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
                     expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
                     expect(MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES)).toEqual(0);
                 });
@@ -136,7 +136,7 @@ define(function (require, exports, module) {
                     return false;
                 };
                 runs(function () {
-                    promise = MainViewManager.open(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
+                    promise = MainViewManager._open(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, "MainViewManager.doOpen");
                 });
                 runs(function () {
@@ -146,7 +146,7 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getCurrentlyViewedPath("first-pane")).toEqual(testPath + "/test.js");
                     expect(MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES)).toEqual(1);
 
-                    MainViewManager.close(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
+                    MainViewManager._close(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
                     expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
                     expect(MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES)).toEqual(0);
                 });
@@ -156,7 +156,7 @@ define(function (require, exports, module) {
                     promise = new $.Deferred();
                     DocumentManager.getDocumentForPath(testPath + "/test.js")
                         .done(function (doc) {
-                            MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
+                            MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                             promise.resolve();
                         });
                     
@@ -169,14 +169,14 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getCurrentlyViewedPath("first-pane")).toEqual(testPath + "/test.js");
                     expect(MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES)).toEqual(0);
 
-                    MainViewManager.close(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
+                    MainViewManager._close(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
                     expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
                     expect(MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES)).toEqual(0);
                 });
             });
             it("should not automatically be added to the working set when opening a file", function () {
                 runs(function () {
-                    promise = MainViewManager.open(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
+                    promise = MainViewManager._open(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, "MainViewManager.doOpen");
                 });
                 runs(function () {
@@ -227,7 +227,7 @@ define(function (require, exports, module) {
                     DocumentManager.getDocumentForPath(testPath + "/test.js")
                         .done(function (doc) {
                             testDoc = doc;
-                            MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
+                            MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                             promise.resolve();
                         });
                     
@@ -250,7 +250,7 @@ define(function (require, exports, module) {
                     promise = new $.Deferred();
                     DocumentManager.getDocumentForPath(testPath + "/test.js")
                         .done(function (doc) {
-                            MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
+                            MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                             promise.resolve();
                         });
                     
@@ -269,14 +269,14 @@ define(function (require, exports, module) {
                 runs(function () {
                     _$(MainViewManager).on("currentFileChange", currentFileChangeListener);
                     expect(currentFileChangeListener.callCount).toBe(0);
-                    promise = MainViewManager.open(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
+                    promise = MainViewManager._open(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, "MainViewManager.doOpen");
                 });
                 runs(function () {
                     expect(currentFileChangeListener.callCount).toBe(1);
                     expect(currentFileChangeListener.calls[0].args[1].name).toEqual("test.js");
                     expect(currentFileChangeListener.calls[0].args[2]).toEqual("first-pane");
-                    MainViewManager.closeAll(MainViewManager.ALL_PANES);
+                    MainViewManager._closeAll(MainViewManager.ALL_PANES);
                     expect(currentFileChangeListener.callCount).toBe(2);
                     expect(currentFileChangeListener.calls[1].args[1]).toEqual(null);
                     _$(MainViewManager).off("currentFileChange", currentFileChangeListener);
@@ -284,25 +284,25 @@ define(function (require, exports, module) {
             });
             it("DocumentManager should listen to currentFileChange events", function () {
                 runs(function () {
-                    promise = MainViewManager.open(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
+                    promise = MainViewManager._open(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, "MainViewManager.doOpen");
                 });
                 runs(function () {
                     expect(DocumentManager.getCurrentDocument()).toBeTruthy();
                     expect(DocumentManager.getCurrentDocument().file.name).toEqual("test.js");
-                    MainViewManager.closeAll(MainViewManager.ALL_PANES);
+                    MainViewManager._closeAll(MainViewManager.ALL_PANES);
                     expect(DocumentManager.getCurrentDocument()).toBe(null);
                 });
             });
             it("EditorManager should listen to currentFileChange events", function () {
                 runs(function () {
-                    promise = MainViewManager.open(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
+                    promise = MainViewManager._open(MainViewManager.ACTIVE_PANE, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, "MainViewManager.doOpen");
                 });
                 runs(function () {
                     expect(EditorManager.getCurrentFullEditor()).toBeTruthy();
                     expect(EditorManager.getCurrentFullEditor().document.file.name).toEqual("test.js");
-                    MainViewManager.closeAll(MainViewManager.ALL_PANES);
+                    MainViewManager._closeAll(MainViewManager.ALL_PANES);
                     expect(EditorManager.getCurrentFullEditor()).toBe(null);
                 });
             });
@@ -664,11 +664,11 @@ define(function (require, exports, module) {
                     waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
                 });
                 runs(function () {
-                    MainViewManager.closeAll("second-pane");
+                    MainViewManager._closeAll("second-pane");
                     expect(MainViewManager.getAllOpenFiles().length).toEqual(1);
                 });
                 runs(function () {
-                    MainViewManager.closeAll("first-pane");
+                    MainViewManager._closeAll("first-pane");
                     expect(MainViewManager.getAllOpenFiles().length).toEqual(0);
                 });
             });
@@ -687,7 +687,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
                 });
                 runs(function () {
-                    MainViewManager.close("second-pane", { fullPath: testPath + "/test.js" });
+                    MainViewManager._close("second-pane", { fullPath: testPath + "/test.js" });
                     expect(MainViewManager.getAllOpenFiles().length).toEqual(1);
                 });
                 runs(function () {
@@ -858,7 +858,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addListToWorkingSet("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
-                    MainViewManager.close(MainViewManager.ALL_PANES, getFileObject("test.css"));
+                    MainViewManager._close(MainViewManager.ALL_PANES, getFileObject("test.css"));
                     expect(MainViewManager.getCurrentlyViewedFile("first-pane").name).toEqual("test.js");
                 });
             });
@@ -866,7 +866,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addListToWorkingSet("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
-                    MainViewManager.close("first-pane", getFileObject("test.css"));
+                    MainViewManager._close("first-pane", getFileObject("test.css"));
                     expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, getFileObject("test.css").fullPath)).toEqual(-1);
                 });
             });
@@ -875,7 +875,7 @@ define(function (require, exports, module) {
                     MainViewManager.addListToWorkingSet("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
                     MainViewManager.setActivePaneId("first-pane");
-                    MainViewManager.close(MainViewManager.ACTIVE_PANE, getFileObject("test.js"));
+                    MainViewManager._close(MainViewManager.ACTIVE_PANE, getFileObject("test.js"));
                     expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, getFileObject("test.js").fullPath)).toEqual(-1);
                 });
             });
@@ -884,7 +884,7 @@ define(function (require, exports, module) {
                     MainViewManager.addListToWorkingSet("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
                     MainViewManager.setActivePaneId("first-pane");
-                    MainViewManager.close(MainViewManager.ALL_PANES, getFileObject("test.js"));
+                    MainViewManager._close(MainViewManager.ALL_PANES, getFileObject("test.js"));
                     expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, getFileObject("test.js").fullPath)).toEqual(-1);
                 });
             });
@@ -905,7 +905,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addListToWorkingSet("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
-                    MainViewManager.closeList(MainViewManager.ALL_PANES, [getFileObject("test.js"),
+                    MainViewManager._closeList(MainViewManager.ALL_PANES, [getFileObject("test.js"),
                                                                                             getFileObject("test.css")]);
                     expect(Object.keys(MainViewManager._getPane("first-pane")._views).length).toEqual(0);
                 });
@@ -914,7 +914,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addListToWorkingSet("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
-                    MainViewManager.closeList(MainViewManager.ALL_PANES, [getFileObject("test.js"),
+                    MainViewManager._closeList(MainViewManager.ALL_PANES, [getFileObject("test.js"),
                                                                                            getFileObject("test.css")]);
                     expect(MainViewManager.getWorkingSetSize("first-pane")).toEqual(0);
                 });
@@ -923,7 +923,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addListToWorkingSet("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
-                    MainViewManager.closeList(MainViewManager.ALL_PANES, [getFileObject("test.js"),
+                    MainViewManager._closeList(MainViewManager.ALL_PANES, [getFileObject("test.js"),
                                                                                            getFileObject("test.css")]);
                     expect(MainViewManager.getWorkingSetSize("first-pane")).toEqual(0);
                 });
@@ -932,7 +932,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addListToWorkingSet("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
-                    MainViewManager.closeList("first-pane", [getFileObject("test.js"),
+                    MainViewManager._closeList("first-pane", [getFileObject("test.js"),
                                                                               getFileObject("test.css")]);
                     expect(MainViewManager.getWorkingSetSize("first-pane")).toEqual(0);
                 });
@@ -942,7 +942,7 @@ define(function (require, exports, module) {
                     MainViewManager.addListToWorkingSet("first-pane", [getFileObject("test.js"),
                                                                          getFileObject("test.css")]);
                     MainViewManager.setActivePaneId("first-pane");
-                    MainViewManager.closeList(MainViewManager.ACTIVE_PANE, [getFileObject("test.js"),
+                    MainViewManager._closeList(MainViewManager.ACTIVE_PANE, [getFileObject("test.js"),
                                                                                               getFileObject("test.css")]);
                     expect(MainViewManager.getWorkingSetSize("first-pane")).toEqual(0);
                 });
@@ -951,7 +951,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.addToWorkingSet("first-pane", getFileObject("test.js"));
                     MainViewManager.addToWorkingSet("second-pane", getFileObject("test.css"));
-                    MainViewManager.closeList(MainViewManager.ALL_PANES, [getFileObject("test.js"),
+                    MainViewManager._closeList(MainViewManager.ALL_PANES, [getFileObject("test.js"),
                                                                                            getFileObject("test.css")]);
                     expect(MainViewManager.getWorkingSetSize("first-pane")).toEqual(0);
                     expect(MainViewManager.getWorkingSetSize("second-pane")).toEqual(0);

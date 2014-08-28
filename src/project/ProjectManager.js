@@ -1221,7 +1221,7 @@ define(function (require, exports, module) {
             }
             
             // close all the old files
-            MainViewManager.closeAll(MainViewManager.ALL_PANES);
+            MainViewManager._closeAll(MainViewManager.ALL_PANES);
     
             _unwatchProjectRoot().always(function () {
                 // Finish closing old project (if any)

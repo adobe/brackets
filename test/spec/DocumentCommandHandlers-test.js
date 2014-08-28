@@ -101,7 +101,7 @@ define(function (require, exports, module) {
                 // Call closeAll() directly. Some tests set a spy on the save as
                 // dialog preventing SpecRunnerUtils.closeAllFiles() from
                 // working properly.
-                testWindow.brackets.test.MainViewManager.closeAll(testWindow.brackets.test.MainViewManager.ALL_PANES);
+                testWindow.brackets.test.MainViewManager._closeAll(testWindow.brackets.test.MainViewManager.ALL_PANES);
             });
         });
 
@@ -930,7 +930,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // save the file opened above to a different filename
-                    MainViewManager.edit(MainViewManager.ACTIVE_PANE, targetDoc);
+                    MainViewManager._edit(MainViewManager.ACTIVE_PANE, targetDoc);
                     spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });

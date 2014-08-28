@@ -757,7 +757,7 @@ define(function (require, exports, module) {
             var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
 
             if (doc) {
-                MainViewManager.destroyEditorIfNotNeeded(doc);
+                MainViewManager._destroyEditorIfNotNeeded(doc);
             }
         };
         

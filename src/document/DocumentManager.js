@@ -235,32 +235,32 @@ define(function (require, exports, module) {
         
     /**
      * closes all open files
-     * @deprecated Use MainViewManager.closeAll() instead
+     * @deprecated Use MainViewManager._closeAll() instead
      * Calling this discards any unsaved changes, so the UI should confirm with the user before calling this.
      */
     function closeAll() {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.closeAll() instead of DocumentManager.closeAll()", true);
+        DeprecationWarning.deprecationWarning("Use MainViewManager._closeAll() instead of DocumentManager.closeAll()", true);
         CommandManager.execute(Commands.FILE_CLOSE_ALL, {PaneId: MainViewManager.ALL_PANES});
     }
 
     /**
      * closes the specified file file 
-     * @deprecated use MainViewManager.close() instead
+     * @deprecated use MainViewManager._close() instead
      * @param {!File} file
      */
     function closeFullEditor(file) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.close() instead of DocumentManager.closeFullEditor()", true);
+        DeprecationWarning.deprecationWarning("Use MainViewManager._close() instead of DocumentManager.closeFullEditor()", true);
         CommandManager.execute(Commands.FILE_CLOSE, {File: file});
     }
     
     /**
      * opens the specified document for editing in the currently active pane
-     * @deprecated use MainViewManager.edit() instead
+     * @deprecated use MainViewManager._edit() instead
      * @param {!Document} document  The Document to make current. 
      */
     function setCurrentDocument(doc) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.edit() instead of DocumentManager.setCurrentDocument()", true);
-        return MainViewManager.edit(MainViewManager.ACTIVE_PANE, doc);
+        DeprecationWarning.deprecationWarning("Use CommandManager.doCommand(Commands.FILE_OPEN) instead of DocumentManager.setCurrentDocument()", true);
+        return MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
     }
 
     
@@ -307,7 +307,7 @@ define(function (require, exports, module) {
             // Is the only ref to this document its own master Editor?
             if (doc._refCount === 1 && doc._masterEditor) {
                 // Destroy the Editor if it's not being kept alive by the UI
-                MainViewManager.destroyEditorIfNotNeeded(doc);
+                MainViewManager._destroyEditorIfNotNeeded(doc);
             }
         });
     }

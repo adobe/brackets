@@ -76,7 +76,7 @@ define(function (require, exports, module) {
         });
         
         afterEach(function () {
-            MainViewManager.closeAll(MainViewManager.ALL_PANES);
+            MainViewManager._closeAll(MainViewManager.ALL_PANES);
             testWindow              = null;
             CommandManager          = null;
             Commands                = null;
@@ -90,7 +90,7 @@ define(function (require, exports, module) {
         describe("Opening and closing Images", function () {
             it("should open an image", function () {
                 runs(function () {
-                    promise = MainViewManager.open(MainViewManager.ACTIVE_PANE, getFileObject("/images/events.jpg"));
+                    promise = MainViewManager._open(MainViewManager.ACTIVE_PANE, getFileObject("/images/events.jpg"));
                     waitsForDone(promise, "MainViewManager.doOpen");
                 });
                 runs(function () {
@@ -101,11 +101,11 @@ define(function (require, exports, module) {
             });
             it("should close an image", function () {
                 runs(function () {
-                    promise = MainViewManager.open(MainViewManager.ACTIVE_PANE, getFileObject("/images/events.jpg"));
+                    promise = MainViewManager._open(MainViewManager.ACTIVE_PANE, getFileObject("/images/events.jpg"));
                     waitsForDone(promise, "MainViewManager.doOpen");
                 });
                 runs(function () {
-                    MainViewManager.close(MainViewManager.ACTIVE_PANE, getFileObject("/images/events.jpg"));
+                    MainViewManager._close(MainViewManager.ACTIVE_PANE, getFileObject("/images/events.jpg"));
                     expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
                     expect(MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES)).toEqual(0);
                 });
