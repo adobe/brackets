@@ -27,8 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var FileSystem                 = require("filesystem/FileSystem"),
-        SpecRunnerUtils            = require("spec/SpecRunnerUtils");
+    var SpecRunnerUtils            = require("spec/SpecRunnerUtils");
 
     var testPath                   = SpecRunnerUtils.getTestPath("/spec/CSSInlineEdit-test-files");
 
@@ -546,7 +545,8 @@ define(function (require, exports, module) {
                 });
             });
 
-            xit("should show one matching rule in inline editor which is defined after rule that uses variable interpolation as property value", function () {
+//            https://github.com/adobe/brackets/issues/8875
+            it("should show one matching rule in inline editor which is defined after rule that uses variable interpolation as property value", function () {
                 runs(function () {
                     var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 28, ch: 20});
                     waitsForDone(promise, "Open inline editor");
@@ -558,12 +558,12 @@ define(function (require, exports, module) {
                     var inlineWidget = getInlineEditorWidget();
                     var ranges = inlineWidget._ranges[0];
 
-                    expect(getInlineEditorContent(ranges)).toEqual("p {\n    font-size: ($font-size * 1.20)px;\n    height: ($height + 20)px;\n}");
+                    expect(getInlineEditorContent(ranges)).toEqual("#scss-1 {\n    background-color: blue;\n}");
 
                     // It's not visible
                     var files = inlineWidget.$relatedContainer.find(".related ul>li");
                     expect(files.length).toBe(1);
-                    expect(files[0].textContent).toEqual("p — test.scss : 5");
+                    expect(files[0].textContent).toEqual("#scss-1 — test.scss : 11");
                 });
             });
         });
