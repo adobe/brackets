@@ -1464,11 +1464,10 @@ define(function (require, exports, module) {
         
     // Private Helpers
     exports._removeView                   = _removeView;
-    exports._sortWorkingSet               = _sortWorkingSet;
-    exports._swapWorkingSetListIndexes    = _swapWorkingSetListIndexes;
-
     
     // Private API
+    exports._sortWorkingSet               = _sortWorkingSet;
+    exports._swapWorkingSetListIndexes    = _swapWorkingSetListIndexes;
     exports._destroyEditorIfNotNeeded     = _destroyEditorIfNotNeeded;
     exports._edit                         = _edit;
     exports._open                         = _open;
