@@ -124,7 +124,7 @@ define(function (require, exports, module) {
             var document = ranges.textRange.document;
 
             return document.getRange({line: ranges.textRange.startLine, ch: 0}, {line: ranges.textRange.endLine, ch: document.getLine(ranges.textRange.endLine).length});
-            }
+        }
 
         describe("CSS", function () {
             beforeEach(function () {
@@ -485,7 +485,7 @@ define(function (require, exports, module) {
                             // It's not visible
                             var files = inlineWidget.$relatedContainer.find(".related ul>li");
                             expect(files.length).toBe(1);
-                            expect(files[0].textContent).toEqual(".tres,     .quattro — test2.less : 54");
+                            expect(files[0].textContent).toEqual(".tres, .quattro — test2.less : 54");
                         });
                     });
                 });
@@ -537,7 +537,7 @@ define(function (require, exports, module) {
                     var inlineWidget = getInlineEditorWidget();
                     var ranges = inlineWidget._ranges[0];
 
-                    expect(getInlineEditorContent(ranges)).toEqual("p {\n    $font-size: 12px;\n    $line-height: 30px;\n    font: #{$font-size}/#{$line-height};");
+                    expect(getInlineEditorContent(ranges)).toEqual("p {\n    $font-size: 12px;\n    $line-height: 30px;\n    font: #{$font-size}/#{$line-height};\n}");
 
                     // It's not visible
                     var files = inlineWidget.$relatedContainer.find(".related ul>li");
