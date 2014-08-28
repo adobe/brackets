@@ -201,7 +201,7 @@ define(function (require, exports, module) {
          * @private
          * Checks to see if there are any stylesheets in the project, and returns the appropriate
          * "no rules"/"no stylesheets" message accordingly.
-         * @return {$.Promise} a promise that is resolved with the message to show. Never rejected.
+         * @return {Promise} a promise that is resolved with the message to show. Never rejected.
          */
         function _getNoRulesMsg() {
             return new Promise(function (resolve, reject) {

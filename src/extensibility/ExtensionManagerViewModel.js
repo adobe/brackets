@@ -535,7 +535,7 @@ define(function (require, exports, module) {
 
     /**
      * Initializes the model from the remote extension registry.
-     * @return {$.Promise} a promise that's resolved with the registry JSON data.
+     * @return {Promise} a promise that's resolved with the registry JSON data.
      */
     ThemesViewModel.prototype._initializeFromSource = function () {
         var self = this;

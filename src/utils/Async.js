@@ -295,7 +295,7 @@ define(function (require, exports, module) {
      * piped from the original Promise. If the timeout occurs first instead, then resolve() or
      * fail() (with Async.ERROR_TIMEOUT) is called based on value of resolveTimeout.
      * 
-     * @param {$.Promise} promise
+     * @param {Promise} promise
      * @param {number} timeout
      * @param {boolean=} resolveTimeout If true, then resolve Promise on timeout, otherwise reject. Default is false.
      * @return {Promise}
@@ -356,7 +356,7 @@ define(function (require, exports, module) {
             }
 
             // set defaults if needed
-            failOnReject = (failOnReject === undefined) ? false : true;
+            failOnReject = !!failOnReject;
 
             if (timeout !== undefined) {
                 withTimeout(this, timeout);
@@ -452,7 +452,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {$.Promise}
+     * @type {Promise}
      * The promise we're currently waiting on, or null if there's nothing currently executing.
      */
     PromiseQueue.prototype._curPromise = null;

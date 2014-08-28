@@ -215,7 +215,7 @@ define(function (require, exports, module) {
      * @private
      *
      * @param {$.Element} $dlg The dialog jQuery element
-     * @param {$.Promise} promise A promise that will be resolved with the ID of the clicked button when the dialog
+     * @param {Promise} promise A promise that will be resolved with the ID of the clicked button when the dialog
      *     is dismissed. Never rejected.
      */
     function Dialog($dlg, promise) {
@@ -233,7 +233,7 @@ define(function (require, exports, module) {
     
     /**
      * The dialog promise
-     * @type {$.Promise}
+     * @type {Promise}
      */
     Dialog.prototype.getPromise = function () {
         return this._promise;

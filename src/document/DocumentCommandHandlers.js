@@ -238,7 +238,7 @@ define(function (require, exports, module) {
      * Creates a document and displays an editor for the specified file path.
      * @param {!string} fullPath
      * @param {boolean=} silent If true, don't show error message
-     * @return {$.Promise} a jQuery promise that will either
+     * @return {Promise} a jQuery promise that will either
      * - be resolved with a document for the specified file path or
      * - be resolved without document, i.e. when an image is displayed or
      * - be rejected if the file can not be read.
@@ -340,7 +340,7 @@ define(function (require, exports, module) {
      * If no path is specified, a file prompt is provided for input.
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @param {boolean=} silent - If true, don't show error message
-     * @return {$.Promise} a jQuery promise that will be resolved with a new
+     * @return {Promise} a jQuery promise that will be resolved with a new
      * document for the specified file path or be resolved without document, i.e. when an image is displayed,
      * or rejected if the file can not be read.
      */
@@ -483,7 +483,7 @@ define(function (require, exports, module) {
      * @param {Directory} dir  The directory to use
      * @param {string} baseFileName  The base to start with, "-n" will get appened to make unique
      * @param {boolean} isFolder True if the suggestion is for a folder name
-     * @return {$.Promise} a jQuery promise that will be resolved with a unique name starting with
+     * @return {Promise} a jQuery promise that will be resolved with a unique name starting with
      *   the given base name
      */
     function _getUntitledFileSuggestion(dir, baseFileName, isFolder) {
@@ -621,7 +621,7 @@ define(function (require, exports, module) {
      * Saves a document to its existing path. Does NOT support untitled documents.
      * @param {!Document} docToSave
      * @param {boolean=} force Ignore CONTENTS_MODIFIED errors from the FileSystem
-     * @return {$.Promise} a promise that is resolved with the File of docToSave (to mirror
+     * @return {Promise} a promise that is resolved with the File of docToSave (to mirror
      *   the API of _doSaveAs()). Rejected in case of IO error (after error dialog dismissed).
      */
     function doSave(docToSave, force) {
@@ -732,7 +732,7 @@ define(function (require, exports, module) {
      * @param {Document} doc
      * @param {boolean=} suppressError If true, then a failure to read the file will be ignored and the
      *      resulting promise will be resolved rather than rejected.
-     * @return {$.Promise} a Promise that's resolved when done, or (if suppressError is false) 
+     * @return {Promise} a Promise that's resolved when done, or (if suppressError is false) 
      *      rejected with a FileSystemError if the file cannot be read (after showing an error 
      *      dialog to the user).
      */
@@ -769,7 +769,7 @@ define(function (require, exports, module) {
      * @param {?{cursorPos:!Object, selection:!Object, scrollPos:!Object}} settings - properties of
      *      the original document's editor that need to be carried over to the new document
      *      i.e. scrollPos, cursorPos and text selection
-     * @return {$.Promise} a promise that is resolved with the saved document's File. Rejected in
+     * @return {Promise} a promise that is resolved with the saved document's File. Rejected in
      *   case of IO error (after error dialog dismissed), or if the Save dialog was canceled.
      */
     function _doSaveAs(doc, settings) {
@@ -899,7 +899,7 @@ define(function (require, exports, module) {
     /**
      * Saves the given file. If no file specified, assumes the current document.
      * @param {?{doc: ?Document}} commandData  Document to close, or null
-     * @return {$.Promise} resolved with the saved document's File (which MAY DIFFER from the doc
+     * @return {Promise} resolved with the saved document's File (which MAY DIFFER from the doc
      *   passed in, if the doc was untitled). Rejected in case of IO error (after error dialog
      *   dismissed), or if doc was untitled and the Save dialog was canceled (will be rejected with
      *   USER_CANCELED object).
@@ -988,7 +988,7 @@ define(function (require, exports, module) {
 
     /**
      * Saves all unsaved documents. See _saveFileList() for details on the semantics.
-     * @return {$.Promise}
+     * @return {Promise}
      */
     function saveAll() {
         return _saveFileList(DocumentManager.getWorkingSet());
@@ -996,7 +996,7 @@ define(function (require, exports, module) {
 
     /**
      * Prompts user with save as dialog and saves document.
-     * @return {$.Promise} a promise that is resolved once the save has been completed
+     * @return {Promise} a promise that is resolved once the save has been completed
      */
     handleFileSaveAs = function (commandData) {
         // Default to current document if doc is null
@@ -1022,7 +1022,7 @@ define(function (require, exports, module) {
 
     /**
      * Saves all unsaved documents.
-     * @return {$.Promise} a promise that is resolved once ALL the saves have been completed; or rejected
+     * @return {Promise} a promise that is resolved once ALL the saves have been completed; or rejected
      *      after all operations completed if any ONE of them failed.
      */
     function handleFileSaveAll() {
@@ -1040,7 +1040,7 @@ define(function (require, exports, module) {
      *          prompts that may be cancelable.
      *      _forceClose - If true, closes the document without prompting even if there are unsaved
      *          changes. Only for use in unit tests.
-     * @return {$.Promise} a promise that is resolved when the file is closed, or if no file is open.
+     * @return {Promise} a promise that is resolved when the file is closed, or if no file is open.
      *      FUTURE: should we reject the promise if no file is open?
      */
     function handleFileClose(commandData) {
@@ -1292,7 +1292,7 @@ define(function (require, exports, module) {
      *          other user prompts that may be cancelable.
      *          If _forceClose is true, forces the files to close with no confirmation even if dirty. 
      *          Should only be used for unit test cleanup.
-     * @return {$.Promise} a promise that is resolved when all files are closed
+     * @return {Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
         return _closeList(DocumentManager.getWorkingSet(),
@@ -1503,7 +1503,7 @@ define(function (require, exports, module) {
 
     /**
      * Disables Brackets' cache via the remote debugging protocol.
-     * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
+     * @return {Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
      */
     function _disableCache() {
         return new Promise(function (resolve, reject) {

@@ -1407,7 +1407,7 @@ define(function (require, exports, module) {
      * @param {!{line:number, ch:number}} pos  Position in text to anchor the inline.
      * @param {!InlineWidget} inlineWidget The widget to add.
      * @param {boolean=} scrollLineIntoView Scrolls the associated line into view. Default true.
-     * @return {$.Promise} A promise object that is resolved when the widget has been added (but might
+     * @return {Promise} A promise object that is resolved when the widget has been added (but might
      *     still be animating open). Never rejected.
      */
     Editor.prototype.addInlineWidget = function (pos, inlineWidget, scrollLineIntoView) {
@@ -1481,7 +1481,7 @@ define(function (require, exports, module) {
     /**
      * Removes the given inline widget.
      * @param {number} inlineWidget The widget to remove.
-     * @return {$.Promise} A promise that is resolved when the inline widget is fully closed and removed from the DOM.
+     * @return {Promise} A promise that is resolved when the inline widget is fully closed and removed from the DOM.
      */
     Editor.prototype.removeInlineWidget = function (inlineWidget) {
         var self = this;

@@ -54,7 +54,7 @@ define(function (require, exports, module) {
     /**
      * @deprecated
      * @param {!string} indexname
-     * @return {$.Promise} a promise that is resolved with an Array of File objects
+     * @return {Promise} a promise that is resolved with an Array of File objects
      */
     function getFileInfoList(indexName) {
         _warn();
@@ -65,7 +65,7 @@ define(function (require, exports, module) {
      * @deprecated
      * @param {!string} indexName
      * @param {!string} filename
-     * @return {$.Promise} a promise that is resolved with an Array of File objects
+     * @return {Promise} a promise that is resolved with an Array of File objects
      */
     function getFilenameMatches(indexName, filename) {
         _warn();

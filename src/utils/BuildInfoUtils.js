@@ -77,7 +77,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @return {$.Promise} A promise resolved with the git branch and SHA
+     * @return {Promise} A promise resolved with the git branch and SHA
      *     of a local copy of a repository or the branch and SHA
      *     embedded at build-time in the package.json repository metadata.
      */

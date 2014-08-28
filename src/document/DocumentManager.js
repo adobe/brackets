@@ -662,7 +662,7 @@ define(function (require, exports, module) {
      * If all you need is the Document's getText() value, use the faster getDocumentText() instead.
      *
      * @param {!string} fullPath
-     * @return {$.Promise} A promise object that will be resolved with the Document, or rejected
+     * @return {Promise} A promise object that will be resolved with the Document, or rejected
      *      with a FileSystemError if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
@@ -750,7 +750,7 @@ define(function (require, exports, module) {
      * 
      * @param {!File} file The file to get the text for.
      * @param {boolean=} checkLineEndings Whether to return line ending information. Default false (slightly more efficient).
-     * @return {$.Promise} 
+     * @return {Promise} 
      *     A promise that is resolved with three parameters:
      *          contents - string: the document's text
      *          timestamp - Date: the last time the document was changed on disk (might not be the same as the last time it was changed in memory)

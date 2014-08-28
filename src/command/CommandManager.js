@@ -273,7 +273,7 @@ define(function (require, exports, module) {
      * Looks up and runs a global command. Additional arguments are passed to the command.
      *
      * @param {string} id The ID of the command to run.
-     * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
+     * @return {Promise} a jQuery promise that will be resolved when the command completes.
      */
     function execute(id) {
         var command = _commands[id];
