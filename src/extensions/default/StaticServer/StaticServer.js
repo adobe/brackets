@@ -210,7 +210,7 @@ define(function (require, exports, module) {
         if (liveDocument && liveDocument.getResponseData) {
             response = liveDocument.getResponseData();
         } else {
-            response = {};
+            response = {};  // let server fall back on loading file off disk
         }
         response.id = request.id;
         
