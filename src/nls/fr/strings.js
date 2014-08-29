@@ -550,7 +550,7 @@ define({
 	"CMD_LOG_NODE_STATE": "Noter l’état du nœud dans la console",
 	"CMD_RESTART_NODE": "Redémarrer le nœud",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "Afficher les erreurs dans la barre d’état",
-	"CMD_OPEN_BRACKETS_SOURCE": "[7693766] !é=Open Brackets Source=!",
+	"CMD_OPEN_BRACKETS_SOURCE": "Ouvrir la source Brackets",
     
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Langue :",

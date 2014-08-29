@@ -550,7 +550,7 @@ define({
 	"CMD_LOG_NODE_STATE": "Node の状態をコンソールに記録",
 	"CMD_RESTART_NODE": "Node を再起動",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示",
-	"CMD_OPEN_BRACKETS_SOURCE": "!能=[7693766] Open Brackets Source_=!",
+	"CMD_OPEN_BRACKETS_SOURCE": "オープン Brackets ソース",
     
 	"LANGUAGE_TITLE": "言語を切り替える",
 	"LANGUAGE_MESSAGE": "言語 :",
