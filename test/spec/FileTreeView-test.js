@@ -43,8 +43,63 @@ define(function (require, exports, module) {
                     entry: Immutable.Map()
                 }));
                 var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
-                expect(a.props.children[0]).toBe("afile");
-                expect(a.props.children[1].props.children).toBe(".js");
+                expect(a.props.children[1]).toBe("afile");
+                expect(a.props.children[2].props.children).toBe(".js");
+                
+                var ins = a.props.children[0];
+                expect(ins.props.children[0]).toBe(" ");
+            });
+            
+            it("should call icon extensions to replace the default icon", function () {
+                var extensionCalls = 0,
+                    rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                        name: "afile.js",
+                        entry: Immutable.Map(),
+                        parentPath: "/foo/",
+                        extensions: Immutable.fromJS({
+                            icons: [function (data) {
+                                extensionCalls++;
+                                expect(data.name).toBe("afile.js");
+                                expect(data.isFile).toBe(true);
+                                expect(data.fullPath).toBe("/foo/afile.js");
+                                return React.DOM.ins({}, "ICON");
+                            }]
+                        })
+                    }));
+                
+                expect(extensionCalls).toBe(1);
+                
+                var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
+                expect(a.props.children[1]).toBe("afile");
+                expect(a.props.children[2].props.children).toBe(".js");
+
+                var ins = a.props.children[0];
+                expect(ins.props.children).toBe("ICON");
+            });
+            
+            it("should call addClass extensions", function () {
+                var extensionCalls = 0,
+                    rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                        name: "afile.js",
+                        entry: Immutable.Map(),
+                        parentPath: "/foo/",
+                        extensions: Immutable.fromJS({
+                            addClass: [function (data) {
+                                extensionCalls++;
+                                expect(data.name).toBe("afile.js");
+                                expect(data.isFile).toBe(true);
+                                expect(data.fullPath).toBe("/foo/afile.js");
+                                return "new";
+                            }, function (data) {
+                                return "classes are cool";
+                            }]
+                        })
+                    }));
+
+                expect(extensionCalls).toBe(1);
+
+                var li = RTU.findRenderedDOMComponentWithTag(rendered, "li");
+                expect(li.props.className).toBe("jstree-leaf new classes are cool");
             });
             
             it("should render a rename component", function () {
@@ -123,6 +178,39 @@ define(function (require, exports, module) {
                 expect(dirA.props.children[1]).toBe("thedir");
             });
             
+            it("should call extensions for directories", function () {
+                var extensionCalled = false,
+                    rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
+                        name: "thedir",
+                        parentPath: "/foo/",
+                        entry: Immutable.fromJS({
+                            children: null
+                        }),
+                        extensions: Immutable.fromJS({
+                            icons: [function (data) {
+                                return React.DOM.ins({}, "ICON");
+                            }],
+                            addClass: [function (data) {
+                                extensionCalled = true;
+                                expect(data.name).toBe("thedir");
+                                expect(data.isFile).toBe(false);
+                                expect(data.fullPath).toBe("/foo/thedir");
+                                return "new";
+                            }, function (data) {
+                                return "classes are cool";
+                            }]
+                        })
+                    }));
+                
+                expect(extensionCalled).toBe(true);
+                
+                var dirLI = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-closed"),
+                    dirA = RTU.findRenderedDOMComponentWithTag(dirLI, "a");
+                expect(dirLI.props.className).toBe("jstree-closed new classes are cool");
+                var icon = dirA.props.children[0];
+                expect(icon.props.children).toBe("ICON");
+            });
+
             it("should allow renaming a closed directory", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
                     name: "thedir",
@@ -143,7 +231,7 @@ define(function (require, exports, module) {
                 }));
                 var fileLI = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-leaf"),
                     fileA = RTU.findRenderedDOMComponentWithTag(fileLI, "a");
-                expect(fileA.props.children[0]).toBe("afile");
+                expect(fileA.props.children[1]).toBe("afile");
             });
             
             it("should be able to list closed directories", function () {
@@ -175,7 +263,7 @@ define(function (require, exports, module) {
                     aTags = RTU.scryRenderedDOMComponentsWithTag(subdirLI, "a");
                 expect(aTags.length).toBe(2);
                 expect(aTags[0].props.children[1]).toBe("subdir");
-                expect(aTags[1].props.children[0]).toBe("afile");
+                expect(aTags[1].props.children[1]).toBe("afile");
             });
         });
         
@@ -192,7 +280,7 @@ define(function (require, exports, module) {
                     aTags = RTU.scryRenderedDOMComponentsWithTag(rootNode, "a");
                 expect(aTags.length).toBe(2);
                 expect(aTags[0].props.children[1]).toBe("subdir");
-                expect(aTags[1].props.children[0]).toBe("afile");
+                expect(aTags[1].props.children[1]).toBe("afile");
             });
         });
         
