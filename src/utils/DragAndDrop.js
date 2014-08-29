@@ -52,8 +52,8 @@ define(function (require, exports, module) {
     function filterFilesToOpen(paths) {
         // Filter out file in which we have no registered viewer
         var filteredFiles = paths.filter(function (fullPath) {
-            return !LanguageManager.getLanguageForPath(fullPath).isBinary()
-                || MainViewFactory.findSuitableFactoryForPath(fullPath);
+            return !LanguageManager.getLanguageForPath(fullPath).isBinary() ||
+                MainViewFactory.findSuitableFactoryForPath(fullPath);
         });
         
         return filteredFiles;
