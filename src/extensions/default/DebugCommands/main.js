@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, brackets, window, Mustache */
 
 define(function (require, exports, module) {
@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         Strings                = brackets.getModule("strings"),
         PreferencesManager     = brackets.getModule("preferences/PreferencesManager"),
         LocalizationUtils      = brackets.getModule("utils/LocalizationUtils"),
+        ProjectManager         = brackets.getModule("project/ProjectManager"),
         ErrorNotification      = require("ErrorNotification"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
@@ -68,7 +69,8 @@ define(function (require, exports, module) {
         DEBUG_ENABLE_NODE_DEBUGGER      = "debug.enableNodeDebugger",
         DEBUG_LOG_NODE_STATE            = "debug.logNodeState",
         DEBUG_RESTART_NODE              = "debug.restartNode",
-        DEBUG_SHOW_ERRORS_IN_STATUS_BAR = "debug.showErrorsInStatusBar";
+        DEBUG_SHOW_ERRORS_IN_STATUS_BAR = "debug.showErrorsInStatusBar",
+        DEBUG_OPEN_BRACKETS_SOURCE      = "debug.openBracketsSource";
 
     PreferencesManager.definePreference(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, "boolean", false);
     
@@ -251,6 +253,12 @@ define(function (require, exports, module) {
         PreferencesManager.set(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, val);
     }
 
+    function handleOpenBracketsSource() {
+        // Brackets source dir w/o the trailing src/ folder
+        var dir = FileUtils.getNativeBracketsDirectoryPath().replace(/\/[^\/]+$/, "/");
+        ProjectManager.openProject(dir);
+    }
+
     /* Register all the command handlers */
     
     // Show Developer Tools (optionally enabled)
@@ -265,6 +273,11 @@ define(function (require, exports, module) {
         .setEnabled(false);
     
     CommandManager.register(Strings.CMD_SHOW_PERF_DATA,            DEBUG_SHOW_PERF_DATA,            handleShowPerfData);
+
+    // Open Brackets Source (optionally enabled)
+    CommandManager.register(Strings.CMD_OPEN_BRACKETS_SOURCE,      DEBUG_OPEN_BRACKETS_SOURCE,      handleOpenBracketsSource)
+        .setEnabled(!StringUtils.endsWith(decodeURI(window.location.pathname), "/www/index.html"));
+
     CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,           DEBUG_SWITCH_LANGUAGE,           handleSwitchLanguage);
     CommandManager.register(Strings.CMD_SHOW_ERRORS_IN_STATUS_BAR, DEBUG_SHOW_ERRORS_IN_STATUS_BAR, toggleErrorNotification);
     
@@ -289,6 +302,7 @@ define(function (require, exports, module) {
     menu.addMenuDivider();
     menu.addMenuItem(DEBUG_RUN_UNIT_TESTS);
     menu.addMenuItem(DEBUG_SHOW_PERF_DATA);
+    menu.addMenuItem(DEBUG_OPEN_BRACKETS_SOURCE);
     menu.addMenuDivider();
     menu.addMenuItem(DEBUG_ENABLE_NODE_DEBUGGER);
     menu.addMenuItem(DEBUG_LOG_NODE_STATE);
