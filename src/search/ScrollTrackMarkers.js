@@ -37,7 +37,7 @@ define(function (require, exports, module) {
     
     var Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
-        PanelManager        = require("view/PanelManager");
+        WorkspaceManager    = require("view/WorkspaceManager");
     
     
     /**
@@ -142,7 +142,7 @@ define(function (require, exports, module) {
             _calcScaling();
             
             // Update tickmarks during editor resize (whenever resizing has paused/stopped for > 1/3 sec)
-            $(PanelManager).on("editorAreaResize.ScrollTrackMarkers", _.debounce(function () {
+            $(WorkspaceManager).on("workspaceUpdateLayout.ScrollTrackMarkers", _.debounce(function () {
                 if (marks.length) {
                     _calcScaling();
                     $(".tickmark-track", editor.getRootElement()).empty();
@@ -155,7 +155,7 @@ define(function (require, exports, module) {
             $(".tickmark-track", curEditor.getRootElement()).remove();
             editor = null;
             marks = [];
-            $(PanelManager).off("editorAreaResize.ScrollTrackMarkers");
+            $(WorkspaceManager).off("workspaceUpdateLayout.ScrollTrackMarkers");
         }
     }
     

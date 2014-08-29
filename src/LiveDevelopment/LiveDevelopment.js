@@ -68,38 +68,39 @@ define(function LiveDevelopment(require, exports, module) {
     var _ = require("thirdparty/lodash");
 
     // Status Codes
-    var STATUS_ERROR            = exports.STATUS_ERROR          = -1;
-    var STATUS_INACTIVE         = exports.STATUS_INACTIVE       =  0;
-    var STATUS_CONNECTING       = exports.STATUS_CONNECTING     =  1;
-    var STATUS_LOADING_AGENTS   = exports.STATUS_LOADING_AGENTS =  2;
-    var STATUS_ACTIVE           = exports.STATUS_ACTIVE         =  3;
-    var STATUS_OUT_OF_SYNC      = exports.STATUS_OUT_OF_SYNC    =  4;
-    var STATUS_SYNC_ERROR       = exports.STATUS_SYNC_ERROR     =  5;
+    var STATUS_ERROR          = exports.STATUS_ERROR          = -1;
+    var STATUS_INACTIVE       = exports.STATUS_INACTIVE       =  0;
+    var STATUS_CONNECTING     = exports.STATUS_CONNECTING     =  1;
+    var STATUS_LOADING_AGENTS = exports.STATUS_LOADING_AGENTS =  2;
+    var STATUS_ACTIVE         = exports.STATUS_ACTIVE         =  3;
+    var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    =  4;
+    var STATUS_SYNC_ERROR     = exports.STATUS_SYNC_ERROR     =  5;
 
-    var Async                   = require("utils/Async"),
-        Dialogs                 = require("widgets/Dialogs"),
-        DefaultDialogs          = require("widgets/DefaultDialogs"),
-        DocumentManager         = require("document/DocumentManager"),
-        EditorManager           = require("editor/EditorManager"),
-        FileServer              = require("LiveDevelopment/Servers/FileServer").FileServer,
-        FileSystemError         = require("filesystem/FileSystemError"),
-        FileUtils               = require("file/FileUtils"),
-        LiveDevServerManager    = require("LiveDevelopment/LiveDevServerManager"),
-        NativeApp               = require("utils/NativeApp"),
-        PreferencesDialogs      = require("preferences/PreferencesDialogs"),
-        ProjectManager          = require("project/ProjectManager"),
-        Strings                 = require("strings"),
-        StringUtils             = require("utils/StringUtils"),
-        UserServer              = require("LiveDevelopment/Servers/UserServer").UserServer;
+    var Async                = require("utils/Async"),
+        Dialogs              = require("widgets/Dialogs"),
+        DefaultDialogs       = require("widgets/DefaultDialogs"),
+        DocumentManager      = require("document/DocumentManager"),
+        EditorManager        = require("editor/EditorManager"),
+        FileServer           = require("LiveDevelopment/Servers/FileServer").FileServer,
+        FileSystemError      = require("filesystem/FileSystemError"),
+        FileUtils            = require("file/FileUtils"),
+        LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
+        MainViewManager      = require("view/MainViewManager"),
+        NativeApp            = require("utils/NativeApp"),
+        PreferencesDialogs   = require("preferences/PreferencesDialogs"),
+        ProjectManager       = require("project/ProjectManager"),
+        Strings              = require("strings"),
+        StringUtils          = require("utils/StringUtils"),
+        UserServer           = require("LiveDevelopment/Servers/UserServer").UserServer;
 
     // Inspector
-    var Inspector               = require("LiveDevelopment/Inspector/Inspector");
+    var Inspector       = require("LiveDevelopment/Inspector/Inspector");
 
     // Documents
-    var CSSDocument             = require("LiveDevelopment/Documents/CSSDocument"),
+    var CSSDocument     = require("LiveDevelopment/Documents/CSSDocument"),
         CSSPreprocessorDocument = require("LiveDevelopment/Documents/CSSPreprocessorDocument"),
-        HTMLDocument            = require("LiveDevelopment/Documents/HTMLDocument"),
-        JSDocument              = require("LiveDevelopment/Documents/JSDocument");
+        HTMLDocument    = require("LiveDevelopment/Documents/HTMLDocument"),
+        JSDocument      = require("LiveDevelopment/Documents/JSDocument");
     
     // Document errors
     var SYNC_ERROR_CLASS = "live-preview-sync-error";
@@ -185,7 +186,7 @@ define(function LiveDevelopment(require, exports, module) {
      * @type {BaseServer}
      */
     var _server;
-    
+
     function _isPromisePending(promise) {
         return promise && promise.state() === "pending";
     }
@@ -1318,18 +1319,18 @@ define(function LiveDevelopment(require, exports, module) {
             }
         }
         
-        // TODO: need to run _onDocumentChange() after load if doc != currentDocument here? Maybe not, since activeEditorChange
+        // TODO: need to run _onFileChanged() after load if doc != currentDocument here? Maybe not, since activeEditorChange
         // doesn't trigger it, while inline editors can still cause edits in doc other than currentDoc...
         _getInitialDocFromCurrent().done(function (doc) {
             var prepareServerPromise = (doc && _prepareServer(doc)) || new $.Deferred().reject(),
                 otherDocumentsInWorkingFiles;
 
             if (doc && !doc._masterEditor) {
-                otherDocumentsInWorkingFiles = DocumentManager.getWorkingSet().length;
-                DocumentManager.addToWorkingSet(doc.file);
+                otherDocumentsInWorkingFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).length;
+                MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, doc.file);
 
                 if (!otherDocumentsInWorkingFiles) {
-                    DocumentManager.setCurrentDocument(doc);
+                    MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                 }
             }
 
@@ -1371,9 +1372,9 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * @private
-     * DocumentManager currentDocumentChange event handler. 
+     * MainViewManager.currentFileChange event handler. 
      */
-    function _onDocumentChange() {
+    function _onFileChanged() {
         var doc = _getCurrentDocument();
         
         if (!doc || !Inspector.connected()) {
@@ -1472,10 +1473,13 @@ define(function LiveDevelopment(require, exports, module) {
         // We may get interim added/removed events when pushing incremental updates
         $(CSSAgent).on("styleSheetAdded.livedev", _styleSheetAdded);
         
-        $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
+        $(MainViewManager)
+            .on("currentFileChange", _onFileChanged);
+        $(DocumentManager)
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
-        $(ProjectManager).on("beforeProjectClose beforeAppClose", close);
+        $(ProjectManager)
+            .on("beforeProjectClose beforeAppClose", close);
         
         // Register user defined server provider
         LiveDevServerManager.registerServer({ create: _createUserServer }, 99);

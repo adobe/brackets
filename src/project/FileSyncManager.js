@@ -45,6 +45,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
         EditorManager       = require("editor/EditorManager"),
         Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
@@ -181,7 +182,7 @@ define(function (require, exports, module) {
      */
     function syncUnopenWorkingSet() {
         // We only care about working set entries that have never been open (have no Document).
-        var unopenWorkingSetFiles = DocumentManager.getWorkingSet().filter(function (wsFile) {
+        var unopenWorkingSetFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).filter(function (wsFile) {
             return !DocumentManager.getOpenDocumentForPath(wsFile.fullPath);
         });
         
@@ -471,7 +472,7 @@ define(function (require, exports, module) {
                                             
                                             // If we showed a dialog, restore focus to editor
                                             if (editConflicts.length > 0 || deleteConflicts.length > 0) {
-                                                EditorManager.focusEditor();
+                                                MainViewManager.focusActivePane();
                                             }
                                             
                                             // (Any errors that ocurred during presentConflicts() have already
