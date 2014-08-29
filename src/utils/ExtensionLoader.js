@@ -175,7 +175,7 @@ define(function (require, exports, module) {
                 extensionRequire([entryPoint], resolve, reject);
             });
             
-        }, null).then(function (module) {
+        }).then(function (module) {
             // Extension loaded normally
             var initPromise;
 
@@ -243,7 +243,7 @@ define(function (require, exports, module) {
                 }
 
                 return loadExtensionModule(name, config, entryPoint);
-            }, null)
+            })
             .then(function () {
                 $(exports).triggerHandler("load", config.baseUrl);
             }, function (err) {

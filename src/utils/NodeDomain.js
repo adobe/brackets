@@ -69,12 +69,12 @@ define(function (require, exports, module) {
         this._domainLoaded = false;
         this._load = this._load.bind(this);
         this._connectionPromise = connection.connect(true)
-            .then(this._load, null);
+            .then(this._load);
         
         $(connection).on("close", function (event, promise) {
             $(this.connection).off(EVENT_NAMESPACE);
             this._domainLoaded = false;
-            this._connectionPromise = promise.then(this._load, null);
+            this._connectionPromise = promise.then(this._load);
         }.bind(this));
     }
     

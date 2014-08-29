@@ -1448,12 +1448,12 @@ define(function (require, exports, module) {
                             AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
                                 .then(function () {
                                     resolve();
-                                }, null);
+                                });
 
                             // Callback to widget once parented to the editor. The widget should call back to
                             // setInlineWidgetHeight() in order to set its initial height and animate open.
                             inlineWidget.onAdded();
-                        }, null);
+                        });
                     }
 
                     _addInlineWidgetInternal(pos, inlineWidget, scrollLineIntoView);
@@ -1509,7 +1509,7 @@ define(function (require, exports, module) {
                 // back to the editor.)
                 if (self.isFullyVisible()) {
                     AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
-                        .then(finishRemoving, null);
+                        .then(finishRemoving);
                     inlineWidget.$htmlContent.height(0);
                 } else {
                     finishRemoving();
@@ -1721,9 +1721,9 @@ define(function (require, exports, module) {
 
                 // Animate closed -- which includes delay to show message
                 AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose", 6000)
-                    .then(_removeMessagePopover, null);
+                    .then(_removeMessagePopover);
             }
-        }, null);
+        });
     };
     
     /**

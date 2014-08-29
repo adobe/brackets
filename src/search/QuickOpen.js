@@ -361,7 +361,7 @@ define(function (require, exports, module) {
                             var editor = EditorManager.getCurrentFullEditor();
                             editor.setCursorPos(cursorPos.line, cursorPos.ch, true);
                         }
-                    }, null)
+                    })
                     .then(self.close, self.close);
             } else if (cursorPos) {
                 EditorManager.getCurrentFullEditor().setCursorPos(cursorPos.line, cursorPos.ch, true);
@@ -510,7 +510,7 @@ define(function (require, exports, module) {
             setTimeout(function () {
                 self.modalBar.close(!scrollPos).then(function () {
                     closeResolve();
-                }, null);
+                });
 
                 // Note that we deliberately reset the scroll position synchronously on return from
                 // `ModalBar.close()` (before the animation completes).
@@ -560,7 +560,7 @@ define(function (require, exports, module) {
                     } else {
                         asyncReject();
                     }
-                }, null);
+                });
             });
         }
         
@@ -885,7 +885,7 @@ define(function (require, exports, module) {
                 fileList = files;
                 fileListPromise = null;
                 this._filenameMatcher.reset();
-            }.bind(this), null);
+            }.bind(this));
     };
 
     function getCurrentEditorSelectedText() {
@@ -914,7 +914,7 @@ define(function (require, exports, module) {
                 // then open a new dialog. (Calling close() again returns the
                 // promise for the deferred that was already kicked off when it
                 // started closing.)
-                _curDialog.close().then(createDialog, null);
+                _curDialog.close().then(createDialog);
             }
         } else {
             createDialog();

@@ -1357,7 +1357,7 @@ define(function (require, exports, module) {
                         return _loadFileAndScan(fileInfo.fullPath, selector);
                     })
                         .then(resultResolve, resultReject);
-                }, null);
+                });
         });
     }
     

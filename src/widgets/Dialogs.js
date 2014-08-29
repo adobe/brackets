@@ -264,7 +264,7 @@ define(function (require, exports, module) {
         this.onFulfillment(callback1);
     };
     Dialog.prototype.onFulfillment = function (callback) {
-        this._promise.then(callback, null);
+        this._promise.then(callback);
     };
     
 

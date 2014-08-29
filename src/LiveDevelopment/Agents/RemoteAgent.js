@@ -87,7 +87,7 @@ define(function RemoteAgent(require, exports, module) {
 
                 Inspector.Runtime.callFunctionOn(objectId, method, params, undefined, callback)
                     .then(resolve, reject);
-            }, null);
+            });
         });
     }
 

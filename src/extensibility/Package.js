@@ -504,7 +504,7 @@ define(function (require, exports, module) {
                         _nodeConnectionPromise.reject();
                     }
                 );
-        }, null);
+        });
     });
 
     // For unit tests only

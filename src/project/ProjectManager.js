@@ -1341,11 +1341,11 @@ define(function (require, exports, module) {
                                     // project is loaded, so we don't violate expectations that there is always
                                     // a current project before continuing after _loadProject().
                                     _loadProject(_getWelcomeProjectPath()).then(loadProjectReject, loadProjectReject);
-                                }, null);
+                                });
                         }
                     });
                 }
-            }, null);
+            });
         });
     }
     
@@ -1478,7 +1478,7 @@ define(function (require, exports, module) {
                         _findTreeNode(selectedEntry)
                             .then(function ($node) {
                                 _forceSelection(null, $node);
-                            }, null)
+                            })
                             .then(refreshResolve, refreshResolve);
                     } else {
                         refreshResolve();

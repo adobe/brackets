@@ -218,7 +218,7 @@ define(function (require, exports, module) {
 
             if (animate) {
                 AnimationUtils.animateUsingClass(self._$root.get(0), "offscreen")
-                    .then(doRemove, null);
+                    .then(doRemove);
             } else {
                 doRemove();
             }

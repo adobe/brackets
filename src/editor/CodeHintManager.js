@@ -460,7 +460,7 @@ define(function (require, exports, module) {
                     } else {
                         hintList.open(hints);
                     }
-                }, null);
+                });
                 
                 var fnHintsPromiseAlways = function () {
                     hintsPromise = {};

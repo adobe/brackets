@@ -137,7 +137,7 @@ define(function (require, exports, module) {
                 // Make sure we revert any changes to theme selection
                 prefs.set("theme", currentSettings.theme);
             }
-        }, null);
+        });
     }
 
     /**

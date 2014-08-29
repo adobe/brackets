@@ -293,7 +293,7 @@ define(function (require, exports, module) {
                             )
                                 .then(function () {
                                     CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
-                                }, null);
+                                });
                         }
                     };
                     firstLaunchPromise.then(fnFirstLaunchAlways, fnFirstLaunchAlways);

@@ -173,7 +173,7 @@ define(function (require, exports, module) {
             if (branch || sha) {
                 buildInfo = StringUtils.format("({0} {1})", branch, sha).trim();
             }
-        }, null);
+        });
     });
 
     CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,       Commands.HELP_CHECK_FOR_UPDATE,     _handleCheckForUpdates);

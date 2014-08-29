@@ -136,7 +136,7 @@ define(function (require, exports, module) {
                                 ).then(function () {
                                     // We still have to reload even if some of the removals failed.
                                     CommandManager.execute(Commands.APP_RELOAD);
-                                }, null);
+                                });
                             }
                         );
                     },
@@ -155,7 +155,7 @@ define(function (require, exports, module) {
                         ).then(function () {
                             // We still have to reload even if some of the removals failed.
                             CommandManager.execute(Commands.APP_RELOAD);
-                        }, null);
+                        });
                     }
                 );
             } else {
@@ -249,7 +249,7 @@ define(function (require, exports, module) {
                             return Async.doSequentially(updateZips, function (file) {
                                 return InstallExtensionDialog.updateUsingDialog(file).then(function (result) {
                                     ExtensionManager.updateFromDownload(result);
-                                }, null);
+                                });
                             });
                         });
 
@@ -307,7 +307,7 @@ define(function (require, exports, module) {
             });
             
             _performChanges();
-        }, null);
+        });
         
         // Create the view.
         $dlg = dialog.getElement();
@@ -415,7 +415,7 @@ define(function (require, exports, module) {
         // Handle the install button.
         $(".extension-manager-dialog .install-from-url")
             .click(function () {
-                InstallExtensionDialog.showDialog().then(ExtensionManager.updateFromDownload, null);
+                InstallExtensionDialog.showDialog().then(ExtensionManager.updateFromDownload);
             });
         
         // Handle the drag/drop zone

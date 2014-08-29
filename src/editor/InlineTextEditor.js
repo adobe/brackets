@@ -261,7 +261,7 @@ define(function (require, exports, module) {
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: doc.file.fullPath })
                 .then(function () {
                     EditorManager.getCurrentFullEditor().setCursorPos(startLine, 0, true);
-                }, null);
+                });
         });
 
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, this.$editorHolder.get(0));

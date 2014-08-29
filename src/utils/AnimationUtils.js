@@ -76,7 +76,7 @@ define(function (require, exports, module) {
         
         // Use timeout in case transition end event is not sent
         return Async.withTimeout(result, timeoutDuration, true)
-            .then(cleanup, null);
+            .then(cleanup);
     }
     
     exports.animateUsingClass = animateUsingClass;

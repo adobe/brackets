@@ -151,7 +151,7 @@ define(function CSSDocumentModule(require, exports, module) {
         var reloadPromise = CSSAgent.reloadCSSForDocument(this.doc);
 
         if (Inspector.config.highlight) {
-            reloadPromise.then(HighlightAgent.redraw, null);
+            reloadPromise.then(HighlightAgent.redraw);
         }
     };
 

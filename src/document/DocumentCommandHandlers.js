@@ -270,7 +270,7 @@ define(function (require, exports, module) {
             } else {
                 FileUtils.showFileOpenError(fileError, fullFilePath).then(function () {
                     _cleanup(fullFilePath);
-                }, null);
+                });
             }
         }
         
@@ -378,7 +378,7 @@ define(function (require, exports, module) {
                                         DocumentManager.addToWorkingSet(doc.file);
                                     }
                                     _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(EditorManager.getCurrentlyViewedPath());
-                                }, null)
+                                })
                                 // Send the resulting document that was opened
                                 .then(resolve, reject);
                         } else {
@@ -474,7 +474,7 @@ define(function (require, exports, module) {
             if (doc) {
                 DocumentManager.addToWorkingSet(doc.file, commandData.index, commandData.forceRedraw);
             }
-        }, null);
+        });
     }
 
     /**
@@ -561,7 +561,7 @@ define(function (require, exports, module) {
         }
         
         return _getUntitledFileSuggestion(baseDirEntry, Strings.UNTITLED, isFolder)
-            .then(createWithSuggestedName, createWithSuggestedName.bind(undefined, Strings.UNTITLED), null);
+            .then(createWithSuggestedName, createWithSuggestedName.bind(undefined, Strings.UNTITLED));
     }
 
     /**
@@ -633,7 +633,7 @@ define(function (require, exports, module) {
                 _showSaveFileError(error, file.fullPath)
                     .then(function () {
                         reject(error);
-                    }, null);
+                    });
             }
 
             function handleContentsModified() {
@@ -672,7 +672,7 @@ define(function (require, exports, module) {
                             // Let the user choose a different path at which to write the file
                             handleFileSaveAs({doc: docToSave}).then(resolve, reject);
                         }
-                    }, null);
+                    });
             }
 
             function trySave() {
@@ -752,7 +752,7 @@ define(function (require, exports, module) {
                         FileUtils.showFileOpenError(error, doc.file.fullPath)
                             .then(function () {
                                 reject(error);
-                            }, null);
+                            });
                     }
                 }
             );
@@ -854,7 +854,7 @@ define(function (require, exports, module) {
                         _showSaveFileError(error, path)
                             .then(function () {
                                 reject(error);
-                            }, null);
+                            });
                         
                         // mark that we're done saving the document
                         doc.isSaving = false;
@@ -983,7 +983,7 @@ define(function (require, exports, module) {
             false  // if any save fails, continue trying to save other files anyway; then reject at end
         ).then(function () {
             return filesAfterSave;
-        }, null);
+        });
     }
 
     /**
@@ -1173,7 +1173,7 @@ define(function (require, exports, module) {
                                     .then(resolve, reject);
                             }
                         }
-                    }, null);
+                    });
             } else {
                 // File is not open, or IS open but Document not dirty: close immediately
                 doClose(file);
@@ -1266,7 +1266,7 @@ define(function (require, exports, module) {
                             // "Don't Save" case--we can just go ahead and close all files.
                             resolve();
                         }
-                    }, null);
+                    });
             }
         });
         
@@ -1278,7 +1278,7 @@ define(function (require, exports, module) {
             if (!promptOnly) {
                 DocumentManager.removeListFromWorkingSet(listAfterSave, clearCurrentDoc);
             }
-        }, null);
+        });
         
         return result;
     }
@@ -1300,7 +1300,7 @@ define(function (require, exports, module) {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager._closeCustomViewer();
             }
-        }, null);
+        });
     }
 
     function handleFileCloseList(commandData) {
@@ -1308,7 +1308,7 @@ define(function (require, exports, module) {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager._closeCustomViewer();
             }
-        }, null);
+        });
     }
 
     /**
@@ -1483,7 +1483,7 @@ define(function (require, exports, module) {
                     if (id === Dialogs.DIALOG_BTN_OK) {
                         ProjectManager.deleteItem(entry);
                     }
-                }, null);
+                });
         } else {
             ProjectManager.deleteItem(entry);
         }

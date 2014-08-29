@@ -290,7 +290,7 @@ define(function (require, exports, module) {
             if (this._messageCB) {
                 this._messageCB().then(function (msg) {
                     self.$messageDiv.html(msg);
-                }, null);
+                });
             } else {
                 this.$messageDiv.text(Strings.INLINE_EDITOR_NO_MATCHES);
             }

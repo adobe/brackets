@@ -475,7 +475,7 @@ define(function (require, exports, module) {
                         result = Promise.all(promises);
                         result.then(function (b) {
                             expect(b).toBe(flag);
-                        }, null);
+                        });
 
                         // note, we WANT to test this synchronously. This is not a bug
                         // in the unit test. A series of synchronous functions should

@@ -180,7 +180,7 @@ define(function (require, exports, module) {
                             }
                         }).then(function (jqXHR, status, error) {
                             lookupResolve();
-                        }, null);
+                        });
                     } else {
                         localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl("en");
                         lookupResolve();
@@ -265,7 +265,7 @@ define(function (require, exports, module) {
                     // The first entry in the updates array has the latest download link
                     NativeApp.openURLInDefaultBrowser(updates[0].downloadURL);
                 }
-            }, null);
+            });
         
         // Populate the update data
         var $dlg        = $(".update-dialog.instance"),
@@ -308,7 +308,7 @@ define(function (require, exports, module) {
                 ExtensionManager.downloadRegistry().then(function () {
                     // schedule another check in 24 hours + 2 minutes
                     setTimeout(checkForExtensionsUpdate, ONE_DAY + TWO_MINUTES);
-                }, null);
+                });
             } else {
                 // schedule the download of the registry in appropriate time
                 setTimeout(checkForExtensionsUpdate, (timeOfNextCheck - currentTime) + TWO_MINUTES);

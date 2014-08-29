@@ -408,7 +408,7 @@ define(function (require, exports, module) {
             if (!keepFile) {
                 FileSystem.getFileForPath(packagePath).unlink();
             }
-        }, null);
+        });
     }
 
     /**

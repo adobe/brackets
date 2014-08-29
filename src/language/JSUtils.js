@@ -273,7 +273,7 @@ define(function (require, exports, module) {
 
             }).then(function () {
                 resultResolve(rangeResults);
-            }, null);
+            });
         });
     }
     
@@ -388,8 +388,8 @@ define(function (require, exports, module) {
                 // Compute offsets for all matched functions
                 _getOffsetsForFunction(docEntries, functionName).then(function (rangeResults) {
                     resolve(rangeResults);
-                }, null);
-            }, null);
+                });
+            });
         });
     }
 

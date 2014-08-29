@@ -1828,7 +1828,7 @@ define(function (require, exports, module) {
                 // previous `_saveInProgress` resolves, so only need to wait for `_saveInProgress`.
                 function checkForSaveAndFinalize() {
                     if (self._saveInProgress.promise) {
-                        self._saveInProgress.promise.then(checkForSaveAndFinalize, null);
+                        self._saveInProgress.promise.then(checkForSaveAndFinalize);
                     } else {
                         self.finalized = true;
                         resolve();

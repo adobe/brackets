@@ -232,7 +232,7 @@ define(function (require, exports, module) {
                             .then(function (doc) {
                                 // Opened document is now the current main editor
                                 EditorManager.getCurrentFullEditor().setSelection(item.start, item.end, true);
-                            }, null);
+                            });
                     }
                 }
             });

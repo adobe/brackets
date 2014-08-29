@@ -330,7 +330,7 @@ define(function (require, exports, module) {
                 _doPopulate();
             }
             lastFocus.focus();  // restore focus to old pos
-        }, null);
+        });
         
         // Code to update the file count readout at bottom of dialog (if context provided)
         var $fileCount = dialog.getElement().find(".exclusions-filecount");
@@ -344,7 +344,7 @@ define(function (require, exports, module) {
                 } else {
                     $fileCount.html(StringUtils.format(Strings.FILTER_FILE_COUNT_ALL, files.length, _context.label));
                 }
-            }, null);
+            });
         }
         
         // Code to enable/disable the OK button at the bottom of dialog (whether filter is empty or not)

@@ -244,7 +244,7 @@ define(function (require, exports, module) {
 
                         runPromise.then(function (scanResult) {
                             results.push({provider: provider, result: scanResult});
-                        }, null);
+                        });
 
                         return runPromise;
 
@@ -257,7 +257,7 @@ define(function (require, exports, module) {
                         });
                         PerfUtils.addMeasurement(perfTimerInspector);
                         responseResolve(results);
-                    }, null);
+                    });
 
                 },
                 function (err) {
@@ -416,7 +416,7 @@ define(function (require, exports, module) {
                 setGotoEnabled(true);
 
                 PerfUtils.addMeasurement(perfTimerDOM);
-            }, null);
+            });
 
         } else {
             // No provider for current file

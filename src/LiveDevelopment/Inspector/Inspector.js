@@ -340,7 +340,7 @@ define(function Inspector(require, exports, module) {
             _socket.onopen = _onConnect;
             _socket.onclose = _onDisconnect;
             _socket.onerror = _onError;
-        }, null);
+        });
     }
 
     /** Connect to the remote debugger of the page that is at the given URL

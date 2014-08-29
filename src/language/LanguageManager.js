@@ -49,7 +49,7 @@
  *
  *     LanguageManager.defineLanguage("haskell", definition).then(function (language) {
  *         console.log("Language " + language.getName() + " is now available!");
- *     }, null);
+ *     });
  *
  * The extension can also contain dots:
  *

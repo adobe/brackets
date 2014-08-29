@@ -125,7 +125,7 @@ define(function (require, exports, module) {
         if (scope instanceof InMemoryFile) {
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: scope.fullPath }).then(function () {
                 CommandManager.execute(Commands.CMD_FIND);
-            }, null);
+            });
             return;
         }
         
@@ -331,7 +331,7 @@ define(function (require, exports, module) {
                         _resultsView.close();
                         processReplace(false);
                     }
-                }, null);
+                });
         }
     }
 

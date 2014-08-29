@@ -124,7 +124,7 @@ define(function (require, exports, module) {
             var newRuleInfo = CSSUtils.addRuleToDocument(styleDoc, selectorName, Editor.getUseTabChar(path), Editor.getSpaceUnits(path));
             inlineEditor.addAndSelectRange(selectorName, styleDoc, newRuleInfo.range.from.line, newRuleInfo.range.to.line);
             inlineEditor.editor.setCursorPos(newRuleInfo.pos.line, newRuleInfo.pos.ch);
-        }, null);
+        });
     }
     
     /**
@@ -207,7 +207,7 @@ define(function (require, exports, module) {
             return new Promise(function (resolve, reject) {
                 _getCSSFilesInProject().then(function (fileInfos) {
                     resolve(fileInfos.length ? Strings.CSS_QUICK_EDIT_NO_MATCHES : Strings.CSS_QUICK_EDIT_NO_STYLESHEETS);
-                }, null);
+                });
             });
         }
         
@@ -372,7 +372,7 @@ define(function (require, exports, module) {
                             }
 
                             _updateCommands();
-                        }, null);
+                        });
                 },
                 function () {
                     console.log("Error in findMatchingRules()");

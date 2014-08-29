@@ -233,7 +233,7 @@ define(function (require, exports, module) {
                     editor.addInlineWidget(pos, inlineWidget).then(function () {
                         PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
                         resolve();
-                    }, null);
+                    });
                 }, function () {
                     // terminate timer that was started above
                     PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
@@ -987,7 +987,7 @@ define(function (require, exports, module) {
                         PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_CLOSE);
                         // return a resolved promise to CommandManager
                         resolve(false);
-                    }, null);
+                    });
                 } else {
                     // main editor has focus, so create an inline editor
                     _openInlineWidget(_currentEditor, providers, errorMsg).then(function () {

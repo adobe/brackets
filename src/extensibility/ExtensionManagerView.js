@@ -71,7 +71,7 @@ define(function (require, exports, module) {
             self.model.initialize()
                 .then(function () {
                     self._setupEventHandlers();
-                }, null)
+                })
                 .then(fnAlways, fnAlways);
         });
     };
@@ -343,7 +343,7 @@ define(function (require, exports, module) {
             
             // TODO: this should set .done on the returned promise
             if (_isUpdate) {
-                InstallExtensionDialog.updateUsingDialog(url).then(ExtensionManager.updateFromDownload, null);
+                InstallExtensionDialog.updateUsingDialog(url).then(ExtensionManager.updateFromDownload);
             } else {
                 InstallExtensionDialog.installUsingDialog(url);
             }

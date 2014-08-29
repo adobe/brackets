@@ -143,8 +143,8 @@ define(function ScriptAgent(require, exports, module) {
             Inspector.Debugger.enable().then(function () {
                 Inspector.Debugger.setPauseOnExceptions("uncaught").then(function () {
                     enableResolve();
-                }, null);
-            }, null);
+                });
+            });
         });
 
         var loadPromise = new Promise(function (loadResolve, loadReject) {

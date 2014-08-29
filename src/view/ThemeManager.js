@@ -245,17 +245,17 @@ define(function (require, exports, module) {
         var pending = theme && FileUtils.readAsText(theme.file)
             .then(function (lessContent) {
                 return lessifyTheme(lessContent.replace(commentRegex, ""), theme);
-            }, null)
+            })
             .then(function (content) {
                 var result = extractScrollbars(content);
                 theme.scrollbar = result.scrollbar;
                 return result.content;
-            }, null)
+            })
             .then(function (cssContent) {
                 $("body").toggleClass("dark", theme.dark);
                 styleNode.text(cssContent);
                 return theme;
-            }, null);
+            });
 
         return Promise.resolve(pending);
     }
@@ -279,7 +279,7 @@ define(function (require, exports, module) {
 
             var cm = editor._codeMirror;
             ThemeView.updateThemes(cm);
-        }, null);
+        });
     }
 
 

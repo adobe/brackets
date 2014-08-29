@@ -788,7 +788,7 @@ define(function LiveDevelopment(require, exports, module) {
                 }
 
                 resolve(null);
-            }, null);
+            });
         });
     }
 
@@ -1099,7 +1099,7 @@ define(function LiveDevelopment(require, exports, module) {
         });
 
         // Domains for some agents must be enabled first before loading
-        var enablePromise = Inspector.Page.enable().then(_enableAgents, null);
+        var enablePromise = Inspector.Page.enable().then(_enableAgents);
         
         enablePromise.then(function () {
             // Some agents (e.g. DOMAgent and RemoteAgent) require us to
@@ -1133,7 +1133,7 @@ define(function LiveDevelopment(require, exports, module) {
                 },
                 null
             );
-        }, null);
+        });
     }
     
     /** Triggered by Inspector.connect */
