@@ -579,9 +579,7 @@ define(function (require, exports, module) {
         DocumentManager.setCurrentDocument(doc);
         EditorManager.focusEditor();
         
-        return new Promise(function (resolve, reject) {
-            resolve(doc);
-        });
+        return Promise.resolve(doc);
     }
 
     /**
@@ -925,9 +923,7 @@ define(function (require, exports, module) {
             }
         }
         
-        return new Promise(function (resolve, reject) {
-            reject();
-        });
+        return Promise.reject();
     }
 
     /**
@@ -953,9 +949,7 @@ define(function (require, exports, module) {
             function (file) {
                 // Abort remaining saves if user canceled any Save As dialog
                 if (userCanceled) {
-                    return (new Promise(function (resolve, reject) {
-                        reject();
-                    }));
+                    return Promise.reject();
                 }
                 
                 var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
@@ -975,9 +969,7 @@ define(function (require, exports, module) {
                 } else {
                     // working set entry that was never actually opened - ignore
                     filesAfterSave.push(file);
-                    return new Promise(function (resolve, reject) {
-                        resolve();
-                    });
+                    return Promise.resolve();
                 }
             },
             false  // if any save fails, continue trying to save other files anyway; then reject at end

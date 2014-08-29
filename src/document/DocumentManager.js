@@ -670,17 +670,13 @@ define(function (require, exports, module) {
 
         if (doc) {
             // use existing document
-            return new Promise(function (resolve, reject) {
-                resolve(doc);
-            });
+            return Promise.resolve(doc);
         } else {
             
             // Should never get here if the fullPath refers to an Untitled document
             if (fullPath.indexOf(_untitledDocumentPath) === 0) {
                 console.error("getDocumentForPath called for non-open untitled document: " + fullPath);
-                return new Promise(function (resolve, reject) {
-                    reject();
-                });
+                return Promisereject();
             }
             
             var file            = FileSystem.getFileForPath(fullPath),

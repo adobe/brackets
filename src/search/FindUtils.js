@@ -103,9 +103,7 @@ define(function (require, exports, module) {
         // This will *not* handle cases where the document has been edited in memory since 
         // the matchInfo was generated.
         if (doc.diskTimestamp.getTime() !== matchInfo.timestamp.getTime()) {
-            return new Promise(function (resolve, reject) {
-                reject(exports.ERROR_FILE_CHANGED);
-            });
+            return Promise.reject(exports.ERROR_FILE_CHANGED);
         }
 
         // Do the replacements in reverse document order so the offsets continue to be correct.
@@ -117,9 +115,7 @@ define(function (require, exports, module) {
             });
         });
         
-        return new Promise(function (resolve, reject) {
-            resolve();
-        });
+        return Promise.resolve();
     }
     
     /**
@@ -136,9 +132,7 @@ define(function (require, exports, module) {
             if (timestamp.getTime() !== matchInfo.timestamp.getTime()) {
                 // Return a promise that we'll reject immediately. (We can't just return the
                 // error since this is the success handler.)
-                return new Promise(function (resolve, reject) {
-                    reject(exports.ERROR_FILE_CHANGED);
-                });
+                return Promise.reject(exports.ERROR_FILE_CHANGED);
             }
 
             // Note that this assumes that the matches are sorted.

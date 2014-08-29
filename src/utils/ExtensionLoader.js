@@ -189,9 +189,7 @@ define(function (require, exports, module) {
                 } catch (err) {
                     // Synchronous error while initializing extension
                     console.error("[Extension] Error -- error thrown during initExtension for " + name + ": " + err);
-                    return new Promise(function (resolve, reject) {
-                        reject(err);
-                    });
+                    return Promise.reject(err);
                 }
 
                 // initExtension may be synchronous and may not return a promise
@@ -375,9 +373,7 @@ define(function (require, exports, module) {
         
         if (_init) {
             // Only init once. Return a resolved promise.
-            return new Promise(function (resolve, reject) {
-                resolve();
-            });
+            return Promise.resolve();
         }
         
         if (!paths) {

@@ -160,9 +160,7 @@ define(function (require, exports, module) {
         if (curDoc && curDoc.file.fullPath === fullPath &&
                 !EditorManager.getCustomViewerForPath(fullPath)) {
             _selectCurrentDocument();
-            result = new Promise(function (resolve, reject) {
-                resolve();
-            });
+            result = Promise.resolve();
         } else {
             result = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath});
         }

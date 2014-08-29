@@ -501,9 +501,7 @@ define(function (require, exports, module) {
                 }
             });
         
-        return new Promise(function (resolve, reject) {
-            resolve(dialog);
-        });
+        return Promise.resolve(dialog);
     }
     
     CommandManager.register(Strings.CMD_EXTENSION_MANAGER, Commands.FILE_EXTENSION_MANAGER, _showDialog);

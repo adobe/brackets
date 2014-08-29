@@ -1546,16 +1546,12 @@ define(function (require, exports, module) {
                     if (inlineWidget) {
                         return self.removeInlineWidget(inlineWidget);
                     } else {
-                        return new Promise(function (resolve, reject) {
-                            resolve();
-                        });
+                        return Promise.resolve();
                     }
                 }
             );
         } else {
-            return new Promise(function (resolve, reject) {
-                resolve();
-            });
+            return Promise.resolve();
         }
     };
     

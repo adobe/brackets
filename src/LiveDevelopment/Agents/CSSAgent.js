@@ -123,9 +123,7 @@ define(function CSSAgent(require, exports, module) {
         }
         if (!deferreds.length) {
             console.error("Style Sheet for document not loaded: " + doc.url);
-            return new Promise(function (resolve, reject) {
-                reject();
-            });
+            return Promise.reject();
         }
         // return master deferred
         return Promise.all(deferreds);

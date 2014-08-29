@@ -200,9 +200,7 @@ define(function (require, exports, module) {
                 if (fn) {
                     execResult = fn.apply(domain, params);
                 } else {
-                    execResult = new Promise(function (resolve, reject) {
-                        reject();
-                    });
+                    execResult = Promise.reject();
                 }
                 return execResult;
             }.bind(this);
@@ -213,9 +211,7 @@ define(function (require, exports, module) {
         } else if (this._connectionPromise) {
             result = this._connectionPromise.then(execConnected);
         } else {
-            result = new Promise(function (resolve, reject) {
-                reject();
-            });
+            result = Promise.reject();
         }
         return result;
     };

@@ -414,9 +414,7 @@ define(function (require, exports, module) {
         this._setInitialFilter();
         this._countUpdates();
         
-        return new Promise(function (resolve, reject) {
-            resolve();
-        });
+        return Promise.resolve();
     };
     
     /**

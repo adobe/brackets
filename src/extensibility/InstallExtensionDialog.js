@@ -417,9 +417,7 @@ define(function (require, exports, module) {
     InstallerFacade.prototype.install = function (url) {
         if (this.pendingInstall) {
             console.error("Extension installation already pending");
-            return new Promise(function (resolve, reject) {
-                reject("DOWNLOAD_ID_IN_USE");
-            });
+            return Promise.reject("DOWNLOAD_ID_IN_USE");
         }
 
         if (this._isLocalFile) {

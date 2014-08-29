@@ -133,9 +133,7 @@ define(function Inspector(require, exports, module) {
             // simply ignore this condition. 
             // This race condition will go away once we support multiple inspector connections and turn
             // off auto re-opening when a new HTML file is selected.
-            return (new Promise(function (resolve, reject) {
-                reject();
-            }));
+            return Promise.reject();
         }
 
         var id, callback, args, i, params = {}, promise, msg;

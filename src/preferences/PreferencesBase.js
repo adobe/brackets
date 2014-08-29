@@ -94,9 +94,7 @@ define(function (require, exports, module) {
          * @return {Promise} promise that is already resolved
          */
         load: function () {
-            return new Promise(function (resolve, reject) {
-                resolve(this.data);
-            }.bind(this));
+            return Promise.resolve(this.data);
         },
         
         /**
@@ -108,10 +106,7 @@ define(function (require, exports, module) {
          */
         save: function (newData) {
             this.data = newData;
-            
-            return new Promise(function (resolve, reject) {
-                resolve();
-            });
+            return Promise.resolve();
         },
         
         /**
@@ -310,9 +305,7 @@ define(function (require, exports, module) {
                 this._dirty = false;
                 return this.storage.save(this.data);
             } else {
-                return new Promise(function (resolve, reject) {
-                    resolve();
-                });
+                return Promise.resolve();
             }
         },
         
@@ -1631,9 +1624,7 @@ define(function (require, exports, module) {
                 if (scope) {
                     return scope.save();
                 } else {
-                    return new Promise(function (resolve, reject) {
-                        resolve();
-                    });
+                    return Promise.resolve();
                 }
             }.bind(this)).then(
                 function () {

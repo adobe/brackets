@@ -441,9 +441,7 @@ define(function (require, exports, module) {
 
     MultiRangeInlineEditor.prototype._updateSelectedMarker = function (animate) {
         if (this._selectedRangeIndex < 0) {
-            return new Promise(function (resolve, reject) {
-                resolve();
-            });
+            return Promise.resolve();
         }
         
         return new Promise(function (resolve, reject) {

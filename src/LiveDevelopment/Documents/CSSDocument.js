@@ -100,9 +100,7 @@ define(function CSSDocumentModule(require, exports, module) {
      * @return {Promise}
      */
     CSSDocument.prototype.getStyleSheetFromBrowser = function getStyleSheetFromBrowser() {
-        return new Promise(function (resolve, reject) {
-            reject();
-        });
+        return Promise.reject();
     };
 
     /**

@@ -550,9 +550,7 @@ define(function LiveDevelopment(require, exports, module) {
         }
 
         if (!oneAgentPromise) {
-            oneAgentPromise = new Promise(function (resolve, reject) {
-                resolve();
-            });
+            oneAgentPromise = Promise.resolve();
         } else {
             oneAgentPromise.then(
                 null,
@@ -720,9 +718,7 @@ define(function LiveDevelopment(require, exports, module) {
         if (doc) {
             refPath = doc.file.fullPath;
             if (FileUtils.isStaticHtmlFileExt(refPath) || FileUtils.isServerHtmlFileExt(refPath)) {
-                return new Promise(function (resolve, reject) {
-                    resolve(doc);
-                });
+                return Promise.resolve(doc);
             }
         }
 
@@ -862,9 +858,7 @@ define(function LiveDevelopment(require, exports, module) {
                 // Add a timeout to continue cleanup if Inspector does not respond
                 closePromise = Async.withTimeout(closePromise, 5000);
             } else {
-                closePromise = new Promise(function (resolve, reject) {
-                    resolve();
-                });
+                closePromise = Promise.resolve();
             }
 
             // Disconnect WebSocket if connected
@@ -915,9 +909,7 @@ define(function LiveDevelopment(require, exports, module) {
             if (brackets.platform === "mac") {
                 closePromise = NativeApp.closeLiveBrowser();
             } else {
-                closePromise = new Promise(function (resolve, reject) {
-                    resolve();
-                });
+                closePromise = Promise.resolve();
             }
             
             closePromise.then(
@@ -1411,9 +1403,7 @@ define(function LiveDevelopment(require, exports, module) {
                     prepareServerPromise = (doc && _prepareServer(doc));
 
                 if (!prepareServerPromise) {
-                    prepareServerPromise = new Promise(function (resolve, reject) {
-                        reject();
-                    });
+                    prepareServerPromise = Promise.reject();
                 }
 
                 if (doc && !doc._masterEditor) {

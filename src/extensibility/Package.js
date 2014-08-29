@@ -87,9 +87,7 @@ define(function (require, exports, module) {
         if (_nodeConnection.domains.extensionManager) {
             return callback(_nodeConnection.domains.extensionManager);
         } else {
-            return new Promise(function (resolve, reject) {
-                reject("extensionManager domain is undefined");
-            });
+            return Promise.reject("extensionManager domain is undefined");
         }
     }
 

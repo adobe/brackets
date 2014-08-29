@@ -1217,9 +1217,7 @@ define(function (require, exports, module) {
                     startLoadResolve();
                 } else {
                     if (_projectRoot && _projectRoot.fullPath === rootPath) {
-                        return new Promise(function (resolve, reject) {
-                            resolve();
-                        });
+                        return Promise.resolve();
                     }
 
                     // About to close current project (if any)

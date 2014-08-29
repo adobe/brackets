@@ -148,9 +148,7 @@ define(function (require, exports, module) {
      */
     BaseServer.prototype.readyToServe = function () {
         // Base implementation always resolves
-        return new Promise(function (resolve, reject) {
-            resolve();
-        });
+        return Promise.resolve();
     };
     
     /**

@@ -286,9 +286,7 @@ define(function (require, exports, module) {
         // trying to use ProjectManager.getAllFiles(), both for performance and because an individual
         // in-memory file might be an untitled document that doesn't show up in getAllFiles().
         if (scope && scope.isFile) {
-            return new Promise(function (resolve, reject) {
-                resolve(filter(scope) ? [scope] : []);
-            });
+            return Promise.resolve(filter(scope) ? [scope] : []);
         } else {
             return ProjectManager.getAllFiles(filter, true);
         }
