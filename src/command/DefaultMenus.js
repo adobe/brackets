@@ -204,7 +204,37 @@ define(function (require, exports, module) {
         if (hasAboutItem) {
             menu.addMenuItem(Commands.HELP_ABOUT);
         }
+        
+        /*
+         * PaneView context and gear menus
+         * NOTE: Unlike most context menus defined here, these menus cannot
+         *       be setup to listen to click or context menu events when 
+         *       this module intializes because the DOM nodes for these are 
+         *       created by pane views which are created at runtime. 
+         *       All other context menus have DOM elements to attach to
+         *       out of index.html
+         */
 
+        var pane_view_list_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.PANE_VIEW_LIST_CONTEXT_MENU);
+        pane_view_list_cmenu.addMenuItem(Commands.FILE_SAVE);
+        pane_view_list_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
+        pane_view_list_cmenu.addMenuItem(Commands.FILE_RENAME);
+        pane_view_list_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
+        pane_view_list_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
+        pane_view_list_cmenu.addMenuDivider();
+        pane_view_list_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
+        pane_view_list_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
+        pane_view_list_cmenu.addMenuDivider();
+        pane_view_list_cmenu.addMenuItem(Commands.FILE_CLOSE);
+        
+        var pane_view_list_configuration_menu = Menus.registerContextMenu(Menus.ContextMenuIds.PANE_VIEW_LIST_CONFIG_MENU);
+        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_WORKINGSET_SORT_BY_ADDED);
+        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_WORKINGSET_SORT_BY_NAME);
+        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_WORKINGSET_SORT_BY_TYPE);
+        pane_view_list_configuration_menu.addMenuDivider();
+        pane_view_list_configuration_menu.addMenuItem(Commands.CMD_WORKING_SORT_TOGGLE_AUTO);
+        
+        
         /*
          * Context Menus
          */
@@ -219,27 +249,7 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
         project_cmenu.addMenuDivider();
         project_cmenu.addMenuItem(Commands.FILE_REFRESH);
-
-        var working_set_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU);
-        working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
-        working_set_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
-        working_set_cmenu.addMenuItem(Commands.FILE_RENAME);
-        working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
-        working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
-        working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
-        working_set_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
-        working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         
-        
-        var working_set_settings_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_SETTINGS_MENU);
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_ADDED);
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_NAME);
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_TYPE);
-        working_set_settings_cmenu.addMenuDivider();
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_AUTO);
-
         var editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
         // editor_cmenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
@@ -294,20 +304,12 @@ define(function (require, exports, module) {
         });
 
         /**
-         * Context menus for folder tree & working set list
+         * Context menu for folder tree 
          */
         $("#project-files-container").on("contextmenu", function (e) {
             project_cmenu.open(e);
         });
 
-        $("#open-files-container").on("contextmenu", function (e) {
-            working_set_cmenu.open(e);
-        });
-
-        /**
-         * Dropdown menu for workspace sorting
-         */
-        Menus.ContextMenu.assignContextMenuToSelector("#working-set-option-btn", working_set_settings_cmenu);
 
         // Prevent the browser context menu since Brackets creates a custom context menu
         $(window).contextmenu(function (e) {

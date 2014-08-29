@@ -31,8 +31,9 @@ define(function (require, exports, module) {
         CommandManager          = brackets.getModule("command/CommandManager"),
         Commands                = brackets.getModule("command/Commands"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
+        MainViewManager         = brackets.getModule("view/MainViewManager"),
         Strings                 = brackets.getModule("strings"),
-        workingSetCmenu         = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU),
+        paneViewListCmenu       = Menus.getContextMenu(Menus.ContextMenuIds.PANE_VIEW_LIST_CONTEXT_MENU),
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager");
 
     // Constants
@@ -54,20 +55,17 @@ define(function (require, exports, module) {
      * @param {string} mode
      */
     function handleClose(mode) {
-        var targetIndex = DocumentManager.findInWorkingSet(DocumentManager.getCurrentDocument().file.fullPath),
-            workingSet  = DocumentManager.getWorkingSet().slice(0),
-            start       = (mode === closeBelow) ? (targetIndex + 1) : 0,
-            end         = (mode === closeAbove) ? (targetIndex) : (workingSet.length),
-            files       = [],
+        var targetIndex  = MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)),
+            paneViewList = MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE),
+            start        = (mode === closeBelow) ? (targetIndex + 1) : 0,
+            end          = (mode === closeAbove) ? (targetIndex) : (paneViewList.length),
+            files        = [],
             i;
-        
-        if (mode === closeOthers) {
-            end--;
-            workingSet.splice(targetIndex, 1);
-        }
-        
+
         for (i = start; i < end; i++) {
-            files.push(workingSet[i]);
+            if ((mode === closeOthers && i !== targetIndex) || (mode !== closeOthers)) {
+                files.push(paneViewList[i]);
+            }
         }
         
         CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: files});
@@ -77,25 +75,25 @@ define(function (require, exports, module) {
      * Enable/Disable the menu items depending on which document is selected in the working set
      */
     function contextMenuOpenHandler() {
-        var doc = DocumentManager.getCurrentDocument();
+        var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
         
-        if (doc) {
-            var docIndex   = DocumentManager.findInWorkingSet(doc.file.fullPath),
-                workingSet = DocumentManager.getWorkingSet().slice(0);
+        if (file) {
+            var targetIndex  = MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, file.fullPath),
+                paneViewListSize = MainViewManager.getWorkingSetSize(MainViewManager.ACTIVE_PANE);
             
-            if (docIndex === workingSet.length - 1) { // hide "Close Others Below" if the last file in Working Files is selected
+            if (targetIndex === paneViewListSize - 1) { // hide "Close Others Below" if the last file in Working Files is selected
                 CommandManager.get(closeBelow).setEnabled(false);
             } else {
                 CommandManager.get(closeBelow).setEnabled(true);
             }
             
-            if (workingSet.length === 1) { // hide "Close Others" if there is only one file in Working Files
+            if (paneViewListSize === 1) { // hide "Close Others" if there is only one file in Working Files
                 CommandManager.get(closeOthers).setEnabled(false);
             } else {
                 CommandManager.get(closeOthers).setEnabled(true);
             }
             
-            if (docIndex === 0) { // hide "Close Others Above" if the first file in Working Files is selected
+            if (targetIndex === 0) { // hide "Close Others Above" if the first file in Working Files is selected
                 CommandManager.get(closeAbove).setEnabled(false);
             } else {
                 CommandManager.get(closeAbove).setEnabled(true);
@@ -126,25 +124,25 @@ define(function (require, exports, module) {
         
         if (prefs.closeBelow !== menuEntriesShown.closeBelow) {
             if (prefs.closeBelow) {
-                workingSetCmenu.addMenuItem(closeBelow, "", Menus.AFTER, Commands.FILE_CLOSE);
+                paneViewListCmenu.addMenuItem(closeBelow, "", Menus.AFTER, Commands.FILE_CLOSE);
             } else {
-                workingSetCmenu.removeMenuItem(closeBelow);
+                paneViewListCmenu.removeMenuItem(closeBelow);
             }
         }
         
         if (prefs.closeOthers !== menuEntriesShown.closeOthers) {
             if (prefs.closeOthers) {
-                workingSetCmenu.addMenuItem(closeOthers, "", Menus.AFTER, Commands.FILE_CLOSE);
+                paneViewListCmenu.addMenuItem(closeOthers, "", Menus.AFTER, Commands.FILE_CLOSE);
             } else {
-                workingSetCmenu.removeMenuItem(closeOthers);
+                paneViewListCmenu.removeMenuItem(closeOthers);
             }
         }
         
         if (prefs.closeAbove !== menuEntriesShown.closeAbove) {
             if (prefs.closeAbove) {
-                workingSetCmenu.addMenuItem(closeAbove, "", Menus.AFTER, Commands.FILE_CLOSE);
+                paneViewListCmenu.addMenuItem(closeAbove, "", Menus.AFTER, Commands.FILE_CLOSE);
             } else {
-                workingSetCmenu.removeMenuItem(closeAbove);
+                paneViewListCmenu.removeMenuItem(closeAbove);
             }
         }
         
@@ -168,13 +166,13 @@ define(function (require, exports, module) {
         });
         
         if (prefs.closeBelow) {
-            workingSetCmenu.addMenuItem(closeBelow, "", Menus.AFTER, Commands.FILE_CLOSE);
+            paneViewListCmenu.addMenuItem(closeBelow, "", Menus.AFTER, Commands.FILE_CLOSE);
         }
         if (prefs.closeOthers) {
-            workingSetCmenu.addMenuItem(closeOthers, "", Menus.AFTER, Commands.FILE_CLOSE);
+            paneViewListCmenu.addMenuItem(closeOthers, "", Menus.AFTER, Commands.FILE_CLOSE);
         }
         if (prefs.closeAbove) {
-            workingSetCmenu.addMenuItem(closeAbove, "", Menus.AFTER, Commands.FILE_CLOSE);
+            paneViewListCmenu.addMenuItem(closeAbove, "", Menus.AFTER, Commands.FILE_CLOSE);
         }
         menuEntriesShown = prefs;
     }
@@ -184,7 +182,7 @@ define(function (require, exports, module) {
     initializeCommands();
 
     // Add a context menu open handler
-    $(workingSetCmenu).on("beforeContextMenuOpen", contextMenuOpenHandler);
+    $(paneViewListCmenu).on("beforeContextMenuOpen", contextMenuOpenHandler);
 
     prefs.on("change", prefChangeHandler);
 });

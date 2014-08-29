@@ -29,12 +29,11 @@ define(function (require, exports, module) {
     "use strict";
 
     // Modules from the SpecRunner window
-    var DocumentManager     = brackets.getModule("document/DocumentManager"),
-        Editor              = brackets.getModule("editor/Editor").Editor,
-        EditorManager       = brackets.getModule("editor/EditorManager"),
-        FileUtils           = brackets.getModule("file/FileUtils"),
-        SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
-        UrlCodeHints        = require("main");
+    var MasterDocumentManager     = brackets.getModule("document/DocumentManager"),
+        MasterMainViewManager     = brackets.getModule("view/MainViewManager"),
+        FileUtils                 = brackets.getModule("file/FileUtils"),
+        SpecRunnerUtils           = brackets.getModule("spec/SpecRunnerUtils"),
+        UrlCodeHints              = require("main");
 
 
     describe("Url Code Hinting", function () {
@@ -68,7 +67,7 @@ define(function (require, exports, module) {
 
         function setupTests(testFilePath) {
             runs(function () {
-                DocumentManager.getDocumentForPath(testFilePath).done(function (doc) {
+                MasterDocumentManager.getDocumentForPath(testFilePath).done(function (doc) {
                     testDocument = doc;
                 });
             });
@@ -80,7 +79,7 @@ define(function (require, exports, module) {
             // create Editor instance (containing a CodeMirror instance)
             runs(function () {
                 testEditor = createMockEditor(testDocument);
-                DocumentManager.setCurrentDocument(testDocument);
+                MasterMainViewManager._edit(MasterMainViewManager.ACTIVE_PANE, testDocument);
             });
         }
         
@@ -88,8 +87,7 @@ define(function (require, exports, module) {
             runs(function () {
                 // The following call ensures that the document is reloaded
                 // from disk before each test
-                DocumentManager.closeAll();
-                
+                MasterMainViewManager._closeAll(MasterMainViewManager.ALL_PANES);
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testEditor = null;
                 testDocument = null;
@@ -302,6 +300,7 @@ define(function (require, exports, module) {
                 CommandManager,
                 Commands,
                 DocumentManager,
+                MainViewManager,
                 EditorManager;
 
             it("should hint site root '/'", function () {
@@ -314,6 +313,7 @@ define(function (require, exports, module) {
                         Commands        = brackets.test.Commands;
                         DocumentManager = brackets.test.DocumentManager;
                         EditorManager   = brackets.test.EditorManager;
+                        MainViewManager = brackets.test.MainViewManager;
                     });
                 });
 
@@ -337,7 +337,7 @@ define(function (require, exports, module) {
                 }, "Unable to open test document", 2000);
 
                 runs(function () {
-                    DocumentManager.setCurrentDocument(testDocument);
+                    MainViewManager._edit(MainViewManager.ACTIVE_PANE, testDocument);
                     testEditor = EditorManager.getCurrentFullEditor();
                     testEditor.setCursorPos({ line: 22, ch: 12 });
                     CommandManager.execute(Commands.SHOW_CODE_HINTS);
@@ -361,6 +361,7 @@ define(function (require, exports, module) {
                     Commands         = null;
                     DocumentManager  = null;
                     EditorManager    = null;
+                    MainViewManager  = null;
                     SpecRunnerUtils.closeTestWindow();
                 });
             });

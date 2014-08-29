@@ -26,8 +26,8 @@
 /*global define, $ */
 
 /**
- * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in
- * the working set, and the notion of which Document is currently shown in the main editor UI area.
+ * DocumentManager maintains a list of currently 'open' Documents. The DocumentManager is responsible 
+ * for coordinating document operations and dispatching certain document events.
  *
  * Document is the model for a file's contents; it dispatches events whenever those contents change.
  * To transiently inspect a file's content, simply get a Document and call getText() on it. However,
@@ -40,9 +40,7 @@
  * Secretly, a Document may use an Editor instance to act as the model for its internal state. (This
  * is unavoidable because CodeMirror does not separate its model from its UI). Documents are not
  * modifiable until they have a backing 'master Editor'. Creation of the backing Editor is owned by
- * EditorManager. A Document only gets a backing Editor if it becomes the currentDocument, or if edits
- * occur in any Editor (inline or full-sized) bound to the Document; there is currently no other way
- * to ensure a Document is modifiable.
+ * EditorManager. A Document only gets a backing Editor if it opened in an editor.
  *
  * A non-modifiable Document may still dispatch change notifications, if the Document was changed
  * externally on disk.
@@ -59,26 +57,20 @@
  *    - documentRefreshed -- When a Document's contents have been reloaded from disk. The 2nd arg to the
  *      listener is the Document that has been refreshed.
  *
- *    - currentDocumentChange -- When the value of getCurrentDocument() changes. 2nd argument to the listener
- *      is the current document and 3rd argument is the previous document.
+ * NOTE: WorkingSet APIs have been deprecated and have moved to MainViewManager as PaneViewList APIs
+ *       Some WorkingSet APIs that have been identified as being used by 3rd party extensions will
+ *       emit deprecation warnings and call the PaneViewList APIS to maintain backwards compatibility
  *
- *    To listen for working set changes, you must listen to *all* of these events:
- *    - workingSetAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
- *      to the listener is the added File, and the 3rd arg is the index it was inserted at.
- *    - workingSetAddList -- When multiple files are added to the working set (e.g. project open, multiple file open).
- *      The 2nd arg to the listener is the array of added File objects.
- *    - workingSetRemove -- When a file is removed from the working set (see getWorkingSet()). The
- *      2nd arg to the listener is the removed File.
- *    - workingSetRemoveList -- When multiple files are removed from the working set (e.g. project close).
- *      The 2nd arg to the listener is the array of removed File objects.
- *    - workingSetSort -- When the workingSet array is reordered without additions or removals.
- *      Listener receives no arguments.
- *
- *    - workingSetDisableAutoSorting -- Dispatched in addition to workingSetSort when the reorder was caused
- *      by manual dragging and dropping. Listener receives no arguments.
+ *    - currentDocumentChange -- This is being deprecated and is currently only used as a shim to assist 
+ *      the document open process so that the editor will actually open or close the desired document. 
+ *      This will change accordingly once work begins to refactor EditorManager to be a view provider
+ *      and open documents directly.
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
- *      The 3rd arg is the new name.
+ *      The 3rd arg is the new name.  Generally, however, file objects have already been changed by the 
+ *      time this event is dispatched so code that relies on matching the filename to a file object 
+ *      will need to compare the newname.
+ * 
  *    - pathDeleted -- When a file or folder has been deleted. The 2nd arg is the path that was deleted.
  *
  * These are jQuery events, so to listen for them you do something like this:
@@ -91,7 +83,10 @@ define(function (require, exports, module) {
     
     var _ = require("thirdparty/lodash");
     
-    var DocumentModule      = require("document/Document"),
+    var AppInit             = require("utils/AppInit"),
+        DocumentModule      = require("document/Document"),
+        DeprecationWarning  = require("utils/DeprecationWarning"),
+        MainViewManager     = require("view/MainViewManager"),
         ProjectManager      = require("project/ProjectManager"),
         EditorManager       = require("editor/EditorManager"),
         FileSyncManager     = require("project/FileSyncManager"),
@@ -100,28 +95,13 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         InMemoryFile        = require("document/InMemoryFile"),
         CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
         Async               = require("utils/Async"),
         PerfUtils           = require("utils/PerfUtils"),
-        Commands            = require("command/Commands"),
         LanguageManager     = require("language/LanguageManager"),
         Strings             = require("strings");
 
-    /**
-     * @private
-     * @see DocumentManager.getCurrentDocument()
-     */
-    var _currentDocument = null;
-    
-    /**
-     * Returns the Document that is currently open in the editor UI. May be null.
-     * When this changes, DocumentManager dispatches a "currentDocumentChange" event. The current
-     * document always has a backing Editor (Document._masterEditor != null) and is thus modifiable.
-     * @return {?Document}
-     */
-    function getCurrentDocument() {
-        return _currentDocument;
-    }
-    
+
     /**
      * @private
      * Random path prefix for untitled documents
@@ -129,503 +109,12 @@ define(function (require, exports, module) {
     var _untitledDocumentPath = "/_brackets_" + _.random(10000000, 99999999);
 
     /**
-     * @private
-     * @type {Array.<File>}
-     * @see DocumentManager.getWorkingSet()
-     */
-    var _workingSet = [];
-    
-    /**
-     * @private
-     * Contains the same set of items as _workingSet, but ordered by how recently they were _currentDocument (0 = most recent).
-     * @type {Array.<File>}
-     */
-    var _workingSetMRUOrder = [];
-    
-    /**
-     * @private
-     * Contains the same set of items as _workingSet, but ordered in the way they where added to _workingSet (0 = last added).
-     * @type {Array.<File>}
-     */
-    var _workingSetAddedOrder = [];
-    
-    /**
-     * While true, the MRU order is frozen
-     * @type {boolean}
-     */
-    var _documentNavPending = false;
-    
-    /**
      * All documents with refCount > 0. Maps Document.file.id -> Document.
      * @private
      * @type {Object.<string, Document>}
      */
     var _openDocuments = {};
-    
-    /**
-     * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
-     *
-     * When a file is added this list, DocumentManager dispatches a "workingSetAdd" event.
-     * When a file is removed from list, DocumentManager dispatches a "workingSetRemove" event.
-     * To listen for ALL changes to this list, you must listen for both events.
-     *
-     * Which items belong in the working set is managed entirely by DocumentManager. Callers cannot
-     * (yet) change this collection on their own.
-     *
-     * @return {Array.<File>}
-     */
-    function getWorkingSet() {
-        return _.clone(_workingSet);
-    }
 
-    /**
-     * Returns the index of the file matching fullPath in the working set.
-     * Returns -1 if not found.
-     * @param {!string} fullPath
-     * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
-     *          use only.
-     * @return {number} index
-     */
-    function findInWorkingSet(fullPath, list) {
-        list = list || _workingSet;
-        
-        return _.findIndex(list, function (file, i) {
-            return file.fullPath === fullPath;
-        });
-    }
-    
-    /**
-     * Returns the index of the file matching fullPath in _workingSetAddedOrder.
-     * Returns -1 if not found.
-     * @param {!string} fullPath
-     * @return {number} index
-     */
-    function findInWorkingSetAddedOrder(fullPath) {
-        return findInWorkingSet(fullPath, _workingSetAddedOrder);
-    }
-
-    /**
-     * Returns all Documents that are 'open' in the UI somewhere (for now, this means open in an
-     * inline editor and/or a full-size editor). Only these Documents can be modified, and only
-     * these Documents are synced with external changes on disk.
-     * @return {Array.<Document>}
-     */
-    function getAllOpenDocuments() {
-        var result = [];
-        var id;
-        for (id in _openDocuments) {
-            if (_openDocuments.hasOwnProperty(id)) {
-                result.push(_openDocuments[id]);
-            }
-        }
-        return result;
-    }
-    
-    
-    /**
-     * Adds the given file to the end of the working set list, if it is not already in the list
-     * and it does not have a custom viewer.
-     * Does not change which document is currently open in the editor. Completes synchronously.
-     * @param {!File} file
-     * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
-     * @param {boolean=} forceRedraw  If true, a working set change notification is always sent
-     *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
-     */
-    function addToWorkingSet(file, index, forceRedraw) {
-        var indexRequested = (index !== undefined && index !== null && index !== -1);
-        
-        // If the file has a custom viewer, then don't add it to the working set.
-        if (EditorManager.getCustomViewerForPath(file.fullPath)) {
-            return;
-        }
-            
-        // If doc is already in working set, don't add it again
-        var curIndex = findInWorkingSet(file.fullPath);
-        if (curIndex !== -1) {
-            // File is in working set, but not at the specifically requested index - only need to reorder
-            if (forceRedraw || (indexRequested && curIndex !== index)) {
-                var entry = _workingSet.splice(curIndex, 1)[0];
-                _workingSet.splice(index, 0, entry);
-                $(exports).triggerHandler("workingSetSort");
-            }
-            return;
-        }
-
-        if (!indexRequested) {
-            // If no index is specified, just add the file to the end of the working set.
-            _workingSet.push(file);
-        } else {
-            // If specified, insert into the working set list at this 0-based index
-            _workingSet.splice(index, 0, file);
-        }
-        
-        // Add to MRU order: either first or last, depending on whether it's already the current doc or not
-        if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
-            _workingSetMRUOrder.unshift(file);
-        } else {
-            _workingSetMRUOrder.push(file);
-        }
-        
-        // Add first to Added order
-        _workingSetAddedOrder.unshift(file);
-        
-        // Dispatch event
-        if (!indexRequested) {
-            index = _workingSet.length - 1;
-        }
-        $(exports).triggerHandler("workingSetAdd", [file, index]);
-    }
-    
-    /**
-     * Adds the given file list to the end of the working set list.
-     * If a file in the list has its own custom viewer, then it 
-     * is not added into the working set.
-     * Does not change which document is currently open in the editor.
-     * More efficient than calling addToWorkingSet() (in a loop) for
-     * a list of files because there's only 1 redraw at the end
-     * @param {!Array.<File>} fileList
-     */
-    function addListToWorkingSet(fileList) {
-        var uniqueFileList = [];
-
-        // Process only files not already in working set
-        fileList.forEach(function (file, index) {
-            // If doc has a custom viewer, then don't add it to the working set.
-            // Or if doc is already in working set, don't add it again.
-            if (!EditorManager.getCustomViewerForPath(file.fullPath) &&
-                    findInWorkingSet(file.fullPath) === -1) {
-                uniqueFileList.push(file);
-
-                // Add
-                _workingSet.push(file);
-
-                // Add to MRU order: either first or last, depending on whether it's already the current doc or not
-                if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
-                    _workingSetMRUOrder.unshift(file);
-                } else {
-                    _workingSetMRUOrder.push(file);
-                }
-                
-                // Add first to Added order
-                _workingSetAddedOrder.splice(index, 1, file);
-            }
-        });
-        
-
-        // Dispatch event
-        $(exports).triggerHandler("workingSetAddList", [uniqueFileList]);
-    }
-
-    /**
-     * Warning: low level API - use FILE_CLOSE command in most cases.
-     * Removes the given file from the working set list, if it was in the list. Does not change
-     * the current editor even if it's for this file. Does not prompt for unsaved changes.
-     * @param {!File} file
-     * @param {boolean=} true to suppress redraw after removal
-     */
-    function removeFromWorkingSet(file, suppressRedraw) {
-        // If doc isn't in working set, do nothing
-        var index = findInWorkingSet(file.fullPath);
-        if (index === -1) {
-            return;
-        }
-        
-        // Remove
-        _workingSet.splice(index, 1);
-        _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
-        _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
-        
-        // Dispatch event
-        $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw]);
-    }
-
-    /**
-     * Removes all files from the working set list.
-     */
-    function _removeAllFromWorkingSet() {
-        var fileList = _workingSet;
-
-        // Remove all
-        _workingSet = [];
-        _workingSetMRUOrder = [];
-        _workingSetAddedOrder = [];
-
-        // Dispatch event
-        $(exports).triggerHandler("workingSetRemoveList", [fileList]);
-    }
-
-    /**
-     * Moves document to the front of the MRU list, IF it's in the working set; no-op otherwise.
-     * @param {!Document}
-     */
-    function _markMostRecent(doc) {
-        var mruI = findInWorkingSet(doc.file.fullPath, _workingSetMRUOrder);
-        if (mruI !== -1) {
-            _workingSetMRUOrder.splice(mruI, 1);
-            _workingSetMRUOrder.unshift(doc.file);
-        }
-    }
-    
-    
-    /**
-     * Mutually exchanges the files at the indexes passed by parameters.
-     * @param {number} index  Old file index
-     * @param {number} index  New file index
-     */
-    function swapWorkingSetIndexes(index1, index2) {
-        var length = _workingSet.length - 1;
-        var temp;
-        
-        if (index1 >= 0 && index2 <= length && index1 >= 0 && index2 <= length) {
-            temp = _workingSet[index1];
-            _workingSet[index1] = _workingSet[index2];
-            _workingSet[index2] = temp;
-            
-            $(exports).triggerHandler("workingSetSort");
-            $(exports).triggerHandler("workingSetDisableAutoSorting");
-        }
-    }
-    
-    /**
-     * Sorts _workingSet using the compare function
-     * @param {function(File, File): number} compareFn  The function that will be used inside JavaScript's
-     *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
-     *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
-     *      the same value when given a specific pair of elements a and b as its two arguments.
-     *      Documentation: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
-     */
-    function sortWorkingSet(compareFn) {
-        _workingSet.sort(compareFn);
-        $(exports).triggerHandler("workingSetSort");
-    }
-    
-    
-    /**
-     * Indicate that changes to currentDocument are temporary for now, and should not update the MRU
-     * ordering of the working set. Useful for next/previous keyboard navigation (until Ctrl is released)
-     * or for incremental-search style document preview like Quick Open will eventually have.
-     * Can be called any number of times, and ended by a single finalizeDocumentNavigation() call.
-     */
-    function beginDocumentNavigation() {
-        _documentNavPending = true;
-    }
-    
-    /**
-     * Un-freezes the MRU list after one or more beginDocumentNavigation() calls. Whatever document is
-     * current is bumped to the front of the MRU list.
-     */
-    function finalizeDocumentNavigation() {
-        if (_documentNavPending) {
-            _documentNavPending = false;
-            
-            _markMostRecent(_currentDocument);
-        }
-    }
-    
-    
-    /**
-     * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
-     * return currentDocument itself if working set is length 1.
-     * @param {number} inc  -1 for previous, +1 for next; no other values allowed
-     * @return {?File}  null if working set empty
-     */
-    function getNextPrevFile(inc) {
-        if (inc !== -1 && inc !== +1) {
-            console.error("Illegal argument: inc = " + inc);
-            return null;
-        }
-        
-        if (EditorManager.getCurrentlyViewedPath()) {
-            var mruI = findInWorkingSet(EditorManager.getCurrentlyViewedPath(), _workingSetMRUOrder);
-            if (mruI === -1) {
-                // If doc not in working set, return most recent working set item
-                if (_workingSetMRUOrder.length > 0) {
-                    return _workingSetMRUOrder[0];
-                }
-            } else {
-                // If doc is in working set, return next/prev item with wrap-around
-                var newI = mruI + inc;
-                if (newI >= _workingSetMRUOrder.length) {
-                    newI = 0;
-                } else if (newI < 0) {
-                    newI = _workingSetMRUOrder.length - 1;
-                }
-                
-                return _workingSetMRUOrder[newI];
-            }
-        }
-        
-        // If no doc open or working set empty, there is no "next" file
-        return null;
-    }
-    
-    
-    /**
-     * Changes currentDocument to the given Document, firing currentDocumentChange, which in turn
-     * causes this Document's main editor UI to be shown in the editor pane, updates the selection
-     * in the file tree / working set UI, etc. This call may also add the item to the working set.
-     *
-     * @param {!Document} document  The Document to make current. May or may not already be in the
-     *      working set.
-     */
-    function setCurrentDocument(doc) {
-        
-        // If this doc is already current, do nothing
-        if (_currentDocument === doc) {
-            return;
-        }
-        
-        var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + doc.file.fullPath);
-        
-        if (_currentDocument) {
-            $(_currentDocument).off("languageChanged.DocumentManager");
-        }
-
-        // If file is untitled or otherwise not within project tree, add it to
-        // working set right now (don't wait for it to become dirty)
-        if (doc.isUntitled() || !ProjectManager.isWithinProject(doc.file.fullPath)) {
-            addToWorkingSet(doc.file);
-        }
-        
-        // Adjust MRU working set ordering (except while in the middle of a Ctrl+Tab sequence)
-        if (!_documentNavPending) {
-            _markMostRecent(doc);
-        }
-        
-        // Make it the current document
-        var previousDocument = _currentDocument;
-        _currentDocument = doc;
-
-        // Proxy this doc's languageChange events as long as it's current
-        $(_currentDocument).on("languageChanged.DocumentManager", function (data) {
-            $(exports).trigger("currentDocumentLanguageChanged", data);
-        });
-        
-        $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
-        // (this event triggers EditorManager to actually switch editors in the UI)
-        
-        PerfUtils.addMeasurement(perfTimerName);
-    }
-
-    
-    /** Changes currentDocument to null, causing no full Editor to be shown in the UI */
-    function _clearCurrentDocument() {
-        // If editor already blank, do nothing
-        if (!_currentDocument) {
-            return;
-        } else {
-            // Change model & dispatch event
-            var previousDocument = _currentDocument;
-            _currentDocument = null;
-            // (this event triggers EditorManager to actually clear the editor UI)
-            $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
-        }
-    }
-    
-
-    
-    /**
-     * Warning: low level API - use FILE_CLOSE command in most cases.
-     * Closes the full editor for the given file (if there is one), and removes it from the working
-     * set. Any other editors for this Document remain open. Discards any unsaved changes without prompting.
-     *
-     * Changes currentDocument if this file was the current document (may change to null).
-     *
-     * This is a subset of notifyFileDeleted(). Use this for the user-facing Close command.
-     *
-     * @param {!File} file
-     * @param {boolean} skipAutoSelect - if true, don't automatically open and select the next document
-     */
-    function closeFullEditor(file, skipAutoSelect) {
-        // If this was the current document shown in the editor UI, we're going to switch to a
-        // different document (or none if working set has no other options)
-        if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
-            // Get next most recent doc in the MRU order
-            var nextFile = getNextPrevFile(1);
-            if (nextFile && nextFile.fullPath === _currentDocument.file.fullPath) {
-                // getNextPrevFile() might return the file we're about to close if it's the only one open (due to wraparound)
-                nextFile = null;
-            }
-            
-            // Switch editor to next document (or blank it out)
-            if (nextFile && !skipAutoSelect) {
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath })
-                    .done(function () {
-                        // (Now we're guaranteed that the current document is not the one we're closing)
-                        console.assert(!(_currentDocument && _currentDocument.file.fullPath === file.fullPath));
-                    })
-                    .fail(function () {
-                        // File chosen to be switched to could not be opened, and the original file
-                        // is still in editor. Close it again so code will try to open the next file,
-                        // or empty the editor if there are no other files.
-                        closeFullEditor(file);
-                    });
-            } else {
-                _clearCurrentDocument();
-            }
-        }
-        
-        // Remove closed doc from working set, if it was in there
-        // This happens regardless of whether the document being closed was the current one or not
-        removeFromWorkingSet(file);
-        
-        // Note: EditorManager will dispose the closed document's now-unneeded editor either in
-        // response to the editor-swap call above, or the removeFromWorkingSet() call, depending on
-        // circumstances. See notes in EditorManager for more.
-    }
-
-    /**
-     * Equivalent to calling closeFullEditor() for all Documents. Same caveat: this discards any
-     * unsaved changes, so the UI should confirm with the user before calling this.
-     */
-    function closeAll() {
-        _clearCurrentDocument();
-        _removeAllFromWorkingSet();
-    }
-        
-    function removeListFromWorkingSet(list, clearCurrentDocument) {
-        var fileList = [], index;
-        
-        if (!list) {
-            return;
-        }
-        
-        if (clearCurrentDocument) {
-            _clearCurrentDocument();
-        }
-        
-        list.forEach(function (file) {
-            index = findInWorkingSet(file.fullPath);
-            
-            if (index !== -1) {
-                fileList.push(_workingSet[index]);
-                
-                _workingSet.splice(index, 1);
-                _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
-                _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
-            }
-        });
-        
-        $(exports).triggerHandler("workingSetRemoveList", [fileList]);
-    }
-    
-    
-    /**
-     * Cleans up any loose Documents whose only ref is its own master Editor, and that Editor is not
-     * rooted in the UI anywhere. This can happen if the Editor is auto-created via Document APIs that
-     * trigger _ensureMasterEditor() without making it dirty. E.g. a command invoked on the focused
-     * inline editor makes no-op edits or does a read-only operation.
-     */
-    function _gcDocuments() {
-        getAllOpenDocuments().forEach(function (doc) {
-            // Is the only ref to this document its own master Editor?
-            if (doc._refCount === 1 && doc._masterEditor) {
-                // Destroy the Editor if it's not being kept alive by the UI
-                EditorManager._destroyEditorIfUnneeded(doc);
-            }
-        });
-    }
-    
     /**
      * Returns the existing open Document for the given file, or null if the file is not open ('open'
      * means referenced by the UI somewhere). If you will hang onto the Document, you must addRef()
@@ -648,6 +137,181 @@ define(function (require, exports, module) {
         }
         return null;
     }
+    
+    /**
+     * Returns the Document that is currently open in the editor UI. May be null.
+     * @return {?Document}
+     */
+    function getCurrentDocument() {
+        var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
+        
+        if (file) {
+            return getOpenDocumentForPath(file.fullPath);
+        }
+        
+        return null;
+    }
+
+    
+    /**
+     * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
+     * @deprecated Use MainViewManager.getWorkingSet() instead
+     * @return {Array.<File>}
+     */
+    function getWorkingSet() {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.getViews() instead of DocumentManager.getWorkingSet()", true);
+        return MainViewManager.getWorkingSet(MainViewManager.ALL_PANES)
+            .filter(function (file) {
+                // Document.file objects were added to Working Sets
+                //  so filter the result set from the new API
+                //  for those files who have document objects
+                return getOpenDocumentForPath(file.fullPath);
+            });
+    }
+
+    /**
+     * Returns the index of the file matching fullPath in the working set.
+     * @deprecated Use MainViewManager.findInWorkingSet() instead
+     * @param {!string} fullPath
+     * @return {number} index, -1 if not found
+     */
+    function findInWorkingSet(fullPath) {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.findInWorkingSet() instead of DocumentManager.findInWorkingSet()", true);
+        return MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, fullPath);
+    }
+    
+    /**
+     * Returns all Documents that are 'open' in the UI somewhere (for now, this means open in an
+     * inline editor and/or a full-size editor). Only these Documents can be modified, and only
+     * these Documents are synced with external changes on disk.
+     * @return {Array.<Document>}
+     */
+    function getAllOpenDocuments() {
+        var result = [];
+        var id;
+        for (id in _openDocuments) {
+            if (_openDocuments.hasOwnProperty(id)) {
+                result.push(_openDocuments[id]);
+            }
+        }
+        return result;
+    }
+    
+    
+    /**
+     * Adds the given file to the end of the working set list.
+     * @deprecated Use MainViewManager.addToWorkingSet() instead 
+     * @param {!File} file
+     * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
+     * @param {boolean=} forceRedraw  If true, a working set change notification is always sent
+     *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
+     */
+    function addToWorkingSet(file, index, forceRedraw) {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.addToWorkingSet() instead of DocumentManager.addToWorkingSet()", true);
+        MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, file, index, forceRedraw);
+    }
+    
+    /**
+     * @deprecated Use MainViewManager.addListToWorkingSet() instead 
+     * Adds the given file list to the end of the working set list.
+     * If a file in the list has its own custom viewer, then it 
+     * is not added into the working set.
+     * Does not change which document is currently open in the editor.
+     * More efficient than calling addToWorkingSet() (in a loop) for
+     * a list of files because there's only 1 redraw at the end
+     * @param {!Array.<File>} fileList
+     */
+    function addListToWorkingSet(fileList) {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.addListToWorkingSet() instead of DocumentManager.addListToWorkingSet()", true);
+        MainViewManager.addListToWorkingSet(MainViewManager.ACTIVE_PANE, fileList);
+    }
+
+    
+    /**
+     */
+    function removeListFromWorkingSet(list) {
+        throw new Error("removeListFromWorkingSet() has been deprecated.  Use Command.FILE_CLOSE_LIST instead.");
+    }
+        
+    /**
+     * closes all open files
+     * @deprecated Use MainViewManager._closeAll() instead
+     * Calling this discards any unsaved changes, so the UI should confirm with the user before calling this.
+     */
+    function closeAll() {
+        DeprecationWarning.deprecationWarning("Use MainViewManager._closeAll() instead of DocumentManager.closeAll()", true);
+        CommandManager.execute(Commands.FILE_CLOSE_ALL, {PaneId: MainViewManager.ALL_PANES});
+    }
+
+    /**
+     * closes the specified file file 
+     * @deprecated use MainViewManager._close() instead
+     * @param {!File} file
+     */
+    function closeFullEditor(file) {
+        DeprecationWarning.deprecationWarning("Use MainViewManager._close() instead of DocumentManager.closeFullEditor()", true);
+        CommandManager.execute(Commands.FILE_CLOSE, {File: file});
+    }
+    
+    /**
+     * opens the specified document for editing in the currently active pane
+     * @deprecated use MainViewManager._edit() instead
+     * @param {!Document} document  The Document to make current. 
+     */
+    function setCurrentDocument(doc) {
+        DeprecationWarning.deprecationWarning("Use CommandManager.doCommand(Commands.CMD_OPEN) instead of DocumentManager.setCurrentDocument()", true);
+        CommandManager.execute(Commands.CMD_OPEN, {fullPath: doc.file.fullPath});
+    }
+
+    
+    /**
+     * freezes the Working Set MRU list 
+     * @deprecated use MainViewManager.beginTraversal() instead
+     */
+    function beginDocumentNavigation() {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.beginTraversal() instead of DocumentManager.beginDocumentNavigation()", true);
+        MainViewManager.beginTraversal();
+    }
+    
+    /**
+     * ends document navigation and moves the current file to the front of the MRU list in the Working Set
+     * @deprecated use MainViewManager.endTraversal() instead
+     */
+    function finalizeDocumentNavigation() {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.endTraversal() instead of DocumentManager.finalizeDocumentNavigation()", true);
+        MainViewManager.endTraversal();
+    }
+    
+    /**
+     * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
+     * return currentDocument itself if working set is length 1.
+     * @deprecated use MainViewManager.traverseToNextViewByMRU() instead
+     */
+    function getNextPrevFile(inc) {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.traverseToNextViewByMRU() instead of DocumentManager.getNextPrevFile()", true);
+        var result = MainViewManager.traverseToNextViewByMRU(inc);
+        if (result) {
+            return result.file;
+        }
+        return null;
+    }
+    
+    /**
+     * Cleans up any loose Documents whose only ref is its own master Editor, and that Editor is not
+     * rooted in the UI anywhere. This can happen if the Editor is auto-created via Document APIs that
+     * trigger _ensureMasterEditor() without making it dirty. E.g. a command invoked on the focused
+     * inline editor makes no-op edits or does a read-only operation.
+     */
+    function _gcDocuments() {
+        getAllOpenDocuments().forEach(function (doc) {
+            // Is the only ref to this document its own master Editor?
+            if (doc._refCount === 1 && doc._masterEditor) {
+                // Destroy the Editor if it's not being kept alive by the UI
+                MainViewManager._destroyEditorIfNotNeeded(doc);
+            }
+        });
+    }
+    
     
     /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
@@ -809,10 +473,9 @@ define(function (require, exports, module) {
      * @param {boolean} skipAutoSelect - if true, don't automatically open/select the next document
      */
     function notifyFileDeleted(file, skipAutoSelect) {
-        // First ensure it's not currentDocument, and remove from working set
-        closeFullEditor(file, skipAutoSelect);
-        
-        // Notify all other editors to close as well
+        // Notify all editors to close as well
+        $(exports).triggerHandler("pathDeleted", file.fullPath);
+
         var doc = getOpenDocumentForPath(file.fullPath);
         if (doc) {
             $(doc).triggerHandler("deleted");
@@ -820,100 +483,22 @@ define(function (require, exports, module) {
         
         // At this point, all those other views SHOULD have released the Doc
         if (doc && doc._refCount > 0) {
-            console.log("WARNING: deleted Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
+            console.warn("Deleted " + file.fullPath + " Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
         }
-    }
-    
-    
-    /**
-     * @private
-     * Preferences callback. Saves the state of the working set.
-     */
-    function _savePreferences() {
-        // save the working set file paths
-        var files        = [],
-            isActive     = false,
-            workingSet   = getWorkingSet(),
-            currentDoc   = getCurrentDocument(),
-            projectRoot  = ProjectManager.getProjectRoot(),
-            context      = { location : { scope: "user",
-                                          layer: "project",
-                                          layerID: projectRoot.fullPath } };
-
-        if (!projectRoot) {
-            return;
-        }
-
-        workingSet.forEach(function (file, index) {
-            // Do not persist untitled document paths
-            if (!(file instanceof InMemoryFile)) {
-                // flag the currently active editor
-                isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
-                
-                // save editor UI state for just the working set
-                var viewState = EditorManager._getViewState(file.fullPath);
-                
-                files.push({
-                    file: file.fullPath,
-                    active: isActive,
-                    viewState: viewState
-                });
-            }
-        });
-
-        // Writing out working set files using the project layer specified in 'context'.
-        PreferencesManager.setViewState("project.files", files, context);
     }
 
     /**
-     * @private
-     * Initializes the working set.
+     * Called after a file or folder has been deleted. This function is responsible
+     * for updating underlying model data and notifying all views of the change.
+     *
+     * @param {string} path The path of the file/folder that has been deleted
      */
-    function _projectOpen(e) {
-        // file root is appended for each project
-        var projectRoot = ProjectManager.getProjectRoot(),
-            files = [],
-            context = { location : { scope: "user",
-                                     layer: "project" } };
-        
-        files = PreferencesManager.getViewState("project.files", context);
-        
-        console.assert(Object.keys(_openDocuments).length === 0);  // no files leftover from prev proj
-
-        if (!files) {
-            return;
-        }
-
-        var filesToOpen = [],
-            viewStates = {},
-            activeFile;
-
-        // Add all files to the working set without verifying that
-        // they still exist on disk (for faster project switching)
-        files.forEach(function (value, index) {
-            filesToOpen.push(FileSystem.getFileForPath(value.file));
-            if (value.active) {
-                activeFile = value.file;
-            }
-            if (value.viewState) {
-                viewStates[value.file] = value.viewState;
-            }
-        });
-        addListToWorkingSet(filesToOpen);
-        
-        // Allow for restoring saved editor UI state
-        EditorManager._resetViewStates(viewStates);
-
-        // Initialize the active editor
-        if (!activeFile && _workingSet.length > 0) {
-            activeFile = _workingSet[0].fullPath;
-        }
-
-        if (activeFile) {
-            var promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeFile });
-            // Add this promise to the event's promises to signal that this handler isn't done yet
-            e.promises.push(promise);
-        }
+    function notifyPathDeleted(path) {
+        /* FileSyncManager.syncOpenDocuments() does all the work of closing files
+           in the working set and notifying the user of any unsaved changes. */
+        FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
+        // Send a "pathDeleted" event. This will trigger the views to update.
+        $(exports).triggerHandler("pathDeleted", path);
     }
 
     /**
@@ -937,20 +522,6 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("fileNameChange", [oldName, newName]);
     }
     
-    /**
-     * Called after a file or folder has been deleted. This function is responsible
-     * for updating underlying model data and notifying all views of the change.
-     *
-     * @param {string} path The path of the file/folder that has been deleted
-     */
-    function notifyPathDeleted(path) {
-        /* FileSyncManager.syncOpenDocuments() does all the work of closing files
-           in the working set and notifying the user of any unsaved changes. */
-        FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
-        
-        // Send a "pathDeleted" event. This will trigger the views to update.
-        $(exports).triggerHandler("pathDeleted", path);
-    }
     
     /**
      * @private
@@ -1007,7 +578,7 @@ define(function (require, exports, module) {
         .on("_dirtyFlagChange", function (event, doc) {
             $(exports).triggerHandler("dirtyFlagChange", doc);
             if (doc.isDirty) {
-                addToWorkingSet(doc.file);
+                MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, doc.file);
             }
         })
         .on("_documentSaved", function (event, doc) {
@@ -1035,6 +606,40 @@ define(function (require, exports, module) {
         return null;
     }
     
+    /**
+     * Creates a deprecation warning event handler
+     * @param {!string} eventName - the event being deprecated. 
+     *  The Event Name doesn't change just which object dispatches it
+     */
+    function _deprecateEvent(eventName) {
+        DeprecationWarning.deprecateEvent(exports,
+                                          MainViewManager,
+                                          eventName,
+                                          eventName,
+                                          "DocumentManager." + eventName,
+                                          "MainViewManager." + eventName);
+    }
+    
+    /* 
+     * Setup an extensionsLoaded handler to register deprecated events.  
+     * We do this so these events are added to the end of the event
+     * handler chain which gives the system a chance to process them
+     * before they are dispatched to extensions.  
+     * 
+     * Extensions that listen to the new MainViewManager working set events 
+     * are always added to the end so this effectively puts the legacy events 
+     * at the end of the event list. This prevents extensions from 
+     * handling the event too soon. (e.g.  paneViewListView needs to 
+     * process these events before the Extension Highlighter extension)
+     */
+    AppInit.extensionsLoaded(function () {
+        _deprecateEvent("workingSetAdd");
+        _deprecateEvent("workingSetAddList");
+        _deprecateEvent("workingSetRemove");
+        _deprecateEvent("workingSetRemoveList");
+        _deprecateEvent("workingSetSort");
+    });
+    
     PreferencesManager.convertPreferences(module, {"files_": "user"}, true, _checkPreferencePrefix);
 
     // Handle file saves that may affect preferences
@@ -1042,33 +647,57 @@ define(function (require, exports, module) {
         PreferencesManager.fileChanged(doc.file.fullPath);
     });
     
-    // For unit tests and internal use only
-    exports._clearCurrentDocument       = _clearCurrentDocument;
+    $(MainViewManager).on("currentFileChange", function (e, newFile, newPaneId, oldFile, oldPaneId) {
+        var newDoc = null,
+            oldDoc = null;
+
+        if (newFile) {
+            newDoc = getOpenDocumentForPath(newFile.fullPath);
+        }
+        
+        if (oldFile) {
+            oldDoc = getOpenDocumentForPath(oldFile.fullPath);
+        }
+        
+        if (oldDoc) {
+            $(oldDoc).off("languageChanged.DocumentManager");
+        }
+        
+        var count = DeprecationWarning.getEventHandlerCount(exports, "currentDocumentChange");
+        if (count > 0) {
+            DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChange' instead.", true);
+        }
+        
+        $(exports).triggerHandler("currentDocumentChange", [newDoc, oldDoc]);
+
+        if (newDoc) {
+            $(newDoc).on("languageChanged.DocumentManager", function (data) {
+                $(exports).trigger("currentDocumentLanguageChanged", data);
+            });
+        }
+    
+    });
+    
+    // Deprecated APIs   
+    exports.getWorkingSet                  = getWorkingSet;
+    exports.findInWorkingSet               = findInWorkingSet;
+    exports.addToWorkingSet                = addToWorkingSet;
+    exports.addListToWorkingSet            = addListToWorkingSet;
+    exports.removeListFromWorkingSet       = removeListFromWorkingSet;
+    exports.getCurrentDocument             = getCurrentDocument;
+    exports.beginDocumentNavigation        = beginDocumentNavigation;
+    exports.finalizeDocumentNavigation     = finalizeDocumentNavigation;
+    exports.setCurrentDocument             = setCurrentDocument;
+    exports.closeFullEditor                = closeFullEditor;
+    exports.closeAll                       = closeAll;
     
     // Define public API
     exports.Document                    = DocumentModule.Document;
-    exports.getCurrentDocument          = getCurrentDocument;
-    exports._clearCurrentDocument        = _clearCurrentDocument;
     exports.getDocumentForPath          = getDocumentForPath;
     exports.getOpenDocumentForPath      = getOpenDocumentForPath;
     exports.getDocumentText             = getDocumentText;
     exports.createUntitledDocument      = createUntitledDocument;
-    exports.getWorkingSet               = getWorkingSet;
-    exports.findInWorkingSet            = findInWorkingSet;
-    exports.findInWorkingSetAddedOrder  = findInWorkingSetAddedOrder;
     exports.getAllOpenDocuments         = getAllOpenDocuments;
-    exports.setCurrentDocument          = setCurrentDocument;
-    exports.addToWorkingSet             = addToWorkingSet;
-    exports.addListToWorkingSet         = addListToWorkingSet;
-    exports.removeFromWorkingSet        = removeFromWorkingSet;
-    exports.removeListFromWorkingSet    = removeListFromWorkingSet;
-    exports.getNextPrevFile             = getNextPrevFile;
-    exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
-    exports.sortWorkingSet              = sortWorkingSet;
-    exports.beginDocumentNavigation     = beginDocumentNavigation;
-    exports.finalizeDocumentNavigation  = finalizeDocumentNavigation;
-    exports.closeFullEditor             = closeFullEditor;
-    exports.closeAll                    = closeAll;
     exports.notifyFileDeleted           = notifyFileDeleted;
     exports.notifyPathNameChanged       = notifyPathNameChanged;
     exports.notifyPathDeleted           = notifyPathDeleted;
@@ -1076,11 +705,6 @@ define(function (require, exports, module) {
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 
-    // Handle project change events
-    var $ProjectManager = $(ProjectManager);
-    $ProjectManager.on("projectOpen", _projectOpen);
-    $ProjectManager.on("beforeProjectClose beforeAppClose", _savePreferences);
-    
     // Handle Language change events
     $(LanguageManager).on("languageAdded", _handleLanguageAdded);
     $(LanguageManager).on("languageModified", _handleLanguageModified);

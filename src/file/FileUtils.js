@@ -164,6 +164,8 @@ define(function (require, exports, module) {
             result = Strings.CONTENTS_MODIFIED_ERR;
         } else if (name === FileSystemError.UNSUPPORTED_ENCODING) {
             result = Strings.UNSUPPORTED_ENCODING_ERR;
+        } else if (name === FileSystemError.UNSUPPORTED_FILETYPE) {
+            result = Strings.UNSUPPORTED_FILE_TYPE_ERR;
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
         }

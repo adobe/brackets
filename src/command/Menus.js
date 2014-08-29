@@ -58,13 +58,12 @@ define(function (require, exports, module) {
      * @enum {string}
      */
     var ContextMenuIds = {
-        EDITOR_MENU:               "editor-context-menu",
-        INLINE_EDITOR_MENU:        "inline-editor-context-menu",
-        PROJECT_MENU:              "project-context-menu",
-        WORKING_SET_MENU:          "working-set-context-menu",
-        WORKING_SET_SETTINGS_MENU: "working-set-settings-context-menu"
+        EDITOR_MENU:                    "editor-context-menu",
+        INLINE_EDITOR_MENU:             "inline-editor-context-menu",
+        PROJECT_MENU:                   "project-context-menu",
+        PANE_VIEW_LIST_CONTEXT_MENU:    "pane-view-list-context-menu",
+        PANE_VIEW_LIST_CONFIG_MENU:     "pane-view-list-configuration-menu"
     };
-
 
     /**
      * Brackets Application Menu Section Constants
@@ -1176,6 +1175,10 @@ define(function (require, exports, module) {
         return cmenu;
     }
 
+    // Deprecated menu ids
+    DeprecationWarning.deprecateConstant(ContextMenuIds, "WORKING_SET_MENU", "PANE_VIEW_LIST_CONTEXT_MENU");
+    DeprecationWarning.deprecateConstant(ContextMenuIds, "WORKING_SET_SETTINGS_MENU", "PANE_VIEW_LIST_CONFIG_MENU");
+    
     // Define public API
     exports.AppMenuBar = AppMenuBar;
     exports.ContextMenuIds = ContextMenuIds;

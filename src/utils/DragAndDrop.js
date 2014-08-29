@@ -33,7 +33,9 @@ define(function (require, exports, module) {
         Commands        = require("command/Commands"),
         Dialogs         = require("widgets/Dialogs"),
         DefaultDialogs  = require("widgets/DefaultDialogs"),
-        DocumentManager = require("document/DocumentManager"),
+        MainViewManager = require("view/MainViewManager"),
+        MainViewFactory = require("view/MainViewFactory"),
+        LanguageManager = require("language/LanguageManager"),
         FileSystem      = require("filesystem/FileSystem"),
         EditorManager   = require("editor/EditorManager"),
         FileUtils       = require("file/FileUtils"),
@@ -42,25 +44,17 @@ define(function (require, exports, module) {
         StringUtils     = require("utils/StringUtils");
     
     /**
-     * Return an array of files excluding all files with a custom viewer. If all files
-     * in the array have their own custom viewers, then the last file is added back in
-     * the array since only one file with custom viewer can be open at a time.
+     * Return an array of files excluding all files without a registered viewer. 
      *
-     * @param {Array.<string>} files Array of files to filter before opening.
-     * @return {Array.<string>}
+     * @param {Array.<string>} paths - filenames to filter before opening.
+     * @return {Array.<string>} paths which can actually be opened (may be empty)
      */
-    function filterFilesToOpen(files) {
-        // Filter out all files that have their own custom viewers
-        // since we don't keep them in the working set.
-        var filteredFiles = files.filter(function (file) {
-            return !EditorManager.getCustomViewerForPath(file);
+    function filterFilesToOpen(paths) {
+        // Filter out file in which we have no registered viewer
+        var filteredFiles = paths.filter(function (fullPath) {
+            return !LanguageManager.getLanguageForPath(fullPath).isBinary()
+                || MainViewFactory.findSuitableFactoryForPath(fullPath);
         });
-        
-        // If all files have custom viewers, then add back the last file
-        // so that we open it in its custom viewer.
-        if (filteredFiles.length === 0 && files.length) {
-            filteredFiles.push(files[files.length - 1]);
-        }
         
         return filteredFiles;
     }
@@ -111,13 +105,13 @@ define(function (require, exports, module) {
                     // file in the list, return. If this *is* the last file,
                     // always open it so it gets selected.
                     if (idx < filteredFiles.length - 1) {
-                        if (DocumentManager.findInWorkingSet(path) !== -1) {
+                        if (MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, path) !== -1) {
                             result.resolve();
                             return;
                         }
                     }
                     
-                    CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET,
+                    CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,
                                            {fullPath: path, silent: true})
                         .done(function () {
                             result.resolve();

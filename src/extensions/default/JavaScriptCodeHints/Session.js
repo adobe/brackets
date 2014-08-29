@@ -549,7 +549,7 @@ define(function (require, exports, module) {
          *
          * @param {Array} hints - array of hints
          * @param {StringMatcher} matcher
-         * @returns {Array} - array of matching hints.
+         * @return {Array} - array of matching hints.
          */
         function filterWithQueryAndMatcher(hints, matcher) {
             var matchResults = $.map(hints, function (hint) {
