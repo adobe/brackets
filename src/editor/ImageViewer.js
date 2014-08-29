@@ -390,32 +390,6 @@ define(function (require, exports, module) {
     };
     
     /* 
-     * Required interface - does nothing 
-     * images are scaled to viewport so they will never scroll
-     */
-    ImageView.prototype.getScrollPos = function () {
-    };
-
-    /* 
-     * Required interface - does nothing 
-     * images are scaled to viewport so they will never scroll
-     */
-    ImageView.prototype.adjustScrollPos = function () {
-    };
-    
-    /* 
-     * Required interface - does nothing 
-     */
-    ImageView.prototype.getViewState = function () {
-    };
-
-    /* 
-     * Required interface - does nothing 
-     */
-    ImageView.prototype.restoreViewState = function () {
-    };
-    
-    /* 
      * Refreshes the image preview with what's on disk
      */
     ImageView.prototype.refresh = function () {
@@ -441,8 +415,14 @@ define(function (require, exports, module) {
      * @return {jQuery.Promise} 
      */
     function _createImageView(file, pane) {
-        var view = new ImageView(file, pane.$el);
-        pane.addView(view, true);
+        var view = pane.getViewForPath(file.fullPath);
+        
+        if (view) {
+            pane.showView(view);
+        } else {
+            view = new ImageView(file, pane.$el);
+            pane.addView(view, true);
+        }
         return new $.Deferred().resolve().promise();
     }
     

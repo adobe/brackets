@@ -119,17 +119,8 @@ define(function (require, exports, module) {
      */
     function getCurrentFullEditor() {
         var currentPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE),
-            doc;
-        
-        if (currentPath) {
-            doc = DocumentManager.getOpenDocumentForPath(currentPath);
-        }
-        
-        if (doc) {
-            return doc._masterEditor;
-        }
-        
-        return null;
+            doc = currentPath && DocumentManager.getOpenDocumentForPath(currentPath);
+        return doc && doc._masterEditor;
     }
 
     

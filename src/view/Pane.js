@@ -25,6 +25,129 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, window, Mustache */
 
+ /**
+  * Pane objects host views of files, editors, etc... Clients cannot access
+  * Pane objects directly. Instead the implementation is protected by the 
+  * MainViewManager -- however View Factories are given a Pane object which 
+  * they can use to add views.  References to Pane objects should not be kept
+  * as they may be destroyed and removed from the DOM.
+  * 
+  * To get a custom view, there are two components:
+  * 
+  *  1) A View Factory   
+  *  2) A View Object  
+  *
+  * View objects are anonymous object that have a particular interface. 
+  *
+  * Views can be added to a pane but do not have to exist in the Pane object's view list.  
+  * Such views are "temporary views".  Temporary views are not serialized with the Pane state
+  * or reconstituted when the pane is serialized from disk.  They are destroyed at the earliest
+  * opportunity.
+  *
+  * Temporary views are added by calling `Pane.showView()` and passing it the view object. The view 
+  * will be destroyed when the next view is shown, the pane is mereged with another pane or the "Close All"
+  * command is exectuted on the Pane.  Temporary Editor Views do not contain any modifications and are
+  * added to the workingset (and are no longer tempoary views) once the document has been modified. They 
+  * will remain in the working set until closed from that point on.
+  *
+  * Views that have a longer life span are added by calling addView to associate the view with a 
+  * filename in the _views object.  These views are not destroyed until they are removed from the pane
+  * by calling one of the following: removeView, removeViews, or _reset
+  *
+  * Pane Object Events:  
+  *
+  *  - viewListChange - Whenever there is a file change to a file in the working set.  These 2 events: `DocumentManger.pathRemove` 
+  *  and `DocumentManger.fileNameChange` will cause a `viewListChange` event so the WorkingSetView can update.
+  *
+  *  - currentViewChange - triggered whenever the current view changes.
+  *             (e, newView:View, oldView:View)
+  *
+  * View Interface:  
+  *
+  * The view is an anonymous object which has the following method signatures. see ImageViewer for an example or the sample
+  * provided with Brackets `src/extensions/samples/BracketsConfigCentral`  
+  *
+  *     {
+  *         $el:jQuery 
+  *         getFile: function ():!File 
+  *         updateLayout: function(forceRefresh:boolean) 
+  *         destroy: function()
+  *         getScrollPos: function():*=
+  *         adjustScrollPos: function(state:Object=, heightDelta:number)=
+  *         notifyContainerChange: function()=
+  *         notifyVisibilityChange: function(boolean)=
+  *     }
+  *  
+  * When views are created they can be added to the pane by calling `pane.addView()`.  
+  * Views can be created and parented by attaching directly  to `pane.$el` 
+  *
+  *     this._codeMirror = new CodeMirror(pane.$el, ...)
+  *
+  * Factories can create a view that's initially hidden by calling `pane.addView(view)` and passing `false` for the show parameter.
+  * Hidden views can be later shown by calling `pane.showView(view)`
+  *
+  * `$el:jQuery!`
+  *
+  *  property that stores the jQuery wrapped DOM element of the view. All views must have one so pane objects can manipulate the DOM
+  *  element when necessary (e.g. `showView`, `_reparent`, etc...)
+  *
+  * `getFile():File!`
+  *
+  *  Called throughout the life of a View when the current file is queried by the system.
+  *
+  * `updateLayout(forceRefresh:boolean)`
+  *  
+  *  Called to notify the view that it should be resized to fit its parent container.  This may be called several times
+  *  or only once.  Views can ignore the `forceRefresh` flag. It is used for editor views to force a relayout of the editor
+  *  which probably isn't necessary for most views.  Views should implement their html to be dynamic and not rely on this
+  *  function to be called whenever possible.
+  *
+  * `destroy()`
+  *
+  *  Views must implement a destroy method to remove their DOM element at the very least.  There is no default
+  *  implementation and views are hidden before this method is called. The Pane object doesn't make assumptions
+  *  about when it is safe to remove a node. In some instances other cleanup  must take place before a the DOM 
+  *  node is destroyed so the implementation details are left to the view.  
+  *
+  *  Views can implement a simple destroy by calling 
+  *
+  *      this.$el.remove()
+  *
+  *  These members are optional and need not be implemented by Views 
+  *
+  *      getScrollPos()
+  *      adjustScrollPos()
+  *
+  *  The system at various times will want to save and restore a view's scroll position.  The data returned by `getScrollPos()`
+  *  is specific to the view and will be passed back to `adjustScrollPos()` when the scroll position needs to be restored.
+  *
+  *  When Modal Bars are invoked, the system calls `getScrollPos()` so that the current scroll psotion of all visible Views can be cached.
+  *  That cached scroll position is later passed to `adjustScrollPos()` along with a height delta.  The height delta is used to
+  *  scroll the view so that it doesn't appear to have "jumped" when invoking the Modal Bar.  
+  *
+  *  Height delta will be a positive when the Modal Bar is being shown and negative number when the Modal Bar is being hidden.  
+  *
+  *  `getViewState()` is another optional member that is used to cache a view's state when hiding or destroying a view or closing the project.
+  *  The data returned by this member is stored in `ViewStateManager` and is saved with the project.  
+  *
+  *  Views or View Factories are responsible for restoring the view state when the view of that file is created by recalling the cached state 
+  *  
+  *      var view = createIconView(file, pane);
+  *      view.restoreViewState(ViewStateManager.getViewState(file.fullPath));
+  *
+  *  Notifications
+  *  The following optional methods receive notifications from the Pane object when certain events take place which affect the view:
+  *
+  * `notifyContainerChange()` 
+  *
+  *  Optional Notification callback called when the container changes. The view can perform any synchronization or state update
+  *  it needs to do when its parent container changes.
+  *  
+  * `notifyVisiblityChange()`
+  * 
+  *  Optional Notification callback called when the view's vsibility changes.  The view can perform any synchronization or
+  *  state update it needs to do when its visiblity state changes.
+  */
 define(function (require, exports, module) {
     "use strict";
         
@@ -42,116 +165,10 @@ define(function (require, exports, module) {
     
     
     /**
-     * Pane objects host views of files, editors, etc... Clients cannot access
-     * Pane objects directly. Instead the implementation is protected by the 
-     * MainViewManager -- however View Factories are given a Pane object which 
-     * they can use to add views.  References to Pane objects should not be kept
-     * as they may be destroyed and removed from the DOM.
-     * 
-     * To get a custom view, there are two components:
-     * 
-     *  1) A View Factory 
-     *  2) A View Object
-     *
-     * View objects are anonymous object that have a particular interface. 
-     *
-     * Views can be added to a pane but do not have to exist in the Pane object's view list.  
-     * Such views are "temporary views".  Temporary views are not serialized with the Pane state
-     * or reconstituted when the pane is serialized from disk.  They are destroyed at the earliest
-     * opportunity.
-     *
-     * Tempoary views are added by calling Pane.showView() and passing it the view object. The view 
-     * will be destroyed when the next view is shown, the pane is mereged with another pane or the "Close All"
-     * command is exectuted on the Pane.  Temporary Editor Views do not contain any modifications and are
-     * added to the workingset (and no longer tempoary views) once the document has been modified. They 
-     * will remain in the working set until closed from that point on.
-     *
-     * Views that have a longer life span are added by calling addView to associate the view with a 
-     * filename in the _views object.  These views are not destroyed until they are removed from the pane
-     * by calling one of the following: removeView, removeViews, or reset
-     *
-     * Pane Object Events:
-     * viewListChange - triggered wheneever there is a change to _viewList directly handled by this object that would not otherwise
-     *                  dispatch a WorkingSet event from MainViewManger
-     *                  (specificatlly pathRemove and fileNameChange events that are triggered by DocumentManager)
-     * currentViewChange - triggered whenever the current view changes
-     *
-     * View Interface:
-     *
-     * {
-     *      $el: the element property of the view
-     *      getFile: function ():!File File object that belongs to the view
-     *      updateLayout: function(forceRefresh:boolean) - tells the view to do ignore any cached layout data and do a complete layout of its content 
-     *      destroy: function() - called when the view is no longer needed. 
-     *      getScrollPos: function():* - called to get the current view scroll state. @return {Object=}
-     *      adjustScrollPos: function(state:Object=, heightDelta:number) - called to restore the scroll state and adjust the height by heightDelta
-     *      notifyContainerChange: function() - called when the container has been changed
-     *      notifyVisibilityChange: function(boolean) - called when the view's visiblity state has changed
-     * }
-     *  
-     * When views are created they can be added to the pane by calling pane.addView().  Views can be created and parented by attaching directly
-     * to pane.$el -- if a library requires a parent node to create the view for instance (e.g. this._codeMirror = new CodeMirror(pane.$el, ...)).  
-     * All views, must expose an `$el` property so that the pane can manipulate the DOM element when necessary (e.g. showView, _reparent, etc...)
-     *
-     * $el
-     *
-     *  property that stores the jQuery wrapped DOM element of the view. All views must have one.
-     *
-     * getFile()
-     *
-     *  Called throughout the life of a View when the current file is queried by the system.  Can be NULL
-     *
-     * setVisible()
-     *
-     *  Called when the view is shown or hidden.  When temporary views are hidden their destroy() method is called.
-     *
-     * updateLayout(forceRefresh:boolean)
-     *  
-     *  Called to notify the view that it should be resized to fit its parent container.  This may be called several times
-     *  or only once.  Views can ignore the forceRefresh flag. It is used for editor views to force a relayout of the editor 
-     *  which probably isn't necessary for most views.  Views should implement their html to be dynamic and not rely on this
-     *  function to be called whenever possible.
-     *
-     * destroy() 
-     *
-     *  Views must implement a destroy method to remove their DOM element at the very least.  There is no default
-     *  implementation and views should be hidden when this is called. The Pane object doesn't make assumptions
-     *  about when it is safe to remove a node. In some instances other cleanup  must take place before a view is
-     *  destroyed so the implementation details are left to the view.  
-     *
-     *  Views can implement a simple destroy by calling `this.$el.remove()` 
-     *
-     * focus()
-     *
-     *  Called to tell the View to take focus.
-     * 
-     * getScrollPos()
-     * adjustScrollPos()
-     * 
-     *  The system at various times may want to save and restore the view's scroll position.  The data returned by getScrollPos() is 
-     *  specific to your view.  It will only be saved and passed back to adjustScrollPos() when the system wants the view to restore
-     *  its scroll position.
-     *
-     *  When Modal Bars are invoked, the system calls getScrollPos() so that the current scroll psotion of all visible Views can be cahced. 
-     *  Later, the cached scroll position data is passed to adjustScrollPos() along with a height delta.  The height delta is used to 
-     *  scroll the view so that it doesn't appear to have "jumped" when invoking a modal bar. 
-     *
-     *  Height delta will be a positivewhen the Modal Bar is being shown and negative number when the Modal Bar is being hidden.  
-     *
-     * notifyContainerChange() 
-     *
-     *  Optional Notification callback called when the container changes.  The view can perform any synchronization or state update it needs to do when its parent container changes.
-     *  
-     * notifyVisiblityChange()
-     * 
-     *  Optional Notification callback called when the view's vsibility changes.  The view can perform any synchronization or state update it needs to do when its visiblity state changes.
+     * @typedef {!$el: jQuery, getFile:function():!File, updateLayout:function(forceRefresh:boolean), destroy:function(),  getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number)=, getViewState:function():?*=, restoreViewState:function(viewState:!*)=, notifyContainerChange:function()=, notifyVisibilityChange:function(boolean)=} View
      */
     
     /**
-     * @typedef {!$el: jQuery, getFile:function():?File, setVisible:function(visible:boolean), updateLayout:function(forceRefresh:boolean), destroy:function(),  getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number), getViewState:function():?*, restoreViewState:function(viewState:!*), notifyContainerChange:function(), notifyVisibilityChange:function(boolean)} View
-     */
-    
-    /*
      * Pane Objects are constructed by the MainViewManager object when a Pane view is needed
      * @see {@link MainViewManager} for more information
      *
@@ -203,12 +220,13 @@ define(function (require, exports, module) {
         // Listen to document events so we can update ourself
         $(DocumentManager).on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
         $(DocumentManager).on(this._makeEventName("pathDeleted"), _.bind(this._handleFileDeleted, this));
+        $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
     }
 
     /**
      * id of the pane
      * @readonly
-     * @type {@return {}
+     * @type {!string}
      */
     Pane.prototype.id = null;
     
@@ -360,13 +378,14 @@ define(function (require, exports, module) {
             view.destroy();
         });
 
-        // this reset all internal data structures
+        // this _reset all internal data structures
         //  and will set the current view to null 
         other._initialize();
     };
     
     /**
-     * Removes the DOM node for the Pane view
+     * Removes the DOM node for the Pane, removes all 
+     *  event handlers and _resets all internal data structures
      */
     Pane.prototype.destroy = function () {
         if (this._currentView ||
@@ -374,8 +393,11 @@ define(function (require, exports, module) {
                 this._viewList.length > 0) {
             console.warn("destroying a pane that isn't empty");
         }
-            
+
+        this._reset();
+        
         $(DocumentManager).off(this._makeEventName(""));
+        $(MainViewManager).off(this._makeEventName(""));
 
         this.$el.off(".pane");
         this.$el.remove();
@@ -440,7 +462,7 @@ define(function (require, exports, module) {
     
     /** 
      * Return value from reorderItem when the Item was found at its natural index 
-     * and the pane view list does not need to be resorted
+     * and the workingset does not need to be resorted
      * @see {@link reorderItem()}
      * @const 
      */
@@ -448,7 +470,7 @@ define(function (require, exports, module) {
     
     /** 
      * Return value from reorderItem when the Item was found and reindexed 
-     * and the pane view list needs to be resorted
+     * and the workingset needs to be resorted
      * @see {@link reorderItem()}
      * @const 
      */
@@ -490,21 +512,21 @@ define(function (require, exports, module) {
      */
     Pane.prototype._canAddFile = function (file) {
         return ((this._views.hasOwnProperty(file.fullPath) && this.findInViewList(file.fullPath) === -1) ||
-                    (!MainViewManager.getPaneIdForPath(file.fullPath)));
+                    (!MainViewManager._getPaneIdForPath(file.fullPath)));
     };
     
     /**
-     * Adds the given file to the end of the pane view list, if it is not already in the list
+     * Adds the given file to the end of the workingset, if it is not already in the list
      * @private
      * @param {!File} file
      * @param {Object=} inPlace record with inPlace add data (index, indexRequested). Used internally
      */
     Pane.prototype._addToViewList = function (file, inPlace) {
         if (inPlace && inPlace.indexRequested) {
-            // If specified, insert into the pane view list at this 0-based index
+            // If specified, insert into the workingset at this 0-based index
             this._viewList.splice(inPlace.index, 0, file);
         } else {
-            // If no index is specified, just add the file to the end of the pane view list.
+            // If no index is specified, just add the file to the end of the workingset.
             this._viewList.push(file);
         }
         
@@ -522,7 +544,7 @@ define(function (require, exports, module) {
 
                 
     /**
-     * Adds the given file to the end of the pane view list, if it is not already in the list
+     * Adds the given file to the end of the workingset, if it is not already in the list
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!File} file - file to add
      * @param {number=} index - position where to add the item
@@ -542,7 +564,7 @@ define(function (require, exports, module) {
     
 
     /**
-     * Adds the given file list to the end of the pane view list. 
+     * Adds the given file list to the end of the workingset. 
      * @param {!Array.<File>} fileList
      * @return {!Array.<File>} list of files added to the list
      */
@@ -863,9 +885,10 @@ define(function (require, exports, module) {
     };
     
     /**
-     * resets the pane to an empty state
+     * _resets the pane to an empty state
+     * @private
      */
-    Pane.prototype.reset = function () {
+    Pane.prototype._reset = function () {
         var views = [],
             view = this._currentView;
 
@@ -929,10 +952,13 @@ define(function (require, exports, module) {
                         });
                 }
                 return true;
+            } else {
+                // Nothing was removed so don't try to remove it again
+                return false;
             }
-            return false;
+        } else {
+            return this._doRemove(file);
         }
-        return this._doRemove(file);
     };
     
     /**
@@ -965,12 +991,15 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Called when the pane becomes the active pane
-     * @param {boolean=} true if the pane is active, false if not
+     * MainViewManager.activePaneChange handler
+     * @param {jQuery.event} e - event data
+     * @param {!string} activePaneId - the new active pane id
      */
-    Pane.prototype.notifySetActive = function (active) {
-        this.$el.toggleClass("active-pane", Boolean(active));
+    Pane.prototype._handleActivePaneChange = function (e, activePaneId) {
+        this.$el.toggleClass("active-pane", Boolean(activePaneId === this.id));
     };
+    
+    
     
     /**
      * serializes the pane state
@@ -1048,7 +1077,7 @@ define(function (require, exports, module) {
      * @return {Object=} scroll state - the current scroll state
      */
     Pane.prototype.getScrollState = function () {
-        if (this._currentView) {
+        if (this._currentView && this._currentView.getScrollPos) {
             return {scrollPos: this._currentView.getScrollPos()};
         }
     };
@@ -1059,7 +1088,7 @@ define(function (require, exports, module) {
      * @param {number=} heightDelta - the amount to add or subtract from the state
      */
     Pane.prototype.restoreAndAdjustScrollState = function (state, heightDelta) {
-        if (this._currentView && state && state.scrollPos) {
+        if (this._currentView && state && state.scrollPos && this._currentView.adjustScrollPos) {
             this._currentView.adjustScrollPos(state.scrollPos, heightDelta);
         }
     };

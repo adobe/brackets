@@ -20,11 +20,20 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, window */
 
+/**
+ * ViewStateManager is a singleton for views to park their global viwe state. The state is saved
+ * with project data but the View or View Factory is responsible for restoring the view state
+ * when the view is created.
+ *
+ * Views should implement `getViewState()` so that the view state can be saved and that data is cached
+ * for later use.
+ *
+ * Views or View Factories are responsible for restoring the view state when the view of that file is created
+ * by recalling the cached state.  Views determine what data is store in the view state and how to restore it.
+ */
 define(function (require, exports, module) {
     "use strict";
     
@@ -60,7 +69,9 @@ define(function (require, exports, module) {
      * @param {?*} viewState - any data that the view needs to restore the view state.  
      */
     function updateViewState(view) {
-        _setViewState(view.getFile(), view.getViewState());
+        if (view.getViewState) {
+            _setViewState(view.getFile(), view.getViewState());
+        }
     }
     
     /**

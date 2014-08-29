@@ -38,8 +38,6 @@ define(function (require, exports, module) {
     var _module = module;
     
     /* @type {Object.<string, ConfigView>} List of open views */
-    var _viewers = {};
-    
     function ConfigView(doc, $container) {
         this.$container = $container;
         this.doc = doc;
@@ -51,7 +49,6 @@ define(function (require, exports, module) {
             "background-repeat": "no-repeat"
         });
         $container.append(this.$view);
-        _viewers[doc.file.fullPath] = this;
     }
     
     /* 
@@ -60,14 +57,6 @@ define(function (require, exports, module) {
      */
     ConfigView.prototype.getFile = function () {
         return this.doc.file;
-    };
-    
-    /* 
-     * Shows/Hides the view
-     * @param {boolean} visible - true to show, false to hide
-     */
-    ConfigView.prototype.setVisible = function (visible) {
-        this.$view.css("display", (!!visible) ? "block" : "none");
     };
     
     /* 
@@ -80,51 +69,7 @@ define(function (require, exports, module) {
      * Destroys the view
      */
     ConfigView.prototype.destroy = function () {
-        delete _viewers[this.doc.file.fullPath];
         this.$view.remove();
-    };
-    
-    /* 
-     * Required interface - does nothing 
-     * @returns {undefined}
-     */
-    ConfigView.prototype.getScrollPos = function () {
-    };
-
-    /* 
-     * Required interface - does nothing 
-     */
-    ConfigView.prototype.adjustScrollPos = function () {
-    };
-    
-    /* 
-     * Required interface - does nothing 
-     */
-    ConfigView.prototype.getViewState = function () {
-    };
-
-    /* 
-     * Required interface - does nothing 
-     * @returns {undefined}
-     */
-    ConfigView.prototype.restoreViewState = function () {
-    };
-    
-    /* 
-     * Reparents the view 
-     * @param {!jQuery} $container - the new parent
-     */
-    ConfigView.prototype.switchContainers = function ($container) {
-        this.$view.detach().appendTo($container);
-        this.$container = $container;
-    };
-    
-    /* 
-     * Retrieves the parent container
-     * @return {!jQuery} parent
-     */
-    ConfigView.prototype.getContainer = function () {
-        return this.$container;
     };
     
     /* 
@@ -134,18 +79,24 @@ define(function (require, exports, module) {
      * @private
      */
     function _createConfigViewOf(file, pane) {
-        var result = new $.Deferred();
+        var result = new $.Deferred(),
+            view = pane.findViewOfFile(file.fullPath);
         
-        DocumentManager.getDocumentForPath(file.fullPath)
-            .done(function (doc) {
-                var view = new ConfigView(doc, pane.$el);
-                pane.addView(view, true);
-                result.resolve(doc.file);
-            })
-            .fail(function (fileError) {
-                result.reject(fileError);
-            });
-        
+        if (view) {
+            // existing view, then just show it
+            pane.showView(view);
+            result.resolve(view.getFile());
+        } else {
+            DocumentManager.getDocumentForPath(file.fullPath)
+                .done(function (doc) {
+                    var view = new ConfigView(doc, pane.$el);
+                    pane.addView(view, true);
+                    result.resolve(doc.file);
+                })
+                .fail(function (fileError) {
+                    result.reject(fileError);
+                });
+        }
         return result.promise();
     }
     

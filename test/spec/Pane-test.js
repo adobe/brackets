@@ -143,7 +143,7 @@ define(function (require, exports, module) {
                 spyOn(myView, "destroy");
                 
                 myPane.showView(myView);
-                myPane.reset();
+                myPane._reset();
                 
                 expect(Object.keys(myPane._views).length).toBe(0);
                 expect(myView.destroy).toHaveBeenCalled();
@@ -154,7 +154,7 @@ define(function (require, exports, module) {
                 myPane.showView(myView);
                 expect(myPane.$el.find(".not-editor").css("display")).toEqual("none");
                 
-                myPane.reset();
+                myPane._reset();
                 expect(myPane.$el.find(".not-editor").css("display")).toBeFalsy();
             });
             it("should destroy view when new view is added", function () {
@@ -502,7 +502,7 @@ define(function (require, exports, module) {
                 
                 myPane.addToViewList(myView.getFile());
                 myPane.showView(myView);
-                myPane.reset();
+                myPane._reset();
 
                 expect(eventHandler.callCount).toBe(2);
                 $(myPane).off(".test");

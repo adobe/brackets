@@ -176,7 +176,7 @@ define(function (require, exports, module) {
             // Add the file to the working set on double click
             .on("dblclick.searchResults", ".table-container tr:not(.file-section)", function (e) {
                 var item = self._searchList[$(this).data("file-index")];
-                FileViewController.addToPaneViewAndSelect(item.fullPath);
+                FileViewController.openFileAndAddToWorkingSet(item.fullPath);
             })
         
             // Add the click event listener directly on the table parent

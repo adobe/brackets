@@ -770,7 +770,7 @@ define(function (require, exports, module) {
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
                     if (entry && entry.isFile && !_isInRename(event.target)) {
-                        FileViewController.addToPaneViewAndSelect(entry.fullPath);
+                        FileViewController.openFileAndAddToWorkingSet(entry.fullPath);
                     }
                     if (_mouseupTimeoutId !== null) {
                         window.clearTimeout(_mouseupTimeoutId);

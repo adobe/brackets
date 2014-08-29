@@ -131,7 +131,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
                 });
                 runs(function () {
-                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/images/lrg_logo.jpg",
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/images/lrg_logo.png",
                                                                                             paneId: "second-pane"});
                     waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
                 });
@@ -147,10 +147,10 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     MainViewManager.setLayoutScheme(1, 1);
-                    expect(MainViewManager.getPaneIdForPath(testPath + "/images/events.jpg")).toEqual("first-pane");
-                    expect(MainViewManager.getPaneIdForPath(testPath + "/images/lrg_logo.jpg")).toEqual("first-pane");
-                    expect(MainViewManager.getPaneIdForPath(testPath + "/images/specials.jpg")).toEqual("first-pane");
-                    expect(MainViewManager.getPaneIdForPath(testPath + "/images/lrg_hero.jpg")).toEqual("first-pane");
+                    expect(MainViewManager._getPaneIdForPath(testPath + "/images/events.jpg")).toEqual("first-pane");
+                    expect(MainViewManager._getPaneIdForPath(testPath + "/images/lrg_logo.png")).toEqual("first-pane");
+                    expect(MainViewManager._getPaneIdForPath(testPath + "/images/specials.jpg")).toEqual("first-pane");
+                    expect(MainViewManager._getPaneIdForPath(testPath + "/images/lrg_hero.jpg")).toEqual("first-pane");
                 });
             });
         });

@@ -186,7 +186,7 @@ define(function (require, exports, module) {
      * @param {string=} paneId - Pane in which to add the view.  If omitted, the command default is to use the ACTIVE_PANE 
      * @return {!$.Promise}
      */
-    function addToPaneViewAndSelect(fullPath, paneId) {
+    function openFileAndAddToWorkingSet(fullPath, paneId) {
         var result = new $.Deferred(),
             promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath,
                                                                                   paneId: paneId});
@@ -211,14 +211,14 @@ define(function (require, exports, module) {
     /** 
      * Opens the specified document if it's not already open, adds it to the working set,
      * and selects it in the WorkingSetView
-     * @deprecated use FileViewController.addToPaneViewAndSelect() instead
+     * @deprecated use FileViewController.openFileAndAddToWorkingSet() instead
      * @param {!fullPath}
      * @return {!$.Promise}
      */
     function addToWorkingSetAndSelect(fullPath) {
-        DeprecationWarning.deprecationWarning("Use FileViewController.addToPaneViewAndSelect() instead of FileViewController.addToWorkingSetAndSelect().", true);
+        DeprecationWarning.deprecationWarning("Use FileViewController.openFileAndAddToWorkingSet() instead of FileViewController.addToWorkingSetAndSelect().", true);
         var result = new $.Deferred();
-        addToPaneViewAndSelect(fullPath)
+        openFileAndAddToWorkingSet(fullPath)
             .done(function (file) {
                 var doc;
                 
@@ -252,7 +252,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.getFileSelectionFocus = getFileSelectionFocus;
     exports.openAndSelectDocument = openAndSelectDocument;
-    exports.addToPaneViewAndSelect = addToPaneViewAndSelect;
+    exports.openFileAndAddToWorkingSet = openFileAndAddToWorkingSet;
     exports.setFileViewFocus = setFileViewFocus;
     exports.WORKINGSET_VIEW = WORKINGSET_VIEW;
     exports.PROJECT_MANAGER = PROJECT_MANAGER;

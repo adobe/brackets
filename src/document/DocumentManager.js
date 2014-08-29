@@ -259,8 +259,8 @@ define(function (require, exports, module) {
      * @param {!Document} document  The Document to make current. 
      */
     function setCurrentDocument(doc) {
-        DeprecationWarning.deprecationWarning("Use CommandManager.doCommand(Commands.FILE_OPEN) instead of DocumentManager.setCurrentDocument()", true);
-        return MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
+        DeprecationWarning.deprecationWarning("Use CommandManager.doCommand(Commands.CMD_OPEN) instead of DocumentManager.setCurrentDocument()", true);
+        CommandManager.execute(Commands.CMD_OPEN, {fullPath: doc.file.fullPath});
     }
 
     
@@ -285,11 +285,11 @@ define(function (require, exports, module) {
     /**
      * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
      * return currentDocument itself if working set is length 1.
-     * @deprecated use MainViewManager.traverseViewsByMRU() instead
+     * @deprecated use MainViewManager.traverseToNextViewByMRU() instead
      */
     function getNextPrevFile(inc) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.traverseViewsByMRU() instead of DocumentManager.getNextPrevFile()", true);
-        var result = MainViewManager.traverseViewsByMRU(inc);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.traverseToNextViewByMRU() instead of DocumentManager.getNextPrevFile()", true);
+        var result = MainViewManager.traverseToNextViewByMRU(inc);
         if (result) {
             return result.file;
         }

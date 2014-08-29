@@ -193,15 +193,6 @@ define(function (require, exports, module) {
     var _cmdSplitHorizontally;
     
     /**
-     * localized pane titles 
-     * @type {Object.<FIRST_PANE|SECOND_PANE, <VERTICAL.string, HORIZONTAL.string>}}
-     *  Localized string for first and second panes in the current orientation.  
-     * @see {@link getPaneTitle()} for more information
-     * @private
-     */
-    var _paneTitles  = {};
-    
-    /**
      * current orientation (null, VERTICAL or HORIZONTAL)
      * @type {string=} 
      * @private
@@ -216,14 +207,14 @@ define(function (require, exports, module) {
     var _activePaneId = null;
     
     /**
-     * Container we live in
+     * DOM element hosting the Main View.
      * @type {jQuery}
      * @private
      */
-    var _$container;
+    var _$el;
     
     /**
-     * map of panes
+     * Maps paneId to Pane objects
      * @type {Object.<string, Pane>} 
      * @private
      */
@@ -255,13 +246,33 @@ define(function (require, exports, module) {
     var _mruList = [];
     
     /**
-     * Makes a _filelist Entry
+     * localized pane titles 
+     * @type {Object.<FIRST_PANE|SECOND_PANE, <VERTICAL.string, HORIZONTAL.string>}}
+     *  Localized string for first and second panes in the current orientation.  
+     * @see {@link getPaneTitle()} for more information
+     * @private
+     */
+    var _paneTitles  = {};
+        
+    /*
+     * Initialize _paneTitles
+     */
+    _paneTitles[FIRST_PANE] = {};
+    _paneTitles[SECOND_PANE] = {};
+    
+    _paneTitles[FIRST_PANE][VERTICAL]     = Strings.LEFT;
+    _paneTitles[FIRST_PANE][HORIZONTAL]   = Strings.TOP;
+    _paneTitles[SECOND_PANE][VERTICAL]    = Strings.RIGHT;
+    _paneTitles[SECOND_PANE][HORIZONTAL]  = Strings.BOTTOM;
+    
+    /**
+     * Makes a MRU List Entry
      * @param {!File} File - the file
      * @param {!string} paneId - the paneId
      * @return {{file:File, paneId:string}}
      * @private
      */
-    function _makeFileListEntry(file, paneId) {
+    function _makeMRUListEntry(file, paneId) {
         return {file: file, paneId: paneId};
     }
     
@@ -325,7 +336,7 @@ define(function (require, exports, module) {
                 return (record.file === file && record.paneId === paneId);
             });
 
-            entry = _makeFileListEntry(file, pane.id);
+            entry = _makeMRUListEntry(file, pane.id);
 
             if (index !== -1) {
                 _mruList.splice(index, 1);
@@ -371,9 +382,6 @@ define(function (require, exports, module) {
                                                             newPaneId,
                                                             oldPane.getCurrentlyViewedFile(),
                                                             oldPaneId]);
-            
-            oldPane.notifySetActive(false);
-            newPane.notifySetActive(true);
             
             _makePaneMostRecent(_activePaneId);
         }
@@ -543,7 +551,7 @@ define(function (require, exports, module) {
     
     /**
      * Retrieves the size of the selected pane's view list
-     * @param {!string} paneId - id of the pane in which to get the pane view list size.
+     * @param {!string} paneId - id of the pane in which to get the workingset size.
      *      Can use `ALL_PANES` or `ACTIVE_PANE`
      * @return {!number} the number of items in the specified pane 
      */
@@ -556,7 +564,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Retrieves the title to display in the pane view list view
+     * Retrieves the title to display in the workingset view
      * @param {!string} paneId - id of the pane in which to get the title
      * @return {?string} title
      */
@@ -573,7 +581,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Helper to abastract the common search cases for searching 
+     * Helper to abastract the common working set search functions
      * @param {!string} paneId - id of the pane to search or ALL_PANES to search all panes
      * @param {!string} fullPath - path of the file to locate
      * @param {!string} method - name of the method to use for searching 
@@ -581,7 +589,7 @@ define(function (require, exports, module) {
      * 
      * @private
      */
-    function _doFindView(paneId, fullPath, method) {
+    function _doFindInWorkingSet(paneId, fullPath, method) {
         var result = -1;
         _forEachPaneOrPanes(paneId, function (pane) {
             var index = pane[method].call(pane, fullPath);
@@ -594,7 +602,8 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Finds all views of the specified file
+     * Finds all instances of the specified file in all working sets.  
+     * If there is a temporary view of the file, it is not part of the result set
      * @param {!string} fullPath - path of the file to find views of
      * @return {Array.<{pane:string, index:number}>} an array of paneId/index records 
      */
@@ -613,41 +622,44 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Gets the index of the file matching fullPath in the pane view list
+     * Gets the index of the file matching fullPath in the workingset
      * @param {!string} paneId - id of the pane in which to search or ALL_PANES or ACTIVE_PANE
      * @param {!string} fullPath - full path of the file to search for
      * @return {number} index, -1 if not found.
      */
     function findInWorkingSet(paneId, fullPath) {
-        return _doFindView(paneId, fullPath, "findInViewList");
+        return _doFindInWorkingSet(paneId, fullPath, "findInViewList");
     }
     
     /**
-     * Gets the index of the file matching fullPath in the added order pane view list
+     * Gets the index of the file matching fullPath in the added order workingset
      * @param {!string} paneId - id of the pane in which to search or ALL_PANES or ACTIVE_PANE
      * @param {!string} fullPath - full path of the file to search for
      * @return {number} index, -1 if not found.
      */
     function findInWorkingSetByAddedOrder(paneId, fullPath) {
-        return _doFindView(paneId, fullPath, "findInViewListAddedOrder");
+        return _doFindInWorkingSet(paneId, fullPath, "findInViewListAddedOrder");
     }
     
     /**
-     * Gets the index of the file matching fullPath in the MRU order pane view list
+     * Gets the index of the file matching fullPath in the MRU order workingset
      * @param {!string} paneId - id of the pane in which to search or ALL_PANES or ACTIVE_PANE
      * @param {!string} fullPath - full path of the file to search for
      * @return {number} index, -1 if not found.
      */
-    function findInWorkingSetByMruOrder(paneId, fullPath) {
-        return _doFindView(paneId, fullPath, "findInViewListMRUOrder");
+    function findInWorkingSetByMRUOrder(paneId, fullPath) {
+        return _doFindInWorkingSet(paneId, fullPath, "findInViewListMRUOrder");
     }
 
     /**
-     * Retrieves pane id where the specified file has been opened
+     * @private 
+     * Retrieves pane id where the specified file has been opened. Used to ensure that a file
+     *  is open in only one pane so this will change once support for multiple views is added
+     * The result includes panes with a temporary view of the file not just working set instances
      * @param {!string} fullPath - full path of the file to search for
      * @return {?string} pane id where the file has been opened or null if it wasn't found
      */
-    function getPaneIdForPath(fullPath) {
+    function _getPaneIdForPath(fullPath) {
         // Search all working sets and pull off the first one
         var info = findInAllWorkingSets(fullPath).shift();
 
@@ -669,17 +681,22 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Adds the given file to the end of the pane view list, if it is not already in the list
+     * Adds the given file to the end of the workingset, if it is not already there.  
+     *  This API does not create a view of the file, it just adds it to the working set
+     * Views of files in the working set are persisted and are not destroyed until the user 
+     *  closes the file using FILE_CLOSE; Views are created using FILE_OPEN and, when opened, are
+     *  made the current view. If a File is already opened then the file is just made current
+     *  and its view is shown.
      * @param {!string} paneId - The id of the pane in which to add the file object to or ACTIVE_PANE
-     * @param {!File} file - The File object to add
+     * @param {!File} file - The File object to add to the workingset
      * @param {number=} index - Position to add to list (defaults to last); -1 is ignored
-     * @param {boolean=} forceRedraw - If true, a pane view list change notification is always sent
+     * @param {boolean=} forceRedraw - If true, a workingset change notification is always sent
      *    (useful if suppressRedraw was used with removeView() earlier)
      */
     function addToWorkingSet(paneId, file, index, force) {
         // look for the file to have already been added to another pane
         var pane = _getPane(paneId),
-            existingPaneId = getPaneIdForPath(file.fullPath);
+            existingPaneId = _getPaneIdForPath(file.fullPath);
 
         if (!pane) {
             throw new Error("invalid pane id: " + paneId);
@@ -695,7 +712,7 @@ define(function (require, exports, module) {
         }
         
         var result = pane.reorderItem(file, index, force),
-            entry = _makeFileListEntry(file, pane.id);
+            entry = _makeMRUListEntry(file, pane.id);
 
         
         // handles the case of save as so that the file remains in the 
@@ -718,7 +735,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Adds the given file list to the end of the pane view list.
+     * Adds the given file list to the end of the workingset.
      * @param {!string} paneId - The id of the pane in which to add the file object to or ACTIVE_PANE
      * @param {!Array.<File>} fileList - Array of files to add to the pane
      */
@@ -729,7 +746,7 @@ define(function (require, exports, module) {
         uniqueFileList = pane.addListToViewList(fileList);
         
         uniqueFileList.forEach(function (file) {
-            _mruList.push(_makeFileListEntry(file, pane.id));
+            _mruList.push(_makeMRUListEntry(file, pane.id));
         });
         
         $(exports).triggerHandler("workingSetAddList", [uniqueFileList, pane.id]);
@@ -737,13 +754,13 @@ define(function (require, exports, module) {
         //  find all of the files that could be added but were not 
         var unsolvedList = fileList.filter(function (item) {
             // if the file open in another pane, then add it to the list of unsolvedList
-            return (pane.findInViewList(item.fullPath) === -1 && getPaneIdForPath(item.fullPath));
+            return (pane.findInViewList(item.fullPath) === -1 && _getPaneIdForPath(item.fullPath));
         });
 
         // Use the pane id of the first one in the list for pane id and recurse
         //  if we add more panes, then this will recurse until all items in the list are satisified
         if (unsolvedList.length) {
-            addListToWorkingSet(getPaneIdForPath(unsolvedList[0].fullPath), unsolvedList);
+            addListToWorkingSet(_getPaneIdForPath(unsolvedList[0].fullPath), unsolvedList);
         }
     }
     
@@ -837,7 +854,7 @@ define(function (require, exports, module) {
      * @return {?{file:File, paneId:string}} The File object of the next item in the travesal order or null if there aren't any files to traverse.
      *                                        may return current file if there are no other files to traverse.
      */
-    function traverseViewsByMRU(direction) {
+    function traverseToNextViewByMRU(direction) {
         var file = getCurrentlyViewedFile(),
             paneId = getActivePaneId(),
             index = _.findIndex(_mruList, function (record) {
@@ -919,7 +936,7 @@ define(function (require, exports, module) {
             pane;
         
         if (!_panes.hasOwnProperty(paneId)) {
-            pane = new Pane(paneId, _$container);
+            pane = new Pane(paneId, _$el);
             _panes[paneId] = pane;
             
             $(exports).triggerHandler("paneCreate", [pane.id]);
@@ -970,7 +987,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _edit(paneId, doc) {
-        var currentPaneId = getPaneIdForPath(doc.file.fullPath),
+        var currentPaneId = _getPaneIdForPath(doc.file.fullPath),
             oldPane = _getPane(ACTIVE_PANE),
             oldFile = oldPane.getCurrentlyViewedFile();
             
@@ -1014,9 +1031,14 @@ define(function (require, exports, module) {
             throw new Error("bad argument");
         }
 
-        var currentPaneId = getPaneIdForPath(file.fullPath);
+        var currentPaneId = _getPaneIdForPath(file.fullPath);
 
         if (currentPaneId) {
+            // If the doc is open in another pane
+            //  then switch to that pane and call open document
+            //  which will really just show the view as it has always done
+            //  we could just do pane.showView(doc._masterEditor) in that
+            //  case but Editor Manager may do some state syncing             
             paneId = currentPaneId;
             setActivePaneId(paneId);
         }
@@ -1031,19 +1053,25 @@ define(function (require, exports, module) {
         var factory = MainViewFactory.findSuitableFactoryForPath(file.fullPath);
 
         if (factory) {
-            // let the factory open the file and create a view for it
-            factory.openFile(file, pane)
-                .done(function () {
-                    // if we opened a file that isn't in the project
-                    //  then add the file to the working set
-                    if (!ProjectManager.isWithinProject(file.fullPath)) {
-                        addToWorkingSet(paneId, file);
-                    }
-                    result.resolve(file);
-                })
-                .fail(function (fileError) {
-                    result.reject(fileError);
-                });
+            file.exists(function (fileError, fileExists) {
+                if (fileExists) {
+                    // let the factory open the file and create a view for it
+                    factory.openFile(file, pane)
+                        .done(function () {
+                            // if we opened a file that isn't in the project
+                            //  then add the file to the working set
+                            if (!ProjectManager.isWithinProject(file.fullPath)) {
+                                addToWorkingSet(paneId, file);
+                            }
+                            result.resolve(file);
+                        })
+                        .fail(function (fileError) {
+                            result.reject(fileError);
+                        });
+                } else {
+                    result.reject(fileError || FileSystemError.NOT_FOUND);
+                }
+            });
         } else {
             DocumentManager.getDocumentForPath(file.fullPath)
                 .done(function (doc) {
@@ -1097,7 +1125,7 @@ define(function (require, exports, module) {
 
             // if the current view before the merger was in the pane
             //  that went away then reopen it so that it's now the current view again
-            if (getCurrentlyViewedFile() !== lastViewed) {
+            if (lastViewed && getCurrentlyViewedFile() !== lastViewed) {
                 exports._open(firstPane.id, lastViewed);
             }
         }
@@ -1150,7 +1178,7 @@ define(function (require, exports, module) {
                 _removeFileFromMRU(pane.id, file);
             });
 
-            pane.reset();
+            pane._reset();
             $(exports).triggerHandler("workingSetRemoveList", [closedList, pane.id]);
         });
     }
@@ -1204,7 +1232,7 @@ define(function (require, exports, module) {
 
     
     /**
-     * Loads the pane view list state
+     * Loads the workingset state
      * @private
      */
     function _loadViewState(e) {
@@ -1218,8 +1246,6 @@ define(function (require, exports, module) {
                                      layer: "project" } },
             state = PreferencesManager.getViewState(PREFS_NAME, context);
 
-
-        /* convert the view state data */
         function convertViewState() {
             var context = { location : { scope: "user",
                                          layer: "project" } },
@@ -1238,7 +1264,7 @@ define(function (require, exports, module) {
                 }
             };
 
-            // Add all files to the pane view list without verifying that
+            // Add all files to the workingset without verifying that
             // they still exist on disk (for faster project switching)
             files.forEach(function (value) {
                 result.panes[FIRST_PANE].push(value);
@@ -1282,7 +1308,7 @@ define(function (require, exports, module) {
                     var fileList = pane.getViewList();
 
                     fileList.forEach(function (file) {
-                        _mruList.push(_makeFileListEntry(file, pane.id));
+                        _mruList.push(_makeMRUListEntry(file, pane.id));
                     });
                     $(exports).triggerHandler("workingSetAddList", [fileList, pane.id]);
                 });
@@ -1291,7 +1317,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Saves the pane view list state
+     * Saves the workingset state
      * @private
      */
     function _saveViewState() {
@@ -1324,13 +1350,15 @@ define(function (require, exports, module) {
      * @private
      */
     function _initialize($container) {
-        if (!_activePaneId) {
-            _$container = $container;
-            _createPaneIfNecessary(FIRST_PANE);
-            _activePaneId = FIRST_PANE;
-            _panes[FIRST_PANE].notifySetActive(true);
-            _updateLayout();
+        if (_activePaneId) {
+            throw new Error("MainViewManager has already been initialized");
         }
+        _$el = $container;
+        _createPaneIfNecessary(FIRST_PANE);
+        _activePaneId = FIRST_PANE;
+        // One-time init so the pane has the "active" appearance   
+        _panes[FIRST_PANE]._handleActivePaneChange(undefined, _activePaneId);
+        _updateLayout();
     }
     
     /** 
@@ -1439,15 +1467,6 @@ define(function (require, exports, module) {
                                                     CMD_ID_SPLIT_HORIZONTALLY,
                                                     _handleSplitHorizontially);
 
-    
-    _paneTitles[FIRST_PANE] = {};
-    _paneTitles[SECOND_PANE] = {};
-    
-    _paneTitles[FIRST_PANE][VERTICAL]     = Strings.LEFT;
-    _paneTitles[FIRST_PANE][HORIZONTAL]   = Strings.TOP;
-    _paneTitles[SECOND_PANE][VERTICAL]    = Strings.RIGHT;
-    _paneTitles[SECOND_PANE][HORIZONTAL]  = Strings.BOTTOM;
-    
     // Unit Test Helpers
     exports._initialize                   = _initialize;
     exports._getPane                      = _getPane;
@@ -1464,6 +1483,7 @@ define(function (require, exports, module) {
     exports._close                        = _close;
     exports._closeAll                     = _closeAll;
     exports._closeList                    = _closeList;
+    exports._getPaneIdForPath             = _getPaneIdForPath;
     
     // WorkingSet Management  
     exports.addToWorkingSet               = addToWorkingSet;
@@ -1478,13 +1498,13 @@ define(function (require, exports, module) {
     // Searching
     exports.findInWorkingSet              = findInWorkingSet;
     exports.findInWorkingSetByAddedOrder  = findInWorkingSetByAddedOrder;
-    exports.findInWorkingSetByMruOrder    = findInWorkingSetByMruOrder;
+    exports.findInWorkingSetByMRUOrder    = findInWorkingSetByMRUOrder;
     exports.findInAllWorkingSets          = findInAllWorkingSets;
     
     // Traversal
     exports.beginTraversal                = beginTraversal;
     exports.endTraversal                  = endTraversal;
-    exports.traverseViewsByMRU            = traverseViewsByMRU;
+    exports.traverseToNextViewByMRU            = traverseToNextViewByMRU;
     
     // PaneView Attributes
     exports.getActivePaneId               = getActivePaneId;
@@ -1492,7 +1512,6 @@ define(function (require, exports, module) {
     exports.getPaneIdList                 = getPaneIdList;
     exports.getPaneTitle                  = getPaneTitle;
     exports.getPaneCount                  = getPaneCount;
-    exports.getPaneIdForPath              = getPaneIdForPath;
     
     exports.getAllOpenFiles               = getAllOpenFiles;
     exports.focusActivePane               = focusActivePane;

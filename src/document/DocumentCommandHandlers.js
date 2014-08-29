@@ -264,7 +264,7 @@ define(function (require, exports, module) {
         
         function _cleanup(fullFilePath) {
             if (fullFilePath) {
-                // For performance, we do lazy checking of file existence, so it may be in pane view list
+                // For performance, we do lazy checking of file existence, so it may be in workingset
                 MainViewManager._removeView(paneId, FileSystem.getFileForPath(fullFilePath));
                 MainViewManager.focusActivePane();
             }
@@ -334,7 +334,7 @@ define(function (require, exports, module) {
             FileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null, function (err, paths) {
                 if (!err) {
                     if (paths.length > 0) {
-                        // Add all files to the pane view list without verifying that
+                        // Add all files to the workingset without verifying that
                         // they still exist on disk (for faster opening)
                         var filesToOpen = [],
                             filteredPaths = DragAndDrop.filterFilesToOpen(paths);
@@ -392,23 +392,23 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @typedef {{!fullPath:string, silent:boolean=, paneId:string=}} FileCommandData
+     * @typedef {{fullPath:?string=, silent:boolean=, paneId:string=}} FileCommandData
      * fullPath: is in the form "path[:lineNumber[:columnNumber]]"
      * lineNumber and columnNumber are 1-origin: lines and columns are 1-based
      */
 
     /**
-     * @typedef {{!fullPath:string, index:number=, silent:boolean=, forceRedraw:boolean=, paneId:string=}} PaneCommandData
+     * @typedef {{fullPath:?string=, index:number=, silent:boolean=, forceRedraw:boolean=, paneId:string=}} PaneCommandData
      * fullPath: is in the form "path[:lineNumber[:columnNumber]]"
      * lineNumber and columnNumber are 1-origin: lines and columns are 1-based
      */
     
     /**
-     * Opens the given file and makes it the current file. Does NOT add it to the pane view list.
-     * @param {FileCommandData=} commandData - 
-     *   File to open; 
-     *   optional flag to suppress error messages; 
-     *   optional PaneId (defaults to active pane)
+     * Opens the given file and makes it the current file. Does NOT add it to the workingset.
+     * @param {FileCommandData=} commandData - record with the following properties:
+     *   fullPath: File to open; 
+     *   silent: optional flag to suppress error messages; 
+     *   paneId: optional PaneId (defaults to active pane)
      * @return {$.Promise} a jQuery promise that will be resolved with a file object
      */
     function handleFileOpen(commandData) {
@@ -454,12 +454,12 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Opens the given file, makes it the current file, AND adds it to the pane view list
+     * Opens the given file, makes it the current file, AND adds it to the workingset
      * only if the file does not have a custom viewer.
      * @param {FileCommandData} commandData  
-     *   File to open; 
-     *   optional flag to suppress error messages; 
-     *   optional PaneId (defaults to active pane)
+     *   fullPath: File to open; 
+     *   silent: optional flag to suppress error messages; 
+     *   paneId: optional PaneId (defaults to active pane)
      * @return {$.Promise} a jQuery promise that will be resolved with @type {Document} 
      */
     function handleDocumentOpen(commandData) {
@@ -482,14 +482,14 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Opens the given file, makes it the current file, AND adds it to the pane view list
+     * Opens the given file, makes it the current file, AND adds it to the workingset
      * only if the file does not have a custom viewer.
-     * @param {!PaneCommandData} commandData
-     *   File to open; 
-     *   optional index to position in pane view list (defaults to last); 
-     *   optional flag to suppress error messages; 
-     *   optional flag to force pane view list redraw; 
-     *   optional PaneId (defaults to active pane)
+     * @param {!PaneCommandData} commandData - record with the following properties:
+     *   fullPath: File to open; 
+     *   index: optional index to position in workingset (defaults to last); 
+     *   silent: optional flag to suppress error messages; 
+     *   forceRedraw: flag to force the working set view redraw; 
+     *   paneId: optional PaneId (defaults to active pane)
      * @return {$.Promise} a jQuery promise that will be resolved with a @type {File} 
      */
     function handleFileAddToWorkingSetAndOpen(commandData) {
@@ -498,7 +498,7 @@ define(function (require, exports, module) {
             //          have document objects... 
             // addView is synchronous
             // When opening a file with a custom viewer, we get a null doc.
-            // So check it before we add it to the pane view list.
+            // So check it before we add it to the workingset.
             var paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
             MainViewManager.addToWorkingSet(paneId, file, commandData.index, commandData.forceRedraw);
         });
@@ -506,12 +506,13 @@ define(function (require, exports, module) {
 
     /**
      * @deprecated
-     * Opens the given file, makes it the current document, AND adds it to the pane view list
-     * @param {!PaneCommandData} commandData
-     *   File to open; 
-     *   optional index to position in 
-     *   pane view list (defaults to last); optional flag to suppress error messages; 
-     *   optional flag to force pane view list redraw; optional PaneId (defaults to active pane)
+     * Opens the given file, makes it the current document, AND adds it to the workingset
+     * @param {!PaneCommandData} commandData - record with the following properties:
+     *   fullPath: File to open; 
+     *   index: optional index to position in workingset (defaults to last); 
+     *   silent: optional flag to suppress error messages; 
+     *   forceRedraw: flag to force the working set view redraw; 
+     *   paneId: optional PaneId (defaults to active pane)
      * @return {$.Promise} a jQuery promise that will be resolved with @type {File} 
      */
     function handleFileAddToWorkingSet(commandData) {
@@ -596,7 +597,7 @@ define(function (require, exports, module) {
         // If a file is currently selected in the tree, put it next to it.
         // If a directory is currently selected in the tree, put it in it.
         // If an Untitled document is selected or nothing is selected in the tree, put it at the root of the project.
-        // (Note: 'selected' may be an item that's selected in the pane view list and not the tree; but in that case
+        // (Note: 'selected' may be an item that's selected in the workingset and not the tree; but in that case
         // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
         var baseDirEntry,
             selected = ProjectManager.getSelectedItem();
@@ -622,7 +623,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Create a new untitled document in the pane view list, and make it the current document.
+     * Create a new untitled document in the workingset, and make it the current document.
      * Promise is resolved (synchronously) with the newly-created Document.
      */
     function handleFileNew() {
@@ -840,22 +841,22 @@ define(function (require, exports, module) {
                 result.resolve(newFile);
             }
             
-            // Replace old document with new one in open editor & pane view list
+            // Replace old document with new one in open editor & workingset
             function openNewFile() {
                 var fileOpenPromise;
 
                 if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
-                    // If selection is in the tree, leave pane view list unchanged - even if orig file is in the list
+                    // If selection is in the tree, leave workingset unchanged - even if orig file is in the list
                     fileOpenPromise = FileViewController
                         .openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
                 } else {
-                    // If selection is in pane view list, replace orig item in place with the new file
+                    // If selection is in workingset, replace orig item in place with the new file
                     var info = MainViewManager.findInAllWorkingSets(doc.file.fullPath).shift();
                     
-                    // Remove old file from pane view list; no redraw yet since there's a pause before the new file is opened
+                    // Remove old file from workingset; no redraw yet since there's a pause before the new file is opened
                     MainViewManager._removeView(info.paneId, doc.file, true);
                     
-                    // Add new file to pane view list, and ensure we now redraw (even if index hasn't changed)
+                    // Add new file to workingset, and ensure we now redraw (even if index hasn't changed)
                     fileOpenPromise = handleFileAddToWorkingSetAndOpen({fullPath: path, paneId: info.paneId, index: info.index, forceRedraw: true});
                 }
 
@@ -885,9 +886,9 @@ define(function (require, exports, module) {
                     // If there were unsaved changes before Save As, they don't stay with the old
                     // file anymore - so must revert the old doc to match disk content.
                     // Only do this if the doc was dirty: _doRevert on a file that is not dirty and
-                    // not in the pane view list has the side effect of adding it to the pane view list.
+                    // not in the workingset has the side effect of adding it to the workingset.
                     if (doc.isDirty && !(doc.isUntitled())) {
-                        // if the file is dirty it must be in the pane view list
+                        // if the file is dirty it must be in the workingset
                         // _doRevert is side effect free in this case
                         _doRevert(doc).always(openNewFile);
                     } else {
@@ -1014,7 +1015,7 @@ define(function (require, exports, module) {
                         });
                     return savePromise;
                 } else {
-                    // pane view list entry that was never actually opened - ignore
+                    // workingset entry that was never actually opened - ignore
                     filesAfterSave.push(file);
                     return (new $.Deferred()).resolve().promise();
                 }
@@ -1069,7 +1070,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Closes the specified file: removes it from the pane view list, and closes the main editor if one
+     * Closes the specified file: removes it from the workingset, and closes the main editor if one
      * is open. Prompts user about saving changes first, if document is dirty.
      *
      * @param {?{file: File, promptOnly:boolean}} commandData  Optional bag of arguments:
@@ -1095,7 +1096,7 @@ define(function (require, exports, module) {
             paneId      = commandData.paneId || paneId;
         }
         
-        // utility function for handleFileClose: closes document & removes from pane view list
+        // utility function for handleFileClose: closes document & removes from workingset
         function doClose(file) {
             if (!promptOnly) {
                 MainViewManager._close(paneId, file);
@@ -1395,7 +1396,7 @@ define(function (require, exports, module) {
         // Prefer selected sidebar item (which could be a folder)
         var entry = ProjectManager.getSelectedItem();
         if (!entry) {
-            // Else use current file (not selected in ProjectManager if not visible in tree or pane view list)
+            // Else use current file (not selected in ProjectManager if not visible in tree or workingset)
             entry = MainViewManager.getCurrentlyViewedFile();
         }
         if (entry) {
@@ -1438,7 +1439,7 @@ define(function (require, exports, module) {
 
     /** Navigate to the next/previous (MRU) document. Don't update MRU order yet */
     function goNextPrevDoc(inc) {
-        var result = MainViewManager.traverseViewsByMRU(inc);
+        var result = MainViewManager.traverseToNextViewByMRU(inc);
         if (result) {
             var file = result.file,
                 paneId = result.paneId;
@@ -1504,7 +1505,7 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Show the selected sidebar (tree or pane view list) item in Finder/Explorer */
+    /** Show the selected sidebar (tree or workingset) item in Finder/Explorer */
     function handleShowInOS() {
         var entry = ProjectManager.getSelectedItem();
         if (entry) {

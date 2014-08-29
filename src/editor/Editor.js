@@ -278,7 +278,7 @@ define(function (require, exports, module) {
         //  to the edge of the editor which makes it not easy to read.  The code below to handle
         //  that the option change only applies the class to panes that have already been created
         // This line ensures that the class is applied to any editor created after the fact
-        $container.toggleClass("show-line-padding", !this._getOption("showLineNumbers"));
+        $container.toggleClass("show-line-padding", Boolean(!this._getOption("showLineNumbers")));
         
         // Create the CodeMirror instance
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
@@ -2401,7 +2401,7 @@ define(function (require, exports, module) {
         });
         
         _.each($holders, function ($holder) {
-            $holder.toggleClass("show-line-padding", !!showLinePadding);
+            $holder.toggleClass("show-line-padding", Boolean(showLinePadding));
         });
     };
     
