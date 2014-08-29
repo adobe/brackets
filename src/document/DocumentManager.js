@@ -676,7 +676,7 @@ define(function (require, exports, module) {
             // Should never get here if the fullPath refers to an Untitled document
             if (fullPath.indexOf(_untitledDocumentPath) === 0) {
                 console.error("getDocumentForPath called for non-open untitled document: " + fullPath);
-                return Promisereject();
+                return Promise.reject();
             }
             
             var file            = FileSystem.getFileForPath(fullPath),
