@@ -1188,10 +1188,12 @@ define(function (require, exports, module) {
         _tryAddToScopeOrder: function (shadowEntry, index) {
             
             return new Promise(function (resolve, reject) {
-                var shadowScopeOrder = this._defaultContext._shadowScopeOrder;
+                var lowerScope,
+                    shadowScopeOrder = this._defaultContext._shadowScopeOrder;
 
-                // `index` is calculated on initial call. It's then incremented and passed in
-                // for recursive iterations.
+                // Find a resolved scope of lower priority to add it before.
+                // `index` is calculated on initial call. It's then incremented and
+                // passed in for recursive iterations.
                 index = index || _.findIndex(shadowScopeOrder, function (entry) {
                     return entry === shadowEntry;
                 }) + 1;
@@ -1201,28 +1203,38 @@ define(function (require, exports, module) {
                     return;
                 }
 
-                // Find a resolved scope of lower priority to add it before.
-                // We can't synchronously determine state of a Promise, so we'll
-                // have to wait for appropriate callback.
-                shadowScopeOrder[index].promise.then(
-                    function () {
-                        // onFulfillment - success
-                        this._pushToScopeOrder(shadowEntry.id, shadowScopeOrder[index].id);
-                        $(this).trigger(SCOPEORDER_CHANGE, {
-                            id: shadowEntry.id,
-                            action: "added"
-                        });
-                        this._triggerChange({
-                            ids: shadowEntry.scope.getKeys()
-                        });
-                        resolve();
-                    }.bind(this),
+                lowerScope = shadowScopeOrder[index];
+                
+                var _addScope = function () {
+                    this._pushToScopeOrder(shadowEntry.id, lowerScope.id);
+                    $(this).trigger(SCOPEORDER_CHANGE, {
+                        id: shadowEntry.id,
+                        action: "added"
+                    });
+                    this._triggerChange({
+                        ids: shadowEntry.scope.getKeys()
+                    });
+                    resolve();
+                }.bind(this);
+                
+                // We can't synchronously determine state of a Promise, but we know that
+                // Scopes with MemoryStorage are resolved synchronously.
+                if (lowerScope.scope.storage instanceof MemoryStorage) {
+                    _addScope();
+                } else {
+                    // For FileStorage, we'll have to wait for appropriate callback.
+                    lowerScope.promise.then(
+                        function () {
+                            // onFulfillment - success
+                            _addScope();
+                        }.bind(this),
 
-                    function () {
-                        // onRejection - recursively try next scope
-                        this._tryAddToScopeOrder(shadowEntry, index + 1).then(resolve, reject);
-                    }.bind(this)
-                );
+                        function () {
+                            // onRejection - recursively try next scope
+                            this._tryAddToScopeOrder(shadowEntry, index + 1).then(resolve, reject);
+                        }.bind(this)
+                    );
+                }
             }.bind(this));
         },
         
