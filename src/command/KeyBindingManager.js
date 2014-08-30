@@ -519,14 +519,9 @@ define(function (require, exports, module) {
      */
     function _handleKey(key) {
         if (_enabled && _keyMap[key]) {
-            // The execute() function returns a promise because some commands are async.
-            // Generally, commands decide whether they can run or not synchronously,
-            // and reject immediately, so we can test for that synchronously.
-            var promise = CommandManager.execute(_keyMap[key].commandID);
-            
-            // This can no longer be determined synchronously with ES6 Promises
-            //return (promise.state() !== "rejected");
-            return true;
+            // The execute() function returns a boolean for commands that execute synchronously
+            // or a Promise for commands that execute asynchronously, so convert it to boolean.
+            return !!CommandManager.execute(_keyMap[key].commandID);
         }
         return false;
     }
