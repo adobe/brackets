@@ -424,6 +424,7 @@ define({
     
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Current Theme",
+    "GET_MORE_THEMES"                      : "To get more themes, use Extension Manager.",
     "USE_THEME_SCROLLBARS"                 : "Use Theme Scrollbars",
     "FONT_SIZE"                            : "Font Size",
     "FONT_FAMILY"                          : "Font Family",
