@@ -539,8 +539,10 @@ define(function (require, exports, module) {
                 return;
             }
             
-            _nodeDomain.exec("watchPath", path).promise
-                .then(callback, callback);
+            var result = _nodeDomain.exec("watchPath", path);
+            if (result.promise) {
+                result.promise.then(callback, callback);
+            }
         });
     }
     
@@ -553,8 +555,10 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function unwatchPath(path, callback) {
-        _nodeDomain.exec("unwatchPath", path).promise
-            .then(callback, callback);
+        var result = _nodeDomain.exec("unwatchPath", path);
+        if (result.promise) {
+            result.promise.then(callback, callback);
+        }
     }
     
     /**
@@ -565,8 +569,10 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function unwatchAll(callback) {
-        _nodeDomain.exec("unwatchAll").promise
-            .then(callback, callback);
+        var result = _nodeDomain.exec("unwatchAll");
+        if (result.promise) {
+            result.promise.then(callback, callback);
+        }
     }
     
     // Export public API
