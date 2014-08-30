@@ -119,7 +119,8 @@ define(function (require, exports, module) {
                         success = true;
                         // on success, an array of args from all promises is returned
                         responses = arguments["0"];
-                    }, function () {
+                    });
+                    result.catch(function () {
                         done = true;
                         success = false;
                         // on fail, only args from first failing promise is returned
