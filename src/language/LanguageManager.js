@@ -944,26 +944,23 @@ define(function (require, exports, module) {
                 // track languages that are currently loading
                 _pendingLanguages[id] = language;
 
-                language._loadAndSetMode(definition.mode).then(
-                    function () {
-                        // globally associate mode to language
-                        _setLanguageForMode(language.getMode(), language);
+                language._loadAndSetMode(definition.mode).then(function () {
+                    // globally associate mode to language
+                    _setLanguageForMode(language.getMode(), language);
 
-                        // add file extensions and store language to language map
-                        _finishRegisteringLanguage();
+                    // add file extensions and store language to language map
+                    _finishRegisteringLanguage();
 
-                        // fire an event to notify DocumentManager of the new language
-                        _triggerLanguageAdded(language);
+                    // fire an event to notify DocumentManager of the new language
+                    _triggerLanguageAdded(language);
 
-                        resolve(language);
-                        delete _pendingLanguages[id];
-                    },
-                    function (error) {
-                        console.error(error);
-                        reject(error);
-                        delete _pendingLanguages[id];
-                    }
-                );
+                    resolve(language);
+                    delete _pendingLanguages[id];
+                }).catch(function (error) {
+                    console.error(error);
+                    reject(error);
+                    delete _pendingLanguages[id];
+                });
             }
         });
     }

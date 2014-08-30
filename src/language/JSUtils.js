@@ -256,15 +256,14 @@ define(function (require, exports, module) {
 
                     // doc will be undefined if we hit the cache
                     if (!doc) {
-                        DocumentManager.getDocumentForPath(docEntry.fileInfo.fullPath).then(
-                            function (fetchedDoc) {
+                        DocumentManager.getDocumentForPath(docEntry.fileInfo.fullPath)
+                            .then(function (fetchedDoc) {
                                 _computeOffsets(fetchedDoc, functionName, docEntry.functions, rangeResults);
                                 oneResultResolve();
-                            },
-                            function () {
+                            })
+                            .catch(function () {
                                 oneResultResolve();
-                            }
-                        );
+                            });
                     } else {
                         _computeOffsets(doc, functionName, docEntry.functions, rangeResults);
                         oneResultResolve();
@@ -287,8 +286,8 @@ define(function (require, exports, module) {
     function _getFunctionsForFile(fileInfo) {
         return new Promise(function (resolve, reject) {
 
-            _shouldGetFromCache(fileInfo).then(
-                function (useCache) {
+            _shouldGetFromCache(fileInfo)
+                .then(function (useCache) {
                     if (useCache) {
                         // Return cached data. doc property is undefined since we hit the cache.
                         // _getOffsets() will fetch the Document if necessary.
@@ -311,11 +310,10 @@ define(function (require, exports, module) {
                             }
                         );
                     }
-                },
-                function (err) {
+                })
+                .catch(function (err) {
                     reject(err);
-                }
-            );
+                });
         });
     }
     
@@ -342,16 +340,15 @@ define(function (require, exports, module) {
 
             Async.doInParallel(fileInfos, function (fileInfo) {
                 return new Promise(function (oneResultResolve, oneResultReject) {
-                    _getFunctionsForFile(fileInfo).then(
-                        function (docInfo) {
+                    _getFunctionsForFile(fileInfo)
+                        .then(function (docInfo) {
                             docEntries.push(docInfo);
                             oneResultResolve();
-                        },
-                        function (error) {
+                        })
+                        .catch(function (error) {
                             // If one file fails, continue to search
                             oneResultResolve();
-                        }
-                    );
+                        });
                 });
 
             }).then(fnAlways, fnAlways);

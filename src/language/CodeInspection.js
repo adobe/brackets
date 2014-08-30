@@ -191,8 +191,8 @@ define(function (require, exports, module) {
                 return;
             }
 
-            DocumentManager.getDocumentText(file).then(
-                function (fileText) {
+            DocumentManager.getDocumentText(file)
+                .then(function (fileText) {
                     var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + file.fullPath),
                         masterPromise;
 
@@ -210,12 +210,12 @@ define(function (require, exports, module) {
                                     };
                                     runResolve({errors: [errTimeout]});
                                 }, prefs.get(PREF_ASYNC_TIMEOUT));
-                                provider.scanFileAsync(fileText, file.fullPath).then(
-                                    function (scanResult) {
+                                provider.scanFileAsync(fileText, file.fullPath)
+                                    .then(function (scanResult) {
                                         PerfUtils.addMeasurement(perfTimerProvider);
                                         runResolve(scanResult);
-                                    },
-                                    function (err) {
+                                    })
+                                    .catch(function (err) {
                                         var errError = {
                                             pos: {line: -1, col: 0},
                                             message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
@@ -223,8 +223,7 @@ define(function (require, exports, module) {
                                         };
                                         console.error("[CodeInspection] Provider " + provider.name + " (async) failed: " + err);
                                         runResolve({errors: [errError]});
-                                    }
-                                );
+                                    });
                             } else {
                                 try {
                                     var scanResult = provider.scanFile(fileText, file.fullPath);
@@ -259,12 +258,11 @@ define(function (require, exports, module) {
                         responseResolve(results);
                     });
 
-                },
-                function (err) {
+                })
+                .catch(function (err) {
                     console.error("[CodeInspection] Could not read file for inspection: " + file.fullPath);
                     responseReject(err);
-                }
-            );
+                });
         });
     }
 

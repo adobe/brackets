@@ -1334,19 +1334,18 @@ define(function (require, exports, module) {
             // Load one CSS file and search its contents
             function _loadFileAndScan(fullPath, selector) {
                 return new Promise(function (oneFileResolve, oneFileReject) {
-                    DocumentManager.getDocumentForPath(fullPath).then(
-                        function (doc) {
+                    DocumentManager.getDocumentForPath(fullPath)
+                        .then(function (doc) {
                             // Find all matching rules for the given CSS file's content, and add them to the
                             // overall search result
                             var oneCSSFileMatches = _findAllMatchingSelectorsInText(doc.getText(), selector, doc.getLanguage().getMode());
                             _addSelectorsToResults(resultSelectors, oneCSSFileMatches, doc, 0);
 
                             oneFileResolve();
-                        },
-                        function (error) {
+                        })
+                        .catch(function (error) {
                             oneFileReject(error);
-                        }
-                    );
+                        });
                 });
             }
 
@@ -1414,14 +1413,13 @@ define(function (require, exports, module) {
 
             // Asynchronously search for matches in all the project's CSS files
             // (results are appended together in same 'resultSelectors' array)
-            _findMatchingRulesInCSSFiles(selector, resultSelectors).then(
-                function () {
+            _findMatchingRulesInCSSFiles(selector, resultSelectors)
+                .then(function () {
                     resolve(resultSelectors);
-                },
-                function (error) {
+                })
+                .catch(function (error) {
                     reject(error);
-                }
-            );
+                });
         });
     }
     

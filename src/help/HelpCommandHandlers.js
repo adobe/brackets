@@ -107,30 +107,29 @@ define(function (require, exports, module) {
                         dataType: "json",
                         cache: false
                     })
-                ).then(
-                    function (response) {
+                )
+                    .then(function (response) {
                         contributors = contributors.concat(response || []);
                         if (page && response.length === CONTRIBUTORS_PER_PAGE) {
                             loadContributors(rawUrl, page + 1, contributors);
                         } else {
                             resolve(contributors);
                         }
-                    },
-                    function () {
+                    })
+                    .catch(function () {
                         if (contributors.length) { // we weren't able to fetch this page, but previous fetches were successful
                             resolve(contributors);
                         } else {
                             reject();
                         }
-                    }
-                );
+                    });
             }
 
             loadContributors(contributorsUrl, page); // Load the contributors
         });
         
-        promise.then(
-            function (allContributors) {
+        promise
+            .then(function (allContributors) {
                 // Populate the contributors data
                 var totalContributors = allContributors.length,
                     contributorsCount = 0;
@@ -156,12 +155,11 @@ define(function (require, exports, module) {
                         $(this).trigger("load");
                     }
                 });
-            },
-            function () {
+            })
+            .catch(function () {
                 $spinner.removeClass("spin");
                 $contributors.html(Mustache.render("<p class='dialog-message'>{{ABOUT_TEXT_LINE6}}</p>", Strings));
-            }
-        );
+            });
     }
 
     // Read "build number" SHAs off disk immediately at APP_READY, instead

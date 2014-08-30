@@ -636,9 +636,6 @@ define(function LiveDevelopment(require, exports, module) {
         });
         
         _loadAgentsPromise
-            .then(function () {
-                _loadAgentsPromise = null;
-            })
             .catch(function () {
                 // show error loading live dev dialog
                 _setStatus(STATUS_ERROR);
@@ -648,6 +645,9 @@ define(function LiveDevelopment(require, exports, module) {
                     Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
                     Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
                 );
+                _loadAgentsPromise = null;
+            })
+            .then(function () {
                 _loadAgentsPromise = null;
             });
 
