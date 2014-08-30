@@ -109,17 +109,16 @@ define(function (require, exports, module) {
     function validate(path, options) {
         return _extensionManagerCall(function (extensionManager) {
             return new Promise(function (resolve, reject) {
-                extensionManager.validate(path, options).then(
-                    function (result) {
+                extensionManager.validate(path, options)
+                    .then(function (result) {
                         resolve({
                             errors: result.errors,
                             metadata: result.metadata
                         });
-                    },
-                    function (error) {
+                    })
+                    .catch(function (error) {
                         reject(error);
-                    }
-                );
+                    });
             });
         });
     }
@@ -162,8 +161,8 @@ define(function (require, exports, module) {
                     systemExtensionDirectory: systemDirectory,
                     apiVersion: brackets.metadata.apiVersion,
                     nameHint: nameHint
-                }).then(
-                    function (result) {
+                })
+                    .then(function (result) {
                         result.keepFile = false;
 
                         if (result.installationStatus !== InstallationStatuses.INSTALLED || _doUpdate) {
@@ -181,11 +180,10 @@ define(function (require, exports, module) {
                                 reject(Errors.ERROR_LOADING);
                             });
                         }
-                    },
-                    function (error) {
+                    })
+                    .catch(function (error) {
                         reject(error);
-                    }
-                );
+                    });
             });
         });
     }
@@ -256,14 +254,12 @@ define(function (require, exports, module) {
                 }
 
                 // Download the bits (using Node since brackets-shell doesn't support binary file IO)
-                extensionManager.downloadFile(downloadId, urlInfo.url, PreferencesManager.get("proxy")).then(
-                    function (result) {
-                        resolve({ localPath: FileUtils.convertWindowsPathToUnixPath(result), filenameHint: urlInfo.filenameHint });
-                    },
-                    function (err) {
-                        reject(err);
-                    }
-                );
+                var r = extensionManager.downloadFile(downloadId, urlInfo.url, PreferencesManager.get("proxy"));
+                r.then(function (result) {
+                    resolve({ localPath: FileUtils.convertWindowsPathToUnixPath(result), filenameHint: urlInfo.filenameHint });
+                }).catch(function (err) {
+                    reject(err);
+                });
             });
         });
     }
@@ -298,8 +294,8 @@ define(function (require, exports, module) {
     function installFromPath(path, filenameHint) {
         return new Promise(function (resolve, reject) {
 
-            install(path, filenameHint).then(
-                function (result) {
+            install(path, filenameHint)
+                .then(function (result) {
                     result.keepFile = true;
 
                     var installationStatus = result.installationStatus;
@@ -320,11 +316,10 @@ define(function (require, exports, module) {
                             resolve(result);
                         }
                     }
-                },
-                function (err) {
+                })
+                .catch(function (err) {
                     reject(err);
-                }
-            );
+                });
         });
     }
     
@@ -354,12 +349,12 @@ define(function (require, exports, module) {
         
         var d = new Promise(function (resolve, reject) {
             
-            download(url, downloadId).then(
-                function (downloadResult) {
+            download(url, downloadId)
+                .then(function (downloadResult) {
                     state = STATE_INSTALLING;
 
-                    installFromPath(downloadResult.localPath, downloadResult.filenameHint).then(
-                        function (result) {
+                    installFromPath(downloadResult.localPath, downloadResult.filenameHint)
+                        .then(function (result) {
                             var installationStatus = result.installationStatus;
 
                             state = STATE_SUCCEEDED;
@@ -372,21 +367,19 @@ define(function (require, exports, module) {
                             }
 
                             resolve(result);
-                        },
-                        function (err) {
+                        })
+                        .catch(function (err) {
                             // File IO errors, internal error in install()/validate(), or extension startup crashed
                             state = STATE_FAILED;
                             FileSystem.getFileForPath(downloadResult.localPath).unlink();
                             reject(err);  // TODO: needs to be err.message ?
-                        }
-                    );
-                },
-                function (err) {
+                        });
+                })
+                .catch(function (err) {
                     // Download error (the Node-side download code cleans up any partial ZIP file)
                     state = STATE_FAILED;
                     reject(err);
-                }
-            );
+                });
         });
         
         return {
@@ -457,18 +450,17 @@ define(function (require, exports, module) {
      */
     function installUpdate(path, nameHint) {
         return new Promise(function (resolve, reject) {
-            install(path, nameHint, true).then(
-                function (result) {
+            install(path, nameHint, true)
+                .then(function (result) {
                     if (result.installationStatus !== InstallationStatuses.INSTALLED) {
                         reject(result.errors);
                     } else {
                         resolve(result);
                     }
-                },
-                function (error) {
+                })
+                .catch(function (error) {
                     reject(error);
-                }
-            );
+                });
         });
     }
         

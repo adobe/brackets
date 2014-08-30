@@ -234,7 +234,7 @@ define(function (require, exports, module) {
                         PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
                         resolve();
                     });
-                }, function () {
+                }).catch(function () {
                     // terminate timer that was started above
                     PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
                     editor.displayErrorMessageAtCursor(errorMsg);
@@ -992,7 +992,7 @@ define(function (require, exports, module) {
                     // main editor has focus, so create an inline editor
                     _openInlineWidget(_currentEditor, providers, errorMsg).then(function () {
                         resolve(true);
-                    }, function () {
+                    }).catch(function () {
                         reject();
                     });
                 }
@@ -1032,7 +1032,7 @@ define(function (require, exports, module) {
                     promise.then(function () {
                         PerfUtils.addMeasurement(PerfUtils.JUMP_TO_DEFINITION);
                         resolve();
-                    }, function () {
+                    }).catch(function () {
                         // terminate timer that was started above
                         PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
                         reject();

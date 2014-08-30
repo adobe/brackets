@@ -1180,38 +1180,36 @@ define(function LiveDevelopment(require, exports, module) {
                     ]
                 );
 
-                dialogPromise.then(
-                    function (id) {
-                        if (id === Dialogs.DIALOG_BTN_OK) {
-                            // User has chosen to reload Chrome, quit the running instance
-                            _setStatus(STATUS_INACTIVE);
-                            _close()
-                                .then(function () {
-                                    browserStarted = false;
-                                    // Continue to use _openPromise
-                                    open(true);
-                                })
-                                .catch(function (err) {
-                                    // Report error?
-                                    _setStatus(STATUS_ERROR);
-                                    browserStarted = false;
-                                    _reject(_openCallbacks, "CLOSE_LIVE_BROWSER");
-                                });
-                        } else {
-                            _close()
-                                .then(function () {
-                                    browserStarted = false;
-                                    _reject(_openCallbacks, "CANCEL");
-                                })
-                                .catch(function (err) {
-                                    // Report error?
-                                    _setStatus(STATUS_ERROR);
-                                    browserStarted = false;
-                                    _reject(_openCallbacks, "CLOSE_LIVE_BROWSER");
-                                });
-                        }
+                dialogPromise.then(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_OK) {
+                        // User has chosen to reload Chrome, quit the running instance
+                        _setStatus(STATUS_INACTIVE);
+                        _close()
+                            .then(function () {
+                                browserStarted = false;
+                                // Continue to use _openPromise
+                                open(true);
+                            })
+                            .catch(function (err) {
+                                // Report error?
+                                _setStatus(STATUS_ERROR);
+                                browserStarted = false;
+                                _reject(_openCallbacks, "CLOSE_LIVE_BROWSER");
+                            });
+                    } else {
+                        _close()
+                            .then(function () {
+                                browserStarted = false;
+                                _reject(_openCallbacks, "CANCEL");
+                            })
+                            .catch(function (err) {
+                                // Report error?
+                                _setStatus(STATUS_ERROR);
+                                browserStarted = false;
+                                _reject(_openCallbacks, "CLOSE_LIVE_BROWSER");
+                            });
                     }
-                );
+                });
 
                 return;
             }

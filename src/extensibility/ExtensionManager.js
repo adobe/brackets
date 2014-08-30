@@ -200,8 +200,8 @@ define(function (require, exports, module) {
                     dataType: "json",
                     cache: false
                 })
-            ).then(
-                function (data) {
+            )
+                .then(function (data) {
                     Object.keys(data).forEach(function (id) {
                         if (!extensions[id]) {
                             extensions[id] = {};
@@ -211,17 +211,16 @@ define(function (require, exports, module) {
                     });
                     $(exports).triggerHandler("registryDownload");
                     resolve();
-                    
+
                     // Make sure to clean up the pending registry so that new requests can be made.
                     pendingDownloadRegistry = null;
-                },
-                function () {
+                })
+                .catch(function () {
                     reject();
-                    
+
                     // Make sure to clean up the pending registry so that new requests can be made.
                     pendingDownloadRegistry = null;
-                }
-            );
+                });
         });
         
         return pendingDownloadRegistry;
@@ -267,11 +266,11 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("statusChange", [id]);
         }
 
-        ExtensionUtils.loadPackageJson(path).then(
-            function (metadata) {
+        ExtensionUtils.loadPackageJson(path)
+            .then(function (metadata) {
                 setData(metadata.name, metadata);
-            },
-            function () {
+            })
+            .catch(function () {
                 // If there's no package.json, this is a legacy extension. It was successfully loaded,
                 // but we don't have an official ID or metadata for it, so we just create an id and
                 // "title" for it (which is the last segment of its pathname)
@@ -280,8 +279,7 @@ define(function (require, exports, module) {
                     name = (match && match[1]) || path,
                     metadata = { name: name, title: name };
                 setData(name, metadata);
-            }
-        );
+            });
     }
 
     /**
@@ -379,16 +377,15 @@ define(function (require, exports, module) {
     function remove(id) {
         return new Promise(function (resolve, reject) {
             if (extensions[id] && extensions[id].installInfo) {
-                Package.remove(extensions[id].installInfo.path).then(
-                    function () {
+                Package.remove(extensions[id].installInfo.path)
+                    .then(function () {
                         extensions[id].installInfo = null;
                         resolve();
                         $(exports).triggerHandler("statusChange", [id]);
-                    },
-                    function (err) {
+                    })
+                    .catch(function (err) {
                         reject(err);
-                    }
-                );
+                    });
             } else {
                 reject(StringUtils.format(Strings.EXTENSION_NOT_INSTALLED, id));
             }

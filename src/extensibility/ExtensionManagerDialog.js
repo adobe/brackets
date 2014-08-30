@@ -106,14 +106,14 @@ define(function (require, exports, module) {
                     .text(Strings.PROCESSING_EXTENSIONS)
                     .append("<span class='spinner inline spin'/>");
                 
-                ExtensionManager.removeMarkedExtensions().then(
-                    function () {
-                        ExtensionManager.updateExtensions().then(
-                            function () {
+                ExtensionManager.removeMarkedExtensions()
+                    .then(function () {
+                        ExtensionManager.updateExtensions()
+                            .then(function () {
                                 dlg.close();
                                 CommandManager.execute(Commands.APP_RELOAD);
-                            },
-                            function (errorArray) {
+                            })
+                            .catch(function (errorArray) {
                                 dlg.close();
                                 
                                 // This error case should be very uncommon.
@@ -137,10 +137,9 @@ define(function (require, exports, module) {
                                     // We still have to reload even if some of the removals failed.
                                     CommandManager.execute(Commands.APP_RELOAD);
                                 });
-                            }
-                        );
-                    },
-                    function (errorArray) {
+                            });
+                    })
+                    .catch(function (errorArray) {
                         dlg.close();
                         ExtensionManager.cleanupUpdates();
                         
@@ -156,8 +155,7 @@ define(function (require, exports, module) {
                             // We still have to reload even if some of the removals failed.
                             CommandManager.execute(Commands.APP_RELOAD);
                         });
-                    }
-                );
+                    });
             } else {
                 dlg.close();
                 ExtensionManager.cleanupUpdates();
@@ -212,55 +210,49 @@ define(function (require, exports, module) {
                             // Call validate() so that we open the local zip file and parse the
                             // package.json. We need the name to detect if this zip will be a
                             // new install or an update.
-                            Package.validate(path, { requirePackageJSON: true }).then(
-                                function (info) {
-                                    if (info.errors.length) {
-                                        innerReject(Package.formatError(info.errors));
-                                        return;
-                                    }
-
-                                    var extensionName = info.metadata.name,
-                                        extensionInfo = ExtensionManager.extensions[extensionName],
-                                        isUpdate = extensionInfo && !!extensionInfo.installInfo;
-
-                                    if (isUpdate) {
-                                        updateZips.push(file);
-                                    } else {
-                                        installZips.push(file);
-                                    }
-
-                                    innerResolve();
-                                },
-                                function (err) {
-                                    innerReject(Package.formatError(err));
+                            Package.validate(path, { requirePackageJSON: true }).then(function (info) {
+                                if (info.errors.length) {
+                                    innerReject(Package.formatError(info.errors));
+                                    return;
                                 }
-                            );
+
+                                var extensionName = info.metadata.name,
+                                    extensionInfo = ExtensionManager.extensions[extensionName],
+                                    isUpdate = extensionInfo && !!extensionInfo.installInfo;
+
+                                if (isUpdate) {
+                                    updateZips.push(file);
+                                } else {
+                                    installZips.push(file);
+                                }
+
+                                innerResolve();
+                            }).catch(function (err) {
+                                innerReject(Package.formatError(err));
+                            });
                         });
                     });
                 });
 
-                validatePromise.then(
-                    function () {
-                        var installPromise = Async.doSequentially(installZips, function (file) {
-                            return InstallExtensionDialog.installUsingDialog(file);
-                        });
+                validatePromise.then(function () {
+                    var installPromise = Async.doSequentially(installZips, function (file) {
+                        return InstallExtensionDialog.installUsingDialog(file);
+                    });
 
-                        var updatePromise = installPromise.then(function () {
-                            return Async.doSequentially(updateZips, function (file) {
-                                return InstallExtensionDialog.updateUsingDialog(file).then(function (result) {
-                                    ExtensionManager.updateFromDownload(result);
-                                });
+                    var updatePromise = installPromise.then(function () {
+                        return Async.doSequentially(updateZips, function (file) {
+                            return InstallExtensionDialog.updateUsingDialog(file).then(function (result) {
+                                ExtensionManager.updateFromDownload(result);
                             });
                         });
+                    });
 
-                        // InstallExtensionDialog displays it's own errors, always
-                        // resolve the outer promise
-                        updatePromise.then(resolve, resolve);
-                    },
-                    function (errorArray) {
-                        reject(errorArray);
-                    }
-                );
+                    // InstallExtensionDialog displays it's own errors, always
+                    // resolve the outer promise
+                    updatePromise.then(resolve, resolve);
+                }).catch(function (errorArray) {
+                    reject(errorArray);
+                });
             });
         });
     }
@@ -471,10 +463,7 @@ define(function (require, exports, module) {
                 
                 if (event.originalEvent.dataTransfer.files) {
                     // Attempt install
-                    _installUsingDragAndDrop().then(function () {
-                        $dropzone.removeClass("validating");
-                        $dropzone.addClass("drag");
-                    }, function (errorArray) {
+                    _installUsingDragAndDrop().catch(function (errorArray) {
                         var message = Strings.INSTALL_EXTENSION_DROP_ERROR;
 
                         message += "<ul class='dialog-list'>";
@@ -491,6 +480,9 @@ define(function (require, exports, module) {
                             message
                         );
                         
+                        $dropzone.removeClass("validating");
+                        $dropzone.addClass("drag");
+                    }).then(function () {
                         $dropzone.removeClass("validating");
                         $dropzone.addClass("drag");
                     });

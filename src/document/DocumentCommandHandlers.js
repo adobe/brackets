@@ -1314,27 +1314,28 @@ define(function (require, exports, module) {
             return false;
         }
 
-        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).then(function () {
-            _windowGoingAway = true;
+        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
+            .then(function () {
+                _windowGoingAway = true;
 
-            // Give everyone a chance to save their state - but don't let any problems block
-            // us from quitting
-            try {
-                $(ProjectManager).triggerHandler("beforeAppClose");
-            } catch (ex) {
-                console.error(ex);
-            }
+                // Give everyone a chance to save their state - but don't let any problems block
+                // us from quitting
+                try {
+                    $(ProjectManager).triggerHandler("beforeAppClose");
+                } catch (ex) {
+                    console.error(ex);
+                }
 
-            PreferencesManager.savePreferences();
+                PreferencesManager.savePreferences();
 
-            PreferencesManager.finalize().then(postCloseHandler, postCloseHandler);
-        })
-        .catch(function () {
-            _windowGoingAway = false;
-            if (failHandler) {
-                failHandler();
-            }
-        });
+                PreferencesManager.finalize().then(postCloseHandler, postCloseHandler);
+            })
+            .catch(function () {
+                _windowGoingAway = false;
+                if (failHandler) {
+                    failHandler();
+                }
+            });
     }
 
     /**
@@ -1558,8 +1559,7 @@ define(function (require, exports, module) {
                 window.location.href = href;
             };
             _disableCache().then(fnAlways, fnAlways);
-        })
-        .catch(function () {
+        }).catch(function () {
             _isReloading = false;
         });
     }

@@ -305,8 +305,8 @@ define(function (require, exports, module) {
         
         var result = new Promise(function (resolve, reject) {
 
-            CSSUtils.findMatchingRules(selectorName, hostEditor.document).then(
-                function (rules) {
+            CSSUtils.findMatchingRules(selectorName, hostEditor.document)
+                .then(function (rules) {
                     cssInlineEditor = new MultiRangeInlineEditor.MultiRangeInlineEditor(
                         CSSUtils.consolidateRules(rules),
                         _getNoRulesMsg,
@@ -373,12 +373,11 @@ define(function (require, exports, module) {
 
                             _updateCommands();
                         });
-                },
-                function () {
+                })
+                .catch(function () {
                     console.log("Error in findMatchingRules()");
                     reject();
-                }
-            );
+                });
         });
         
         return result;

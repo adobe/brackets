@@ -175,8 +175,8 @@ define(function (require, exports, module) {
                 .append("<span class='spinner inline spin'/>");
             this.$msgArea.show();
             this.$okButton.prop("disabled", true);
-            this._installer.install(url).then(
-                function (result) {
+            this._installer.install(url)
+                .then(function (result) {
                     self._installResult = result;
                     if (result.installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
                             result.installationStatus === Package.InstallationStatuses.OLDER_VERSION ||
@@ -187,8 +187,8 @@ define(function (require, exports, module) {
                     } else {
                         self._enterState(STATE_INSTALLED);
                     }
-                },
-                function (err) {
+                })
+                .catch(function (err) {
                     // If the "failure" is actually a user-requested cancel, don't show an error UI
                     if (err === "CANCELED") {
                         console.assert(self._state === STATE_CANCELING_INSTALL || self._state === STATE_CANCELING_HUNG);
@@ -197,8 +197,7 @@ define(function (require, exports, module) {
                         self._errorMessage = Package.formatError(err);
                         self._enterState(STATE_INSTALL_FAILED);
                     }
-                }
-            );
+                });
             break;
             
         case STATE_CANCELING_INSTALL:
@@ -422,14 +421,11 @@ define(function (require, exports, module) {
 
         if (this._isLocalFile) {
             var deferred = new Promise(function (resolve, reject) {
-                Package.installFromPath(url).then(
-                    function (installationResult) {
-                        // Flag to keep zip files for local file installation
-                        installationResult.keepFile = true;
-                        resolve(installationResult);
-                    },
-                    reject
-                );
+                Package.installFromPath(url).then(function (installationResult) {
+                    // Flag to keep zip files for local file installation
+                    installationResult.keepFile = true;
+                    resolve(installationResult);
+                }, reject);
             });
 
             this.pendingInstall = {

@@ -329,8 +329,8 @@ define(function (require, exports, module) {
      */
     RegistryViewModel.prototype._initializeFromSource = function () {
         var self = this;
-        return ExtensionManager.downloadRegistry().then(
-            function () {
+        return ExtensionManager.downloadRegistry()
+            .then(function () {
                 self.extensions = ExtensionManager.extensions;
                 
                 // Sort the registry by last published date and store the sorted list of IDs.
@@ -342,13 +342,12 @@ define(function (require, exports, module) {
                         return entry.registryInfo.metadata.name;
                     });
                 self._setInitialFilter();
-            },
-            function () {
+            })
+            .catch(function () {
                 self.extensions = [];
                 self.sortedFullSet = [];
                 self.filterSet = [];
-            }
-        );
+            });
     };
     
     /**
@@ -537,8 +536,8 @@ define(function (require, exports, module) {
      */
     ThemesViewModel.prototype._initializeFromSource = function () {
         var self = this;
-        return ExtensionManager.downloadRegistry().then(
-            function () {
+        return ExtensionManager.downloadRegistry()
+            .then(function () {
                 self.extensions = ExtensionManager.extensions;
 
                 // Sort the registry by last published date and store the sorted list of IDs.
@@ -550,13 +549,12 @@ define(function (require, exports, module) {
                         return entry.registryInfo.metadata.name;
                     });
                 self._setInitialFilter();
-            },
-            function () {
+            })
+            .catch(function () {
                 self.extensions = [];
                 self.sortedFullSet = [];
                 self.filterSet = [];
-            }
-        );
+            });
     };
 
     /**
