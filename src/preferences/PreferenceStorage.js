@@ -259,15 +259,12 @@ define(function (require, exports, module) {
         return new Promise(function (resolve, reject) {
 
             if (convertedKeys.length > 0) {
-                manager.save().then(
-                    function () {
-                        _commit();
-                        resolve({complete: complete, convertedKeys: convertedKeys});
-                    },
-                    function (error) {
-                        reject(error);
-                    }
-                );
+                manager.save().then(function () {
+                    _commit();
+                    resolve({complete: complete, convertedKeys: convertedKeys});
+                }).catch(function (error) {
+                    reject(error);
+                });
             } else {
                 resolve({complete: complete, convertedKeys: convertedKeys});
             }

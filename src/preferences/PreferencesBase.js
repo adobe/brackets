@@ -279,19 +279,18 @@ define(function (require, exports, module) {
             var self = this;
             
             return new Promise(function (resolve, reject) {
-                self.storage.load().then(
-                    function (data) {
+                self.storage.load()
+                    .then(function (data) {
                         var oldKeys = self.getKeys();
                         self.data = data;
                         resolve();
                         $(self).trigger(PREFERENCE_CHANGE, {
                             ids: _.union(self.getKeys(), oldKeys)
                         });
-                    },
-                    function (error) {
+                    })
+                    .catch(function (error) {
                         reject(error);
-                    }
-                );
+                    });
             });
         },
             
@@ -1216,17 +1215,15 @@ define(function (require, exports, module) {
                     _addScope();
                 } else {
                     // For FileStorage, we'll have to wait for appropriate callback.
-                    lowerScope.promise.then(
-                        function () {
+                    lowerScope.promise
+                        .then(function () {
                             // onFulfillment - success
                             _addScope();
-                        }.bind(this),
-
-                        function () {
+                        }.bind(this))
+                        .catch(function () {
                             // onRejection - recursively try next scope
                             this._tryAddToScopeOrder(shadowEntry, index + 1).then(resolve, reject);
-                        }.bind(this)
-                    );
+                        }.bind(this));
                 }
             }.bind(this));
         },
@@ -1304,17 +1301,16 @@ define(function (require, exports, module) {
                 var tryPromises = [];
                 
                 var tryPromise = new Promise(function (reject, resolve) {
-                    scopeLoadPromise.then(
-                        function () {
+                    scopeLoadPromise
+                        .then(function () {
                             this._scopes[id] = scope;
                             this._tryAddToScopeOrder(shadowEntry).then(resolve, reject);
-                        }.bind(this),
-                        function (err) {
+                        }.bind(this))
+                        .catch(function (err) {
                             // clean up all what's been done up to this point
                             _.pull(shadowScopeOrder, shadowEntry);
                             reject();
-                        }
-                    );
+                        });
                 }.bind(this));
                 tryPromises.push(tryPromise);
                 
@@ -1420,16 +1416,14 @@ define(function (require, exports, module) {
 
             addToScopeOrderPromise = this._addToScopeOrder(id, scope, loadScopePromise, options.before);
             
-            loadScopePromise.then(
-                null,
-                function (err) {
+            loadScopePromise
+                .catch(function (err) {
                     // With preferences, it is valid for there to be no file.
                     // It is not valid to have an unparseable file.
                     if (err instanceof ParsingError) {
                         console.error(err);
                     }
-                }
-            );
+                });
             
             return Async.waitForAll([loadScopePromise, addToScopeOrderPromise], true);
         },
@@ -1626,8 +1620,8 @@ define(function (require, exports, module) {
                 } else {
                     return Promise.resolve();
                 }
-            }.bind(this)).then(
-                function () {
+            }.bind(this))
+                .then(function () {
                     if (this._saveInProgress.resolve) {
                         this._saveInProgress.resolve();
                     }
@@ -1635,14 +1629,13 @@ define(function (require, exports, module) {
                     if (this._nextSave.promise) {
                         this.save();
                     }
-                }.bind(this),
-                function (err) {
+                }.bind(this))
+                .catch(function (err) {
                     if (this._saveInProgress.reject) {
                         this._saveInProgress.reject(err);
                     }
                     this._saveInProgress = {};
-                }
-            );
+                });
             
             return this._saveInProgress.promise;
         },

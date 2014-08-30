@@ -95,18 +95,15 @@ define(function (require, exports, module) {
     };
     
     userScopeLoading
-        .then(
-            null,
-            function (err) {
-                _addScopePromises.push(manager.addScope("user", new PreferencesBase.MemoryStorage(), {
-                    before: "default"
-                }));
+        .catch(function (err) {
+            _addScopePromises.push(manager.addScope("user", new PreferencesBase.MemoryStorage(), {
+                before: "default"
+            }));
 
-                if (err.name && err.name === "ParsingError") {
-                    userScopeCorrupt = true;
-                }
+            if (err.name && err.name === "ParsingError") {
+                userScopeCorrupt = true;
             }
-        )
+        })
         .then(fnUserScopeAlways, fnUserScopeAlways);
     
     // "State" is stored like preferences but it is not generally intended to be user-editable.

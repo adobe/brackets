@@ -221,14 +221,12 @@ define(function (require, exports, module) {
         
         var promise = FileUtils.readAsText(doc.file);
         
-        promise.then(
-            function (text, readTimestamp) {
-                doc.refreshText(text, readTimestamp);
-            },
-            function (error) {
-                console.log("Error reloading contents of " + doc.file.fullPath, error);
-            }
-        );
+        promise.then(function (text, readTimestamp) {
+            doc.refreshText(text, readTimestamp);
+        });
+        promise.catch(function (error) {
+            console.log("Error reloading contents of " + doc.file.fullPath, error);
+        });
         return promise;
     }
     
@@ -345,8 +343,8 @@ define(function (require, exports, module) {
                     return;
                 }
 
-                Dialogs.showModalDialog(dialogId, title, message, buttons).then(
-                    function (id) {
+                Dialogs.showModalDialog(dialogId, title, message, buttons)
+                    .then(function (id) {
                         if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
                             if (toClose) {
                                 // Discard - close all editors
@@ -354,11 +352,11 @@ define(function (require, exports, module) {
                                 resolve();
                             } else {
                                 // Discard - load changes from disk
-                                reloadDoc(doc).then(
-                                    function () {
+                                reloadDoc(doc)
+                                    .then(function () {
                                         resolve();
-                                    },
-                                    function (error) {
+                                    })
+                                    .catch(function (error) {
                                         // Unable to load changed version from disk - show error UI
                                         showReloadError(error, doc).then(
                                             function () {
@@ -367,8 +365,7 @@ define(function (require, exports, module) {
                                             },
                                             null
                                         );
-                                    }
-                                );
+                                    });
                             }
 
                         } else {
@@ -386,9 +383,7 @@ define(function (require, exports, module) {
 
                             resolve();
                         }
-                    },
-                    null
-                );
+                    });
             });
         }
         
@@ -442,8 +437,8 @@ define(function (require, exports, module) {
         // 1) Check for external modifications
         var allDocs = DocumentManager.getAllOpenDocuments();
         
-        findExternalChanges(allDocs).then(
-            function () {
+        findExternalChanges(allDocs)
+            .then(function () {
                 // 2) Check un-open working set entries for deletion (& "close" if needed)
                 var fnSyncUnopenAlways = function () {
                     // If we were unable to check any un-open files for deletion, silently ignore
@@ -489,16 +484,15 @@ define(function (require, exports, module) {
                 };
                 
                 syncUnopenWorkingSet().then(fnSyncUnopenAlways, fnSyncUnopenAlways);
-            },
-            function () {   // onReject
+            })
+            .catch(function () {   // onReject
                 // Unable to fetch timestamps for some reason - silently ignore (after logging to console)
                 // (We'll retry next time window is activated... and evenually we'll also be double
                 // checking before each Save).
                 
                 // We can't go on without knowing which files are dirty, so bail now
                 _alreadyChecking = false;
-            }
-        );
+            });
         
     }
     

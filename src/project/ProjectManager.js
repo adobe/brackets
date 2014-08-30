@@ -598,22 +598,19 @@ define(function (require, exports, module) {
                             if (entry.isFile) {
                                 var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
 
-                                openResult.then(
-                                    function () {
-                                        // update when tree display state changes
-                                        _redraw(true);
-                                        _lastSelected = data.rslt.obj;
-                                    },
-                                    function () {
-                                        if (_lastSelected) {
-                                            // revert this new selection and restore previous selection
-                                            _forceSelection(data.rslt.obj, _lastSelected);
-                                        } else {
-                                            _projectTree.jstree("deselect_all");
-                                            _lastSelected = null;
-                                        }
+                                openResult.then(function () {
+                                    // update when tree display state changes
+                                    _redraw(true);
+                                    _lastSelected = data.rslt.obj;
+                                }).catch(function () {
+                                    if (_lastSelected) {
+                                        // revert this new selection and restore previous selection
+                                        _forceSelection(data.rslt.obj, _lastSelected);
+                                    } else {
+                                        _projectTree.jstree("deselect_all");
+                                        _lastSelected = null;
                                     }
-                                );
+                                });
                             } else {
                                 FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
                                 // show selection marker on folders
@@ -1312,7 +1309,7 @@ define(function (require, exports, module) {
                             };
                             resultRenderTree.then(fnRenderAlways1, fnRenderAlways1);
                             
-                            resultRenderTree.then(null, function () {
+                            resultRenderTree.catch(function () {
                                 PerfUtils.finalizeMeasurement(perfTimerName);
                                 loadProjectReject();
                             });
@@ -1550,13 +1547,11 @@ define(function (require, exports, module) {
      * @return {Promise} Resolved when done; or rejected if not found
      */
     function showInTree(entry) {
-        return _findTreeNode(entry).then(
-            function ($node) {
+        return _findTreeNode(entry)
+            .then(function ($node) {
                 // jsTree will automatically expand parent nodes to ensure visible
                 _projectTree.jstree("select_node", $node, false);
-            },
-            null
-        );
+            });
     }
     
     
@@ -1578,8 +1573,8 @@ define(function (require, exports, module) {
             // Confirm any unsaved changes first. We run the command in "prompt-only" mode, meaning it won't
             // actually close any documents even on success; we'll do that manually after the user also oks
             // the folder-browse dialog.
-            CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).then(
-                function () {
+            CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
+                .then(function () {
                     if (path) {
                         // use specified path
                         _loadProject(path, false).then(openResolve, openReject);
@@ -1600,11 +1595,10 @@ define(function (require, exports, module) {
                             }
                         });
                     }
-                },
-                function () {
+                })
+                .catch(function () {
                     openReject();
-                }
-            );
+                });
         });
 
         // if fail, don't open new project: user canceled (or we failed to save its unsaved changes)
@@ -1928,8 +1922,8 @@ define(function (require, exports, module) {
                         _projectTree.jstree("sort", $selected.parent());
                         _redraw(true);
                     };
-                    renameItem(oldFullPath, newName, isFolder).then(
-                        function () {
+                    renameItem(oldFullPath, newName, isFolder)
+                        .then(function () {
                             _projectTree.jstree("set_text", $selected, ViewUtils.getFileEntryDisplay(entry));
                             
                             // Update caches: compareString and fullPathToIdMap
@@ -1947,12 +1941,12 @@ define(function (require, exports, module) {
                                 _projectTree.jstree("select_node", $selected, true);
                                 suppressToggleOpen = oldSuppressToggleOpen;
                             }
-                        },
-                        function (err) {
+                        })
+                        .catch(function (err) {
                             // Error during rename. Reset to the old name and alert the user.
                             _resetOldFilename();
-                        }
-                    ).then(fnRenameAlways, fnRenameAlways);
+                        })
+                        .then(fnRenameAlways, fnRenameAlways);
                 });
                 
                 // Since html_titles are enabled, we have to reset the text without markup.
@@ -2128,8 +2122,8 @@ define(function (require, exports, module) {
         
         return new Promise(function (filteredFilesResolve, filteredFilesReject) {
             // First gather all files in project proper
-            _getAllFilesCache().then(
-                function (result) {
+            _getAllFilesCache()
+                .then(function (result) {
                     // Add working set entries, if requested
                     if (includeWorkingSet) {
                         DocumentManager.getWorkingSet().forEach(function (file) {
@@ -2153,16 +2147,15 @@ define(function (require, exports, module) {
                     } catch (e) {
                         console.warn("Unhandled exception in getAllFiles handler: ", e);
                     }
-                },
-                function (err) {
+                })
+                .catch(function (err) {
                     // resolve with empty list
                     try {
                         filteredFilesResolve([]);
                     } catch (e) {
                         console.warn("Unhandled exception in getAllFiles handler: ", e);
                     }
-                }
-            );
+                });
         });
     }
     

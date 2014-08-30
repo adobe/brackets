@@ -191,24 +191,21 @@ define(function (require, exports, module) {
             // This properly handles sending the right nofications in cases where the document
             // is already the current one. In that case we will want to notify with
             // documentSelectionFocusChange so the views change their selection
-            promise.then(
-                function (doc) {
-                    // FILE_ADD_TO_WORKING_SET command sets the current document. Update the 
-                    // selection focus only if doc is not null. When double-clicking on an
-                    // image file, we get a null doc here but we still want to keep _fileSelectionFocus
-                    // as PROJECT_MANAGER. Regardless of doc is null or not, call _selectCurrentDocument
-                    // to trigger documentSelectionFocusChange event.
-                    if (doc) {
-                        _fileSelectionFocus = selectIn || WORKING_SET_VIEW;
-                    }
-                    _selectCurrentDocument();
-
-                    resolve(doc);
-                },
-                function (err) {
-                    reject(err);
+            promise.then(function (doc) {
+                // FILE_ADD_TO_WORKING_SET command sets the current document. Update the 
+                // selection focus only if doc is not null. When double-clicking on an
+                // image file, we get a null doc here but we still want to keep _fileSelectionFocus
+                // as PROJECT_MANAGER. Regardless of doc is null or not, call _selectCurrentDocument
+                // to trigger documentSelectionFocusChange event.
+                if (doc) {
+                    _fileSelectionFocus = selectIn || WORKING_SET_VIEW;
                 }
-            );
+                _selectCurrentDocument();
+
+                resolve(doc);
+            }).catch(function (err) {
+                reject(err);
+            });
         });
     }
 

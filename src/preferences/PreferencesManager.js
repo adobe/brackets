@@ -335,42 +335,36 @@ define(function (require, exports, module) {
      *      examines each preference key for migration.
      */
     function convertPreferences(clientID, rules, isViewState, prefCheckCallback) {
-        PreferencesImpl.smUserScopeLoading.then(
-            function () {
-                PreferencesImpl.userScopeLoading.then(
-                    function () {
-                        if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
-                            console.error("Invalid clientID");
-                            return;
-                        }
-                        var prefs = getPreferenceStorage(clientID, null, true);
+        PreferencesImpl.smUserScopeLoading.then(function () {
+            PreferencesImpl.userScopeLoading.then(function () {
+                if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
+                    console.error("Invalid clientID");
+                    return;
+                }
+                var prefs = getPreferenceStorage(clientID, null, true);
 
-                        if (!prefs) {
-                            return;
-                        }
+                if (!prefs) {
+                    return;
+                }
 
-                        var prefsID = typeof clientID === "object" ? getClientID(clientID) : clientID;
-                        if (prefStorage.convertedKeysMap === undefined) {
-                            prefStorage.convertedKeysMap = {};
-                        }
-                        var convertedKeysMap = prefStorage.convertedKeysMap;
+                var prefsID = typeof clientID === "object" ? getClientID(clientID) : clientID;
+                if (prefStorage.convertedKeysMap === undefined) {
+                    prefStorage.convertedKeysMap = {};
+                }
+                var convertedKeysMap = prefStorage.convertedKeysMap;
 
-                        prefs.convert(rules, convertedKeysMap[prefsID], isViewState, prefCheckCallback).then(
-                            function (result) {
-                                prefStorage.convertedKeysMap[prefsID] = result.convertedKeys;
-                                savePreferences();
-                            },
-                            null
-                        );
+                prefs.convert(rules, convertedKeysMap[prefsID], isViewState, prefCheckCallback).then(
+                    function (result) {
+                        prefStorage.convertedKeysMap[prefsID] = result.convertedKeys;
+                        savePreferences();
                     },
-                    function (error) {
-                        console.error("Error while converting ", typeof clientID === "object" ? getClientID(clientID) : clientID);
-                        console.error(error);
-                    }
+                    null
                 );
-            },
-            null
-        );
+            }).catch(function (error) {
+                console.error("Error while converting ", typeof clientID === "object" ? getClientID(clientID) : clientID);
+                console.error(error);
+            });
+        });
     }
 
     
