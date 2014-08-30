@@ -52,15 +52,15 @@ Move this plugin to the extensions\user\ folder to run the plugin. It will add a
 
 * strings.js – uses i18n to load a strings.js file in the nls folder
 
-    * htmlContent
-        * htmlfragment.html – html template to be localized by mustache
-    * nls
-        * strings.js – configures i18n by specifying the root folder and listing the locales supported by the plugin
-        * root
-            * strings.js – contains the English strings
-	* fr
-	    * strings.js – contains the French strings
-	* etc. for each locale
+* htmlContent
+    * htmlfragment.html – html template to be localized by mustache
+* nls
+    * strings.js – configures i18n by specifying the  root folder and listing the locales supported by the plugin
+    * root
+        * strings.js – contains the English strings
+    * fr
+        * strings.js – contains the French strings
+    * etc. for each locale
 
 #### Strings for plugins vs Brackets
 Note that there is a distinction between loading strings for a plugin vs. strings in the Brackets core. To access strings local to your plugin use `var strings = require("strings")`. To load the core Brackets strings use `var bracketsStrings = brackets.getModule("strings")`
