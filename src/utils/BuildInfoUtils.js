@@ -58,18 +58,15 @@ define(function (require, exports, module) {
                             refRelPath  = text.substr(5).trim(),
                             branch      = text.substr(16).trim();
 
-                        _loadSHA(basePath + "/" + refRelPath, callback).then(
-                            function (data) {
-                                resolve({ branch: branch, sha: data.sha.trim() });
-                            },
-                            function () {
-                                resolve({ branch: branch });
-                            }
-                        );
+                        _loadSHA(basePath + "/" + refRelPath, callback).then(function (data) {
+                            resolve({ branch: branch, sha: data.sha.trim() });
+                        }).catch(function () {
+                            resolve({ branch: branch });
+                        });
                     } else {
                         resolve({ sha: text });
                     }
-                }, function () {
+                }).catch(function () {
                     reject();
                 });
             }
@@ -97,7 +94,7 @@ define(function (require, exports, module) {
             _loadSHA(bracketsGitRoot).then(function (data) {
                 // Found a repository
                 resolve(data.branch, data.sha, true);
-            }, function () {
+            }).catch(function () {
                 // If package.json has repository data, Brackets is running from the installed /www folder
                 resolve(brackets.metadata.repository.branch, brackets.metadata.repository.SHA, false);
             });

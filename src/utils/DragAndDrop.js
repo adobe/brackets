@@ -121,7 +121,7 @@ define(function (require, exports, module) {
                                                {fullPath: path, silent: true})
                             .then(function () {
                                 resolve();
-                            }, function () {
+                            }).catch(function () {
                                 errorFiles.push(path);
                                 reject();
                             });
@@ -130,7 +130,7 @@ define(function (require, exports, module) {
                         ProjectManager.openProject(path)
                             .then(function () {
                                 resolve();
-                            }, function () {
+                            }).catch(function () {
                                 // User was already notified of the error.
                                 reject();
                             });
@@ -141,7 +141,7 @@ define(function (require, exports, module) {
                 });
             });
         }, false)
-            .then(null, function () {
+            .catch(function () {
                 if (errorFiles.length > 0) {
                     var message = Strings.ERROR_OPENING_FILES;
                     

@@ -199,7 +199,8 @@ define(function (require, exports, module) {
                         parseLessCode(content, url)
                             .then(function (css) {
                                 outerResolve(addEmbeddedStyleSheet(css));
-                            }, outerReject);
+                            })
+                            .catch(outerReject);
                     } else {
                         var link;
                         var innerPromise = new Promise(function (innerReseolve, innerReject) {
@@ -209,9 +210,11 @@ define(function (require, exports, module) {
                         innerPromise
                             .then(function () {
                                 outerResolve(link);
-                            }, outerReject);
+                            })
+                            .catch(outerReject);
                     }
-                }, outerReject);
+                })
+                .catch(outerReject);
         });
     }
     
@@ -234,7 +237,8 @@ define(function (require, exports, module) {
                     } catch (e) {
                         reject();
                     }
-                }, reject);
+                })
+                .catch(reject);
         });
     }
     

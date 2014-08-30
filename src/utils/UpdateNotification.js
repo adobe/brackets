@@ -161,7 +161,7 @@ define(function (require, exports, module) {
                             url: localVersionInfoUrl,
                             cache: false,
                             type: "HEAD"
-                        }).then(null, function (jqXHR, status, error) {
+                        }).catch(function (jqXHR, status, error) {
                             // get rid of any country information from locale and try again
                             var tmpUrl = _getVersionInfoUrl(brackets.getLocale(), true);
                             if (tmpUrl !== localVersionInfoUrl) {
@@ -169,10 +169,10 @@ define(function (require, exports, module) {
                                     url: tmpUrl,
                                     cache: false,
                                     type: "HEAD"
+                                }).catch(function (jqXHR, status, error) {
+                                    localVersionInfoUrl = _getVersionInfoUrl("en");
                                 }).then(function (jqXHR, status, error) {
                                     localVersionInfoUrl = tmpUrl;
-                                }, function (jqXHR, status, error) {
-                                    localVersionInfoUrl = _getVersionInfoUrl("en");
                                 }).then(lookupResolve, lookupResolve);
                             } else {
                                 localVersionInfoUrl = _getVersionInfoUrl("en");
@@ -187,43 +187,37 @@ define(function (require, exports, module) {
                     }
                 });
 
-                lookupPromise.then(
-                    function () {
-                        $.ajax({
-                            url: localVersionInfoUrl,
-                            dataType: "json",
-                            cache: false
-                        }).then(
-                            function (updateInfo, textStatus, jqXHR) {
-                                if (!dontCache) {
-                                    lastInfoURLFetchTime = (new Date()).getTime();
-                                    PreferencesManager.setViewState("lastInfoURLFetchTime", lastInfoURLFetchTime);
-                                    PreferencesManager.setViewState("updateInfo", updateInfo);
-                                }
-                                outerResolve(updateInfo);
-                            },
-                            function (jqXHR, status, error) {
-                                // When loading data for unit tests, the error handler is
-                                // called but the responseText is valid. Try to use it here,
-                                // but *don't* save the results in prefs.
+                lookupPromise.then(function () {
+                    $.ajax({
+                        url: localVersionInfoUrl,
+                        dataType: "json",
+                        cache: false
+                    }).then(function (updateInfo, textStatus, jqXHR) {
+                        if (!dontCache) {
+                            lastInfoURLFetchTime = (new Date()).getTime();
+                            PreferencesManager.setViewState("lastInfoURLFetchTime", lastInfoURLFetchTime);
+                            PreferencesManager.setViewState("updateInfo", updateInfo);
+                        }
+                        outerResolve(updateInfo);
+                    }).catch(function (jqXHR, status, error) {
+                        // When loading data for unit tests, the error handler is
+                        // called but the responseText is valid. Try to use it here,
+                        // but *don't* save the results in prefs.
 
-                                if (!jqXHR.responseText) {
-                                    // Text is NULL or empty string, reject().
-                                    outerReject();
-                                    return;
-                                }
+                        if (!jqXHR.responseText) {
+                            // Text is NULL or empty string, reject().
+                            outerReject();
+                            return;
+                        }
 
-                                try {
-                                    data = JSON.parse(jqXHR.responseText);
-                                    outerResolve(data);
-                                } catch (e) {
-                                    outerReject();
-                                }
-                            }
-                        );
-                    },
-                    null
-                );
+                        try {
+                            data = JSON.parse(jqXHR.responseText);
+                            outerResolve(data);
+                        } catch (e) {
+                            outerReject();
+                        }
+                    });
+                });
             } else {
                 outerResolve(data);
             }
@@ -364,8 +358,8 @@ define(function (require, exports, module) {
                 }
             }
 
-            _getUpdateInformation(force || usingOverrides, usingOverrides, versionInfoUrl).then(
-                function (versionInfo) {
+            _getUpdateInformation(force || usingOverrides, usingOverrides, versionInfoUrl)
+                .then(function (versionInfo) {
                     // Get all available updates
                     var allUpdates = _stripOldVersionInfo(versionInfo, _buildNumber);
 
@@ -420,8 +414,8 @@ define(function (require, exports, module) {
                         }
                     }
                     resolve();
-                },
-                function () {
+                })
+                .catch(function () {
                     // Error fetching the update data. If this is a forced check, alert the user
                     if (force) {
                         Dialogs.showModalDialog(
@@ -431,8 +425,7 @@ define(function (require, exports, module) {
                         );
                     }
                     reject();
-                }
-            );
+                });
         });
     }
     

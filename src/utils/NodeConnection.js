@@ -328,8 +328,7 @@ define(function (require, exports, module) {
                         } else { // too many attempts, give up
                             reject("Max connection attempts reached");
                         }
-                    },
-                    null
+                    }
                 );
             }
 
@@ -582,12 +581,9 @@ define(function (require, exports, module) {
             }
 
             if (self.connected()) {
-                $.getJSON("http://localhost:" + self._port + "/api").then(
-                    refreshInterfaceCallback,
-                    function (err) {
-                        outerReject(err);
-                    }
-                );
+                $.getJSON("http://localhost:" + self._port + "/api")
+                    .then(refreshInterfaceCallback)
+                    .catch(function (err) { outerReject(err); });
             } else {
                 outerReject("Attempted to call _refreshInterface when not connected.");
             }
