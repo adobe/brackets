@@ -304,16 +304,15 @@ define(function (require, exports, module) {
 
                 } else {
                     // Load the file if it was never open before, and then switch to it in the UI
-                    DocumentManager.getDocumentForPath(fullPath).then(
-                        function (doc) {
+                    DocumentManager.getDocumentForPath(fullPath)
+                        .then(function (doc) {
                             DocumentManager.setCurrentDocument(doc);
                             resolve(doc);
-                        },
-                        function (fileError) {
+                        })
+                        .catch(function (fileError) {
                             _showErrorAndCleanUp(fileError, fullPath);
                             reject();
-                        }
-                    );
+                        });
                 }
             }
         });
@@ -675,19 +674,18 @@ define(function (require, exports, module) {
 
             function trySave() {
                 // We don't want normalized line endings, so it's important to pass true to getText()
-                FileUtils.writeText(file, docToSave.getText(true), force).then(
-                    function () {
+                FileUtils.writeText(file, docToSave.getText(true), force)
+                    .then(function () {
                         docToSave.notifySaved();
                         resolve(file);
-                    },
-                    function (err) {
+                    })
+                    .catch(function (err) {
                         if (err === FileSystemError.CONTENTS_MODIFIED) {
                             handleContentsModified();
                         } else {
                             handleError(err);
                         }
-                    }
-                );
+                    });
             }
 
             if (docToSave.isDirty) {
@@ -738,12 +736,12 @@ define(function (require, exports, module) {
         
         return new Promise(function (resolve, reject) {
 
-            FileUtils.readAsText(doc.file).then(
-                function (text, readTimestamp) {
+            FileUtils.readAsText(doc.file)
+                .then(function (text, readTimestamp) {
                     doc.refreshText(text, readTimestamp);
                     resolve();
-                },
-                function (error) {
+                })
+                .catch(function (error) {
                     if (suppressError) {
                         resolve();
                     } else {
@@ -752,8 +750,7 @@ define(function (require, exports, module) {
                                 reject(error);
                             });
                     }
-                }
-            );
+                });
         });
     }
 
@@ -831,8 +828,8 @@ define(function (require, exports, module) {
                 // explictly allow "blind" writes to the filesystem in this case,
                 // ignoring warnings about the contents being modified outside of
                 // the editor.
-                FileUtils.writeText(newFile, doc.getText(), true).then(
-                    function () {
+                FileUtils.writeText(newFile, doc.getText(), true)
+                    .then(function () {
                         // If there were unsaved changes before Save As, they don't stay with the old
                         // file anymore - so must revert the old doc to match disk content.
                         // Only do this if the doc was dirty: doRevert on a file that is not dirty and
@@ -847,8 +844,8 @@ define(function (require, exports, module) {
                         
                         // mark that we're done saving the document
                         doc.isSaving = false;
-                    },
-                    function (error) {
+                    })
+                    .catch(function (error) {
                         _showSaveFileError(error, path)
                             .then(function () {
                                 reject(error);
@@ -856,8 +853,7 @@ define(function (require, exports, module) {
                         
                         // mark that we're done saving the document
                         doc.isSaving = false;
-                    }
-                );
+                    });
             }
 
             if (doc) {
@@ -955,16 +951,15 @@ define(function (require, exports, module) {
                 var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 if (doc) {
                     var savePromise = handleFileSave({doc: doc});
-                    savePromise.then(
-                        function (newFile) {
+                    savePromise
+                        .then(function (newFile) {
                             filesAfterSave.push(newFile);
-                        },
-                        function (error) {
+                        })
+                        .catch(function (error) {
                             if (error === USER_CANCELED) {
                                 userCanceled = true;
                             }
-                        }
-                    );
+                        });
                     return savePromise;
                 } else {
                     // working set entry that was never actually opened - ignore
@@ -1135,15 +1130,14 @@ define(function (require, exports, module) {
                             reject();
                         } else if (id === Dialogs.DIALOG_BTN_OK) {
                             // "Save" case: wait until we confirm save has succeeded before closing
-                            handleFileSave({doc: doc}).then(
-                                function (newFile) {
+                            handleFileSave({doc: doc})
+                                .then(function (newFile) {
                                     doClose(newFile);
                                     resolve();
-                                },
-                                function () {
+                                })
+                                .catch(function () {
                                     reject();
-                                }
-                            );
+                                });
                         } else {
                             // "Don't Save" case: even though we're closing the main editor, other views of
                             // the Document may remain in the UI. So we need to revert the Document to a clean
@@ -1207,12 +1201,14 @@ define(function (require, exports, module) {
                 // Only one unsaved file: show the usual single-file-close confirmation UI
                 var fileCloseArgs = { file: unsavedDocs[0].file, promptOnly: promptOnly };
 
-                handleFileClose(fileCloseArgs).then(function () {
-                    // still need to close any other, non-unsaved documents
-                    resolve();
-                }, function () {
-                    reject();
-                });
+                handleFileClose(fileCloseArgs)
+                    .then(function () {
+                        // still need to close any other, non-unsaved documents
+                        resolve();
+                    })
+                    .catch(function () {
+                        reject();
+                    });
 
             } else {
                 // Multiple unsaved files: show a single bulk prompt listing all files
@@ -1245,15 +1241,14 @@ define(function (require, exports, module) {
                             reject();
                         } else if (id === Dialogs.DIALOG_BTN_OK) {
                             // Save all unsaved files, then if that succeeds, close all
-                            _saveFileList(list).then(
-                                function (listAfterSave) {
+                            _saveFileList(list)
+                                .then(function (listAfterSave) {
                                     // List of files after save may be different, if any were Untitled
                                     resolve(listAfterSave);
-                                },
-                                function () {
+                                })
+                                .catch(function () {
                                     reject();
-                                }
-                            );
+                                });
                         } else {
                             // "Don't Save" case--we can just go ahead and close all files.
                             resolve();
@@ -1319,29 +1314,27 @@ define(function (require, exports, module) {
             return false;
         }
 
-        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).then(
-            function () {
-                _windowGoingAway = true;
-                
-                // Give everyone a chance to save their state - but don't let any problems block
-                // us from quitting
-                try {
-                    $(ProjectManager).triggerHandler("beforeAppClose");
-                } catch (ex) {
-                    console.error(ex);
-                }
-                
-                PreferencesManager.savePreferences();
-                
-                PreferencesManager.finalize().then(postCloseHandler, postCloseHandler);
-            },
-            function () {
-                _windowGoingAway = false;
-                if (failHandler) {
-                    failHandler();
-                }
+        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).then(function () {
+            _windowGoingAway = true;
+
+            // Give everyone a chance to save their state - but don't let any problems block
+            // us from quitting
+            try {
+                $(ProjectManager).triggerHandler("beforeAppClose");
+            } catch (ex) {
+                console.error(ex);
             }
-        );
+
+            PreferencesManager.savePreferences();
+
+            PreferencesManager.finalize().then(postCloseHandler, postCloseHandler);
+        })
+        .catch(function () {
+            _windowGoingAway = false;
+            if (failHandler) {
+                failHandler();
+            }
+        });
     }
 
     /**
@@ -1504,8 +1497,9 @@ define(function (require, exports, module) {
                 resolve();
             } else {
                 var port = brackets.app.getRemoteDebuggingPort ? brackets.app.getRemoteDebuggingPort() : 9234;
-                Inspector.getDebuggableWindows("127.0.0.1", port).then(
-                    function (response) {
+                Inspector.getDebuggableWindows("127.0.0.1", port)
+                    .catch(reject)
+                    .then(function (response) {
                         var page = response[0];
                         if (!page || !page.webSocketDebuggerUrl) {
                             reject();
@@ -1523,11 +1517,7 @@ define(function (require, exports, module) {
                         };
                         // In case of an error
                         _socket.onerror = reject;
-                    },
-                    function () {
-                        reject();
-                    }
-                );
+                    });
             }
         });
     }
@@ -1543,37 +1533,35 @@ define(function (require, exports, module) {
         
         _isReloading = true;
         
-        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).then(
-            function () {
-                // Give everyone a chance to save their state - but don't let any problems block
-                // us from quitting
-                try {
-                    $(ProjectManager).triggerHandler("beforeAppClose");
-                } catch (ex) {
-                    console.error(ex);
+        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).then(function () {
+            // Give everyone a chance to save their state - but don't let any problems block
+            // us from quitting
+            try {
+                $(ProjectManager).triggerHandler("beforeAppClose");
+            } catch (ex) {
+                console.error(ex);
+            }
+
+            // Disable the cache to make reloads work
+            var fnAlways = function () {
+                // Remove all menus to assure every part of Brackets is reloaded
+                _.forEach(Menus.getAllMenus(), function (value, key) {
+                    Menus.removeMenu(key);
+                });
+
+                // If there's a fragment in both URLs, setting location.href won't actually reload
+                var fragment = href.indexOf("#");
+                if (fragment !== -1) {
+                    href = href.substr(0, fragment);
                 }
 
-                // Disable the cache to make reloads work
-                var fnAlways = function () {
-                    // Remove all menus to assure every part of Brackets is reloaded
-                    _.forEach(Menus.getAllMenus(), function (value, key) {
-                        Menus.removeMenu(key);
-                    });
-
-                    // If there's a fragment in both URLs, setting location.href won't actually reload
-                    var fragment = href.indexOf("#");
-                    if (fragment !== -1) {
-                        href = href.substr(0, fragment);
-                    }
-
-                    window.location.href = href;
-                };
-                _disableCache().then(fnAlways, fnAlways);
-            },
-            function () {
-                _isReloading = false;
-            }
-        );
+                window.location.href = href;
+            };
+            _disableCache().then(fnAlways, fnAlways);
+        })
+        .catch(function () {
+            _isReloading = false;
+        });
     }
 
     function handleReload() {

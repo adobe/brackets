@@ -553,7 +553,8 @@ define(function (require, exports, module) {
                     .then(function () {
                         // (Now we're guaranteed that the current document is not the one we're closing)
                         console.assert(!(_currentDocument && _currentDocument.file.fullPath === file.fullPath));
-                    }, function () {
+                    })
+                    .catch(function () {
                         // File chosen to be switched to could not be opened, and the original file
                         // is still in editor. Close it again so code will try to open the next file,
                         // or empty the editor if there are no other files.
@@ -691,8 +692,8 @@ define(function (require, exports, module) {
                 var result = new Promise(function (resolve, reject) {
 
                     // create a new document
-                    FileUtils.readAsText(file).then(
-                        function (rawText, readTimestamp) {
+                    FileUtils.readAsText(file)
+                        .then(function (rawText, readTimestamp) {
                             delete getDocumentForPath._pendingDocumentPromises[file.id];
                             
                             doc = new DocumentModule.Document(file, readTimestamp, rawText);
@@ -701,12 +702,11 @@ define(function (require, exports, module) {
                             _gcDocuments();
 
                             resolve(doc);
-                        },
-                        function (fileError) {
+                        })
+                        .catch(function (fileError) {
                             delete getDocumentForPath._pendingDocumentPromises[file.id];
                             reject(fileError);
-                        }
-                    );
+                        });
                 });
                 
                 // log this document's Promise as pending
@@ -714,7 +714,7 @@ define(function (require, exports, module) {
 
                 result.then(function () {
                     PerfUtils.addMeasurement(perfTimerName);
-                }, function () {
+                }).catch(function () {
                     PerfUtils.finalizeMeasurement(perfTimerName);
                 });
 

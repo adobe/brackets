@@ -506,26 +506,23 @@ define(function LiveDevelopment(require, exports, module) {
 
         var docPromise = DocumentManager.getDocumentForPath(path);
 
-        docPromise.then(
-            function (doc) {
-                var classForDoc = _classForDocument(doc);
-                if ((classForDoc === CSSDocument || classForDoc === CSSPreprocessorDocument) &&
-                        (!_liveDocument || (doc !== _liveDocument.doc))) {
-                    // The doc may already have an editor (e.g. starting live preview from an css file),
-                    // so pass the editor if any
-                    var liveDoc = _createDocument(doc, doc._masterEditor);
-                    if (liveDoc) {
-                        _server.add(liveDoc);
-                        _relatedDocuments[doc.url] = liveDoc;
+        docPromise.then(function (doc) {
+            var classForDoc = _classForDocument(doc);
+            if ((classForDoc === CSSDocument || classForDoc === CSSPreprocessorDocument) &&
+                    (!_liveDocument || (doc !== _liveDocument.doc))) {
+                // The doc may already have an editor (e.g. starting live preview from an css file),
+                // so pass the editor if any
+                var liveDoc = _createDocument(doc, doc._masterEditor);
+                if (liveDoc) {
+                    _server.add(liveDoc);
+                    _relatedDocuments[doc.url] = liveDoc;
 
-                        $(liveDoc).on("deleted.livedev", function (event, liveDoc) {
-                            _closeRelatedDocument(liveDoc);
-                        });
-                    }
+                    $(liveDoc).on("deleted.livedev", function (event, liveDoc) {
+                        _closeRelatedDocument(liveDoc);
+                    });
                 }
-            },
-            null
-        );
+            }
+        });
     }
 
     /** Unload the agents */
@@ -552,12 +549,9 @@ define(function LiveDevelopment(require, exports, module) {
         if (!oneAgentPromise) {
             oneAgentPromise = Promise.resolve();
         } else {
-            oneAgentPromise.then(
-                null,
-                function () {
-                    console.error(methodName + " failed on agent", name);
-                }
-            );
+            oneAgentPromise.catch(function () {
+                console.error(methodName + " failed on agent", name);
+            });
         }
 
         return oneAgentPromise;
@@ -611,12 +605,9 @@ define(function LiveDevelopment(require, exports, module) {
             allAgentsPromise = Async.doInParallel(
                 getEnabledAgents(),
                 function (name) {
-                    return _invokeAgentMethod(name, "load").then(
-                        function () {
-                            _loadedAgentNames.push(name);
-                        },
-                        null
-                    );
+                    return _invokeAgentMethod(name, "load").then(function () {
+                        _loadedAgentNames.push(name);
+                    });
                 },
                 true
             );
@@ -624,34 +615,31 @@ define(function LiveDevelopment(require, exports, module) {
             // wrap agent loading with a timeout
             allAgentsPromise = Async.withTimeout(allAgentsPromise, 10000);
 
-            allAgentsPromise.then(
-                function () {
-                    var doc = (_liveDocument) ? _liveDocument.doc : null;
+            allAgentsPromise.then(function () {
+                var doc = (_liveDocument) ? _liveDocument.doc : null;
 
-                    if (doc) {
-                        var status = STATUS_ACTIVE;
+                if (doc) {
+                    var status = STATUS_ACTIVE;
 
-                        if (_docIsOutOfSync(doc)) {
-                            status = STATUS_OUT_OF_SYNC;
-                        }
-
-                        _setStatus(status);
-                        resolve();
-                    } else {
-                        reject();
+                    if (_docIsOutOfSync(doc)) {
+                        status = STATUS_OUT_OF_SYNC;
                     }
-                },
-                null
-            );
 
-            allAgentsPromise.then(null, reject);
+                    _setStatus(status);
+                    resolve();
+                } else {
+                    reject();
+                }
+            });
+
+            allAgentsPromise.catch(reject);
         });
         
-        _loadAgentsPromise.then(
-            function () {
+        _loadAgentsPromise
+            .then(function () {
                 _loadAgentsPromise = null;
-            },
-            function () {
+            })
+            .catch(function () {
                 // show error loading live dev dialog
                 _setStatus(STATUS_ERROR);
 
@@ -661,8 +649,7 @@ define(function LiveDevelopment(require, exports, module) {
                     Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
                 );
                 _loadAgentsPromise = null;
-            }
-        );
+            });
 
         return _loadAgentsPromise;
     }
@@ -912,19 +899,16 @@ define(function LiveDevelopment(require, exports, module) {
                 closePromise = Promise.resolve();
             }
             
-            closePromise.then(
-                function () {
-                    _setStatus(STATUS_INACTIVE, reason || "explicit_close");
-                    _resolve(_closeCallbacks);
-                },
-                function (err) {
-                    if (err) {
-                        reason +=  " (" + err + ")";
-                    }
-                    _setStatus(STATUS_INACTIVE, reason || "explicit_close");
-                    _resolve(_closeCallbacks);
+            closePromise.then(function () {
+                _setStatus(STATUS_INACTIVE, reason || "explicit_close");
+                _resolve(_closeCallbacks);
+            }).catch(function (err) {
+                if (err) {
+                    reason +=  " (" + err + ")";
                 }
-            );
+                _setStatus(STATUS_INACTIVE, reason || "explicit_close");
+                _resolve(_closeCallbacks);
+            });
         }
         
         // Reject calls to open if requests are still pending
@@ -1102,29 +1086,26 @@ define(function LiveDevelopment(require, exports, module) {
             // resolve/reject the open() promise after agents complete
             loadAgents().then(_openCallbacks.resolve, _openCallbacks.reject);
 
-            _getInitialDocFromCurrent().then(
-                function (doc) {
-                    if (doc && _liveDocument) {
-                        if (doc !== _liveDocument.doc) {
-                            _createLiveDocumentForFrame(doc);
-                        }
-
-                        // Navigate from interstitial to the document
-                        // Fires a frameNavigated event
-                        if (_server) {
-                            Inspector.Page.navigate(_server.pathToUrl(doc.file.fullPath));
-                        } else {
-                            console.error("LiveDevelopment._onInterstitialPageLoad(): No server active");
-                        }
-                    } else {
-                        // Unlikely that we would get to this state where
-                        // a connection is in process but there is no current
-                        // document
-                        close();
+            _getInitialDocFromCurrent().then(function (doc) {
+                if (doc && _liveDocument) {
+                    if (doc !== _liveDocument.doc) {
+                        _createLiveDocumentForFrame(doc);
                     }
-                },
-                null
-            );
+
+                    // Navigate from interstitial to the document
+                    // Fires a frameNavigated event
+                    if (_server) {
+                        Inspector.Page.navigate(_server.pathToUrl(doc.file.fullPath));
+                    } else {
+                        console.error("LiveDevelopment._onInterstitialPageLoad(): No server active");
+                    }
+                } else {
+                    // Unlikely that we would get to this state where
+                    // a connection is in process but there is no current
+                    // document
+                    close();
+                }
+            });
         });
     }
     
@@ -1136,9 +1117,8 @@ define(function LiveDevelopment(require, exports, module) {
         // When the Inspector WebSocket disconnects unexpectedely
         $(Inspector).on("disconnect.livedev", _onDisconnect);
 		
-        _waitForInterstitialPageLoad().then(
-            _onInterstitialPageLoad,
-            function () {
+        _waitForInterstitialPageLoad()
+            .catch(function () {
                 close();
 
                 Dialogs.showModalDialog(
@@ -1146,8 +1126,8 @@ define(function LiveDevelopment(require, exports, module) {
                     Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
                     Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
                 );
-            }
-        );
+            })
+            .then(_onInterstitialPageLoad);
     }
 
     function _showWrongDocError() {
@@ -1173,116 +1153,109 @@ define(function LiveDevelopment(require, exports, module) {
             retryCount      = 0;
         
         // Open the live browser if the connection fails, retry 3 times
-        Inspector.connectToURL(launcherUrl).then(
-            null,
-            function onConnectFail(err) {
-                if (err === "CANCEL") {
-                    _reject(_openCallbacks, err);
-                    return;
-                }
-
-                if (retryCount > 3) {
-                    _setStatus(STATUS_ERROR);
-
-                    var dialogPromise = Dialogs.showModalDialog(
-                        DefaultDialogs.DIALOG_ID_LIVE_DEVELOPMENT,
-                        Strings.LIVE_DEVELOPMENT_RELAUNCH_TITLE,
-                        Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE,
-                        [
-                            {
-                                className: Dialogs.DIALOG_BTN_CLASS_LEFT,
-                                id:        Dialogs.DIALOG_BTN_CANCEL,
-                                text:      Strings.CANCEL
-                            },
-                            {
-                                className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                                id:        Dialogs.DIALOG_BTN_OK,
-                                text:      Strings.RELAUNCH_CHROME
-                            }
-                        ]
-                    );
-
-                    dialogPromise.then(
-                        function (id) {
-                            if (id === Dialogs.DIALOG_BTN_OK) {
-                                // User has chosen to reload Chrome, quit the running instance
-                                _setStatus(STATUS_INACTIVE);
-                                _close().then(
-                                    function () {
-                                        browserStarted = false;
-                                        // Continue to use _openPromise
-                                        open(true);
-                                    },
-                                    function (err) {
-                                        // Report error?
-                                        _setStatus(STATUS_ERROR);
-                                        browserStarted = false;
-                                        _reject(_openCallbacks, "CLOSE_LIVE_BROWSER");
-                                    }
-                                );
-                            } else {
-                                _close().then(
-                                    function () {
-                                        browserStarted = false;
-                                        _reject(_openCallbacks, "CANCEL");
-                                    },
-                                    function (err) {
-                                        // Report error?
-                                        _setStatus(STATUS_ERROR);
-                                        browserStarted = false;
-                                        _reject(_openCallbacks, "CLOSE_LIVE_BROWSER");
-                                    }
-                                );
-                            }
-                        },
-                        null
-                    );
-
-                    return;
-                }
-                retryCount++;
-
-                if (!browserStarted && exports.status !== STATUS_ERROR) {
-                    NativeApp.openLiveBrowser(
-                        launcherUrl,
-                        true        // enable remote debugging
-                    ).then(
-                        function () {
-                            browserStarted = true;
-                        },
-                        function (err) {
-                            var message;
-
-                            _setStatus(STATUS_ERROR);
-                            if (err === FileSystemError.NOT_FOUND) {
-                                message = Strings.ERROR_CANT_FIND_CHROME;
-                            } else {
-                                message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
-                            }
-
-                            // Append a message to direct users to the troubleshooting page.
-                            if (message) {
-                                message += " " + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
-                            }
-
-                            Dialogs.showModalDialog(
-                                DefaultDialogs.DIALOG_ID_ERROR,
-                                Strings.ERROR_LAUNCHING_BROWSER_TITLE,
-                                message
-                            );
-
-                            _reject(_openCallbacks, "OPEN_LIVE_BROWSER");
-                        }
-                    );
-                }
-
-                if (exports.status !== STATUS_ERROR) {
-                    window.setTimeout(function retryConnect() {
-                        Inspector.connectToURL(launcherUrl).then(null, onConnectFail);
-                    }, 3000);
-                }
+        Inspector.connectToURL(launcherUrl).catch(function onConnectFail(err) {
+            if (err === "CANCEL") {
+                _reject(_openCallbacks, err);
+                return;
             }
-        );
+
+            if (retryCount > 3) {
+                _setStatus(STATUS_ERROR);
+
+                var dialogPromise = Dialogs.showModalDialog(
+                    DefaultDialogs.DIALOG_ID_LIVE_DEVELOPMENT,
+                    Strings.LIVE_DEVELOPMENT_RELAUNCH_TITLE,
+                    Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE,
+                    [
+                        {
+                            className: Dialogs.DIALOG_BTN_CLASS_LEFT,
+                            id:        Dialogs.DIALOG_BTN_CANCEL,
+                            text:      Strings.CANCEL
+                        },
+                        {
+                            className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                            id:        Dialogs.DIALOG_BTN_OK,
+                            text:      Strings.RELAUNCH_CHROME
+                        }
+                    ]
+                );
+
+                dialogPromise.then(
+                    function (id) {
+                        if (id === Dialogs.DIALOG_BTN_OK) {
+                            // User has chosen to reload Chrome, quit the running instance
+                            _setStatus(STATUS_INACTIVE);
+                            _close()
+                                .then(function () {
+                                    browserStarted = false;
+                                    // Continue to use _openPromise
+                                    open(true);
+                                })
+                                .catch(function (err) {
+                                    // Report error?
+                                    _setStatus(STATUS_ERROR);
+                                    browserStarted = false;
+                                    _reject(_openCallbacks, "CLOSE_LIVE_BROWSER");
+                                });
+                        } else {
+                            _close()
+                                .then(function () {
+                                    browserStarted = false;
+                                    _reject(_openCallbacks, "CANCEL");
+                                })
+                                .catch(function (err) {
+                                    // Report error?
+                                    _setStatus(STATUS_ERROR);
+                                    browserStarted = false;
+                                    _reject(_openCallbacks, "CLOSE_LIVE_BROWSER");
+                                });
+                        }
+                    }
+                );
+
+                return;
+            }
+            retryCount++;
+
+            if (!browserStarted && exports.status !== STATUS_ERROR) {
+                NativeApp.openLiveBrowser(
+                    launcherUrl,
+                    true        // enable remote debugging
+                )
+                    .then(function () {
+                        browserStarted = true;
+                    })
+                    .catch(function (err) {
+                        var message;
+
+                        _setStatus(STATUS_ERROR);
+                        if (err === FileSystemError.NOT_FOUND) {
+                            message = Strings.ERROR_CANT_FIND_CHROME;
+                        } else {
+                            message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
+                        }
+
+                        // Append a message to direct users to the troubleshooting page.
+                        if (message) {
+                            message += " " + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
+                        }
+
+                        Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_ERROR,
+                            Strings.ERROR_LAUNCHING_BROWSER_TITLE,
+                            message
+                        );
+
+                        _reject(_openCallbacks, "OPEN_LIVE_BROWSER");
+                    });
+            }
+
+            if (exports.status !== STATUS_ERROR) {
+                window.setTimeout(function retryConnect() {
+                    Inspector.connectToURL(launcherUrl).catch(onConnectFail);
+                }, 3000);
+            }
+        });
     }
 
     // helper function that actually does the launch once we are sure we have
@@ -1325,17 +1298,14 @@ define(function LiveDevelopment(require, exports, module) {
 
             if (showBaseUrlPrompt) {
                 // Prompt for a base URL
-                PreferencesDialogs.showProjectPreferencesDialog("", Strings.LIVE_DEV_NEED_BASEURL_MESSAGE).then(
-                    function (id) {
-                        if (id === Dialogs.DIALOG_BTN_OK && ProjectManager.getBaseUrl()) {
-                            // If base url is specifed, then re-invoke _prepareServer() to continue
-                            _prepareServer(doc).then(resolve, reject);
-                        } else {
-                            reject();
-                        }
-                    },
-                    null
-                );
+                PreferencesDialogs.showProjectPreferencesDialog("", Strings.LIVE_DEV_NEED_BASEURL_MESSAGE).then(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_OK && ProjectManager.getBaseUrl()) {
+                        // If base url is specifed, then re-invoke _prepareServer() to continue
+                        _prepareServer(doc).then(resolve, reject);
+                    } else {
+                        reject();
+                    }
+                });
             } else if (_server) {
                 // Startup the server
                 var readyPromise = _server.readyToServe();
@@ -1343,13 +1313,10 @@ define(function LiveDevelopment(require, exports, module) {
                     _showLiveDevServerNotReadyError();
                     reject();
                 } else {
-                    readyPromise.then(
-                        resolve,
-                        function () {
-                            _showLiveDevServerNotReadyError();
-                            reject();
-                        }
-                    );
+                    readyPromise.then(resolve, function () {
+                        _showLiveDevServerNotReadyError();
+                        reject();
+                    });
                 }
             } else {
                 // No server found
@@ -1367,12 +1334,9 @@ define(function LiveDevelopment(require, exports, module) {
     function open(restart) {
         // If close() is still pending, wait for close to finish before opening
         if (_closeCallbacks.resolve) {
-            return _closePromise.then(
-                function () {
-                    return open(restart);
-                },
-                null
-            );
+            return _closePromise.then(function () {
+                return open(restart);
+            });
         }
 
         if (!restart) {
@@ -1397,36 +1361,32 @@ define(function LiveDevelopment(require, exports, module) {
         
         // TODO: need to run _onDocumentChange() after load if doc != currentDocument here? Maybe not, since activeEditorChange
         // doesn't trigger it, while inline editors can still cause edits in doc other than currentDoc...
-        _getInitialDocFromCurrent().then(
-            function (doc) {
-                var otherDocumentsInWorkingFiles,
-                    prepareServerPromise = (doc && _prepareServer(doc));
+        _getInitialDocFromCurrent().then(function (doc) {
+            var otherDocumentsInWorkingFiles,
+                prepareServerPromise = (doc && _prepareServer(doc));
 
-                if (!prepareServerPromise) {
-                    prepareServerPromise = Promise.reject();
+            if (!prepareServerPromise) {
+                prepareServerPromise = Promise.reject();
+            }
+
+            if (doc && !doc._masterEditor) {
+                otherDocumentsInWorkingFiles = DocumentManager.getWorkingSet().length;
+                DocumentManager.addToWorkingSet(doc.file);
+
+                if (!otherDocumentsInWorkingFiles) {
+                    DocumentManager.setCurrentDocument(doc);
                 }
+            }
 
-                if (doc && !doc._masterEditor) {
-                    otherDocumentsInWorkingFiles = DocumentManager.getWorkingSet().length;
-                    DocumentManager.addToWorkingSet(doc.file);
-
-                    if (!otherDocumentsInWorkingFiles) {
-                        DocumentManager.setCurrentDocument(doc);
-                    }
-                }
-
-                // wait for server (StaticServer, Base URL or file:)
-                prepareServerPromise.then(
-                    function () {
-                        _doLaunchAfterServerReady(doc);
-                    },
-                    function () {
-                        _showWrongDocError();
-                    }
-                );
-            },
-            null
-        );
+            // wait for server (StaticServer, Base URL or file:)
+            prepareServerPromise
+                .then(function () {
+                    _doLaunchAfterServerReady(doc);
+                })
+                .catch(function () {
+                    _showWrongDocError();
+                });
+        });
 
         return _openPromise;
     }
@@ -1483,14 +1443,11 @@ define(function LiveDevelopment(require, exports, module) {
 
             // Navigate to the new page within this site. Agents must handle
             // frameNavigated event to clear any saved state.
-            Inspector.Page.navigate(docUrl).then(
-                function () {
-                    _setStatus(STATUS_ACTIVE);
-                },
-                function () {
-                    _close(false, "closed_unknown_reason");
-                }
-            );
+            Inspector.Page.navigate(docUrl).then(function () {
+                _setStatus(STATUS_ACTIVE);
+            }, function () {
+                _close(false, "closed_unknown_reason");
+            });
         } else if (wasRequested) {
             // Update highlight
             showHighlight();

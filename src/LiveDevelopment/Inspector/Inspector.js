@@ -356,23 +356,22 @@ define(function Inspector(require, exports, module) {
                 reject:  connectReject
             };
 
-            getDebuggableWindows().then(
-                function (response) {       // onGetAvailableSockets
-                    var i, page;
-                    for (i in response) {
-                        page = response[i];
-                        if (page.webSocketDebuggerUrl && page.url.indexOf(url) === 0) {
-                            // Promise may be resolved by onConnect or rejected by onError
-                            connect(page.webSocketDebuggerUrl);
-                            return;
-                        }
+            var promise = getDebuggableWindows();
+            promise.then(function onGetAvailableSockets(response) {
+                var i, page;
+                for (i in response) {
+                    page = response[i];
+                    if (page.webSocketDebuggerUrl && page.url.indexOf(url) === 0) {
+                        // Promise may be resolved by onConnect or rejected by onError
+                        connect(page.webSocketDebuggerUrl);
+                        return;
                     }
-                    connectReject(FileError.ERR_NOT_FOUND); // Reject with a "not found" error
-                },
-                function (err) {
-                    connectReject(err);
                 }
-            );
+                connectReject(FileError.ERR_NOT_FOUND); // Reject with a "not found" error
+            });
+            promise.catch(function (err) {
+                connectReject(err);
+            });
         });
         
         var fnAlways = function () {

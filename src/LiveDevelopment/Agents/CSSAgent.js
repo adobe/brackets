@@ -203,20 +203,17 @@ define(function CSSAgent(require, exports, module) {
 
         // Manually fire getAllStyleSheets since it will be removed from
         // Inspector.json in a future update
-        Inspector.send("CSS", "getAllStyleSheets").then(
-            function (res) {
-                res.headers.forEach(function (header) {
-                    // _styleSheetAdded will ignore duplicates
-                    _getAllStyleSheetsNotFound = false;
-                    _styleSheetAdded(null, { header: header });
-                });
-            },
-            function (err) {
-                // Disable getAllStyleSheets if the first call fails
-                _getAllStyleSheetsNotFound = (err.code === -32601);
-                $(Inspector.Page).off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
-            }
-        );
+        Inspector.send("CSS", "getAllStyleSheets").then(function (res) {
+            res.headers.forEach(function (header) {
+                // _styleSheetAdded will ignore duplicates
+                _getAllStyleSheetsNotFound = false;
+                _styleSheetAdded(null, { header: header });
+            });
+        }).catch(function (err) {
+            // Disable getAllStyleSheets if the first call fails
+            _getAllStyleSheetsNotFound = (err.code === -32601);
+            $(Inspector.Page).off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
+        });
     }
 
     /** Enable the domain */

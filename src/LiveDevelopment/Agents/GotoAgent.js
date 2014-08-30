@@ -171,19 +171,17 @@ define(function GotoAgent(require, exports, module) {
             // URL-decode the path ('%20' => ' ')
             path = decodeURI(path);
             var promise = DocumentManager.getDocumentForPath(path);
-            promise.then(
-                function onDone(doc) {
-                    DocumentManager.setCurrentDocument(doc);
-                    if (location) {
-                        openLocation(location, noFlash);
-                    }
-                    resolve();
-                },
-                function onErr(err) {
-                    console.error(err);
-                    reject(err);
+            promise.then(function onDone(doc) {
+                DocumentManager.setCurrentDocument(doc);
+                if (location) {
+                    openLocation(location, noFlash);
                 }
-            );
+                resolve();
+            });
+            promise.catch(function onErr(err) {
+                console.error(err);
+                reject(err);
+            });
         });
     }
 
