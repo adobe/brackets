@@ -68,37 +68,38 @@ define(function LiveDevelopment(require, exports, module) {
     var _ = require("thirdparty/lodash");
 
     // Status Codes
-    var STATUS_ERROR          = exports.STATUS_ERROR          = -1;
-    var STATUS_INACTIVE       = exports.STATUS_INACTIVE       =  0;
-    var STATUS_CONNECTING     = exports.STATUS_CONNECTING     =  1;
-    var STATUS_LOADING_AGENTS = exports.STATUS_LOADING_AGENTS =  2;
-    var STATUS_ACTIVE         = exports.STATUS_ACTIVE         =  3;
-    var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    =  4;
-    var STATUS_SYNC_ERROR     = exports.STATUS_SYNC_ERROR     =  5;
+    var STATUS_ERROR            = exports.STATUS_ERROR          = -1;
+    var STATUS_INACTIVE         = exports.STATUS_INACTIVE       =  0;
+    var STATUS_CONNECTING       = exports.STATUS_CONNECTING     =  1;
+    var STATUS_LOADING_AGENTS   = exports.STATUS_LOADING_AGENTS =  2;
+    var STATUS_ACTIVE           = exports.STATUS_ACTIVE         =  3;
+    var STATUS_OUT_OF_SYNC      = exports.STATUS_OUT_OF_SYNC    =  4;
+    var STATUS_SYNC_ERROR       = exports.STATUS_SYNC_ERROR     =  5;
 
-    var Async                = require("utils/Async"),
-        Dialogs              = require("widgets/Dialogs"),
-        DefaultDialogs       = require("widgets/DefaultDialogs"),
-        DocumentManager      = require("document/DocumentManager"),
-        EditorManager        = require("editor/EditorManager"),
-        FileServer           = require("LiveDevelopment/Servers/FileServer").FileServer,
-        FileSystemError      = require("filesystem/FileSystemError"),
-        FileUtils            = require("file/FileUtils"),
-        LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
-        NativeApp            = require("utils/NativeApp"),
-        PreferencesDialogs   = require("preferences/PreferencesDialogs"),
-        ProjectManager       = require("project/ProjectManager"),
-        Strings              = require("strings"),
-        StringUtils          = require("utils/StringUtils"),
-        UserServer           = require("LiveDevelopment/Servers/UserServer").UserServer;
+    var Async                   = require("utils/Async"),
+        Dialogs                 = require("widgets/Dialogs"),
+        DefaultDialogs          = require("widgets/DefaultDialogs"),
+        DocumentManager         = require("document/DocumentManager"),
+        EditorManager           = require("editor/EditorManager"),
+        FileServer              = require("LiveDevelopment/Servers/FileServer").FileServer,
+        FileSystemError         = require("filesystem/FileSystemError"),
+        FileUtils               = require("file/FileUtils"),
+        LiveDevServerManager    = require("LiveDevelopment/LiveDevServerManager"),
+        NativeApp               = require("utils/NativeApp"),
+        PreferencesDialogs      = require("preferences/PreferencesDialogs"),
+        ProjectManager          = require("project/ProjectManager"),
+        Strings                 = require("strings"),
+        StringUtils             = require("utils/StringUtils"),
+        UserServer              = require("LiveDevelopment/Servers/UserServer").UserServer;
 
     // Inspector
-    var Inspector       = require("LiveDevelopment/Inspector/Inspector");
+    var Inspector               = require("LiveDevelopment/Inspector/Inspector");
 
     // Documents
-    var CSSDocument     = require("LiveDevelopment/Documents/CSSDocument"),
-        HTMLDocument    = require("LiveDevelopment/Documents/HTMLDocument"),
-        JSDocument      = require("LiveDevelopment/Documents/JSDocument");
+    var CSSDocument             = require("LiveDevelopment/Documents/CSSDocument"),
+        CSSPreprocessorDocument = require("LiveDevelopment/Documents/CSSPreprocessorDocument"),
+        HTMLDocument            = require("LiveDevelopment/Documents/HTMLDocument"),
+        JSDocument              = require("LiveDevelopment/Documents/JSDocument");
     
     // Document errors
     var SYNC_ERROR_CLASS = "live-preview-sync-error";
@@ -184,7 +185,7 @@ define(function LiveDevelopment(require, exports, module) {
      * @type {BaseServer}
      */
     var _server;
-
+    
     function _isPromisePending(promise) {
         return promise && promise.state() === "pending";
     }
@@ -206,6 +207,9 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function _classForDocument(doc) {
         switch (doc.getLanguage().getId()) {
+        case "less":
+        case "scss":
+            return CSSPreprocessorDocument;
         case "css":
             return CSSDocument;
         case "javascript":
@@ -483,7 +487,8 @@ define(function LiveDevelopment(require, exports, module) {
         var docPromise = DocumentManager.getDocumentForPath(path);
 
         docPromise.done(function (doc) {
-            if ((_classForDocument(doc) === CSSDocument) &&
+            if ((_classForDocument(doc) === CSSDocument ||
+                    _classForDocument(doc) === CSSPreprocessorDocument) &&
                     (!_liveDocument || (doc !== _liveDocument.doc))) {
                 // The doc may already have an editor (e.g. starting live preview from an css file),
                 // so pass the editor if any
@@ -752,6 +757,34 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /**
+     * If the current editor is for a CSS preprocessor file, then add it to the style sheet 
+     * so that we can track cursor positions in the editor to show live preview highlighting.
+     * For normal CSS we only do highlighting from files we know for sure are referenced by the 
+     * current live preview document, but for preprocessors we just assume that any preprocessor 
+     * file you edit is probably related to the live preview.
+     *
+     * @param {Event} event (unused)
+     * @param {Editor} current Current editor
+     * @param {Editor} previous Previous editor
+     *
+     */
+    function onActiveEditorChange(event, current, previous) {
+        if (previous && previous.document &&
+                FileUtils.isCSSPreprocessorFile(previous.document.file.fullPath)) {
+            var prevDocUrl = _server && _server.pathToUrl(previous.document.file.fullPath);
+            
+            if (_relatedDocuments && _relatedDocuments[prevDocUrl]) {
+                _closeRelatedDocument(_relatedDocuments[prevDocUrl]);
+            }
+        }
+        if (current && current.document &&
+                FileUtils.isCSSPreprocessorFile(current.document.file.fullPath)) {
+            var docUrl = _server && _server.pathToUrl(current.document.file.fullPath);
+            _styleSheetAdded(null, docUrl);
+        }
+    }
+    
+    /**
      * @private
      * While still connected to the Inspector, do cleanup for agents,
      * documents and server.
@@ -763,6 +796,8 @@ define(function LiveDevelopment(require, exports, module) {
             deferred    = new $.Deferred(),
             connected   = Inspector.connected();
 
+        $(EditorManager).off("activeEditorChange", onActiveEditorChange);
+        
         $(Inspector.Page).off(".livedev");
         $(Inspector).off(".livedev");
 
@@ -1204,6 +1239,15 @@ define(function LiveDevelopment(require, exports, module) {
         
         // open browser to the interstitial page to prepare for loading agents
         _openInterstitialPage();
+
+        // Setup activeEditorChange event listener so that we can track cursor positions in 
+        // CSS preprocessor files and perform live preview highlighting on all elements with 
+        // the current selector in the preprocessor file.
+        $(EditorManager).on("activeEditorChange", onActiveEditorChange);
+
+        // Explicitly trigger onActiveEditorChange so that live preview highlighting
+        // can be set up for the preprocessor files.
+        onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
     }
     
     function _prepareServer(doc) {
@@ -1448,6 +1492,8 @@ define(function LiveDevelopment(require, exports, module) {
     function getServerBaseUrl() {
         return _server && _server.getBaseUrl();
     }
+
+
 
     // For unit testing
     exports.launcherUrl               = launcherUrl;

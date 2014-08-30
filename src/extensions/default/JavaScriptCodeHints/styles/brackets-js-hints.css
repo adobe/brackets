@@ -88,3 +88,33 @@
 .brackets-js-hints .current-parameter {
     font-weight: 500;
 }
+
+/* Dark Styles */
+
+.dark .brackets-js-hints.priority-high {
+    color: #a1f200; /* green */
+}
+
+.dark .brackets-js-hints.priority-medium {
+    color: #3ff8ff; /* blue */
+}
+
+.dark .brackets-js-hints.priority-low {
+    color: #e6adff; /* violet */
+}
+
+.dark .brackets-js-hints.priority-lowest {
+    color: #bbb; /* dark grey */
+}
+
+.dark .brackets-js-hints.literal-hint {
+    color: #bbb; /* dark grey */
+    font-family: SourceCodePro;
+}
+
+.dark #function-hint-container {
+    background: #000;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.24);
+}

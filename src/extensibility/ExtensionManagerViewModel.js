@@ -70,6 +70,12 @@ define(function (require, exports, module) {
     
     /**
      * @type {string}
+     * Constant indicating that this model/view should initialize from the main extension registry with only themes.
+     */
+    ExtensionManagerViewModel.prototype.SOURCE_THEMES = "themes";
+
+    /**
+     * @type {string}
      * Constant indicating that this model/view should initialize from the list of locally installed extensions.
      */
     ExtensionManagerViewModel.prototype.SOURCE_INSTALLED = "installed";
@@ -158,7 +164,7 @@ define(function (require, exports, module) {
      */
     ExtensionManagerViewModel.prototype.initialize = function () {
         var self = this;
-
+        
         this._initializeFromSourcePromise = this._initializeFromSource().always(function () {
             self._updateMessage();
         });
@@ -326,7 +332,7 @@ define(function (require, exports, module) {
                 // Sort the registry by last published date and store the sorted list of IDs.
                 self.sortedFullSet = registry_utils.sortRegistry(self.extensions, "registryInfo")
                     .filter(function (entry) {
-                        return entry.registryInfo !== undefined;
+                        return entry.registryInfo !== undefined && entry.registryInfo.metadata.theme === undefined;
                     })
                     .map(function (entry) {
                         return entry.registryInfo.metadata.name;
@@ -495,6 +501,74 @@ define(function (require, exports, module) {
         return entry;
     };
 
+    /**
+     * The model for the ExtensionManagerView that is responsible for handling registry-based theme extensions. 
+     * This extends ExtensionManagerViewModel.
+     * Must be disposed with dispose() when done.
+     *
+     * Events:
+     * - change - triggered when the data for a given extension changes. Second parameter is the extension id.
+     * - filter - triggered whenever the filtered set changes (including on initialize).
+     *
+     * @constructor
+     */
+    function ThemesViewModel() {
+        ExtensionManagerViewModel.call(this);
+    }
+
+    // Inheritance setup
+    ThemesViewModel.prototype = Object.create(ExtensionManagerViewModel.prototype);
+    ThemesViewModel.prototype.constructor = ThemesViewModel;
+
+    /**
+     * @type {string}
+     * ThemeViewModels always have a source of SOURCE_THEMES.
+     */
+    ThemesViewModel.prototype.source = ExtensionManagerViewModel.prototype.SOURCE_THEMES;
+
+    /**
+     * Initializes the model from the remote extension registry.
+     * @return {$.Promise} a promise that's resolved with the registry JSON data.
+     */
+    ThemesViewModel.prototype._initializeFromSource = function () {
+        var self = this;
+        return ExtensionManager.downloadRegistry()
+            .done(function () {
+                self.extensions = ExtensionManager.extensions;
+
+                // Sort the registry by last published date and store the sorted list of IDs.
+                self.sortedFullSet = registry_utils.sortRegistry(self.extensions, "registryInfo")
+                    .filter(function (entry) {
+                        return entry.registryInfo !== undefined && entry.registryInfo.metadata.theme;
+                    })
+                    .map(function (entry) {
+                        return entry.registryInfo.metadata.name;
+                    });
+                self._setInitialFilter();
+            })
+            .fail(function () {
+                self.extensions = [];
+                self.sortedFullSet = [];
+                self.filterSet = [];
+            });
+    };
+
+    /**
+     * @private
+     * Finds the theme extension metadata by id. If there is no theme extension matching the given id,
+     * this returns `null`.
+     * @param {string} id of the theme extension
+     * @return {Object?} extension metadata or null if there's no matching extension
+     */
+    ThemesViewModel.prototype._getEntry = function (id) {
+        var entry = this.extensions[id];
+        if (entry) {
+            return entry.registryInfo;
+        }
+        return entry;
+    };
+
     exports.RegistryViewModel = RegistryViewModel;
+    exports.ThemesViewModel = ThemesViewModel;
     exports.InstalledViewModel = InstalledViewModel;
 });
