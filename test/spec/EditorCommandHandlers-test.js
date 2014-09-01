@@ -465,7 +465,7 @@ define(function (require, exports, module) {
             });
             
             it("should comment jade code", function () {
-                var vadeContent = "doctype html\n" +
+                var jadeContent = "doctype html\n" +
                                   "html(lang=\"en\")\n" +
                                   "  head\n" +
                                   "    title= pageTitle\n" +
@@ -484,7 +484,19 @@ define(function (require, exports, module) {
                                   "        Jade is a terse and simple\n" +
                                   "        templating language with a\n" +
                                   "        strong focus on performance\n"
-                                  "        and powerful features.\n";                                             
+                                  "        and powerful features.\n";
+                                
+                // create dummy Document and Editor for Jade content                
+                setupFullEditor(jadeContent, "jade");
+                                                
+                myEditor.setSelections([{start: {line: 9, ch: 4}, end: {line: 9, ch: 4}}]);
+                
+                var lines = jadeContent.split("\n");
+                lines[9] = "    //h1 Jade - node template engine";                
+                var expectedText = lines.join("\n");
+                
+                testToggleLine(expectedText, [{start: {line: 9, ch: 6}, end: {line: 9, ch: 6}, primary: true, reversed: false}]);
+                
             });
             
             describe("with multiple selections", function () {
