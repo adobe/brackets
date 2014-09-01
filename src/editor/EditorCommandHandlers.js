@@ -207,7 +207,7 @@ define(function (require, exports, module) {
             updateSelection        = false;
         
         if (containsNotLineComment) {
-            // Comment out - prepend the first prefix to each line            
+            // Comment out - prepend the first prefix to each line
             for (i = startLine; i <= endLine; i++) {
                 // For each line we need to determine the position where de comment prefix should be inserted
                 prefixPos = _getPrefixPos(language, doc.getLine(i));
