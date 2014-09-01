@@ -483,7 +483,7 @@ define(function (require, exports, module) {
                                   "      p.\n" +
                                   "        Jade is a terse and simple\n" +
                                   "        templating language with a\n" +
-                                  "        strong focus on performance\n"
+                                  "        strong focus on performance\n" +
                                   "        and powerful features.\n";
                                 
                 // create dummy Document and Editor for Jade content                
@@ -519,7 +519,7 @@ define(function (require, exports, module) {
                                   "      p.\n" +
                                   "        Jade is a terse and simple\n" +
                                   "        templating language with a\n" +
-                                  "        strong focus on performance\n"
+                                  "        strong focus on performance\n" +
                                   "        and powerful features.\n";
                                 
                 // create dummy Document and Editor for Jade content                
