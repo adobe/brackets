@@ -1064,6 +1064,7 @@ define(function (require, exports, module) {
             scopeOrder: ["default"],
             _shadowScopeOrder: [{
                 id: "default",
+                state: "resolved",
                 scope: this._scopes["default"],
                 promise: (new $.Deferred()).resolve().promise()
             }]
@@ -1189,13 +1190,13 @@ define(function (require, exports, module) {
             
             // Find an appropriate scope of lower priority to add it before
             while (i < shadowScopeOrder.length) {
-                if (shadowScopeOrder[i].promise.state() === "pending" ||
-                        shadowScopeOrder[i].promise.state() === "resolved") {
+                if (shadowScopeOrder[i].state === "pending" ||
+                        shadowScopeOrder[i].state === "resolved") {
                     break;
                 }
                 i++;
             }
-            switch (shadowScopeOrder[i].promise.state()) {
+            switch (shadowScopeOrder[i].state) {
             case "pending":
                 // cannot decide now, lookup once pending promise is settled
                 shadowScopeOrder[i].promise.always(function () {
@@ -1261,9 +1262,23 @@ define(function (require, exports, module) {
                 /* new scope is being added. */
                 shadowEntry = {
                     id: id,
+                    state: "pending",
                     promise: promise,
                     scope: scope
                 };
+
+                if (scope.storage instanceof MemoryStorage) {
+                    shadowEntry.state = "resolved";
+                } else {
+                    promise
+                        .done(function () {
+                            shadowEntry.state = "resolved";
+                        })
+                        .fail(function () {
+                            shadowEntry.state = "rejected";
+                        });
+                }
+
                 if (!addBefore) {
                     shadowScopeOrder.unshift(shadowEntry);
                 } else {
