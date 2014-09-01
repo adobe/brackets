@@ -464,6 +464,29 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
             });
             
+            it("should comment jade code", function () {
+                var vadeContent = "doctype html\n" +
+                                  "html(lang=\"en\")\n" +
+                                  "  head\n" +
+                                  "    title= pageTitle\n" +
+                                  "    script(type='text/javascript').\n" +
+                                  "      if (foo) {\n" +
+                                  "        bar(1 + 5)\n" +
+                                  "      }\n" +
+                                  "  body\n" +
+                                  "    h1 Jade - node template engine\n" +
+                                  "    #container.col\n" +
+                                  "      if youAreUsingJade\n" +
+                                  "        p You are amazing\n" +
+                                  "      else\n" +
+                                  "        p Get on it!\n" +
+                                  "      p.\n" +
+                                  "        Jade is a terse and simple\n" +
+                                  "        templating language with a\n" +
+                                  "        strong focus on performance\n"
+                                  "        and powerful features.\n";                                             
+            });
+            
             describe("with multiple selections", function () {
                 it("should toggle comments on separate lines with cursor selections", function () {
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
