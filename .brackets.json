@@ -4,7 +4,9 @@
         "plusplus": true,
         "devel": true,
         "nomen": true,
-        "maxerr": 50
+        "maxerr": 50,
+        "unparam": true,
+        "todo": true
     },
     "defaultExtension": "js",
     "path": {
