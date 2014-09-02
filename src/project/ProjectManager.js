@@ -946,6 +946,7 @@ define(function (require, exports, module) {
         $(".main-view").click(function (jqEvent) {
             if (jqEvent.target.className !== "rename-input") {
                 forceFinishRename();
+                dispatcher.setContext(null);
             }
         });
         
