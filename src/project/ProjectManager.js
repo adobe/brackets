@@ -25,9 +25,9 @@
 /*global define, $, brackets, FileError, window */
 
 /**
- * ProjectManager is the model for the set of currently open project. It is responsible for
- * creating and updating the project tree when projects are opened and when changes occur to
- * the file tree.
+ * ProjectManager glues together the project model and file tree view and integrates as needed with other parts
+ * of Brackets. It is responsible for creating and updating the project tree when projects are opened 
+ * and when changes occur to the file tree.
  *
  * This module dispatches these events:
  *    - beforeProjectClose -- before `_projectRoot` changes, but working set files still open
@@ -103,7 +103,8 @@ define(function (require, exports, module) {
     var _fileSystemChange,
         _fileSystemRename,
         _displayCreationError,
-        _savePreferences;
+        _savePreferences,
+        _renderTree;
 
     /**
      * @const
@@ -111,15 +112,15 @@ define(function (require, exports, module) {
      * Error context to show the correct error message
      * @type {int}
      */
-    var ERR_TYPE_CREATE = 1,
-        ERR_TYPE_CREATE_EXISTS = 2,
-        ERR_TYPE_RENAME = 3,
-        ERR_TYPE_DELETE = 4,
-        ERR_TYPE_LOADING_PROJECT = 5,
+    var ERR_TYPE_CREATE                 = 1,
+        ERR_TYPE_CREATE_EXISTS          = 2,
+        ERR_TYPE_RENAME                 = 3,
+        ERR_TYPE_DELETE                 = 4,
+        ERR_TYPE_LOADING_PROJECT        = 5,
         ERR_TYPE_LOADING_PROJECT_NATIVE = 6,
-        ERR_TYPE_MAX_FILES = 7,
-        ERR_TYPE_OPEN_DIALOG = 8,
-        ERR_TYPE_INVALID_FILENAME = 9;
+        ERR_TYPE_MAX_FILES              = 7,
+        ERR_TYPE_OPEN_DIALOG            = 8,
+        ERR_TYPE_INVALID_FILENAME       = 9;
 
     /**
      * @private
@@ -129,6 +130,11 @@ define(function (require, exports, module) {
      */
     var $projectTreeContainer;
     
+    /**
+     * @private
+     * Singleton ProjectModel object.
+     * @type {ProjectModel.ProjectModel}
+     */
     var model = new ProjectModel.ProjectModel();
     
     /**
@@ -139,18 +145,41 @@ define(function (require, exports, module) {
      */
     var _projectWarnedForTooManyFiles = false;
     
-    var _renderTree;
-    
-    function Dispatcher(model) {
+    /**
+     * @constructor
+     * @private
+     * 
+     * Manages the interaction between the view and the model. This is loosely structured in
+     * the style of [Flux](https://github.com/facebook/flux), but the initial implementation did
+     * not need all of the parts of Flux yet. This ActionCreator could be replaced later with
+     * a real ActionCreator that talks to a Dispatcher.
+     * 
+     * Most of the methods just delegate to the ProjectModel. Some are responsible for integration
+     * with other parts of Brackets.
+     * 
+     * @param {ProjectModel} model store (in Flux terminology) with the project data
+     */
+    function ActionCreator(model) {
         this.model = model;
         this._bindEvents();
     }
     
-    Dispatcher.prototype._bindEvents = function () {
+    /**
+     * @private
+     * 
+     * Listen to events on the ProjectModel and cause the appropriate behavior within the rest of the system.
+     */
+    ActionCreator.prototype._bindEvents = function () {
+        
+        // Change events are the standard Flux signal to rerender the view. Note that
+        // current Flux style is to have the view itself listen to the Store for change events
+        // and re-render itself.
         this.model.on(ProjectModel.EVENT_CHANGE, function () {
             _renderTree();
         });
         
+        // The "should select" event signals that we need to open the document based on file tree
+        // activity.
         this.model.on(ProjectModel.EVENT_SHOULD_SELECT, function (e, data) {
             FileViewController.openAndSelectDocument(data.path, FileViewController.PROJECT_MANAGER);
         });
@@ -158,51 +187,89 @@ define(function (require, exports, module) {
         this.model.on(ProjectModel.ERROR_CREATION, _displayCreationError);
     };
     
-    Dispatcher.prototype.setDirectoryOpen = function (path, open) {
+    /**
+     * Sets the directory at the given path to open in the tree and saves the open nodes to view state.
+     * 
+     * See `ProjectModel.setDirectoryOpen`
+     */
+    ActionCreator.prototype.setDirectoryOpen = function (path, open) {
         this.model.setDirectoryOpen(path, open).then(_savePreferences);
     };
     
-    Dispatcher.prototype.setSelected = function (path, doNotOpen) {
+    /**
+     * See `ProjectModel.setSelected`
+     */
+    ActionCreator.prototype.setSelected = function (path, doNotOpen) {
         this.model.setSelected(path, doNotOpen);
     };
     
-    Dispatcher.prototype.selectInWorkingSet = function (path) {
+    /**
+     * See `ProjectModel.selectInWorkingSet`
+     */
+    ActionCreator.prototype.selectInWorkingSet = function (path) {
         this.model.selectInWorkingSet(path);
     };
     
-    Dispatcher.prototype.setContext = function (path) {
+    /**
+     * See `ProjectModel.setContext`
+     */
+    ActionCreator.prototype.setContext = function (path) {
         this.model.setContext(path);
     };
     
-    Dispatcher.prototype.startRename = function (path) {
+    /**
+     * See `ProjectModel.startRename`
+     */
+    ActionCreator.prototype.startRename = function (path) {
         return this.model.startRename(path);
     };
     
-    Dispatcher.prototype.setRenameValue = function (path) {
+    /**
+     * See `ProjectModel.setRenameValue`
+     */
+    ActionCreator.prototype.setRenameValue = function (path) {
         this.model.setRenameValue(path);
     };
     
-    Dispatcher.prototype.cancelRename = function () {
+    /**
+     * See `ProjectModel.cancelRename`
+     */
+    ActionCreator.prototype.cancelRename = function () {
         this.model.cancelRename();
     };
     
-    Dispatcher.prototype.performRename = function () {
+    /**
+     * See `ProjectModel.performRename`
+     */
+    ActionCreator.prototype.performRename = function () {
         return this.model.performRename();
     };
     
-    Dispatcher.prototype.startCreating = function (basedir, newName, isFolder) {
+    /**
+     * See `ProjectModel.startCreating`
+     */
+    ActionCreator.prototype.startCreating = function (basedir, newName, isFolder) {
         return this.model.startCreating(basedir, newName, isFolder);
     };
     
-    Dispatcher.prototype.setSortDirectoriesFirst = function (sortDirectoriesFirst) {
+    /**
+     * See `ProjectModel.setSortDirectoriesFirst`
+     */
+    ActionCreator.prototype.setSortDirectoriesFirst = function (sortDirectoriesFirst) {
         this.model.setSortDirectoriesFirst(sortDirectoriesFirst);
     };
     
-    Dispatcher.prototype.refresh = function () {
+    /**
+     * See `ProjectModel.refresh`
+     */
+    ActionCreator.prototype.refresh = function () {
         this.model.refresh();
     };
     
-    var dispatcher = new Dispatcher(model);
+    /**
+     * Singleton actionCreator that is used for dispatching changes to the ProjectModel.
+     */
+    var actionCreator = new ActionCreator(model);
     
     /**
      * Returns the File or Directory corresponding to the item selected in the sidebar panel, whether in
@@ -228,23 +295,37 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * 
+     * Does the file tree currently have the focus?
+     * 
+     * @return {boolean} `true` if the file tree has the focus
      */
     function _hasFileSelectionFocus() {
         return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
     }
     
+    /**
+     * @private
+     * 
+     * Handler for changes in document selection.
+     */
     function _documentSelectionFocusChange() {
         var curFile = MainViewManager.getCurrentlyViewedFile();
         if (curFile && _hasFileSelectionFocus()) {
-            dispatcher.setSelected(curFile.fullPath, true);
+            actionCreator.setSelected(curFile.fullPath, true);
         } else {
-            dispatcher.setSelected(null);
+            actionCreator.setSelected(null);
         }
     }
 
+    /**
+     * @private
+     * 
+     * Handler for changes in the focus between working set and file tree view.
+     */
     function _fileViewControllerChange() {
         if (!_hasFileSelectionFocus()) {
-            dispatcher.setSelected(null);
+            actionCreator.setSelected(null);
         }
     }
     
@@ -292,6 +373,11 @@ define(function (require, exports, module) {
         return model.makeProjectRelativeIfPossible(absPath);
     }
     
+    /**
+     * @private
+     * 
+     * Creates a context object for doing project view state lookups.
+     */
     function _getProjectViewStateContext() {
         return { location : { scope: "user",
                              layer: "project",
@@ -307,6 +393,14 @@ define(function (require, exports, module) {
         return model.projectRoot;
     }
 
+    /**
+     * @private
+     * 
+     * Sets the project root to the given directory, resetting the ProjectModel and file tree in the process.
+     * 
+     * @param {Directory} rootEntry directory object for the project root
+     * @return {Promise} resolved when the project is done setting up
+     */
     function _setProjectRoot(rootEntry) {
         var d = new $.Deferred();
         model.setProjectRoot(rootEntry).then(function () {
@@ -332,6 +426,17 @@ define(function (require, exports, module) {
         PreferencesManager.setViewState("project.treeState", openNodes, context);
     };
     
+    /**
+     * @private
+     * 
+     * Displays an error dialog for problems when working with files in the file tree.
+     * 
+     * @param {number} errType type of error that occurred
+     * @param {boolean} isFolder did the error occur because of a folder operation?
+     * @param {string} error message with detail about the error
+     * @param {string} path path to file or folder that had the error
+     * @return {Dialog|null} Dialog if the error message was created
+     */
     function _showErrorDialog(errType, isFolder, error, path) {
         var titleType = isFolder ? Strings.DIRECTORY_TITLE : Strings.FILE_TITLE,
             entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
@@ -388,6 +493,13 @@ define(function (require, exports, module) {
         return null;
     }
 
+    /**
+     * @private
+     * 
+     * Displays an error based on a problem creating a file.
+     * 
+     * @param {{type:any,isFolder:boolean}} errorInfo Information passed in the error events
+     */
     _displayCreationError = function (errorInfo) {
         var error = errorInfo.type,
             isFolder = errorInfo.isFolder;
@@ -415,13 +527,17 @@ define(function (require, exports, module) {
         return LanguageManager.getLanguageForPath(fileName).isBinary();
     }
     
+    /**
+     * @private
+     * 
+     * Rerender the file tree view.
+     */
     _renderTree = function () {
         var projectRoot = getProjectRoot();
         if (!projectRoot) {
             return;
         }
-        FileTreeView.render($projectTreeContainer[0], model._viewModel, projectRoot, dispatcher);
-        return new $.Deferred().resolve();
+        FileTreeView.render($projectTreeContainer[0], model._viewModel, projectRoot, actionCreator);
     };
 
     /** 
@@ -479,6 +595,11 @@ define(function (require, exports, module) {
         return updateWelcomeProjectPath(PreferencesManager.getViewState("projectPath"));
     }
     
+    /**
+     * @private
+     * 
+     * Watches the project for filesystem changes so that the tree can be updated.
+     */
     function _watchProjectRoot(rootPath) {
         FileSystem.on("change", _fileSystemChange);
         FileSystem.on("rename", _fileSystemRename);
@@ -801,52 +922,9 @@ define(function (require, exports, module) {
         if (skipRename) {
             return model.createAtPath(baseDir + initialName, isFolder);
         }
-        return dispatcher.startCreating(baseDir, initialName, isFolder);
+        return actionCreator.startCreating(baseDir, initialName, isFolder);
     }
 
-    /**
-     * Rename a file/folder. This will update the project tree data structures
-     * and send notifications about the rename.
-     *
-     * @param {string} oldName Old item name
-     * @param {string} newName New item name
-     * @param {boolean} isFolder True if item is a folder; False if it is a file.
-     * @return {$.Promise} A promise object that will be resolved or rejected when
-     *   the rename is finished.
-     */
-    function renameItem(oldName, newName, isFolder) {
-        var result = new $.Deferred();
-        
-        if (oldName === newName) {
-            result.resolve();
-            return result.promise();
-        }
-        
-        var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
-        entry.rename(newName, function (err) {
-            if (!err) {
-                if (MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)) {
-                    FileViewController.openAndSelectDocument(
-                        MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE),
-                        FileViewController.getFileSelectionFocus()
-                    );
-                }
-                
-                result.resolve();
-            } else {
-                // Show an error alert
-                var errString = err === FileSystemError.ALREADY_EXISTS ?
-                                Strings.FILE_EXISTS_ERR :
-                                FileUtils.getFileErrorString(err);
-
-                _showErrorDialog(ERR_TYPE_RENAME, isFolder, errString, newName);
-                result.reject(err);
-            }
-        });
-        
-        return result.promise();
-    }
-    
     /**
      * Delete file or directore from project
      * @param {!(File|Directory)} entry File or Directory to delete
@@ -887,8 +965,6 @@ define(function (require, exports, module) {
     /**
      * @private 
      * 
-     * TODO: Move to ProjectModel
-     * 
      * Respond to a FileSystem change event. Note that if renames are initiated
      * externally, they may be reported as a separate removal and addition. In
      * this case, the editor state isn't currently preserved.
@@ -916,7 +992,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Simple implementation for now. Need to do more?
+        // TODO: Force changed paths to refresh
         refreshFileTree();
     };
 
@@ -930,8 +1006,11 @@ define(function (require, exports, module) {
         DocumentManager.notifyPathNameChanged(oldName, newName);
     };
     
+    /**
+     * Causes the rename operation that's in progress to complete.
+     */
     function forceFinishRename() {
-        dispatcher.performRename();
+        actionCreator.performRename();
     }
     
     
@@ -946,12 +1025,12 @@ define(function (require, exports, module) {
         $(".main-view").click(function (jqEvent) {
             if (jqEvent.target.className !== "rename-input") {
                 forceFinishRename();
-                dispatcher.setContext(null);
+                actionCreator.setContext(null);
             }
         });
         
         $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuClose", function () {
-            dispatcher.setContext(null);
+            actionCreator.setContext(null);
         });
         
         $projectTreeContainer.on("contextmenu", function () {
@@ -1017,15 +1096,26 @@ define(function (require, exports, module) {
     // Define the preference to decide how to sort the Project Tree files
     PreferencesManager.definePreference(SORT_DIRECTORIES_FIRST, "boolean", brackets.platform !== "mac")
         .on("change", function () {
-            dispatcher.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
+            actionCreator.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
         });
     
+    /**
+     * Gets the filesystem object for the current context in the file tree.
+     */
     function getContext() {
         return model.getContext();
     }
     
+    /**
+     * Starts a rename operation, completing the current operation if there is one.
+     * 
+     * The Promise returned is resolved with an object with a `newPath` property with the renamed path. If the user cancels the operation, the promise is resolved with the value RENAME_CANCELLED.
+     * 
+     * @param {FileSystemEntry} entry file or directory filesystem object to rename
+     * @return {Promise} a promise resolved when the rename is done.
+     */
     function renameItemInline(entry) {
-        return dispatcher.startRename(entry);
+        return actionCreator.startRename(entry);
     }
     
     /**
@@ -1064,26 +1154,26 @@ define(function (require, exports, module) {
     }
 
     // Define public API
-    exports.getProjectRoot           = getProjectRoot;
-    exports.getBaseUrl               = getBaseUrl;
-    exports.setBaseUrl               = setBaseUrl;
-    exports.isWithinProject          = isWithinProject;
+    exports.getProjectRoot                = getProjectRoot;
+    exports.getBaseUrl                    = getBaseUrl;
+    exports.setBaseUrl                    = setBaseUrl;
+    exports.isWithinProject               = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
-    exports.shouldShow               = ProjectModel.shouldShow;
-    exports.isBinaryFile             = isBinaryFile;
-    exports.openProject              = openProject;
-    exports.getSelectedItem          = getSelectedItem;
-    exports.getContext               = getContext;
-    exports.getInitialProjectPath    = getInitialProjectPath;
-    exports.isWelcomeProjectPath     = isWelcomeProjectPath;
-    exports.updateWelcomeProjectPath = updateWelcomeProjectPath;
-    exports.createNewItem            = createNewItem;
-    exports.renameItemInline         = renameItemInline;
-    exports.deleteItem               = deleteItem;
-    exports.forceFinishRename        = forceFinishRename;
-    exports.showInTree               = showInTree;
-    exports.refreshFileTree          = refreshFileTree;
-    exports.getAllFiles              = getAllFiles;
-    exports.getLanguageFilter        = getLanguageFilter;
-    exports.dispatcher               = dispatcher;
+    exports.shouldShow                    = ProjectModel.shouldShow;
+    exports.isBinaryFile                  = isBinaryFile;
+    exports.openProject                   = openProject;
+    exports.getSelectedItem               = getSelectedItem;
+    exports.getContext                    = getContext;
+    exports.getInitialProjectPath         = getInitialProjectPath;
+    exports.isWelcomeProjectPath          = isWelcomeProjectPath;
+    exports.updateWelcomeProjectPath      = updateWelcomeProjectPath;
+    exports.createNewItem                 = createNewItem;
+    exports.renameItemInline              = renameItemInline;
+    exports.deleteItem                    = deleteItem;
+    exports.forceFinishRename             = forceFinishRename;
+    exports.showInTree                    = showInTree;
+    exports.refreshFileTree               = refreshFileTree;
+    exports.getAllFiles                   = getAllFiles;
+    exports.getLanguageFilter             = getLanguageFilter;
+    exports.actionCreator                 = actionCreator;
 });

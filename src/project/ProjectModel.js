@@ -596,6 +596,8 @@ define(function (require, exports, module) {
     /**
      * Adds the file at the given path to the Working Set and selects it there.
      * 
+     * TODO: does this belong in ProjectManager? (triggered by an event like EVENT_SHOULD_SELECT?)
+     * 
      * @param {string} path full path of file to open in Working Set
      */
     ProjectModel.prototype.selectInWorkingSet = function (path) {
