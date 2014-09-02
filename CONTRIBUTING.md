@@ -15,7 +15,7 @@ see if it's already there. You can upvote features you'd like to see.
 
 ### Submitting a pull request
 
-**Before you start coding**, post to the [brackets-dev Google group](http://groups.google.com/group/brackets-dev)
+**Before you start coding**, post to the [brackets-dev Google group](https://groups.google.com/forum/#!forum/brackets-dev)
 or the [#brackets IRC channel on freenode](http://webchat.freenode.net/?channels=brackets) about what
 you're thinking of working on, so you can get early feedback. We don't want you to do tons of work
 and then have to rewrite half of it!
@@ -76,7 +76,7 @@ To get started editing the Brackets code, read [How to Hack on Brackets](https:/
 
 Before submitting any pull request, please make sure to:
 
-1. Discuss any major changes or questions beforehand in the [brackets-dev newsgroup](http://groups.google.com/group/brackets-dev).
+1. Discuss any major changes or questions beforehand in the [brackets-dev newsgroup](https://groups.google.com/forum/#!forum/brackets-dev).
 2. Consider whether your change would be better as an optional extension. Brackets is lightweight
    and tightly focused - but highly extensible.
 3. Follow the [Pull Request Checklist](https://github.com/adobe/brackets/wiki/Pull-Request-Checklist)

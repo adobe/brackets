@@ -115,4 +115,4 @@ Not sure you needed the exclamation point there, but we like your enthusiasm.
 * **Twitter:** [@brackets](https://twitter.com/brackets)
 * **Blog:** http://blog.brackets.io/
 * **IRC:** [#brackets on freenode](http://webchat.freenode.net/?channels=brackets)
-* **Developers mailing list:** http://groups.google.com/group/brackets-dev
+* **Developers mailing list:** https://groups.google.com/forum/#!forum/brackets-dev
