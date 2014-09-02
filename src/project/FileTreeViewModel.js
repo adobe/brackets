@@ -609,7 +609,15 @@ define(function (require, exports, module) {
         this._commitTreeData(treeData);
     };
 
-    function openPath(treeData, path) {
+    /**
+     * @private
+     * 
+     * Opens the directories along the provided path.
+     * 
+     * @param {Immutable.Map} treeData
+     * @param {string} path Path to open
+     */
+    function _openPath(treeData, path) {
         var objectPath = _filePathToObjectPath(treeData, path);
 
         function setOpen(node) {
@@ -634,10 +642,20 @@ define(function (require, exports, module) {
         return treeData;
     }
 
+    /**
+     * Opens the directories along the given path.
+     * 
+     * @param {string} path Project-relative path
+     */
     FileTreeViewModel.prototype.openPath = function (path) {
-        this._commitTreeData(openPath(this.treeData, path));
+        this._commitTreeData(_openPath(this.treeData, path));
     };
 
+    /**
+     * @private
+     * 
+     * See FileTreeViewModel.createPlaceholder
+     */
     function _createPlaceholder(treeData, basedir, name, isFolder) {
         var parentPath = _filePathToObjectPath(treeData, basedir);
 
@@ -655,7 +673,7 @@ define(function (require, exports, module) {
         
         var newFile = Immutable.Map(newObject);
 
-        treeData = openPath(treeData, basedir);
+        treeData = _openPath(treeData, basedir);
         if (parentPath.length > 0) {
             var childrenPath = _.clone(parentPath);
             childrenPath.push("children");
@@ -669,11 +687,24 @@ define(function (require, exports, module) {
         return treeData;
     }
 
+    /**
+     * Creates a placeholder file or directory that appears in the tree so that the user
+     * can provide a name for the new entry.
+     * 
+     * @param {string} basedir Directory that contains the new file or folder
+     * @param {string} name Initial name to give the new entry
+     * @param {boolean} isFolder true if the entry being created is a folder
+     */
     FileTreeViewModel.prototype.createPlaceholder = function (basedir, name, isFolder) {
         var treeData = _createPlaceholder(this.treeData, basedir, name, isFolder);
         this._commitTreeData(treeData);
     };
 
+    /**
+     * @private
+     * 
+     * See FileTreeViewModel.deleteAtPath
+     */
     function _deleteAtPath(treeData, path) {
         var objectPath = _filePathToObjectPath(treeData, path);
 
@@ -694,6 +725,11 @@ define(function (require, exports, module) {
         return treeData;
     }
 
+    /**
+     * Deletes the entry at the given path.
+     * 
+     * @param {string} path Project-relative path to delete
+     */
     FileTreeViewModel.prototype.deleteAtPath = function (path) {
         var treeData = _deleteAtPath(this.treeData, path);
         if (treeData) {
@@ -701,6 +737,12 @@ define(function (require, exports, module) {
         }
     };
 
+    /**
+     * Sets the value of the `sortDirectoriesFirst` flag which tells to view that directories
+     * should be listed before the alphabetical listing of files.
+     * 
+     * @param {boolean} sortDirectoriesFirst True if directories should be displayed first
+     */
     FileTreeViewModel.prototype.setSortDirectoriesFirst = function (sortDirectoriesFirst) {
         if (sortDirectoriesFirst !== this.sortDirectoriesFirst) {
             this.sortDirectoriesFirst = sortDirectoriesFirst;
@@ -708,18 +750,31 @@ define(function (require, exports, module) {
         }
     };
 
+    /**
+     * Listen for events. Currently a wrapper around jQuery's event system. See jQuery's .on
+     * documentation.
+     * 
+     * Events published by the FileTreeViewModel:
+     * 
+     * * change (EVENT_CHANGE constant in the module): fired any time there's a change that should be reflected in the view.
+     */
     FileTreeViewModel.prototype.on = function (event, handler) {
         $(this).on(event, handler);
     };
 
+    /**
+     * Stop listening for events. See jQuery's .off documentation.
+     */
     FileTreeViewModel.prototype.off = function (event, handler) {
         $(this).off(event, handler);
     };
-    
+
+    // Private API
     exports.EVENT_CHANGE = EVENT_CHANGE;
     exports._filePathToObjectPath = _filePathToObjectPath;
     exports._isFilePathVisible = _isFilePathVisible;
-    
+
+    // Public API
     exports.isFile = isFile;
     exports.FileTreeViewModel = FileTreeViewModel;
 });
