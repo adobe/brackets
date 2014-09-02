@@ -540,21 +540,22 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {stirng} methodName Method name to call on the agent
      */
     function _invokeAgentMethod(name, methodName) {
-        var oneAgentPromise;
+        var oneAgentPromise, convertedAgentPromise;
 
         if (agents[name] && agents[name][methodName]) {
             oneAgentPromise = agents[name][methodName].call();
         }
 
         if (!oneAgentPromise) {
-            oneAgentPromise = Promise.resolve();
+            convertedAgentPromise = Promise.resolve();
         } else {
-            oneAgentPromise.catch(function () {
+            convertedAgentPromise = Promise.resolve(oneAgentPromise);
+            convertedAgentPromise.catch(function () {
                 console.error(methodName + " failed on agent", name);
             });
         }
 
-        return oneAgentPromise;
+        return convertedAgentPromise;
     }
 
     function getEnabledAgents() {
@@ -840,7 +841,7 @@ define(function LiveDevelopment(require, exports, module) {
             }
 
             if (doCloseWindow && connected) {
-                closePromise = Inspector.Runtime.evaluate("window.open('', '_self').close();");
+                closePromise = Promise.resolve(Inspector.Runtime.evaluate("window.open('', '_self').close();"));
 
                 // Add a timeout to continue cleanup if Inspector does not respond
                 closePromise = Async.withTimeout(closePromise, 5000);
@@ -894,7 +895,7 @@ define(function LiveDevelopment(require, exports, module) {
             // the native Mac side
             var closePromise;
             if (brackets.platform === "mac") {
-                closePromise = NativeApp.closeLiveBrowser();
+                closePromise = Promise.resolve(NativeApp.closeLiveBrowser());
             } else {
                 closePromise = Promise.resolve();
             }
@@ -1216,10 +1217,10 @@ define(function LiveDevelopment(require, exports, module) {
             retryCount++;
 
             if (!browserStarted && exports.status !== STATUS_ERROR) {
-                NativeApp.openLiveBrowser(
+                Promise.resolve(NativeApp.openLiveBrowser(
                     launcherUrl,
                     true        // enable remote debugging
-                )
+                ))
                     .then(function () {
                         browserStarted = true;
                     })

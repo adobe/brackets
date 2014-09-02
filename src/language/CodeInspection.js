@@ -210,7 +210,7 @@ define(function (require, exports, module) {
                                     };
                                     runResolve({errors: [errTimeout]});
                                 }, prefs.get(PREF_ASYNC_TIMEOUT));
-                                provider.scanFileAsync(fileText, file.fullPath)
+                                Promise.resolve(provider.scanFileAsync(fileText, file.fullPath))
                                     .then(function (scanResult) {
                                         PerfUtils.addMeasurement(perfTimerProvider);
                                         runResolve(scanResult);

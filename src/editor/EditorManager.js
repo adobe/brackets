@@ -198,7 +198,7 @@ define(function (require, exports, module) {
 
             // Run through inline-editor providers until one responds
             var pos = editor.getCursorPos(),
-                inlinePromise,
+                inlinePromise, providerPromise,
                 i,
                 errorMsg,
                 providerRet;
@@ -217,7 +217,10 @@ define(function (require, exports, module) {
                 providerRet = provider(editor, pos);
                 if (providerRet) {
                     if (providerRet.hasOwnProperty("done")) {
-                        inlinePromise = providerRet;
+                        providerPromise = providerRet;
+                        if (providerPromise) {
+                            inlinePromise = Promise.resolve(providerPromise);
+                        }
                     } else if (!errorMsg && typeof (providerRet) === "string") {
                         errorMsg = providerRet;
                     }
@@ -1012,6 +1015,7 @@ define(function (require, exports, module) {
         return new Promise(function (resolve, reject) {
 
             var providers = _jumpToDefProviders,
+                providerPromise,
                 promise,
                 i;
 
@@ -1024,7 +1028,11 @@ define(function (require, exports, module) {
                 // Run through providers until one responds
                 for (i = 0; i < providers.length && !promise; i++) {
                     var provider = providers[i];
-                    promise = provider(editor, pos);
+                    providerPromise = provider(editor, pos);
+                    if (providerPromise) {
+                        // provider may be from an extension, so convert to Promise
+                        promise = Promise.resolve(providerPromise);
+                    }
                 }
 
                 // Will one of them will provide a result?

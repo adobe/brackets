@@ -336,7 +336,7 @@ define(function (require, exports, module) {
      * If timeout is specified, the promise will be rejected on timeout as per
      * Async.withTimeout.
      * 
-     * @param {!Array.<$.Promise>} promises Array of promises to wait for
+     * @param {!Array.<Promise>} promises Array of promises to wait for
      * @param {boolean=} failOnReject  Whether to reject or not if one of the promises has been rejected.
      * @param {number=} timeout        Number of milliseconds to wait until rejecting the promise
      * 
@@ -361,7 +361,9 @@ define(function (require, exports, module) {
                 withTimeout(this, timeout);
             }
 
-            promises.forEach(function (promise) {
+            promises.forEach(function (p) {
+                // This is a public API, so this could be a jQuery promise
+                var promise = Promise.resolve(p);
                 promise.catch(function (err) {
                     sawRejects = true;
                 });
