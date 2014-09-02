@@ -581,7 +581,7 @@ define(function (require, exports, module) {
             }
 
             if (self.connected()) {
-                $.getJSON("http://localhost:" + self._port + "/api")
+                Promise.resolve($.getJSON("http://localhost:" + self._port + "/api"))
                     .then(refreshInterfaceCallback)
                     .catch(function (err) { outerReject(err); });
             } else {

@@ -157,19 +157,19 @@ define(function (require, exports, module) {
                     var locale = brackets.getLocale().toLowerCase();
                     if (locale !== "en" && locale !== "en-us") {
                         localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl();
-                        $.ajax({
+                        Promise.resolve($.ajax({
                             url: localVersionInfoUrl,
                             cache: false,
                             type: "HEAD"
-                        }).catch(function (jqXHR, status, error) {
+                        })).catch(function (jqXHR, status, error) {
                             // get rid of any country information from locale and try again
                             var tmpUrl = _getVersionInfoUrl(brackets.getLocale(), true);
                             if (tmpUrl !== localVersionInfoUrl) {
-                                $.ajax({
+                                Promise.resolve($.ajax({
                                     url: tmpUrl,
                                     cache: false,
                                     type: "HEAD"
-                                }).catch(function (jqXHR, status, error) {
+                                })).catch(function (jqXHR, status, error) {
                                     localVersionInfoUrl = _getVersionInfoUrl("en");
                                 }).then(function (jqXHR, status, error) {
                                     localVersionInfoUrl = tmpUrl;
@@ -188,11 +188,11 @@ define(function (require, exports, module) {
                 });
 
                 lookupPromise.then(function () {
-                    $.ajax({
+                    Promise.resolve($.ajax({
                         url: localVersionInfoUrl,
                         dataType: "json",
                         cache: false
-                    }).then(function (updateInfo, textStatus, jqXHR) {
+                    })).then(function (updateInfo, textStatus, jqXHR) {
                         if (!dontCache) {
                             lastInfoURLFetchTime = (new Date()).getTime();
                             PreferencesManager.setViewState("lastInfoURLFetchTime", lastInfoURLFetchTime);
