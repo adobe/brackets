@@ -24,6 +24,9 @@
 /* unittests: ProjectModel */
 /*global define, brackets, $ */
 
+/**
+ * Provides the data source for a project and manages the view model for the FileTreeView.
+ */
 define(function (require, exports, module) {
     "use strict";
     
@@ -37,10 +40,10 @@ define(function (require, exports, module) {
         Async               = require("utils/Async");
     
     // Constants
-    var EVENT_CHANGE = "change",
-        EVENT_SHOULD_SELECT = "select",
-        ERROR_CREATION = "creationError",
-        ERROR_INVALID_FILENAME = "invalidFilename";
+    var EVENT_CHANGE            = "change",
+        EVENT_SHOULD_SELECT     = "select",
+        ERROR_CREATION          = "creationError",
+        ERROR_INVALID_FILENAME  = "invalidFilename";
     
     /**
      * @private
@@ -73,7 +76,7 @@ define(function (require, exports, module) {
     /**
      * Returns true if this matches valid filename specifications.
      * 
-     * TODO This likely belongs in FileUtils.
+     * TODO: This likely belongs in FileUtils.
      * 
      * @param {string} filename to check
      * @param {string} invalidChars List of characters that are disallowed
@@ -107,15 +110,29 @@ define(function (require, exports, module) {
 
     // Constants used by the ProjectModel
     
-    var FILE_RENAMING = 0,
-        FILE_CREATING = 1,
-        RENAME_CANCELLED = 3;
+    var FILE_RENAMING     = 0,
+        FILE_CREATING     = 1,
+        RENAME_CANCELLED  = 3;
 
     
+    /**
+     * @private
+     * 
+     * Determines if a path string is pointing to a directory (does it have a trailing slash?)
+     * 
+     * @param {string} path Path to test.
+     */
     function _pathIsFile(path) {
         return _.last(path) !== "/";
     }
 
+    /**
+     * @private
+     * 
+     * Gets the FileSystem object (either a File or Directory) based on the path provided.
+     * 
+     * @param {string} path Path to retrieve
+     */
     function _getFSObject(path) {
         if (!path) {
             return path;
@@ -125,6 +142,14 @@ define(function (require, exports, module) {
         return FileSystem.getDirectoryForPath(path);
     }
 
+    /**
+     * @private
+     * 
+     * Given what is possible a FileSystem object, return its path (if a string path is passed in,
+     * it will be returned as-is).
+     * 
+     * @param {FileSystemEntry} fsobj Object from which the path should be extracted
+     */
     function _getPathFromFSObject(fsobj) {
         if (fsobj && fsobj.fullPath) {
             return fsobj.fullPath;
@@ -132,7 +157,14 @@ define(function (require, exports, module) {
         return fsobj;
     }
 
-    // This belongs somewhere in the filesystem...
+    /**
+     * Creates a new file or folder at the given path. The returned promise is rejected if the filename
+     * is invalid, the new path already exists or some other filesystem error comes up.
+     * 
+     * @param {string} path path to create
+     * @param {boolean} isFolder true if the new entry is a folder
+     * @return {Promise} resolved when the file or directory has been created.
+     */
     function doCreate(path, isFolder) {
         var d = new $.Deferred();
 
@@ -174,6 +206,12 @@ define(function (require, exports, module) {
         return d.promise();
     }
     
+    /**
+     * @constructor
+     * 
+     * The ProjectModel provides methods for accessing information about the current open project.
+     * It also manages the view model to display a FileTreeView of the project.
+     */
     function ProjectModel(initial) {
         if (initial && initial.projectRoot) {
             this.projectRoot = initial.projectRoot;
@@ -186,26 +224,40 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
-     * @see getProjectRoot()
+     * The root Directory object for the project.
+     * 
      * @type {Directory}
      */
     ProjectModel.prototype.projectRoot = null;
+    
+    /**
+     * @private
+     * 
+     * The view model for this project.
+     * 
+     * @type {FileTreeViewModel}
+     */
+    ProjectModel.prototype._viewModel = null;
 
     /**
      * @private
      * Encoded URL
      * @ see getBaseUrl(), setBaseUrl()
      */
-    ProjectModel.prototype.projectBaseUrl = "";
+    ProjectModel.prototype._projectBaseUrl = "";
 
     /**
      * @private
      * Promise for generating the cache of all files
      * @type {jQuery.Promise}
      */
-    ProjectModel.prototype.projectBaseUrl = null;
+    ProjectModel.prototype._projectBaseUrl = null;
     
+    /**
+     * @private
+     * 
+     * Keeps track of selected files, context and files that are being renamed or created.
+     */
     ProjectModel.prototype._selections = null;
     
     /**
@@ -215,6 +267,15 @@ define(function (require, exports, module) {
      * ProjectManager.getAllFiles().
      */
     ProjectModel.prototype._allFilesCachePromise = null;
+
+    /**
+     * Returns the encoded Base URL of the currently loaded project, or empty string if no project
+     * is open (during startup, or running outside of app shell).
+     * @return {String}
+     */
+    ProjectModel.prototype.getBaseUrl = function getBaseUrl() {
+        return this._projectBaseUrl;
+    };
 
     /**
      * Sets the encoded Base URL of the currently loaded project.
@@ -227,13 +288,14 @@ define(function (require, exports, module) {
             projectBaseUrl += "/";
         }
         
-        this.projectBaseUrl = projectBaseUrl;
+        this._projectBaseUrl = projectBaseUrl;
         return projectBaseUrl;
     };
     
     /**
      * Returns true if absPath lies within the project, false otherwise.
      * Does not support paths containing ".."
+     * 
      * @param {string|FileSystemEntry} absPathOrEntry
      * @return {boolean}
      */
@@ -246,6 +308,7 @@ define(function (require, exports, module) {
      * If absPath lies within the project, returns a project-relative path. Else returns absPath
      * unmodified.
      * Does not support paths containing ".."
+     * 
      * @param {!string} absPath
      * @return {!string}
      */
@@ -257,6 +320,8 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @private
+     * 
      * Returns a promise that resolves with a cached copy of all project files.
      * Used by ProjectManager.getAllFiles(). Ensures that at most one un-cached
      * directory traversal is active at a time, which is useful at project load
@@ -264,7 +329,6 @@ define(function (require, exports, module) {
      * starting up. The cache is cleared on every filesystem change event, and
      * also on project load and unload.
      * 
-     * @private
      * @return {jQuery.Promise.<Array.<File>>}
      */
     ProjectModel.prototype._getAllFilesCache = function _getAllFilesCache() {
@@ -300,8 +364,7 @@ define(function (require, exports, module) {
 
     /**
      * Returns an Array of all files for this project, optionally including
-     * files in the working set that are *not* under the project root. Files filtered
-     * out by shouldShow().
+     * files additional files provided. Files are filtered out by shouldShow().
      *
      * @param {function (File, number):boolean=} filter Optional function to filter
      *          the file list (does not filter directory traversal). API matches Array.filter().
@@ -369,14 +432,32 @@ define(function (require, exports, module) {
         this._allFilesCachePromise = null;
     };
     
+    /**
+     * Adds an event listener for this ProjectModel. See jQuery's documentation for .on.
+     * 
+     * Available events:
+     * 
+     * * EVENT_CHANGE (`change`) - Fired when there's a change that should refresh the UI
+     * * EVENT_SHOULD_SELECT (`select`) - Specifies that a selection has been made in the file tree and that the file tree should be selected
+     * * ERROR_CREATION (`creationError`) - Triggered when there is a problem creating a file.
+     */
     ProjectModel.prototype.on = function (event, handler) {
         $(this).on(event, handler);
     };
     
+    /**
+     * Removes an event listener for this ProjectModel. See jQuery's documentation for .off.
+     */
     ProjectModel.prototype.off = function (event, handler) {
         $(this).off(event, handler);
     };
     
+    /**
+     * Sets the project root (effectively resetting this ProjectModel).
+     * 
+     * @param {Directory} projectRoot new project root
+     * @return {Promise} resolved when the project root has been updated
+     */
     ProjectModel.prototype.setProjectRoot = function (projectRoot) {
         this.projectRoot = projectRoot;
         this._resetCache();
@@ -395,6 +476,14 @@ define(function (require, exports, module) {
         return d.promise();
     };
     
+    /**
+     * @private
+     * 
+     * Gets the contents of a directory at the given path.
+     * 
+     * @param {string} path path to retrieve
+     * @return {Promise} Resolved with the directory contents.
+     */
     ProjectModel.prototype._getDirectoryContents = function (path) {
         var d = new $.Deferred();
         FileSystem.getDirectoryForPath(path).getContents(function (err, contents) {
@@ -407,16 +496,26 @@ define(function (require, exports, module) {
         return d.promise();
     };
     
+    /**
+     * Opens or closes the given directory in the file tree.
+     * 
+     * @param {string} path Path to open
+     * @param {boolean} open `true` to open the path
+     * @return {Promise} resolved when the path has been opened.
+     */
     ProjectModel.prototype.setDirectoryOpen = function (path, open) {
         var projectRelative = this.makeProjectRelativeIfPossible(path),
-            needsLoading = this._viewModel.setDirectoryOpen(projectRelative, open),
-            d = new $.Deferred(),
-            self = this;
+            needsLoading    = this._viewModel.setDirectoryOpen(projectRelative, open),
+            d               = new $.Deferred(),
+            self            = this;
         
         function onSuccess(contents) {
+            // Update the view model
             if (contents) {
                 self._viewModel.setDirectoryContents(projectRelative, contents);
             }
+            
+            // If the previous selection was hidden because the directory was closed, reselect it.
             var currentSelection = self._selections.selected,
                 invisibleSelection = self._selections.selectIfVisible;
 
@@ -437,6 +536,8 @@ define(function (require, exports, module) {
             d.resolve();
         }
         
+        // If the view model doesn't have the data it needs, we load it now, otherwise we can just
+        // manage the selection and resovle the promise.
         if (needsLoading) {
             this._getDirectoryContents(path).then(onSuccess).fail(function (err) {
                 d.reject(err);
@@ -448,6 +549,14 @@ define(function (require, exports, module) {
         return d.promise();
     };
     
+    /**
+     * Selects the given path in the file tree and opens the file (unless doNotOpen is specified).
+     * 
+     * When the selection changes, any rename operation that is currently underway will be completed.
+     * 
+     * @param {string} path full path to the file or directory being selected
+     * @param {boolean} doNotOpen `true` if the file should not be opened.
+     */
     ProjectModel.prototype.setSelected = function (path, doNotOpen) {
         path = _getPathFromFSObject(path);
         this.performRename();
@@ -475,15 +584,31 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * Gets the currently selected file or directory.
+     * 
+     * @return {FileSystemEntry} the filesystem object for the currently selected file
+     */
     ProjectModel.prototype.getSelected = function () {
         return _getFSObject(this._selections.selected);
     };
     
+    /**
+     * Adds the file at the given path to the Working Set and selects it there.
+     * 
+     * @param {string} path full path of file to open in Working Set
+     */
     ProjectModel.prototype.selectInWorkingSet = function (path) {
         this.performRename();
         FileViewController.addToWorkingSetAndSelect(path);
     };
     
+    /**
+     * Sets the context (for context menu operations) to the given path. This is independent from the
+     * open/selected file.
+     * 
+     * @param {string} path full path of file or directory to which the context should be setBaseUrl
+     */
     ProjectModel.prototype.setContext = function (path) {
         path = _getPathFromFSObject(path);
         this.performRename();
@@ -493,10 +618,26 @@ define(function (require, exports, module) {
                                    this.makeProjectRelativeIfPossible(path));
     };
     
+    /**
+     * Gets the currently selected context.
+     * 
+     * @return {FileSystemEntry} filesystem object for the context file or directory
+     */
     ProjectModel.prototype.getContext = function () {
         return _getFSObject(this._selections.context);
     };
     
+    /**
+     * Starts a rename operation for the file or directory at the given path. If the path is
+     * not provided, the current context is used.
+     * 
+     * If a rename operation is underway, it will be completed automatically.
+     * 
+     * The Promise returned is resolved with an object with a `newPath` property with the renamed path. If the user cancels the operation, the promise is resolved with the value RENAME_CANCELLED.
+     * 
+     * @param {string=} path optional path to start renaming
+     * @return {Promise} resolved when the operation is complete.
+     */
     ProjectModel.prototype.startRename = function (path) {
         path = _getPathFromFSObject(path);
         if (!path) {
@@ -523,11 +664,17 @@ define(function (require, exports, module) {
             deferred: d,
             type: FILE_RENAMING,
             path: path,
-            newName: _.last(path.split("/"))
+            newName: FileUtils.getBaseName(path)
         };
         return d.promise();
     };
     
+    /**
+     * Sets the new value for the rename operation that is in progress (started previously with a call
+     * to `startRename`).
+     * 
+     * @param {string} name new name for the file or directory being renamed
+     */
     ProjectModel.prototype.setRenameValue = function (name) {
         if (!this._selections.rename) {
             return;
@@ -535,12 +682,17 @@ define(function (require, exports, module) {
         this._selections.rename.newName = name;
     };
     
+    /**
+     * Cancels the rename operation that is in progress. This resolves the original promise with
+     * a RENAME_CANCELLED value.
+     */
     ProjectModel.prototype.cancelRename = function () {
         var renameInfo = this._selections.rename;
         if (!renameInfo) {
             return;
         }
         
+        // File creation is a special case.
         if (renameInfo.type === FILE_CREATING) {
             this._cancelCreating();
             return;
@@ -582,26 +734,37 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * @private
+     * 
+     * Renames the item at the old path to the new name provided.
+     * 
+     * @param {string} oldPath full path to the current location of file or directory (should include trailing slash for directory)
+     * @param {string} newName new name for the file or directory
+     */
     ProjectModel.prototype._renameItem = function (oldPath, newName) {
         return _renameItem(oldPath, newName, !_pathIsFile(oldPath));
     };
     
+    /**
+     * Completes the rename operation that is in progress.
+     */
     ProjectModel.prototype.performRename = function () {
         var renameInfo = this._selections.rename;
         if (!renameInfo) {
             return;
         }
-        var oldPath = renameInfo.path,
-            isFolder = renameInfo.isFolder || !_pathIsFile(oldPath),
-            oldProjectPath = this.makeProjectRelativeIfPossible(oldPath),
+        var oldPath         = renameInfo.path,
+            isFolder        = renameInfo.isFolder || !_pathIsFile(oldPath),
+            oldProjectPath  = this.makeProjectRelativeIfPossible(oldPath),
             
             // To get the parent directory, we need to strip off the trailing slash on a directory name
             parentDirectory = FileUtils.getDirectoryPath(isFolder ? FileUtils.stripTrailingSlash(oldPath) : oldPath),
-            oldName = FileUtils.getBaseName(oldPath),
-            newName = renameInfo.newName,
-            newPath = parentDirectory + newName,
-            viewModel = this._viewModel,
-            self = this;
+            oldName         = FileUtils.getBaseName(oldPath),
+            newName         = renameInfo.newName,
+            newPath         = parentDirectory + newName,
+            viewModel       = this._viewModel,
+            self            = this;
         
         if (oldName === newName) {
             this.cancelRename();
@@ -638,6 +801,14 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * Creates a file or folder at the given path. Folder paths should have a trailing slash.
+     * 
+     * If an error comes up during creation, the ERROR_CREATION event is triggered.
+     * 
+     * @param {string} path full path to file or folder to create
+     * @return {Promise} resolved when creation is complete
+     */
     ProjectModel.prototype.createAtPath = function (path) {
         var isFolder = _.last(path) === "/",
             name = FileUtils.getBaseName(path),
@@ -656,6 +827,16 @@ define(function (require, exports, module) {
         });
     };
     
+    /**
+     * Starts creating a file or folder with the given name in the given directory.
+     * 
+     * The Promise returned is resolved with an object with a `newPath` property with the renamed path. If the user cancels the operation, the promise is resolved with the value RENAME_CANCELLED.
+     * 
+     * @param {string} basedir directory that should contain the new entry
+     * @param {string} newName initial name for the new entry (the user can rename it)
+     * @param {boolean} isFolder `true` if the entry being created is a folder
+     * @return {Promise} resolved when the user is done creating the entry.
+     */
     ProjectModel.prototype.startCreating = function (basedir, newName, isFolder) {
         this.performRename();
         var d = new $.Deferred(),
@@ -675,6 +856,10 @@ define(function (require, exports, module) {
         return d.promise();
     };
     
+    /**
+     * Cancels the creation process that is underway. The original promise returned will be resolved with the
+     * RENAME_CANCELLED value. The temporary entry added to the file tree will be deleted.
+     */
     ProjectModel.prototype._cancelCreating = function () {
         var renameInfo = this._selections.rename;
         if (!renameInfo || renameInfo.type !== FILE_CREATING) {
@@ -685,16 +870,25 @@ define(function (require, exports, module) {
         delete this._selections.rename;
     };
     
+    /**
+     * Sets the `sortDirectoriesFirst` option for the file tree view.
+     */
     ProjectModel.prototype.setSortDirectoriesFirst = function (sortDirectoriesFirst) {
         this._viewModel.setSortDirectoriesFirst(sortDirectoriesFirst);
     };
     
+    /**
+     * Gets an array of arrays where each entry of the top-level array has an array
+     * of paths that are at the same depth in the tree. All of the paths are full paths.
+     * 
+     * @return {Array.<Array.<string>>} Array of array of full paths, organized by depth in the tree.
+     */
     ProjectModel.prototype.getOpenNodes = function () {
         return this._viewModel.getOpenNodes(this.projectRoot.fullPath);
     };
     
     /**
-     * Reopens a set of nodes in the tree by ID.
+     * Reopens a set of nodes in the tree by full path.
      * @param {Array.<Array.<string>>} nodesByDepth An array of arrays of node ids to reopen. The ids within
      *     each sub-array are reopened in parallel, and the sub-arrays are reopened in order, so they should
      *     be sorted by depth within the tree.
@@ -725,12 +919,16 @@ define(function (require, exports, module) {
         }
     };
 
-
+    /**
+     * Refreshes the contents of the tree.
+     * 
+     * @return {Promise} resolved when the tree has been refreshed
+     */
     ProjectModel.prototype.refresh = function () {
         var projectRoot = this.projectRoot,
-            openNodes = this.getOpenNodes(),
-            self = this,
-            deferred = new $.Deferred();
+            openNodes   = this.getOpenNodes(),
+            self        = this,
+            deferred    = new $.Deferred();
         
         this.setProjectRoot(projectRoot).then(function () {
             self.reopenNodes(openNodes).then(function () {
@@ -741,11 +939,6 @@ define(function (require, exports, module) {
         return deferred.promise();
     };
 
-
-    ProjectModel.prototype.isOpen = function (path) {
-        return this._viewModel.isOpen(path);
-    };
-    
     /**
      * Although Brackets is generally standardized on folder paths with a trailing "/", some APIs here
      * receive project paths without "/" due to legacy preference storage formats, etc.
@@ -779,6 +972,8 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     * 
      * Adds the path to the list of welcome projects we've ever seen, if not on the list already.
      * 
      * @param {string} path Path to possibly add
@@ -833,22 +1028,22 @@ define(function (require, exports, module) {
         _invalidChars = "/?*:<>\\|\"";  // invalid characters on Windows
     }
 
-    exports._getWelcomeProjectPath = _getWelcomeProjectPath;
-    exports._addWelcomeProjectPath = _addWelcomeProjectPath;
-    exports._isWelcomeProjectPath = _isWelcomeProjectPath;
-    exports._ensureTrailingSlash = _ensureTrailingSlash;
-    exports._shouldShowName = _shouldShowName;
-    exports._invalidChars = _invalidChars;
+    exports._getWelcomeProjectPath  = _getWelcomeProjectPath;
+    exports._addWelcomeProjectPath  = _addWelcomeProjectPath;
+    exports._isWelcomeProjectPath   = _isWelcomeProjectPath;
+    exports._ensureTrailingSlash    = _ensureTrailingSlash;
+    exports._shouldShowName         = _shouldShowName;
+    exports._invalidChars           = _invalidChars;
     
-    exports.shouldShow = shouldShow;
-    exports.isValidFilename = isValidFilename;
-    exports.EVENT_CHANGE = EVENT_CHANGE;
-    exports.EVENT_SHOULD_SELECT = EVENT_SHOULD_SELECT;
-    exports.ERROR_CREATION = ERROR_CREATION;
-    exports.ERROR_INVALID_FILENAME = ERROR_INVALID_FILENAME;
-    exports.FILE_RENAMING = FILE_RENAMING;
-    exports.FILE_CREATING = FILE_CREATING;
-    exports.RENAME_CANCELLED = RENAME_CANCELLED;
-    exports.doCreate = doCreate;
-    exports.ProjectModel = ProjectModel;
+    exports.shouldShow              = shouldShow;
+    exports.isValidFilename         = isValidFilename;
+    exports.EVENT_CHANGE            = EVENT_CHANGE;
+    exports.EVENT_SHOULD_SELECT     = EVENT_SHOULD_SELECT;
+    exports.ERROR_CREATION          = ERROR_CREATION;
+    exports.ERROR_INVALID_FILENAME  = ERROR_INVALID_FILENAME;
+    exports.FILE_RENAMING           = FILE_RENAMING;
+    exports.FILE_CREATING           = FILE_CREATING;
+    exports.RENAME_CANCELLED        = RENAME_CANCELLED;
+    exports.doCreate                = doCreate;
+    exports.ProjectModel            = ProjectModel;
 });

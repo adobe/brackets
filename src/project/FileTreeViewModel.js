@@ -770,11 +770,11 @@ define(function (require, exports, module) {
     };
 
     // Private API
-    exports.EVENT_CHANGE = EVENT_CHANGE;
+    exports.EVENT_CHANGE          = EVENT_CHANGE;
     exports._filePathToObjectPath = _filePathToObjectPath;
-    exports._isFilePathVisible = _isFilePathVisible;
+    exports._isFilePathVisible    = _isFilePathVisible;
 
     // Public API
-    exports.isFile = isFile;
+    exports.isFile            = isFile;
     exports.FileTreeViewModel = FileTreeViewModel;
 });

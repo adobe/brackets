@@ -254,7 +254,7 @@ define(function (require, exports, module) {
      * @return {String}
      */
     function getBaseUrl() {
-        return model.projectBaseUrl;
+        return model.getBaseUrl();
     }
 
     /**
