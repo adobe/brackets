@@ -73,8 +73,8 @@ define(function (require, exports, module) {
      * @return {Promise} A promise that's resolved with the search results or rejected when the find competes.
      */
     function searchAndShowResults(queryInfo, scope, filter, replaceText, candidateFilesPromise) {
-        return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
-            .then(function (zeroFilesToken) {
+        return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise).then(
+            function (zeroFilesToken) {
                 // Done searching all files: show results
                 if (FindInFiles.searchModel.hasResults()) {
                     _resultsView.open();
@@ -100,11 +100,12 @@ define(function (require, exports, module) {
                 }
 
                 StatusBar.hideBusyIndicator();
-            })
-            .catch(function (err) {
+            },
+            function (err) {
                 console.log("find in files failed: ", err);
                 StatusBar.hideBusyIndicator();
-            });
+            }
+        );
     }
     
     /**
@@ -280,7 +281,7 @@ define(function (require, exports, module) {
         function processReplace(forceFilesOpen) {
             StatusBar.showBusyIndicator(true);
             FindInFiles.doReplace(resultsClone, replaceText, { forceFilesOpen: forceFilesOpen, isRegexp: isRegexp })
-                .catch(function (errors) {
+                .then(null, function (errors) {
                     var message = Strings.REPLACE_IN_FILES_ERRORS + FileUtils.makeDialogFileList(
                             errors.map(function (errorInfo) {
                                 return ProjectManager.makeProjectRelativeIfPossible(errorInfo.item);

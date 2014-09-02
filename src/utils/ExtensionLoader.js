@@ -139,7 +139,7 @@ define(function (require, exports, module) {
                     // Failed to parse requirejs-config.json
                     reject("failed to parse requirejs-config.json");
                 }
-            }).catch(function () {
+            }, function () {
                 // If requirejs-config.json isn't specified, resolve with the baseConfig only
                 resolve(baseConfig);
             });
@@ -194,7 +194,7 @@ define(function (require, exports, module) {
 
                 // initExtension may be synchronous and may not return a promise
                 if (initPromise) {
-                    initPromise.catch(function (err) {
+                    initPromise.then(null, function (err) {
                         if (err === Async.ERROR_TIMEOUT) {
                             console.error("[Extension] Error -- timeout during initExtension for " + name);
                         } else {

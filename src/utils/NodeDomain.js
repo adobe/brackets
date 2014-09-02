@@ -43,13 +43,14 @@ define(function (require, exports, module) {
      *     var myDomain = new NodeDomain("someDomain", "/path/to/SomeDomainDef.js"),
      *         $result = myDomain.exec("someCommand", arg1, arg2);
      *     
-     *     $result.then(function (value) {
-     *         // the command succeeded!
-     *     });
-     *     
-     *     $result.catch(function (err) {
-     *         // the command failed; act accordingly!
-     *     });
+     *     $result.then(
+     *         function (value) {
+     *             // the command succeeded!
+     *         },
+     *         function (err) {
+     *             // the command failed; act accordingly!
+     *         }
+     *     );
      * 
      * To handle domain events, just listen for the event on the domain:
      * 
@@ -127,8 +128,8 @@ define(function (require, exports, module) {
      */
     NodeDomain.prototype._load = function () {
         var connection = this.connection;
-        return connection.loadDomains(this._domainPath, true)
-            .then(function () {
+        return connection.loadDomains(this._domainPath, true).then(
+            function () {
                 this._domainLoaded = true;
                 this._connectionPromise = null;
                 
@@ -141,10 +142,11 @@ define(function (require, exports, module) {
                         $(this).triggerHandler(domainEvent, params);
                     }.bind(this));
                 }, this);
-            }.bind(this))
-            .catch(function (err) {
+            }.bind(this),
+            function (err) {
                 console.error("[NodeDomain] Error loading domain \"" + this._domainName + "\": " + err);
-            }.bind(this));
+            }.bind(this)
+        );
     };
     
     /**

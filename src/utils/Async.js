@@ -103,7 +103,7 @@ define(function (require, exports, module) {
                     var itemPromise = Promise.resolve(beginProcessItem(item, i));
                     promises.push(itemPromise);
 
-                    itemPromise.catch(function () {
+                    itemPromise.then(null, function () {
                         if (failFast) {
                             reject();
                         } else {
@@ -181,18 +181,20 @@ define(function (require, exports, module) {
                 // Convert to Promise
                 var itemPromise = Promise.resolve(beginProcessItem(items[i], i));
 
-                itemPromise.then(function () {
-                    doItem(i + 1);
-                });
-                itemPromise.catch(function () {
-                    if (failAndStopFast) {
-                        reject();
-                        // note: we do NOT process any further items in this case
-                    } else {
-                        hasFailed = true;
+                itemPromise.then(
+                    function () {
                         doItem(i + 1);
+                    },
+                    function () {
+                        if (failAndStopFast) {
+                            reject();
+                            // note: we do NOT process any further items in this case
+                        } else {
+                            hasFailed = true;
+                            doItem(i + 1);
+                        }
                     }
-                });
+                );
             }
 
             doItem(0);
@@ -264,7 +266,7 @@ define(function (require, exports, module) {
                 function (item, i) {
                     // Convert to Promise
                     var itemResult = Promise.resolve(beginProcessItem(item, i));
-                    itemResult.catch(function (error) {
+                    itemResult.then(null, function (error) {
                         errors.push({ item: item, error: error });
                     });
                     return itemResult;
@@ -275,8 +277,7 @@ define(function (require, exports, module) {
             parallelResult
                 .then(function () {
                     resolve();
-                })
-                .catch(function () {
+                }, function () {
                     reject(errors);
                 });
         });
@@ -362,7 +363,7 @@ define(function (require, exports, module) {
             }
 
             promises.forEach(function (promise) {
-                promise.catch(function (err) {
+                promise.then(null, function (err) {
                     sawRejects = true;
                 });
 
