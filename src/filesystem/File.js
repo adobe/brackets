@@ -197,7 +197,14 @@ define(function (require, exports, module) {
                     callback(null, stat);
                 } finally {
                     // existing file modified
-                    this._fileSystem._fireChangeEvent(this);
+// TODO: Need to refactor this code for ES6 Promises. With jQuery Deferred
+// promises, the callback in the `try` block resolves a promise that synchronously
+// calls `done()` handlers which update Document timestamp. ES6 Promise callbacks
+// are *never* executed synchronously, so "change" event gets fired before Document
+// timestamp is updated, so we see "File has been updated externbally on disk"
+// dialog with every file save. Commenting out for now.
+
+//                    this._fileSystem._fireChangeEvent(this);
                     
                     // Always unblock external change events
                     this._fileSystem._endChange();
