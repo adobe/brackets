@@ -192,8 +192,9 @@ define(function (require, exports, module) {
             }
 
             DocumentManager.getDocumentText(file)
-                .then(function (fileText) {
-                    var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + file.fullPath),
+                .then(function (args) {
+                    var fileText           = args[0],
+                        perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + file.fullPath),
                         masterPromise;
 
                     masterPromise = Async.doInParallel(providerList, function (provider) {

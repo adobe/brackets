@@ -128,7 +128,10 @@ define(function (require, exports, module) {
      */
     function _doReplaceOnDisk(fullPath, matchInfo, replaceText, isRegexp) {
         var file = FileSystem.getFileForPath(fullPath);
-        return DocumentManager.getDocumentText(file, true).then(function (contents, timestamp, lineEndings) {
+        return DocumentManager.getDocumentText(file, true).then(function (args) {
+            var contents    = args[0],
+                timestamp   = args[1],
+                lineEndings = args[2];
             if (timestamp.getTime() !== matchInfo.timestamp.getTime()) {
                 // Return a promise that we'll reject immediately. (We can't just return the
                 // error since this is the success handler.)

@@ -770,7 +770,7 @@ define(function (require, exports, module) {
                         // new up a Document (which entails a bunch of object churn).
                         var originalLineEndings = checkLineEndings ? FileUtils.sniffLineEndings(contents) : null;
                         contents = DocumentModule.Document.normalizeText(contents);
-                        resolve(contents, stat.mtime, originalLineEndings);
+                        resolve([contents, stat.mtime, originalLineEndings]);
                     }
                 });
             }

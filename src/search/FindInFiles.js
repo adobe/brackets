@@ -358,10 +358,12 @@ define(function (require, exports, module) {
         return new Promise(function (resolve, reject) {
 
             DocumentManager.getDocumentText(file)
-                .then(function (text, timestamp) {
+                .then(function (args) {
                     // Note that we don't fire a model change here, since this is always called by some outer batch
                     // operation that will fire it once it's done.
-                    var matches = _getSearchMatches(text, searchModel.queryExpr);
+                    var text      = args[0],
+                        timestamp = args[1],
+                        matches   = _getSearchMatches(text, searchModel.queryExpr);
                     searchModel.setResults(file.fullPath, {matches: matches, timestamp: timestamp});
                     resolve(!!matches.length);
                 })
