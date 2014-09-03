@@ -95,6 +95,7 @@ define(function (require, exports, module) {
         InMemoryFile        = require("document/InMemoryFile"),
         AsyncUtils          = require("utils/Async"),
         ViewUtils           = require("utils/ViewUtils"),
+        Resizer             = require("utils/Resizer"),
         Pane                = require("view/Pane").Pane;
         
 
@@ -177,6 +178,13 @@ define(function (require, exports, module) {
      * @private
      */
     var HORIZONTAL          = "HORIZONTAL";
+    
+    /**
+     * The minimum width or height that a pane can be
+     * @const
+     * @private
+     */
+    var MIN_PANE_SIZE      = 75;
     
     /**
      * Command Object for splitting vertically
@@ -885,6 +893,28 @@ define(function (require, exports, module) {
             _makeFileMostRecent(pane.id, pane.getCurrentlyViewedFile());
         }
     }
+
+    /**
+     * Synchronizes the pane's sizer element, updates the pane's resizer maxsize value 
+     *   and tells the pane to update its layout
+     * @param {boolean} forceRefresh - true to force a resize and refresh of the entire view
+     * @private
+     */
+    function _synchronizePaneSize(pane, forceRefresh) {
+        var available;
+        
+        if (_orientation === VERTICAL) {
+            available = _$el.innerWidth();
+        } else {
+            available = _$el.innerHeight();
+        }
+    
+        // Update the pane's sizer element if it has one and update the max size
+        Resizer.resyncSizer(pane.$el);
+        pane.$el.data("maxsize", available - MIN_PANE_SIZE);
+        pane.updateLayout(forceRefresh);
+    }
+    
     
     /**
      * Event handler for "workspaceUpdateLayout" to update the layout
@@ -894,26 +924,65 @@ define(function (require, exports, module) {
      * @private
      */
     function _updateLayout(event, viewAreaHeight, forceRefresh) {
+        var available;
+        
+        if (_orientation === VERTICAL) {
+            available = _$el.innerWidth();
+        } else {
+            available = _$el.innerHeight();
+        }
+        
+        _.forEach(_panes, function (pane) {
+            // For VERTICAL orientation, we set the second pane to be width: auto
+            //  so that it resizes to fill the available space in the containing div
+            // unfortunately, that doesn't work in the HORIZONTAL orientation so we 
+            //  must update the height and convert it into a percentage
+            if (pane.id === SECOND_PANE && _orientation === HORIZONTAL) {
+                var percentage = ((_panes[FIRST_PANE].$el.height() + 1) / available);
+                pane.$el.css("height", 100 - (percentage * 100) + "%");
+            }
+
+            _synchronizePaneSize(pane, forceRefresh);
+        });
+    }
+
+    /**
+     * Sets up the initial layout so panes are evenly distributed
+     * This also sets css properties that aid in the layout when _updateLayout is called
+     * @param {boolean} forceRefresh - true to force a resize and refresh of the entire view
+     * @private
+     */
+    function _initialLayout(forceRefresh) {
         var panes = Object.keys(_panes),
             size = 100 / panes.length;
         
         _.forEach(_panes, function (pane) {
-            if (_orientation === VERTICAL) {
-                pane.$el.css({height: "100%",
-                              width: size + "%",
-                              float: "left"
-                             });
+            if (pane.id === FIRST_PANE) {
+                if (_orientation === VERTICAL) {
+                    pane.$el.css({height: "100%",
+                                  width: size + "%",
+                                  float: "left"
+                                 });
+                } else {
+                    pane.$el.css({ height: size + "%",
+                                   width: "100%"
+                                 });
+                }
             } else {
-                pane.$el.css({height: size + "%",
-                              width: "100%",
-                              float: "none"
-                             });
+                if (_orientation === VERTICAL) {
+                    pane.$el.css({  height: "100%",
+                                    width: "auto",
+                                    float: "none"
+                                 });
+                } else {
+                    pane.$el.css({ width: "100%",
+                                   height: "50%"
+                                 });
+                }
             }
             
-            pane.updateLayout(forceRefresh);
+            _synchronizePaneSize(pane, forceRefresh);
         });
-        
-        
     }
     
     /**
@@ -957,9 +1026,27 @@ define(function (require, exports, module) {
                 }
             });
         }
+
         
         return _panes[paneId];
     }
+    
+    /**
+     * Makes the first pane resizable
+     * @private
+     */
+    function _makeFirstPaneResizable() {
+        var firstPane = _panes[FIRST_PANE];
+        Resizer.makeResizable(firstPane.$el,
+                              _orientation === HORIZONTAL ? Resizer.DIRECTION_VERTICAL : Resizer.DIRECTION_HORIZONTAL,
+                              _orientation === HORIZONTAL ? Resizer.POSITION_BOTTOM : Resizer.POSITION_RIGHT,
+                              MIN_PANE_SIZE, false, false, false, true);
+        
+        firstPane.$el.on("panelResizeUpdate", function () {
+            _updateLayout();
+        });
+    }
+    
     
     /**
      * Creates a split for the specified orientation
@@ -967,12 +1054,20 @@ define(function (require, exports, module) {
      * @param {!string} orientation (VERTICAL|HORIZONTAL)
      */
     function _doSplit(orientation) {
-        _createPaneIfNecessary(SECOND_PANE);
+        var firstPane = _panes[FIRST_PANE];
+        Resizer.removeSizable(firstPane.$el);
+
         _orientation = orientation;
-        _updateLayout();
+        _createPaneIfNecessary(SECOND_PANE);
+        _makeFirstPaneResizable();
         _updateCommandState();
-        $(exports).triggerHandler("paneLayoutChange", [_orientation]);
         
+        // reset the layout to 50/50 split
+        // if we changed orientation then
+        //  the percentages are reset as well
+        _initialLayout();
+        
+        $(exports).triggerHandler("paneLayoutChange", [_orientation]);
     }
     
     /**
@@ -1098,6 +1193,7 @@ define(function (require, exports, module) {
                 fileList = secondPane.getViewList(),
                 lastViewed = getCurrentlyViewedFile();
             
+            Resizer.removeSizable(firstPane.$el);
             firstPane.mergeFrom(secondPane);
         
             $(exports).triggerHandler("workingSetRemoveList", [fileList, secondPane.id]);
@@ -1119,7 +1215,8 @@ define(function (require, exports, module) {
             });
             
             _orientation = null;
-            _updateLayout();
+            // this will set the remaining pane to 100%
+            _initialLayout();
             _updateCommandState();
             $(exports).triggerHandler("paneLayoutChange", [_orientation]);
 
@@ -1293,13 +1390,37 @@ define(function (require, exports, module) {
                     promise = pane.loadState(paneState);
                 
                 promises.push(promise);
-                
             });
-        
-            AsyncUtils.waitForAll(promises).then(function () {
-                setActivePaneId(state.activePaneId);
-                _updateLayout();
+
+            AsyncUtils.waitForAll(promises).then(function (opensList) {
+
+                // this will set the default layout of 50/50 or 100 
+                //  based on the number of panes
+                _initialLayout();
+                
+                // More than 1 pane, then make it resizable
+                //  and layout the panes from serialized state
+                if (panes.length > 1) {
+                    _makeFirstPaneResizable();
+
+                    // If the split state was serialized correctly
+                    //  then setup the splits according to was serialized
+                    // Avoid a zero and negative split percentages
+                    if ($.isNumeric(state.splitPercentage) && state.splitPercentage > 0) {
+                        var prop;
+                        if (_orientation === VERTICAL) {
+                            prop = "width";
+                        } else {
+                            prop = "height";
+                        }
+
+                        _panes[FIRST_PANE].$el.css(prop, state.splitPercentage * 100 + "%");
+                        _updateLayout();
+                    }
+                }
+                
                 _updateCommandState();
+
                 if (_orientation) {
                     $(exports).triggerHandler("paneLayoutChange", _orientation);
                 }
@@ -1312,6 +1433,19 @@ define(function (require, exports, module) {
                     });
                     $(exports).triggerHandler("workingSetAddList", [fileList, pane.id]);
                 });
+                
+                promises = [];
+                
+                opensList.forEach(function (openData) {
+                    if (openData) {
+                        promises.push(CommandManager.execute(Commands.FILE_OPEN, openData));
+                    }
+                });
+                
+                // finally set the active pane
+                AsyncUtils.waitForAll(promises).then(function () {
+                    setActivePaneId(state.activePaneId);
+                });
             });
         }
     }
@@ -1321,13 +1455,36 @@ define(function (require, exports, module) {
      * @private
      */
     function _saveViewState() {
+        function _computeSplitPercentage() {
+            var available,
+                used;
+
+            if (getPaneCount() === 1) {
+                // just short-circuit here and
+                //  return 100% to avoid any rounding issues
+                return 1;
+            } else {
+                if (_orientation === VERTICAL) {
+                    available = _$el.innerWidth();
+                    used = _panes[FIRST_PANE].$el.width();
+                } else {
+                    available = _$el.innerHeight();
+                    used = _panes[FIRST_PANE].$el.height();
+                }
+
+                return used / available;
+            }
+        }
+
         var projectRoot     = ProjectManager.getProjectRoot(),
             context         = { location : { scope: "user",
                                          layer: "project",
                                          layerID: projectRoot.fullPath } },
+            
             state = {
                 orientation: _orientation,
                 activePaneId: getActivePaneId(),
+                splitPercentage: _computeSplitPercentage(),
                 panes: {
                 }
             };
@@ -1358,7 +1515,7 @@ define(function (require, exports, module) {
         _activePaneId = FIRST_PANE;
         // One-time init so the pane has the "active" appearance   
         _panes[FIRST_PANE]._handleActivePaneChange(undefined, _activePaneId);
-        _updateLayout();
+        _initialLayout();
     }
     
     /** 
