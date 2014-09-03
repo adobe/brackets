@@ -47,8 +47,7 @@ define(function (require, exports, module) {
     // Constants
     
     // Time range from first click to second click to invoke renaming.
-    var CLICK_RENAME_MINIMUM = 500,
-        CLICK_RENAME_MAXIMUM = 1500;
+    var CLICK_RENAME_MINIMUM = 500;
     
     /**
      * @private
@@ -269,16 +268,12 @@ define(function (require, exports, module) {
         handleClick: function (e) {
             // If the user clicks twice within 500ms, that will be picked up by the double click handler
             // If they click on the node twice with a pause, we'll start a rename.
-            if (this.props.entry.get("selected")) {
+            if (this.props.entry.get("selected") && this.state.clickTime) {
                 var timeSincePreviousClick = new Date().getTime() - this.state.clickTime;
-                if (!this.props.entry.get("rename") && this.state.clickTime && (timeSincePreviousClick > CLICK_RENAME_MINIMUM && timeSincePreviousClick < CLICK_RENAME_MAXIMUM)) {
+                if (!this.props.entry.get("rename") && (timeSincePreviousClick > CLICK_RENAME_MINIMUM)) {
                     this.props.actions.startRename(this.myPath());
                     this.setState({
                         clickTime: 0
-                    });
-                } else if (timeSincePreviousClick > CLICK_RENAME_MAXIMUM) {
-                    this.setState({
-                        clickTime: new Date().getTime()
                     });
                 }
             } else {
