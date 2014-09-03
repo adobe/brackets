@@ -760,7 +760,7 @@ define(function (require, exports, module) {
         return new Promise(function (resolve, reject) {
             var doc = getOpenDocumentForPath(file.fullPath);
             if (doc) {
-                resolve(doc.getText(), doc.diskTimestamp, checkLineEndings ? doc._lineEndings : null);
+                resolve([doc.getText(), doc.diskTimestamp, checkLineEndings ? doc._lineEndings : null]);
             } else {
                 file.read(function (err, contents, stat) {
                     if (err) {
