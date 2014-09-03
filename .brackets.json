@@ -4,6 +4,7 @@
         "plusplus": true,
         "devel": true,
         "nomen": true,
+        "es5": true,
         "maxerr": 50
     },
     "defaultExtension": "js",
