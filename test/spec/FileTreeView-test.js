@@ -169,6 +169,7 @@ define(function (require, exports, module) {
             it("should format a closed directory", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
                     name: "thedir",
+                    parentPath: "/foo/",
                     entry: Immutable.fromJS({
                         children: null
                     })
@@ -176,6 +177,7 @@ define(function (require, exports, module) {
                 var dirLI = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-closed"),
                     dirA = RTU.findRenderedDOMComponentWithTag(dirLI, "a");
                 expect(dirA.props.children[1]).toBe("thedir");
+                expect(rendered.myPath()).toBe("/foo/thedir/");
             });
             
             it("should call extensions for directories", function () {
@@ -194,7 +196,7 @@ define(function (require, exports, module) {
                                 extensionCalled = true;
                                 expect(data.name).toBe("thedir");
                                 expect(data.isFile).toBe(false);
-                                expect(data.fullPath).toBe("/foo/thedir");
+                                expect(data.fullPath).toBe("/foo/thedir/");
                                 return "new";
                             }, function (data) {
                                 return "classes are cool";

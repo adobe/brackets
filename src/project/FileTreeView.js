@@ -65,7 +65,14 @@ define(function (require, exports, module) {
          * Computes the full path of the file represented by this input.
          */
         myPath: function () {
-            return this.props.parentPath + this.props.name;
+            var result = this.props.parentPath + this.props.name;
+            
+            // Add trailing slash for directories
+            if (!FileTreeViewModel.isFile(this.props.entry)) {
+                result += "/";
+            }
+            
+            return result;
         }
     };
     
