@@ -100,6 +100,7 @@ define(function (require, exports, module) {
                 expect(isFilePathVisible("subdir/afile.js")).toBe(true);
                 expect(isFilePathVisible("aclosedsub/hiddenfile.js")).toBe(false);
                 expect(isFilePathVisible("DOESNOTEXIST")).toBe(null);
+                expect(isFilePathVisible("")).toBe(true);
             });
         });
 

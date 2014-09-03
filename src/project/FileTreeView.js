@@ -32,12 +32,13 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var React     = require("thirdparty/react"),
-        Immutable = require("thirdparty/immutable"),
-        _         = require("thirdparty/lodash"),
-        FileUtils = require("file/FileUtils"),
+    var React             = require("thirdparty/react"),
+        Immutable         = require("thirdparty/immutable"),
+        _                 = require("thirdparty/lodash"),
+        FileUtils         = require("file/FileUtils"),
         FileTreeViewModel = require("project/FileTreeViewModel"),
-        ViewUtils = require("utils/ViewUtils");
+        ViewUtils         = require("utils/ViewUtils"),
+        KeyEvent          = require("utils/KeyEvent");
     
     var DOM = React.DOM;
     
@@ -78,12 +79,9 @@ define(function (require, exports, module) {
          * the rename or create operation that is underway.
          */
         handleKeyDown: function (e) {
-            // Escape
-            if (e.keyCode === 27) {
+            if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 this.props.actions.cancelRename();
-            
-            // Enter
-            } else if (e.keyCode === 13) {
+            } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                 this.props.actions.performRename();
             }
         },
@@ -220,8 +218,7 @@ define(function (require, exports, module) {
                     } catch (e) {
                         console.warn("Exception thrown in FileTreeView addClass provider:", e);
                     }
-                })
-                    .filter(isDefined).toArray().join(" ");
+                }).filter(isDefined).toArray().join(" ");
             }
 
             return classes;

@@ -42,7 +42,7 @@ define(function (require, exports, module) {
     var EVENT_CHANGE = "change";
     
     /**
-     * Determine if an entry from the treeData map is a directory.
+     * Determine if an entry from the treeData map is a file.
      * 
      * @param {Immutable.Map} entry entry to test
      * @return {boolean} true if this is a file and not a directory
@@ -169,7 +169,7 @@ define(function (require, exports, module) {
         if (path === null) {
             return null;
         } else if (path === "") {
-            return [];
+            return true;
         }
 
         var parts = path.split("/"),
