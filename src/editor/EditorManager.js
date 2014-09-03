@@ -197,11 +197,8 @@ define(function (require, exports, module) {
         return new Promise(function (resolve, reject) {
 
             // Run through inline-editor providers until one responds
-            var pos = editor.getCursorPos(),
-                inlinePromise, providerPromise,
-                i,
-                errorMsg,
-                providerRet;
+            var inlinePromise, providerPromise, i, errorMsg, providerRet,
+                pos = editor.getCursorPos();
 
             // Query each provider in priority order. Provider may return:
             // 1. `null` to indicate it does not apply to current cursor position
