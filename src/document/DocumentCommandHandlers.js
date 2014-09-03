@@ -318,7 +318,7 @@ define(function (require, exports, module) {
         });
         
         if (perfTimerName) {
-            var fnAlways = function () {
+            var fnAlways = function (doc) {
                 PerfUtils.addMeasurement(perfTimerName);
             };
             result.then(fnAlways, fnAlways);
@@ -377,9 +377,11 @@ define(function (require, exports, module) {
                                         DocumentManager.addToWorkingSet(doc.file);
                                     }
                                     _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(EditorManager.getCurrentlyViewedPath());
+                                    
+                                    // Send the resulting document that was opened
+                                    resolve(doc);
                                 })
-                                // Send the resulting document that was opened
-                                .then(resolve, reject);
+                                .catch(reject);
                         } else {
                             // Reject if the user canceled the dialog
                             reject();
@@ -427,9 +429,10 @@ define(function (require, exports, module) {
      */
     function handleFileOpen(commandData) {
         var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
-            silent = commandData ? commandData.silent : false;
+            silent = commandData ? commandData.silent : false,
+            promise;
         
-        var fnAlways = function () {
+        var fnAlways = function (doc) {
             // If a line and column number were given, position the editor accordingly.
             if (fileInfo.line !== null) {
                 if (fileInfo.column === null || (fileInfo.column <= 0)) {
@@ -443,8 +446,9 @@ define(function (require, exports, module) {
             EditorManager.focusEditor();
         };
         
-        return _doOpenWithOptionalPath(fileInfo.path, silent)
-            .then(fnAlways, fnAlways);
+        promise = _doOpenWithOptionalPath(fileInfo.path, silent);
+        promise.then(fnAlways, fnAlways);
+        return promise;
         
         // Testing notes: here are some recommended manual tests for handleFileOpen, on macintosh.
         // Do all tests with brackets already running, and also with brackets not already running.
