@@ -165,7 +165,11 @@ define(function (require, exports, module) {
     // Read "build number" SHAs off disk immediately at APP_READY, instead
     // of later, when they may have been updated to a different version
     AppInit.appReady(function () {
-        BuildInfoUtils.getBracketsSHA().then(function (branch, sha, isRepo) {
+        BuildInfoUtils.getBracketsSHA().then(function (args) {
+            var branch = args[0],
+                sha    = args[1],
+                isRepo = args[2];
+            
             // If we've successfully determined a "build number" via .git metadata, add it to dialog
             sha = sha ? sha.substr(0, 9) : "";
             if (branch || sha) {

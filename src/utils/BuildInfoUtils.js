@@ -94,10 +94,10 @@ define(function (require, exports, module) {
 
             _loadSHA(bracketsGitRoot).then(function (data) {
                 // Found a repository
-                resolve(data.branch, data.sha, true);
+                resolve([data.branch, data.sha, true]);
             }).catch(function () {
                 // If package.json has repository data, Brackets is running from the installed /www folder
-                resolve(brackets.metadata.repository.branch, brackets.metadata.repository.SHA, false);
+                resolve([brackets.metadata.repository.branch, brackets.metadata.repository.SHA, false]);
             });
         });
     }
