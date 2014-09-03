@@ -44,6 +44,12 @@ define(function (require, exports, module) {
     
     var _extensions = Immutable.Map();
     
+    // Constants
+    
+    // Time range from first click to second click to invoke renaming.
+    var CLICK_RENAME_MINIMUM = 500,
+        CLICK_RENAME_MAXIMUM = 1500;
+    
     /**
      * @private
      * 
@@ -264,10 +270,15 @@ define(function (require, exports, module) {
             // If the user clicks twice within 500ms, that will be picked up by the double click handler
             // If they click on the node twice with a pause, we'll start a rename.
             if (this.props.entry.get("selected")) {
-                if (!this.props.entry.get("rename") && this.state.clickTime && (new Date().getTime() - this.state.clickTime > 500)) {
+                var timeSincePreviousClick = new Date().getTime() - this.state.clickTime;
+                if (!this.props.entry.get("rename") && this.state.clickTime && (timeSincePreviousClick > CLICK_RENAME_MINIMUM && timeSincePreviousClick < CLICK_RENAME_MAXIMUM)) {
                     this.props.actions.startRename(this.myPath());
                     this.setState({
                         clickTime: 0
+                    });
+                } else if (timeSincePreviousClick > CLICK_RENAME_MAXIMUM) {
+                    this.setState({
+                        clickTime: new Date().getTime()
                     });
                 }
             } else {
