@@ -51,7 +51,8 @@ define(function (require, exports, module) {
      */
     function ImageView(file, $container) {
         this.file = file;
-        this.$el = $(Mustache.render(ImageViewTemplate, {fullPath: file.fullPath}));
+        this.$el = $(Mustache.render(ImageViewTemplate, {fullPath: file.fullPath,
+                                                         now: new Date().valueOf()}));
         
         $container.append(this.$el);
 
