@@ -221,7 +221,9 @@ define(function (require, exports, module) {
         
         var promise = FileUtils.readAsText(doc.file);
         
-        promise.then(function (text, readTimestamp) {
+        promise.then(function (args) {
+            var text          = args[0],
+                readTimestamp = args[1];
             doc.refreshText(text, readTimestamp);
         });
         promise.catch(function (error) {

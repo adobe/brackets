@@ -693,7 +693,9 @@ define(function (require, exports, module) {
 
                     // create a new document
                     FileUtils.readAsText(file)
-                        .then(function (rawText, readTimestamp) {
+                        .then(function (args) {
+                            var rawText       = args[0],
+                                readTimestamp = args[1];
                             delete getDocumentForPath._pendingDocumentPromises[file.id];
                             
                             doc = new DocumentModule.Document(file, readTimestamp, rawText);

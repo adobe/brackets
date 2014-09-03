@@ -741,7 +741,9 @@ define(function (require, exports, module) {
         return new Promise(function (resolve, reject) {
 
             FileUtils.readAsText(doc.file)
-                .then(function (text, readTimestamp) {
+                .then(function (args) {
+                    var text          = args[0],
+                        readTimestamp = args[1];
                     doc.refreshText(text, readTimestamp);
                     resolve();
                 })

@@ -243,7 +243,8 @@ define(function (require, exports, module) {
         var theme = getCurrentTheme();
 
         var pending = theme && FileUtils.readAsText(theme.file)
-            .then(function (lessContent) {
+            .then(function (args) {
+                var lessContent = args[0];
                 return lessifyTheme(lessContent.replace(commentRegex, ""), theme);
             })
             .then(function (content) {

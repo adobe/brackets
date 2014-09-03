@@ -57,7 +57,7 @@ define(function (require, exports, module) {
             // Read file
             file.read(function (err, data, stat) {
                 if (!err) {
-                    resolve(data, stat.mtime);
+                    resolve([data, stat.mtime]);
                 } else {
                     reject(err);
                 }

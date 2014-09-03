@@ -124,7 +124,8 @@ define(function (require, exports, module) {
             var extensionConfigFile = FileSystem.getFileForPath(baseConfig.baseUrl + "/requirejs-config.json");
 
             // Optional JSON config for require.js
-            FileUtils.readAsText(extensionConfigFile).then(function (text) {
+            FileUtils.readAsText(extensionConfigFile).then(function (args) {
+                var text = args[0];
                 try {
                     var extensionConfig = JSON.parse(text);
 

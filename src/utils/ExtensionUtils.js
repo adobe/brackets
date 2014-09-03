@@ -230,7 +230,8 @@ define(function (require, exports, module) {
         return new Promise(function (resolve, reject) {
             var file = FileSystem.getFileForPath(folder + "/package.json");
             FileUtils.readAsText(file)
-                .then(function (text) {
+                .then(function (args) {
+                    var text = args[0];
                     try {
                         var json = JSON.parse(text);
                         resolve(json);
