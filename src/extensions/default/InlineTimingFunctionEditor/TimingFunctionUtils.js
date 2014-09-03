@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $ */
+/*global define, brackets */
 
 /**
  *  Utilities functions related to color matching
@@ -173,8 +173,7 @@ define(function (require, exports, module) {
             def = [ "5", "end" ],
             params = def,
             oldIndex = match.index, // we need to store the old match.index to re-set the index afterwards
-            originalString = match[0],
-            i;
+            originalString = match[0];
 
         if (match) {
             match = match[1].split(",");

@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, $, brackets */
 
 
 /**
@@ -35,9 +35,7 @@ define(function (require, exports, module) {
     
     var _ = require("thirdparty/lodash");
     
-    var Editor              = require("editor/Editor"),
-        EditorManager       = require("editor/EditorManager"),
-        PanelManager        = require("view/PanelManager");
+    var PanelManager        = require("view/PanelManager");
     
     
     /**

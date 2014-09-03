@@ -32,11 +32,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Global              = require("utils/Global"),
-        FileSystem          = require("filesystem/FileSystem"),
+    var FileSystem          = require("filesystem/FileSystem"),
         FileUtils           = require("file/FileUtils");
-            
-    var _bracketsSHA;
     
     /**
      * Loads a SHA from Git metadata file. If the file contains a symbolic ref name, follows the ref

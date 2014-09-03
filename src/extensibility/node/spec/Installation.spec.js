@@ -147,8 +147,6 @@ describe("Package Installation", function () {
     
     it("should successfully update an extension", function (done) {
         ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
-            var extensionDirectory = path.join(installDirectory, "basic-valid-extension");
-            
             expect(err).toBeNull();
             ExtensionsDomain._cmdInstall(basicValidExtension2, installDirectory, standardOptions, function (err, result) {
                 expect(err).toBeNull();

@@ -38,7 +38,6 @@ define(function (require, exports, module) {
     var strings         = require("i18n!nls/strings"),
         urls            = require("i18n!nls/urls"),
         stringsApp      = require("i18n!nls/strings-app"),
-        Global          = require("utils/Global"),
         StringUtils     = require("utils/StringUtils");
 
     // Add URLs as additional globals

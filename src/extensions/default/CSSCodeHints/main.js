@@ -22,13 +22,12 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, brackets, $, window */
+/*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
 
-    var _                   = brackets.getModule("thirdparty/lodash"),
-        AppInit             = brackets.getModule("utils/AppInit"),
+    var AppInit             = brackets.getModule("utils/AppInit"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
@@ -144,8 +143,7 @@ define(function (require, exports, module) {
      */
     CssPropHints.prototype.hasHints = function (editor, implicitChar) {
         this.editor = editor;
-        var cursor = this.editor.getCursorPos(),
-            textAfterCursor;
+        var cursor = this.editor.getCursorPos();
 
         lastContext = null;
         this.info = CSSUtils.getInfoAtPos(editor, cursor);

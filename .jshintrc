@@ -13,7 +13,7 @@
     "regexp"        : true,
     "undef"         : true,
     "strict"        : true,
-    "trailing"      : false,
+    "unused"        : "vars",
     
     "asi"           : false,
     "boss"          : false,
@@ -35,7 +35,6 @@
     "proto"         : false,
     "regexdash"     : false,
     "scripturl"     : false,
-    "smarttabs"     : false,
     "shadow"        : false,
     "sub"           : false,
     "supernew"      : false,
@@ -52,15 +51,8 @@
     "prototypejs"   : false,
     "rhino"         : false,
     "wsh"           : false,
-    
-    "nomen"         : false,
-    "onevar"        : false,
-    "passfail"      : false,
-    "white"         : false,
  
     "maxerr"        : 100,
-    "predef"        : [
-    ],
     "indent"        : 4,
     "globals"       : [
         "require",

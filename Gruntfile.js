@@ -27,8 +27,6 @@ module.exports = function (grunt) {
     // load dependencies
     require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin']});
     grunt.loadTasks('tasks');
-
-    var common = require("./tasks/lib/common")(grunt);
     
     // Project configuration.
     grunt.initConfig({

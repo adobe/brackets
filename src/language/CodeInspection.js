@@ -47,7 +47,6 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
-        FileUtils               = require("file/FileUtils"),
         LanguageManager         = require("language/LanguageManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         PerfUtils               = require("utils/PerfUtils"),
@@ -577,7 +576,7 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         // Create bottom panel to list error details
         var panelHtml = Mustache.render(PanelTemplate, Strings);
-        var resultsPanel = PanelManager.createBottomPanel("errors", $(panelHtml), 100);
+        PanelManager.createBottomPanel("errors", $(panelHtml), 100);
         $problemsPanel = $("#problems-panel");
 
         var $selectedRow;

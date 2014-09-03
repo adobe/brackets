@@ -56,8 +56,7 @@ define(function (require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager"),
         HTMLSimpleDOM   = require("./HTMLSimpleDOM"),
-        HTMLDOMDiff     = require("./HTMLDOMDiff"),
-        PerfUtils       = require("utils/PerfUtils");
+        HTMLDOMDiff     = require("./HTMLDOMDiff");
     
     var allowIncremental = true;
     
@@ -137,7 +136,7 @@ define(function (require, exports, module) {
      *     given position.
      */
     function _getMarkerAtDocumentPos(editor, pos, preferParent, markCache) {
-        var i, marks, match;
+        var marks, match;
         
         markCache = markCache || {};
         marks = _getSortedTagMarks(editor._codeMirror.findMarksAt(pos), markCache);
@@ -161,24 +160,6 @@ define(function (require, exports, module) {
         }
         
         return match.mark;
-    }
-    
-    /**
-     * @private
-     * Dumps the current list of mark ranges for instrumented tags to the console. Used for debugging.
-     * @param {Editor} editor The editor to find the mark ranges for.
-     * @param {Object=} nodeMap If specified, a map of tag IDs to DOM nodes, used so we can indicate which tag name
-     *     the DOM thinks corresponds to the given mark.
-     */
-    function _dumpMarks(editor, nodeMap) {
-        var markCache = {},
-            marks = _getSortedTagMarks(editor._codeMirror.getAllMarks(), markCache);
-        marks.forEach(function (markInfo) {
-            var mark = markInfo.mark,
-                range = markInfo.range;
-            console.log("<" + nodeMap[mark.tagID].tag + "> (" + mark.tagID + ") " +
-                        range.from.line + ":" + range.from.ch + " - " + range.to.line + ":" + range.to.ch);
-        });
     }
 
     /**

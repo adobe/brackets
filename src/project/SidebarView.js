@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, document, window, brackets  */
+/*global define, $ */
 
 /**
  * The view that controls the showing and hiding of the sidebar.
@@ -46,8 +46,6 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
-        EditorManager       = require("editor/EditorManager"),
-        Global              = require("utils/Global"),
         Resizer             = require("utils/Resizer"),
         _                   = require("thirdparty/lodash");
 

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, document, Mustache */
+/*global define, $, document, Mustache */
 
 /**
  * A status bar with support for file information and busy and status indicators. This is a semi-generic
@@ -49,8 +49,7 @@ define(function (require, exports, module) {
     
     // These vars are initialized by the AppInit.htmlReady handler
     // below since they refer to DOM elements
-    var $editorContainer,
-        $statusBar,
+    var $statusBar,
         $indicators,
         $busyIndicator;
         

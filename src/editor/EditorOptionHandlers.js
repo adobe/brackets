@@ -22,14 +22,13 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 define(function (require, exports, module) {
     "use strict";
     
     var AppInit                 = require("utils/AppInit"),
         Editor                  = require("editor/Editor").Editor,
-        EditorManager           = require("editor/EditorManager"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),

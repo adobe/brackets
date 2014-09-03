@@ -71,7 +71,6 @@ define(function (require, exports, module) {
         PerfUtils          = require("utils/PerfUtils"),
         PopUpManager       = require("widgets/PopUpManager"),
         PreferencesManager = require("preferences/PreferencesManager"),
-        Strings            = require("strings"),
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
         ValidationUtils    = require("utils/ValidationUtils"),
@@ -762,8 +761,6 @@ define(function (require, exports, module) {
      *    the document an editor change that originated with us
      */
     Editor.prototype._handleDocumentChange = function (event, doc, changeList) {
-        var change;
-        
         // we're currently syncing to the Document, so don't echo back FROM the Document
         if (this._duringSync) {
             return;
@@ -1490,8 +1487,6 @@ define(function (require, exports, module) {
         }
             
         if (!inlineWidget.closePromise) {
-            var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
-            
             // Remove the inline widget from our internal list immediately, so
             // everyone external to us knows it's essentially already gone. We
             // don't want to wait until it's done animating closed (but we do want

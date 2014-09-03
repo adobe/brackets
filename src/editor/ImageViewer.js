@@ -186,7 +186,6 @@ define(function (require, exports, module) {
         
         var x                   = Math.round(e.offsetX * 100 / _scale),
             y                   = Math.round(e.offsetY * 100 / _scale),
-            $target             = $(e.target),
             imagePos            = $("#img-preview").position(),
             left                = e.offsetX + imagePos.left,
             top                 = e.offsetY + imagePos.top,

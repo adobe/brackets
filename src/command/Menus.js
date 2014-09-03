@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, MouseEvent */
+/*global define, $, brackets, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -31,8 +31,7 @@ define(function (require, exports, module) {
     var _ = require("thirdparty/lodash");
 
     // Load dependent modules
-    var Global              = require("utils/Global"),
-        Commands            = require("command/Commands"),
+    var Commands            = require("command/Commands"),
         KeyBindingManager   = require("command/KeyBindingManager"),
         StringUtils         = require("utils/StringUtils"),
         CommandManager      = require("command/CommandManager"),
@@ -552,7 +551,6 @@ define(function (require, exports, module) {
         var menuID = this.id,
             id,
             $menuItem,
-            $link,
             menuItem,
             name,
             commandID;

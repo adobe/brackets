@@ -176,7 +176,6 @@ define(function CSSDocumentModule(require, exports, module) {
     CSSDocument.prototype.updateHighlight = function () {
         if (Inspector.config.highlight && this.editor) {
             var editor = this.editor,
-                codeMirror = editor._codeMirror,
                 selectors = [];
             _.each(this.editor.getSelections(), function (sel) {
                 var selector = CSSUtils.findSelectorAtDocumentPos(editor, (sel.reversed ? sel.end : sel.start));

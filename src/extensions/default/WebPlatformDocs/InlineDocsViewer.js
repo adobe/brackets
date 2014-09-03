@@ -35,7 +35,6 @@ define(function (require, exports, module) {
     var ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         InlineWidget        = brackets.getModule("editor/InlineWidget").InlineWidget,
         KeyEvent            = brackets.getModule("utils/KeyEvent"),
-        NativeApp           = brackets.getModule("utils/NativeApp"),
         Strings             = brackets.getModule("strings");
     
     // Load template

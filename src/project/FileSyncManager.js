@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define, $ */
 
 /**
  * FileSyncManager is a set of utilities to help track external modifications to the files and folders
@@ -46,8 +46,6 @@ define(function (require, exports, module) {
     var ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        Commands            = require("command/Commands"),
-        CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),

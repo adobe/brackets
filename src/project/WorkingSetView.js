@@ -533,9 +533,9 @@ define(function (require, exports, module) {
         } else {
             doc = null;
         }
-            
+
         // Iterate through working set list and update the selection on each
-        var items = $openFilesContainer.find("ul").children().each(function () {
+        $openFilesContainer.find("ul").children().each(function () {
             _updateListItemSelection(this, doc);
         });
 

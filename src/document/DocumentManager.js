@@ -100,7 +100,6 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         InMemoryFile        = require("document/InMemoryFile"),
         CommandManager      = require("command/CommandManager"),
-        Async               = require("utils/Async"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands"),
         LanguageManager     = require("language/LanguageManager"),
@@ -871,8 +870,7 @@ define(function (require, exports, module) {
      */
     function _projectOpen(e) {
         // file root is appended for each project
-        var projectRoot = ProjectManager.getProjectRoot(),
-            files = [],
+        var files = [],
             context = { location : { scope: "user",
                                      layer: "project" } };
         

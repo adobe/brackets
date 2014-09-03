@@ -31,7 +31,6 @@ define(function (require, exports, module) {
     // Brackets modules
     var CommandManager      = brackets.getModule("command/CommandManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
         Menus               = brackets.getModule("command/Menus");
 
     // Define the functions that Commands will execute

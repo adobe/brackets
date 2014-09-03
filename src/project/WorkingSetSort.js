@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define, $ */
 
 /**
  * Manages the workingSet sort methods.
@@ -38,12 +38,7 @@ define(function (require, exports, module) {
         FileUtils               = require("file/FileUtils"),
         AppInit                 = require("utils/AppInit"),
         Strings                 = require("strings");
-    
-    var defaultPrefs = {
-        currentSort:   Commands.SORT_WORKINGSET_BY_ADDED,
-        automaticSort: false
-    };
-    
+
     /**
      * @private
      * @type {Array.<Sort>}
@@ -61,13 +56,6 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _automaticSort = false;
-    
-    /**
-     * @private
-     * @type {boolean}
-     * Used to know when to do the automatic sort for MRU order.
-     */
-    var _openedDocument = false;
     
     /**
      * Retrieves a Sort object by id
@@ -144,7 +132,6 @@ define(function (require, exports, module) {
      * @param {Sort} newSort
      */
     function _setCurrentSort(newSort) {
-        var command;
         if (_currentSort !== newSort) {
             if (_currentSort !== null) {
                 _currentSort.setChecked(false);

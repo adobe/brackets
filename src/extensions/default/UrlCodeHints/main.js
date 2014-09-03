@@ -31,7 +31,6 @@ define(function (require, exports, module) {
     var AppInit             = brackets.getModule("utils/AppInit"),
         CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
@@ -405,7 +404,6 @@ define(function (require, exports, module) {
         var mode = this.editor.getModeForSelection(),
             cursor = this.editor.getCursorPos(),
             filter = "",
-            unfiltered = [],
             hints = [],
             sortFunc = null,
             query = { queryStr: "" },
@@ -734,7 +732,6 @@ define(function (require, exports, module) {
             tagInfo = HTMLUtils.getTagInfo(this.editor, cursor),
             tokenType = tagInfo.position.tokenType,
             charCount = 0,
-            replaceExistingOne = tagInfo.attr.valueAssigned,
             endQuote = "",
             shouldReplace = false;
 
