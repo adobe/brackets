@@ -102,7 +102,7 @@ define(function (require, exports, module) {
      */
     var _fileSystemChange,
         _fileSystemRename,
-        _displayCreationError,
+        _showErrorDialog,
         _savePreferences,
         _renderTree;
 
@@ -145,6 +145,32 @@ define(function (require, exports, module) {
      */
     var _projectWarnedForTooManyFiles = false;
     
+    /**
+     * @private
+     * 
+     * Displays an error based on a problem creating a file.
+     * 
+     * @param {{type:any,isFolder:boolean}} errorInfo Information passed in the error events
+     */
+    function _displayCreationError(e, errorInfo) {
+        console.log("_displayCreationError");
+        window.setTimeout(function () {
+            var error = errorInfo.type,
+                isFolder = errorInfo.isFolder;
+            if (error === FileSystemError.ALREADY_EXISTS) {
+                _showErrorDialog(ERR_TYPE_CREATE_EXISTS, isFolder, null, name);
+            } else if (error === ProjectModel.ERROR_INVALID_FILENAME) {
+                _showErrorDialog(ERR_TYPE_INVALID_FILENAME, isFolder, ProjectModel._invalidChars);
+            } else {
+                var errString = error === FileSystemError.NOT_WRITABLE ?
+                        Strings.NO_MODIFICATION_ALLOWED_ERR :
+                        StringUtils.format(Strings.GENERIC_ERROR, error);
+
+                _showErrorDialog(ERR_TYPE_CREATE, isFolder, errString, name).getPromise();
+            }
+        }, 10);
+    }
+
     /**
      * @constructor
      * @private
@@ -437,7 +463,7 @@ define(function (require, exports, module) {
      * @param {string} path path to file or folder that had the error
      * @return {Dialog|null} Dialog if the error message was created
      */
-    function _showErrorDialog(errType, isFolder, error, path) {
+    _showErrorDialog = function (errType, isFolder, error, path) {
         var titleType = isFolder ? Strings.DIRECTORY_TITLE : Strings.FILE_TITLE,
             entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
             title,
@@ -491,29 +517,6 @@ define(function (require, exports, module) {
             );
         }
         return null;
-    }
-
-    /**
-     * @private
-     * 
-     * Displays an error based on a problem creating a file.
-     * 
-     * @param {{type:any,isFolder:boolean}} errorInfo Information passed in the error events
-     */
-    _displayCreationError = function (errorInfo) {
-        var error = errorInfo.type,
-            isFolder = errorInfo.isFolder;
-        if (error === FileSystemError.ALREADY_EXISTS) {
-            _showErrorDialog(ERR_TYPE_CREATE_EXISTS, isFolder, null, name);
-        } else if (error === ProjectModel.ERROR_INVALID_FILENAME) {
-            _showErrorDialog(ERR_TYPE_INVALID_FILENAME, isFolder, ProjectModel._invalidChars);
-        } else {
-            var errString = error === FileSystemError.NOT_WRITABLE ?
-                        Strings.NO_MODIFICATION_ALLOWED_ERR :
-                        StringUtils.format(Strings.GENERIC_ERROR, error);
-
-            _showErrorDialog(ERR_TYPE_CREATE, isFolder, errString, name).getPromise();
-        }
     };
 
     /**

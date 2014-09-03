@@ -366,7 +366,8 @@ define(function (require, exports, module) {
             var model = new ProjectModel.ProjectModel(),
                 vm = model._viewModel,
                 changesFired,
-                selectionsMade;
+                selectionsMade,
+                creationErrors;
 
             model.projectRoot = {
                 fullPath: "/foo/"
@@ -378,9 +379,14 @@ define(function (require, exports, module) {
             model.on(ProjectModel.EVENT_CHANGE, function () {
                 changesFired++;
             });
+            
+            model.on(ProjectModel.ERROR_CREATION, function (e, error) {
+                creationErrors.push(error);
+            });
 
             beforeEach(function () {
                 changesFired = 0;
+                creationErrors = [];
                 selectionsMade = [];
                 vm.treeData = Immutable.fromJS({
                     subdir1: {
@@ -745,6 +751,22 @@ define(function (require, exports, module) {
                     expect(vm.treeData.getIn(["subdir1", "children", "newfile.js", "creating"])).toBeUndefined();
                     expect(vm.treeData.getIn(["subdir1", "children", "newfile.js", "rename"])).toBeUndefined();
                     expect(model._selections.rename).toBeUndefined();
+                });
+                
+                it("triggers a failure for an invalid filename", function () {
+                    var promise = model.startCreating("/foo/", "Untitled");
+                    model.setRenameValue("com1");
+                    model.performRename();
+                    waitsForFail(promise);
+                    runs(function () {
+                        expect(creationErrors).toEqual([
+                            {
+                                type: ProjectModel.ERROR_INVALID_FILENAME,
+                                name: "com1",
+                                isFolder: false
+                            }
+                        ]);
+                    });
                 });
             });
         });

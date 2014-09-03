@@ -785,10 +785,12 @@ define(function (require, exports, module) {
 
         if (renameInfo.type === FILE_CREATING) {
             this.createAtPath(newPath).done(function (entry) {
+                console.log("Success in performRename");
                 viewModel.renameItem(oldProjectPath, newName);
                 renameInfo.deferred.resolve(entry);
             }).fail(function (error) {
-                self.cancelCreating();
+                console.log("Failure in performRename");
+                self._cancelCreating();
                 renameInfo.deferred.reject(error);
             });
         } else {
@@ -812,15 +814,17 @@ define(function (require, exports, module) {
      * @return {Promise} resolved when creation is complete
      */
     ProjectModel.prototype.createAtPath = function (path) {
-        var isFolder = _.last(path) === "/",
-            name = FileUtils.getBaseName(path),
-            self = this;
+        var isFolder  = _.last(path) === "/",
+            name      = FileUtils.getBaseName(path),
+            self      = this;
 
         return doCreate(path, isFolder).done(function (entry) {
+            console.log("Success in createAtPath");
             if (!isFolder) {
                 self.setSelected(entry.fullPath);
             }
         }).fail(function (error) {
+            console.log("Failure in createAtPath");
             $(self).trigger(ERROR_CREATION, {
                 type: error,
                 name: name,
@@ -851,7 +855,7 @@ define(function (require, exports, module) {
             if (isFolder) {
                 self._selections.rename.isFolder = isFolder;
             }
-            promise.then(d.resolve);
+            promise.then(d.resolve).fail(d.reject);
         }).fail(function (err) {
             d.reject(err);
         });

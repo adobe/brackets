@@ -81,6 +81,14 @@ define(function (require, exports, module) {
         afterEach(function () {
             testWindow.closeAllFiles();
         });
+        
+        function waitForDialog() {
+            var $dlg;
+            waitsFor(function () {
+                $dlg = testWindow.$(".modal.instance");
+                return $dlg.length > 0;
+            }, 300, "dialog to appear");
+        }
 
         describe("createNewItem", function () {
             it("should create a new file with a given name", function () {
@@ -124,6 +132,7 @@ define(function (require, exports, module) {
                         .fail(function () { gotError = true; });
                 });
                 waitsFor(function () { return !didCreate && gotError; }, "ProjectManager.createNewItem() timeout", 5000);
+                waitForDialog();
 
                 runs(function () {
                     expect(gotError).toBeTruthy();
@@ -143,6 +152,7 @@ define(function (require, exports, module) {
                         .fail(function () { gotError = true; });
                 });
                 waitsFor(function () { return !didCreate && gotError; }, "ProjectManager.createNewItem() timeout", 5000);
+                waitForDialog();
 
                 runs(function () {
                     expect(gotError).toBeTruthy();
@@ -190,6 +200,8 @@ define(function (require, exports, module) {
 
                     runs(createFile);
                     waitsFor(waitForFileCreate, "ProjectManager.createNewItem() timeout", 5000);
+                    waitForDialog();
+
                     runs(assertFile);
                 }
             });
@@ -227,6 +239,8 @@ define(function (require, exports, module) {
 
                     runs(createFile);
                     waitsFor(waitForFileCreate, "ProjectManager.createNewItem() timeout", 5000);
+                    waitForDialog();
+
                     runs(assertFile);
                 }
             });

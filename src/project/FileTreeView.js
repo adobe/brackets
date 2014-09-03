@@ -492,6 +492,14 @@ define(function (require, exports, module) {
                 nodeClass = "closed";
             }
             
+            if (this.props.entry.get("selected")) {
+                directoryClasses += " jstree-clicked sidebar-selection";
+            }
+
+            if (entry.get("context")) {
+                directoryClasses += " sidebar-context";
+            }
+
             var nameDisplay;
             if (entry.get("rename")) {
                 nameDisplay = directoryRenameInput({
@@ -509,14 +517,6 @@ define(function (require, exports, module) {
                 nameDisplay = DOM.a.apply(DOM.a, aArgs);
             }
             
-            if (this.props.entry.get("selected")) {
-                directoryClasses += " jstree-clicked sidebar-selection";
-            }
-            
-            if (entry.get("context")) {
-                directoryClasses += " sidebar-context";
-            }
-
             return DOM.li({
                 className: this.getClasses("jstree-" + nodeClass),
                 onClick: this.handleClick,
