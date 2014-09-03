@@ -1296,7 +1296,7 @@ define(function (require, exports, module) {
             }
             
             if (isPending) {
-                return new Promise(function (resolve, reject) { resolve(); });
+                return Promise.resolve();
             } else {
                 var tryPromises = [];
                 
@@ -1592,9 +1592,7 @@ define(function (require, exports, module) {
         save: function () {
             if (this.finalized) {
                 console.log("PreferencesSystem.save() called after finalized!");
-                return new Promise(function (finalizedResolve, finalizedReject) {
-                    finalizedReject();
-                });
+                return Promise.reject();
             }
 
             // If necessary, create `_nextSave`
