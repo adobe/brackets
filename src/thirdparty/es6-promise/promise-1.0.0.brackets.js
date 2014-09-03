@@ -409,17 +409,20 @@ define("promise/promise",
       // Add methods for Brackets
       done: function (fn) {
 //        console.log("jQuery promises are deprecated in favor of Promise object - use then() instead of done().");
-        return this.then(fn);
+        this.then(fn);
+        return this;
       },
 
       fail: function (fn) {
 //        console.log("jQuery promises are deprecated in favor of Promise object - use then() instead of fail().");
-        return this.then(null, fn);
+        this.then(null, fn);
+        return this;
       },
 
       always: function (fn) {
 //        console.log("jQuery promises are deprecated in favor of Promise object - use then() instead of always().");
-        return this.then(fn, fn);
+        this.then(fn, fn);
+        return this;
       },
       // end Brackets code
 
