@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4 */
-/*global define, $, Mustache, brackets */
+/*global define, $, Mustache, brackets, window */
 
 /**
  * Manages linters and other code inspections on a per-language basis. Provides a UI and status indicator for

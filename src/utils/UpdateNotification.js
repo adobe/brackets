@@ -302,11 +302,11 @@ define(function (require, exports, module) {
                 // downloadRegistry, will be resolved in _onRegistryDownloaded
                 ExtensionManager.downloadRegistry().done(function () {
                     // schedule another check in 24 hours + 2 minutes
-                    setTimeout(checkForExtensionsUpdate, ONE_DAY + TWO_MINUTES);
+                    window.setTimeout(checkForExtensionsUpdate, ONE_DAY + TWO_MINUTES);
                 });
             } else {
                 // schedule the download of the registry in appropriate time
-                setTimeout(checkForExtensionsUpdate, (timeOfNextCheck - currentTime) + TWO_MINUTES);
+                window.setTimeout(checkForExtensionsUpdate, (timeOfNextCheck - currentTime) + TWO_MINUTES);
             }
         }
     }
