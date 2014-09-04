@@ -40,7 +40,7 @@
     "supernew"      : false,
     "validthis"     : false,
     
-    "browser"       : true,
+    "browser"       : false,
     "couch"         : false,
     "devel"         : false,
     "dojo"          : false,
@@ -54,14 +54,17 @@
  
     "maxerr"        : 100,
     "indent"        : 4,
-    "globals"       : [
-        "require",
-        "define",
-        "brackets",
-        "$",
-        "PathUtils",
-        "window",
-        "navigator",
-        "Mustache"
-    ]
+    "globals"       : {
+        "window": false,
+        "document": false,
+        "setTimeout": false,
+        "require": false,
+        "define": false,
+        "brackets": false,
+        "$": false,
+        "PathUtils": false,
+        "window": false,
+        "navigator": false,
+        "Mustache": false
+    }
 }
