@@ -300,7 +300,9 @@ module.exports = function (grunt) {
         jslint: {
             client: {
                 src: [
-                    '<%= meta.src %>'
+                    '<%= meta.grunt %>',
+                    '<%= meta.src %>',
+                    '<%= meta.test %>'
                 ],
                 directives: {
                     browser: true,
