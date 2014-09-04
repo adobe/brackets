@@ -550,6 +550,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Kirjaa Noden tila konsoliin",
     "CMD_RESTART_NODE"                          : "Käynnistä Node uudelleen",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Näytä virheet tilapalkissa",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Avaa {APP_NAME}in lähdekoodi",
 
     "LANGUAGE_TITLE"                            : "Vaihda kieltä",
     "LANGUAGE_MESSAGE"                          : "Kieli:",
