@@ -151,7 +151,8 @@
             
             // ignore most HTTP methods and files that we're not watching
             if (("GET" !== req.method && "HEAD" !== req.method) || !hasListener) {
-                return next();
+                next();
+                return;
             }
             
             // pause the request and wait for listeners to possibly respond
@@ -193,7 +194,7 @@
 
                 // resume the HTTP ServerResponse, pass to next middleware if 
                 // no response data was passed
-                resume(!resData);
+                resume(!resData.body);
             };
 
             location.hostname = address.address;

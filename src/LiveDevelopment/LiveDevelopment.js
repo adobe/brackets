@@ -1240,15 +1240,18 @@ define(function LiveDevelopment(require, exports, module) {
         
         // open browser to the interstitial page to prepare for loading agents
         _openInterstitialPage();
+        
+        // Once all agents loaded (see _onInterstitialPageLoad()), begin Live Highlighting for preprocessor documents
+        _openDeferred.done(function () {
+            // Setup activeEditorChange event listener so that we can track cursor positions in
+            // CSS preprocessor files and perform live preview highlighting on all elements with
+            // the current selector in the preprocessor file.
+            $(EditorManager).on("activeEditorChange", onActiveEditorChange);
 
-        // Setup activeEditorChange event listener so that we can track cursor positions in 
-        // CSS preprocessor files and perform live preview highlighting on all elements with 
-        // the current selector in the preprocessor file.
-        $(EditorManager).on("activeEditorChange", onActiveEditorChange);
-
-        // Explicitly trigger onActiveEditorChange so that live preview highlighting
-        // can be set up for the preprocessor files.
-        onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
+            // Explicitly trigger onActiveEditorChange so that live preview highlighting
+            // can be set up for the preprocessor files.
+            onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
+        });
     }
     
     function _prepareServer(doc) {
