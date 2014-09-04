@@ -329,7 +329,8 @@ define(function (require, exports, module) {
                 newSize = Math.max(startSize + directionIncrement * (startPosition - e[directionProperty]), minSize);
                 
                 // respect max size if one provided (e.g. by PanelManager)
-                var maxSize = $element.data("maxsize");
+                // update : set max size to 25% of parent size to solve resize bug
+                var maxSize = $parent.width() / 4;
                 if (maxSize !== undefined) {
                     newSize = Math.min(newSize, maxSize);
                 }
