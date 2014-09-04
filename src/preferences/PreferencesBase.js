@@ -61,7 +61,6 @@ define(function (require, exports, module) {
     var FileUtils         = require("file/FileUtils"),
         FileSystem        = require("filesystem/FileSystem"),
         ExtensionLoader   = require("utils/ExtensionLoader"),
-        CollectionUtils   = require("utils/CollectionUtils"),
         _                 = require("thirdparty/lodash"),
         Async             = require("utils/Async"),
         globmatch         = require("thirdparty/globmatch");
