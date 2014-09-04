@@ -54,7 +54,7 @@ define(function (require, exports, module) {
 
     /**
      * @param {string} query what the user is searching for
-     * @returns {Array.<SearchResult>} sorted and filtered results that match the query
+     * @return {Array.<SearchResult>} sorted and filtered results that match the query
      */
     function search(query, matcher) {
         var selectorList = matcher.selectorList;

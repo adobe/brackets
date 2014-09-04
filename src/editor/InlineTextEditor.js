@@ -39,14 +39,6 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent");
 
     /**
-     * Returns editor holder width (not CodeMirror's width).
-     * @private
-     */
-    function _editorHolderWidth() {
-        return $("#editor-holder").width();
-    }
-
-    /**
      * Shows or hides the dirty indicator
      * @private
      */

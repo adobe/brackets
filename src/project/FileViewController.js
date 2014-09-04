@@ -50,13 +50,15 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
         CommandManager      = require("command/CommandManager"),
         EditorManager       = require("editor/EditorManager"),
         PerfUtils           = require("utils/PerfUtils"),
-        Commands            = require("command/Commands");
+        Commands            = require("command/Commands"),
+        DeprecationWarning  = require("utils/DeprecationWarning");
 
     /** 
-     * Tracks whether a "currentDocumentChange" notification occured due to a call to 
+     * Tracks whether a "currentFileChange" notification occured due to a call to 
      * openAndSelectDocument.
      * @see FileviewController.openAndSelectDocument
      * @private 
@@ -74,7 +76,7 @@ define(function (require, exports, module) {
     /** 
      * Change the doc selection to the working set when ever a new file is added to the working set
      */
-    $(DocumentManager).on("workingSetAdd", function (event, addedFile) {
+    $(MainViewManager).on("workingSetAdd", function (event, addedFile) {
         _fileSelectionFocus = WORKING_SET_VIEW;
         $(exports).triggerHandler("documentSelectionFocusChange");
     });
@@ -82,13 +84,12 @@ define(function (require, exports, module) {
     /** 
       * Update the file selection focus whenever the contents of the editor area change
       */
-    $(EditorManager).on("currentlyViewedFileChange", function (event) {
+    $(MainViewManager).on("currentFileChange", function (event, file, paneId) {
         var perfTimerName;
-        // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
         if (!_curDocChangedDueToMe) {
-            var curDoc = DocumentManager.getCurrentDocument();
-            perfTimerName = PerfUtils.markStart("FileViewController._onCurrentDocumentChange():\t" + (!curDoc || curDoc.file.fullPath));
-            if (curDoc && DocumentManager.findInWorkingSet(curDoc.file.fullPath) !== -1) {
+            // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
+            perfTimerName = PerfUtils.markStart("FileViewController._oncurrentFileChange():\t" + (file ? (file.fullPath) : "(no open file)"));
+            if (file && MainViewManager.findInWorkingSet(paneId,  file.fullPath) !== -1) {
                 _fileSelectionFocus = WORKING_SET_VIEW;
             } else {
                 _fileSelectionFocus = PROJECT_MANAGER;
@@ -104,16 +105,18 @@ define(function (require, exports, module) {
     
     /** 
      * @private
-     * @return {$.Promise}
+     * @param {string=} paneId - the Pane to activate
      */
-    function _selectCurrentDocument() {
+    function _activatePane(paneId) {
+        if (paneId) {
+            MainViewManager.setActivePaneId(paneId);
+        } else {
+            MainViewManager.focusActivePane();
+        }
         // If fullPath corresonds to the current doc being viewed then opening the file won't
-        // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
+        // trigger a currentFileChange event, so we need to trigger a documentSelectionFocusChange 
         // in this case to signify the selection focus has changed even though the current document has not.
         $(exports).triggerHandler("documentSelectionFocusChange");
-        
-        // Ensure the editor has focus even though we didn't open a new file.
-        EditorManager.focusEditor();
     }
 
     /**
@@ -134,11 +137,12 @@ define(function (require, exports, module) {
     /** 
      * Opens a document if it's not open and selects the file in the UI corresponding to
      * fileSelectionFocus
-     * @param {!fullPath}
-     * @param {string} - must be either WORKING_SET_VIEW or PROJECT_MANAGER
+     * @param {!fullPath} fullPath - full path of the document to open
+     * @param {string} fileSelectionFocus - (WORKING_SET_VIEW || PROJECT_MANAGER)
+     * @param {string} paneId - pane in which to open the document
      * @return {$.Promise}
      */
-    function openAndSelectDocument(fullPath, fileSelectionFocus) {
+    function openAndSelectDocument(fullPath, fileSelectionFocus, paneId) {
         var result;
 
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
@@ -148,21 +152,23 @@ define(function (require, exports, module) {
 
         // Opening files are asynchronous and we want to know when this function caused a file
         // to open so that _fileSelectionFocus is set appropriatly. _curDocChangedDueToMe is set here
-        // and checked in the currentDocumentChange handler
+        // and checked in the currentFileChange handler
         _curDocChangedDueToMe = true;
 
         _fileSelectionFocus = fileSelectionFocus;
 
+        paneId = (paneId || MainViewManager.ACTIVE_PANE);
+        
         // If fullPath corresonds to the current doc being viewed then opening the file won't
-        // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
+        // trigger a currentFileChange event, so we need to trigger a documentSelectionFocusChange 
         // in this case to signify the selection focus has changed even though the current document has not.
-        var curDoc = DocumentManager.getCurrentDocument();
-        if (curDoc && curDoc.file.fullPath === fullPath &&
-                !EditorManager.getCustomViewerForPath(fullPath)) {
-            _selectCurrentDocument();
+        var currentPath = MainViewManager.getCurrentlyViewedPath(paneId);
+        if (currentPath === fullPath) {
+            _activatePane(paneId);
             result = (new $.Deferred()).resolve().promise();
         } else {
-            result = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath});
+            result = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath,
+                                                                 paneId: paneId});
         }
         
         // clear after notification is done
@@ -177,36 +183,58 @@ define(function (require, exports, module) {
      * Opens the specified document if it's not already open, adds it to the working set,
      * and selects it in the WorkingSetView
      * @param {!fullPath}
-     * @param {?String} selectIn - specify either WORING_SET_VIEW or PROJECT_MANAGER.
-     *      Default is WORING_SET_VIEW.
-     * @param {number=} index - insert into the working set list at this 0-based index
+     * @param {string=} paneId - Pane in which to add the view.  If omitted, the command default is to use the ACTIVE_PANE 
      * @return {!$.Promise}
      */
-    function addToWorkingSetAndSelect(fullPath, selectIn, index) {
+    function openFileAndAddToWorkingSet(fullPath, paneId) {
         var result = new $.Deferred(),
-            promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath, index: index});
+            promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath,
+                                                                                  paneId: paneId});
 
         // This properly handles sending the right nofications in cases where the document
         // is already the current one. In that case we will want to notify with
         // documentSelectionFocusChange so the views change their selection
-        promise.done(function (doc) {
-            // FILE_ADD_TO_WORKING_SET command sets the current document. Update the 
+        promise.done(function (file) {
+            // CMD_ADD_TO_WORKINGSET_AND_OPEN command sets the current document. Update the 
             // selection focus only if doc is not null. When double-clicking on an
             // image file, we get a null doc here but we still want to keep _fileSelectionFocus
-            // as PROJECT_MANAGER. Regardless of doc is null or not, call _selectCurrentDocument
+            // as PROJECT_MANAGER. Regardless of doc is null or not, call _activatePane
             // to trigger documentSelectionFocusChange event.
-            if (doc) {
-                _fileSelectionFocus = selectIn || WORKING_SET_VIEW;
-            }
-            _selectCurrentDocument();
-            
-            result.resolve(doc);
+            result.resolve(file);
         }).fail(function (err) {
             result.reject(err);
         });
 
         return result.promise();
     }
+    
+    /** 
+     * Opens the specified document if it's not already open, adds it to the working set,
+     * and selects it in the WorkingSetView
+     * @deprecated use FileViewController.openFileAndAddToWorkingSet() instead
+     * @param {!fullPath}
+     * @return {!$.Promise}
+     */
+    function addToWorkingSetAndSelect(fullPath) {
+        DeprecationWarning.deprecationWarning("Use FileViewController.openFileAndAddToWorkingSet() instead of FileViewController.addToWorkingSetAndSelect().", true);
+        var result = new $.Deferred();
+        openFileAndAddToWorkingSet(fullPath)
+            .done(function (file) {
+                var doc;
+                
+                if (file) {
+                    doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                }
+                
+                result.resolve(doc);
+            })
+            .fail(function (err) {
+                result.reject(err);
+            });
+        return result.promise();
+    }
+    
+    
 
     /**
      * returns either WORKING_SET_VIEW or PROJECT_MANAGER
@@ -217,11 +245,14 @@ define(function (require, exports, module) {
     }
 
 
+    // Deprecated
+    exports.addToWorkingSetAndSelect = addToWorkingSetAndSelect;
+
 
     // Define public API
     exports.getFileSelectionFocus = getFileSelectionFocus;
     exports.openAndSelectDocument = openAndSelectDocument;
-    exports.addToWorkingSetAndSelect = addToWorkingSetAndSelect;
+    exports.openFileAndAddToWorkingSet = openFileAndAddToWorkingSet;
     exports.setFileViewFocus = setFileViewFocus;
     exports.WORKING_SET_VIEW = WORKING_SET_VIEW;
     exports.PROJECT_MANAGER = PROJECT_MANAGER;

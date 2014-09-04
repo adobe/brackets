@@ -131,7 +131,7 @@ define(function (require, exports, module) {
             var promise;
             
             runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/test.html"});
+                promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/test.html"});
                 waitsForDone(promise, "Open into working set");
             });
             
@@ -3752,14 +3752,37 @@ define(function (require, exports, module) {
                     lines[1] = lines[2];
                     lines[2] = temp;
                     var expectedText = lines.join("\n");
-                    
+
                     expect(myEditor.document.getText()).toEqual(expectedText);
                     expect(myEditor.getFirstVisibleLine()).toBe(0);
                     expect(myEditor.getLastVisibleLine()).toBe(2);
                 });
             });
         
-        
+            describe("Editor Navigation Commands", function () {
+                it("should jump to definition", function () {
+                    var promise,
+                        selection;
+                    runs(function () {
+                        promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/test.js"});
+                        waitsForDone(promise, "Open into working set");
+                    });
+                    runs(function () {
+                        myEditor = EditorManager.getCurrentFullEditor();
+                        myEditor.setCursorPos({line: 5, ch: 8});
+                        promise = CommandManager.execute(Commands.NAVIGATE_JUMPTO_DEFINITION);
+                        waitsForDone(promise, "Jump To Definition");
+                    });
+                    runs(function () {
+                        selection = myEditor.getSelection();
+                        expect(selection).toEqual({start: {line: 0, ch: 9},
+                                                   end: {line: 0, ch: 15},
+                                                   reversed: false});
+                    });
+                });
+            });
+            
+            
             describe("Open Line Above and Below - inline editor", function () {
                 
                 var content = ".testClass {\n" +
