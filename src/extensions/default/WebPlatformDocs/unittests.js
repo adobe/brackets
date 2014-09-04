@@ -193,7 +193,6 @@ define(function (require, exports, module) {
                     ),
                     viewer = new InlineDocsViewer(prop, details),
                     $a,
-                    title,
                     href,
                     $links = viewer.$htmlContent.find("a:not(.close)");
                 

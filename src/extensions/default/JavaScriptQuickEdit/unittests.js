@@ -75,9 +75,7 @@ define(function (require, exports, module) {
      * @param {?boolean} expectInline Use false to verify that an inline editor should not be opened. Omit otherwise.
      */
     var _initInlineTest = function (openFile, openOffset, expectInline, workingSet) {
-        var allFiles,
-            inlineOpened = null,
-            spec = this;
+        var spec = this;
         
         workingSet = workingSet || [];
         expectInline = (expectInline !== undefined) ? expectInline : true;

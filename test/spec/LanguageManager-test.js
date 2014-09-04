@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, jasmine, beforeEach, afterEach, it, runs, waitsFor, expect, waitsForDone, waitsForFail, spyOn */
+/*global define, $, describe, jasmine, beforeEach, afterEach, it, runs, waitsFor, expect, waitsForDone, spyOn */
 /*unittests: LanguageManager */
 
 define(function (require, exports, module) {
@@ -32,11 +32,8 @@ define(function (require, exports, module) {
     // Load dependent modules
     var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
         LanguageManager     = require("language/LanguageManager"),
-        DocumentManager     = require("document/DocumentManager"),
-        PathUtils           = require("thirdparty/path-utils/path-utils.min"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
-        PreferencesManager  = require("preferences/PreferencesManager"),
-        FileSystem          = require("filesystem/FileSystem");
+        PreferencesManager  = require("preferences/PreferencesManager");
     
     describe("LanguageManager", function () {
         
@@ -649,8 +646,7 @@ define(function (require, exports, module) {
                 var unknown,
                     doc,
                     spy,
-                    modifiedLanguage,
-                    promise;
+                    modifiedLanguage;
                 
                 // Create a foo script file
                 doc = SpecRunnerUtils.createMockActiveDocument({ filename: "/test.foo" });
@@ -690,8 +686,7 @@ define(function (require, exports, module) {
                     phpLang = LanguageManager.getLanguage("php"),
                     doc,
                     modifiedLanguage,
-                    spy,
-                    promise;
+                    spy;
                 
                 doc = SpecRunnerUtils.createMockActiveDocument({ filename: "/test.foo2" });
                 
@@ -732,8 +727,7 @@ define(function (require, exports, module) {
                     phpLang = LanguageManager.getLanguage("php"),
                     doc,
                     modifiedLanguage,
-                    spy,
-                    promise;
+                    spy;
                 
                 doc = SpecRunnerUtils.createMockActiveDocument({ filename: "/test.foo3" });
                 

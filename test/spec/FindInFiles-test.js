@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, window, jasmine, spyOn */
+/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -30,7 +30,6 @@ define(function (require, exports, module) {
     var Commands              = require("command/Commands"),
         KeyEvent              = require("utils/KeyEvent"),
         SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
-        FileSystem            = require("filesystem/FileSystem"),
         FileSystemError       = require("filesystem/FileSystemError"),
         FileUtils             = require("file/FileUtils"),
         FindUtils             = require("search/FindUtils"),
@@ -904,8 +903,7 @@ define(function (require, exports, module) {
                         waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fullTestPath("foo.html") }));
                     });
                     runs(function () {
-                        var doc = DocumentManager.getOpenDocumentForPath(fullTestPath("foo.html")),
-                            i;
+                        var doc = DocumentManager.getOpenDocumentForPath(fullTestPath("foo.html"));
                         expect(doc).toBeTruthy();
 
                         // Replace all matches and check that the entire file was removed from the results list.

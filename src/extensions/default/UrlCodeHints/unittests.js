@@ -23,15 +23,13 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, beforeFirst, afterLast, waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, expect, beforeEach, afterEach, beforeFirst, afterLast, waitsFor, runs, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
 
     // Modules from the SpecRunner window
     var DocumentManager     = brackets.getModule("document/DocumentManager"),
-        Editor              = brackets.getModule("editor/Editor").Editor,
-        EditorManager       = brackets.getModule("editor/EditorManager"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
         UrlCodeHints        = require("main");
@@ -42,7 +40,6 @@ define(function (require, exports, module) {
         var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
             testHtmlPath    = extensionPath + "/testfiles/test.html",
             testCssPath     = extensionPath + "/testfiles/subfolder/test.css",
-            testWindow,
             testDocument,
             testEditor,
             hintsObj;
