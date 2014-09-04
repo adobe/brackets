@@ -292,7 +292,9 @@ define({
     "CMD_PASTE"                         : "Incolla",
     "CMD_SELECT_ALL"                    : "Seleziona tutto",
     "CMD_SELECT_LINE"                   : "Seleziona riga",
-    
+    "CMD_SPLIT_SEL_INTO_LINES"          : "Dividi selezione dentro alle righe",
+    "CMD_ADD_CUR_TO_NEXT_LINE"          : "Aggiungi cursore alla riga successiva",
+    "CMD_ADD_CUR_TO_PREV_LINE"          : "Aggiungi il cursore sulla riga precedente",
     "CMD_FIND_FIELD_PLACEHOLDER"        : "Trova\u2026",
     "CMD_INDENT"                        : "Aumenta indentazione",
     "CMD_UNINDENT"                      : "Riduci indentazione",
@@ -411,6 +413,7 @@ define({
     "USE_THEME_SCROLLBARS"                 : "Utilizzare le barre di scorrimento a tema",
     "FONT_SIZE"                            : "Dimensioni carattere",
     "FONT_FAMILY"                          : "Tipo di carattere",
+    "THEMES_SETTINGS"                      : "Impostazioni Temi",
  
     
     // CSS Quick Edit
@@ -498,9 +501,10 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Impossibile rimuovere l’estensione {0}. Non era installata.",
     "NO_EXTENSIONS"                        : "Nessuna estensione ancora installata.<br />Clicca nel tab delle Disponibili per iniziare.",
     "NO_EXTENSION_MATCHES"                 : "Nessuna estensione soddisfa la tua ricerca.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "Fai attenzione quando installi le estensioni da sorgenti sconosciute.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "NOTA: Queste estensioni possono provenire da autori diversi da {APP_NAME} se stessi. Le estensioni non vengono riviste e dispongono di privilegi locali completi. Fai attenzione quando installi le estensioni da sorgenti sconosciute.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installata",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Disponibili",
+    "EXTENSIONS_THEMES_TITLE"              : "Temi",
     "EXTENSIONS_UPDATES_TITLE"             : "Aggiornamenti",
     
     "INLINE_EDITOR_NO_MATCHES"             : "Nessuna corrispondenza disponibile.",
@@ -573,5 +577,5 @@ define({
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
 
-/* Last translation of: 884ee8414fa7d7dad0cb85b062573e65b3a827a0*/
+/* Last translation of: fe3f150a3ae127b1fd94e2835a4d72a8524c1ab1*/
 
