@@ -395,15 +395,18 @@ define(function (require, exports, module) {
      */
     ImageView.prototype.refresh = function () {
         var noCacheUrl = this.$imagePreview.attr("src"),
-            now = new Date().valueOf();
+            now = new Date().valueOf(),
+            index = noCacheUrl.indexOf("?");
 
-        // Append a #<time-stamp> fragement to the URL 
-        //  to force a reload of the image
-        if (noCacheUrl.indexOf("#") > 0) {
-            noCacheUrl = noCacheUrl.replace(/#\d+/, "#" + now);
-        } else {
-            noCacheUrl = noCacheUrl + "#" + now;
+        // strip the old param off 
+        if (index > 0) {
+            noCacheUrl = noCacheUrl.slice(0, index);
         }
+        
+        // add a new param which will force chrome to 
+        //  re-read the image from disk 
+        noCacheUrl = noCacheUrl + "?ver=" + now;
+        
 
         // Update the DOM node with the src URL 
         this.$imagePreview.attr("src", noCacheUrl);
