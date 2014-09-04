@@ -51,14 +51,6 @@ define(function (require, exports, module) {
         });
     }
 
-    /**
-     * @deprecated Use lodash `escape()` instead.
-     */
-    function htmlEscape(str) {
-        console.warn("StringUtils.htmlEscape is deprecated. Use _.escape instead.");
-        return _.escape(str);
-    }
-
     function regexEscape(str) {
         return str.replace(/([.?*+\^$\[\]\\(){}|\-])/g, "\\$1");
     }
@@ -221,7 +213,6 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.format              = format;
-    exports.htmlEscape          = htmlEscape;
     exports.regexEscape         = regexEscape;
     exports.jQueryIdEscape      = jQueryIdEscape;
     exports.getLines            = getLines;
