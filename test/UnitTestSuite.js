@@ -38,6 +38,7 @@ define(function (require, exports, module) {
     require("spec/DocumentManager-test");
     require("spec/DragAndDrop-test");
     require("spec/Editor-test");
+    require("spec/EditorRedraw-test");
     require("spec/EditorCommandHandlers-test");
     require("spec/EditorOptionHandlers-test");
     require("spec/EditorManager-test");
@@ -59,10 +60,13 @@ define(function (require, exports, module) {
     require("spec/LanguageManager-test");
     require("spec/LiveDevelopment-test");
     require("spec/LowLevelFileIO-test");
+    require("spec/MainViewFactory-test");
+    require("spec/MainViewManager-test");
     require("spec/Menu-test");
     require("spec/MultiRangeInlineEditor-test");
     require("spec/NativeMenu-test");
     require("spec/NodeConnection-test");
+    require("spec/Pane-test");
     require("spec/PreferencesBase-test");
     require("spec/PreferencesManager-test");
     require("spec/ProjectManager-test");
@@ -75,7 +79,9 @@ define(function (require, exports, module) {
     require("spec/UpdateNotification-test");
     require("spec/UrlParams-test");
     require("spec/ValidationUtils-test");
+    require("spec/ViewFactory-test");
     //require("spec/ViewCommandHandlers-test");
     require("spec/ViewUtils-test");
     require("spec/WorkingSetView-test");
+    require("spec/WorkingSetSort-test");
 });

@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         FileViewController    = require("project/FileViewController"),
         FileUtils             = require("file/FileUtils"),
         FindUtils             = require("search/FindUtils"),
-        PanelManager          = require("view/PanelManager"),
+        WorkspaceManager      = require("view/WorkspaceManager"),
         StringUtils           = require("utils/StringUtils"),
         Strings               = require("strings"),
         _                     = require("thirdparty/lodash"),
@@ -75,7 +75,7 @@ define(function (require, exports, module) {
     function SearchResultsView(model, panelID, panelName) {
         var panelHtml  = Mustache.render(searchPanelTemplate, {panelID: panelID});
 
-        this._panel    = PanelManager.createBottomPanel(panelName, $(panelHtml), 100);
+        this._panel    = WorkspaceManager.createBottomPanel(panelName, $(panelHtml), 100);
         this._$summary = this._panel.$panel.find(".title");
         this._$table   = this._panel.$panel.find(".table-container");
         this._model    = model;
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
             // Add the file to the working set on double click
             .on("dblclick.searchResults", ".table-container tr:not(.file-section)", function (e) {
                 var item = self._searchList[$(this).data("file-index")];
-                FileViewController.addToWorkingSetAndSelect(item.fullPath);
+                FileViewController.openFileAndAddToWorkingSet(item.fullPath);
             })
         
             // Add the click event listener directly on the table parent

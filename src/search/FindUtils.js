@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     
     var Async           = require("utils/Async"),
         DocumentManager = require("document/DocumentManager"),
+        MainViewManager = require("view/MainViewManager"),
         FileSystem      = require("filesystem/FileSystem"),
         FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
@@ -176,7 +177,7 @@ define(function (require, exports, module) {
         options = options || {};
         // If we're forcing files open, or if the document is in the working set but not actually open
         // yet, we want to open the file and do the replacement in memory.
-        if (!doc && (options.forceFilesOpen || DocumentManager.findInWorkingSet(fullPath) !== -1)) {
+        if (!doc && (options.forceFilesOpen || MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, fullPath) !== -1)) {
             return DocumentManager.getDocumentForPath(fullPath).then(function (newDoc) {
                 return _doReplaceInDocument(newDoc, matchInfo, replaceText, options.isRegexp);
             });
@@ -244,7 +245,7 @@ define(function (require, exports, module) {
                         var newDoc = DocumentManager.getOpenDocumentForPath(firstPath);
                         // newDoc might be null if the replacement failed.
                         if (newDoc) {
-                            DocumentManager.setCurrentDocument(newDoc);
+                            MainViewManager._edit(MainViewManager.ACTIVE_PANE, newDoc);
                         }
                     }
                 }
