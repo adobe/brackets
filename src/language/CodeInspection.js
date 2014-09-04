@@ -415,7 +415,7 @@ define(function (require, exports, module) {
                 setGotoEnabled(true);
 
                 PerfUtils.addMeasurement(perfTimerDOM);
-            });
+            }.bind(_currentPromise));
 
         } else {
             // No provider for current file
