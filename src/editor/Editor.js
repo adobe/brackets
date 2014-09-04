@@ -992,8 +992,13 @@ define(function (require, exports, module) {
      * Set the editor size in pixels or percentage
      * @param {(number|string)} width
      * @param {(number|string)} height
+     * @param {boolean=} revealCursor whether or not to reveal the cursor after resize
      */
-    Editor.prototype.setSize = function (width, height) {
+    Editor.prototype.setSize = function (width, height, revealCursor) {
+        if (revealCursor) {
+            var delta = height - $(this.getScrollerElement()).height();
+            this.showCursorAfterResize(delta);
+        }
         this._codeMirror.setSize(width, height);
     };
     
@@ -1034,6 +1039,26 @@ define(function (require, exports, module) {
             var info = this._codeMirror.getScrollInfo();
             pos = Math.min(Math.max(pos, 0), (info.height - info.clientHeight));
             this.setScrollPos(null, pos);
+        }
+    };
+    
+    /**
+     * Determines if the cursor will be hidden, and if it will scrolls the
+     * editor viewport restoring the distance between the cursor and the bottom
+     * of the editor prior to editor resize, or centering the cursor vertically
+     * in the editor if that requires less scrolling.
+     *
+     * @param {number} delta The change in editor height
+     */
+    Editor.prototype.showCursorAfterResize = function (delta) {
+        var $scrollerElement = $(this.getScrollerElement()),
+            editorHeight = $scrollerElement.height(),
+            cursorToTop = this._codeMirror.cursorCoords(null, "page").bottom - $scrollerElement.offset().top,
+            cursorToBottom = editorHeight - cursorToTop;
+        
+        if (delta < 0 && -delta > cursorToBottom) {
+            var scrollTarget = this.getScrollPos().y + Math.min(cursorToTop - (editorHeight + delta) / 2, -delta);
+            this.setScrollPos(null, scrollTarget);
         }
     };
 

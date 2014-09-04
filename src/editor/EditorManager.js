@@ -501,29 +501,32 @@ define(function (require, exports, module) {
      * some other cases are handled by external code calling `resizeEditor()` (e.g. ModalBar hide/show).
      * 
      * @param {number} editorAreaHt
-     * @param {string=} refreshFlag For internal use. Set to "force" to ensure the editor will refresh, 
-     *    "skip" to ensure the editor does not refresh, or leave undefined to let `_onEditorAreaResize()`
-     *    determine whether it needs to refresh.
+     * @param {{refresh:string=, revealCursor:boolean=}} options For internal use.
+     *    Set to "force" to ensure the editor will refresh, "skip" to ensure the editor does not refresh, or
+     *    leave undefined to let `_onEditorAreaResize()` determine whether it needs to refresh.
+     *    Set revealCursor to true to reveal cursor.
      */
-    function _onEditorAreaResize(event, editorAreaHt, refreshFlag) {
+    function _onEditorAreaResize(event, editorAreaHt, options) {
         if (_currentEditor) {
             var curRoot = _currentEditor.getRootElement(),
-                curWidth = $(curRoot).width();
-            if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
+                curWidth = $(curRoot).width(),
+                curHeight = $(curRoot).height();
+            
+            if (!curRoot.style.height || curHeight !== editorAreaHt) {
                 // Call setSize() instead of $.height() to allow CodeMirror to
                 // check for options like line wrapping
-                _currentEditor.setSize(null, editorAreaHt);
-                if (refreshFlag === undefined) {
-                    refreshFlag = REFRESH_FORCE;
+                _currentEditor.setSize(null, editorAreaHt, options.revealCursor);
+                if (options.refresh === undefined) {
+                    options.refresh = REFRESH_FORCE;
                 }
             } else if (curWidth !== _lastEditorWidth) {
-                if (refreshFlag === undefined) {
-                    refreshFlag = REFRESH_FORCE;
+                if (options.refresh === undefined) {
+                    options.refresh = REFRESH_FORCE;
                 }
             }
             _lastEditorWidth = curWidth;
 
-            if (refreshFlag === REFRESH_FORCE) {
+            if (options.refresh === REFRESH_FORCE) {
                 _currentEditor.refreshAll(true);
             }
         }
