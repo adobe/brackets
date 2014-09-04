@@ -41,6 +41,9 @@ define(function (require, exports, module) {
         AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
         ContributorsTemplate    = require("text!htmlContent/contributors-list.html");
     
+    // make sure the global brackets variable is loaded
+    require("utils/Global");
+
     /**
      * This is the thirdparty API's (GitHub) maximum contributors per page limit
      * @const {number}

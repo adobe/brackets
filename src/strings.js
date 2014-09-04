@@ -40,6 +40,9 @@ define(function (require, exports, module) {
         stringsApp      = require("i18n!nls/strings-app"),
         StringUtils     = require("utils/StringUtils");
 
+    // make sure the global brackets variable is loaded
+    require("utils/Global");
+
     // Add URLs as additional globals
     var additionalGlobals = $.extend({}, urls),
         parsedVersion = /([0-9]+)\.([0-9]+)\.([0-9]+)/.exec(brackets.metadata.version);

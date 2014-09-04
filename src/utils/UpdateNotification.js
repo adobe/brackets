@@ -40,6 +40,9 @@ define(function (require, exports, module) {
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
         UpdateListTemplate   = require("text!htmlContent/update-list.html");
     
+    // make sure the global brackets variable is loaded
+    require("utils/Global");
+
     // duration of one day in milliseconds
     var ONE_DAY = 1000 * 60 * 60 * 24;
 

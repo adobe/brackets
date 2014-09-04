@@ -39,6 +39,9 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils"),
         DeprecationWarning  = require("utils/DeprecationWarning");
 
+    // make sure the global brackets variable is loaded
+    require("utils/Global");
+
     /**
      * Brackets Application Menu Constants
      * @enum {string}

@@ -32,6 +32,9 @@ define(function (require, exports, module) {
     
     var _ = require("thirdparty/lodash");
 
+    // make sure the global brackets variable is loaded
+    require("utils/Global");
+
     /**
      * Flag to enable/disable performance data gathering. Default is true (enabled)
      * @type {boolean} enabled
