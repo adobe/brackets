@@ -913,6 +913,12 @@ define(function (require, exports, module) {
                     // Collect everything inside the parentheses as a whole chunk so that
                     // commas inside the parentheses won't be identified as selector separators
                     // by while loop.
+                    if (!_hasNonWhitespace(currentSelector)) {
+                        // Nothing in currentSelector yet, so skip to the closing parenthesis and 
+                        // bail out since it can't be a selector.
+                        _skipToClosingBracket("(");
+                        return false;
+                    }
                     currentSelector += _skipToClosingBracket("(");
                 } else if (_hasNonWhitespace(token) || _hasNonWhitespace(currentSelector)) {
                     currentSelector += token;
