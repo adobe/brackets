@@ -143,9 +143,9 @@ define(function (require, exports, module) {
      * @param {?string} forceLeft CSS selector indicating element whose 'left' should be locked to the
      *                          the resizable element's size (useful for siblings laid out to the right of
      *                          the element). Must lie in element's parent's subtree.
-     * @param {?boolean} createdByPanelManager For internal use only
+     * @param {?boolean} createdByWorkspaceManager For internal use only
      */
-    function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByPanelManager) {
+    function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByWorkspaceManager) {
         
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
@@ -177,9 +177,9 @@ define(function (require, exports, module) {
         // Important so min/max sizes behave predictably
         $element.css("box-sizing", "border-box");
         
-        // Detect legacy cases where panels in the editor area are created without using PanelManager APIs
-        if ($parent[0] && $parent.is(".content") && !createdByPanelManager) {
-            console.warn("Deprecated: resizable panels should be created via PanelManager.createBottomPanel(). Using Resizer directly will stop working in the future. \nElement:", element);
+        // Detect legacy cases where panels in the editor area are created without using WorkspaceManager APIs
+        if ($parent[0] && $parent.is(".content") && !createdByWorkspaceManager) {
+            console.warn("Deprecated: resizable panels should be created via WorkspaceManager.createBottomPanel(). Using Resizer directly will stop working in the future. \nElement:", element);
             $(exports).triggerHandler("deprecatedPanelAdded", [$element]);
         }
         
@@ -328,7 +328,7 @@ define(function (require, exports, module) {
                 // between starting and current position, capped at minSize
                 newSize = Math.max(startSize + directionIncrement * (startPosition - e[directionProperty]), minSize);
                 
-                // respect max size if one provided (e.g. by PanelManager)
+                // respect max size if one provided (e.g. by WorkspaceManager)
                 var maxSize = $element.data("maxsize");
                 if (maxSize !== undefined) {
                     newSize = Math.min(newSize, maxSize);

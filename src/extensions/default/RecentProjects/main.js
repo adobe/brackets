@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
         Menus                   = brackets.getModule("command/Menus"),
         EditorManager           = brackets.getModule("editor/EditorManager"),
+        MainViewManager         = brackets.getModule("view/MainViewManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         FileSystem              = brackets.getModule("filesystem/FileSystem"),
         AppInit                 = brackets.getModule("utils/AppInit"),
@@ -268,7 +269,8 @@ define(function (require, exports, module) {
         $("#titlebar .nav").off("click", closeDropdown);
         $dropdown = null;
 
-        EditorManager.focusEditor();
+        MainViewManager.focusActivePane();
+
         $(window).off("keydown", keydownHook);
     }
 
@@ -365,6 +367,13 @@ define(function (require, exports, module) {
             if (root !== currentProject) {
                 templateVars.projectList.push(parsePath(root));
             }
+        });
+
+        templateVars.projectList.sort(function(a, b) {
+            // Changing the case (upper or lower) ensures a case insensitive sort
+            var aFolder = a.folder.toLowerCase();
+            var bFolder = b.folder.toLowerCase();
+            return (aFolder < bFolder) ? -1 : (aFolder > bFolder) ? 1 : 0;
         });
 
         return Mustache.render(ProjectsMenuTemplate, templateVars);

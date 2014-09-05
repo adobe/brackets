@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         EditorManager,       // loaded from brackets.test
         DocumentModule,      // loaded from brackets.test
         DocumentManager,     // loaded from brackets.test
+        MainViewManager,     // loaded from brackets.test
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
     
     
@@ -229,6 +230,7 @@ define(function (require, exports, module) {
                 EditorManager       = testWindow.brackets.test.EditorManager;
                 DocumentModule      = testWindow.brackets.test.DocumentModule;
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
+                MainViewManager     = testWindow.brackets.test.MainViewManager;
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
@@ -241,7 +243,9 @@ define(function (require, exports, module) {
             EditorManager   = null;
             DocumentModule  = null;
             DocumentManager = null;
+            MainViewManager = null;
             SpecRunnerUtils.closeTestWindow();
+            testWindow = null;
         });
 
         afterEach(function () {
@@ -259,7 +263,7 @@ define(function (require, exports, module) {
 
 
         describe("Dirty flag and undo", function () {
-            var promise, doc;
+            var promise;
             
             it("should not fire dirtyFlagChange when created", function () {
                 var dirtyFlagListener = jasmine.createSpy();
@@ -395,6 +399,7 @@ define(function (require, exports, module) {
                     
                     $(doc).off("change", changeListener);
                     $(DocumentManager).off("dirtyFlagChange", dirtyFlagListener);
+                    doc = null;
                 });
             });
         });
@@ -480,7 +485,7 @@ define(function (require, exports, module) {
                     cssMasterEditor;
                 
                 runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: HTML_FILE});
                     waitsForDone(promise, "Open into working set");
                 });
                 runs(function () {
@@ -489,7 +494,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "Open inline editor");
                 });
                 runs(function () {
-                    expect(DocumentManager.findInWorkingSet(CSS_FILE)).toBe(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, CSS_FILE)).toBe(-1);
                     expect(DocumentManager.getOpenDocumentForPath(CSS_FILE)).toBeTruthy();
                     
                     // Force creation of master editor for CSS file
