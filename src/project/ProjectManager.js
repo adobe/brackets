@@ -56,6 +56,7 @@ define(function (require, exports, module) {
         PreferencesDialogs  = require("preferences/PreferencesDialogs"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
         InMemoryFile        = require("document/InMemoryFile"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
@@ -307,8 +308,7 @@ define(function (require, exports, module) {
         // Prefer file tree selection, else use working set selection
         var selectedEntry = _getTreeSelectedItem();
         if (!selectedEntry) {
-            var doc = DocumentManager.getCurrentDocument();
-            selectedEntry = (doc && doc.file);
+            selectedEntry = MainViewManager.getCurrentlyViewedFile();
         }
         return selectedEntry;
     }
@@ -318,12 +318,12 @@ define(function (require, exports, module) {
     }
     
     function _documentSelectionFocusChange() {
-        var curFile = EditorManager.getCurrentlyViewedPath();
-        if (curFile && _hasFileSelectionFocus()) {
+        var curFullPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE);
+        if (curFullPath && _hasFileSelectionFocus()) {
             var nodeFound = $("#project-files-container li").is(function (index) {
                 var $treeNode = $(this),
                     entry = $treeNode.data("entry");
-                if (entry && entry.fullPath === curFile) {
+                if (entry && entry.fullPath === curFullPath) {
                     if (!_projectTree.jstree("is_selected", $treeNode)) {
                         if ($treeNode.parents(".jstree-closed").length) {
                             //don't auto-expand tree to show file - but remember it if parent is manually expanded later
@@ -521,7 +521,7 @@ define(function (require, exports, module) {
     function _renderTree(treeDataProvider) {
 
         var renderPromise = new Promise(function (renderResolve, renderReject) {
-            
+
             // Reopens a set of nodes in the tree by ID.
             // @param {Array.<Array.<string>>} nodesByDepth An array of arrays of node ids to reopen. The ids within
             //     each sub-array are reopened in parallel, and the sub-arrays are reopened in order, so they should
@@ -532,8 +532,8 @@ define(function (require, exports, module) {
                     renderResolve();
                 } else {
                     var toOpenPaths = nodesByDepth.shift(),
-                        toOpenIds   = [],
-                        node        = null;
+                        toOpenIds = [],
+                        node = null;
 
                     // use path to lookup ID
                     toOpenPaths.forEach(function (value, index) {
@@ -544,20 +544,19 @@ define(function (require, exports, module) {
                         }
                     });
 
-                    var fnRenderAlways = function () {
-                        _reopenNodes(nodesByDepth);
-                    };
                     Async.doInParallel(
                         toOpenIds,
                         function (id) {
-                            return new Promise(function (resolve, reject) {
+                            return new Promise(function (innerResolve, innerReject) {
                                 _projectTree.jstree("open_node", "#" + id, function () {
-                                    resolve();
+                                    innerResolve();
                                 }, true);
                             });
                         },
                         false
-                    ).then(fnRenderAlways, fnRenderAlways);
+                    ).always(function () {
+                        _reopenNodes(nodesByDepth);
+                    });
                 }
             }
 
@@ -598,11 +597,11 @@ define(function (require, exports, module) {
                             if (entry.isFile) {
                                 var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
 
-                                openResult.then(function () {
+                                openResult.done(function () {
                                     // update when tree display state changes
                                     _redraw(true);
                                     _lastSelected = data.rslt.obj;
-                                }).catch(function () {
+                                }).fail(function () {
                                     if (_lastSelected) {
                                         // revert this new selection and restore previous selection
                                         _forceSelection(data.rslt.obj, _lastSelected);
@@ -647,12 +646,12 @@ define(function (require, exports, module) {
                     function (event, data) {
                         if (event.type === "open_node") {
                             // select the current document if it becomes visible when this folder is opened
-                            var curDoc = DocumentManager.getCurrentDocument();
+                            var curFile = MainViewManager.getCurrentlyViewedFile();
 
-                            if (_hasFileSelectionFocus() && curDoc && data) {
+                            if (_hasFileSelectionFocus() && curFile && data) {
                                 var entry = data.rslt.obj.data("entry");
 
-                                if (entry && curDoc.file.fullPath.indexOf(entry.fullPath) === 0) {
+                                if (entry && curFile.fullPath.indexOf(entry.fullPath) === 0) {
                                     _forceSelection(data.rslt.obj, _lastSelected);
                                 } else {
                                     _redraw(true, false);
@@ -720,12 +719,12 @@ define(function (require, exports, module) {
                 ViewUtils.addScrollerShadow(_projectTree.get(0));
 
                 var findEventHandler = function (type, namespace, selector) {
-                    var events        = $._data(_projectTree[0], "events"),
+                    var events = $._data(_projectTree[0], "events"),
                         eventsForType = events ? events[type] : null,
-                        event         = eventsForType ? _.find(eventsForType, function (e) {
+                        event = eventsForType ? _.find(eventsForType, function (e) {
                             return e.namespace === namespace && e.selector === selector;
                         }) : null,
-                        eventHandler  = event ? event.handler : null;
+                        eventHandler = event ? event.handler : null;
                     if (!eventHandler) {
                         console.error(type + "." + namespace + " " + selector + " handler not found!");
                     }
@@ -767,7 +766,7 @@ define(function (require, exports, module) {
                     .bind("dblclick.jstree", function (event) {
                         var entry = $(event.target).closest("li").data("entry");
                         if (entry && entry.isFile && !_isInRename(event.target)) {
-                            FileViewController.addToWorkingSetAndSelect(entry.fullPath);
+                            FileViewController.openFileAndAddToWorkingSet(entry.fullPath);
                         }
                         if (_mouseupTimeoutId !== null) {
                             window.clearTimeout(_mouseupTimeoutId);
@@ -781,6 +780,7 @@ define(function (require, exports, module) {
                 ViewUtils.sidebarList($projectTreeContainer, "jstree-clicked", "jstree-leaf");
                 $projectTreeContainer.show();
             });
+
         });
 
         return Async.withTimeout(renderPromise, 1000);
@@ -1223,7 +1223,7 @@ define(function (require, exports, module) {
                     }
 
                     // close all the old files
-                    DocumentManager.closeAll();
+                    MainViewManager.closeAll();
 
                     var fnUnwatchAlways = function () {
                         // Finish closing old project (if any)
@@ -1857,9 +1857,9 @@ define(function (require, exports, module) {
             var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
             entry.rename(newName, function (err) {
                 if (!err) {
-                    if (EditorManager.getCurrentlyViewedPath()) {
+                    if (MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)) {
                         FileViewController.openAndSelectDocument(
-                            EditorManager.getCurrentlyViewedPath(),
+                            MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE),
                             FileViewController.getFileSelectionFocus()
                         );
                     }
@@ -2028,11 +2028,7 @@ define(function (require, exports, module) {
         
         // Trigger notifications after tree updates are complete
         arr.forEach(function (entry) {
-            if (DocumentManager.getCurrentDocument()) {
-                DocumentManager.notifyPathDeleted(entry.fullPath);
-            } else {
-                EditorManager.notifyPathDeleted(entry.fullPath);
-            }
+            DocumentManager.notifyPathDeleted(entry.fullPath);
         });
     }
 
@@ -2126,7 +2122,7 @@ define(function (require, exports, module) {
                 .then(function (result) {
                     // Add working set entries, if requested
                     if (includeWorkingSet) {
-                        DocumentManager.getWorkingSet().forEach(function (file) {
+                        MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).forEach(function (file) {
                             if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
                                 result.push(file);
                             }

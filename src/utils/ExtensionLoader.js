@@ -56,7 +56,7 @@ define(function (require, exports, module) {
     
     /**
      * Stores require.js contexts of extensions
-     * @type {Object<string, Object>}
+     * @type {Object.<string, Object>}
      */
     var contexts    = {};
 
@@ -217,7 +217,7 @@ define(function (require, exports, module) {
 
         return promise;
     }
-
+    
     /**
      * Loads the extension that lives at baseUrl into its own Require.js context
      *
@@ -237,7 +237,7 @@ define(function (require, exports, module) {
         return promise
             .then(function (metadata) {
                 // No special handling for themes... Let the promise propagate into the ExtensionManager
-                if (metadata && metadata !== "NotFound" && "theme" in metadata) {
+                if (metadata && metadata.hasOwnProperty("theme")) {
                     return;
                 }
 

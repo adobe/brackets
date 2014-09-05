@@ -214,6 +214,7 @@ define(function CSSDocumentModule(require, exports, module) {
      * @return {{body: string}}
      */
     CSSDocument.prototype.getResponseData = function getResponseData(enabled) {
+        // Serve up the in-memory text, including any unsaved changes
         return {
             body: this.doc.getText()
         };
