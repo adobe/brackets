@@ -101,6 +101,20 @@ define(function (require, exports, module) {
         }
     }
     
+    function removeSizable(element) {
+        var removeSizableFunc = $(element).data("removeSizable");
+        if (removeSizable) {
+            removeSizable.apply(element);
+        }
+    }
+    
+    function updateSizer(element) {
+        var updateSizerFunc = $(element).data("updateSizer");
+        if (updateSizerFunc) {
+            updateSizerFunc.apply(element);
+        }
+    }
+    
     /**
      * Returns the visibility state of a resizable element.
      * @param {DOMNode} element Html element to toggle
@@ -197,6 +211,25 @@ define(function (require, exports, module) {
             }
         }
         
+        // If the resizer is positioned right or bottom of the panel, we need to listen to
+        // reposition it if the element size changes externally
+        function repositionResizer(elementSize) {
+            var resizerPosition = elementSize || 1;
+            if (position === POSITION_RIGHT || position === POSITION_BOTTOM) {
+                $resizer.css(resizerCSSPosition, resizerPosition);
+            }
+        }
+            
+        $element.data("removeSizable", function () {
+            $resizer.off(".resizer");
+            $resizer.remove();
+        });
+        
+        $element.data("updateSizer", function () {
+            repositionResizer(elementSizeFunction.apply($element));
+            
+        });
+        
         $element.data("show", function () {
             var elementOffset   = $element.offset(),
                 elementSize     = elementSizeFunction.apply($element) || elementPrefs.size,
@@ -248,16 +281,8 @@ define(function (require, exports, module) {
             PreferencesManager.setViewState(elementID, elementPrefs, null, isResizing);
         });
         
-        // If the resizer is positioned right or bottom of the panel, we need to listen to
-        // reposition it if the element size changes externally
-        function repositionResizer(elementSize) {
-            var resizerPosition = elementSize || 1;
-            if (position === POSITION_RIGHT || position === POSITION_BOTTOM) {
-                $resizer.css(resizerCSSPosition, resizerPosition);
-            }
-        }
-    
-        $resizer.on("mousedown", function (e) {
+
+        $resizer.on("mousedown.resizer", function (e) {
             var $resizeShield   = $("<div class='resizing-container " + direction + "-resizing' />"),
                 startPosition   = e[directionProperty],
                 startSize       = $element.is(":visible") ? elementSizeFunction.apply($element) : 0,
@@ -466,6 +491,8 @@ define(function (require, exports, module) {
     PreferencesManager.convertPreferences(module, {"panelState": "user"}, true, _isPanelPreferences);
     
     exports.makeResizable   = makeResizable;
+    exports.removeSizable   = removeSizable;
+    exports.updateSizer     = updateSizer;
     exports.toggle          = toggle;
     exports.show            = show;
     exports.hide            = hide;
@@ -476,4 +503,6 @@ define(function (require, exports, module) {
     exports.DIRECTION_HORIZONTAL = DIRECTION_HORIZONTAL;
     exports.POSITION_TOP         = POSITION_TOP;
     exports.POSITION_RIGHT       = POSITION_RIGHT;
+    exports.POSITION_BOTTOM      = POSITION_BOTTOM;
+    exports.POSITION_LEFT        = POSITION_LEFT;
 });

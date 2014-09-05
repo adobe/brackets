@@ -95,6 +95,7 @@ define(function (require, exports, module) {
         InMemoryFile        = require("document/InMemoryFile"),
         AsyncUtils          = require("utils/Async"),
         ViewUtils           = require("utils/ViewUtils"),
+        Resizer             = require("utils/Resizer"),
         Pane                = require("view/Pane").Pane;
         
 
@@ -886,6 +887,7 @@ define(function (require, exports, module) {
         }
     }
     
+    
     /**
      * Event handler for "workspaceUpdateLayout" to update the layout
      * @param {jQuery.Event} event - jQuery event object
@@ -894,6 +896,47 @@ define(function (require, exports, module) {
      * @private
      */
     function _updateLayout(event, viewAreaHeight, forceRefresh) {
+        var panes = Object.keys(_panes),
+            available,
+            previous;
+        
+        if (_orientation === VERTICAL) {
+            available = _$el.innerWidth();
+        } else {
+            available = _$el.innerHeight();
+        }
+        
+        _.forEach(_panes, function (pane) {
+            var delta,
+                current;
+            
+            if (!previous) {
+                if (_orientation === VERTICAL) {
+                    current = pane.$el.outerWidth();
+                } else {
+                    current = pane.$el.outerHeight();
+                }
+                previous = current;
+            } else {
+                current = available - previous;
+                if (_orientation === VERTICAL) {
+                    delta = pane.$el.outerWidth() - pane.$el.innerWidth();
+                    pane.$el.width(current - delta);
+                } else {
+                    delta = pane.$el.outerHeight() - pane.$el.innerHeight();
+                    pane.$el.height(current - delta);
+                }
+            }
+            pane.updateLayout(forceRefresh);
+        });
+    }
+    
+    /**
+     * Sets up the initial layout so panes are evenly distributed
+     * @param {boolean} forceRefresh - true to force a resize and refresh of the entire view
+     * @private
+     */
+    function _initialLayout(forceRefresh) {
         var panes = Object.keys(_panes),
             size = 100 / panes.length;
         
@@ -911,9 +954,8 @@ define(function (require, exports, module) {
             }
             
             pane.updateLayout(forceRefresh);
+            Resizer.updateSizer(pane.$el);
         });
-        
-        
     }
     
     /**
@@ -956,6 +998,18 @@ define(function (require, exports, module) {
                                                pane.id]);
                 }
             });
+            
+            if (paneId === SECOND_PANE) {
+                var firstPane = _panes[FIRST_PANE];
+                Resizer.makeResizable(firstPane.$el,
+                                      _orientation === HORIZONTAL ? Resizer.DIRECTION_VERTICAL : Resizer.DIRECTION_HORIZONTAL,
+                                      _orientation === HORIZONTAL ? Resizer.POSITION_BOTTOM : Resizer.POSITION_RIGHT,
+                                      100);
+                firstPane.$el.on("panelCollapsed panelExpanded panelResizeUpdate", function () {
+                    _updateLayout();
+                });
+                
+            }
         }
         
         return _panes[paneId];
@@ -969,7 +1023,7 @@ define(function (require, exports, module) {
     function _doSplit(orientation) {
         _createPaneIfNecessary(SECOND_PANE);
         _orientation = orientation;
-        _updateLayout();
+        _initialLayout();
         _updateCommandState();
         $(exports).triggerHandler("paneLayoutChange", [_orientation]);
         
@@ -1119,7 +1173,7 @@ define(function (require, exports, module) {
             });
             
             _orientation = null;
-            _updateLayout();
+            _initialLayout();
             _updateCommandState();
             $(exports).triggerHandler("paneLayoutChange", [_orientation]);
 
@@ -1358,7 +1412,7 @@ define(function (require, exports, module) {
         _activePaneId = FIRST_PANE;
         // One-time init so the pane has the "active" appearance   
         _panes[FIRST_PANE]._handleActivePaneChange(undefined, _activePaneId);
-        _updateLayout();
+        _initialLayout();
     }
     
     /** 
@@ -1448,8 +1502,8 @@ define(function (require, exports, module) {
     });
     
     // Event handlers
-    $(ProjectManager).on("projectOpen",                       _loadViewState);
-    $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
+    //$(ProjectManager).on("projectOpen",                       _loadViewState);
+    //$(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
     $(WorkspaceManager).on("workspaceUpdateLayout",           _updateLayout);
     $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
     $(DocumentManager).on("pathDeleted",                      _removeDeletedFileFromMRU);
