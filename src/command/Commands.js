@@ -31,24 +31,6 @@ define(function (require, exports, module) {
     var DeprecationWarning = require("utils/DeprecationWarning");
     
     /**
-     * @private
-     * Create a deprecation warning and action for updated Command constants
-     * @param {!string} oldConstant
-     * @param {!string} newConstant
-     */
-    function _deprecateCommand(oldConstant, newConstant) {
-        var warning     = "Use Commands." + newConstant + " instead of Commands." + oldConstant,
-            newValue    = exports[newConstant];
-        
-        Object.defineProperty(exports, oldConstant, {
-            get: function () {
-                DeprecationWarning.deprecationWarning(warning, true);
-                return newValue;
-            }
-        });
-    }
-    
-    /**
      * List of constants for global command IDs.
      */
     
@@ -56,7 +38,7 @@ define(function (require, exports, module) {
     exports.FILE_NEW_UNTITLED           = "file.newDoc";                // DocumentCommandHandlers.js   handleFileNew()
     exports.FILE_NEW                    = "file.newFile";               // DocumentCommandHandlers.js   handleFileNewInProject()
     exports.FILE_NEW_FOLDER             = "file.newFolder";             // DocumentCommandHandlers.js   handleNewFolderInProject()
-    exports.FILE_OPEN                   = "file.open";                  // DocumentCommandHandlers.js   handleFileOpen()
+    exports.FILE_OPEN                   = "file.open";                  // DocumentCommandHandlers.js   handleDocumentOpen()
     exports.FILE_OPEN_FOLDER            = "file.openFolder";            // ProjectManager.js            openProject()
     exports.FILE_SAVE                   = "file.save";                  // DocumentCommandHandlers.js   handleFileSave()
     exports.FILE_SAVE_ALL               = "file.saveAll";               // DocumentCommandHandlers.js   handleFileSaveAll()
@@ -64,7 +46,6 @@ define(function (require, exports, module) {
     exports.FILE_CLOSE                  = "file.close";                 // DocumentCommandHandlers.js   handleFileClose()
     exports.FILE_CLOSE_ALL              = "file.close_all";             // DocumentCommandHandlers.js   handleFileCloseAll()
     exports.FILE_CLOSE_LIST             = "file.close_list";            // DocumentCommandHandlers.js   handleFileCloseList()
-    exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";       // DocumentCommandHandlers.js   handleFileAddToWorkingSet()
     exports.FILE_OPEN_DROPPED_FILES     = "file.openDroppedFiles";      // DragAndDrop.js               openDroppedFiles()
     exports.FILE_LIVE_FILE_PREVIEW      = "file.liveFilePreview";       // LiveDevelopment/main.js      _handleGoLiveCommand()
     exports.CMD_RELOAD_LIVE_PREVIEW     = "file.reloadLivePreview";     // LiveDevelopment/main.js      _handleReloadLivePreviewCommand()
@@ -133,10 +114,15 @@ define(function (require, exports, module) {
     exports.TOGGLE_LINE_NUMBERS         = "view.toggleLineNumbers";     // EditorOptionHandlers.js      _getToggler()
     exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";      // EditorOptionHandlers.js      _getToggler()
     exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";        // EditorOptionHandlers.js      _getToggler()
-    exports.SORT_WORKINGSET_BY_ADDED    = "view.sortWorkingSetByAdded"; // WorkingSetSort.js            _handleSortWorkingSetByAdded()
-    exports.SORT_WORKINGSET_BY_NAME     = "view.sortWorkingSetByName";  // WorkingSetSort.js            _handleSortWorkingSetByName()
-    exports.SORT_WORKINGSET_BY_TYPE     = "view.sortWorkingSetByType";  // WorkingSetSort.js            _handleSortWorkingSetByType()
-    exports.SORT_WORKINGSET_AUTO        = "view.sortWorkingSetAuto";    // WorkingSetSort.js            _handleAutomaticSort()
+
+    exports.CMD_ADD_TO_WORKINGSET_AND_OPEN  = "cmd.addToWorkingSetAndOpen";          // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()
+    exports.CMD_OPEN                        = "cmd.open";
+    
+    exports.CMD_ADD_TO_WORKINGSET_AND_OPEN  = "cmd.addToWorkingSetAndOpen";          // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()
+    exports.CMD_WORKINGSET_SORT_BY_ADDED    = "cmd.sortWorkingSetByAdded";           // WorkingSetSort.js          _handleSort()
+    exports.CMD_WORKINGSET_SORT_BY_NAME     = "cmd.sortWorkingSetByName";            // WorkingSetSort.js          _handleSort()
+    exports.CMD_WORKINGSET_SORT_BY_TYPE     = "cmd.sortWorkingSetByType";            // WorkingSetSort.js          _handleSort()
+    exports.CMD_WORKING_SORT_TOGGLE_AUTO    = "cmd.sortWorkingSetToggleAuto";        // WorkingSetSort.js          _handleToggleAutoSort()
     
     // NAVIGATE
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";           // DocumentCommandHandlers.js   handleGoNextDoc()
@@ -176,15 +162,24 @@ define(function (require, exports, module) {
     exports.APP_ABORT_QUIT              = "app.abort_quit";             // DocumentCommandHandlers.js   handleAbortQuit()
     exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";       // DocumentCommandHandlers.js   handleBeforeMenuPopup()
     
+    // ADD_TO_WORKING_SET is deprectated but we need a handler for it because the new command doesn't return the same result as the legacy command
+    exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";       // Deprecated through DocumentCommandHandlers.js handleFileAddToWorkingSet
+    
+    // DEPRECATED: Working Set Commands
+    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_ADDED",   "CMD_WORKINGSET_SORT_BY_ADDED");
+    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_NAME",    "CMD_WORKINGSET_SORT_BY_NAME");
+    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_TYPE",    "CMD_WORKINGSET_SORT_BY_TYPE");
+    DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_AUTO",       "CMD_WORKING_SORT_TOGGLE_AUTO");
+              
     // DEPRECATED: Edit commands that were moved from the Edit Menu to the Find Menu
-    _deprecateCommand("EDIT_FIND",                  "CMD_FIND");
-    _deprecateCommand("EDIT_FIND_IN_SELECTED",      "CMD_FIND_IN_SELECTED");
-    _deprecateCommand("EDIT_FIND_IN_SUBTREE",       "CMD_FIND_IN_SUBTREE");
-    _deprecateCommand("EDIT_FIND_NEXT",             "CMD_FIND_NEXT");
-    _deprecateCommand("EDIT_FIND_PREVIOUS",         "CMD_FIND_PREVIOUS");
-    _deprecateCommand("EDIT_FIND_ALL_AND_SELECT",   "CMD_FIND_ALL_AND_SELECT");
-    _deprecateCommand("EDIT_ADD_NEXT_MATCH",        "CMD_ADD_NEXT_MATCH");
-    _deprecateCommand("EDIT_SKIP_CURRENT_MATCH",    "CMD_SKIP_CURRENT_MATCH");
-    _deprecateCommand("EDIT_REPLACE",               "CMD_REPLACE");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_FIND",                  "CMD_FIND");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_FIND_IN_SELECTED",      "CMD_FIND_IN_SELECTED");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_FIND_IN_SUBTREE",       "CMD_FIND_IN_SUBTREE");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_FIND_NEXT",             "CMD_FIND_NEXT");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_FIND_PREVIOUS",         "CMD_FIND_PREVIOUS");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_FIND_ALL_AND_SELECT",   "CMD_FIND_ALL_AND_SELECT");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_ADD_NEXT_MATCH",        "CMD_ADD_NEXT_MATCH");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_SKIP_CURRENT_MATCH",    "CMD_SKIP_CURRENT_MATCH");
+    DeprecationWarning.deprecateConstant(exports, "EDIT_REPLACE",               "CMD_REPLACE");
 });
 
