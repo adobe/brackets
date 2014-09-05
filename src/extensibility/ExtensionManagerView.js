@@ -211,6 +211,19 @@ define(function (require, exports, module) {
             context.isCompatible = context.isCompatibleLatest = true;
         }
 
+        var lang      = brackets.getLocale(),
+            shortLang = lang.split("-")[0];
+        
+        // Extension metadata might have localized content.  If so, overlay those strings.
+        if (info.metadata.hasOwnProperty(shortLang)) {
+            var prop;
+            for (prop in info.metadata[shortLang]) {
+                if (info.metadata[shortLang].hasOwnProperty(prop)) {
+                    info.metadata[prop] = info.metadata[shortLang][prop];
+                }
+            }
+        }
+
         if (info.metadata.description !== undefined) {
             info.metadata.shortdescription = StringUtils.truncate(info.metadata.description, 200);
         }
@@ -224,9 +237,6 @@ define(function (require, exports, module) {
         context.allowInstall = context.isCompatible && !context.isInstalled;
 
         if (Array.isArray(info.metadata.i18n) && info.metadata.i18n.length > 0) {
-            var lang      = brackets.getLocale(),
-                shortLang = lang.split("-")[0];
-
             context.translated = true;
             context.translatedLangs =
                 info.metadata.i18n.map(function (value) {
