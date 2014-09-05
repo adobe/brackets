@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         KeyEvent              = require("utils/KeyEvent"),
         SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
         StringUtils           = require("utils/StringUtils"),
-        Strings,
+        Strings               = require("strings"),
         _                     = require("thirdparty/lodash");
 
     var defaultContent = "/* Test comment */\n" +
@@ -440,7 +440,6 @@ define(function (require, exports, module) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
-                Strings          = testWindow.require("strings");
                 twCommandManager = testWindow.brackets.test.CommandManager;
                 twEditorManager  = testWindow.brackets.test.EditorManager;
                 twFindInFiles    = testWindow.brackets.test.FindInFiles;

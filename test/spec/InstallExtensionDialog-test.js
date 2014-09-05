@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         KeyEvent        = require("utils/KeyEvent"),
         NativeApp       = require("utils/NativeApp"),
         FileSystem,
-        Strings;
+        Strings         = require("strings");
 
     describe("Install Extension Dialog", function () {
         var testWindow, dialog, fields, goodInstaller, badInstaller, closed,
@@ -43,7 +43,6 @@ define(function (require, exports, module) {
         beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
-                Strings = testWindow.require("strings");
                 FileSystem = testWindow.brackets.test.FileSystem;
             });
         });
