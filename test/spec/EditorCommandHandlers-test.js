@@ -34,6 +34,8 @@ define(function (require, exports, module) {
         SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
         _                     = require("thirdparty/lodash");
 
+    require("editor/EditorCommandHandlers");
+
     describe("EditorCommandHandlers", function () {
         
         var defaultContent = "function foo() {\n" +
