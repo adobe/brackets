@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         KeyEvent           = require("utils/KeyEvent"),
         ModalBar           = require("widgets/ModalBar").ModalBar,
         PreferencesManager = require("preferences/PreferencesManager"),
+        MainViewManager    = require("view/MainViewManager"),
         Strings            = require("strings"),
         ViewUtils          = require("utils/ViewUtils");
     
@@ -240,7 +241,7 @@ define(function (require, exports, module) {
             self._modalBar = null;
             self._closed = true;
             FindBar._removeFindBar(self);
-            EditorManager.focusEditor();
+            MainViewManager.focusActivePane();
             $(self).trigger("close");
         });
         

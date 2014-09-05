@@ -150,6 +150,10 @@ define(function HTMLDocumentModule(require, exports, module) {
             self._onChange(event, editor, change);
         });
 
+        $(this.editor).on("beforeDestroy.HTMLDocument", function (event, editor) {
+            self._onDestroy(event, editor);
+        });
+        
         // Experimental code
         if (LiveDevelopment.config.experimental) {
             $(HighlightAgent).on("highlight.HTMLDocument", function (event, node) {
@@ -260,6 +264,18 @@ define(function HTMLDocumentModule(require, exports, module) {
         });
     };
 
+    /**
+     * Triggered when the editor is being destroyed
+     * @param {$.Event} event Event
+     * @param {!Editor} editor The editor being destroyed
+     */
+    HTMLDocument.prototype._onDestroy = function (event, editor) {
+        if (this.editor === editor) {
+            this.detachFromEditor();
+        }
+    };
+    
+    
     /**
      * Triggered on change by the editor
      * @param {$.Event} event Event

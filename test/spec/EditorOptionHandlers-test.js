@@ -168,7 +168,7 @@ define(function (require, exports, module) {
         // Helper functions to open editors / toggle options
         function openEditor(fullPath) {
             runs(function () {
-                var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath});
+                var promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath});
                 waitsForDone(promise, "Open into working set");
             });
         }

@@ -42,6 +42,7 @@ define(function (require, exports, module) {
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
         ThemeSettings       = require("view/ThemeSettings"),
+        MainViewManager     = require("view/MainViewManager"),
         AppInit             = require("utils/AppInit");
 
     var prefs = PreferencesManager.getExtensionPrefs("fonts");
@@ -484,7 +485,7 @@ define(function (require, exports, module) {
     prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);
 
     // Update UI when opening or closing a document
-    $(DocumentManager).on("currentDocumentChange", _updateUI);
+    $(MainViewManager).on("currentFileChange", _updateUI);
 
     // Update UI when Brackets finishes loading
     AppInit.appReady(init);

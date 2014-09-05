@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
         StringUtils           = require("utils/StringUtils"),
         Strings;
-    
+
     var defaultContent = "/* Test comment */\n" +
                          "define(function (require, exports, module) {\n" +
                          "    var Foo = require(\"modules/Foo\"),\n" +
@@ -1461,7 +1461,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     tw$(".replace-checked").click();
                 });
-                
+
                 waitsFor(function () {
                     return twFindInFiles._replaceDone;
                 }, "replace finished");
@@ -1579,7 +1579,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     tw$(".replace-checked").click();
                 });
-                
+
                 waitsFor(function () {
                     return twFindInFiles._replaceDone;
                 }, "replace finished");
@@ -1739,7 +1739,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     tw$(".replace-checked").click();
                 });
-                
+
                 waitsFor(function () {
                     return twFindInFiles._replaceDone;
                 }, "replace finished");
@@ -1771,7 +1771,7 @@ define(function (require, exports, module) {
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
                 });
-                
+
                 waitsFor(function () {
                     return twFindInFiles._searchDone;
                 }, "search finished");
@@ -1779,7 +1779,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     tw$(".replace-checked").click();
                 });
-                
+
                 waitsFor(function () {
                     return twFindInFiles._replaceDone;
                 }, "replace finished");
@@ -1787,10 +1787,10 @@ define(function (require, exports, module) {
                 runs(function () {
                     myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: 23}, {line: LINE_FIRST_REQUIRE, ch: 41});
                     expect(/_modules\/Foo-Foo\$&/i.test(myEditor.getSelectedText())).toBe(true);
-                    
+
                     myEditor.setSelection({line: LINE_FIRST_REQUIRE + 1, ch: 23}, {line: LINE_FIRST_REQUIRE + 1, ch: 41});
                     expect(/_modules\/Bar-Bar\$&/i.test(myEditor.getSelectedText())).toBe(true);
-                    
+
                     myEditor.setSelection({line: LINE_FIRST_REQUIRE + 2, ch: 23}, {line: LINE_FIRST_REQUIRE + 2, ch: 41});
                     expect(/_modules\/Baz-Baz\$&/i.test(myEditor.getSelectedText())).toBe(true);
                 });

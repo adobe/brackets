@@ -29,6 +29,7 @@ define(function (require, exports, module) {
 
     var Commands             = brackets.getModule("command/Commands"),
         CommandManager       = brackets.getModule("command/CommandManager"),
+        MainViewManager      = brackets.getModule("view/MainViewManager"),
         DocumentManager      = brackets.getModule("document/DocumentManager"),
         EditorManager        = brackets.getModule("editor/EditorManager"),
         FileSystem           = brackets.getModule("filesystem/FileSystem"),
@@ -52,7 +53,7 @@ define(function (require, exports, module) {
     CommandManager.register("test-file-open", Commands.FILE_OPEN, function (fileInfo) {
         // Register a command for FILE_OPEN, which the jump to def code will call
         return DocumentManager.getDocumentForPath(fileInfo.fullPath).done(function (doc) {
-            DocumentManager.setCurrentDocument(doc);
+            MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
         });
     });
     
@@ -436,7 +437,7 @@ define(function (require, exports, module) {
 
             // The following call ensures that the document is reloaded
             // from disk before each test
-            DocumentManager.closeAll();
+            MainViewManager._closeAll(MainViewManager.ALL_PANES);
             SpecRunnerUtils.destroyMockEditor(testDoc);
             testEditor = null;
             testDoc = null;
