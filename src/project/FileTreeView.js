@@ -73,7 +73,7 @@ define(function (require, exports, module) {
             var result = this.props.parentPath + this.props.name;
             
             // Add trailing slash for directories
-            if (!FileTreeViewModel.isFile(this.props.entry)) {
+            if (!FileTreeViewModel.isFile(this.props.entry) && _.last(result) !== "/") {
                 result += "/";
             }
             
@@ -257,7 +257,8 @@ define(function (require, exports, module) {
          * whether or not we need to re-render.
          */
         shouldComponentUpdate: function (nextProps, nextState) {
-            return this.props.entry !== nextProps.entry ||
+            return nextProps.forceRender ||
+                this.props.entry !== nextProps.entry ||
                 this.props.extensions !== nextProps.extensions;
         },
         
@@ -458,7 +459,8 @@ define(function (require, exports, module) {
          * entry object will change.
          */
         shouldComponentUpdate: function (nextProps, nextState) {
-            return this.props.entry !== nextProps.entry ||
+            return nextProps.forceRender ||
+                this.props.entry !== nextProps.entry ||
                 this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst ||
                 this.props.extensions !== nextProps.extensions;
         },
@@ -496,10 +498,11 @@ define(function (require, exports, module) {
             if (isOpen && children) {
                 nodeClass = "open";
                 childNodes = directoryContents({
-                    parentPath: this.myPath() + "/",
+                    parentPath: this.myPath(),
                     contents: children,
                     extensions: this.props.extensions,
-                    actions: this.props.actions
+                    actions: this.props.actions,
+                    forceRender: this.props.forceRender
                 });
             } else {
                 nodeClass = "closed";
@@ -562,7 +565,8 @@ define(function (require, exports, module) {
          * Need to re-render if the sort order or the contents change.
          */
         shouldComponentUpdate: function (nextProps, nextState) {
-            return this.props.contents !== nextProps.contents ||
+            return nextProps.forceRender ||
+                this.props.contents !== nextProps.contents ||
                 this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst ||
                 this.props.extensions !== nextProps.extensions;
         },
@@ -587,6 +591,7 @@ define(function (require, exports, module) {
                         entry: entry,
                         actions: this.props.actions,
                         extensions: this.props.extensions,
+                        forceRender: this.props.forceRender,
                         key: name
                     });
                 } else {
@@ -597,6 +602,7 @@ define(function (require, exports, module) {
                         actions: this.props.actions,
                         extensions: this.props.extensions,
                         sortDirectoriesFirst: this.props.sortDirectoriesFirst,
+                        forceRender: this.props.forceRender,
                         key: name
                     });
                 }
@@ -622,7 +628,8 @@ define(function (require, exports, module) {
          * Update for any change in the tree data or directory sorting preference.
          */
         shouldComponentUpdate: function (nextProps, nextState) {
-            return this.props.treeData !== nextProps.treeData ||
+            return nextProps.forceRender ||
+                this.props.treeData !== nextProps.treeData ||
                 this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst ||
                 this.props.extensions !== nextProps.extensions;
         },
@@ -634,7 +641,8 @@ define(function (require, exports, module) {
                 sortDirectoriesFirst: this.props.sortDirectoriesFirst,
                 contents: this.props.treeData,
                 extensions: this.props.extensions,
-                actions: this.props.actions
+                actions: this.props.actions,
+                forceRender: this.props.forceRender
             });
         }
         
@@ -648,7 +656,7 @@ define(function (require, exports, module) {
      * @param {Directory} projectRoot Directory object from which the fullPath of the project root is extracted
      * @param {ActionCreator} actions object with methods used to communicate events that originate from the user
      */
-    function render(element, viewModel, projectRoot, actions) {
+    function render(element, viewModel, projectRoot, actions, forceRender) {
         $(element).addClass("jstree jstree-brackets");
         $(element).css("overflow", "auto");
         if (!projectRoot) {
@@ -660,7 +668,8 @@ define(function (require, exports, module) {
             sortDirectoriesFirst: viewModel.sortDirectoriesFirst,
             parentPath: projectRoot.fullPath,
             actions: actions,
-            extensions: _extensions
+            extensions: _extensions,
+            forceRender: forceRender
         }),
               element);
     }

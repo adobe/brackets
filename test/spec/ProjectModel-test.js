@@ -886,7 +886,7 @@ define(function (require, exports, module) {
                     waitsForDone(model.refresh());
                 });
                 runs(function () {
-                    expect(changesFired).toBe(1);
+                    expect(changesFired).toBeGreaterThan(0);
                     expect(vm.treeData).not.toBe(oldTree);
                     expect(vm.treeData.get("subdir1")).toBeDefined();
                     expect(vm.treeData.getIn(["subdir1", "children", "subsubdir", "children", "newInterior.txt"])).toBeDefined();
@@ -895,6 +895,103 @@ define(function (require, exports, module) {
                 });
             });
         });
-
+        
+        describe("handleFSEvent", function () {
+            var model = new ProjectModel.ProjectModel(),
+                vm = model._viewModel;
+            
+            beforeEach(function () {
+                model.projectRoot = {
+                    fullPath: "/foo/"
+                };
+                
+                vm.treeData = Immutable.fromJS({
+                    "topfile.js": {},
+                    subdir: {
+                        children: {
+                            "subfile.md": {}
+                        }
+                    }
+                });
+            });
+            
+            it("should register a change to a root file", function () {
+                model.handleFSEvent({
+                    isFile: true,
+                    name: "topfile.js",
+                    fullPath: "/foo/topfile.js"
+                });
+                expect(vm.treeData.getIn(["topfile.js", "_timestamp"])).toBeGreaterThan(0);
+            });
+            
+            it("should reset the cache of files when a file is added or removed", function () {
+                spyOn(model, "_resetCache");
+                model.handleFSEvent({
+                    isFile: false,
+                    name: "foo",
+                    fullPath: "/foo/"
+                }, [{
+                    name: "newfile.js",
+                    isFile: true,
+                    fullPath: "/foo/newfile.js"
+                }]);
+                
+                expect(model._resetCache).toHaveBeenCalled();
+            });
+            
+            it("should handle new files and directories", function () {
+                model.handleFSEvent({
+                    isFile: false,
+                    name: "foo",
+                    fullPath: "/foo/"
+                }, [{
+                    name: "newfile.js",
+                    fullPath: "/foo/newfile.js",
+                    isFile: true
+                }, {
+                    name: "newdir",
+                    fullPath: "/foo/subdir/newdir/",
+                    isFile: false
+                }]);
+                
+                expect(vm.treeData.get("newfile.js").toJS()).toEqual({});
+                expect(vm.treeData.getIn(["subdir", "children", "newdir", "children"]).toJS()).toEqual({});
+            });
+            
+            it("should handle removed files and directories", function () {
+                model.handleFSEvent({
+                    isFile: false,
+                    name: "foo",
+                    fullPath: "/foo/"
+                }, null, [{
+                    name: "topfile.js",
+                    fullPath: "/foo/topfile.js",
+                    isFile: true
+                }, {
+                    name: "subdir",
+                    fullPath: "/foo/subdir/",
+                    isFile: false
+                }]);
+                
+                expect(vm.treeData.get("topfile.js")).toBeUndefined();
+                expect(vm.treeData.get("subdir")).toBeUndefined();
+            });
+            
+            it("should refresh if no entry is given", function () {
+                spyOn(model, "refresh");
+                model.handleFSEvent();
+                expect(model.refresh).toHaveBeenCalled();
+            });
+            
+            it("should do nothing if the entry is outside of the current project", function () {
+                spyOn(vm, "processChanges");
+                model.handleFSEvent({
+                    isFile: true,
+                    fullPath: "/bar/baz.js",
+                    name: "baz.js"
+                });
+                expect(vm.processChanges).not.toHaveBeenCalled();
+            });
+        });
     });
 });

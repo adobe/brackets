@@ -101,7 +101,7 @@ define(function (require, exports, module) {
     /**
      * Returns false for files and directories that are not commonly useful to display.
      *
-     * @param {FileSystemEntry} entry File or directory to filter
+     * @param {!FileSystemEntry} entry File or directory to filter
      * @return boolean true if the file should be displayed
      */
     function shouldShow(entry) {
@@ -461,6 +461,7 @@ define(function (require, exports, module) {
     ProjectModel.prototype.setProjectRoot = function (projectRoot) {
         this.projectRoot = projectRoot;
         this._resetCache();
+        this._viewModel._rootChanged();
         
         var d = new $.Deferred(),
             self = this;
@@ -934,15 +935,76 @@ define(function (require, exports, module) {
         var projectRoot = this.projectRoot,
             openNodes   = this.getOpenNodes(),
             self        = this,
+            selections  = this._selections,
+            viewModel   = this._viewModel,
             deferred    = new $.Deferred();
         
         this.setProjectRoot(projectRoot).then(function () {
             self.reopenNodes(openNodes).then(function () {
+                if (selections.selected) {
+                    viewModel.moveMarker("selected", null, self.makeProjectRelativeIfPossible(selections.selected));
+                }
+                
+                if (selections.context) {
+                    viewModel.moveMarker("context", null, self.makeProjectRelativeIfPossible(selections.context));
+                }
+                
+                if (selections.rename) {
+                    viewModel.moveMarker("rename", null, self.makeProjectRelativeIfPossible(selections.rename));
+                }
+                
                 deferred.resolve();
             });
         });
 
         return deferred.promise();
+    };
+    
+    /**
+     * Handles filesystem change events and prepares the update for the view model.
+     * 
+     * @param {?(File|Directory)} entry File or Directory changed
+     * @param {Array.<FileSystemEntry>=} added If entry is a Directory, contains zero or more added children
+     * @param {Array.<FileSystemEntry>=} removed If entry is a Directory, contains zero or more removed 
+     */
+    ProjectModel.prototype.handleFSEvent = function (entry, added, removed) {
+        if (!entry) {
+            this.refresh();
+            return;
+        }
+        
+        if (!this.isWithinProject(entry)) {
+            return;
+        }
+        
+        var changes = {},
+            self = this,
+            shouldResetCache = false;
+        
+        if (entry.isFile) {
+            changes.changed = [
+                this.makeProjectRelativeIfPossible(entry.fullPath)
+            ];
+        }
+        
+        if (added) {
+            shouldResetCache = true;
+            changes.added = added.map(function (entry) {
+                return self.makeProjectRelativeIfPossible(entry.fullPath);
+            });
+        }
+        
+        if (removed) {
+            shouldResetCache = true;
+            changes.removed = removed.map(function (entry) {
+                return self.makeProjectRelativeIfPossible(entry.fullPath);
+            });
+        }
+        
+        if (shouldResetCache) {
+            this._resetCache();
+        }
+        this._viewModel.processChanges(changes);
     };
 
     /**

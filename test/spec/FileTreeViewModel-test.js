@@ -530,5 +530,96 @@ define(function (require, exports, module) {
                 });
             });
         });
+        
+        describe("processChanges", function () {
+            var vm = new FileTreeViewModel.FileTreeViewModel(),
+                originalTreeData,
+                changesFired;
+            
+            vm.on(FileTreeViewModel.EVENT_CHANGE, function () {
+                changesFired++;
+            });
+            
+            beforeEach(function () {
+                changesFired = 0;
+                vm.treeData = Immutable.fromJS({
+                    "topfile.js": {},
+                    subdir: {
+                        open: true,
+                        children: {
+                            innerdir: {
+                                children: {
+                                    "deepfile.js": {}
+                                }
+                            },
+                            "subchild.js": {}
+                        }
+                    }
+                });
+                originalTreeData = vm.treeData;
+            });
+            
+            it("should update an entry when a file changes", function () {
+                vm.processChanges({
+                    changed: [
+                        "topfile.js"
+                    ]
+                });
+                expect(changesFired).toBe(1);
+                expect(vm.treeData).not.toBe(originalTreeData);
+                expect(vm.treeData.getIn(["topfile.js", "_timestamp"])).toBeGreaterThan(0);
+            });
+            
+            it("can update multiple file entries", function () {
+                vm.processChanges({
+                    changed: [
+                        "topfile.js",
+                        "subdir/subchild.js"
+                    ]
+                });
+                expect(changesFired).toBe(1);
+                expect(vm.treeData.getIn(["topfile.js", "_timestamp"])).toBeGreaterThan(0);
+                expect(vm.treeData.getIn(["subdir", "children", "subchild.js", "_timestamp"])).toBeGreaterThan(0);
+            });
+            
+            it("should add an entry when there's a new entry", function () {
+                vm.processChanges({
+                    added: [
+                        "newfile.js",
+                        "subdir/innerdir/anotherdeepone.js"
+                    ]
+                });
+                expect(changesFired).toBe(1);
+                expect(vm.treeData).not.toBe(originalTreeData);
+                expect(vm.treeData.get("newfile.js").toJS()).toEqual({});
+                expect(vm.treeData.getIn(["subdir", "children", "innerdir", "children", "anotherdeepone.js"]).toJS()).toEqual({});
+            });
+            
+            it("should add new directories as well", function () {
+                vm.processChanges({
+                    added: [
+                        "topdir/",
+                        "subdir/anotherdir/"
+                    ]
+                });
+                
+                expect(changesFired).toBe(1);
+                expect(vm.treeData).not.toBe(originalTreeData);
+                expect(vm.treeData.getIn(["topdir", "children"]).toJS()).toEqual({});
+                expect(vm.treeData.getIn(["subdir", "children", "anotherdir", "children"]).toJS()).toEqual({});
+            });
+            
+            it("should remove an entry that's been deleted", function () {
+                vm.processChanges({
+                    removed: [
+                        "subdir/subchild.js",
+                        "topfile.js"
+                    ]
+                });
+                expect(changesFired).toBe(1);
+                expect(vm.treeData).not.toBe(originalTreeData);
+                expect(vm.treeData.get("topfile.js")).toBeUndefined();
+            });
+        });
     });
 });

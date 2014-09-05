@@ -112,6 +112,36 @@ define(function (require, exports, module) {
                 var input = RTU.findRenderedDOMComponentWithTag(rendered, "input");
                 expect(input.props.value).toBe("afile.js");
             });
+            
+            it("should re-render as needed", function () {
+                var props = {
+                    name      : "afile.js",
+                    entry     : Immutable.Map(),
+                    parentPath: "/foo/",
+                    extensions: Immutable.Map()
+                };
+                
+                var rendered = RTU.renderIntoDocument(FileTreeView._fileNode(props));
+                
+                var newProps = _.clone(props);
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(false);
+                
+                newProps = _.clone(props);
+                newProps.entry = Immutable.Map({
+                    selected: true
+                });
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
+                
+                newProps = _.clone(props);
+                newProps.forceRender = true;
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
+
+                newProps = _.clone(props);
+                newProps.extensions = Immutable.Map({
+                    addClasses: Immutable.Vector()
+                });
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
+            });
         });
         
         describe("_sortFormattedDirectory", function () {
@@ -180,6 +210,44 @@ define(function (require, exports, module) {
                 expect(rendered.myPath()).toBe("/foo/thedir/");
             });
             
+            it("should rerender as needed", function () {
+                var props = {
+                    name                : "thedir",
+                    parentPath          : "/foo/",
+                    entry               : Immutable.fromJS({
+                        children: null
+                    }),
+                    extensions          : Immutable.Map(),
+                    sortDirectoriesFirst: false
+                };
+                        
+                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode(props));
+                
+                var newProps = _.clone(props);
+                
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(false);
+                
+                newProps = _.clone(props);
+                newProps.entry = Immutable.fromJS({
+                    children: []
+                });
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
+                
+                newProps = _.clone(props);
+                newProps.forceRender = true;
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
+                
+                newProps = _.clone(props);
+                newProps.extensions = Immutable.Map({
+                    addClasses: Immutable.Vector()
+                });
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
+                
+                newProps = _.clone(props);
+                newProps.sortDirectoriesFirst = true;
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
+            });
+
             it("should call extensions for directories", function () {
                 var extensionCalled = false,
                     rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
@@ -267,6 +335,41 @@ define(function (require, exports, module) {
                 expect(aTags[0].props.children[1]).toBe("subdir");
                 expect(aTags[1].props.children[1]).toBe("afile");
             });
+            
+            it("should rerender contents as needed", function () {
+                var props = {
+                    parentPath          : "/foo/",
+                    contents            : Immutable.Map(),
+                    sortDirectoriesFirst: false,
+                    extensions          : Immutable.Map()
+                };
+                
+                var rendered = RTU.renderIntoDocument(FileTreeView._directoryContents(props));
+
+                var newProps = _.clone(props);
+
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(false);
+
+                newProps = _.clone(props);
+                newProps.contents = Immutable.fromJS({
+                    somefile: {}
+                });
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
+
+                newProps = _.clone(props);
+                newProps.forceRender = true;
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
+
+                newProps = _.clone(props);
+                newProps.extensions = Immutable.Map({
+                    addClasses: Immutable.Vector()
+                });
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
+
+                newProps = _.clone(props);
+                newProps.sortDirectoriesFirst = true;
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
+            });
         });
         
         describe("_fileTreeView", function () {
@@ -283,6 +386,41 @@ define(function (require, exports, module) {
                 expect(aTags.length).toBe(2);
                 expect(aTags[0].props.children[1]).toBe("subdir");
                 expect(aTags[1].props.children[1]).toBe("afile");
+            });
+            
+            it("should rerender contents as needed", function () {
+                var props = {
+                    parentPath          : "/foo/",
+                    treeData            : Immutable.Map(),
+                    sortDirectoriesFirst: false,
+                    extensions          : Immutable.Map()
+                };
+
+                var rendered = RTU.renderIntoDocument(FileTreeView._fileTreeView(props));
+
+                var newProps = _.clone(props);
+
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(false);
+
+                newProps = _.clone(props);
+                newProps.treeData = Immutable.fromJS({
+                    somefile: {}
+                });
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
+
+                newProps = _.clone(props);
+                newProps.forceRender = true;
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
+
+                newProps = _.clone(props);
+                newProps.extensions = Immutable.Map({
+                    addClasses: Immutable.Vector()
+                });
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
+
+                newProps = _.clone(props);
+                newProps.sortDirectoriesFirst = true;
+                expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
             });
         });
         

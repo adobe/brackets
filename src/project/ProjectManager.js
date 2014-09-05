@@ -153,7 +153,6 @@ define(function (require, exports, module) {
      * @param {{type:any,isFolder:boolean}} errorInfo Information passed in the error events
      */
     function _displayCreationError(e, errorInfo) {
-        console.log("_displayCreationError");
         window.setTimeout(function () {
             var error = errorInfo.type,
                 isFolder = errorInfo.isFolder;
@@ -535,12 +534,12 @@ define(function (require, exports, module) {
      * 
      * Rerender the file tree view.
      */
-    _renderTree = function () {
+    _renderTree = function (forceRender) {
         var projectRoot = getProjectRoot();
         if (!projectRoot) {
             return;
         }
-        FileTreeView.render($projectTreeContainer[0], model._viewModel, projectRoot, actionCreator);
+        FileTreeView.render($projectTreeContainer[0], model._viewModel, projectRoot, actionCreator, forceRender);
     };
 
     /** 
@@ -980,23 +979,7 @@ define(function (require, exports, module) {
     _fileSystemChange = function (event, entry, added, removed) {
         FileSyncManager.syncOpenDocuments();
         
-        // Reset allFiles cache
-        model._resetCache();
-
-        // A whole-sale change event; refresh the entire file tree
-        if (!entry) {
-            refreshFileTree();
-            return;
-        }
-        
-        // Ignore change event when: the entry is not a directory, the directory
-        // was not yet rendered or the directory is outside the current project
-        if (!entry.isDirectory || !isWithinProject(entry.fullPath)) {
-            return;
-        }
-        
-        // TODO: Force changed paths to refresh
-        refreshFileTree();
+        model.handleFSEvent(entry, added, removed);
     };
 
     /**
@@ -1155,6 +1138,44 @@ define(function (require, exports, module) {
             return err;
         });
     }
+    
+    /**
+     * Adds an icon provider. The icon provider is a function which takes a data object and
+     * returns a React.DOM.ins instance for the icons within the tree.
+     * 
+     * The data object contains:
+     * 
+     * * `name`: the file or directory name
+     * * `fullPath`: full path to the file or directory
+     * * `isFile`: true if it's a file, false if it's a directory
+     */
+    function addIconProvider(callback) {
+        return FileTreeView.addIconProvider(callback);
+    }
+    
+    /**
+     * Adds an additional classes provider which can return classes that should be added to a
+     * given file or directory in the tree.
+     * 
+     * The data object contains:
+     * 
+     * * `name`: the file or directory name
+     * * `fullPath`: full path to the file or directory
+     * * `isFile`: true if it's a file, false if it's a directory
+     */
+    function addClassesProvider(callback) {
+        return FileTreeView.addClassesProvider(callback);
+    }
+    
+    /**
+     * Forces the file tree to rerender. Typically, the tree only rerenders the portions of the
+     * tree that have changed data. If an extension that augments the tree has changes that it
+     * needs to display, calling rerenderTree will cause the components for the whole tree to
+     * be rerendered.
+     */
+    function rerenderTree() {
+        _renderTree(true);
+    }
 
     // Define public API
     exports.getProjectRoot                = getProjectRoot;
@@ -1179,4 +1200,7 @@ define(function (require, exports, module) {
     exports.getAllFiles                   = getAllFiles;
     exports.getLanguageFilter             = getLanguageFilter;
     exports.actionCreator                 = actionCreator;
+    exports.addIconProvider               = addIconProvider;
+    exports.addClassesProvider            = addClassesProvider;
+    exports.rerenderTree                  = rerenderTree;
 });

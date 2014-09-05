@@ -85,6 +85,15 @@ define(function (require, exports, module) {
      *     * They can have flags like selected, context, rename, create with state information for the tree
      */
     FileTreeViewModel.prototype.treeData = null;
+    
+    /**
+     * @private
+     * 
+     * If the project root changes, we reset the tree data so that everything will be re-read.
+     */
+    FileTreeViewModel.prototype._rootChanged = function () {
+        this.treeData = Immutable.Map();
+    };
 
     /**
      * @private
@@ -656,7 +665,8 @@ define(function (require, exports, module) {
      * 
      * See FileTreeViewModel.createPlaceholder
      */
-    function _createPlaceholder(treeData, basedir, name, isFolder) {
+    function _createPlaceholder(treeData, basedir, name, isFolder, options) {
+        options = options || {};
         var parentPath = _filePathToObjectPath(treeData, basedir);
 
         if (!parentPath) {
@@ -664,16 +674,21 @@ define(function (require, exports, module) {
         }
 
         var newObject = {
-            creating: true
         };
+        
+        if (!options.notInCreateMode) {
+            newObject.creating = true;
+        }
         
         if (isFolder) {
             newObject.children = Immutable.Map();
         }
         
         var newFile = Immutable.Map(newObject);
-
-        treeData = _openPath(treeData, basedir);
+        
+        if (!options.doNotOpen) {
+            treeData = _openPath(treeData, basedir);
+        }
         if (parentPath.length > 0) {
             var childrenPath = _.clone(parentPath);
             childrenPath.push("children");
@@ -735,6 +750,95 @@ define(function (require, exports, module) {
         if (treeData) {
             this._commitTreeData(treeData);
         }
+    };
+    
+    /**
+     * @private
+     * 
+     * Adds a timestamp to an entry (much like the "touch" command) to force a given entry
+     * to rerender.
+     */
+    function _addTimestamp(item) {
+        return item.set("_timestamp", new Date().getTime());
+    }
+    
+    /**
+     * @private
+     * 
+     * Sets/updates the timestamp on the file paths listed in the `changed` array.
+     * 
+     * @param {Immutable.Map} treeData
+     * @param {Array.<string>} changed list of changed project-relative file paths
+     * @return {Immutable.Map} revised treeData
+     */
+    function _markAsChanged(treeData, changed) {
+        changed.forEach(function (filePath) {
+            var objectPath = _filePathToObjectPath(treeData, filePath);
+            if (objectPath) {
+                treeData = treeData.updateIn(objectPath, _addTimestamp);
+            }
+        });
+        return treeData;
+    }
+    
+    /**
+     * @private
+     * 
+     * Adds entries at the paths listed in the `added` array. Directories should have a trailing slash.
+     * 
+     * @param {Immutable.Map} treeData
+     * @param {Array.<string>} added list of new project-relative file paths
+     * @return {Immutable.Map} revised treeData
+     */
+    function _addNewEntries(treeData, added) {
+        added.forEach(function (filePath) {
+            var isFolder = _.last(filePath) === "/";
+            
+            filePath = isFolder ? filePath.substr(0, filePath.length - 1) : filePath;
+            
+            var parentPath = FileUtils.getDirectoryPath(filePath),
+                parentObjectPath = _filePathToObjectPath(treeData, parentPath),
+                basename = FileUtils.getBaseName(filePath);
+            
+            if (parentObjectPath) {
+                treeData = _createPlaceholder(treeData, parentPath, basename, isFolder, {
+                    notInCreateMode: true,
+                    doNotOpen: true
+                });
+            }
+        });
+        
+        return treeData;
+    }
+    
+    /**
+     * Applies changes to the tree. The `changes` object can have one or more of the following keys which all
+     * have arrays of project-relative paths as their values:
+     * 
+     * * `changed`: entries that have changed in some way that should be re-rendered
+     * * `added`: new entries that need to appear in the tree
+     * * `removed`: entries that have been deleted from the tree
+     * 
+     * @param {{changed: Array.<string>=, added: Array.<string>=, removed: Array.<string>=}}
+     */
+    FileTreeViewModel.prototype.processChanges = function (changes) {
+        var treeData = this.treeData;
+        
+        if (changes.changed) {
+            treeData = _markAsChanged(treeData, changes.changed);
+        }
+        
+        if (changes.added) {
+            treeData = _addNewEntries(treeData, changes.added);
+        }
+        
+        if (changes.removed) {
+            changes.removed.forEach(function (path) {
+                treeData = _deleteAtPath(treeData, path);
+            });
+        }
+        
+        this._commitTreeData(treeData);
     };
 
     /**
