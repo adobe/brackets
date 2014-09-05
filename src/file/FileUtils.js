@@ -250,19 +250,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Warning: Contrary to the name, this does NOT return a canonical path. The canonical format
-     * used by Directory.fullPath actually DOES include the trailing "/"
-     * @deprecated
-     * 
-     * @param {string} path
-     * @return {string}
-     */
-    function canonicalizeFolderPath(path) {
-        console.error("Warning: FileUtils.canonicalizeFolderPath() is deprecated. Use paths ending in '/' if possible, like Directory.fullPath");
-        return stripTrailingSlash(path);
-    }
-    
-    /**
      * Get the name of a file or a directory, removing any preceding path.
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the base name of a file or the name of a
@@ -520,7 +507,6 @@ define(function (require, exports, module) {
     exports.convertWindowsPathToUnixPath   = convertWindowsPathToUnixPath;
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
-    exports.canonicalizeFolderPath         = canonicalizeFolderPath;
     exports.stripTrailingSlash             = stripTrailingSlash;
     exports.isCSSPreprocessorFile          = isCSSPreprocessorFile;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;

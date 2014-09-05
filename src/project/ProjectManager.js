@@ -863,17 +863,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
-     * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
-     * @param {string} fileName
-     * @return {boolean}
-     */
-    function isBinaryFile(fileName) {
-        DeprecationWarning.deprecationWarning("ProjectManager.isBinaryFile() called for " + fileName + ". Use LanguageManager.getLanguageForPath(fileName).isBinary() instead.");
-        return LanguageManager.getLanguageForPath(fileName).isBinary();
-    }
-    
-    /**
      * @private
      * Generate a string suitable for sorting
      * @param {string} name
@@ -2383,7 +2372,6 @@ define(function (require, exports, module) {
     exports.isWithinProject          = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow               = shouldShow;
-    exports.isBinaryFile             = isBinaryFile;
     exports.openProject              = openProject;
     exports.getSelectedItem          = getSelectedItem;
     exports.getInitialProjectPath    = getInitialProjectPath;
