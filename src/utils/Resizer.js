@@ -103,8 +103,8 @@ define(function (require, exports, module) {
     
     function removeSizable(element) {
         var removeSizableFunc = $(element).data("removeSizable");
-        if (removeSizable) {
-            removeSizable.apply(element);
+        if (removeSizableFunc) {
+            removeSizableFunc.apply(element);
         }
     }
     
@@ -113,6 +113,10 @@ define(function (require, exports, module) {
         if (updateSizerFunc) {
             updateSizerFunc.apply(element);
         }
+    }
+    
+    function isResizable(element) {
+        return Boolean($(element).data("isResizable"));
     }
     
     /**
@@ -222,8 +226,17 @@ define(function (require, exports, module) {
             
         $element.data("removeSizable", function () {
             $resizer.off(".resizer");
+            
+            $element.removeData("show");
+            $element.removeData("hide");
+            $element.removeData("updateSizer");
+            $element.removeData("removeSizable");
+            $element.removeData("isResizable");
+            
             $resizer.remove();
         });
+        
+        $element.data("isResizable", true);
         
         $element.data("updateSizer", function () {
             repositionResizer(elementSizeFunction.apply($element));
@@ -434,7 +447,7 @@ define(function (require, exports, module) {
             }
         }
     }
-	
+    
     // Scan DOM for horz-resizable and vert-resizable classes and make them resizable
     AppInit.htmlReady(function () {
         var minSize = DEFAULT_MIN_SIZE;
@@ -497,6 +510,7 @@ define(function (require, exports, module) {
     exports.show            = show;
     exports.hide            = hide;
     exports.isVisible       = isVisible;
+    exports.isResizable     = isResizable;
     
     //Resizer Constants
     exports.DIRECTION_VERTICAL   = DIRECTION_VERTICAL;

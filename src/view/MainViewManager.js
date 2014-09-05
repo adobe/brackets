@@ -927,7 +927,9 @@ define(function (require, exports, module) {
                     pane.$el.height(current - delta);
                 }
             }
+            pane.$el.data("maxsize", available - 100);
             pane.updateLayout(forceRefresh);
+            Resizer.updateSizer(pane.$el);
         });
     }
     
@@ -937,8 +939,15 @@ define(function (require, exports, module) {
      * @private
      */
     function _initialLayout(forceRefresh) {
-        var panes = Object.keys(_panes),
+        var available,
+            panes = Object.keys(_panes),
             size = 100 / panes.length;
+        
+        if (_orientation === VERTICAL) {
+            available = _$el.innerWidth();
+        } else {
+            available = _$el.innerHeight();
+        }
         
         _.forEach(_panes, function (pane) {
             if (_orientation === VERTICAL) {
@@ -953,6 +962,7 @@ define(function (require, exports, module) {
                              });
             }
             
+            pane.$el.data("maxsize", available - 100);
             pane.updateLayout(forceRefresh);
             Resizer.updateSizer(pane.$el);
         });
@@ -998,19 +1008,8 @@ define(function (require, exports, module) {
                                                pane.id]);
                 }
             });
-            
-            if (paneId === SECOND_PANE) {
-                var firstPane = _panes[FIRST_PANE];
-                Resizer.makeResizable(firstPane.$el,
-                                      _orientation === HORIZONTAL ? Resizer.DIRECTION_VERTICAL : Resizer.DIRECTION_HORIZONTAL,
-                                      _orientation === HORIZONTAL ? Resizer.POSITION_BOTTOM : Resizer.POSITION_RIGHT,
-                                      100);
-                firstPane.$el.on("panelCollapsed panelExpanded panelResizeUpdate", function () {
-                    _updateLayout();
-                });
-                
-            }
         }
+
         
         return _panes[paneId];
     }
@@ -1021,12 +1020,25 @@ define(function (require, exports, module) {
      * @param {!string} orientation (VERTICAL|HORIZONTAL)
      */
     function _doSplit(orientation) {
-        _createPaneIfNecessary(SECOND_PANE);
+        var firstPane = _panes[FIRST_PANE];
+        Resizer.removeSizable(firstPane.$el);
+
         _orientation = orientation;
-        _initialLayout();
+        _createPaneIfNecessary(SECOND_PANE);
         _updateCommandState();
-        $(exports).triggerHandler("paneLayoutChange", [_orientation]);
+
+        Resizer.makeResizable(firstPane.$el,
+                              _orientation === HORIZONTAL ? Resizer.DIRECTION_VERTICAL : Resizer.DIRECTION_HORIZONTAL,
+                              _orientation === HORIZONTAL ? Resizer.POSITION_BOTTOM : Resizer.POSITION_RIGHT,
+                              100);
         
+        firstPane.$el.on("panelCollapsed panelExpanded panelResizeUpdate", function () {
+            _updateLayout();
+        });
+        
+        _initialLayout();
+        
+        $(exports).triggerHandler("paneLayoutChange", [_orientation]);
     }
     
     /**
