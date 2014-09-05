@@ -369,6 +369,13 @@ define(function (require, exports, module) {
             }
         });
 
+        templateVars.projectList.sort(function(a, b) {
+            // Changing the case (upper or lower) ensures a case insensitive sort
+            var aFolder = a.folder.toLowerCase();
+            var bFolder = b.folder.toLowerCase();
+            return (aFolder < bFolder) ? -1 : (aFolder > bFolder) ? 1 : 0;
+        });
+
         return Mustache.render(ProjectsMenuTemplate, templateVars);
     }
 
