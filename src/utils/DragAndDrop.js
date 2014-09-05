@@ -37,7 +37,6 @@ define(function (require, exports, module) {
         MainViewFactory = require("view/MainViewFactory"),
         LanguageManager = require("language/LanguageManager"),
         FileSystem      = require("filesystem/FileSystem"),
-        EditorManager   = require("editor/EditorManager"),
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
         StringUtils     = require("utils/StringUtils");

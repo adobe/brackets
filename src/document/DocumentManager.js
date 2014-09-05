@@ -87,8 +87,6 @@ define(function (require, exports, module) {
         DocumentModule      = require("document/Document"),
         DeprecationWarning  = require("utils/DeprecationWarning"),
         MainViewManager     = require("view/MainViewManager"),
-        ProjectManager      = require("project/ProjectManager"),
-        EditorManager       = require("editor/EditorManager"),
         FileSyncManager     = require("project/FileSyncManager"),
         FileSystem          = require("filesystem/FileSystem"),
         PreferencesManager  = require("preferences/PreferencesManager"),
@@ -279,20 +277,6 @@ define(function (require, exports, module) {
     function finalizeDocumentNavigation() {
         DeprecationWarning.deprecationWarning("Use MainViewManager.endTraversal() instead of DocumentManager.finalizeDocumentNavigation()", true);
         MainViewManager.endTraversal();
-    }
-    
-    /**
-     * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
-     * return currentDocument itself if working set is length 1.
-     * @deprecated use MainViewManager.traverseToNextViewByMRU() instead
-     */
-    function getNextPrevFile(inc) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.traverseToNextViewByMRU() instead of DocumentManager.getNextPrevFile()", true);
-        var result = MainViewManager.traverseToNextViewByMRU(inc);
-        if (result) {
-            return result.file;
-        }
-        return null;
     }
     
     /**

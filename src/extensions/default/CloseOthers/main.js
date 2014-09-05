@@ -30,7 +30,6 @@ define(function (require, exports, module) {
     var Menus                   = brackets.getModule("command/Menus"),
         CommandManager          = brackets.getModule("command/CommandManager"),
         Commands                = brackets.getModule("command/Commands"),
-        DocumentManager         = brackets.getModule("document/DocumentManager"),
         MainViewManager         = brackets.getModule("view/MainViewManager"),
         Strings                 = brackets.getModule("strings"),
         workingSetListCmenu       = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU),

@@ -32,7 +32,6 @@ define(function (require, exports, module) {
     // Load dependent modules
     var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
         LanguageManager     = require("language/LanguageManager"),
-        MainViewManager     = require("view/MainViewManager"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         PreferencesManager  = require("preferences/PreferencesManager");
     

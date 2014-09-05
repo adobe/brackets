@@ -46,7 +46,6 @@ define(function (require, exports, module) {
     var ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
-        EditorManager       = require("editor/EditorManager"),
         Async               = require("utils/Async"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),

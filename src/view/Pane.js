@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $, Mustache */
 
  /**
   * Pane objects host views of files, editors, etc... Clients cannot access
@@ -153,7 +153,6 @@ define(function (require, exports, module) {
         
     var _                   = require("thirdparty/lodash"),
         FileSystem          = require("filesystem/FileSystem"),
-        File                = require("filesystem/File"),
         InMemoryFile        = require("document/InMemoryFile"),
         ViewStateManager    = require("view/ViewStateManager"),
         MainViewManager     = require("view/MainViewManager"),
@@ -1043,8 +1042,7 @@ define(function (require, exports, module) {
      * @return {!Object} state - the state to save 
      */
     Pane.prototype.saveState = function () {
-        var view,
-            result = [],
+        var result = [],
             currentlyViewedPath = this.getCurrentlyViewedPath();
 
         // Save the current view state first

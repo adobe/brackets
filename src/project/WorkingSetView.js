@@ -39,7 +39,6 @@ define(function (require, exports, module) {
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
         Menus                 = require("command/Menus"),
-        DefaultMenus          = require("command/DefaultMenus"),
         FileViewController    = require("project/FileViewController"),
         ViewUtils             = require("utils/ViewUtils"),
         paneListTemplate      = require("text!htmlContent/working-set.html"),
@@ -661,7 +660,7 @@ define(function (require, exports, module) {
         var file = MainViewManager.getCurrentlyViewedFile(this.paneId);
             
         // Iterate through working set list and update the selection on each
-        var items = this.$openFilesContainer.find("ul").children().each(function () {
+        this.$openFilesContainer.find("ul").children().each(function () {
             _updateListItemSelection(this, file);
         });
 
@@ -788,9 +787,6 @@ define(function (require, exports, module) {
      * Initializes the WorkingSetView object
      */
     WorkingSetView.prototype.init = function () {
-        // Init DOM element
-        var self = this;
-        
         this.$openFilesContainer = this.$el.find(".open-files-container");
         this.$workingSetListViewHeader = this.$el.find(".working-set-header");
         this.$gearMenu = this.$el.find(".working-set-option-btn");

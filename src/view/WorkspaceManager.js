@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets */
+/*global define, window, $ */
 
 /**
 * Manages layout of panels surrounding the editor area, and size of the editor area (but not its contents).

@@ -52,7 +52,6 @@ define(function (require, exports, module) {
     var DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
         CommandManager      = require("command/CommandManager"),
-        EditorManager       = require("editor/EditorManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands"),
         DeprecationWarning  = require("utils/DeprecationWarning");

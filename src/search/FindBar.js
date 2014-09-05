@@ -32,7 +32,6 @@ define(function (require, exports, module) {
     
     var _                  = require("thirdparty/lodash"),
         Commands           = require("command/Commands"),
-        EditorManager      = require("editor/EditorManager"),
         KeyBindingManager  = require("command/KeyBindingManager"),
         KeyEvent           = require("utils/KeyEvent"),
         ModalBar           = require("widgets/ModalBar").ModalBar,

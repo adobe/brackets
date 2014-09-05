@@ -36,7 +36,6 @@ define(function (require, exports, module) {
     
     var AppInit          = require("utils/AppInit"),
         StatusBarHTML    = require("text!widgets/StatusBar.html"),
-        EditorManager    = require("editor/EditorManager"),
         Strings          = require("strings"),
         WorkspaceManager = require("view/WorkspaceManager");
 

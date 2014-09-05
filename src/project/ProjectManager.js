@@ -76,8 +76,7 @@ define(function (require, exports, module) {
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async"),
-        FileSyncManager     = require("project/FileSyncManager"),
-        EditorManager       = require("editor/EditorManager");
+        FileSyncManager     = require("project/FileSyncManager");
     
     
     // Define the preference to decide how to sort the Project Tree files

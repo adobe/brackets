@@ -29,8 +29,6 @@ define(function (require, exports, module) {
     'use strict';
     
     var EditorManager    = require("editor/EditorManager"),
-        WorkspaceManager = require("view/WorkspaceManager"),
-        MainViewManager  = require("view/MainViewManager"),
         ViewStateManager = require("view/ViewStateManager"),
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 

@@ -74,8 +74,6 @@ define(function (require, exports, module) {
     };
     
     /**
-<<<<<<< HEAD
-=======
      * Events which the sort command will listen for to trigger a sort
      * @constant {string} 
      * @private
@@ -97,7 +95,6 @@ define(function (require, exports, module) {
     var _LEGACY_SORT_PREF = "currentSort";
     
     /**
->>>>>>> upstream/master
      * Retrieves a Sort object by id
      * @param {(string|Command)} command A command ID or a command object.
      * @return {?Sort}
