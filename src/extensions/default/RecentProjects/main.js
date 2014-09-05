@@ -371,9 +371,9 @@ define(function (require, exports, module) {
 
         templateVars.projectList.sort(function(a, b) {
             // Changing the case (upper or lower) ensures a case insensitive sort
-            var aFolder = a.folder.toLowerCase();
-            var bFolder = b.folder.toLowerCase();
-            return (aFolder < bFolder) ? -1 : (aFolder > bFolder) ? 1 : 0;
+            var aFolder = a.folder.toLocaleLowerCase();
+            var bFolder = b.folder.toLocaleLowerCase();
+            return aFolder.localeCompare(bFolder);
         });
 
         return Mustache.render(ProjectsMenuTemplate, templateVars);
