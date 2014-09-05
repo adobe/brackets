@@ -49,6 +49,14 @@ define(function (require, exports, module) {
         }
     }
 
+    function handleClick(event) {
+        if (event.shiftKey) {
+            window.console.clear();
+        } else {
+            showDeveloperTools();
+        }
+    }
+
     function refreshIndicator() {
         // never show 0 errors
         if (!_attached || errorCount === 0) {
@@ -73,7 +81,7 @@ define(function (require, exports, module) {
             .attr("title", Strings.CMD_SHOW_DEV_TOOLS + "\u2026")
             .text(Strings.ERRORS + ": ")
             .append($span)
-            .on("click", showDeveloperTools)
+            .on("click", handleClick)
             .insertBefore("#status-bar .spinner");
     }
 
