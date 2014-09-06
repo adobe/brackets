@@ -321,6 +321,7 @@ define("promise/promise",
       try {
         resolver(resolvePromise, rejectPromise);
       } catch(e) {
+        console.error(e);   // temp?
         rejectPromise(e);
       }
     }
