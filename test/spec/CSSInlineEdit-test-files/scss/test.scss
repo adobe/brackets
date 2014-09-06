@@ -37,3 +37,26 @@ div.#{$name} {
 a {
     color: blue;
 }
+
+// This is a single line comment
+.comment-scss-1 {
+    background-color: red;
+}
+
+// This is a single line comment
+// spread over two lines
+.comment-scss-2 {
+    background-color: green;
+}
+
+/* This is a single line block comment */
+.comment-scss-3 {
+    background-color: blue;
+}
+
+/* This is a multi line block comment
+ * on two lines
+ */
+.comment-scss-4 {
+    background-color: black;
+}

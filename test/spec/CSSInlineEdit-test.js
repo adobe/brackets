@@ -22,18 +22,18 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, $, beforeFirst, afterLast, waits */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, $, beforeFirst, afterLast, waits */
 
 define(function (require, exports, module) {
     "use strict";
 
-    var SpecRunnerUtils            = require("spec/SpecRunnerUtils");
+    var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+        Strings         = require("strings");
 
-    var testPath                   = SpecRunnerUtils.getTestPath("/spec/CSSInlineEdit-test-files");
+    var testPath = SpecRunnerUtils.getTestPath("/spec/CSSInlineEdit-test-files");
 
     // TODO:
     // - make changes in inline editor -> css/scss/less files are added to Workingset and get dirty
-    // - check hierachical rules in related content
     // - multiple inline edit widgets
 
     describe("CSS Inline Edit", function () {
@@ -80,20 +80,24 @@ define(function (require, exports, module) {
             return $(".dropdown-menu.dropdownbutton-popup");
         }
 
-        function getInlineEditorWidget() {
-            return EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
+        function getInlineEditorWidgets() {
+            return EditorManager.getCurrentFullEditor().getInlineWidgets();
         }
 
-        function inlineEditorMessage() {
-            return getInlineEditorWidget().$messageDiv;
+        function inlineEditorMessage(index) {
+            if (index === undefined) {
+                index = 0;
+            }
+
+            return getInlineEditorWidgets()[index].$messageDiv;
         }
 
-        function inlineEditorHolder() {
-            return $("div .inline-editor-holder");
+        function inlineEditorFileName(inlineWidget) {
+            return inlineWidget.$header.find("a.filename");
         }
 
-        function inlineEditorFileName() {
-            return $(".inline-editor-header a.filename");
+        function getRelatedFiles(inlineWidget) {
+            return inlineWidget.$relatedContainer.find(".related ul>li");
         }
 
         function loadFile(file) {
@@ -147,7 +151,7 @@ define(function (require, exports, module) {
                     var availableFilesInDropdown = dropdownMenu().children();
                     checkAvailableStylesheets(availableFilesInDropdown);
 
-                    expect(inlineEditorMessage().text()).toEqual("There are no existing CSS rules that match your selection. Click \"New Rule\" to create one.");
+                    expect(inlineEditorMessage().html()).toEqual(Strings.CSS_QUICK_EDIT_NO_MATCHES);
                 });
             });
 
@@ -161,12 +165,13 @@ define(function (require, exports, module) {
                     // open the dropdown
                     dropdownButton().click();
 
+                    var inlineWidgets = getInlineEditorWidgets();
+
                     var availableFilesInDropdown = dropdownMenu().children();
                     checkAvailableStylesheets(availableFilesInDropdown);
-                    expect(inlineEditorFileName()[0].text).toEqual("test.less : 5");
+                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.less : 5");
 
-                    var inlineWidget = getInlineEditorWidget();
-                    var ranges = inlineWidget._ranges[0];
+                    var ranges = inlineWidgets[0]._ranges[0];
                     var document = ranges.textRange.document;
 
                     expect(document.getRange({line: ranges.textRange.startLine, ch: 0}, {line: ranges.textRange.endLine, ch: document.getLine(ranges.textRange.endLine).length})).toEqual(".banner {\n    background-color: red;\n}");
@@ -183,23 +188,68 @@ define(function (require, exports, module) {
                     // open the dropdown
                     dropdownButton().click();
 
+                    var inlineWidgets = getInlineEditorWidgets();
+
                     var availableFilesInDropdown = dropdownMenu().children();
                     expect(availableFilesInDropdown.length).toBe(5);
                     checkAvailableStylesheets(availableFilesInDropdown);
-                    expect(inlineEditorFileName()[0].text).toEqual("test.css : 8");
+                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.css : 8");
 
-                    var inlineWidget = getInlineEditorWidget();
-                    var ranges = inlineWidget._ranges[0];
+                    var ranges = inlineWidgets[0]._ranges[0];
                     var document = ranges.textRange.document;
 
                     expect(document.getRange({line: ranges.textRange.startLine, ch: 0}, {line: ranges.textRange.endLine, ch: document.getLine(ranges.textRange.endLine).length})).toEqual(".banner-new {\n    background-color: blue;\n}");
 
-                    var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                    var files = getRelatedFiles(inlineWidgets[0]);
                     expect(files.length).toBe(2);
                     expect(files[0].textContent).toEqual(".banner-new — test.css : 8");
                     expect(files[1].textContent).toEqual(".banner-new — test2.css : 8");
                 });
             });
+
+            it("should open two inline editors and show the matching rules", function () {
+                runs(function () {
+                    var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 15, ch: 25});
+                    waitsForDone(promise, "Open inline editor 1");
+
+                    promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 20, ch: 25});
+                    waitsForDone(promise, "Open inline editor 2");
+                });
+
+                runs(function () {
+                    // open the dropdown
+                    dropdownButton().click();
+
+                    var inlineWidgets = getInlineEditorWidgets();
+
+                    // Check Inline Editor 1
+                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.css : 1");
+
+                    var ranges = inlineWidgets[0]._ranges[0];
+                    var document = ranges.textRange.document;
+
+                    expect(document.getRange({line: ranges.textRange.startLine, ch: 0}, {line: ranges.textRange.endLine, ch: document.getLine(ranges.textRange.endLine).length})).toEqual(".standard {\n    background-color: red;\n}");
+
+                    var files = getRelatedFiles(inlineWidgets[0]);
+                    expect(files.length).toBe(2);
+                    expect(files[0].textContent).toEqual(".standard — test.css : 1");
+                    expect(files[1].textContent).toEqual(".standard — test2.css : 1");
+
+                    // Check Inline Editor 2
+                    expect(inlineEditorFileName(inlineWidgets[1])[0].text).toEqual("test.css : 8");
+
+                    ranges = inlineWidgets[1]._ranges[0];
+                    document = ranges.textRange.document;
+
+                    expect(document.getRange({line: ranges.textRange.startLine, ch: 0}, {line: ranges.textRange.endLine, ch: document.getLine(ranges.textRange.endLine).length})).toEqual(".banner-new {\n    background-color: blue;\n}");
+
+                    files = getRelatedFiles(inlineWidgets[1]);
+                    expect(files.length).toBe(2);
+                    expect(files[0].textContent).toEqual(".banner-new — test.css : 8");
+                    expect(files[1].textContent).toEqual(".banner-new — test2.css : 8");
+                });
+            });
+
         });
 
         describe("LESS", function () {
@@ -238,12 +288,13 @@ define(function (require, exports, module) {
                     // open the dropdown
                     dropdownButton().click();
 
+                    var inlineWidgets = getInlineEditorWidgets();
+
                     var availableFilesInDropdown = dropdownMenu().children();
                     checkAvailableStylesheets(availableFilesInDropdown);
-                    expect(inlineEditorFileName()[0].text).toEqual("test.less : 5");
+                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.less : 5");
 
-                    var inlineWidget = getInlineEditorWidget();
-                    var ranges = inlineWidget._ranges[0];
+                    var ranges = inlineWidgets[0]._ranges[0];
 
                     expect(getInlineEditorContent(ranges)).toEqual(".banner {\n    background-color: red;\n}");
                 });
@@ -259,16 +310,17 @@ define(function (require, exports, module) {
                     // open the dropdown
                     dropdownButton().click();
 
+                    var inlineWidgets = getInlineEditorWidgets();
+
                     var availableFilesInDropdown = dropdownMenu().children();
                     checkAvailableStylesheets(availableFilesInDropdown);
-                    expect(inlineEditorFileName()[0].text).toEqual("test.less : 9");
+                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.less : 9");
 
-                    var inlineWidget = getInlineEditorWidget();
-                    var ranges = inlineWidget._ranges[0];
+                    var ranges = inlineWidgets[0]._ranges[0];
 
                     expect(getInlineEditorContent(ranges)).toEqual("    &.banner-new2 {\n        background-color: blue;\n    }");
 
-                    var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                    var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
                     expect(files.length).toBe(2);
                     expect(files[0].textContent).toEqual("div / &.banner-new2 — test.less : 9");
                     expect(files[1].textContent).toEqual(".banner-new2 — test2.less : 1");
@@ -283,57 +335,142 @@ define(function (require, exports, module) {
                     });
 
                     runs(function () {
-                        expect(inlineEditorFileName()[0].text).toEqual("test2.less : 11");
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 11");
 
-                        var inlineWidget = getInlineEditorWidget();
-                        var ranges = inlineWidget._ranges[0];
+                        var ranges = inlineWidgets[0]._ranges[0];
 
                         expect(getInlineEditorContent(ranges)).toEqual("        .level3 {\n            color: red;\n        }");
 
                         // It's not visible
-                        var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual(".level1 / .level2 / .level3 — test2.less : 11");
                     });
                 });
 
-                it("should show the sinlge line comment above the matching rule", function () {
+                it("should show matching rule with comment above containing delimiter chars", function () {
+                    runs(function () {
+                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 37, ch: 25});
+                        waitsForDone(promise, "Open inline editor");
+                    });
+
+                    runs(function () {
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 44");
+
+                        var ranges = inlineWidgets[0]._ranges[0];
+
+                        expect(getInlineEditorContent(ranges)).toEqual(".confuse1 {\n    /* {this comment is special(;:,)} */\n    .special {\n        color: #ff8000;\n    }\n}");
+
+                        // It's not visible
+                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        expect(files.length).toBe(1);
+                        expect(files[0].textContent).toEqual(".confuse1 — test2.less : 44");
+                    });
+                });
+
+                it("should show matching rule without delimiting whitespace (compressed)", function () {
+                    runs(function () {
+                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 44, ch: 25});
+                        waitsForDone(promise, "Open inline editor");
+                    });
+
+                    runs(function () {
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 51");
+
+                        var ranges = inlineWidgets[0]._ranges[0];
+
+                        expect(getInlineEditorContent(ranges)).toEqual(".compressed{color:red}");
+
+                        // It's not visible
+                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        expect(files.length).toBe(1);
+                        expect(files[0].textContent).toEqual(".compressed — test2.less : 51");
+                    });
+                });
+            });
+            describe("Comments", function () {
+                it("should show matching sub rule with comment above containing delimiter chars", function () {
+                    runs(function () {
+                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 39, ch: 25});
+                        waitsForDone(promise, "Open inline editor");
+                    });
+
+                    runs(function () {
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 45");
+
+                        var ranges = inlineWidgets[0]._ranges[0];
+
+                        expect(getInlineEditorContent(ranges)).toEqual("    /* {this comment is special(;:,)} */\n    .special {\n        color: #ff8000;\n    }");
+
+                        // It's not visible
+                        var files = getRelatedFiles(inlineWidgets[0]);
+                        expect(files.length).toBe(1);
+                        expect(files[0].textContent).toEqual(".confuse1 / .special — test2.less : 45");
+                    });
+                });
+
+                it("should show the single line block style comment above the matching rule", function () {
                     runs(function () {
                         var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 31, ch: 25});
                         waitsForDone(promise, "Open inline editor");
                     });
 
                     runs(function () {
-                        expect(inlineEditorFileName()[0].text).toEqual("test2.less : 17");
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 17");
 
-                        var inlineWidget = getInlineEditorWidget();
-                        var ranges = inlineWidget._ranges[0];
+                        var ranges = inlineWidgets[0]._ranges[0];
 
-                        expect(getInlineEditorContent(ranges)).toEqual("/* This is a single line comment that should appear in the inline editor as first line */\n.comment1 {\n    text-align: center;\n}");
+                        expect(getInlineEditorContent(ranges)).toEqual("/* This is a single line block comment that should appear in the inline editor as first line */\n.comment1 {\n    text-align: center;\n}");
 
                         // It's not visible
-                        var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual(".comment1 — test2.less : 17");
                     });
                 });
 
-                it("should show the multi line comment above the matching rule", function () {
+                it("should show the single line inline comment above the matching rule", function () {
                     runs(function () {
                         var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 34, ch: 25});
                         waitsForDone(promise, "Open inline editor");
                     });
 
                     runs(function () {
-                        expect(inlineEditorFileName()[0].text).toEqual("test2.less : 22");
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 33");
 
-                        var inlineWidget = getInlineEditorWidget();
-                        var ranges = inlineWidget._ranges[0];
+                        var ranges = inlineWidgets[0]._ranges[0];
 
-                        expect(getInlineEditorContent(ranges)).toEqual("/* This is a multiline comment\n * that should appear in the inline editor\n */\n.comment2 {\n    text-decoration: overline;\n}");
+                        expect(getInlineEditorContent(ranges)).toEqual("// This is a single line comment that should appear in the inline editor as first line\n.comment4 {\n    text-align: center;\n}");
 
                         // It's not visible
-                        var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        expect(files.length).toBe(1);
+                        expect(files[0].textContent).toEqual(".comment4 — test2.less : 33");
+                    });
+                });
+
+                it("should show the multi line block comment above the matching rule", function () {
+                    runs(function () {
+                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 32, ch: 25});
+                        waitsForDone(promise, "Open inline editor");
+                    });
+
+                    runs(function () {
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 22");
+
+                        var ranges = inlineWidgets[0]._ranges[0];
+
+                        expect(getInlineEditorContent(ranges)).toEqual("/* This is a multiline block comment\n * that should appear in the inline editor\n */\n.comment2 {\n    text-decoration: overline;\n}");
+
+                        // It's not visible
+                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual(".comment2 — test2.less : 22");
                     });
@@ -341,201 +478,181 @@ define(function (require, exports, module) {
 
                 it("should show the end of line comment after the matching rule", function () {
                     runs(function () {
-                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 37, ch: 25});
+                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 33, ch: 25});
                         waitsForDone(promise, "Open inline editor");
                     });
 
                     runs(function () {
-                        expect(inlineEditorFileName()[0].text).toEqual("test2.less : 29");
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 29");
 
-                        var inlineWidget = getInlineEditorWidget();
-                        var ranges = inlineWidget._ranges[0];
+                        var ranges = inlineWidgets[0]._ranges[0];
 
                         expect(getInlineEditorContent(ranges)).toEqual(".comment3 {\n    text-decoration: underline; /* EOL comment {}(,;:) */\n}");
 
                         // It's not visible
-                        var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual(".comment3 — test2.less : 29");
                     });
                 });
+            });
 
-                it("should show matching rule with comment above containing delimiter chars", function () {
+            describe("Selector groups", function () {
+                it("should show matching selector group", function () {
                     runs(function () {
-                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 41, ch: 25});
+                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 49, ch: 25});
                         waitsForDone(promise, "Open inline editor");
                     });
 
                     runs(function () {
-                        expect(inlineEditorFileName()[0].text).toEqual("test2.less : 33");
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 55");
 
-                        var inlineWidget = getInlineEditorWidget();
-                        var ranges = inlineWidget._ranges[0];
+                        var ranges = inlineWidgets[0]._ranges[0];
 
-                        expect(getInlineEditorContent(ranges)).toEqual(".confuse1 {\n    /* {this comment is special(;:,)} */\n    .special {\n        color: #ff8000;\n    }\n}");
+                        expect(getInlineEditorContent(ranges)).toEqual("    .uno, .dos {\n        color: red\n    }");
 
                         // It's not visible
-                        var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".confuse1 — test2.less : 33");
+                        expect(files[0].textContent).toEqual(".uno, .dos — test2.less : 55");
                     });
                 });
 
-                it("should show matching sub rule with comment above  containing delimiter chars", function () {
+                it("should show 1 matching rule of selector group", function () {
                     runs(function () {
-                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 43, ch: 25});
+                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 50, ch: 25});
                         waitsForDone(promise, "Open inline editor");
                     });
 
                     runs(function () {
-                        expect(inlineEditorFileName()[0].text).toEqual("test2.less : 34");
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 55");
 
-                        var inlineWidget = getInlineEditorWidget();
-                        var ranges = inlineWidget._ranges[0];
+                        var ranges = inlineWidgets[0]._ranges[0];
 
-                        expect(getInlineEditorContent(ranges)).toEqual("    /* {this comment is special(;:,)} */\n    .special {\n        color: #ff8000;\n    }");
+                        expect(getInlineEditorContent(ranges)).toEqual("    .uno, .dos {\n        color: red\n    }");
 
                         // It's not visible
-                        var files = inlineWidget.$relatedContainer.find(".related ul>li");
-                        expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".confuse1 / .special — test2.less : 34");
+                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        expect(files.length).toBe(2);
+                        expect(files[0].textContent).toEqual(".uno, .dos — test2.less : 55");
+                        expect(files[1].textContent).toEqual("#main / .dos — test2.less : 59");
                     });
                 });
 
-                it("should show matching rule without delimiting whitespace (compressed)", function () {
+                it("should show matching selector group with selectors on separate lines", function () {
                     runs(function () {
-                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 48, ch: 25});
+                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 54, ch: 25});
                         waitsForDone(promise, "Open inline editor");
                     });
 
                     runs(function () {
-                        expect(inlineEditorFileName()[0].text).toEqual("test2.less : 40");
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 65");
 
-                        var inlineWidget = getInlineEditorWidget();
-                        var ranges = inlineWidget._ranges[0];
+                        var ranges = inlineWidgets[0]._ranges[0];
 
-                        expect(getInlineEditorContent(ranges)).toEqual(".compressed{color:red}");
+                        expect(getInlineEditorContent(ranges)).toEqual("    .tres,\n    .quattro {\n        color: blue;\n    }");
 
                         // It's not visible
-                        var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".compressed — test2.less : 40");
-                    });
-                });
-
-                describe("Selector groups", function () {
-                    it("should show matching selector group", function () {
-                        runs(function () {
-                            var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 53, ch: 25});
-                            waitsForDone(promise, "Open inline editor");
-                        });
-
-                        runs(function () {
-                            expect(inlineEditorFileName()[0].text).toEqual("test2.less : 44");
-
-                            var inlineWidget = getInlineEditorWidget();
-                            var ranges = inlineWidget._ranges[0];
-
-                            expect(getInlineEditorContent(ranges)).toEqual("    .uno, .dos {\n        color: red\n    }");
-
-                            // It's not visible
-                            var files = inlineWidget.$relatedContainer.find(".related ul>li");
-                            expect(files.length).toBe(1);
-                            expect(files[0].textContent).toEqual(".uno, .dos — test2.less : 44");
-                        });
-                    });
-
-                    it("should show 1 matching rule of selector group", function () {
-                        runs(function () {
-                            var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 54, ch: 25});
-                            waitsForDone(promise, "Open inline editor");
-                        });
-
-                        runs(function () {
-                            expect(inlineEditorFileName()[0].text).toEqual("test2.less : 44");
-
-                            var inlineWidget = getInlineEditorWidget();
-                            var ranges = inlineWidget._ranges[0];
-
-                            expect(getInlineEditorContent(ranges)).toEqual("    .uno, .dos {\n        color: red\n    }");
-
-                            // It's not visible
-                            var files = inlineWidget.$relatedContainer.find(".related ul>li");
-                            expect(files.length).toBe(2);
-                            expect(files[0].textContent).toEqual(".uno, .dos — test2.less : 44");
-                            expect(files[1].textContent).toEqual("#main / .dos — test2.less : 48");
-                        });
-                    });
-
-                    it("should show matching selector group with selectors on separate lines", function () {
-                        runs(function () {
-                            var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 58, ch: 25});
-                            waitsForDone(promise, "Open inline editor");
-                        });
-
-                        runs(function () {
-                            expect(inlineEditorFileName()[0].text).toEqual("test2.less : 54");
-
-                            var inlineWidget = getInlineEditorWidget();
-                            var ranges = inlineWidget._ranges[0];
-
-                            expect(getInlineEditorContent(ranges)).toEqual("    .tres,\n    .quattro {\n        color: blue;\n    }");
-
-                            // It's not visible
-                            var files = inlineWidget.$relatedContainer.find(".related ul>li");
-                            expect(files.length).toBe(1);
-                            expect(files[0].textContent).toEqual(".tres, .quattro — test2.less : 54");
-                        });
-                    });
-                });
-
-                describe("Mixins", function () {
-                    it("should show matching mixin rule", function () {
-                        runs(function () {
-                            var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 68, ch: 30});
-                            waitsForDone(promise, "Open inline editor");
-                        });
-
-                        runs(function () {
-                            expect(inlineEditorFileName()[0].text).toEqual("test2.less : 75");
-
-                            var inlineWidget = getInlineEditorWidget();
-                            var ranges = inlineWidget._ranges[0];
-
-                            expect(getInlineEditorContent(ranges)).toEqual(".mixina-class {\n    .a();\n}");
-
-                            // It's not visible
-                            var files = inlineWidget.$relatedContainer.find(".related ul>li");
-                            expect(files.length).toBe(1);
-                            expect(files[0].textContent).toEqual(".mixina-class — test2.less : 75");
-                        });
-                    });
-                });
-
-                describe("Interpolation", function () {
-                    // Verify https://github.com/adobe/brackets/issues/8865
-                    it("should show a rule with variable interpolation in one of its property names", function () {
-                        runs(function () {
-                            var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 71, ch: 25});
-                            waitsForDone(promise, "Open inline editor");
-                        });
-
-                        runs(function () {
-                            expect(inlineEditorFileName()[0].text).toEqual("test2.less : 98");
-
-                            var inlineWidget = getInlineEditorWidget();
-                            var ranges = inlineWidget._ranges[0];
-
-                            expect(getInlineEditorContent(ranges)).toEqual(".widget {\n    @{property}: #0ee;\n    background-@{property}: #999;\n}");
-
-                            // It's not visible
-                            var files = inlineWidget.$relatedContainer.find(".related ul>li");
-                            expect(files.length).toBe(1);
-                            expect(files[0].textContent).toEqual(".widget — test2.less : 98");
-                        });
+                        expect(files[0].textContent).toEqual(".tres, .quattro — test2.less : 65");
                     });
                 });
             });
+
+            describe("Mixins", function () {
+                it("should show matching mixin rule", function () {
+                    runs(function () {
+                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 64, ch: 30});
+                        waitsForDone(promise, "Open inline editor");
+                    });
+
+                    runs(function () {
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 86");
+
+                        var ranges = inlineWidgets[0]._ranges[0];
+
+                        expect(getInlineEditorContent(ranges)).toEqual(".mixina-class {\n    .a();\n}");
+
+                        // It's not visible
+                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        expect(files.length).toBe(1);
+                        expect(files[0].textContent).toEqual(".mixina-class — test2.less : 86");
+                    });
+                });
+
+                it("should show matching rule which includes mixin with default parameter", function () {
+                    runs(function () {
+                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 71, ch: 20});
+                        waitsForDone(promise, "Open inline editor");
+                    });
+
+                    runs(function () {
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 120");
+
+                        var ranges = inlineWidgets[0]._ranges[0];
+
+                        expect(getInlineEditorContent(ranges)).toEqual("#header-mixin-paramterized-default {\n    .border-radius;\n}");
+
+                        // It's not visible
+                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        expect(files.length).toBe(1);
+                        expect(files[0].textContent).toEqual("#header-mixin-paramterized-default — test2.less : 120");
+                    });
+                });
+
+                it("should show matching rule which includes a parameterized mixin", function () {
+                    runs(function () {
+                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 73, ch: 25});
+                        waitsForDone(promise, "Open inline editor");
+                    });
+
+                    runs(function () {
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 126");
+
+                        var ranges = inlineWidgets[0]._ranges[0];
+
+                        expect(getInlineEditorContent(ranges)).toEqual("    #header-mixin-paramterized-custom-1 {\n        .border-radius(20px);\n    }");
+
+                        // It's not visible
+                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        expect(files.length).toBe(1);
+                        expect(files[0].textContent).toEqual("#header-mixin-paramterized-custom / #header-mixin-paramterized-custom-1 — test2.less : 126");
+                    });
+                });
+            });
+
+            describe("Interpolation", function () {
+                // Verify https://github.com/adobe/brackets/issues/8865
+                it("should show a rule with variable interpolation in one of its property names", function () {
+                    runs(function () {
+                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 67, ch: 25});
+                        waitsForDone(promise, "Open inline editor");
+                    });
+
+                    runs(function () {
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 109");
+
+                        var ranges = inlineWidgets[0]._ranges[0];
+
+                        expect(getInlineEditorContent(ranges)).toEqual(".widget {\n    @{property}: #0ee;\n    background-@{property}: #999;\n}");
+
+                        // It's not visible
+                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        expect(files.length).toBe(1);
+                        expect(files[0].textContent).toEqual(".widget — test2.less : 109");
+                    });
+                });
+            });
+
         });
 
         describe("SCSS", function () {
@@ -555,21 +672,21 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(inlineEditorFileName()[0].text).toEqual("test.scss : 5");
+                    var inlineWidgets = getInlineEditorWidgets();
+                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.scss : 5");
 
-                    var inlineWidget = getInlineEditorWidget();
-                    var ranges = inlineWidget._ranges[0];
+                    var ranges = inlineWidgets[0]._ranges[0];
 
                     expect(getInlineEditorContent(ranges)).toEqual("p {\n    $font-size: 12px;\n    $line-height: 30px;\n    font: #{$font-size}/#{$line-height};\n}");
 
                     // It's not visible
-                    var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                    var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
                     expect(files.length).toBe(1);
                     expect(files[0].textContent).toEqual("p — test.scss : 5");
                 });
             });
 
-//            https://github.com/adobe/brackets/issues/8875
+            // https://github.com/adobe/brackets/issues/8875
             it("should show one matching rule in inline editor which is defined after rule that uses variable interpolation as property value", function () {
                 runs(function () {
                     var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 28, ch: 20});
@@ -577,15 +694,15 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(inlineEditorFileName()[0].text).toEqual("test.scss : 11");
+                    var inlineWidgets = getInlineEditorWidgets();
+                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.scss : 11");
 
-                    var inlineWidget = getInlineEditorWidget();
-                    var ranges = inlineWidget._ranges[0];
+                    var ranges = inlineWidgets[0]._ranges[0];
 
                     expect(getInlineEditorContent(ranges)).toEqual("#scss-1 {\n    background-color: blue;\n}");
 
                     // It's not visible
-                    var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                    var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
                     expect(files.length).toBe(1);
                     expect(files[0].textContent).toEqual("#scss-1 — test.scss : 11");
                 });
@@ -599,15 +716,15 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(inlineEditorFileName()[0].text).toEqual("test.scss : 20");
+                    var inlineWidgets = getInlineEditorWidgets();
+                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.scss : 20");
 
-                    var inlineWidget = getInlineEditorWidget();
-                    var ranges = inlineWidget._ranges[0];
+                    var ranges = inlineWidgets[0]._ranges[0];
 
                     expect(getInlineEditorContent(ranges)).toEqual("    &-ok {\n        background-image: url(\"ok.png\");\n    }");
 
                     // It's not visible
-                    var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                    var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
                     expect(files.length).toBe(1);
                     expect(files[0].textContent).toEqual(".button / &-ok — test.scss : 20");
                 });
@@ -621,17 +738,40 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(inlineEditorFileName()[0].text).toEqual("test.scss : 37");
+                    var inlineWidgets = getInlineEditorWidgets();
+                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.scss : 37");
 
-                    var inlineWidget = getInlineEditorWidget();
-                    var ranges = inlineWidget._ranges[0];
+                    var ranges = inlineWidgets[0]._ranges[0];
 
                     expect(getInlineEditorContent(ranges)).toEqual("a {\n    color: blue;\n}");
 
                     // It's not visible
-                    var files = inlineWidget.$relatedContainer.find(".related ul>li");
+                    var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
                     expect(files.length).toBe(1);
                     expect(files[0].textContent).toEqual("a — test.scss : 37");
+                });
+            });
+
+            describe("Comments", function () {
+                it("should show single line comment above matching rule", function () {
+                    runs(function () {
+                        var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 45, ch: 25});
+                        waitsForDone(promise, "Open inline editor");
+                    });
+
+                    runs(function () {
+                        var inlineWidgets = getInlineEditorWidgets();
+                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.scss : 41");
+
+                        var ranges = inlineWidgets[0]._ranges[0];
+
+                        expect(getInlineEditorContent(ranges)).toEqual("// This is a single line comment\n.comment-scss-1 {\n    background-color: red;\n}");
+
+                        // It's not visible
+                        var files = getRelatedFiles(inlineWidgets[0]);
+                        expect(files.length).toBe(1);
+                        expect(files[0].textContent).toEqual(".comment-scss-1 — test.scss : 41");
+                    });
                 });
             });
         });

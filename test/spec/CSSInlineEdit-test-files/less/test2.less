@@ -14,12 +14,12 @@
     }
 }
 
-/* This is a single line comment that should appear in the inline editor as first line */
+/* This is a single line block comment that should appear in the inline editor as first line */
 .comment1 {
     text-align: center;
 }
 
-/* This is a multiline comment
+/* This is a multiline block comment
  * that should appear in the inline editor
  */
 .comment2 {
@@ -28,6 +28,17 @@
 
 .comment3 {
     text-decoration: underline; /* EOL comment {}(,;:) */
+}
+
+// This is a single line comment that should appear in the inline editor as first line
+.comment4 {
+    text-align: center;
+}
+
+// This is a multi line comment
+// that should appear in the inline editor
+.comment5 {
+    text-decoration: overline;
 }
 
 .confuse1 {
@@ -98,4 +109,22 @@ header {
 .widget {
     @{property}: #0ee;
     background-@{property}: #999;
+}
+
+.border-radius(@radius: 5px) {
+    -webkit-border-radius: @radius;
+        -moz-border-radius: @radius;
+            border-radius: @radius;
+}
+
+#header-mixin-paramterized-default {
+    .border-radius;
+}
+
+#header-mixin-paramterized-custom {
+    .border-radius(10px);
+    #header-mixin-paramterized-custom-1 {
+        .border-radius(20px);
+    }
+
 }
