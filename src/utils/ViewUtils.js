@@ -232,6 +232,11 @@ define(function (require, exports, module) {
             }
         };
         
+        var hideSelectionMarker = function (event) {
+            $selectionTriangle.addClass("forced-hidden");
+            $selectionMarker.addClass("forced-hidden");
+        };
+        
         var updateSelectionMarker = function (event, reveal) {
             // find the selected list item
             var $listItem = $listElement.find(selectedClassName).closest("li");
@@ -239,6 +244,9 @@ define(function (require, exports, module) {
             if (leafClassName) {
                 showTriangle = $listItem.hasClass(leafClassName);
             }
+
+            $selectionTriangle.removeClass("forced-hidden");
+            $selectionMarker.removeClass("forced-hidden");
             
             // always hide selection visuals first to force layout (issue #719)
             $selectionTriangle.hide();
@@ -279,6 +287,7 @@ define(function (require, exports, module) {
         $listElement.on("selectionChanged", updateSelectionMarker);
         $scrollerElement.on("scroll", updateSelectionTriangle);
         $scrollerElement.on("selectionRedraw", updateSelectionTriangle);
+        $scrollerElement.on("selectionHide", hideSelectionMarker);
         
         // update immediately
         updateSelectionMarker();
@@ -467,6 +476,32 @@ define(function (require, exports, module) {
         return displayPaths;
     }
 
+    function traverseViewArray(viewArray, startIndex, direction) {
+        if (Math.abs(direction) !== 1) {
+            console.error("traverseViewArray called with unsupported direction: " + direction.toString());
+            return null;
+        }
+        if (startIndex === -1) {
+            // If doc not in view list, return most recent view list item
+            if (viewArray.length > 0) {
+                return viewArray[0];
+            }
+        } else if (viewArray.length > 1) {
+            // If doc is in view list, return next/prev item with wrap-around
+            startIndex += direction;
+            if (startIndex >= viewArray.length) {
+                startIndex = 0;
+            } else if (startIndex < 0) {
+                startIndex = viewArray.length - 1;
+            }
+
+            return viewArray[startIndex];
+        }
+        
+        // If no doc open or view list empty, there is no "next" file
+        return null;
+    }
+    
     // handle all resize handlers in a single listener
     $(window).resize(_handleResize);
 
@@ -480,4 +515,5 @@ define(function (require, exports, module) {
     exports.getFileEntryDisplay          = getFileEntryDisplay;
     exports.toggleClass                  = toggleClass;
     exports.getDirNamesForDuplicateFiles = getDirNamesForDuplicateFiles;
+    exports.traverseViewArray            = traverseViewArray;
 });

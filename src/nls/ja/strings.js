@@ -38,6 +38,7 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
 	"CONTENTS_MODIFIED_ERR": "このファイルは {APP_NAME} 以外で変更されています。",
 	"UNSUPPORTED_ENCODING_ERR": "{APP_NAME} は現在 UTF-8 でエンコードされたテキストファイルのみをサポートしています。",
+	"UNSUPPORTED_FILE_TYPE_ERR": "!能=[7754241] The file is not a supported file type._=!",
 	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
 	"FILE": "ファイル",
 	"FILE_TITLE": "ファイル",
@@ -221,6 +222,14 @@ define({
 	"WORKING_FILES": "作業中ファイル",
 
     /**
+     * MainViewManager
+     */
+	"TOP": "上",
+	"BOTTOM": "!能=[7754232] Bottom_=!",
+	"LEFT": "!能=[7754238] Left_=!",
+	"RIGHT": "!能=[7754239] Right_=!",
+
+    /**
      * Keyboard modifier names
      */
 	"KEYBOARD_CTRL": "Ctrl",
@@ -276,7 +285,7 @@ define({
 	"CMD_FILE_NEW": "新しいファイル",
 	"CMD_FILE_NEW_FOLDER": "新しいフォルダー",
 	"CMD_FILE_OPEN": "開く\u2026",
-	"CMD_ADD_TO_WORKING_SET": "ワーキングセットに追加する",
+	"CMD_ADD_TO_WORKINGSET_AND_OPEN": "!能=[7754233] Add To Working Set and Open_=!",
 	"CMD_OPEN_DROPPED_FILES": "ドロップしたファイルを開く",
 	"CMD_OPEN_FOLDER": "フォルダーを開く\u2026",
 	"CMD_FILE_CLOSE": "閉じる",
@@ -355,10 +364,10 @@ define({
 	"CMD_TOGGLE_WORD_WRAP": "折り返し",
 	"CMD_LIVE_HIGHLIGHT": "ライブプレビューハイライト",
 	"CMD_VIEW_TOGGLE_INSPECTION": "保存時にファイルを Lint チェック",
-	"CMD_SORT_WORKINGSET_BY_ADDED": "追加日時順",
-	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
-	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
-	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
+	"CMD_WORKINGSET_SORT_BY_ADDED": "追加日時順",
+	"CMD_WORKINGSET_SORT_BY_NAME": "名前順",
+	"CMD_WORKINGSET_SORT_BY_TYPE": "種類順",
+	"CMD_WORKING_SORT_TOGGLE_AUTO": "自動ソート",
 	"CMD_THEMES": "テーマ\u2026",
 
     // Navigate menu Commands

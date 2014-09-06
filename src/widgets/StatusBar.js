@@ -34,10 +34,11 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var AppInit         = require("utils/AppInit"),
-        StatusBarHTML   = require("text!widgets/StatusBar.html"),
-        EditorManager   = require("editor/EditorManager"),
-        Strings         = require("strings");
+    var AppInit          = require("utils/AppInit"),
+        StatusBarHTML    = require("text!widgets/StatusBar.html"),
+        EditorManager    = require("editor/EditorManager"),
+        Strings          = require("strings"),
+        WorkspaceManager = require("view/WorkspaceManager");
 
     var _init = false;
     
@@ -185,7 +186,7 @@ define(function (require, exports, module) {
         
         if ($statusBar.is(":visible")) {
             $statusBar.hide();
-            EditorManager.resizeEditor();  // changes available ht for editor area
+            WorkspaceManager.recomputeLayout();
         }
     }
     
@@ -200,7 +201,7 @@ define(function (require, exports, module) {
 
         if (!$statusBar.is(":visible")) {
             $statusBar.show();
-            EditorManager.resizeEditor();  // changes available ht for editor area
+            WorkspaceManager.recomputeLayout();
         }
     }
     
