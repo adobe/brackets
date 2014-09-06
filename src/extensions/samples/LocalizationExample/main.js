@@ -21,18 +21,8 @@
  * 
  */
 
-
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, require, Mustache, navigator  */
-
-
-require.config({
-    paths: {
-        "text" : "lib/text",
-        "i18n" : "lib/i18n"
-    },
-    locale: brackets.getLocale()
-});
+/*global define, brackets, $, require, Mustache  */
 
 define(function (require, exports, module) {
     "use strict";
@@ -42,32 +32,38 @@ define(function (require, exports, module) {
         Menus               = brackets.getModule("command/Menus"),
         Dialogs             = brackets.getModule("widgets/Dialogs");
 
+    // 1) Localization using Mustache templates
     // Load an html fragment using the require text plugin. Mustache will later
     // be used to localize some of the text
     var browserWrapperHtml  = require("text!htmlContent/sampleHTMLFragment.html");
     
-    // Load the string module for this plugin. Not this references to the strings.js
-    // file next to the main.js fiel for this plugin. To access core brackets strings
-    // you would call brackets.getModule("strings") instead of require("strings")
+    // 2) Localization for strings used by JS code
+    // Load the string module for this extension. This references the strings.js
+    // file next to this extension's main.js file. To access core brackets strings,
+    // call brackets.getModule("strings") instead of require("strings").
     var Strings             = require("strings");
 
 
-    // This sample command first shows an alert passing in a localized
-    // string in JavaScript then it shows a localized HTML dialog.
+    // This sample command shows two modal dialogs, with strings localized using the
+    // two approaches above
     function testCommand() {
-        alert(Strings.ALERT_MESSAGE);
-
+        // 1) Mustache template
         // Localize the dialog using Strings as the datasource and use it as the dialog template
         var localizedTemplate = Mustache.render(browserWrapperHtml, Strings);
         Dialogs.showModalDialogUsingTemplate(localizedTemplate);
+        
+        // 2) String used by JS code
+        alert(Strings.ALERT_MESSAGE);
     }
 
 
     // Register the command
-    // A localized command name is used by passing in Strings.COMMAND_NAME
-    var myCommandID = "localizationExample.command";
-    var command = CommandManager.register(Strings.COMMAND_NAME, myCommandID, testCommand);
+    // Command ID is *not* localized, since it's not user visible and should stay constant.
+    // Command name *is* localized, using approach (2) from above.
+    var COMMAND_ID = "localizationExample.command";
+    var command = CommandManager.register(Strings.COMMAND_NAME, COMMAND_ID, testCommand);
 
+    // Add command to menu - menu will display the localized COMMAND_NAME we used above
     var menu = Menus.getMenu(Menus.AppMenuBar.EDIT_MENU);
-    menu.addMenuItem(myCommandID, null, Menus.AFTER, myCommandID);
+    menu.addMenuItem(COMMAND_ID);
 });

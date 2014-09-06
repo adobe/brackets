@@ -25,10 +25,11 @@
 /*global define */
 
 /**
- * This file provides the interface to user visible strings in Brackets. Code that needs
- * to display strings should should load this module by calling var Strings = require("strings").
- * The i18n plugin will dynamically load the strings for the right locale and populate
- * the exports variable. See src\nls\strings.js for the master file of English strings.
+ * This file is a wrapper that tells Require to load whichever version of nls/.../strings.js is
+ * appropriate for the current locale. If no folders under nls match, then nls/root is used.
+ * 
+ * The extension can reference this module via require("strings") without having to worry about
+ * which localized copy gets loaded. For example usage, see main.js.
  */
 define(function (require, exports, module) {
     "use strict";
