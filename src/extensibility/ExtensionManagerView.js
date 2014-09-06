@@ -28,7 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Strings                   = require("strings"),
+    var _                         = require("thirdparty/lodash"),
+        Strings                   = require("strings"),
         StringUtils               = require("utils/StringUtils"),
         ExtensionManager          = require("extensibility/ExtensionManager"),
         registry_utils            = require("extensibility/registry_utils"),
@@ -216,20 +217,17 @@ define(function (require, exports, module) {
             shortLang       = lang.split("-")[0],
             useShortLang    = info.metadata.hasOwnProperty(shortLang);
         if (useShortLang || info.metadata.hasOwnProperty(lang)) {
-            var key = useShortLang ? shortLang : lang,
-                prop;
-            for (prop in info.metadata[key]) {
-                if (info.metadata[key].hasOwnProperty(prop)) {
-                    if (prop !== "keywords") {
-                        // overlay existing string w/ localized string
-                        info.metadata[prop] = info.metadata[key][prop];
-                    } else {
-                        // for keywords, add the localized keywords to the root language keywords
-                        var keywords = info.metadata[prop].concat(info.metadata[key][prop]);
-                        info.metadata[prop] = keywords;
-                    }
+            var key = useShortLang ? shortLang : lang;
+            _.forEach(info.metadata[key], function (value, prop) {
+                if (prop !== "keywords") {
+                    // overlay existing string w/ localized string
+                    info.metadata[prop] = info.metadata[key][prop];
+                } else {
+                    // for keywords, add the localized keywords to the root language keywords
+                    var keywords = info.metadata[prop].concat(info.metadata[key][prop]);
+                    info.metadata[prop] = _.uniq(keywords);
                 }
-            }
+            });
         }
 
         if (info.metadata.description !== undefined) {
