@@ -48,7 +48,7 @@
  *          // Then tell the pane to add it to
  *          //  its view map and show it
  *          pane.addView(view, true); 
- *          return new $.Deferred().resolve().promise();
+ *          return Promise.resolve();
  *      }
  *
  *  Factories should only create 1 view of a file per pane.  Brackets currently only supports 1 view of 

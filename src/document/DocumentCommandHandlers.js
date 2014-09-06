@@ -273,7 +273,7 @@ define(function (require, exports, module) {
         }
         
         result = new Promise(function (resolve, reject) {
-            if (EditorManager.getCurrentlyViewedPath() === fullPath) {
+            if (MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE) === fullPath) {
                 // workaround for https://github.com/adobe/brackets/issues/6001
                 // TODO should be removed once bug is closed.
                 // if we are already displaying a file do nothing but resolve immediately.
@@ -286,18 +286,15 @@ define(function (require, exports, module) {
                 
             } else {
                 perfTimerName = PerfUtils.markStart("Open File:\t" + fullPath);
-                var viewProvider = EditorManager.getCustomViewerForPath(fullPath);
-                if (viewProvider) {
-                    var file = FileSystem.getFileForPath(fullPath);
-                    MainViewManager._open(paneId, file)
-                        .then(function () {
-                            resolve(file);
-                        })
-                        .catch(function (fileError) {
-                            _showErrorAndCleanUp(fileError, fullPath);
-                            reject();
-                        });
-                }
+                var file = FileSystem.getFileForPath(fullPath);
+                MainViewManager._open(paneId, file)
+                    .then(function () {
+                        resolve(file);
+                    })
+                    .catch(function (fileError) {
+                        _showErrorAndCleanUp(fileError, fullPath);
+                        reject();
+                    });
             }
         });
         
@@ -365,6 +362,8 @@ define(function (require, exports, module) {
                                     resolve(file);
                                 })
                                 .catch(reject);
+                        } else {
+                            reject();
                         }
                     }
                 });
@@ -937,8 +936,22 @@ define(function (require, exports, module) {
                     // If the document is untitled, default to project root.
                     saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
                 } else {
-                    reject();
+                    saveAsDefaultPath = FileUtils.getDirectoryPath(origPath);
                 }
+                defaultName = FileUtils.getBaseName(origPath);
+                FileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName, function (err, selectedPath) {
+                    if (!err) {
+                        if (selectedPath) {
+                            _doSaveAfterSaveDialog(selectedPath);
+                        } else {
+                            reject(USER_CANCELED);
+                        }
+                    } else {
+                        reject(err);
+                    }
+                });
+            } else {
+                reject();
             }
         });
         

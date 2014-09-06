@@ -176,7 +176,7 @@ define(function (require, exports, module) {
      **/
     function loadFile(module, path) {
         var url     = PathUtils.isAbsoluteUrl(path) ? path : getModuleUrl(module, path),
-            promise = $.get(url);
+            promise = Promise.resolve($.get(url));
 
         return promise;
     }

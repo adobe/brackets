@@ -301,16 +301,16 @@ define(function (require, exports, module) {
                 if (inlineWidget) {
                     // an inline widget's editor has focus, so close it
                     PerfUtils.markStart(PerfUtils.INLINE_WIDGET_CLOSE);
-                    inlineWidget.close().done(function () {
+                    inlineWidget.close().then(function () {
                         PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_CLOSE);
                         // return a resolved promise to CommandManager
                         resolve(false);
                     });
                 } else {
                     // main editor has focus, so create an inline editor
-                    _openInlineWidget(currentEditor, providers, errorMsg).done(function () {
+                    _openInlineWidget(currentEditor, providers, errorMsg).then(function () {
                         resolve(true);
-                    }).fail(function () {
+                    }).catch(function () {
                         reject();
                     });
                 }

@@ -229,7 +229,7 @@ define(function (require, exports, module) {
         DeprecationWarning.deprecationWarning("Use FileViewController.openFileAndAddToWorkingSet() instead of FileViewController.addToWorkingSetAndSelect().", true);
         var result = new $.Deferred();
         openFileAndAddToWorkingSet(fullPath)
-            .done(function (file) {
+            .then(function (file) {
                 var doc;
                 
                 if (file) {
@@ -238,7 +238,7 @@ define(function (require, exports, module) {
                 
                 result.resolve(doc);
             })
-            .fail(function (err) {
+            .catch(function (err) {
                 result.reject(err);
             });
         return result.promise();

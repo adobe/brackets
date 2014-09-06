@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets */
+/*global define, window, $, brackets, Promise */
 
 /**
  * MainViewManager Manages the arrangement of all open panes as well as provides the controller
@@ -1019,13 +1019,12 @@ define(function (require, exports, module) {
      * or a document for editing.  If it's a document for editing, edit is called on the document 
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!File} file - file to open
-     * @return {jQuery.Promise}  promise that resolves to a File object or 
-     *                           rejects with a File error or string
+     * @return {Promise}  promise that resolves to a File object or 
+     *                    rejects with a File error or string
      */
     function _open(paneId, file) {
         var oldPane = _getPane(ACTIVE_PANE),
-            oldFile = oldPane.getCurrentlyViewedFile(),
-            result = new $.Deferred();
+            oldFile = oldPane.getCurrentlyViewedFile();
         
         if (!file || !_getPane(paneId)) {
             throw new Error("bad argument");
@@ -1052,38 +1051,38 @@ define(function (require, exports, module) {
         //  editor to edit files for which there are suitable viewfactories
         var factory = MainViewFactory.findSuitableFactoryForPath(file.fullPath);
 
-        if (factory) {
-            file.exists(function (fileError, fileExists) {
-                if (fileExists) {
-                    // let the factory open the file and create a view for it
-                    factory.openFile(file, pane)
-                        .done(function () {
-                            // if we opened a file that isn't in the project
-                            //  then add the file to the working set
-                            if (!ProjectManager.isWithinProject(file.fullPath)) {
-                                addToWorkingSet(paneId, file);
-                            }
-                            result.resolve(file);
-                        })
-                        .fail(function (fileError) {
-                            result.reject(fileError);
-                        });
-                } else {
-                    result.reject(fileError || FileSystemError.NOT_FOUND);
-                }
-            });
-        } else {
-            DocumentManager.getDocumentForPath(file.fullPath)
-                .done(function (doc) {
-                    _edit(paneId, doc);
-                    result.resolve(doc.file);
-                })
-                .fail(function (fileError) {
-                    result.reject(fileError);
+        return new Promise(function (resolve, reject) {
+            if (factory) {
+                file.exists(function (fileError, fileExists) {
+                    if (fileExists) {
+                        // let the factory open the file and create a view for it
+                        factory.openFile(file, pane)
+                            .then(function () {
+                                // if we opened a file that isn't in the project
+                                //  then add the file to the working set
+                                if (!ProjectManager.isWithinProject(file.fullPath)) {
+                                    addToWorkingSet(paneId, file);
+                                }
+                                resolve(file);
+                            })
+                            .catch(function (fileError) {
+                                reject(fileError);
+                            });
+                    } else {
+                        reject(fileError || FileSystemError.NOT_FOUND);
+                    }
                 });
-        }
-        
-        return result;
+            } else {
+                DocumentManager.getDocumentForPath(file.fullPath)
+                    .then(function (doc) {
+                        _edit(paneId, doc);
+                        resolve(doc.file);
+                    })
+                    .catch(function (fileError) {
+                        reject(fileError);
+                    });
+            }
+        });
     }
     
     /**

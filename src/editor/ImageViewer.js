@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $, window, Mustache, Promise */
 
 define(function (require, exports, module) {
     "use strict";
@@ -423,7 +423,7 @@ define(function (require, exports, module) {
             view = new ImageView(file, pane.$el);
             pane.addView(view, true);
         }
-        return new $.Deferred().resolve().promise();
+        return Promise.resolve();
     }
     
     /**

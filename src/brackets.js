@@ -216,6 +216,7 @@ define(function (require, exports, module) {
      * Setup Brackets
      */
     function _onReady() {
+window.alert("brackets.js _onReady()");
         PerfUtils.addMeasurement("window.document Ready");
 
         // Let the user know Brackets doesn't run in a web browser yet
@@ -447,7 +448,7 @@ define(function (require, exports, module) {
                 node = node.parentElement;
             }
         }, true);
-        
+
         // Prevent extensions from using window.open() to insecurely load untrusted web content
         var real_windowOpen = window.open;
         window.open = function (url) {

@@ -544,6 +544,9 @@ define(function (require, exports, module) {
                         }
                     });
 
+                    var fnAlways = function () {
+                        _reopenNodes(nodesByDepth);
+                    };
                     Async.doInParallel(
                         toOpenIds,
                         function (id) {
@@ -554,9 +557,7 @@ define(function (require, exports, module) {
                             });
                         },
                         false
-                    ).always(function () {
-                        _reopenNodes(nodesByDepth);
-                    });
+                    ).then(fnAlways, fnAlways);
                 }
             }
 
@@ -597,11 +598,11 @@ define(function (require, exports, module) {
                             if (entry.isFile) {
                                 var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
 
-                                openResult.done(function () {
+                                openResult.then(function () {
                                     // update when tree display state changes
                                     _redraw(true);
                                     _lastSelected = data.rslt.obj;
-                                }).fail(function () {
+                                }).catch(function () {
                                     if (_lastSelected) {
                                         // revert this new selection and restore previous selection
                                         _forceSelection(data.rslt.obj, _lastSelected);
@@ -1223,7 +1224,7 @@ define(function (require, exports, module) {
                     }
 
                     // close all the old files
-                    MainViewManager.closeAll();
+                    MainViewManager._closeAll(MainViewManager.ALL_PANES);
 
                     var fnUnwatchAlways = function () {
                         // Finish closing old project (if any)
