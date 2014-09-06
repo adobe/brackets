@@ -211,15 +211,23 @@ define(function (require, exports, module) {
             context.isCompatible = context.isCompatibleLatest = true;
         }
 
-        var lang      = brackets.getLocale(),
-            shortLang = lang.split("-")[0];
-        
-        // Extension metadata might have localized content.  If so, overlay those strings.
-        if (info.metadata.hasOwnProperty(shortLang)) {
-            var prop;
-            for (prop in info.metadata[shortLang]) {
-                if (info.metadata[shortLang].hasOwnProperty(prop)) {
-                    info.metadata[prop] = info.metadata[shortLang][prop];
+        // Extension metadata might have localized content. If so, overlay (or concatenate) those strings.
+        var lang            = brackets.getLocale(),
+            shortLang       = lang.split("-")[0],
+            useShortLang    = info.metadata.hasOwnProperty(shortLang);
+        if (useShortLang || info.metadata.hasOwnProperty(lang)) {
+            var key = useShortLang ? shortLang : lang,
+                prop;
+            for (prop in info.metadata[key]) {
+                if (info.metadata[key].hasOwnProperty(prop)) {
+                    if (prop !== "keywords") {
+                        // overlay existing string w/ localized string
+                        info.metadata[prop] = info.metadata[key][prop];
+                    } else {
+                        // for keywords, add the localized keywords to the root language keywords
+                        var keywords = info.metadata[prop].concat(info.metadata[key][prop]);
+                        info.metadata[prop] = keywords;
+                    }
                 }
             }
         }
