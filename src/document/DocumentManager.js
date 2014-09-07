@@ -87,6 +87,7 @@ define(function (require, exports, module) {
         DocumentModule      = require("document/Document"),
         DeprecationWarning  = require("utils/DeprecationWarning"),
         MainViewManager     = require("view/MainViewManager"),
+        MainViewFactory     = require("view/MainViewFactory"),
         FileSyncManager     = require("project/FileSyncManager"),
         FileSystem          = require("filesystem/FileSystem"),
         PreferencesManager  = require("preferences/PreferencesManager"),
@@ -159,10 +160,8 @@ define(function (require, exports, module) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.getViews() instead of DocumentManager.getWorkingSet()", true);
         return MainViewManager.getWorkingSet(MainViewManager.ALL_PANES)
             .filter(function (file) {
-                // Document.file objects were added to Working Sets
-                //  so filter the result set from the new API
-                //  for those files who have document objects
-                return getOpenDocumentForPath(file.fullPath);
+                // Legacy didn't allow for files with custom viewers
+                return !MainViewFactory.findSuitableFactoryForPath(file.fullPath);
             });
     }
 
@@ -277,6 +276,20 @@ define(function (require, exports, module) {
     function finalizeDocumentNavigation() {
         DeprecationWarning.deprecationWarning("Use MainViewManager.endTraversal() instead of DocumentManager.finalizeDocumentNavigation()", true);
         MainViewManager.endTraversal();
+    }
+    
+    /**
+     * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
+     * return currentDocument itself if working set is length 1.
+     * @deprecated use MainViewManager.traverseToNextViewByMRU() instead
+     */
+    function getNextPrevFile(inc) {
+        DeprecationWarning.deprecationWarning("Use MainViewManager.traverseToNextViewByMRU() instead of DocumentManager.getNextPrevFile()", true);
+        var result = MainViewManager.traverseToNextViewByMRU(inc);
+        if (result) {
+            return result.file;
+        }
+        return null;
     }
     
     /**
@@ -670,6 +683,7 @@ define(function (require, exports, module) {
     exports.getCurrentDocument             = getCurrentDocument;
     exports.beginDocumentNavigation        = beginDocumentNavigation;
     exports.finalizeDocumentNavigation     = finalizeDocumentNavigation;
+    exports.getNextPrevFile                = getNextPrevFile;
     exports.setCurrentDocument             = setCurrentDocument;
     exports.closeFullEditor                = closeFullEditor;
     exports.closeAll                       = closeAll;
