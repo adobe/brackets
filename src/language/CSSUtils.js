@@ -1576,7 +1576,9 @@ define(function (require, exports, module) {
                 }
             }
             
-            if (ctx.token.string !== "{" && ctx.token.string !== "}" && !TokenUtils.movePrevToken(ctx)) {
+            if ((ctx.token.type === "comment" ||
+                    (ctx.token.string !== "{" && ctx.token.string !== "}")) &&
+                    !TokenUtils.movePrevToken(ctx)) {
                 break;
             }
         }
