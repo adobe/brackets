@@ -113,6 +113,31 @@ define(function (require, exports, module) {
     ExtensionManagerView.prototype._itemViews = null;
 
     /**
+     * Toggles between truncated and full length extension descriptions
+     * @param {string} id The id of the extension clicked
+     * @param {JQueryElement} $element The DOM element of the extension clicked
+     * @param {boolean} showFull true if full length description should be shown, false for shorten version.
+     */
+    function _toggleDescription(id, $element, showFull) {
+        var description, linkTitle,
+            entry = ExtensionManager.extensions[id];
+
+        // Toggle between appropriate descriptions and link title,
+        // depending on if extension is installed or not
+        if (showFull) {
+            description = entry.installInfo ? entry.installInfo.metadata.description : entry.registryInfo.metadata.description;
+            linkTitle = Strings.VIEW_TRUNCATED_DESCRIPTION;
+        } else {
+            description = entry.installInfo ? entry.installInfo.metadata.shortdescription : entry.registryInfo.metadata.shortdescription;
+            linkTitle = Strings.VIEW_COMPLETE_DESCRIPTION;
+        }
+
+        $element.attr("data-toggle-desc", showFull ? "trunc-desc" : "expand-desc")
+                .attr("title", linkTitle)
+                .prev(".ext-full-description").text(description);
+    }
+    
+    /**
      * @private
      * Attaches our event handlers. We wait to do this until we've fully fetched the extension list.
      */
@@ -156,9 +181,9 @@ define(function (require, exports, module) {
                 } else if ($target.hasClass("undo-update")) {
                     ExtensionManager.removeUpdate($target.attr("data-extension-id"));
                 } else if ($target.attr("data-toggle-desc") === "expand-desc") {
-                    ExtensionManager.toggleDescription($target.attr("data-extension-id"), $target, true);
+                    _toggleDescription($target.attr("data-extension-id"), $target, true);
                 } else if ($target.attr("data-toggle-desc") === "trunc-desc") {
-                    ExtensionManager.toggleDescription($target.attr("data-extension-id"), $target, false);
+                    _toggleDescription($target.attr("data-extension-id"), $target, false);
                 }
             })
             .on("click", "button.install", function (e) {
