@@ -26,7 +26,11 @@
 /*global define, $, window */
 
 /**
+<<<<<<< HEAD
+ * Manages the paneViewList sort methods.
+=======
  * Manages the workingSetList sort methods.
+>>>>>>> jeff/splitview-landing-final
  */
 define(function (require, exports, module) {
     "use strict";
