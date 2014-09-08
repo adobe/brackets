@@ -112,7 +112,7 @@ define(function (require, exports, module) {
     
     var FILE_RENAMING     = 0,
         FILE_CREATING     = 1,
-        RENAME_CANCELLED  = 3;
+        RENAME_CANCELLED  = 2;
 
     
     /**
@@ -163,7 +163,7 @@ define(function (require, exports, module) {
      * 
      * @param {string} path path to create
      * @param {boolean} isFolder true if the new entry is a folder
-     * @return {Promise} resolved when the file or directory has been created.
+     * @return {jQuery.Promise} resolved when the file or directory has been created.
      */
     function doCreate(path, isFolder) {
         var d = new $.Deferred();
@@ -242,7 +242,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Encoded URL
-     * @ see getBaseUrl(), setBaseUrl()
+     * @see getBaseUrl(), setBaseUrl()
      */
     ProjectModel.prototype._projectBaseUrl = "";
 
@@ -456,7 +456,7 @@ define(function (require, exports, module) {
      * Sets the project root (effectively resetting this ProjectModel).
      * 
      * @param {Directory} projectRoot new project root
-     * @return {Promise} resolved when the project root has been updated
+     * @return {jQuery.Promise} resolved when the project root has been updated
      */
     ProjectModel.prototype.setProjectRoot = function (projectRoot) {
         this.projectRoot = projectRoot;
@@ -483,7 +483,7 @@ define(function (require, exports, module) {
      * Gets the contents of a directory at the given path.
      * 
      * @param {string} path path to retrieve
-     * @return {Promise} Resolved with the directory contents.
+     * @return {jQuery.Promise} Resolved with the directory contents.
      */
     ProjectModel.prototype._getDirectoryContents = function (path) {
         var d = new $.Deferred();
@@ -502,7 +502,7 @@ define(function (require, exports, module) {
      * 
      * @param {string} path Path to open
      * @param {boolean} open `true` to open the path
-     * @return {Promise} resolved when the path has been opened.
+     * @return {jQuery.Promise} resolved when the path has been opened.
      */
     ProjectModel.prototype.setDirectoryOpen = function (path, open) {
         var projectRelative = this.makeProjectRelativeIfPossible(path),
@@ -639,7 +639,7 @@ define(function (require, exports, module) {
      * The Promise returned is resolved with an object with a `newPath` property with the renamed path. If the user cancels the operation, the promise is resolved with the value RENAME_CANCELLED.
      * 
      * @param {string=} path optional path to start renaming
-     * @return {Promise} resolved when the operation is complete.
+     * @return {jQuery.Promise} resolved when the operation is complete.
      */
     ProjectModel.prototype.startRename = function (path) {
         path = _getPathFromFSObject(path);
@@ -812,7 +812,7 @@ define(function (require, exports, module) {
      * If an error comes up during creation, the ERROR_CREATION event is triggered.
      * 
      * @param {string} path full path to file or folder to create
-     * @return {Promise} resolved when creation is complete
+     * @return {jQuery.Promise} resolved when creation is complete
      */
     ProjectModel.prototype.createAtPath = function (path) {
         var isFolder  = _.last(path) === "/",
@@ -842,7 +842,7 @@ define(function (require, exports, module) {
      * @param {string} basedir directory that should contain the new entry
      * @param {string} newName initial name for the new entry (the user can rename it)
      * @param {boolean} isFolder `true` if the entry being created is a folder
-     * @return {Promise} resolved when the user is done creating the entry.
+     * @return {jQuery.Promise} resolved when the user is done creating the entry.
      */
     ProjectModel.prototype.startCreating = function (basedir, newName, isFolder) {
         this.performRename();
@@ -929,7 +929,7 @@ define(function (require, exports, module) {
     /**
      * Refreshes the contents of the tree.
      * 
-     * @return {Promise} resolved when the tree has been refreshed
+     * @return {jQuery.Promise} resolved when the tree has been refreshed
      */
     ProjectModel.prototype.refresh = function () {
         var projectRoot = this.projectRoot,
