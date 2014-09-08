@@ -916,6 +916,11 @@ define(function (require, exports, module) {
                 } else {
                     current = pane.$el.outerHeight();
                 }
+                if (current > available - 100 && panes.length > 1) {
+                    current = available - 100;
+                    delta = pane.$el.outerWidth() - pane.$el.innerWidth();
+                    pane.$el.width(current - delta);
+                }
                 previous = current;
             } else {
                 current = available - previous;
@@ -928,8 +933,8 @@ define(function (require, exports, module) {
                 }
             }
             pane.$el.data("maxsize", available - 100);
-            pane.updateLayout(forceRefresh);
             Resizer.updateSizer(pane.$el);
+            pane.updateLayout(forceRefresh);
         });
     }
     
