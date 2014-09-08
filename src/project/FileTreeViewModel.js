@@ -306,7 +306,9 @@ define(function (require, exports, module) {
 
         if (newPath !== null) {
             objectPath = _filePathToObjectPath(treeData, newPath);
-            if (!objectPath) {
+            
+            // Cannot set a marker on a nonexistent path or the root.
+            if (!objectPath || objectPath.length === 0) {
                 return;
             }
         }

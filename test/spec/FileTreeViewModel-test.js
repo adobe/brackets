@@ -487,6 +487,11 @@ define(function (require, exports, module) {
                 vm.moveMarker("selected", null, "huh?");
                 expect(changesFired).toBe(0);
             });
+            
+            it("should not put a marker on the root", function () {
+                vm.moveMarker("selected", null, "");
+                expect(vm.treeData.get("selected")).toBeUndefined();
+            });
         });
         
         describe("createPlaceholder", function () {
