@@ -328,7 +328,7 @@ define(function (require, exports, module) {
                 fileClasses = "jstree-clicked jstree-hovered sidebar-selection";
             }
             if (this.props.entry.get("context")) {
-                fileClasses += " sidebar-context";
+                fileClasses += " jstree-clicked sidebar-context";
             }
             
             var nameDisplay;

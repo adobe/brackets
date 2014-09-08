@@ -64,7 +64,7 @@ define(function (require, exports, module) {
      * @private 
      */
     var _curDocChangedDueToMe = false;
-    var WORKINGSET_VIEW = "WorkingSetView";
+    var WORKING_SET_VIEW = "WorkingSetView";
     var PROJECT_MANAGER = "ProjectManager";
 
     /**
@@ -77,7 +77,7 @@ define(function (require, exports, module) {
      * Change the doc selection to the working set when ever a new file is added to the working set
      */
     $(MainViewManager).on("workingSetAdd", function (event, addedFile) {
-        _fileSelectionFocus = WORKINGSET_VIEW;
+        _fileSelectionFocus = WORKING_SET_VIEW;
         $(exports).triggerHandler("documentSelectionFocusChange");
     });
 
@@ -90,7 +90,7 @@ define(function (require, exports, module) {
             // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
             perfTimerName = PerfUtils.markStart("FileViewController._oncurrentFileChange():\t" + (file ? (file.fullPath) : "(no open file)"));
             if (file && MainViewManager.findInWorkingSet(paneId,  file.fullPath) !== -1) {
-                _fileSelectionFocus = WORKINGSET_VIEW;
+                _fileSelectionFocus = WORKING_SET_VIEW;
             } else {
                 _fileSelectionFocus = PROJECT_MANAGER;
             }
@@ -125,7 +125,7 @@ define(function (require, exports, module) {
      * @param {String} fileSelectionFocus - either PROJECT_MANAGER or WORKINGSET_VIEW
      */
     function setFileViewFocus(fileSelectionFocus) {
-        if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKINGSET_VIEW) {
+        if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
             console.error("Bad parameter passed to FileViewController.setFileViewFocus");
             return;
         }
@@ -145,7 +145,7 @@ define(function (require, exports, module) {
     function openAndSelectDocument(fullPath, fileSelectionFocus, paneId) {
         var result;
 
-        if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKINGSET_VIEW) {
+        if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
             console.error("Bad parameter passed to FileViewController.openAndSelectDocument");
             return;
         }
@@ -254,6 +254,6 @@ define(function (require, exports, module) {
     exports.openAndSelectDocument = openAndSelectDocument;
     exports.openFileAndAddToWorkingSet = openFileAndAddToWorkingSet;
     exports.setFileViewFocus = setFileViewFocus;
-    exports.WORKINGSET_VIEW = WORKINGSET_VIEW;
+    exports.WORKING_SET_VIEW = WORKING_SET_VIEW;
     exports.PROJECT_MANAGER = PROJECT_MANAGER;
 });
