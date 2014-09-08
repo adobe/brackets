@@ -138,6 +138,48 @@ define(function (require, exports, module) {
                 closeFilesInTestWindow();
             });
 
+            it("should open two inline editors and show the matching rules", function () {
+                var inlineWidgets;
+
+                runs(function () {
+                    var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 15, ch: 22});
+                    waitsForDone(promise, "Open inline editor 1");
+
+                    var promise2 = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 20, ch: 25});
+                    waitsForDone(promise2, "Open inline editor 2");
+                });
+
+                runs(function () {
+                    inlineWidgets = getInlineEditorWidgets();
+
+                    // Check Inline Editor 1
+                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.css : 1");
+
+                    var ranges = inlineWidgets[0]._ranges[0];
+                    var document = ranges.textRange.document;
+
+                    expect(document.getRange({line: ranges.textRange.startLine, ch: 0}, {line: ranges.textRange.endLine, ch: document.getLine(ranges.textRange.endLine).length})).toEqual(".standard {\n    background-color: red;\n}");
+
+                    var files = getRelatedFiles(inlineWidgets[0]);
+                    expect(files.length).toBe(2);
+                    expect(files[0].textContent).toEqual(".standard — test.css : 1");
+                    expect(files[1].textContent).toEqual(".standard — test2.css : 1");
+
+                    // Check Inline Editor 2
+                    expect(inlineEditorFileName(inlineWidgets[1])[0].text).toEqual("test.css : 8");
+
+                    ranges = inlineWidgets[1]._ranges[0];
+                    document = ranges.textRange.document;
+
+                    expect(document.getRange({line: ranges.textRange.startLine, ch: 0}, {line: ranges.textRange.endLine, ch: document.getLine(ranges.textRange.endLine).length})).toEqual(".banner-new {\n    background-color: blue;\n}");
+
+                    files = getRelatedFiles(inlineWidgets[1]);
+                    expect(files.length).toBe(2);
+                    expect(files[0].textContent).toEqual(".banner-new — test.css : 8");
+                    expect(files[1].textContent).toEqual(".banner-new — test2.css : 8");
+                });
+            });
+
             it("should show no matching rule in inline editor", function () {
                 runs(function () {
                     var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 16, ch: 7});
@@ -206,50 +248,6 @@ define(function (require, exports, module) {
                     expect(files[1].textContent).toEqual(".banner-new — test2.css : 8");
                 });
             });
-
-            it("should open two inline editors and show the matching rules", function () {
-                runs(function () {
-                    var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 15, ch: 25});
-                    waitsForDone(promise, "Open inline editor 1");
-
-                    promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 20, ch: 25});
-                    waitsForDone(promise, "Open inline editor 2");
-                });
-
-                runs(function () {
-                    // open the dropdown
-                    dropdownButton().click();
-
-                    var inlineWidgets = getInlineEditorWidgets();
-
-                    // Check Inline Editor 1
-                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.css : 1");
-
-                    var ranges = inlineWidgets[0]._ranges[0];
-                    var document = ranges.textRange.document;
-
-                    expect(document.getRange({line: ranges.textRange.startLine, ch: 0}, {line: ranges.textRange.endLine, ch: document.getLine(ranges.textRange.endLine).length})).toEqual(".standard {\n    background-color: red;\n}");
-
-                    var files = getRelatedFiles(inlineWidgets[0]);
-                    expect(files.length).toBe(2);
-                    expect(files[0].textContent).toEqual(".standard — test.css : 1");
-                    expect(files[1].textContent).toEqual(".standard — test2.css : 1");
-
-                    // Check Inline Editor 2
-                    expect(inlineEditorFileName(inlineWidgets[1])[0].text).toEqual("test.css : 8");
-
-                    ranges = inlineWidgets[1]._ranges[0];
-                    document = ranges.textRange.document;
-
-                    expect(document.getRange({line: ranges.textRange.startLine, ch: 0}, {line: ranges.textRange.endLine, ch: document.getLine(ranges.textRange.endLine).length})).toEqual(".banner-new {\n    background-color: blue;\n}");
-
-                    files = getRelatedFiles(inlineWidgets[1]);
-                    expect(files.length).toBe(2);
-                    expect(files[0].textContent).toEqual(".banner-new — test.css : 8");
-                    expect(files[1].textContent).toEqual(".banner-new — test2.css : 8");
-                });
-            });
-
         });
 
         describe("LESS", function () {
@@ -391,6 +389,7 @@ define(function (require, exports, module) {
                     });
                 });
             });
+
             describe("Comments", function () {
                 it("should show matching sub rule with comment above containing delimiter chars", function () {
                     runs(function () {
