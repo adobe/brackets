@@ -132,12 +132,14 @@ define(function (require, exports, module) {
     
     /**
      * Updates the title bar with new file title or dirty indicator
+     * @return {boolean} true if layout needs to be recomputed
      * @private
      */
     function _updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
             currentlyViewedPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE),
-            windowTitle = brackets.config.app_title;
+            windowTitle = brackets.config.app_title,
+            needToRecomputeLayout = false;
 
         if (!brackets.nativeMenus) {
             if (currentlyViewedPath) {
@@ -168,7 +170,7 @@ define(function (require, exports, module) {
             var newToolbarHeight = _$titleContainerToolbar.height();
             if (_lastToolbarHeight !== newToolbarHeight) {
                 _lastToolbarHeight = newToolbarHeight;
-                WorkspaceManager.recomputeLayout();
+                needToRecomputeLayout = true;
             }
         }
 
@@ -186,6 +188,28 @@ define(function (require, exports, module) {
 
         // update shell/browser window title
         window.document.title = windowTitle;
+
+        return needToRecomputeLayout;
+    }
+
+    /**
+     * Updates the view header bar. If there's only 1 view, then it's hidden.
+     * For multiple views, header is updated with file name or info string, if empty
+     * @return {boolean} true if layout needs to be recomputed
+     * @private
+     */
+    function _updateViewHeaders() {
+        var needToRecomputeLayout = false;
+
+        // Handle pane header
+//        var $paneHeader = pane.$el.find(".pane-header");
+//        if (Object.keys(_panes).length === 1) {
+//            $paneHeader.text("");
+//        } else {
+//            $paneHeader.text(file.name);
+//        }
+
+        return needToRecomputeLayout;
     }
 
     /**
@@ -211,7 +235,8 @@ define(function (require, exports, module) {
      * Handles currentFileChange and filenameChanged events and updates the titlebar
      */
     function handleCurrentFileChange() {
-        var newFile = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
+        var newFile = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE),
+            needToRecomputeLayout = false;
         
         if (newFile) {
             var newDocument = DocumentManager.getOpenDocumentForPath(newFile.fullPath);
@@ -226,7 +251,14 @@ define(function (require, exports, module) {
         }
         
         // Update title text & "dirty dot" display
-        _updateTitle();
+        needToRecomputeLayout = _updateTitle();
+        
+        // Update view headers
+        needToRecomputeLayout = _updateViewHeaders() || needToRecomputeLayout;
+        
+        if (needToRecomputeLayout) {
+            WorkspaceManager.recomputeLayout();
+        }
     }
 
     /**

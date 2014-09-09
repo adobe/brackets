@@ -1084,16 +1084,16 @@ define(function (require, exports, module) {
         }
         
         // Handle pane header
-        result.done(function (file) {
-            var $paneHeader = pane.$el.find(".pane-header");
-            if (Object.keys(_panes).length === 1) {
-                $paneHeader.text("");
-            } else {
-                $paneHeader.text(file.name);
-            }
-            
-            WorkspaceManager.recomputeLayout();
-        });
+//        result.done(function (file) {
+//            var $paneHeader = pane.$el.find(".pane-header");
+//            if (Object.keys(_panes).length === 1) {
+//                $paneHeader.text("");
+//            } else {
+//                $paneHeader.text(file.name);
+//            }
+//            
+//            WorkspaceManager.recomputeLayout();
+//        });
         
         return result;
     }
