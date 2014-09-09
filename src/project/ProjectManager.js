@@ -56,6 +56,7 @@ define(function (require, exports, module) {
         PreferencesDialogs  = require("preferences/PreferencesDialogs"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
         InMemoryFile        = require("document/InMemoryFile"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
@@ -218,6 +219,14 @@ define(function (require, exports, module) {
     /**
      * @private
      * @type {boolean}
+     * A flag to remember when user has been warned about too many files, so they
+     * are only warned once per project/session.
+     */
+    var _projectWarnedForTooManyFiles = false;
+    
+    /**
+     * @private
+     * @type {boolean}
      * Current sort order for the tree, true if directories are first. This is
      * initialized in _generateSortPrefixes.
      */
@@ -299,8 +308,7 @@ define(function (require, exports, module) {
         // Prefer file tree selection, else use working set selection
         var selectedEntry = _getTreeSelectedItem();
         if (!selectedEntry) {
-            var doc = DocumentManager.getCurrentDocument();
-            selectedEntry = (doc && doc.file);
+            selectedEntry = MainViewManager.getCurrentlyViewedFile();
         }
         return selectedEntry;
     }
@@ -310,12 +318,12 @@ define(function (require, exports, module) {
     }
     
     function _documentSelectionFocusChange() {
-        var curFile = EditorManager.getCurrentlyViewedPath();
-        if (curFile && _hasFileSelectionFocus()) {
+        var curFullPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE);
+        if (curFullPath && _hasFileSelectionFocus()) {
             var nodeFound = $("#project-files-container li").is(function (index) {
                 var $treeNode = $(this),
                     entry = $treeNode.data("entry");
-                if (entry && entry.fullPath === curFile) {
+                if (entry && entry.fullPath === curFullPath) {
                     if (!_projectTree.jstree("is_selected", $treeNode)) {
                         if ($treeNode.parents(".jstree-closed").length) {
                             //don't auto-expand tree to show file - but remember it if parent is manually expanded later
@@ -642,12 +650,12 @@ define(function (require, exports, module) {
                 function (event, data) {
                     if (event.type === "open_node") {
                         // select the current document if it becomes visible when this folder is opened
-                        var curDoc = DocumentManager.getCurrentDocument();
+                        var curFile = MainViewManager.getCurrentlyViewedFile();
                         
-                        if (_hasFileSelectionFocus() && curDoc && data) {
+                        if (_hasFileSelectionFocus() && curFile && data) {
                             var entry = data.rslt.obj.data("entry");
                             
-                            if (entry && curDoc.file.fullPath.indexOf(entry.fullPath) === 0) {
+                            if (entry && curFile.fullPath.indexOf(entry.fullPath) === 0) {
                                 _forceSelection(data.rslt.obj, _lastSelected);
                             } else {
                                 _redraw(true, false);
@@ -762,7 +770,7 @@ define(function (require, exports, module) {
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
                     if (entry && entry.isFile && !_isInRename(event.target)) {
-                        FileViewController.addToWorkingSetAndSelect(entry.fullPath);
+                        FileViewController.openFileAndAddToWorkingSet(entry.fullPath);
                     }
                     if (_mouseupTimeoutId !== null) {
                         window.clearTimeout(_mouseupTimeoutId);
@@ -1119,7 +1127,10 @@ define(function (require, exports, module) {
 
         FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), _shouldShowName, function (err) {
             if (err === FileSystemError.TOO_MANY_ENTRIES) {
-                _showErrorDialog(ERR_TYPE_MAX_FILES);
+                if (!_projectWarnedForTooManyFiles) {
+                    _showErrorDialog(ERR_TYPE_MAX_FILES);
+                    _projectWarnedForTooManyFiles = true;
+                }
             } else if (err) {
                 console.error("Error watching project root: ", rootPath, err);
             }
@@ -1210,7 +1221,7 @@ define(function (require, exports, module) {
             }
             
             // close all the old files
-            DocumentManager.closeAll();
+            MainViewManager._closeAll(MainViewManager.ALL_PANES);
     
             _unwatchProjectRoot().always(function () {
                 // Finish closing old project (if any)
@@ -1258,6 +1269,7 @@ define(function (require, exports, module) {
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectRoot = rootEntry;
+                        _projectWarnedForTooManyFiles = false;
                         
                         if (projectRootChanged) {
                             _reloadProjectPreferencesScope();
@@ -1834,9 +1846,9 @@ define(function (require, exports, module) {
         var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
         entry.rename(newName, function (err) {
             if (!err) {
-                if (EditorManager.getCurrentlyViewedPath()) {
+                if (MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)) {
                     FileViewController.openAndSelectDocument(
-                        EditorManager.getCurrentlyViewedPath(),
+                        MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE),
                         FileViewController.getFileSelectionFocus()
                     );
                 }
@@ -2004,11 +2016,7 @@ define(function (require, exports, module) {
         
         // Trigger notifications after tree updates are complete
         arr.forEach(function (entry) {
-            if (DocumentManager.getCurrentDocument()) {
-                DocumentManager.notifyPathDeleted(entry.fullPath);
-            } else {
-                EditorManager.notifyPathDeleted(entry.fullPath);
-            }
+            DocumentManager.notifyPathDeleted(entry.fullPath);
         });
     }
 
@@ -2062,8 +2070,11 @@ define(function (require, exports, module) {
             
             getProjectRoot().visit(allFilesVisitor, function (err) {
                 if (err) {
-                    deferred.reject();
-                    _allFilesCachePromise = null;
+                    if (err === FileSystemError.TOO_MANY_ENTRIES && !_projectWarnedForTooManyFiles) {
+                        _showErrorDialog(ERR_TYPE_MAX_FILES);
+                        _projectWarnedForTooManyFiles = true;
+                    }
+                    deferred.reject(err);
                 } else {
                     deferred.resolve(allFiles);
                 }
@@ -2097,43 +2108,57 @@ define(function (require, exports, module) {
         var filteredFilesDeferred = new $.Deferred();
         
         // First gather all files in project proper
-        _getAllFilesCache().done(function (result) {
+        _getAllFilesCache()
+            .done(function (result) {
             // Add working set entries, if requested
-            if (includeWorkingSet) {
-                DocumentManager.getWorkingSet().forEach(function (file) {
-                    if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
-                        result.push(file);
-                    }
-                });
-            }
-            
-            // Filter list, if requested
-            if (filter) {
-                result = result.filter(filter);
-            }
-            
-            // If a done handler attached to the returned filtered files promise
-            // throws an exception that isn't handled here then it will leave
-            // _allFilesCachePromise in an inconsistent state such that no
-            // additional done handlers will ever be called!
-            try {
-                filteredFilesDeferred.resolve(result);
-            } catch (e) {
-                console.warn("Unhandled exception in getAllFiles handler: ", e);
-            }
-        });
+                if (includeWorkingSet) {
+                    MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).forEach(function (file) {
+                        if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
+                            result.push(file);
+                        }
+                    });
+                }
+
+                // Filter list, if requested
+                if (filter) {
+                    result = result.filter(filter);
+                }
+
+                // If a done handler attached to the returned filtered files promise
+                // throws an exception that isn't handled here then it will leave
+                // _allFilesCachePromise in an inconsistent state such that no
+                // additional done handlers will ever be called!
+                try {
+                    filteredFilesDeferred.resolve(result);
+                } catch (e) {
+                    console.warn("Unhandled exception in getAllFiles handler: ", e);
+                }
+            })
+            .fail(function (err) {
+                // resolve with empty list
+                try {
+                    filteredFilesDeferred.resolve([]);
+                } catch (e) {
+                    console.warn("Unhandled exception in getAllFiles handler: ", e);
+                }
+            });
         
         return filteredFilesDeferred.promise();
     }
     
     /**
      * Returns a filter for use with getAllFiles() that filters files based on LanguageManager language id
-     * @param {!string} languageId
+     * @param {!(string|Array.<string>)} languageId a single string of a language id or an array of language ids
      * @return {!function(File):boolean}
      */
     function getLanguageFilter(languageId) {
         return function languageFilter(file) {
-            return (LanguageManager.getLanguageForPath(file.fullPath).getId() === languageId);
+            var id = LanguageManager.getLanguageForPath(file.fullPath).getId();
+            if (typeof languageId === "string") {
+                return (id === languageId);
+            } else {
+                return (languageId.indexOf(id) !== -1);
+            }
         };
     }
         

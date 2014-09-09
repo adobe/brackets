@@ -33,9 +33,10 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
+        MainViewManager     = require("view/MainViewManager"),
         FileSystemError     = require("filesystem/FileSystemError"),
         FileSystem          = require("filesystem/FileSystem"),
-        PanelManager        = require("view/PanelManager"),
+        WorkspaceManager    = require("view/WorkspaceManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams,
         LanguageManager     = require("language/LanguageManager"),
@@ -53,6 +54,8 @@ define(function (require, exports, module) {
         _doLoadExtensions,
         _rootSuite              = { id: "__brackets__" },
         _unitTestReporter;
+    
+    MainViewManager._initialize($("#mock-main-view"));
     
     function _getFileSystem() {
         return _testWindow ? _testWindow.brackets.test.FileSystem : FileSystem;
@@ -386,6 +389,16 @@ define(function (require, exports, module) {
             .appendTo($("body"));
     }
 
+    function createEditorInstance(doc, $editorHolder, visibleRange) {
+        var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
+        
+        Editor.setUseTabChar(EDITOR_USE_TABS);
+        Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
+        EditorManager._notifyActiveEditorChanged(editor);
+        
+        return editor;
+    }
+    
     /**
      * Returns an Editor tied to the given Document, but suitable for use in isolation
      * (without being placed inside the surrounding Brackets UI). The Editor *will* be
@@ -398,19 +411,13 @@ define(function (require, exports, module) {
      * @return {!Editor}
      */
     function createMockEditorForDocument(doc, visibleRange) {
-        // Initialize EditorManager/PanelManager and position the editor-holder offscreen
+        // Initialize EditorManager/WorkspaceManager and position the editor-holder offscreen
         // (".content" may not exist, but that's ok for headless tests where editor height doesn't matter)
-        var $editorHolder = createMockElement().css("width", "1000px").attr("id", "mock-editor-holder");
-        PanelManager._setMockDOM($(".content"), $editorHolder);
-        EditorManager.setEditorHolder($editorHolder);
+        var $editorHolder = createMockElement().css("width", "1000px").attr("id", "hidden-editors");
+        WorkspaceManager._setMockDOM($(".content"), $editorHolder);
         
         // create Editor instance
-        var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
-        Editor.setUseTabChar(EDITOR_USE_TABS);
-        Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
-        EditorManager._notifyActiveEditorChanged(editor);
-        
-        return editor;
+        return createEditorInstance(doc, $editorHolder, visibleRange);
     }
     
     /**
@@ -432,17 +439,26 @@ define(function (require, exports, module) {
         return { doc: doc, editor: createMockEditorForDocument(doc, visibleRange) };
     }
     
+    function createMockPane($el) {
+        return {
+            $el: $el,
+            addView: function (path, editor) {
+            },
+            showView: function (editor) {
+            }
+        };
+    }
+    
     /**
      * Destroy the Editor instance for a given mock Document.
      * @param {!Document} doc  Document whose master editor to destroy
      */
     function destroyMockEditor(doc) {
         EditorManager._notifyActiveEditorChanged(null);
-        EditorManager._destroyEditorIfUnneeded(doc);
+        MainViewManager._destroyEditorIfNotNeeded(doc);
 
         // Clear editor holder so EditorManager doesn't try to resize destroyed object
-        EditorManager.setEditorHolder(null);
-        $("#mock-editor-holder").remove();
+        $("#hidden-editors").remove();
     }
     
     /**
@@ -514,7 +530,7 @@ define(function (require, exports, module) {
             
             // Displays the primary console messages from the test window in the the
             // test runner's console as well.
-            ["log", "info", "warn", "error"].forEach(function (method) {
+            ["debug", "log", "info", "warn", "error"].forEach(function (method) {
                 var originalMethod = _testWindow.console[method];
                 _testWindow.console[method] = function () {
                     var log = ["[testWindow] "].concat(Array.prototype.slice.call(arguments, 0));
@@ -731,13 +747,14 @@ define(function (require, exports, module) {
             fullpaths = makeArray(makeAbsolute(paths)),
             keys = makeArray(makeRelative(paths)),
             docs = {},
-            FileViewController = _testWindow.brackets.test.FileViewController;
+            FileViewController = _testWindow.brackets.test.FileViewController,
+            DocumentManager = _testWindow.brackets.test.DocumentManager;
         
         Async.doSequentially(fullpaths, function (path, i) {
             var one = new $.Deferred();
             
-            FileViewController.addToWorkingSetAndSelect(path).done(function (doc) {
-                docs[keys[i]] = doc;
+            FileViewController.openFileAndAddToWorkingSet(path).done(function (file) {
+                docs[keys[i]] = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 one.resolve();
             }).fail(function (err) {
                 one.reject(err);
@@ -1317,11 +1334,13 @@ define(function (require, exports, module) {
     exports.getBracketsSourceRoot           = getBracketsSourceRoot;
     exports.makeAbsolute                    = makeAbsolute;
     exports.resolveNativeFileSystemPath     = resolveNativeFileSystemPath;
+    exports.createEditorInstance            = createEditorInstance;
     exports.createMockDocument              = createMockDocument;
     exports.createMockActiveDocument        = createMockActiveDocument;
     exports.createMockElement               = createMockElement;
     exports.createMockEditorForDocument     = createMockEditorForDocument;
     exports.createMockEditor                = createMockEditor;
+    exports.createMockPane                  = createMockPane;
     exports.createTestWindowAndRun          = createTestWindowAndRun;
     exports.closeTestWindow                 = closeTestWindow;
     exports.clickDialogButton               = clickDialogButton;

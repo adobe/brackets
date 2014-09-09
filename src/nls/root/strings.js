@@ -38,6 +38,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
     "CONTENTS_MODIFIED_ERR"             : "The file has been modified outside of {APP_NAME}.",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} currently only supports UTF-8 encoded text files.",
+    "UNSUPPORTED_FILE_TYPE_ERR"         : "The file is not a supported file type.",
     "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
     "FILE"                              : "file",
     "FILE_TITLE"                        : "File",
@@ -83,7 +84,7 @@ define({
     
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",
-    "ERROR_MAX_FILES"                   : "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.",
+    "ERROR_MAX_FILES"                   : "This project contains more than 30,000 files. Features that operate across multiple files may be disabled or behave as if the project is empty. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Read more about working with large projects</a>.",
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error Launching Browser",
@@ -218,7 +219,15 @@ define({
      */
     "PROJECT_LOADING"   : "Loading\u2026",
     "UNTITLED"          : "Untitled",
-    "WORKING_FILES"     : "Working Files",
+    "WORKING_FILES"        : "Working Files",
+
+    /**
+     * MainViewManager
+     */
+    "TOP"               : "Top",
+    "BOTTOM"            : "Bottom",
+    "LEFT"              : "Left",
+    "RIGHT"             : "Right",
 
     /**
      * Keyboard modifier names
@@ -276,7 +285,7 @@ define({
     "CMD_FILE_NEW"                        : "New File",
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Add To Working Set",
+    "CMD_ADD_TO_WORKINGSET_AND_OPEN"      : "Add To Working Set and Open",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
     "CMD_FILE_CLOSE"                      : "Close",
@@ -355,10 +364,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
     "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Files on Save",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sort by Added",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatic Sort",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Sort by Added",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Sort by Name",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sort by Type",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatic Sort",
     "CMD_THEMES"                          : "Themes\u2026",
 
     // Navigate menu Commands
@@ -402,7 +411,7 @@ define({
     "RELAUNCH_CHROME"                      : "Relaunch Chrome",
     "ABOUT"                                : "About",
     "CLOSE"                                : "Close",
-    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "Release {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_BUILD_TIMESTAMP"           : "build timestamp: ",
     "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
@@ -427,6 +436,7 @@ define({
     "USE_THEME_SCROLLBARS"                 : "Use Theme Scrollbars",
     "FONT_SIZE"                            : "Font Size",
     "FONT_FAMILY"                          : "Font Family",
+    "THEMES_SETTINGS"                      : "Themes Settings",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "New Rule",
@@ -519,6 +529,7 @@ define({
     "REGISTRY_SANITY_CHECK_WARNING"        : "NOTE: These extensions may come from different authors than {APP_NAME} itself. Extensions are not reviewed and have full local privileges. Be cautious when installing extensions from an unknown source.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
+    "EXTENSIONS_THEMES_TITLE"              : "Themes",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
     
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
@@ -548,6 +559,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Open Brackets Source",
     
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",

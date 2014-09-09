@@ -20,6 +20,8 @@
 
 /* Brackets / CodeMirror Code Formatting */
 
+@code-padding: 15px;
+
 .CodeMirror pre {
     padding: 0 @code-padding 0 0;
 }
@@ -29,7 +31,7 @@
 }
 
 .CodeMirror-scroll {
-    background-color: @background-color-3;
+    background-color: @background;
 }
 
 .CodeMirror {
@@ -44,18 +46,16 @@
     .code-font-win();
 }
 
-@code-padding: 15px;
-
 .CodeMirror-activeline-background {
     background: transparent;
 }
 
 .CodeMirror-focused .CodeMirror-activeline-background {
-    background: @activeline-bgcolor;
+    background: @activeline-bg;
 }
 
 .show-line-padding .CodeMirror-focused .CodeMirror-activeline-background {
-    box-shadow: inset @code-padding 0 0 0 @activeline-number-bgcolor;
+    box-shadow: inset @code-padding 0 0 0 @activeline-number-bg;
 }
 
 .CodeMirror-focused .CodeMirror-activeline {
@@ -63,8 +63,8 @@
         height: 100%;
     }
     .CodeMirror-gutter-elt {
-        background: @activeline-number-bgcolor;
-        color: @bc-black;
+        background: @activeline-number-bg;
+        color: @activeline-number;
     }
     .inline-widget .CodeMirror-gutter-elt {
         color: @accent-comment;    
@@ -82,7 +82,6 @@ span.cm-def {color: @accent-def;}
 span.cm-variable {color: @accent-variable;}
 span.cm-variable-2 {color: @accent-variable-2;}
 span.cm-variable-3 {color: @accent-variable-3;}
-span.cm-property {color: @accent-property;}
 span.cm-operator {color: @accent-operator;}
 span.cm-comment {color: @accent-comment;}
 span.cm-string {color: @accent-string;}
@@ -101,6 +100,7 @@ span.cm-link {color: @accent-link; text-decoration: none;}
 span.cm-rangeinfo {color: @accent-rangeinfo;}
 span.cm-minus {color: @accent-minus;}
 span.cm-plus {color: @accent-plus;}
+span.cm-property {color: @accent-property;} //cm-property has go after cm-string for a better JSON look.
 
 span.CodeMirror-matchingbracket {color: @accent-bracket !important; background-color: @matching-bracket;}
 span.CodeMirror-nonmatchingbracket {color: @accent-bracket;}
@@ -135,7 +135,7 @@ div.CodeMirror-cursors {
 }
 
 .CodeMirror-gutters {
-    background-color: @background-color-3;
+    background-color: @background;
     border-right: none;
 }
 
@@ -160,7 +160,7 @@ div.CodeMirror-cursors {
 .platform-linux {
     .CodeMirror-scrollbar-filler,
     .CodeMirror-gutter-filler {
-        background-color: @background-color-3;
+        background-color: @background;
         height: 12px !important;
     }
     .CodeMirror-scrollbar-filler {
@@ -253,17 +253,17 @@ div.CodeMirror-cursors {
     }
     
     .CodeMirror-focused .CodeMirror-activeline-background {
-        background: @activeline-bgcolor;
+        background: @activeline-bg;
     }
     
     .show-line-padding & .CodeMirror-focused .CodeMirror-activeline-background {
-        box-shadow: inset @code-padding 0 0 0 @tc-gray-panel-top-bar;
+        box-shadow: inset @code-padding 0 0 0 @background;
     }
     
     .CodeMirror-focused .CodeMirror-activeline {
         .CodeMirror-gutter-elt {
-            background: @tc-gray-panel-top-bar;
-            color: @bc-black;
+            background: @activeline-number-bg-inline;
+            color: @activeline-number;
         }
     }
 
