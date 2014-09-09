@@ -237,6 +237,10 @@ define(function (require, exports, module) {
                     testToken.type === "tag") {
                 propName = testToken.string;
                 offset = 0;
+            } else if (testToken.type === "meta" || testToken.string === "-") {
+                ctx.pos = testPos;
+                ctx.token = testToken;
+                return _getPropNameInfo(ctx);
             }
         }
 
