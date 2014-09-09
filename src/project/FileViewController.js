@@ -122,7 +122,7 @@ define(function (require, exports, module) {
     /**
      * Modifies the selection focus in the project side bar. A file can either be selected
      * in the working set (the open files) or in the file tree, but not both.
-     * @param {String} fileSelectionFocus - either PROJECT_MANAGER or WORKINGSET_VIEW
+     * @param {String} fileSelectionFocus - either PROJECT_MANAGER or WORKING_SET_VIEW
      */
     function setFileViewFocus(fileSelectionFocus) {
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
@@ -237,7 +237,7 @@ define(function (require, exports, module) {
     
 
     /**
-     * returns either WORKINGSET_VIEW or PROJECT_MANAGER
+     * returns either WORKING_SET_VIEW or PROJECT_MANAGER
      * @return {!String}
      */
     function getFileSelectionFocus() {
