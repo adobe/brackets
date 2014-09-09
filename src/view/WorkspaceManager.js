@@ -89,7 +89,8 @@ define(function (require, exports, module) {
             if ($elem.css("display") === "none") {
                 $elem.data("maxsize", editorAreaHeight);
             } else {
-                $elem.data("maxsize", editorAreaHeight + $elem.outerHeight());
+                // horizontal splits get confused
+                $elem.data("maxsize", (editorAreaHeight + $elem.outerHeight() - 250));
             }
         });
     }

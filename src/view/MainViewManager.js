@@ -907,7 +907,8 @@ define(function (require, exports, module) {
         }
         
         _.forEach(_panes, function (pane) {
-            var delta,
+            var prop,
+                delta,
                 current;
             
             if (!previous) {
@@ -916,28 +917,35 @@ define(function (require, exports, module) {
                 } else {
                     current = pane.$el.outerHeight();
                 }
+/*
                 if (current > available - 100 && panes.length > 1) {
                     current = available - 100;
                     delta = pane.$el.outerWidth() - pane.$el.innerWidth();
                     pane.$el.width(current - delta);
                 }
+*/
                 previous = current;
             } else {
                 current = available - previous;
                 if (_orientation === VERTICAL) {
                     delta = pane.$el.outerWidth() - pane.$el.innerWidth();
-                    pane.$el.width(current - delta);
+                    prop = "width";
+                    //pane.$el.width(current - delta);
                 } else {
                     delta = pane.$el.outerHeight() - pane.$el.innerHeight();
-                    pane.$el.height(current - delta);
+                    prop = "height";
+                    //pane.$el.height(current - delta);
                 }
+                
+                current -= delta;
+                pane.$el.css(prop, ((current / available) * 100) + "%");
             }
             pane.$el.data("maxsize", available - 100);
             Resizer.updateSizer(pane.$el);
             pane.updateLayout(forceRefresh);
         });
     }
-    
+
     /**
      * Sets up the initial layout so panes are evenly distributed
      * @param {boolean} forceRefresh - true to force a resize and refresh of the entire view
@@ -1035,7 +1043,7 @@ define(function (require, exports, module) {
         Resizer.makeResizable(firstPane.$el,
                               _orientation === HORIZONTAL ? Resizer.DIRECTION_VERTICAL : Resizer.DIRECTION_HORIZONTAL,
                               _orientation === HORIZONTAL ? Resizer.POSITION_BOTTOM : Resizer.POSITION_RIGHT,
-                              100);
+                              100, false, false, false, true);
         
         firstPane.$el.on("panelCollapsed panelExpanded panelResizeUpdate", function () {
             _updateLayout();

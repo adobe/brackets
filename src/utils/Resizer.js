@@ -163,7 +163,7 @@ define(function (require, exports, module) {
      *                          the element). Must lie in element's parent's subtree.
      * @param {?boolean} createdByWorkspaceManager For internal use only
      */
-    function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByWorkspaceManager) {
+    function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByWorkspaceManager, usePercentages) {
         
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
@@ -175,7 +175,37 @@ define(function (require, exports, module) {
             animationRequest    = null,
             directionProperty   = direction === DIRECTION_HORIZONTAL ? "clientX" : "clientY",
             directionIncrement  = (position === POSITION_TOP || position === POSITION_LEFT) ? 1 : -1,
-            elementSizeFunction = direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
+            parentSizeFunction  = direction === DIRECTION_HORIZONTAL ? $parent.innerWidth : $parent.innerHeight,
+            
+            elementSizeByPercentFunction = function (newSize) {
+                var currentSize;
+
+                if (direction === DIRECTION_HORIZONTAL) {
+                    currentSize = this.width();
+                } else {
+                    currentSize = this.height();
+                }
+
+                if (!newSize) {
+                    return currentSize;
+                }
+                
+                var parentSize = parentSizeFunction.apply($parent),
+                    percentage,
+                    prop;
+                
+                if (direction === DIRECTION_HORIZONTAL) {
+                    prop = "width";
+                } else {
+                    prop = "height";
+                }
+                percentage = newSize / parentSize;
+                this.css(prop, (percentage * 100) + "%");
+            },
+            
+            elementSizeFunction = usePercentages ? elementSizeByPercentFunction :
+                                    direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
+            
             resizerCSSPosition  = direction === DIRECTION_HORIZONTAL ? "left" : "top",
             contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
 
