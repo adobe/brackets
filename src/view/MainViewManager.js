@@ -184,7 +184,7 @@ define(function (require, exports, module) {
      * @const
      * @private
      */
-    var MIN_PANE_SIZE      = 10;
+    var MIN_PANE_SIZE      = 75;
     
     /**
      * Command Object for splitting vertically
