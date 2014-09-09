@@ -63,11 +63,11 @@ define(function (require, exports, module) {
      * @return { isNumber: boolean, value: ?number }
      */
     function _convertToNumber(str) {
-        if (typeof str !== "string" || /[^\d\s.\-]/.test(str)) {
+        if (typeof str !== "string") {
             return { isNumber: false, value: null };
         }
 
-        var val = parseFloat(str, 10),
+        var val = parseFloat(+str, 10),
             isNum = (typeof val === "number") && !isNaN(val) &&
                     (val !== Infinity) && (val !== -Infinity);
 
