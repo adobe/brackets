@@ -1041,6 +1041,10 @@ define(function (require, exports, module) {
                               _orientation === HORIZONTAL ? Resizer.DIRECTION_VERTICAL : Resizer.DIRECTION_HORIZONTAL,
                               _orientation === HORIZONTAL ? Resizer.POSITION_BOTTOM : Resizer.POSITION_RIGHT,
                               MIN_PANE_SIZE, false, false, false, true);
+        
+        firstPane.$el.on("panelCollapsed panelExpanded panelResizeUpdate", function () {
+            _updateLayout();
+        });
     }
     
     
@@ -1057,11 +1061,6 @@ define(function (require, exports, module) {
         _createPaneIfNecessary(SECOND_PANE);
         _makeFirstPaneResizable();
         _updateCommandState();
-
-        
-        firstPane.$el.on("panelCollapsed panelExpanded panelResizeUpdate", function () {
-            _updateLayout();
-        });
         
         // reset the layout to 50/50 split
         // if we changed orientation then
@@ -1410,12 +1409,14 @@ define(function (require, exports, module) {
                 //  then setup the splits according to was serialized
                 // Avoid a zero and negative split percentages
                 if ($.isNumeric(state.splitPercentage) && state.splitPercentage > 0) {
+                    var prop;
                     if (_orientation === VERTICAL) {
-                        _panes[FIRST_PANE].$el.css({width: state.splitPercentage * 100 + "%"});
+                        prop = "width";
                     } else {
-                        _panes[FIRST_PANE].$el.css({height: state.splitPercentage * 100 + "%"});
+                        prop = "height";
                     }
 
+                    _panes[FIRST_PANE].$el.css(prop, state.splitPercentage * 100 + "%");
                     _updateLayout();
                 }
                 
