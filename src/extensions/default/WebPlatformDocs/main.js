@@ -111,8 +111,10 @@ define(function (require, exports, module) {
                     // Construct inline widget (if we have docs for this property)
                     var cssPropDetails = cssDocs.PROPERTIES["css/properties/" + cssPropName];
                     if (!cssPropDetails) {
-                        cssPropName = cssPropName.replace(/^-\w+-/, ""); // remove possible vendor prefixes
-                        cssPropDetails = cssDocs.PROPERTIES["css/properties/" + cssPropName];
+                        cssPropName = cssPropName.replace(/^-(webkit|moz|ms|o)-/, ""); // remove possible vendor prefixes
+                        if (cssPropName) {
+                            cssPropDetails = cssDocs.PROPERTIES["css/properties/" + cssPropName];
+                        }
                     }
                     if (cssPropDetails) {
                         var inlineWidget = new InlineDocsViewer(cssPropName, cssPropDetails);
