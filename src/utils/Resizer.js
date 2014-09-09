@@ -477,7 +477,7 @@ define(function (require, exports, module) {
             }
         }
     }
-    
+
     // Scan DOM for horz-resizable and vert-resizable classes and make them resizable
     AppInit.htmlReady(function () {
         var minSize = DEFAULT_MIN_SIZE;

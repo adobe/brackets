@@ -895,8 +895,8 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Synchronizes the pane's sizer element, updates the pane's maxsize property 
-     *  invokes tells the pane to update its layout
+     * Synchronizes the pane's sizer element, updates the pane's resizer maxsize value 
+     *   and tells the pane to update its layout
      * @param {boolean} forceRefresh - true to force a resize and refresh of the entire view
      * @private
      */
@@ -1063,7 +1063,9 @@ define(function (require, exports, module) {
             _updateLayout();
         });
         
-        // reset the layout to 50/50 if there was one
+        // reset the layout to 50/50 split
+        // if we changed orientation then
+        //  the percentages are reset as well
         _initialLayout();
         
         $(exports).triggerHandler("paneLayoutChange", [_orientation]);
@@ -1341,7 +1343,7 @@ define(function (require, exports, module) {
             context = { location : { scope: "user",
                                      layer: "project" } },
             state = PreferencesManager.getViewState(PREFS_NAME, context);
-        
+
         function convertViewState() {
             var context = { location : { scope: "user",
                                          layer: "project" } },
@@ -1391,7 +1393,7 @@ define(function (require, exports, module) {
                 promises.push(promise);
                 
             });
-            
+
             AsyncUtils.waitForAll(promises).then(function () {
                 setActivePaneId(state.activePaneId);
 
