@@ -237,7 +237,7 @@ define(function (require, exports, module) {
         });
     }
     
-    function toggleErrorNotification(bool) {
+    function toggleErrorNotification(bool, doNotSave) {
         var val;
 
         if (typeof bool === "undefined") {
@@ -250,7 +250,9 @@ define(function (require, exports, module) {
 
         // update menu
         CommandManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR).setChecked(val);
-        PreferencesManager.set(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, val);
+        if (!doNotSave) {
+            PreferencesManager.set(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, val);
+        }
     }
 
     function handleOpenBracketsSource() {
@@ -287,7 +289,11 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_RESTART_NODE,         DEBUG_RESTART_NODE,           NodeDebugUtils.restartNode);
     
     enableRunTestsMenuItem();
-    toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR));
+    toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR), true);
+
+    PreferencesManager.on("change", DEBUG_SHOW_ERRORS_IN_STATUS_BAR, function () {
+        toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR), true);
+    });
     
     /*
      * Debug menu
