@@ -897,8 +897,7 @@ define(function (require, exports, module) {
      */
     function _updateLayout(event, viewAreaHeight, forceRefresh) {
         var panes = Object.keys(_panes),
-            available,
-            previous;
+            available;
         
         if (_orientation === VERTICAL) {
             available = _$el.innerWidth();
@@ -907,42 +906,22 @@ define(function (require, exports, module) {
         }
         
         _.forEach(_panes, function (pane) {
-            var prop,
-                delta,
-                current;
-            
-            if (!previous) {
-                if (_orientation === VERTICAL) {
-                    current = pane.$el.outerWidth();
-                } else {
-                    current = pane.$el.outerHeight();
-                }
-/*
-                if (current > available - 100 && panes.length > 1) {
-                    current = available - 100;
-                    delta = pane.$el.outerWidth() - pane.$el.innerWidth();
-                    pane.$el.width(current - delta);
-                }
-*/
-                previous = current;
-            } else {
-                current = available - previous;
-                if (_orientation === VERTICAL) {
-                    delta = pane.$el.outerWidth() - pane.$el.innerWidth();
-                    prop = "width";
-                    //pane.$el.width(current - delta);
-                } else {
-                    delta = pane.$el.outerHeight() - pane.$el.innerHeight();
-                    prop = "height";
-                    //pane.$el.height(current - delta);
-                }
-                
-                current -= delta;
-                pane.$el.css(prop, ((current / available) * 100) + "%");
-            }
             pane.$el.data("maxsize", available - 100);
             Resizer.updateSizer(pane.$el);
             pane.updateLayout(forceRefresh);
+            
+            if (pane.id === SECOND_PANE && _orientation === HORIZONTAL) {
+                var percentage = ((_panes[FIRST_PANE].$el.height() + 1) / available);
+                pane.$el.css({ position: "absolute",
+                               bottom: 0,
+                               left: 0,
+                               width: "100%",
+                               height: 100 - (percentage * 100) + "%"
+                             });
+                    
+                    
+                    
+            }
         });
     }
 
@@ -963,16 +942,33 @@ define(function (require, exports, module) {
         }
         
         _.forEach(_panes, function (pane) {
-            if (_orientation === VERTICAL) {
-                pane.$el.css({height: "100%",
-                              width: size + "%",
-                              float: "left"
-                             });
+            if (pane.id === FIRST_PANE) {
+                if (_orientation === VERTICAL) {
+                    pane.$el.css({height: "100%",
+                                  width: size + "%",
+                                  float: "left"
+                                 });
+                } else {
+                    pane.$el.css({ height: size + "%",
+                                   width: "100%"
+                                 });
+                }
             } else {
-                pane.$el.css({height: size + "%",
-                              width: "100%",
-                              float: "none"
-                             });
+                if (_orientation === VERTICAL) {
+                    pane.$el.css({  position: "",   // remove these props
+                                    bottom: "",
+                                    left: "",
+                                    height: "100%",
+                                    width: "auto"
+                                 });
+                } else {
+                    pane.$el.css({ position: "absolute",
+                                   bottom: 0,
+                                   left: 0,
+                                   width: "100%",
+                                   height: "50%"
+                                 });
+                }
             }
             
             pane.$el.data("maxsize", available - 100);
