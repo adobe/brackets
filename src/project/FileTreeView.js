@@ -161,7 +161,7 @@ define(function (require, exports, module) {
             if (e.button === 2) {
                 this.props.actions.setContext(this.myPath());
             }
-            return true;
+            return false;
         }
     };
     
