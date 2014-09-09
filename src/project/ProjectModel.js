@@ -968,6 +968,8 @@ define(function (require, exports, module) {
      * @param {Array.<FileSystemEntry>=} removed If entry is a Directory, contains zero or more removed 
      */
     ProjectModel.prototype.handleFSEvent = function (entry, added, removed) {
+        this._resetCache();
+        
         if (!entry) {
             this.refresh();
             return;
@@ -978,8 +980,7 @@ define(function (require, exports, module) {
         }
         
         var changes = {},
-            self = this,
-            shouldResetCache = false;
+            self = this;
         
         if (entry.isFile) {
             changes.changed = [
@@ -988,22 +989,17 @@ define(function (require, exports, module) {
         }
         
         if (added) {
-            shouldResetCache = true;
             changes.added = added.map(function (entry) {
                 return self.makeProjectRelativeIfPossible(entry.fullPath);
             });
         }
         
         if (removed) {
-            shouldResetCache = true;
             changes.removed = removed.map(function (entry) {
                 return self.makeProjectRelativeIfPossible(entry.fullPath);
             });
         }
         
-        if (shouldResetCache) {
-            this._resetCache();
-        }
         this._viewModel.processChanges(changes);
     };
 

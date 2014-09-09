@@ -702,7 +702,6 @@ define(function (require, exports, module) {
             _unwatchProjectRoot().always(function () {
                 // Done closing old project (if any)
                 if (model.projectRoot) {
-                    $(exports).triggerHandler("projectClose", model.projectRoot);
                     LanguageManager._resetPathLanguageOverrides();
                     PreferencesManager._reloadUserPrefs(model.projectRoot);
                     $(exports).triggerHandler("projectClose", model.projectRoot);
