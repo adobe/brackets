@@ -101,6 +101,10 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Removes the resizability of an element if it's resizable
+     * @param {DOMNode} element Html element to toggle
+     */
     function removeSizable(element) {
         var removeSizableFunc = $(element).data("removeSizable");
         if (removeSizableFunc) {
@@ -108,15 +112,16 @@ define(function (require, exports, module) {
         }
     }
     
-    function updateSizer(element) {
-        var updateSizerFunc = $(element).data("updateSizer");
-        if (updateSizerFunc) {
-            updateSizerFunc.apply(element);
+    /**
+     * Updates the sizing div by resyncing to the sizing edge of the element
+     * Call this method after manually changing the size of the element
+     * @param {DOMNode} element Html element to toggle
+     */
+    function resyncSizer(element) {
+        var resyncSizerFunc = $(element).data("resyncSizer");
+        if (resyncSizerFunc) {
+            resyncSizerFunc.apply(element);
         }
-    }
-    
-    function isResizable(element) {
-        return Boolean($(element).data("isResizable"));
     }
     
     /**
@@ -162,9 +167,10 @@ define(function (require, exports, module) {
      *                          the resizable element's size (useful for siblings laid out to the right of
      *                          the element). Must lie in element's parent's subtree.
      * @param {?boolean} createdByWorkspaceManager For internal use only
+     * @param {?boolean} usePercentagles maintain the size of the element as a percentage of its parent
+     *                          the default is to maintain the size of the element in pixels
      */
     function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByWorkspaceManager, usePercentages) {
-        
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
             $parent             = $element.parent(),
@@ -178,29 +184,27 @@ define(function (require, exports, module) {
             parentSizeFunction  = direction === DIRECTION_HORIZONTAL ? $parent.innerWidth : $parent.innerHeight,
             
             elementSizeByPercentFunction = function (newSize) {
-                var currentSize;
-
-                if (direction === DIRECTION_HORIZONTAL) {
-                    currentSize = this.width();
-                } else {
-                    currentSize = this.height();
-                }
-
                 if (!newSize) {
-                    return currentSize;
-                }
-                
-                var parentSize = parentSizeFunction.apply($parent),
-                    percentage,
-                    prop;
-                
-                if (direction === DIRECTION_HORIZONTAL) {
-                    prop = "width";
+                    // calling the function as a getter
+                    if (direction === DIRECTION_HORIZONTAL) {
+                        return this.width();
+                    } else {
+                        return this.height();
+                    }
                 } else {
-                    prop = "height";
+                    // calling the function as a setter
+                    var parentSize = parentSizeFunction.apply($parent),
+                        percentage,
+                        prop;
+
+                    if (direction === DIRECTION_HORIZONTAL) {
+                        prop = "width";
+                    } else {
+                        prop = "height";
+                    }
+                    percentage = newSize / parentSize;
+                    this.css(prop, (percentage * 100) + "%");
                 }
-                percentage = newSize / parentSize;
-                this.css(prop, (percentage * 100) + "%");
             },
             
             elementSizeFunction = usePercentages ? elementSizeByPercentFunction :
@@ -259,18 +263,14 @@ define(function (require, exports, module) {
             
             $element.removeData("show");
             $element.removeData("hide");
-            $element.removeData("updateSizer");
+            $element.removeData("resyncSizer");
             $element.removeData("removeSizable");
-            $element.removeData("isResizable");
             
             $resizer.remove();
         });
         
-        $element.data("isResizable", true);
-        
-        $element.data("updateSizer", function () {
+        $element.data("resyncSizer", function () {
             repositionResizer(elementSizeFunction.apply($element));
-            
         });
         
         $element.data("show", function () {
@@ -535,12 +535,11 @@ define(function (require, exports, module) {
     
     exports.makeResizable   = makeResizable;
     exports.removeSizable   = removeSizable;
-    exports.updateSizer     = updateSizer;
+    exports.resyncSizer     = resyncSizer;
     exports.toggle          = toggle;
     exports.show            = show;
     exports.hide            = hide;
     exports.isVisible       = isVisible;
-    exports.isResizable     = isResizable;
     
     //Resizer Constants
     exports.DIRECTION_VERTICAL   = DIRECTION_VERTICAL;
