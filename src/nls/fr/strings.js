@@ -411,7 +411,7 @@ define({
 	"RELAUNCH_CHROME": "Relancer Chrome",
 	"ABOUT": "A propos",
 	"CLOSE": "Fermer",
-	"ABOUT_TEXT_LINE1": "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+	"ABOUT_TEXT_LINE1": "[6307067] !é=Release {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}=!",
 	"ABOUT_TEXT_BUILD_TIMESTAMP": "Horodatage de la version : ",
 	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles à l’adresse <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> et sont incluses dans le présent document à titre de référence.",
 	"ABOUT_TEXT_LINE4": "La documentation et le code source sont disponibles à l’adresse <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
