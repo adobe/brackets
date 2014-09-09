@@ -38,6 +38,7 @@ define(function (require, exports, module) {
     var testPath                   = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
         simpleCssFileEntry         = FileSystem.getFileForPath(testPath + "/simple.css"),
         universalCssFileEntry      = FileSystem.getFileForPath(testPath + "/universal.css"),
+        propListCssFileEntry       = FileSystem.getFileForPath(testPath + "/property-list.css"),
         groupsFileEntry            = FileSystem.getFileForPath(testPath + "/groups.css"),
         offsetsCssFileEntry        = FileSystem.getFileForPath(testPath + "/offsets.css"),
         bootstrapCssFileEntry      = FileSystem.getFileForPath(testPath + "/bootstrap.css"),
@@ -55,6 +56,7 @@ define(function (require, exports, module) {
         mediaTestLess              = require("text!spec/CSSUtils-test-files/print.less"),
         mixinTestScss              = require("text!spec/CSSUtils-test-files/table&button.scss"),
         mixinTestLess              = require("text!spec/CSSUtils-test-files/mixins.less"),
+        includeMixinTestScss       = require("text!spec/CSSUtils-test-files/include-mixin.scss"),
         parentSelectorTestLess     = require("text!spec/CSSUtils-test-files/parent-selector.less"),
         varInterpolationTestScss   = require("text!spec/CSSUtils-test-files/variables.scss"),
         varInterpolationTestLess   = require("text!spec/CSSUtils-test-files/variables.less");
@@ -203,6 +205,20 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should return correct rule ranges for rules with comma separators in property values", function () {
+                runs(function () {
+                    init(this, propListCssFileEntry);
+                });
+                
+                runs(function () {
+                    // https://github.com/adobe/brackets/issues/9008
+                    expectRuleRanges(this, this.fileContent, "h1", [{start:  0, end:  2}]);
+                    
+                    // https://github.com/adobe/brackets/issues/8966
+                    expectRuleRanges(this, this.fileContent, ".alert", [{start:  4, end:  8}]);
+                });
+            });
+            
             it("should return correct rule range and group range for different nested levels", function () {
                 runs(function () {
                     init(this, nestedGroupsFileEntry);
@@ -1708,6 +1724,35 @@ define(function (require, exports, module) {
             });
         }); // describe("Variable interpolation in LESS")
 
+        describe("Parsing SCSS variable interpolation as LESS", function () {
+            var result;
+            it("should find a rule that has a variable interpolated selector", function () {
+                // Verify that "#{$name} a" can be searched with "a" tag
+                result = match(varInterpolationTestScss, { tag: "a" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".#{$name} a");
+            });
+
+            it("should find rules after a rule with variable interpolated selector", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-selector" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-selector");
+            });
+            
+            // https://github.com/adobe/brackets/issues/8965
+            it("should find rules after a rule with variable interpolated property", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-property" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-property");
+            });
+                        
+            it("should find rules after a rule with variable interpolated url", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-url" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-url");
+            });
+        }); // describe("Parsing SCSS variable interpolation as LESS")
+        
         describe("Reference parent selector with &", function () {
             var result;
             it("should find rules that are prefixed with &", function () {
@@ -1740,7 +1785,27 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
                 expectCompleteSelectors(result[0], ".grand / .parent / &ish");
             });
+
+            it("should not find a nested rule that has parent selector & as the rightmost selector", function () {
+                // Verify that '.no-borderradius' won't match '.no-borderradius & {}' rule
+                result = matchAgain({ clazz: "no-borderradius" }, "text/x-less");
+                expect(result.length).toBe(0);
+            });
         }); // describe("Reference parent selector with &")
+
+        // https://github.com/adobe/brackets/issues/8945
+        describe("Nested rules following an @include block", function () {
+            it("should find rules that succeed @include blocks", function () {
+                var result = match(includeMixinTestScss, { tag: "h3" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".sidebar / h3");
+
+                result = matchAgain({ tag: "a" }, "text/x-scss");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], ".sidebar / a");
+                expectCompleteSelectors(result[1], ".sidebar / a / &:hover");
+            });
+        }); // describe("Nested rules following an @include block")
 
         describe("CSS Intgration Tests", function () {
             this.category = "integration";

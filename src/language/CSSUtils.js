@@ -845,10 +845,11 @@ define(function (require, exports, module) {
         }
 
         function _maybeProperty() {
-            return (state.state !== "top" && state.state !== "block" &&
+            return (/^-(moz|ms|o|webkit)-$/.test(token) ||
+                    (state.state !== "top" && state.state !== "block" &&
                     // Has a semicolon as in "rgb(0,0,0);", but not one of those after a LESS 
                     // mixin parameter variable as in ".size(@width; @height)"
-                    stream.string.indexOf(";") !== -1 && !/\([^)]+;/.test(stream.string));
+                    stream.string.indexOf(";") !== -1 && !/\([^)]+;/.test(stream.string)));
         }
 
         function _skipProperty() {
@@ -894,7 +895,8 @@ define(function (require, exports, module) {
             
             // Everything until the next ',' or '{' is part of the current selector
             while ((token !== "," && token !== "{") ||
-                    (token === "{" && /@$/.test(currentSelector))) {
+                    (token === "{" && /[#@]$/.test(currentSelector)) ||
+                    (token === "," && !_hasNonWhitespace(currentSelector))) {
                 if (token === "{") {
                     // Append the interpolated variable to selector
                     currentSelector += _skipToClosingBracket("{");
@@ -915,7 +917,14 @@ define(function (require, exports, module) {
                     // Collect everything inside the parentheses as a whole chunk so that
                     // commas inside the parentheses won't be identified as selector separators
                     // by while loop.
-                    currentSelector += _skipToClosingBracket("(");
+                    if (_hasNonWhitespace(currentSelector)) {
+                        currentSelector += _skipToClosingBracket("(");
+                    } else {
+                        // Nothing in currentSelector yet. Skip to the closing parenthesis
+                        // without collecting the selector since a selector cannot start with 
+                        // an opening parenthesis.
+                        _skipToClosingBracket("(");
+                    }
                 } else if (_hasNonWhitespace(token) || _hasNonWhitespace(currentSelector)) {
                     currentSelector += token;
                 }
@@ -1117,13 +1126,13 @@ define(function (require, exports, module) {
                 // Skip everything until the opening '{'
                 while (token !== "{") {
                     if (!_nextTokenSkippingComments()) {
-                        return false; // eof
+                        return; // eof
                     }
                 }
 
                 // skip past '{', to next non-ws token
                 if (!_nextTokenSkippingWhitespace()) {
-                    return false; // eof
+                    return; // eof
                 }
 
                 if (currentLevel <= level) {
@@ -1139,30 +1148,25 @@ define(function (require, exports, module) {
                     currentLevel--;
                 }
 
-            } else if (/@(charset|import|namespace|include|extend|warn)/i.test(token) ||
-                            !/\{/.test(stream.string)) {
-                
+            } else {
                 // This code handles @rules in this format:
                 //   @rule ... ;
                 // Or any less variable that starts with @var ... ;
                 // Skip everything until the next ';'
                 while (token !== ";") {
+                    // This code handle @rules that use this format:
+                    //    @rule ... { ... }
+                    // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
+                    // Skip everything including nested braces until the next matching '}'
+                    if (token === "{") {
+                        _skipToClosingBracket("{");
+                        return;
+                    }
                     if (!_nextTokenSkippingComments()) {
-                        return false; // eof
+                        return; // eof
                     }
                 }
-                
-            } else {
-                // This code handle @rules that use this format:
-                //    @rule ... { ... }
-                // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
-                // Skip everything including nested braces until the next matching '}'
-                _skipToClosingBracket("{");
-                if (token === "}") {
-                    return false;
-                }
             }
-            return true;
         }
 
         // parse a style rule
@@ -1176,17 +1180,12 @@ define(function (require, exports, module) {
         }
         
         _parseRuleList = function (escapeToken, level) {
-            var skipNext = true;
             while ((!escapeToken) || token !== escapeToken) {
                 if (_isVariableInterpolatedProperty()) {
                     _skipProperty();
                 } else if (_isStartAtRule()) {
                     // @rule
-                    if (!_parseAtRule(level) && level > 0) {
-                        skipNext = false;
-                    } else {
-                        skipNext = true;
-                    }
+                    _parseAtRule(level);
                 } else if (_isStartComment()) {
                     // comment - make this part of style rule
                     if (includeCommentInNextRule()) {
@@ -1204,7 +1203,6 @@ define(function (require, exports, module) {
                         return false;
                     }
                 } else {
-                    skipNext = true;    // reset skipNext
                     // Otherwise, it's style rule
                     if (!_parseRule(level === undefined ? 0 : level) && level > 0) {
                         return false;
@@ -1218,7 +1216,7 @@ define(function (require, exports, module) {
                     ruleStartLine = -1;
                 }
                 
-                if (skipNext && !_nextTokenSkippingWhitespace()) {
+                if (!_nextTokenSkippingWhitespace()) {
                     break;
                 }
             }
@@ -1258,7 +1256,7 @@ define(function (require, exports, module) {
      * Returns trimmed selector if it is not an at-rule, or null if it starts with @.
      *
      * @param {string} selector
-     * @return {?string} 
+     * @return {string}
      */
     function _stripAtRules(selector) {
         selector = selector.trim();
@@ -1287,10 +1285,11 @@ define(function (require, exports, module) {
                 var ampersandIndex = cs.indexOf("&");
                 _.forEach(finalSelectorArray, function (ps) {
                     if (ampersandIndex === -1) {
-                        if (ps.length) {
+                        cs = _stripAtRules(cs);
+                        if (ps.length && cs.length) {
                             ps += " ";
                         }
-                        ps += _stripAtRules(cs);
+                        ps += cs;
                     } else {
                         // Replace all instances of & with regexp
                         ps = _stripAtRules(cs.replace(/&/g, ps));
@@ -1583,7 +1582,7 @@ define(function (require, exports, module) {
                 } else if (ctx.token.string === "{") {
                     selector = _parseSelector(ctx);
                     if (isPreprocessorDoc) {
-                        if (!skipPrevSibling && !/^\s*@media/i.test(selector)) {
+                        if (!skipPrevSibling && !/^\s*@/.test(selector)) {
                             selectorArray.unshift(selector);
                         }
                         if (skipPrevSibling) {
@@ -1631,7 +1630,7 @@ define(function (require, exports, module) {
                 if (ctx.token.type !== "comment") {
                     if (ctx.token.string === "{") {
                         selector = _parseSelector(ctx);
-                        if (isPreprocessorDoc && !/^\s*@media/i.test(selector)) {
+                        if (isPreprocessorDoc && !/^\s*@/.test(selector)) {
                             selectorArray.push(selector);
                         }
                         break;
