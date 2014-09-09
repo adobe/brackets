@@ -613,12 +613,33 @@ define(function (require, exports, module) {
      * @param {string} path full path of file or directory to which the context should be setBaseUrl
      */
     ProjectModel.prototype.setContext = function (path) {
+        // This bit is not ideal: when the user right-clicks on an item in the file tree
+        // and there is already a context menu up, the FileTreeView sends a signal to set the
+        // context to the new element but the PopupManager follows that with a message that it's
+        // closing the context menu (because it closes the previous one and then opens the new
+        // one.) This timing means that we need to provide some special case handling here.
+        if (!path) {
+            this._selections.previousContext = this._selections.context;
+        } else {
+            this._selections.previousContext = path;
+        }
+        
         path = _getPathFromFSObject(path);
         this.performRename();
         var currentContext = this._selections.context;
         this._selections.context = path;
         this._viewModel.moveMarker("context", this.makeProjectRelativeIfPossible(currentContext),
                                    this.makeProjectRelativeIfPossible(path));
+    };
+    
+    /**
+     * Restores the context to the last non-null context. This is specifically here to handle
+     * the sequence of messages that we get from the project context menu.
+     */
+    ProjectModel.prototype.restoreContext = function () {
+        if (this._selections.previousContext) {
+            this.setContext(this._selections.previousContext);
+        }
     };
     
     /**
@@ -786,11 +807,9 @@ define(function (require, exports, module) {
 
         if (renameInfo.type === FILE_CREATING) {
             this.createAtPath(newPath).done(function (entry) {
-                console.log("Success in performRename");
                 viewModel.renameItem(oldProjectPath, newName);
                 renameInfo.deferred.resolve(entry);
             }).fail(function (error) {
-                console.log("Failure in performRename");
                 self._cancelCreating();
                 renameInfo.deferred.reject(error);
             });
@@ -820,12 +839,10 @@ define(function (require, exports, module) {
             self      = this;
 
         return doCreate(path, isFolder).done(function (entry) {
-            console.log("Success in createAtPath");
             if (!isFolder) {
                 self.setSelected(entry.fullPath);
             }
         }).fail(function (error) {
-            console.log("Failure in createAtPath");
             $(self).trigger(ERROR_CREATION, {
                 type: error,
                 name: name,

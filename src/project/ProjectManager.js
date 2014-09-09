@@ -243,6 +243,13 @@ define(function (require, exports, module) {
     };
     
     /**
+     * See `ProjectModel.restoreContext`
+     */
+    ActionCreator.prototype.restoreContext = function () {
+        this.model.restoreContext();
+    };
+
+    /**
      * See `ProjectModel.startRename`
      */
     ActionCreator.prototype.startRename = function (path) {
@@ -1009,6 +1016,10 @@ define(function (require, exports, module) {
                 forceFinishRename();
                 actionCreator.setContext(null);
             }
+        });
+        
+        $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuOpen", function () {
+            actionCreator.restoreContext();
         });
         
         $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuClose", function () {

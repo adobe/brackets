@@ -440,6 +440,13 @@ define(function (require, exports, module) {
                     expect(vm.treeData.getIn(["afile.js", "context"])).toBeUndefined();
                     expect(model._selections.context).toBeUndefined();
                 });
+                
+                it("should be able to restore the context to handle the context menu events", function () {
+                    model.setContext("/foo/afile.js");
+                    model.setContext(null);
+                    model.restoreContext();
+                    expect(model._selections.context).toBe("/foo/afile.js");
+                });
 
                 it("can clear the selection by passing in null", function () {
                     model.setSelected("/foo/afile.js");
@@ -571,6 +578,7 @@ define(function (require, exports, module) {
                     expect(vm.treeData.getIn(["afile.js", "context"])).toBe(true);
                     expect(model._selections).toEqual({
                         context: "/foo/afile.js",
+                        previousContext: "/foo/afile.js",
                         rename: {
                             deferred: jasmine.any(Object),
                             path: "/foo/afile.js",
