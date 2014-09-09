@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, $, beforeFirst, afterLast, waits */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, $, beforeFirst, afterLast, waits, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,10 +32,6 @@ define(function (require, exports, module) {
 
     var testPath = SpecRunnerUtils.getTestPath("/spec/CSSInlineEdit-test-files");
 
-    // TODO:
-    // - make changes in inline editor -> css/scss/less files are added to Workingset and get dirty
-    // - multiple inline edit widgets
-
     describe("CSS Inline Edit", function () {
         this.category = "integration";
 
@@ -44,7 +40,10 @@ define(function (require, exports, module) {
             $,
             EditorManager,
             CommandManager,
-            Commands;
+            DocumentManager,
+            Commands,
+            FileSystem,
+            Dialogs;
 
         beforeFirst(function () {
             runs(function () {
@@ -55,6 +54,9 @@ define(function (require, exports, module) {
                     brackets = testWindow.brackets;
                     EditorManager = brackets.test.EditorManager;
                     CommandManager = brackets.test.CommandManager;
+                    FileSystem = brackets.test.FileSystem;
+                    Dialogs = brackets.test.Dialogs;
+                    DocumentManager = brackets.test.DocumentManager;
                     Commands = brackets.test.Commands;
                 });
             });
@@ -67,7 +69,10 @@ define(function (require, exports, module) {
         afterLast(function () {
             EditorManager = null;
             CommandManager = null;
+            DocumentManager = null;
             Commands = null;
+            Dialogs = null;
+            FileSystem = null;
             testWindow = null;
             SpecRunnerUtils.closeTestWindow();
         });
@@ -227,10 +232,10 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
+                    var inlineWidgets = getInlineEditorWidgets();
+
                     // open the dropdown
                     dropdownButton().click();
-
-                    var inlineWidgets = getInlineEditorWidgets();
 
                     var availableFilesInDropdown = dropdownMenu().children();
                     expect(availableFilesInDropdown.length).toBe(5);
@@ -246,6 +251,30 @@ define(function (require, exports, module) {
                     expect(files.length).toBe(2);
                     expect(files[0].textContent).toEqual(".banner-new — test.css : 8");
                     expect(files[1].textContent).toEqual(".banner-new — test2.css : 8");
+                });
+            });
+
+            it("should add the css file to the working set when modified in inline editor", function () {
+                runs(function () {
+                    var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 48, ch: 25});
+                    waitsForDone(promise, "Open inline editor");
+
+                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                        return {done: function (callback) { callback(Dialogs.DIALOG_BTN_DONTSAVE); } };
+                    });
+                });
+
+                runs(function () {
+                    var inlineWidgets = getInlineEditorWidgets();
+
+                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.scss : 57");
+
+                    var document = inlineWidgets[0].editor.document;
+                    // modify scss to add it to the working set
+                    var scssFile = FileSystem.getFileForPath(testPath + "/scss/test.scss");
+                    document.setText(".comment-scss-4 {\n    background-color: black;\n}");
+
+                    expect(DocumentManager.findInWorkingSet(scssFile.fullPath)).toBeGreaterThan(0);
                 });
             });
         });
