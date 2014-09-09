@@ -1408,8 +1408,8 @@ define(function (require, exports, module) {
 
                 // If the split state was serialized correctly
                 //  then setup the splits according to was serialized
-                // Avoid a zero split percentage
-                if (state.splitPercentage && !isNaN(state.splitPercentage)) {
+                // Avoid a zero and negative split percentages
+                if ($.isNumeric(state.splitPercentage) && state.splitPercentage > 0) {
                     if (_orientation === VERTICAL) {
                         _panes[FIRST_PANE].$el.css({width: state.splitPercentage * 100 + "%"});
                     } else {
