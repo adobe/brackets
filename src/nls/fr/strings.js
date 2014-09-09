@@ -38,6 +38,7 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
 	"CONTENTS_MODIFIED_ERR": "Le fichier a été modifié dans une application autre que {APP_NAME}.",
 	"UNSUPPORTED_ENCODING_ERR": "Pour le moment, {APP_NAME} ne prend en charge que les fichiers texte avec encodage UTF-8.",
+	"UNSUPPORTED_FILE_TYPE_ERR": "[7754241] !é=The file is not a supported file type.=!",
 	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
 	"FILE": "fichier",
 	"FILE_TITLE": "Fichier",
@@ -221,6 +222,14 @@ define({
 	"WORKING_FILES": "Fichiers de travail",
 
     /**
+     * MainViewManager
+     */
+	"TOP": "Haut",
+	"BOTTOM": "Bas",
+	"LEFT": "Gauche",
+	"RIGHT": "Droite",
+
+    /**
      * Keyboard modifier names
      */
 	"KEYBOARD_CTRL": "Ctrl",
@@ -276,7 +285,7 @@ define({
 	"CMD_FILE_NEW": "Nouveau fichier",
 	"CMD_FILE_NEW_FOLDER": "Nouveau dossier",
 	"CMD_FILE_OPEN": "Ouvrir\u2026",
-	"CMD_ADD_TO_WORKING_SET": "Ajouter à l’ensemble de travail",
+	"CMD_ADD_TO_WORKINGSET_AND_OPEN": "[7754233] !é=Add To Working Set and Open=!",
 	"CMD_OPEN_DROPPED_FILES": "Ouvrir les fichiers déposés",
 	"CMD_OPEN_FOLDER": "Ouvrir un dossier\u2026",
 	"CMD_FILE_CLOSE": "Fermer",
@@ -355,10 +364,10 @@ define({
 	"CMD_TOGGLE_WORD_WRAP": "Renvoi à la ligne",
 	"CMD_LIVE_HIGHLIGHT": "Surlignement dans l’Aperçu en direct",
 	"CMD_VIEW_TOGGLE_INSPECTION": "Effectuer une analyse lint des fichiers à l’enregistrement",
-	"CMD_SORT_WORKINGSET_BY_ADDED": "Trier par date d’ajout",
-	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
-	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
-	"CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
+	"CMD_WORKINGSET_SORT_BY_ADDED": "Trier par date d’ajout",
+	"CMD_WORKINGSET_SORT_BY_NAME": "Trier par nom",
+	"CMD_WORKINGSET_SORT_BY_TYPE": "Trier par type",
+	"CMD_WORKING_SORT_TOGGLE_AUTO": "Tri automatique",
 	"CMD_THEMES": "Thèmes\u2026",
 
     // Navigate menu Commands
@@ -550,6 +559,7 @@ define({
 	"CMD_LOG_NODE_STATE": "Noter l’état du nœud dans la console",
 	"CMD_RESTART_NODE": "Redémarrer le nœud",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "Afficher les erreurs dans la barre d’état",
+	"CMD_OPEN_BRACKETS_SOURCE": "Ouvrir la source Brackets",
     
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Langue :",
