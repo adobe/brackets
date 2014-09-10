@@ -445,7 +445,7 @@ define(function (require, exports, module) {
                 }
             } else {
                 // Editor is an inline editor, find the parent pane
-                var parents = $container.parents(".view-pane");
+                var parents = $container.parents(".view-content");
                 if (parents.length === 1) {
                     $container = $(parents[0]);
                     pane = _getPaneFromElement($container);
@@ -926,6 +926,31 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Shows or hides the view header bar. If there's only 1 view, then it's hidden.
+     * For multiple views, it's shown.
+     * @return {boolean} true if layout needs to be recomputed
+     * @private
+     */
+    function _updateViewHeaders() {
+        var paneIdList = getPaneIdList();
+
+        if (paneIdList.length === 1) {
+            var pane = _getPane(paneIdList[0]),
+                $paneHeader = pane.$el.find(".pane-header");
+        
+            $paneHeader.hide();
+        } else {
+            _.forEach(paneIdList, function (paneId) {
+                var pane = _getPane(paneId),
+                    file = pane.getCurrentlyViewedFile(),
+                    $paneHeader = pane.$el.find(".pane-header");
+
+                $paneHeader.show();
+            });
+        }
+    }
+    
+    /**
      * Creates a pane for paneId if one doesn't already exist
      * @param {!string} paneId - id of the pane to create
      * @private
@@ -938,6 +963,8 @@ define(function (require, exports, module) {
         if (!_panes.hasOwnProperty(paneId)) {
             pane = new Pane(paneId, _$el);
             _panes[paneId] = pane;
+            
+            _updateViewHeaders();
             
             $(exports).triggerHandler("paneCreate", [pane.id]);
             
@@ -1121,6 +1148,9 @@ define(function (require, exports, module) {
 
             secondPane.destroy();
             delete _panes[SECOND_PANE];
+            
+            _updateViewHeaders();
+            
             $(exports).triggerHandler("paneDestroy", secondPane.id);
             $(exports).triggerHandler("workingSetAddList", [fileList, firstPane.id]);
 

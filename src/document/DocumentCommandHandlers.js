@@ -132,14 +132,12 @@ define(function (require, exports, module) {
     
     /**
      * Updates the title bar with new file title or dirty indicator
-     * @return {boolean} true if layout needs to be recomputed
      * @private
      */
     function _updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
             currentlyViewedPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE),
-            windowTitle = brackets.config.app_title,
-            needToRecomputeLayout = false;
+            windowTitle = brackets.config.app_title;
 
         if (!brackets.nativeMenus) {
             if (currentlyViewedPath) {
@@ -170,7 +168,7 @@ define(function (require, exports, module) {
             var newToolbarHeight = _$titleContainerToolbar.height();
             if (_lastToolbarHeight !== newToolbarHeight) {
                 _lastToolbarHeight = newToolbarHeight;
-                needToRecomputeLayout = true;
+                WorkspaceManager.recomputeLayout();
             }
         }
 
@@ -188,44 +186,6 @@ define(function (require, exports, module) {
 
         // update shell/browser window title
         window.document.title = windowTitle;
-
-        return needToRecomputeLayout;
-    }
-
-    /**
-     * Updates the view header bar. If there's only 1 view, then it's hidden.
-     * For multiple views, header is updated with file name or info string, if empty
-     * @return {boolean} true if layout needs to be recomputed
-     * @private
-     */
-    function _updateViewHeaders() {
-        
-        var paneIdList = MainViewManager.getPaneIdList();
-
-        if (MainViewManager.getPaneCount() === 1) {
-            var pane = MainViewManager._getPane(paneIdList[0]),
-                $paneHeader = pane.$el.find(".pane-header");
-        
-            $paneHeader.hide();
-        } else {
-            _.forEach(paneIdList, function (paneId) {
-                var pane = MainViewManager._getPane(paneId),
-                    file = pane.getCurrentlyViewedFile(),
-                    $paneHeader = pane.$el.find(".pane-header");
-
-                if (file) {
-                    $paneHeader.text(file.name);
-                } else {
-                    $paneHeader.text(Strings.EMPTY_VIEW_HEADER);
-                }
-                $paneHeader.show();
-            });
-        }
-
-        // FORNOW: always recomputeLayout()
-        // Actually only need to recompute & set editor height
-        // when switching between 1 & 2 panes
-        return true;
     }
 
     /**
@@ -251,8 +211,7 @@ define(function (require, exports, module) {
      * Handles currentFileChange and filenameChanged events and updates the titlebar
      */
     function handleCurrentFileChange() {
-        var newFile = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE),
-            needToRecomputeLayout = false;
+        var newFile = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
         
         if (newFile) {
             var newDocument = DocumentManager.getOpenDocumentForPath(newFile.fullPath);
@@ -267,14 +226,7 @@ define(function (require, exports, module) {
         }
         
         // Update title text & "dirty dot" display
-        needToRecomputeLayout = _updateTitle();
-        
-        // Update view headers
-        needToRecomputeLayout = _updateViewHeaders() || needToRecomputeLayout;
-        
-        if (needToRecomputeLayout) {
-            WorkspaceManager.recomputeLayout();
-        }
+        _updateTitle();
     }
 
     /**

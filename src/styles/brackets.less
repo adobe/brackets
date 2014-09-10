@@ -334,14 +334,14 @@ a, img {
         }
     }
 
-    .view-pane {
+    .view-pane .pane-content {
         display: block;
         margin: 0;
         overflow: hidden;
         height: 100%;
         width: 100%;
         box-sizing: border-box;
-    
+
         /* Image Preview */
         .image-view {
             overflow: hidden;
@@ -481,6 +481,7 @@ a, img {
         }
     }
     .pane-header {
+        box-sizing: border-box;
         padding: 5px 10px;
         color: @bc-menu-text;
         background-color: @bc-menu-bg;
@@ -499,7 +500,6 @@ a, img {
             }
         }
     }
-    
 }
 
 
