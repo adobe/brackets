@@ -199,17 +199,33 @@ define(function (require, exports, module) {
      * @private
      */
     function _updateViewHeaders() {
-        var needToRecomputeLayout = false;
+        
+        var paneIdList = MainViewManager.getPaneIdList();
 
-        // Handle pane header
-//        var $paneHeader = pane.$el.find(".pane-header");
-//        if (Object.keys(_panes).length === 1) {
-//            $paneHeader.text("");
-//        } else {
-//            $paneHeader.text(file.name);
-//        }
+        if (MainViewManager.getPaneCount() === 1) {
+            var pane = MainViewManager._getPane(paneIdList[0]),
+                $paneHeader = pane.$el.find(".pane-header");
+        
+            $paneHeader.hide();
+        } else {
+            _.forEach(paneIdList, function (paneId) {
+                var pane = MainViewManager._getPane(paneId),
+                    file = pane.getCurrentlyViewedFile(),
+                    $paneHeader = pane.$el.find(".pane-header");
 
-        return needToRecomputeLayout;
+                if (file) {
+                    $paneHeader.text(file.name);
+                } else {
+                    $paneHeader.text(Strings.EMPTY_VIEW_HEADER);
+                }
+                $paneHeader.show();
+            });
+        }
+
+        // FORNOW: always recomputeLayout()
+        // Actually only need to recompute & set editor height
+        // when switching between 1 & 2 panes
+        return true;
     }
 
     /**

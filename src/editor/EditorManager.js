@@ -474,7 +474,7 @@ define(function (require, exports, module) {
      */
     function _createFullEditorForDocument(document, pane) {
         // Create editor; make it initially invisible
-        var editor = _createEditorForDocument(document, true, pane.$el);
+        var editor = _createEditorForDocument(document, true, pane.$el.find(".pane-editor-holder"));
         editor.setVisible(false);
         pane.addView(editor);
         $(exports).triggerHandler("_fullEditorCreatedForDocument", [document, editor, pane.id]);

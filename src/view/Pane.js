@@ -762,7 +762,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        if (view.$el.parent() !== this.$el) {
+        if (view.$el.parent() !== this.$el.find(".pane-editor-holder")) {
             this._reparent(view);
         } else {
             this._views[path] = view;

@@ -340,7 +340,6 @@ a, img {
         overflow: hidden;
         height: 100%;
         width: 100%;
-        border: solid rgba(9, 9, 9, .05) 2px;
         box-sizing: border-box;
     
         /* Image Preview */
@@ -481,14 +480,26 @@ a, img {
             display: block;
         }
     }
-    .active-pane {
-        border: solid rgba(0, 0, 255, .2) 2px;
-        box-sizing: border-box;
+    .pane-header {
+        padding: 5px 10px;
+        color: @bc-menu-text;
+        background-color: @bc-menu-bg;
         
         .dark & {
-            border: solid rgba(255, 255, 255, .2) 2px;
+            color: @dark-bc-menu-text;
+            background-color: @dark-bc-menu-bg;
         }
     }
+    .active-pane {
+        .pane-header {
+            background-color: @bc-bg-highlight;
+
+            .dark & {
+                background-color: @dark-bc-bg-highlight;
+            }
+        }
+    }
+    
 }
 
 
