@@ -102,7 +102,7 @@ define(function (require, exports, module) {
      * Returns false for files and directories that are not commonly useful to display.
      *
      * @param {!FileSystemEntry} entry File or directory to filter
-     * @return boolean true if the file should be displayed
+     * @return {boolean} true if the file should be displayed
      */
     function shouldShow(entry) {
         return _shouldShowName(entry.name);
