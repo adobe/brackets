@@ -212,23 +212,24 @@ define(function (require, exports, module) {
             context.isCompatible = context.isCompatibleLatest = true;
         }
 
-        // Extension metadata might have localized content. If so, overlay (or concatenate) those strings.
+        // Extension metadata might have localized content. If so, overlay (or concatenate) those strings, first
+        //   using any shortlang-specified values, and then the long language form.
         var lang            = brackets.getLocale(),
-            shortLang       = lang.split("-")[0],
-            useShortLang    = info.metadata.hasOwnProperty(shortLang);
-        if (useShortLang || info.metadata.hasOwnProperty(lang)) {
-            var key = useShortLang ? shortLang : lang;
-            _.forEach(info.metadata[key], function (value, prop) {
-                if (prop !== "keywords") {
-                    // overlay existing string w/ localized string
-                    info.metadata[prop] = info.metadata[key][prop];
-                } else {
-                    // for keywords, add the localized keywords to the root language keywords
-                    var keywords = info.metadata[prop].concat(info.metadata[key][prop]);
-                    info.metadata[prop] = _.uniq(keywords);
-                }
-            });
-        }
+            shortLang       = lang.split("-")[0];
+        [shortLang, lang].forEach(function (locale) {
+            if (info.metadata.hasOwnProperty(locale)) {
+                _.forEach(info.metadata[locale], function (value, prop) {
+                    if (prop !== "keywords") {
+                        // overlay existing string w/ localized string
+                        info.metadata[prop] = value;
+                    } else {
+                        // for keywords, add the localized keywords to the root language keywords
+                        var keywords = info.metadata[prop].concat(value);
+                        info.metadata[prop] = _.uniq(keywords);
+                    }
+                });
+            }
+        });
 
         if (info.metadata.description !== undefined) {
             info.metadata.shortdescription = StringUtils.truncate(info.metadata.description, 200);
