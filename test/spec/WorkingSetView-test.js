@@ -358,7 +358,9 @@ define(function (require, exports, module) {
         it("should callback for class", function () {
             runs(function () {
 
-                var classes = ["one", "two"];
+                var master = ["one", "two"],
+                    classes = master.slice(0);
+                    
                 
                 function classProvider(file) {
                     return classes.pop();
@@ -368,7 +370,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var $list = testWindow.$(".open-files-container > li"),
-                        test = ["one", "two"];
+                        test = master.slice(0);
                     
                     $list.each(function (number, el) {
                         expect($(el).hasClass(test.pop())).toBeTruthy();
