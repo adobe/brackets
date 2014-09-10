@@ -619,15 +619,16 @@ define(function (require, exports, module) {
      */
     WorkingSetView.prototype._createNewListItem = function (file) {
         var self = this,
-            selectedFile = MainViewManager.getCurrentlyViewedFile(this.paneId);
+            selectedFile = MainViewManager.getCurrentlyViewedFile(this.paneId),
+            data = {fullPath: file.fullPath,
+                    name: file.name,
+                    isFile: file.isFile};
 
         // Create new list item with a link
         var $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(file));
            
         _iconProviders.forEach(function (provider) {
-            var icon = provider({fullPath: file.fullPath,
-                                 name: file.name,
-                                 isFile: file.isFile});
+            var icon = provider(data);
             if (icon) {
                 $link.prepend($(icon));
             }
@@ -640,7 +641,7 @@ define(function (require, exports, module) {
         this.$openFilesContainer.find("ul").append($newItem);
         
         _classProviders.forEach(function (provider) {
-            $newItem.addClass(provider(file));
+            $newItem.addClass(provider(data));
         });
         
         // Update the listItem's apperance
@@ -946,7 +947,7 @@ define(function (require, exports, module) {
     /** 
      * adds an icon provider to the view.  
      * Icon providers are called when a working set item is created
-     * @param {!function(!File):?string} callback - the function to call for each item
+     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string} callback - the function to call for each item
      * The callback can return a string that contains and image tag <img src="xxx"> to place before the filename
      * if a falsy value is returned then nothing is prepended to the list item
      */
@@ -960,7 +961,7 @@ define(function (require, exports, module) {
     /** 
      * adds a list item class provider to the view.  
      * Class providers are called when a working set item is created
-     * @param {!function(!File):?string} callback - the function to call for each item
+     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string} callback - the function to call for each item
      * The callback can return a string that contains the class (or classes) to add to the list item
      */
     function addClassProvider(callback) {
