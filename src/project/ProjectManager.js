@@ -1030,6 +1030,11 @@ define(function (require, exports, module) {
             forceFinishRename();
         });
         
+        $projectTreeContainer.on("scroll", function () {
+            Menus.closeAll();
+            actionCreator.setContext(null);
+        });
+        
         _renderTree();
     });
 
