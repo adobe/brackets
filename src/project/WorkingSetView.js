@@ -56,6 +56,20 @@ define(function (require, exports, module) {
     var _views = [];
     
     /**
+     * Icon Providers
+     * @see {@link WorkingSetView#addIconProvider()}
+     * @private
+     */
+    var _iconProviders = [];
+    
+    /**
+     * Icon Providers
+     * @see {@link WorkingSetView#addClassProvider()}
+     * @private
+     */
+    var _classProviders = [];
+    
+    /**
      * Context Menu
      * @private
      * @type {Menu}
@@ -609,11 +623,25 @@ define(function (require, exports, module) {
 
         // Create new list item with a link
         var $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(file));
+           
+        _iconProviders.forEach(function (provider) {
+            var icon = provider({fullPath: file.fullPath,
+                                 name: file.name,
+                                 isFile: file.isFile});
+            if (icon) {
+                $link.prepend($(icon));
+            }
+        });
+        
         var $newItem = $("<li></li>")
             .append($link)
             .data(_FILE_KEY, file);
 
         this.$openFilesContainer.find("ul").append($newItem);
+        
+        _classProviders.forEach(function (provider) {
+            $newItem.addClass(provider(file));
+        });
         
         // Update the listItem's apperance
         this._updateFileStatusIcon($newItem, _isOpenAndDirty(file), false);
@@ -903,14 +931,48 @@ define(function (require, exports, module) {
 
     /** 
      * Refreshes all Pane View List Views
+     * @param {boolean=} reconstruct - completely rebuilds the view list
      */
-    function refresh() {
-        _.forEach(_views, function (workingSetListView) {
-            workingSetListView._redraw();
+    function refresh(reconstruct) {
+        _.forEach(_views, function (view) {
+            if (reconstruct) {
+                view._rebuildViewList();
+            } else {
+                view._redraw();
+            }
         });
+    }
+    
+    /** 
+     * adds an icon provider to the view.  
+     * Icon providers are called when a working set item is created
+     * @param {!function(!File):?string} callback - the function to call for each item
+     * The callback can return a string that contains and image tag <img src="xxx"> to place before the filename
+     * if a falsy value is returned then nothing is prepended to the list item
+     */
+    function addIconProvider(callback) {
+        _iconProviders.push(callback);
+        // build all views so the provider has a chance to add icons
+        //    to all items that have already been created
+        refresh(true);
+    }
+    
+    /** 
+     * adds a list item class provider to the view.  
+     * Class providers are called when a working set item is created
+     * @param {!function(!File):?string} callback - the function to call for each item
+     * The callback can return a string that contains the class (or classes) to add to the list item
+     */
+    function addClassProvider(callback) {
+        _classProviders.push(callback);
+        // build all views so the provider has a chance to style
+        //    all items that have already been created
+        refresh(true);
     }
     
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
     exports.refresh                       = refresh;
+    exports.addIconProvider               = addIconProvider;
+    exports.addClassProvider              = addClassProvider;
 });
