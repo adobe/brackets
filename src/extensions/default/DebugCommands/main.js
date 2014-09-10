@@ -237,11 +237,12 @@ define(function (require, exports, module) {
         });
     }
     
-    function toggleErrorNotification(bool, doNotSave) {
-        var val;
+    function toggleErrorNotification(bool) {
+        var val,
+            oldPref = !!PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
 
-        if (typeof bool === "undefined") {
-            val = !PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
+        if (bool === undefined) {
+            val = !oldPref;
         } else {
             val = !!bool;
         }
@@ -250,7 +251,7 @@ define(function (require, exports, module) {
 
         // update menu
         CommandManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR).setChecked(val);
-        if (!doNotSave) {
+        if (val !== oldPref) {
             PreferencesManager.set(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, val);
         }
     }
@@ -289,10 +290,10 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_RESTART_NODE,         DEBUG_RESTART_NODE,           NodeDebugUtils.restartNode);
     
     enableRunTestsMenuItem();
-    toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR), true);
+    toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR));
 
     PreferencesManager.on("change", DEBUG_SHOW_ERRORS_IN_STATUS_BAR, function () {
-        toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR), true);
+        toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR));
     });
     
     /*
