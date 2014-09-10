@@ -215,6 +215,9 @@ define(function (require, exports, module) {
             it("should correct cubic-bezier function with 5 parameters", function () {
                 testInvalidBezier("cubic-bezier(0, 0, 1, 1, 1)", ["cubic-bezier(0, 0, 1, 1)", "0", "0", "1", "1"]);
             });
+            it("should correct cubic-bezier function with trailing comma", function () {
+                testInvalidBezier("cubic-bezier(.42, 0, .58, .5,)", ["cubic-bezier(.42, 0, .58, .5)", ".42", "0", ".58", ".5"]);
+            });
             
             // Real invalid cubic-beziers - they should NOT be corrected automatically
             it("should not match cubic-bezier function with invalid whitespace", function () {

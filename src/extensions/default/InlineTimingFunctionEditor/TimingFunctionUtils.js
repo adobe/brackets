@@ -60,15 +60,15 @@ define(function (require, exports, module) {
      * If string is a number, then convert it.
      *
      * @param {string} str  value parsed from page.
-     * @return { isNumber: boolean, value: number } 
+     * @return { isNumber: boolean, value: ?number }
      */
     function _convertToNumber(str) {
-        if (typeof (str) !== "string") {
-            return { isNumber: false };
+        if (typeof str !== "string") {
+            return { isNumber: false, value: null };
         }
 
-        var val = parseFloat(str, 10),
-            isNum = (typeof (val) === "number") && !isNaN(val) &&
+        var val = parseFloat(+str, 10),
+            isNum = (typeof val === "number") && !isNaN(val) &&
                     (val !== Infinity) && (val !== -Infinity);
 
         return {
