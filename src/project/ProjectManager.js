@@ -132,10 +132,23 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * 
+     * Does the file tree currently have the focus?
+     * 
+     * @return {boolean} `true` if the file tree has the focus
+     */
+    function _hasFileSelectionFocus() {
+        return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
+    }
+
+    /**
+     * @private
      * Singleton ProjectModel object.
      * @type {ProjectModel.ProjectModel}
      */
-    var model = new ProjectModel.ProjectModel();
+    var model = new ProjectModel.ProjectModel({
+        focused: _hasFileSelectionFocus()
+    });
     
     /**
      * @private
@@ -207,6 +220,10 @@ define(function (require, exports, module) {
         // activity.
         this.model.on(ProjectModel.EVENT_SHOULD_SELECT, function (e, data) {
             FileViewController.openAndSelectDocument(data.path, FileViewController.PROJECT_MANAGER);
+        });
+        
+        this.model.on(ProjectModel.EVENT_SHOULD_FOCUS, function () {
+            FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
         });
         
         this.model.on(ProjectModel.ERROR_CREATION, _displayCreationError);
@@ -292,6 +309,20 @@ define(function (require, exports, module) {
     };
     
     /**
+     * See `ProjectModel.setFocused`
+     */
+    ActionCreator.prototype.setFocused = function (focused) {
+        this.model.setFocused(focused);
+    };
+    
+    /**
+     * See `ProjectModel.setCurrentFile`
+     */
+    ActionCreator.prototype.setCurrentFile = function (curFile) {
+        this.model.setCurrentFile(curFile);
+    };
+    
+    /**
      * See `ProjectModel.refresh`
      */
     ActionCreator.prototype.refresh = function () {
@@ -325,17 +356,6 @@ define(function (require, exports, module) {
     /**
      * @private
      * 
-     * Does the file tree currently have the focus?
-     * 
-     * @return {boolean} `true` if the file tree has the focus
-     */
-    function _hasFileSelectionFocus() {
-        return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
-    }
-    
-    /**
-     * @private
-     * 
      * Handler for changes in document selection.
      */
     function _documentSelectionFocusChange() {
@@ -353,9 +373,19 @@ define(function (require, exports, module) {
      * Handler for changes in the focus between working set and file tree view.
      */
     function _fileViewControllerChange() {
-        if (!_hasFileSelectionFocus()) {
-            actionCreator.setSelected(null);
-        }
+        actionCreator.setFocused(_hasFileSelectionFocus());
+    }
+    
+    /**
+     * @private
+     * 
+     * Handler for changes to which file is currently viewed.
+     * 
+     * @param {Object} e jQuery event object
+     * @param {File} curFile Currently viewed file.
+     */
+    function _currentFileChange(e, curFile) {
+        actionCreator.setCurrentFile(curFile.fullPath);
     }
     
     /**
@@ -1084,6 +1114,7 @@ define(function (require, exports, module) {
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
     $(FileViewController).on("fileViewFocusChange", _fileViewControllerChange);
+    $(MainViewManager).on("currentFileChange", _currentFileChange);
     $(exports).on("beforeAppClose", _unwatchProjectRoot);
     
     // Commands

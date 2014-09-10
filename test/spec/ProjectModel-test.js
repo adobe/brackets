@@ -367,7 +367,8 @@ define(function (require, exports, module) {
                 vm = model._viewModel,
                 changesFired,
                 selectionsMade,
-                creationErrors;
+                creationErrors,
+                focusEvents;
 
             model.projectRoot = {
                 fullPath: "/foo/"
@@ -383,9 +384,14 @@ define(function (require, exports, module) {
             model.on(ProjectModel.ERROR_CREATION, function (e, error) {
                 creationErrors.push(error);
             });
+            
+            model.on(ProjectModel.EVENT_SHOULD_FOCUS, function () {
+                focusEvents++;
+            });
 
             beforeEach(function () {
                 changesFired = 0;
+                focusEvents = 0;
                 creationErrors = [];
                 selectionsMade = [];
                 vm.treeData = Immutable.fromJS({
@@ -407,6 +413,8 @@ define(function (require, exports, module) {
                 });
                 
                 model._selections = {};
+                model._currentFile = null;
+                model._focused = true;
             });
 
             describe("setSelected", function () {
@@ -460,16 +468,14 @@ define(function (require, exports, module) {
                 it("can select a file that is not visible", function () {
                     model.setSelected("/foo/subdir2/bar.js");
                     expect(changesFired).toBe(0);
-                    expect(model._selections.selectIfVisible).toBe("/foo/subdir2/bar.js");
-                    expect(model._selections.selected).toBe(null);
+                    expect(model._selections.selected).toBe("/foo/subdir2/bar.js");
                 });
 
                 it("will unselect the previously selected file when selecting one that's not visible", function () {
                     model.setSelected("/foo/subdir1/afile.js");
                     model.setSelected("/foo/subdir2/bar.js");
                     expect(vm.treeData.getIn(["subdir1", "children", "afile.js", "selected"])).toBeUndefined();
-                    expect(model._selections.selectIfVisible).toBe("/foo/subdir2/bar.js");
-                    expect(model._selections.selected).toBe(null);
+                    expect(model._selections.selected).toBe("/foo/subdir2/bar.js");
                 });
                 
                 it("can accept a filesystem object", function () {
@@ -480,25 +486,24 @@ define(function (require, exports, module) {
                 });
             });
             
-            describe("setDirectoryOpen", function () {
-                it("will clear selectIfVisible when selecting a visible item", function () {
-                    model.setSelected("/foo/subdir1/afile.js");
-                    model.setDirectoryOpen("/foo/subdir1/", false);
-                    expect(model._selections.selectIfVisible).toBe("/foo/subdir1/afile.js");
-                    expect(model._selections.selected).toBe("/foo/subdir1/");
-                    expect(vm.treeData.getIn(["subdir1", "children", "afile.js", "selected"])).toBeUndefined();
-                    expect(vm.treeData.getIn(["subdir1", "selected"])).toBe(true);
+            describe("setFocused", function () {
+                it("should clear the selection when the focus leaves the tree", function () {
                     model.setSelected("/foo/afile.js");
-                    expect(model._selections.selectIfVisible).toBeUndefined();
-                    expect(vm.treeData.getIn(["subdir1", "selected"])).toBeUndefined();
+                    model.setFocused(false);
+                    expect(model._selections.selected).toBe(null);
+                    expect(vm.treeData.getIn(["afile.js", "selected"])).toBeUndefined();
                 });
-                
-                it("will reselect a previously invisible item", function () {
+            });
+            
+            describe("setDirectoryOpen", function () {
+                it("will select the current file if it was previously invisible", function () {
                     model.setSelected("/foo/subdir1/afile.js");
+                    model.setCurrentFile("/foo/subdir1/afile.js");
                     model.setDirectoryOpen("/foo/subdir1/", false);
-                    model.setDirectoryOpen("/foo/subdir1", true);
-                    expect(model._selections.selectIfVisible).toBeUndefined();
+                    expect(model._selections.selected).toBe("/foo/subdir1/");
+                    model.setDirectoryOpen("/foo/subdir1/", true);
                     expect(model._selections.selected).toBe("/foo/subdir1/afile.js");
+                    expect(focusEvents).toBe(2);
                     expect(vm.treeData.getIn(["subdir1", "children", "afile.js", "selected"])).toBe(true);
                     expect(vm.treeData.getIn(["subdir1", "selected"])).toBeUndefined();
                 });

@@ -42,6 +42,7 @@ define(function (require, exports, module) {
     // Constants
     var EVENT_CHANGE            = "change",
         EVENT_SHOULD_SELECT     = "select",
+        EVENT_SHOULD_FOCUS      = "focus",
         ERROR_CREATION          = "creationError",
         ERROR_INVALID_FILENAME  = "invalidFilename";
     
@@ -213,8 +214,13 @@ define(function (require, exports, module) {
      * It also manages the view model to display a FileTreeView of the project.
      */
     function ProjectModel(initial) {
-        if (initial && initial.projectRoot) {
+        initial = initial || {};
+        if (initial.projectRoot) {
             this.projectRoot = initial.projectRoot;
+        }
+        
+        if (initial.focused !== undefined) {
+            this._focused = initial.focused;
         }
         this._viewModel = new FileTreeViewModel.FileTreeViewModel();
         this._viewModel.on(FileTreeViewModel.EVENT_CHANGE, function () {
@@ -262,11 +268,41 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * 
+     * @type {boolean}
+     * 
+     * Flag to store whether the file tree has focus.
+     */
+    ProjectModel.prototype._focused = true;
+    
+    /**
+     * @private
+     * 
+     * @type {string}
+     * 
+     * Current file path being viewed.
+     */
+    ProjectModel.prototype._currentPath = null;
+    
+    /**
+     * @private
      * @type {?jQuery.Promise.<Array<File>>}
      * A promise that is resolved with an array of all project files. Used by 
      * ProjectManager.getAllFiles().
      */
     ProjectModel.prototype._allFilesCachePromise = null;
+    
+    /**
+     * Sets whether the file tree is focused or not.
+     * 
+     * @param {boolean} focused True if the file tree has the focus.
+     */
+    ProjectModel.prototype.setFocused = function (focused) {
+        this._focused = focused;
+        if (!focused) {
+            this.setSelected(null);
+        }
+    };
 
     /**
      * Returns the encoded Base URL of the currently loaded project, or empty string if no project
@@ -516,23 +552,16 @@ define(function (require, exports, module) {
                 self._viewModel.setDirectoryContents(projectRelative, contents);
             }
             
-            // If the previous selection was hidden because the directory was closed, reselect it.
-            var currentSelection = self._selections.selected,
-                invisibleSelection = self._selections.selectIfVisible;
-
-            if (!open && currentSelection) {
-                var currentSelectionInProject = self.makeProjectRelativeIfPossible(currentSelection);
-                if (!self._viewModel.isFilePathVisible(currentSelectionInProject)) {
-                    self.setSelected(path, true);
-                    self._selections.selectIfVisible = currentSelection;
-                }
-            } else if (open && self._selections.selectIfVisible) {
-                var invisibleSelectionInProject = self.makeProjectRelativeIfPossible(self._selections.selectIfVisible);
-                if (self._viewModel.isFilePathVisible(invisibleSelectionInProject)) {
-                    self.setSelected(invisibleSelection, true);
-                    delete self._selections.selectIfVisible;
+            if (!open) {
+                self.setSelected(path, true);
+            } else if (open && self._focused) {
+                var currentPathInProject = self.makeProjectRelativeIfPossible(self._currentPath);
+                if (self._viewModel.isFilePathVisible(currentPathInProject)) {
+                    self.setSelected(self._currentPath, true);
                 }
             }
+            
+            $(self).trigger(EVENT_SHOULD_FOCUS);
             
             d.resolve();
         }
@@ -573,10 +602,6 @@ define(function (require, exports, module) {
         this._selections = {
             selected: path
         };
-        if (path && !newPathIsVisible) {
-            this._selections.selectIfVisible = path;
-            this._selections.selected = null;
-        }
         
         if (!doNotOpen && path && _.last(path) !== "/") {
             $(this).trigger(EVENT_SHOULD_SELECT, {
@@ -592,6 +617,16 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype.getSelected = function () {
         return _getFSObject(this._selections.selected);
+    };
+    
+    /**
+     * Keeps track of which file is currently being edited.
+     * 
+     * @param {File|string} curFile Currently edited file.
+     */
+    ProjectModel.prototype.setCurrentFile = function (curFile) {
+        var path = _getPathFromFSObject(curFile);
+        this._currentPath = path;
     };
     
     /**
@@ -1120,6 +1155,7 @@ define(function (require, exports, module) {
     exports.isValidFilename         = isValidFilename;
     exports.EVENT_CHANGE            = EVENT_CHANGE;
     exports.EVENT_SHOULD_SELECT     = EVENT_SHOULD_SELECT;
+    exports.EVENT_SHOULD_FOCUS      = EVENT_SHOULD_FOCUS;
     exports.ERROR_CREATION          = ERROR_CREATION;
     exports.ERROR_INVALID_FILENAME  = ERROR_INVALID_FILENAME;
     exports.FILE_RENAMING           = FILE_RENAMING;
