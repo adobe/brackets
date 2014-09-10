@@ -103,7 +103,8 @@ define(function (require, exports, module) {
             if (err.name && err.name === "ParsingError") {
                 userScopeCorrupt = true;
             }
-        })
+        });
+    userScopeLoading
         .then(fnUserScopeAlways, fnUserScopeAlways);
     
     // "State" is stored like preferences but it is not generally intended to be user-editable.
