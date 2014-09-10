@@ -856,7 +856,7 @@ define(function (require, exports, module) {
             var prevToken = "";
             while (token !== ";") {
                 // Skip tokens until the closing brace if we find an interpolated variable.
-                if (/#\{$/.test(token) || (token === "{" && /@$/.test(prevToken))) {
+                if (/#\{$/.test(token) || (token === "{" && /[#@]$/.test(prevToken))) {
                     _skipToClosingBracket("{");
                     if (token === "}") {
                         _nextToken();   // Skip the closing brace
@@ -868,13 +868,14 @@ define(function (require, exports, module) {
                 // If there is a '{' or '}' before the ';',
                 // then stop skipping.
                 if (token === "{" || token === "}") {
-                    return;
+                    return false;   // can't tell if the entire property is skipped
                 }
                 prevToken = token;
                 if (!_nextTokenSkippingComments()) {
                     break;
                 }
             }
+            return true;    // skip the entire property
         }
         
         function _getParentSelectors() {
@@ -1182,7 +1183,11 @@ define(function (require, exports, module) {
         _parseRuleList = function (escapeToken, level) {
             while ((!escapeToken) || token !== escapeToken) {
                 if (_isVariableInterpolatedProperty()) {
-                    _skipProperty();
+                    if (!_skipProperty()) {
+                        // We found a "{" or "}" while skipping a property. Return false to handle the 
+                        // opening or closing of a block properly.
+                        return false;
+                    }
                 } else if (_isStartAtRule()) {
                     // @rule
                     _parseAtRule(level);
@@ -1195,11 +1200,9 @@ define(function (require, exports, module) {
                     _parseComment();
                 } else if (_maybeProperty()) {
                     // Skip the property.
-                    _skipProperty();
-                    // If we find a "{" or "}" while skipping a property, then don't skip it in
-                    // this while loop. Otherwise, we will get into an infinite loop in parsing
-                    // since we miss to handle the opening or closing of a block properly.
-                    if (token === "{" || token === "}") {
+                    if (!_skipProperty()) {
+                        // We found a "{" or "}" while skipping a property. Return false to handle the 
+                        // opening or closing of a block properly.
                         return false;
                     }
                 } else {

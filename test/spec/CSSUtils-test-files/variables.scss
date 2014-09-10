@@ -13,7 +13,8 @@ $attr: border;
 
 $property: color;
 div {
-  background-#{$property}: blue;
+  // test case for https://github.com/adobe/brackets/issues/9029
+  background-#{$property}: blue
 }
 
 p {
