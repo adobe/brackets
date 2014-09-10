@@ -301,7 +301,7 @@ define(function (require, exports, module) {
                     var availableFilesInDropdown = dropdownMenu().children();
                     checkAvailableStylesheets(availableFilesInDropdown);
 
-                    expect(inlineEditorMessage().text()).toEqual("There are no existing CSS rules that match your selection. Click \"New Rule\" to create one.");
+                    expect(inlineEditorMessage().html()).toEqual(Strings.CSS_QUICK_EDIT_NO_MATCHES);
                 });
             });
 
@@ -736,7 +736,7 @@ define(function (require, exports, module) {
                 });
             });
 
-//            https://github.com/adobe/brackets/issues/8895
+            // https://github.com/adobe/brackets/issues/8895
             it("should show one matching rule that is defined with parent selector", function () {
                 runs(function () {
                     var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 38, ch: 25});
@@ -758,7 +758,7 @@ define(function (require, exports, module) {
                 });
             });
 
-//            https://github.com/adobe/brackets/issues/8851
+            // https://github.com/adobe/brackets/issues/8851
             it("should show matching rules that follow rules using variable interpolation in a selector", function () {
                 runs(function () {
                     var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 42, ch: 10});
