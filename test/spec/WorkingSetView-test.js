@@ -367,7 +367,6 @@ define(function (require, exports, module) {
                 WorkingSetView.addClassProvider(classProvider);
 
                 runs(function () {
-                    // Collect all icon filenames used
                     var $list = testWindow.$(".open-files-container > li"),
                         test = ["one", "two"];
                     
