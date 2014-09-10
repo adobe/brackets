@@ -368,7 +368,8 @@ define(function (require, exports, module) {
                 changesFired,
                 selectionsMade,
                 creationErrors,
-                focusEvents;
+                focusEvents,
+                selectionEvents;
 
             model.projectRoot = {
                 fullPath: "/foo/"
@@ -388,12 +389,17 @@ define(function (require, exports, module) {
             model.on(ProjectModel.EVENT_SHOULD_FOCUS, function () {
                 focusEvents++;
             });
+            
+            model.on(ProjectModel.EVENT_SHOULD_SELECT, function (e, data) {
+                selectionEvents.push(data);
+            });
 
             beforeEach(function () {
                 changesFired = 0;
                 focusEvents = 0;
                 creationErrors = [];
                 selectionsMade = [];
+                selectionEvents = [];
                 vm.treeData = Immutable.fromJS({
                     subdir1: {
                         open: true,
@@ -674,6 +680,16 @@ define(function (require, exports, module) {
                     expect(vm.treeData.get("somethingelse")).toBeDefined();
                     expect(vm.treeData.getIn(["somethingelse", "open"])).toBe(true);
                     expect(model._renameItem).toHaveBeenCalledWith("/foo/subdir1/", "/foo/somethingelse/");
+                });
+            });
+            
+            describe("selectInWorkingSet", function () {
+                it("should fire event", function () {
+                    model.selectInWorkingSet("/foo/afile.js");
+                    expect(selectionEvents).toEqual([{
+                        path: "/foo/afile.js",
+                        add: true
+                    }]);
                 });
             });
 

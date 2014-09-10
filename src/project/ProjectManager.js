@@ -219,7 +219,11 @@ define(function (require, exports, module) {
         // The "should select" event signals that we need to open the document based on file tree
         // activity.
         this.model.on(ProjectModel.EVENT_SHOULD_SELECT, function (e, data) {
-            FileViewController.openAndSelectDocument(data.path, FileViewController.PROJECT_MANAGER);
+            if (data.add) {
+                FileViewController.addToWorkingSetAndSelect(data.path);
+            } else {
+                FileViewController.openAndSelectDocument(data.path, FileViewController.PROJECT_MANAGER);
+            }
         });
         
         this.model.on(ProjectModel.EVENT_SHOULD_FOCUS, function () {

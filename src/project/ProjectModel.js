@@ -35,7 +35,6 @@ define(function (require, exports, module) {
         _                   = require("thirdparty/lodash"),
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
-        FileViewController  = require("project/FileViewController"),
         FileTreeViewModel   = require("project/FileTreeViewModel"),
         Async               = require("utils/Async");
     
@@ -632,13 +631,14 @@ define(function (require, exports, module) {
     /**
      * Adds the file at the given path to the Working Set and selects it there.
      * 
-     * TODO: does this belong in ProjectManager? (triggered by an event like EVENT_SHOULD_SELECT?)
-     * 
      * @param {string} path full path of file to open in Working Set
      */
     ProjectModel.prototype.selectInWorkingSet = function (path) {
         this.performRename();
-        FileViewController.addToWorkingSetAndSelect(path);
+        $(this).trigger(EVENT_SHOULD_SELECT, {
+            path: path,
+            add: true
+        });
     };
     
     /**
