@@ -258,7 +258,7 @@ define(function (require, exports, module) {
     Pane.prototype.$el = null;
   
     /**
-     * the wrapped DOM node that contains editors
+     * the wrapped DOM node that contains views
      * @readonly
      * @type {JQuery}
      */
