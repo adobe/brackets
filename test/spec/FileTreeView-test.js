@@ -77,6 +77,58 @@ define(function (require, exports, module) {
                 expect(ins.props.children).toBe("ICON");
             });
             
+            it("should allow icon extensions to return a string for the icon", function () {
+                var extensionCalls = 0,
+                    rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                        name: "afile.js",
+                        entry: Immutable.Map(),
+                        parentPath: "/foo/",
+                        extensions: Immutable.fromJS({
+                            icons: [function (data) {
+                                extensionCalls++;
+                                return "<ins>ICON</ins>";
+                            }]
+                        })
+                    }));
+
+                expect(extensionCalls).toBe(1);
+
+                var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
+                expect(a.props.children[1]).toBe("afile");
+                expect(a.props.children[2].props.children).toBe(".js");
+                
+                var $a = $(a.getDOMNode()),
+                    $ins = $a.find("ins");
+
+                expect($ins.text()).toBe("ICON");
+            });
+            
+            it("should allow icon extensions to return a jQuery object for the icon", function () {
+                var extensionCalls = 0,
+                    rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                        name: "afile.js",
+                        entry: Immutable.Map(),
+                        parentPath: "/foo/",
+                        extensions: Immutable.fromJS({
+                            icons: [function (data) {
+                                extensionCalls++;
+                                return $("<ins/>").text("ICON");
+                            }]
+                        })
+                    }));
+
+                expect(extensionCalls).toBe(1);
+
+                var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
+                expect(a.props.children[1]).toBe("afile");
+                expect(a.props.children[2].props.children).toBe(".js");
+
+                var $a = $(a.getDOMNode()),
+                    $ins = $a.find("ins");
+
+                expect($ins.text()).toBe("ICON");
+            });
+
             it("should call addClass extensions", function () {
                 var extensionCalls = 0,
                     rendered = RTU.renderIntoDocument(FileTreeView._fileNode({

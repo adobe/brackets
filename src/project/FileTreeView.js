@@ -205,7 +205,15 @@ define(function (require, exports, module) {
                 var data = this.getDataForExtension();
                 result = extensions.get("icons").map(function (callback) {
                     try {
-                        return callback(data);
+                        var result = callback(data);
+                        if (!React.isValidComponent(result)) {
+                            result = React.DOM.span({
+                                dangerouslySetInnerHTML: {
+                                    __html: $(result)[0].outerHTML
+                                }
+                            });
+                        }
+                        return result;
                     } catch (e) {
                         console.warn("Exception thrown in FileTreeView icon provider:", e);
                     }
