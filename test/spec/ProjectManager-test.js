@@ -444,7 +444,6 @@ define(function (require, exports, module) {
                     toggleFolder(folder, false);    // close folder
                 });
                 runs(function () {
-                    expectSelected(folder);
                     toggleFolder(folder, true);     // open folder again
                 });
                 runs(function () {

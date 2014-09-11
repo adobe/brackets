@@ -500,6 +500,21 @@ define(function (require, exports, module) {
                 vm.moveMarker("selected", null, "");
                 expect(vm._treeData.get("selected")).toBeUndefined();
             });
+            
+            it("should do nothing if the marker is moving to the same location", function () {
+                vm.moveMarker("selected", null, "subdir1/afile.js");
+                changesFired = 0;
+                var originalTreeData = vm._treeData;
+                vm.moveMarker("selected", "subdir1/afile.js", "subdir1/afile.js");
+                expect(changesFired).toBe(0);
+                expect(vm._treeData).toBe(originalTreeData);
+            });
+            
+            it("should make sure that the marker is actually present at the new location", function () {
+                vm.moveMarker("selected", "subdir1/afile.js", "subdir1/afile.js");
+                expect(changesFired).toBe(1);
+                expect(vm._treeData.getIn(["subdir1", "children", "afile.js", "selected"])).toBe(true);
+            });
         });
         
         describe("createPlaceholder", function () {

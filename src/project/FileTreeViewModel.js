@@ -339,24 +339,15 @@ define(function (require, exports, module) {
      * See `FileTreeViewModel.moveMarker`
      */
     function _moveMarker(treeData, markerName, oldPath, newPath) {
-        if (newPath === oldPath) {
-            return;
-        }
-
         var objectPath;
 
-        if (newPath !== null) {
+        if (newPath) {
             objectPath = _filePathToObjectPath(treeData, newPath);
-            
-            // Cannot set a marker on a nonexistent path or the root.
-            if (!objectPath || objectPath.length === 0) {
-                return;
-            }
         }
 
         var newTreeData = treeData;
 
-        if (oldPath) {
+        if (oldPath && oldPath !== newPath) {
             var lastObjectPath = _filePathToObjectPath(treeData, oldPath);
             if (lastObjectPath) {
                 newTreeData = newTreeData.updateIn(lastObjectPath, function (entry) {
@@ -365,7 +356,7 @@ define(function (require, exports, module) {
             }
         }
 
-        if (newPath !== null) {
+        if (newPath && objectPath && objectPath.length !== 0) {
             newTreeData = newTreeData.updateIn(objectPath, function (entry) {
                 return entry.set(markerName, true);
             });

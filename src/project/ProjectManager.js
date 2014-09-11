@@ -1083,10 +1083,6 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
         
-//        $("#open-files-container").on("contentChanged", function () {
-//            _renderTree(); // redraw jstree when working set size changes
-//        });
-        
         $(".main-view").click(function (jqEvent) {
             if (jqEvent.target.className !== "rename-input") {
                 forceFinishRename();

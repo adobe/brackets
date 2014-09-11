@@ -636,18 +636,16 @@ define(function (require, exports, module) {
         }
         
         this.performRename();
-        var oldProjectPath = this.makeProjectRelativeIfPossible(this._selections.selected),
-            pathInProject = this.makeProjectRelativeIfPossible(path),
-            newPathIsVisible = this._viewModel.isFilePathVisible(pathInProject),
-            pathToSelectInTree = newPathIsVisible ? pathInProject : null;
         
-        this._viewModel.moveMarker("selected", oldProjectPath, pathToSelectInTree);
+        var oldProjectPath = this.makeProjectRelativeIfPossible(this._selections.selected),
+            pathInProject = this.makeProjectRelativeIfPossible(path);
+        
+        this._viewModel.moveMarker("selected", oldProjectPath, pathInProject);
         if (this._selections.context) {
             this._viewModel.moveMarker("context", this.makeProjectRelativeIfPossible(this._selections.context), null);
+            delete this._selections.context;
         }
-        this._selections = {
-            selected: path
-        };
+        this._selections.selected = path;
         
         if (path && _pathIsFile(path)) {
             $(this).trigger(EVENT_SHOULD_FOCUS);
