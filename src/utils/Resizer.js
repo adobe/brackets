@@ -167,7 +167,7 @@ define(function (require, exports, module) {
      *                          the resizable element's size (useful for siblings laid out to the right of
      *                          the element). Must lie in element's parent's subtree.
      * @param {?boolean} createdByWorkspaceManager For internal use only
-     * @param {?boolean} usePercentagles maintain the size of the element as a percentage of its parent
+     * @param {?boolean} usePercentagles Maintain the size of the element as a percentage of its parent
      *                          the default is to maintain the size of the element in pixels
      */
     function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByWorkspaceManager, usePercentages) {
@@ -183,13 +183,19 @@ define(function (require, exports, module) {
             directionIncrement  = (position === POSITION_TOP || position === POSITION_LEFT) ? 1 : -1,
             parentSizeFunction  = direction === DIRECTION_HORIZONTAL ? $parent.innerWidth : $parent.innerHeight,
             
-            elementSizeByPercentFunction = function (newSize) {
+            elementSizeFunction = function (newSize) {
                 if (!newSize) {
                     // calling the function as a getter
                     if (direction === DIRECTION_HORIZONTAL) {
                         return this.width();
                     } else {
                         return this.height();
+                    }
+                } else if (!usePercentages) {
+                    if (direction === DIRECTION_HORIZONTAL) {
+                        return this.width(newSize);
+                    } else {
+                        return this.height(newSize);
                     }
                 } else {
                     // calling the function as a setter
@@ -204,11 +210,10 @@ define(function (require, exports, module) {
                     }
                     percentage = newSize / parentSize;
                     this.css(prop, (percentage * 100) + "%");
+                    
+                    return this; // chainable
                 }
             },
-            
-            elementSizeFunction = usePercentages ? elementSizeByPercentFunction :
-                                    direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
             
             resizerCSSPosition  = direction === DIRECTION_HORIZONTAL ? "left" : "top",
             contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;

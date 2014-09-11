@@ -1042,7 +1042,7 @@ define(function (require, exports, module) {
                               _orientation === HORIZONTAL ? Resizer.POSITION_BOTTOM : Resizer.POSITION_RIGHT,
                               MIN_PANE_SIZE, false, false, false, true);
         
-        firstPane.$el.on("panelCollapsed panelExpanded panelResizeUpdate", function () {
+        firstPane.$el.on("panelResizeUpdate", function () {
             _updateLayout();
         });
     }
@@ -1401,23 +1401,24 @@ define(function (require, exports, module) {
                 _initialLayout();
                 
                 // More than 1 pane, then make it resizable
+                //  and layout the panes from serialized state
                 if (panes.length > 1) {
                     _makeFirstPaneResizable();
-                }
 
-                // If the split state was serialized correctly
-                //  then setup the splits according to was serialized
-                // Avoid a zero and negative split percentages
-                if ($.isNumeric(state.splitPercentage) && state.splitPercentage > 0) {
-                    var prop;
-                    if (_orientation === VERTICAL) {
-                        prop = "width";
-                    } else {
-                        prop = "height";
+                    // If the split state was serialized correctly
+                    //  then setup the splits according to was serialized
+                    // Avoid a zero and negative split percentages
+                    if ($.isNumeric(state.splitPercentage) && state.splitPercentage > 0) {
+                        var prop;
+                        if (_orientation === VERTICAL) {
+                            prop = "width";
+                        } else {
+                            prop = "height";
+                        }
+
+                        _panes[FIRST_PANE].$el.css(prop, state.splitPercentage * 100 + "%");
+                        _updateLayout();
                     }
-
-                    _panes[FIRST_PANE].$el.css(prop, state.splitPercentage * 100 + "%");
-                    _updateLayout();
                 }
                 
                 _updateCommandState();
@@ -1447,15 +1448,21 @@ define(function (require, exports, module) {
             var available,
                 used;
 
-            if (_orientation === VERTICAL) {
-                available = _$el.innerWidth();
-                used = _panes[FIRST_PANE].$el.width();
+            if (getPaneCount() === 1) {
+                // just short-circuit here and
+                //  return 100% to avoid any rounding issues
+                return 1;
             } else {
-                available = _$el.innerHeight();
-                used = _panes[FIRST_PANE].$el.height();
+                if (_orientation === VERTICAL) {
+                    available = _$el.innerWidth();
+                    used = _panes[FIRST_PANE].$el.width();
+                } else {
+                    available = _$el.innerHeight();
+                    used = _panes[FIRST_PANE].$el.height();
+                }
+
+                return used / available;
             }
-            
-            return used / available;
         }
 
         var projectRoot     = ProjectManager.getProjectRoot(),
