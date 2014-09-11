@@ -1222,7 +1222,7 @@ define(function (require, exports, module) {
      */
     function _findPaneForDocument(document) {
         // First check for an editor view of the document 
-        var pane = _getPaneFromElement($(document._masterEditor.$el.parent()));
+        var pane = _getPaneFromElement($(document._masterEditor.$el.parent().parent()));
         
         if (!pane) {
             // No view of the document, it may be in a working set and not yet opened
