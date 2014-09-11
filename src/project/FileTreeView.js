@@ -134,13 +134,21 @@ define(function (require, exports, module) {
         },
 
         render: function () {
+            var measuringElement = $("<div />", { css : { "position" : "absolute", "top" : "-200px", "left" : ("-1000px"), "visibility" : "hidden" } }).appendTo("body");
+            measuringElement.text("pW" + this.props.name);
+            var width = measuringElement.width();
+            measuringElement.remove();
+            
             return DOM.input({
-                className: "rename-input",
+                className: "jstree-rename-input",
                 type: "text",
                 defaultValue: this.props.name,
                 autoFocus: true,
                 onKeyDown: this.handleKeyDown,
                 onKeyUp: this.handleKeyUp,
+                style: {
+                    width: width
+                },
                 ref: "name"
             });
         }
@@ -197,7 +205,15 @@ define(function (require, exports, module) {
                 var data = this.getDataForExtension();
                 result = extensions.get("icons").map(function (callback) {
                     try {
-                        return callback(data);
+                        var result = callback(data);
+                        if (!React.isValidComponent(result)) {
+                            result = React.DOM.span({
+                                dangerouslySetInnerHTML: {
+                                    __html: $(result)[0].outerHTML
+                                }
+                            });
+                        }
+                        return result;
                     } catch (e) {
                         console.warn("Exception thrown in FileTreeView icon provider:", e);
                     }
@@ -262,6 +278,15 @@ define(function (require, exports, module) {
                 this.props.extensions !== nextProps.extensions;
         },
 
+        /**
+         * If this node is newly selected, scroll it into view.
+         */
+        componentDidUpdate: function (prevProps, prevState) {
+            if (this.props.entry.get("selected") && !prevProps.entry.get("selected")) {
+                ViewUtils.scrollElementIntoView($("#project-files-container"), $(this.getDOMNode()), true);
+            }
+        },
+        
         /**
          * When the user clicks on the node, we'll either select it or, if they've clicked twice
          * with a bit of delay in between, we'll invoke the `startRename` action.
@@ -669,7 +694,7 @@ define(function (require, exports, module) {
         }
 
         React.renderComponent(fileTreeView({
-            treeData: viewModel.treeData,
+            treeData: viewModel.getTreeData(),
             sortDirectoriesFirst: viewModel.sortDirectoriesFirst,
             parentPath: projectRoot.fullPath,
             actions: actions,
