@@ -970,8 +970,8 @@ define(function (require, exports, module) {
     /** 
      * adds an icon provider to the view.  
      * Icon providers are called when a working set item is created
-     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string} callback - the function to call for each item
-     * The callback can return a string that contains and image tag <img src="xxx"> to place before the filename
+     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string|jQuery} callback - the function to call for each item
+     * The callback can return a string that contains and image tag <img src="xxx">, <ins> tag or a jQuery node to place before the filename
      * if a falsy value is returned then nothing is prepended to the list item
      */
     function addIconProvider(callback) {
