@@ -432,7 +432,7 @@ define(function (require, exports, module) {
      */
     function _activeEditorChange(e, current) {
         if (current) {
-            var $container = current.$el.parent(),
+            var $container = current.$el.parent().parent(),
                 pane = _getPaneFromElement($container);
 
             if (pane) {
@@ -445,7 +445,7 @@ define(function (require, exports, module) {
                 }
             } else {
                 // Editor is an inline editor, find the parent pane
-                var parents = $container.parents(".view-content");
+                var parents = $container.parents(".view-pane");
                 if (parents.length === 1) {
                     $container = $(parents[0]);
                     pane = _getPaneFromElement($container);
