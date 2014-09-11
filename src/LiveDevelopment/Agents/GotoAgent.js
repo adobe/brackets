@@ -40,6 +40,7 @@ define(function GotoAgent(require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager");
     var EditorManager = require("editor/EditorManager");
+    var MainViewManager = require("view/MainViewManager");
 
     /** Return the URL without the query string
      * @param {string} URL
@@ -172,7 +173,7 @@ define(function GotoAgent(require, exports, module) {
         path = decodeURI(path);
         var promise = DocumentManager.getDocumentForPath(path);
         promise.done(function onDone(doc) {
-            DocumentManager.setCurrentDocument(doc);
+            MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
             if (location) {
                 openLocation(location, noFlash);
             }

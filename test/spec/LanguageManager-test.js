@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
         LanguageManager     = require("language/LanguageManager"),
         DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
         PathUtils           = require("thirdparty/path-utils/path-utils.min"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         PreferencesManager  = require("preferences/PreferencesManager"),
@@ -509,6 +510,7 @@ define(function (require, exports, module) {
                 var DocumentManager,
                     FileSystem,
                     LanguageManager,
+                    MainViewManager,
                     _$;
                 
                 SpecRunnerUtils.createTempDirectory();
@@ -518,6 +520,7 @@ define(function (require, exports, module) {
                     FileSystem = w.brackets.test.FileSystem;
                     LanguageManager = w.brackets.test.LanguageManager;
                     DocumentManager = w.brackets.test.DocumentManager;
+                    MainViewManager = w.brackets.test.MainViewManager;
                     _$ = w.$;
                 });
                 
@@ -544,7 +547,7 @@ define(function (require, exports, module) {
 
                 var renameDeferred = $.Deferred();
                 runs(function () {
-                    DocumentManager.setCurrentDocument(doc);
+                    MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                     javascript = LanguageManager.getLanguage("javascript");
                     
                     // sanity check language
@@ -587,7 +590,6 @@ define(function (require, exports, module) {
                 });
                 
                 SpecRunnerUtils.closeTestWindow();
-                
                 SpecRunnerUtils.removeTempDirectory();
             });
 
