@@ -1573,13 +1573,14 @@ define(function (require, exports, module) {
                     if (!isPreprocessorDoc && _hasNonWhitespace(ctx.token.string)) {
                         foundChars = true;
                     }
+                    if (!TokenUtils.movePrevToken(ctx)) {
+                        break;
+                    }
                 }
-            }
-            
-            if ((ctx.token.type === "comment" ||
-                    (ctx.token.string !== "{" && ctx.token.string !== "}")) &&
-                    !TokenUtils.movePrevToken(ctx)) {
-                break;
+            } else {
+                if (!TokenUtils.movePrevToken(ctx)) {
+                    break;
+                }
             }
         }
         
