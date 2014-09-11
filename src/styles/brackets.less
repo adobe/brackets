@@ -334,7 +334,7 @@ a, img {
         }
     }
 
-    .view-pane .pane-content {
+    .pane-content {
         display: block;
         margin: 0;
         overflow: hidden;
@@ -480,8 +480,15 @@ a, img {
             display: block;
         }
     }
+    .pane-content {
+        border-right: solid @bc-shadow-small 1px;
+        .dark & {
+            border-right-color: @dark-bc-highlight;
+        }
+    }
     .pane-header {
         box-sizing: border-box;
+        border-bottom: solid @bc-shadow-small 1px;
         padding: 5px 10px;
         color: @bc-menu-text;
         background-color: @bc-menu-bg;
@@ -489,6 +496,7 @@ a, img {
         .dark & {
             color: @dark-bc-menu-text;
             background-color: @dark-bc-menu-bg;
+            border-bottom-color: @dark-bc-highlight;
         }
     }
     .active-pane {
