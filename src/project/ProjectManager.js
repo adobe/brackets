@@ -389,7 +389,7 @@ define(function (require, exports, module) {
      * @param {File} curFile Currently viewed file.
      */
     function _currentFileChange(e, curFile) {
-        actionCreator.setCurrentFile(curFile.fullPath);
+        actionCreator.setCurrentFile(curFile);
     }
     
     /**
@@ -1107,8 +1107,11 @@ define(function (require, exports, module) {
         });
         
         $projectTreeContainer.on("scroll", function () {
-            Menus.closeAll();
-            actionCreator.setContext(null);
+            // Close open menus on scroll and clear the context, but only if there's a menu open.
+            if ($(".dropdown.open").length > 0) {
+                Menus.closeAll();
+                actionCreator.setContext(null);
+            }
         });
         
         _renderTree();

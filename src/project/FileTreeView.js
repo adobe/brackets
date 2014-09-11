@@ -134,13 +134,21 @@ define(function (require, exports, module) {
         },
 
         render: function () {
+            var measuringElement = $("<div />", { css : { "position" : "absolute", "top" : "-200px", "left" : ("-1000px"), "visibility" : "hidden" } }).appendTo("body");
+            measuringElement.text("pW" + this.props.name);
+            var width = measuringElement.width();
+            measuringElement.remove();
+            
             return DOM.input({
-                className: "rename-input",
+                className: "jstree-rename-input",
                 type: "text",
                 defaultValue: this.props.name,
                 autoFocus: true,
                 onKeyDown: this.handleKeyDown,
                 onKeyUp: this.handleKeyUp,
+                style: {
+                    width: width
+                },
                 ref: "name"
             });
         }
