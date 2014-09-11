@@ -834,6 +834,28 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * @type {?jQuery.Promise} Resolves when the currently running instance of
+     *      _refreshFileTreeInternal completes, or null if there is no currently
+     *      running instance.
+     */
+    var _refreshFileTreePromise = null;
+
+    /**
+     * @type {boolean} If refreshFileTree is called before _refreshFileTreePromise
+     *      has resolved then _refreshPending is set, which indicates that 
+     *      refreshFileTree should be called again once the promise resolves.
+     */
+    var _refreshPending = false;
+
+    /**
+     * @const
+     * @private
+     * @type {number} Minimum delay in milliseconds between calls to refreshFileTree
+     */
+    var _refreshDelay = 1000;
+
+    /**
      * Refresh the project's file tree, maintaining the current selection.
      * 
      * @return {$.Promise} A promise object that will be resolved when the
@@ -842,8 +864,32 @@ define(function (require, exports, module) {
      *  the promise is still resolved.
      */
     function refreshFileTree() {
-        return model.refresh();
+        if (!_refreshFileTreePromise) {
+            var internalRefreshPromise  = model.refresh(),
+                deferred                = new $.Deferred();
+
+            _refreshFileTreePromise = deferred.promise();
+
+            _refreshFileTreePromise.always(function () {
+                _refreshFileTreePromise = null;
+
+                if (_refreshPending) {
+                    _refreshPending = false;
+                    refreshFileTree();
+                }
+            });
+
+            // Wait at least one second before resolving the promise
+            window.setTimeout(function () {
+                internalRefreshPromise.then(deferred.resolve, deferred.reject);
+            }, _refreshDelay);
+        } else {
+            _refreshPending = true;
+        }
+
+        return _refreshFileTreePromise;
     }
+
     
     /**
      * Expands tree nodes to show the given file or folder and selects it. Silently no-ops if the
