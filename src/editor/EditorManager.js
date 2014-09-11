@@ -152,7 +152,6 @@ define(function (require, exports, module) {
      * Editor focus handler to change the currently active editor
      * @private
      * @param {?Editor} current - the editor that will be the active editor
-     * @param {boolean=} blurPreviousEditor - true to send a blur message to the current editor
      */
     function _notifyActiveEditorChanged(current) {
         // Skip if the Editor that gained focus was already the most recently focused editor.
@@ -162,7 +161,6 @@ define(function (require, exports, module) {
         }
         var previous = _lastFocusedEditor;
         _lastFocusedEditor = current;
-
         
         $(exports).triggerHandler("activeEditorChange", [current, previous]);
     }
