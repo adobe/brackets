@@ -334,6 +334,9 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @private
+     * @type {ActionCreator}
+     * 
      * Singleton actionCreator that is used for dispatching changes to the ProjectModel.
      */
     var actionCreator = new ActionCreator(model);
@@ -1269,6 +1272,9 @@ define(function (require, exports, module) {
         _renderTree(true);
     }
 
+    // Private API helpful in testing
+    exports._actionCreator                 = actionCreator;
+    
     // Define public API
     exports.getProjectRoot                = getProjectRoot;
     exports.getBaseUrl                    = getBaseUrl;
@@ -1291,7 +1297,6 @@ define(function (require, exports, module) {
     exports.refreshFileTree               = refreshFileTree;
     exports.getAllFiles                   = getAllFiles;
     exports.getLanguageFilter             = getLanguageFilter;
-    exports.actionCreator                 = actionCreator;
     exports.addIconProvider               = addIconProvider;
     exports.addClassesProvider            = addClassesProvider;
     exports.rerenderTree                  = rerenderTree;

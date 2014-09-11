@@ -58,7 +58,7 @@ define(function (require, exports, module) {
      * treeData.
      */
     function FileTreeViewModel() {
-        this.treeData = new Immutable.Map();
+        this._treeData = new Immutable.Map();
         
         // For convenience in callbacks, make a bound version of this method so that we can
         // just refer to it as this._commitTreeData when passing in a callback.
@@ -74,6 +74,7 @@ define(function (require, exports, module) {
 
     /**
      * @type {Immutable.Map}
+     * @private
      * 
      * The data for the tree. Some notes about its structure:
      * 
@@ -84,7 +85,23 @@ define(function (require, exports, module) {
      * * Most file entries are just empty maps
      *     * They can have flags like selected, context, rename, create with state information for the tree
      */
-    FileTreeViewModel.prototype.treeData = null;
+    FileTreeViewModel.prototype._treeData = null;
+    
+    /**
+     * Gets the immutable tree data for the file tree view.
+     * 
+     * * It starts with a Map for the project root's contents.
+     * * Each directory entry has a `children` key.
+     *     * `children` will be null if the directory has not been loaded
+     *     * An `open` key denotes whether the directory is open
+     * * Most file entries are just empty maps
+     *     * They can have flags like selected, context, rename, create with state information for the tree
+     * 
+     * @return {Immutable.Map} the tree data
+     */
+    FileTreeViewModel.prototype.getTreeData = function () {
+        return this._treeData;
+    };
     
     /**
      * @private
@@ -92,7 +109,7 @@ define(function (require, exports, module) {
      * If the project root changes, we reset the tree data so that everything will be re-read.
      */
     FileTreeViewModel.prototype._rootChanged = function () {
-        this.treeData = Immutable.Map();
+        this._treeData = Immutable.Map();
     };
 
     /**
@@ -105,8 +122,8 @@ define(function (require, exports, module) {
      * @param {Immutable.Map} treeData new treeData state
      */
     FileTreeViewModel.prototype._commitTreeData = function (treeData) {
-        if (treeData && treeData !== this.treeData) {
-            this.treeData = treeData;
+        if (treeData && treeData !== this._treeData) {
+            this._treeData = treeData;
             $(this).trigger(EVENT_CHANGE);
         }
     };
@@ -221,7 +238,7 @@ define(function (require, exports, module) {
      * @return {boolean|null} true if the given path is currently visible in the tree, null if the given path is not present in the tree.
      */
     FileTreeViewModel.prototype.isFilePathVisible = function (path) {
-        return _isFilePathVisible(this.treeData, path);
+        return _isFilePathVisible(this._treeData, path);
     };
     
     /**
@@ -231,7 +248,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if the path has been loaded
      */
     FileTreeViewModel.prototype.isPathLoaded = function (path) {
-        var objectPath = _filePathToObjectPath(this.treeData, path);
+        var objectPath = _filePathToObjectPath(this._treeData, path);
         
         if (!objectPath) {
             return false;
@@ -240,7 +257,7 @@ define(function (require, exports, module) {
         // If it's a directory, make sure that its children are loaded 
         if (_.last(path) === "/") {
             objectPath.push("children");
-            if (!this.treeData.getIn(objectPath)) {
+            if (!this._treeData.getIn(objectPath)) {
                 return false;
             }
         }
@@ -295,7 +312,7 @@ define(function (require, exports, module) {
      * @return {Array.<Array.<string>>} Array of array of full paths, organized by depth in the tree.
      */
     FileTreeViewModel.prototype.getOpenNodes = function (projectRootPath) {
-        return _getOpenNodes(this.treeData, projectRootPath);
+        return _getOpenNodes(this._treeData, projectRootPath);
     };
 
     /**
@@ -365,7 +382,7 @@ define(function (require, exports, module) {
      * @param {string|null} newPath Project relative file path with where to place the marker, or null if the marker is being removed from the tree
      */
     FileTreeViewModel.prototype.moveMarker = function (markerName, oldPath, newPath) {
-        this._commitTreeData(_moveMarker(this.treeData, markerName, oldPath, newPath));
+        this._commitTreeData(_moveMarker(this._treeData, markerName, oldPath, newPath));
     };
 
     /**
@@ -375,7 +392,7 @@ define(function (require, exports, module) {
      * @param {string} newName Name to give the item
      */
     FileTreeViewModel.prototype.renameItem = function (currentPath, newName) {
-        var treeData = this.treeData,
+        var treeData = this._treeData,
             objectPath = _filePathToObjectPath(treeData, currentPath);
 
         if (!objectPath) {
@@ -452,7 +469,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if the directory contents need to be loaded.
      */
     FileTreeViewModel.prototype.setDirectoryOpen = function (path, open) {
-        var result = _setDirectoryOpen(this.treeData, path, open);
+        var result = _setDirectoryOpen(this._treeData, path, open);
         if (result && result.treeData) {
             this._commitTreeData(result.treeData);
         }
@@ -610,7 +627,7 @@ define(function (require, exports, module) {
     FileTreeViewModel.prototype.setDirectoryContents = function (path, contents) {
         path = FileUtils.stripTrailingSlash(path);
         
-        var intermediate = _createIntermediateDirectories(this.treeData, path),
+        var intermediate = _createIntermediateDirectories(this._treeData, path),
             objectPath = intermediate.objectPath,
             treeData = intermediate.treeData;
 
@@ -690,7 +707,7 @@ define(function (require, exports, module) {
      * @param {string} path Project-relative path
      */
     FileTreeViewModel.prototype.openPath = function (path) {
-        this._commitTreeData(_openPath(this.treeData, path));
+        this._commitTreeData(_openPath(this._treeData, path));
     };
 
     /**
@@ -744,7 +761,7 @@ define(function (require, exports, module) {
      * @param {boolean} isFolder true if the entry being created is a folder
      */
     FileTreeViewModel.prototype.createPlaceholder = function (basedir, name, isFolder) {
-        var treeData = _createPlaceholder(this.treeData, basedir, name, isFolder);
+        var treeData = _createPlaceholder(this._treeData, basedir, name, isFolder);
         this._commitTreeData(treeData);
     };
 
@@ -779,7 +796,7 @@ define(function (require, exports, module) {
      * @param {string} path Project-relative path to delete
      */
     FileTreeViewModel.prototype.deleteAtPath = function (path) {
-        var treeData = _deleteAtPath(this.treeData, path);
+        var treeData = _deleteAtPath(this._treeData, path);
         if (treeData) {
             this._commitTreeData(treeData);
         }
@@ -855,7 +872,7 @@ define(function (require, exports, module) {
      * @param {{changed: Array.<string>=, added: Array.<string>=, removed: Array.<string>=}}
      */
     FileTreeViewModel.prototype.processChanges = function (changes) {
-        var treeData = this.treeData;
+        var treeData = this._treeData;
         
         if (changes.changed) {
             treeData = _markAsChanged(treeData, changes.changed);

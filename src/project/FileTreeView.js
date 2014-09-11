@@ -681,7 +681,7 @@ define(function (require, exports, module) {
         }
         
         React.renderComponent(fileTreeView({
-            treeData: viewModel.treeData,
+            treeData: viewModel.getTreeData(),
             sortDirectoriesFirst: viewModel.sortDirectoriesFirst,
             parentPath: projectRoot.fullPath,
             actions: actions,
