@@ -26,7 +26,7 @@
 
 /**
  * ProjectManager glues together the project model and file tree view and integrates as needed with other parts
- * of Brackets. It is responsible for creating and updating the project tree when projects are opened 
+ * of Brackets. It is responsible for creating and updating the project tree when projects are opened
  * and when changes occur to the file tree.
  *
  * This module dispatches these events:
@@ -45,7 +45,7 @@ define(function (require, exports, module) {
     "use strict";
 
     require("utils/Global");
-    
+
     // Load dependent non-module scripts
     require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
 
@@ -80,8 +80,8 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         ProjectModel        = require("project/ProjectModel"),
         FileTreeView        = require("project/FileTreeView");
-    
-    
+
+
     /**
      * @private
      * Filename to use for project settings files.
@@ -91,7 +91,7 @@ define(function (require, exports, module) {
 
     /**
      * Name of the preferences for sorting directories first
-     * 
+     *
      * @type {string}
      */
     var SORT_DIRECTORIES_FIRST = "sortDirectoriesFirst";
@@ -129,12 +129,12 @@ define(function (require, exports, module) {
      * @type {jQueryObject}
      */
     var $projectTreeContainer;
-    
+
     /**
      * @private
-     * 
+     *
      * Does the file tree currently have the focus?
-     * 
+     *
      * @return {boolean} `true` if the file tree has the focus
      */
     function _hasFileSelectionFocus() {
@@ -149,7 +149,7 @@ define(function (require, exports, module) {
     var model = new ProjectModel.ProjectModel({
         focused: _hasFileSelectionFocus()
     });
-    
+
     /**
      * @private
      * @type {boolean}
@@ -157,12 +157,12 @@ define(function (require, exports, module) {
      * are only warned once per project/session.
      */
     var _projectWarnedForTooManyFiles = false;
-    
+
     /**
      * @private
-     * 
+     *
      * Displays an error based on a problem creating a file.
-     * 
+     *
      * @param {{type:any,isFolder:boolean}} errorInfo Information passed in the error events
      */
     function _displayCreationError(e, errorInfo) {
@@ -186,36 +186,36 @@ define(function (require, exports, module) {
     /**
      * @constructor
      * @private
-     * 
+     *
      * Manages the interaction between the view and the model. This is loosely structured in
      * the style of [Flux](https://github.com/facebook/flux), but the initial implementation did
      * not need all of the parts of Flux yet. This ActionCreator could be replaced later with
      * a real ActionCreator that talks to a Dispatcher.
-     * 
+     *
      * Most of the methods just delegate to the ProjectModel. Some are responsible for integration
      * with other parts of Brackets.
-     * 
+     *
      * @param {ProjectModel} model store (in Flux terminology) with the project data
      */
     function ActionCreator(model) {
         this.model = model;
         this._bindEvents();
     }
-    
+
     /**
      * @private
-     * 
+     *
      * Listen to events on the ProjectModel and cause the appropriate behavior within the rest of the system.
      */
     ActionCreator.prototype._bindEvents = function () {
-        
+
         // Change events are the standard Flux signal to rerender the view. Note that
         // current Flux style is to have the view itself listen to the Store for change events
         // and re-render itself.
         this.model.on(ProjectModel.EVENT_CHANGE, function () {
             _renderTree();
         });
-        
+
         // The "should select" event signals that we need to open the document based on file tree
         // activity.
         this.model.on(ProjectModel.EVENT_SHOULD_SELECT, function (e, data) {
@@ -225,44 +225,44 @@ define(function (require, exports, module) {
                 FileViewController.openAndSelectDocument(data.path, FileViewController.PROJECT_MANAGER);
             }
         });
-        
+
         this.model.on(ProjectModel.EVENT_SHOULD_FOCUS, function () {
             FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
         });
-        
+
         this.model.on(ProjectModel.ERROR_CREATION, _displayCreationError);
     };
-    
+
     /**
      * Sets the directory at the given path to open in the tree and saves the open nodes to view state.
-     * 
+     *
      * See `ProjectModel.setDirectoryOpen`
      */
     ActionCreator.prototype.setDirectoryOpen = function (path, open) {
         this.model.setDirectoryOpen(path, open).then(_savePreferences);
     };
-    
+
     /**
      * See `ProjectModel.setSelected`
      */
     ActionCreator.prototype.setSelected = function (path, doNotOpen) {
         this.model.setSelected(path, doNotOpen);
     };
-    
+
     /**
      * See `ProjectModel.selectInWorkingSet`
      */
     ActionCreator.prototype.selectInWorkingSet = function (path) {
         this.model.selectInWorkingSet(path);
     };
-    
+
     /**
      * See `ProjectModel.setContext`
      */
     ActionCreator.prototype.setContext = function (path) {
         this.model.setContext(path);
     };
-    
+
     /**
      * See `ProjectModel.restoreContext`
      */
@@ -276,68 +276,75 @@ define(function (require, exports, module) {
     ActionCreator.prototype.startRename = function (path) {
         return this.model.startRename(path);
     };
-    
+
     /**
      * See `ProjectModel.setRenameValue`
      */
     ActionCreator.prototype.setRenameValue = function (path) {
         this.model.setRenameValue(path);
     };
-    
+
     /**
      * See `ProjectModel.cancelRename`
      */
     ActionCreator.prototype.cancelRename = function () {
         this.model.cancelRename();
     };
-    
+
     /**
      * See `ProjectModel.performRename`
      */
     ActionCreator.prototype.performRename = function () {
         return this.model.performRename();
     };
-    
+
     /**
      * See `ProjectModel.startCreating`
      */
     ActionCreator.prototype.startCreating = function (basedir, newName, isFolder) {
         return this.model.startCreating(basedir, newName, isFolder);
     };
-    
+
     /**
      * See `ProjectModel.setSortDirectoriesFirst`
      */
     ActionCreator.prototype.setSortDirectoriesFirst = function (sortDirectoriesFirst) {
         this.model.setSortDirectoriesFirst(sortDirectoriesFirst);
     };
-    
+
     /**
      * See `ProjectModel.setFocused`
      */
     ActionCreator.prototype.setFocused = function (focused) {
         this.model.setFocused(focused);
     };
-    
+
     /**
      * See `ProjectModel.setCurrentFile`
      */
     ActionCreator.prototype.setCurrentFile = function (curFile) {
         this.model.setCurrentFile(curFile);
     };
-    
+
+    /**
+     * See `ProjectModel.toggleSubdirectories`
+     */
+    ActionCreator.prototype.toggleSubdirectories = function (path, open) {
+        this.model.toggleSubdirectories(path, open);
+    };
+
     /**
      * See `ProjectModel.refresh`
      */
     ActionCreator.prototype.refresh = function () {
         this.model.refresh();
     };
-    
+
     /**
      * Singleton actionCreator that is used for dispatching changes to the ProjectModel.
      */
     var actionCreator = new ActionCreator(model);
-    
+
     /**
      * Returns the File or Directory corresponding to the item selected in the sidebar panel, whether in
      * the file tree OR in the working set; or null if no item is selected anywhere in the sidebar.
@@ -356,10 +363,10 @@ define(function (require, exports, module) {
         }
         return selectedEntry;
     }
-    
+
     /**
      * @private
-     * 
+     *
      * Handler for changes in document selection.
      */
     function _documentSelectionFocusChange() {
@@ -373,25 +380,25 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * 
+     *
      * Handler for changes in the focus between working set and file tree view.
      */
     function _fileViewControllerChange() {
         actionCreator.setFocused(_hasFileSelectionFocus());
     }
-    
+
     /**
      * @private
-     * 
+     *
      * Handler for changes to which file is currently viewed.
-     * 
+     *
      * @param {Object} e jQuery event object
      * @param {File} curFile Currently viewed file.
      */
     function _currentFileChange(e, curFile) {
         actionCreator.setCurrentFile(curFile.fullPath);
     }
-    
+
     /**
      * Returns the encoded Base URL of the currently loaded project, or empty string if no project
      * is open (during startup, or running outside of app shell).
@@ -409,12 +416,12 @@ define(function (require, exports, module) {
         var context = { location : { scope: "user",
                                      layer: "project",
                                      layerID: model.projectRoot.fullPath} };
-        
+
         projectBaseUrl = model.setBaseUrl(projectBaseUrl);
 
         PreferencesManager.setViewState("project.baseUrl", projectBaseUrl, context);
     }
-    
+
     /**
      * Returns true if absPath lies within the project, false otherwise.
      * Does not support paths containing ".."
@@ -424,7 +431,7 @@ define(function (require, exports, module) {
     function isWithinProject(absPathOrEntry) {
         return model.isWithinProject(absPathOrEntry);
     }
-    
+
     /**
      * If absPath lies within the project, returns a project-relative path. Else returns absPath
      * unmodified.
@@ -435,10 +442,10 @@ define(function (require, exports, module) {
     function makeProjectRelativeIfPossible(absPath) {
         return model.makeProjectRelativeIfPossible(absPath);
     }
-    
+
     /**
      * @private
-     * 
+     *
      * Creates a context object for doing project view state lookups.
      */
     function _getProjectViewStateContext() {
@@ -458,9 +465,9 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * 
+     *
      * Sets the project root to the given directory, resetting the ProjectModel and file tree in the process.
-     * 
+     *
      * @param {Directory} rootEntry directory object for the project root
      * @return {jQuery.Promise} resolved when the project is done setting up
      */
@@ -482,18 +489,18 @@ define(function (require, exports, module) {
 
         // save the current project
         PreferencesManager.setViewState("projectPath", model.projectRoot.fullPath);
-        
+
         var openNodes = model.getOpenNodes();
-        
+
         // Store the open nodes by their full path and persist to storage
         PreferencesManager.setViewState("project.treeState", openNodes, context);
     };
-    
+
     /**
      * @private
-     * 
+     *
      * Displays an error dialog for problems when working with files in the file tree.
-     * 
+     *
      * @param {number} errType type of error that occurred
      * @param {boolean} isFolder did the error occur because of a folder operation?
      * @param {string} error message with detail about the error
@@ -566,10 +573,10 @@ define(function (require, exports, module) {
         DeprecationWarning.deprecationWarning("ProjectManager.isBinaryFile() called for " + fileName + ". Use LanguageManager.getLanguageForPath(fileName).isBinary() instead.");
         return LanguageManager.getLanguageForPath(fileName).isBinary();
     }
-    
+
     /**
      * @private
-     * 
+     *
      * Rerender the file tree view.
      */
     _renderTree = function (forceRender) {
@@ -580,11 +587,11 @@ define(function (require, exports, module) {
         FileTreeView.render($projectTreeContainer[0], model._viewModel, projectRoot, actionCreator, forceRender);
     };
 
-    /** 
+    /**
      * @private
-     * 
+     *
      * Returns the full path to the welcome project, which we open on first launch.
-     * 
+     *
      * @param {string} sampleUrl URL for getting started project
      * @param {string} initialPath Path to Brackets directory (see FileUtils.getNativeBracketsDirectoryPath())
      * @return {!string} fullPath reference
@@ -592,10 +599,10 @@ define(function (require, exports, module) {
     function _getWelcomeProjectPath() {
         return ProjectModel._getWelcomeProjectPath(Urls.GETTING_STARTED, FileUtils.getNativeBracketsDirectoryPath());
     }
-    
+
     /**
      * Adds the path to the list of welcome projects we've ever seen, if not on the list already.
-     * 
+     *
      * @param {string} path Path to possibly add
      */
     function addWelcomeProjectPath(path) {
@@ -608,14 +615,14 @@ define(function (require, exports, module) {
     /**
      * Returns true if the given path is the same as one of the welcome projects we've previously opened,
      * or the one for the current build.
-     * 
+     *
      * @param {string} path Path to check to see if it's a welcome project path
      * @return {boolean} true if this is a welcome project path
      */
     function isWelcomeProjectPath(path) {
         return ProjectModel._isWelcomeProjectPath(path, _getWelcomeProjectPath(), PreferencesManager.getViewState("welcomeProjects"));
     }
-    
+
     /**
      * If the provided path is to an old welcome project, returns the current one instead.
      */
@@ -626,7 +633,7 @@ define(function (require, exports, module) {
             return path;
         }
     }
-    
+
     /**
      * Initial project path is stored in prefs, which defaults to the welcome project on
      * first launch.
@@ -634,10 +641,10 @@ define(function (require, exports, module) {
     function getInitialProjectPath() {
         return updateWelcomeProjectPath(PreferencesManager.getViewState("projectPath"));
     }
-    
+
     /**
      * @private
-     * 
+     *
      * Watches the project for filesystem changes so that the tree can be updated.
      */
     function _watchProjectRoot(rootPath) {
@@ -654,12 +661,12 @@ define(function (require, exports, module) {
                 console.error("Error watching project root: ", rootPath, err);
             }
         });
-        
+
         // Reset allFiles cache
         model._resetCache();
     }
 
-        
+
     /**
      * @private
      * Close the file system and remove listeners.
@@ -682,14 +689,14 @@ define(function (require, exports, module) {
                     result.resolve();
                 }
             });
-            
+
             // Reset allFiles cache
             model._resetCache();
         }
-        
+
         return result.promise();
     }
-    
+
     /**
      * @private
      * Reloads the project preferences.
@@ -703,7 +710,7 @@ define(function (require, exports, module) {
             PreferencesManager._setProjectSettingsFile();
         }
     }
-    
+
     /**
      * Loads the given folder as a project. Does NOT prompt about any unsaved changes - use openProject()
      * instead to check for unsaved changes and (optionally) let the user choose the folder to open.
@@ -723,7 +730,7 @@ define(function (require, exports, module) {
 
         // Some legacy code calls this API with a non-canonical path
         rootPath = ProjectModel._ensureTrailingSlash(rootPath);
-        
+
         if (isUpdating) {
             // We're just refreshing. Don't need to unwatch the project root, so we can start loading immediately.
             startLoad.resolve();
@@ -731,15 +738,15 @@ define(function (require, exports, module) {
             if (model.projectRoot && model.projectRoot.fullPath === rootPath) {
                 return (new $.Deferred()).resolve().promise();
             }
-            
+
             // About to close current project (if any)
             if (model.projectRoot) {
                 $(exports).triggerHandler("beforeProjectClose", model.projectRoot);
             }
-            
+
             // close all the old files
             MainViewManager._closeAll(MainViewManager.ALL_PANES);
-    
+
             _unwatchProjectRoot().always(function () {
                 // Done closing old project (if any)
                 if (model.projectRoot) {
@@ -747,11 +754,11 @@ define(function (require, exports, module) {
                     PreferencesManager._reloadUserPrefs(model.projectRoot);
                     $(exports).triggerHandler("projectClose", model.projectRoot);
                 }
-                
+
                 startLoad.resolve();
             });
         }
-        
+
         startLoad.done(function () {
             var context = { location : { scope: "user",
                                          layer: "project" } };
@@ -760,7 +767,7 @@ define(function (require, exports, module) {
             if (!isUpdating) {
                 PreferencesManager._stateProjectLayer.setProjectPath(rootPath);
             }
-            
+
             // Populate file tree as long as we aren't running in the browser
             if (!brackets.inBrowser) {
                 if (!isUpdating) {
@@ -773,12 +780,12 @@ define(function (require, exports, module) {
                         var projectRootChanged = (!model.projectRoot || !rootEntry) ||
                             model.projectRoot.fullPath !== rootEntry.fullPath;
                         var i;
-                        
+
                         // Success!
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectWarnedForTooManyFiles = false;
-                        
+
                         _setProjectRoot(rootEntry).always(function () {
                             model.setBaseUrl(PreferencesManager.getViewState("project.baseUrl", context) || "");
 
@@ -809,8 +816,8 @@ define(function (require, exports, module) {
                         console.log("error loading project");
                         _showErrorDialog(ERR_TYPE_LOADING_PROJECT_NATIVE, null, rootPath, err || FileSystemError.NOT_FOUND)
                             .done(function () {
-                                // Reset _projectRoot to null so that the following _loadProject call won't 
-                                // run the 'beforeProjectClose' event a second time on the original project, 
+                                // Reset _projectRoot to null so that the following _loadProject call won't
+                                // run the 'beforeProjectClose' event a second time on the original project,
                                 // which is now partially torn down (see #6574).
                                 model.projectRoot = null;
 
@@ -829,22 +836,22 @@ define(function (require, exports, module) {
                 });
             }
         });
-        
+
         return result.promise();
     }
-    
+
     /**
      * Refresh the project's file tree, maintaining the current selection.
-     * 
+     *
      * @return {$.Promise} A promise object that will be resolved when the
      *  project tree is reloaded, or rejected if the project path
-     *  fails to reload. If the previous selected entry is not found, 
+     *  fails to reload. If the previous selected entry is not found,
      *  the promise is still resolved.
      */
     function refreshFileTree() {
         return model.refresh();
     }
-    
+
     /**
      * Expands tree nodes to show the given file or folder and selects it. Silently no-ops if the
      * path lies outside the project, or if it doesn't exist.
@@ -859,8 +866,8 @@ define(function (require, exports, module) {
         deferred.resolve();
         return deferred.promise();
     }
-    
-    
+
+
     /**
      * Open a new project. Currently, Brackets must always have a project open, so
      * this method handles both closing the current project and opening a new project.
@@ -917,7 +924,7 @@ define(function (require, exports, module) {
     function _projectSettings() {
         return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl()).getPromise();
     }
-    
+
     /**
      * @private
      * Check a filename for illegal characters. If any are found, show an error
@@ -936,7 +943,7 @@ define(function (require, exports, module) {
         }
         return true;
     }
-    
+
     /**
      * Create a new item in the current project.
      *
@@ -957,7 +964,7 @@ define(function (require, exports, module) {
         } else {
             baseDir = baseDir.fullPath;
         }
-        
+
         if (skipRename) {
             return model.createAtPath(baseDir + initialName, isFolder);
         }
@@ -977,14 +984,14 @@ define(function (require, exports, module) {
                 result.resolve();
             } else {
                 _showErrorDialog(ERR_TYPE_DELETE, entry.isDirectory, FileUtils.getFileErrorString(err), entry.fullPath);
-    
+
                 result.reject(err);
             }
         });
 
         return result.promise();
     }
-    
+
     /**
      * Returns a filter for use with getAllFiles() that filters files based on LanguageManager language id
      * @param {!(string|Array.<string>)} languageId a single string of a language id or an array of language ids
@@ -1002,12 +1009,12 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private 
-     * 
+     * @private
+     *
      * Respond to a FileSystem change event. Note that if renames are initiated
      * externally, they may be reported as a separate removal and addition. In
      * this case, the editor state isn't currently preserved.
-     * 
+     *
      * @param {$.Event} event
      * @param {?(File|Directory)} entry File or Directory changed
      * @param {Array.<FileSystemEntry>=} added If entry is a Directory, contains zero or more added children
@@ -1015,7 +1022,7 @@ define(function (require, exports, module) {
      */
     _fileSystemChange = function (event, entry, added, removed) {
         FileSyncManager.syncOpenDocuments();
-        
+
         model.handleFSEvent(entry, added, removed);
     };
 
@@ -1028,47 +1035,47 @@ define(function (require, exports, module) {
         // all of the model information and send notification to all views
         DocumentManager.notifyPathNameChanged(oldName, newName);
     };
-    
+
     /**
      * Causes the rename operation that's in progress to complete.
      */
     function forceFinishRename() {
         actionCreator.performRename();
     }
-    
-    
+
+
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
-        
+
         $("#open-files-container").on("contentChanged", function () {
             _renderTree(); // redraw jstree when working set size changes
         });
-        
+
         $(".main-view").click(function (jqEvent) {
             if (jqEvent.target.className !== "rename-input") {
                 forceFinishRename();
                 actionCreator.setContext(null);
             }
         });
-        
+
         $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuOpen", function () {
             actionCreator.restoreContext();
         });
-        
+
         $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuClose", function () {
             actionCreator.setContext(null);
         });
-        
+
         $projectTreeContainer.on("contextmenu", function () {
             forceFinishRename();
         });
-        
+
         $projectTreeContainer.on("scroll", function () {
             Menus.closeAll();
             actionCreator.setContext(null);
         });
-        
+
         _renderTree();
     });
 
@@ -1090,7 +1097,7 @@ define(function (require, exports, module) {
             projectPath = key.substr(pathPrefix.length);
             return "user project.treeState " + projectPath;
         }
-        
+
         pathPrefix = "projectBaseUrl_";
         if (key.indexOf(pathPrefix) === 0) {
             // Get the project path from the old preference key by stripping "projectBaseUrl_[Directory "
@@ -1102,7 +1109,7 @@ define(function (require, exports, module) {
 
         return null;
     }
-    
+
     // Init default project path to welcome project
     PreferencesManager.stateManager.definePreference("projectPath", "string", _getWelcomeProjectPath());
 
@@ -1112,7 +1119,7 @@ define(function (require, exports, module) {
         "welcomeProjects": "user",
         "projectBaseUrl_": "user"
     }, true, _checkPreferencePrefix);
-    
+
     $(exports).on("projectOpen", _reloadProjectPreferencesScope);
 
     // Event Handlers
@@ -1120,37 +1127,37 @@ define(function (require, exports, module) {
     $(FileViewController).on("fileViewFocusChange", _fileViewControllerChange);
     $(MainViewManager).on("currentFileChange", _currentFileChange);
     $(exports).on("beforeAppClose", _unwatchProjectRoot);
-    
+
     // Commands
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
     CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH,          refreshFileTree);
-    
+
     // Define the preference to decide how to sort the Project Tree files
     PreferencesManager.definePreference(SORT_DIRECTORIES_FIRST, "boolean", brackets.platform !== "mac")
         .on("change", function () {
             actionCreator.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
         });
-    
+
     /**
      * Gets the filesystem object for the current context in the file tree.
      */
     function getContext() {
         return model.getContext();
     }
-    
+
     /**
      * Starts a rename operation, completing the current operation if there is one.
-     * 
+     *
      * The Promise returned is resolved with an object with a `newPath` property with the renamed path. If the user cancels the operation, the promise is resolved with the value RENAME_CANCELLED.
-     * 
+     *
      * @param {FileSystemEntry} entry file or directory filesystem object to rename
      * @return {jQuery.Promise} a promise resolved when the rename is done.
      */
     function renameItemInline(entry) {
         return actionCreator.startRename(entry);
     }
-    
+
     /**
      * Returns an Array of all files for this project, optionally including
      * files in the working set that are *not* under the project root. Files filtered
@@ -1171,12 +1178,12 @@ define(function (require, exports, module) {
             includeWorkingSet = filter;
             filter = null;
         }
-        
+
         var viewFiles;
         if (includeWorkingSet) {
             viewFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
         }
-        
+
         return model.getAllFiles(filter, viewFiles).fail(function (err) {
             if (err === FileSystemError.TOO_MANY_ENTRIES && !_projectWarnedForTooManyFiles) {
                 _showErrorDialog(ERR_TYPE_MAX_FILES);
@@ -1185,13 +1192,13 @@ define(function (require, exports, module) {
             return err;
         });
     }
-    
+
     /**
      * Adds an icon provider. The icon provider is a function which takes a data object and
      * returns a React.DOM.ins instance for the icons within the tree.
-     * 
+     *
      * The data object contains:
-     * 
+     *
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory
@@ -1199,13 +1206,13 @@ define(function (require, exports, module) {
     function addIconProvider(callback) {
         return FileTreeView.addIconProvider(callback);
     }
-    
+
     /**
      * Adds an additional classes provider which can return classes that should be added to a
      * given file or directory in the tree.
-     * 
+     *
      * The data object contains:
-     * 
+     *
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory
@@ -1213,7 +1220,7 @@ define(function (require, exports, module) {
     function addClassesProvider(callback) {
         return FileTreeView.addClassesProvider(callback);
     }
-    
+
     /**
      * Forces the file tree to rerender. Typically, the tree only rerenders the portions of the
      * tree that have changed data. If an extension that augments the tree has changes that it

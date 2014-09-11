@@ -31,7 +31,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var React             = require("thirdparty/react"),
         Immutable         = require("thirdparty/immutable"),
         _                 = require("thirdparty/lodash"),
@@ -39,21 +39,21 @@ define(function (require, exports, module) {
         FileTreeViewModel = require("project/FileTreeViewModel"),
         ViewUtils         = require("utils/ViewUtils"),
         KeyEvent          = require("utils/KeyEvent");
-    
+
     var DOM = React.DOM;
-    
+
     var _extensions = Immutable.Map();
-    
+
     // Constants
-    
+
     // Time range from first click to second click to invoke renaming.
     var CLICK_RENAME_MINIMUM = 500;
-    
+
     /**
      * @private
-     * 
+     *
      * Returns the name of a file without its extension.
-     * 
+     *
      * @param {string} fullname The complete name of the file (not including the rest of the path)
      * @param {string} extension The file extension
      * @return {string} The fullname without the extension
@@ -61,7 +61,7 @@ define(function (require, exports, module) {
     function _getName(fullname, extension) {
         return extension !== "" ? fullname.substring(0, fullname.length - extension.length - 1) : fullname;
     }
-    
+
     /**
      * Mixin that allows a component to compute the full path to its directory entry.
      */
@@ -71,16 +71,16 @@ define(function (require, exports, module) {
          */
         myPath: function () {
             var result = this.props.parentPath + this.props.name;
-            
+
             // Add trailing slash for directories
             if (!FileTreeViewModel.isFile(this.props.entry) && _.last(result) !== "/") {
                 result += "/";
             }
-            
+
             return result;
         }
     };
-    
+
     /**
      * This is a mixin that provides rename input behavior. It is responsible for taking keyboard input
      * and invoking the correct action based on that input.
@@ -99,19 +99,19 @@ define(function (require, exports, module) {
         },
 
         /**
-         * The rename or create operation can be completed or canceled by actions outside of 
+         * The rename or create operation can be completed or canceled by actions outside of
          * this component, so we keep the model up to date by sending every update via an action.
          */
         handleKeyUp: function () {
             this.props.actions.setRenameValue(this.refs.name.getDOMNode().value.trim());
         }
     };
-    
+
     /**
      * @private
-     * 
+     *
      * This component presents an input field to the user for renaming a file.
-     * 
+     *
      * Props:
      * * parentPath: the full path of the directory containing this file
      * * name: the name of the file, including the extension
@@ -119,9 +119,9 @@ define(function (require, exports, module) {
      */
     var fileRenameInput = React.createClass({
         mixins: [renameBehavior],
-        
+
         /**
-         * When this component is displayed, we scroll it into view and select the portion 
+         * When this component is displayed, we scroll it into view and select the portion
          * of the filename that excludes the extension.
          */
         componentDidMount: function () {
@@ -145,15 +145,15 @@ define(function (require, exports, module) {
             });
         }
     });
-    
+
     /**
      * @private
-     * 
+     *
      * This mixin handles middle click action to make a file the "context" object for performing
      * operations like reanme.
      */
     var contextSettable = {
-        
+
         /**
          * Send middle click to the action creator as a setContext action.
          */
@@ -164,35 +164,35 @@ define(function (require, exports, module) {
             return false;
         }
     };
-    
+
     /**
      * @private
-     * 
+     *
      * Returns true if the value is defined (used in `.filter`)
-     * 
+     *
      * @param {Object} value value to test
      * @return {boolean} true if value is defined
      */
     function isDefined(value) {
         return value !== undefined;
     }
-    
+
     /**
      * Mixin for components that support the "icons" and "addClass" extension points.
      * `fileNode` and `directoryNode` support this.
      */
     var extendable = {
-        
+
         /**
          * Calls the icon providers to get the collection of icons (most likely just one) for
          * the current file or directory.
-         * 
+         *
          * @return {Array.<ReactComponent>} icon components to render
          */
         getIcons: function () {
             var result,
                 extensions = this.props.extensions;
-            
+
             if (extensions && extensions.get("icons")) {
                 var data = this.getDataForExtension();
                 result = extensions.get("icons").map(function (callback) {
@@ -215,7 +215,7 @@ define(function (require, exports, module) {
         /**
          * Calls the addClass providers to get the classes (in string form) to add for the current
          * file or directory.
-         * 
+         *
          * @param {string} classes Initial classes for this node
          * @return {string} classes for the current node
          */
@@ -239,9 +239,9 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * 
+     *
      * Component to display a file in the tree.
-     * 
+     *
      * Props:
      * * parentPath: the full path of the directory containing this file
      * * name: the name of the file, including the extension
@@ -251,7 +251,7 @@ define(function (require, exports, module) {
      */
     var fileNode = React.createClass({
         mixins: [contextSettable, pathComputer, extendable],
-        
+
         /**
          * Thanks to immutable objects, we can just do a start object identity check to know
          * whether or not we need to re-render.
@@ -261,7 +261,7 @@ define(function (require, exports, module) {
                 this.props.entry !== nextProps.entry ||
                 this.props.extensions !== nextProps.extensions;
         },
-        
+
         /**
          * When the user clicks on the node, we'll either select it or, if they've clicked twice
          * with a bit of delay in between, we'll invoke the `startRename` action.
@@ -285,7 +285,7 @@ define(function (require, exports, module) {
             }
             return false;
         },
-        
+
         /**
          * When the user double clicks, we will select this file and add it to the working
          * set (via the `selectInWorkingSet` action.)
@@ -298,10 +298,10 @@ define(function (require, exports, module) {
                 });
             }
         },
-        
+
         /**
          * Create the data object to pass to extensions.
-         * 
+         *
          * @return {{name: {string}, isFile: {boolean}, fullPath: {string}}} Data for extensions
          */
         getDataForExtension: function () {
@@ -311,18 +311,18 @@ define(function (require, exports, module) {
                 fullPath: this.myPath()
             };
         },
-        
+
         render: function () {
             var fullname = this.props.name,
                 extension = FileUtils.getSmartFileExtension(fullname),
                 name = _getName(fullname, extension);
-            
+
             if (extension) {
                 extension = DOM.span({
                     className: "extension"
                 }, "." + extension);
             }
-            
+
             var fileClasses = "";
             if (this.props.entry.get("selected")) {
                 fileClasses = "jstree-clicked jstree-hovered sidebar-selection";
@@ -330,9 +330,9 @@ define(function (require, exports, module) {
             if (this.props.entry.get("context")) {
                 fileClasses += " jstree-clicked sidebar-context";
             }
-            
+
             var nameDisplay;
-            
+
             if (this.props.entry.get("rename")) {
                 nameDisplay = fileRenameInput({
                     actions: this.props.actions,
@@ -348,7 +348,7 @@ define(function (require, exports, module) {
                 }, this.getIcons(), name, extension], true);
                 nameDisplay = DOM.a.apply(DOM.a, aArgs);
             }
-            
+
             return DOM.li({
                 className: this.getClasses("jstree-leaf"),
                 onClick: this.handleClick,
@@ -364,14 +364,14 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * 
+     *
      * Creates a comparison function for sorting a directory's contents with directories
      * appearing before files.
-     * 
+     *
      * We're sorting the keys of the directory (the names) based partly on the values,
      * so we use a closure to capture the map itself so that we can look up the
      * values as needed.
-     * 
+     *
      * @param {Immutable.Map} contents The directory's contents
      * @return {function(string,string)} Comparator that sorts directories first.
      */
@@ -390,12 +390,12 @@ define(function (require, exports, module) {
         }
         return _dirsFirstCompare;
     }
-    
+
     /**
      * @private
-     * 
+     *
      * Sort a directory either alphabetically or with subdirectories listed first.
-     * 
+     *
      * @param {Immutable.Map} contents the directory's contents
      * @param {boolean} dirsFirst true to sort subdirectories first
      * @return {Immutable.Map} sorted mapping
@@ -407,15 +407,15 @@ define(function (require, exports, module) {
             return contents.keys().sort(FileUtils.compareFilenames);
         }
     }
-    
+
     // Forward references to keep JSLint happy.
     var directoryNode, directoryContents;
-    
+
     /**
      * @private
-     * 
+     *
      * Component that provides the input for renaming a directory.
-     * 
+     *
      * Props:
      * * parentPath: the full path of the directory containing this file
      * * name: the name of the file, including the extension
@@ -436,12 +436,12 @@ define(function (require, exports, module) {
             });
         }
     });
-    
+
     /**
      * @private
-     * 
+     *
      * Displays a directory (but not its contents) in the tree.
-     * 
+     *
      * Props:
      * * parentPath: the full path of the directory containing this file
      * * name: the name of the file, including the extension
@@ -452,7 +452,7 @@ define(function (require, exports, module) {
      */
     directoryNode = React.createClass({
         mixins: [contextSettable, pathComputer, extendable],
-        
+
         /**
          * We need to update this component if the sort order changes or our entry object
          * changes. Thanks to immutability, if any of the directory contents change, our
@@ -464,19 +464,24 @@ define(function (require, exports, module) {
                 this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst ||
                 this.props.extensions !== nextProps.extensions;
         },
-        
+
         /**
          * If you click on a directory, it will toggle between open and closed.
          */
-        handleClick: function () {
+        handleClick: function (event) {
             var setOpen = this.props.entry.get("open") ? false : true;
-            this.props.actions.setDirectoryOpen(this.myPath(), setOpen);
+            if (event.altKey) {
+                this.props.actions.toggleSubdirectories(this.myPath(), setOpen);
+            } else {
+                var setOpen = this.props.entry.get("open") ? false : true;
+                this.props.actions.setDirectoryOpen(this.myPath(), setOpen);
+            }
             return false;
         },
-        
+
         /**
          * Create the data object to pass to extensions.
-         * 
+         *
          * @return {{name: {string}, isFile: {boolean}, fullPath: {string}}} Data for extensions
          */
         getDataForExtension: function () {
@@ -494,7 +499,7 @@ define(function (require, exports, module) {
                 children = entry.get("children"),
                 isOpen = entry.get("open"),
                 directoryClasses = "";
-            
+
             if (isOpen && children) {
                 nodeClass = "open";
                 childNodes = directoryContents({
@@ -507,7 +512,7 @@ define(function (require, exports, module) {
             } else {
                 nodeClass = "closed";
             }
-            
+
             if (this.props.entry.get("selected")) {
                 directoryClasses += " jstree-clicked sidebar-selection";
             }
@@ -532,7 +537,7 @@ define(function (require, exports, module) {
                 }, this.getIcons(), this.props.name], true);
                 nameDisplay = DOM.a.apply(DOM.a, aArgs);
             }
-            
+
             return DOM.li({
                 className: this.getClasses("jstree-" + nodeClass),
                 onClick: this.handleClick,
@@ -545,12 +550,12 @@ define(function (require, exports, module) {
                 childNodes);
         }
     });
-    
+
     /**
      * @private
-     * 
+     *
      * Displays the contents of a directory.
-     * 
+     *
      * Props:
      * * isRoot: whether this directory is the root of the tree
      * * parentPath: the full path of the directory containing this file
@@ -560,7 +565,7 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      */
     directoryContents = React.createClass({
-        
+
         /**
          * Need to re-render if the sort order or the contents change.
          */
@@ -570,17 +575,17 @@ define(function (require, exports, module) {
                 this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst ||
                 this.props.extensions !== nextProps.extensions;
         },
-        
+
         render: function () {
             var extensions = this.props.extensions,
                 iconClass = extensions && extensions.get("icons") ? "jstree-icons" : "jstree-no-icons",
                 ulProps = this.props.isRoot ? {
                     className: "jstree-no-dots " + iconClass
                 } : null;
-            
+
             var contents = this.props.contents,
                 namesInOrder = _sortDirectoryContents(contents, this.props.sortDirectoriesFirst);
-            
+
             return DOM.ul(ulProps, namesInOrder.map(function (name) {
                 var entry = contents.get(name);
 
@@ -609,12 +614,12 @@ define(function (require, exports, module) {
             }.bind(this)).toArray());
         }
     });
-    
+
     /**
      * @private
-     * 
+     *
      * This is the root component of the file tree.
-     * 
+     *
      * Props:
      * * treeData: the root of the tree (an Immutable.Map with the contents of the project root)
      * * sortDirectoriesFirst: whether the directories should be displayed first when listing the contents of a directory
@@ -623,7 +628,7 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      */
     var fileTreeView = React.createClass({
-        
+
         /**
          * Update for any change in the tree data or directory sorting preference.
          */
@@ -633,7 +638,7 @@ define(function (require, exports, module) {
                 this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst ||
                 this.props.extensions !== nextProps.extensions;
         },
-        
+
         render: function () {
             return directoryContents({
                 isRoot: true,
@@ -645,12 +650,12 @@ define(function (require, exports, module) {
                 forceRender: this.props.forceRender
             });
         }
-        
+
     });
-    
+
     /**
      * Renders the file tree to the given element.
-     * 
+     *
      * @param {DOMNode|jQuery} element Element in which to render this file tree
      * @param {FileTreeViewModel} viewModel the data container
      * @param {Directory} projectRoot Directory object from which the fullPath of the project root is extracted
@@ -662,7 +667,7 @@ define(function (require, exports, module) {
         if (!projectRoot) {
             return;
         }
-        
+
         React.renderComponent(fileTreeView({
             treeData: viewModel.treeData,
             sortDirectoriesFirst: viewModel.sortDirectoriesFirst,
@@ -673,12 +678,12 @@ define(function (require, exports, module) {
         }),
               element);
     }
-    
+
     /**
      * @private
-     * 
+     *
      * Add an extension to for the given category (icons, addClass).
-     * 
+     *
      * @param {string} category Category to which the extension is being added
      * @param {function} callback The extension function itself
      */
@@ -690,13 +695,13 @@ define(function (require, exports, module) {
         callbackList = callbackList.push(callback);
         _extensions = _extensions.set(category, callbackList);
     }
-    
+
     /**
      * Adds an icon provider. The icon provider is a function which takes a data object and
      * returns a React.DOM.ins instance for the icons within the tree.
-     * 
+     *
      * The data object contains:
-     * 
+     *
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory
@@ -704,13 +709,13 @@ define(function (require, exports, module) {
     function addIconProvider(callback) {
         _addExtension("icons", callback);
     }
-    
+
     /**
      * Adds an additional classes provider which can return classes that should be added to a
      * given file or directory in the tree.
-     * 
+     *
      * The data object contains:
-     * 
+     *
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory
@@ -718,14 +723,14 @@ define(function (require, exports, module) {
     function addClassesProvider(callback) {
         _addExtension("addClass", callback);
     }
-    
+
     // Private API for testing
     exports._sortFormattedDirectory = _sortDirectoryContents;
     exports._fileNode = fileNode;
     exports._directoryNode = directoryNode;
     exports._directoryContents = directoryContents;
     exports._fileTreeView = fileTreeView;
-    
+
     // Public API
     exports.addIconProvider = addIconProvider;
     exports.addClassesProvider = addClassesProvider;

@@ -487,13 +487,13 @@ define(function (require, exports, module) {
                 vm.moveMarker("selected", null, "huh?");
                 expect(changesFired).toBe(0);
             });
-            
+
             it("should not put a marker on the root", function () {
                 vm.moveMarker("selected", null, "");
                 expect(vm.treeData.get("selected")).toBeUndefined();
             });
         });
-        
+
         describe("createPlaceholder", function () {
             var vm = new FileTreeViewModel.FileTreeViewModel(),
                 changesFired;
@@ -511,14 +511,14 @@ define(function (require, exports, module) {
                     }
                 });
             });
-            
+
             it("can create a file placeholder", function () {
                 vm.createPlaceholder("", "afile.js");
                 expect(vm.treeData.get("afile.js").toJS()).toEqual({
                     creating: true
                 });
             });
-            
+
             it("can create a placeholder in a subdirectory", function () {
                 vm.createPlaceholder("subdir1", "Untitled");
                 expect(vm.treeData.getIn(["subdir1", "children", "Untitled"]).toJS()).toEqual({
@@ -526,7 +526,7 @@ define(function (require, exports, module) {
                 });
                 expect(vm.treeData.getIn(["subdir1", "open"])).toBe(true);
             });
-            
+
             it("can create a folder", function () {
                 vm.createPlaceholder("", "Untitled", true);
                 expect(vm.treeData.get("Untitled").toJS()).toEqual({
@@ -535,16 +535,16 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("processChanges", function () {
             var vm = new FileTreeViewModel.FileTreeViewModel(),
                 originalTreeData,
                 changesFired;
-            
+
             vm.on(FileTreeViewModel.EVENT_CHANGE, function () {
                 changesFired++;
             });
-            
+
             beforeEach(function () {
                 changesFired = 0;
                 vm.treeData = Immutable.fromJS({
@@ -563,7 +563,7 @@ define(function (require, exports, module) {
                 });
                 originalTreeData = vm.treeData;
             });
-            
+
             it("should update an entry when a file changes", function () {
                 vm.processChanges({
                     changed: [
@@ -574,7 +574,7 @@ define(function (require, exports, module) {
                 expect(vm.treeData).not.toBe(originalTreeData);
                 expect(vm.treeData.getIn(["topfile.js", "_timestamp"])).toBeGreaterThan(0);
             });
-            
+
             it("can update multiple file entries", function () {
                 vm.processChanges({
                     changed: [
@@ -586,7 +586,7 @@ define(function (require, exports, module) {
                 expect(vm.treeData.getIn(["topfile.js", "_timestamp"])).toBeGreaterThan(0);
                 expect(vm.treeData.getIn(["subdir", "children", "subchild.js", "_timestamp"])).toBeGreaterThan(0);
             });
-            
+
             it("should add an entry when there's a new entry", function () {
                 vm.processChanges({
                     added: [
@@ -599,7 +599,7 @@ define(function (require, exports, module) {
                 expect(vm.treeData.get("newfile.js").toJS()).toEqual({});
                 expect(vm.treeData.getIn(["subdir", "children", "innerdir", "children", "anotherdeepone.js"]).toJS()).toEqual({});
             });
-            
+
             it("should add new directories as well", function () {
                 vm.processChanges({
                     added: [
@@ -607,13 +607,13 @@ define(function (require, exports, module) {
                         "subdir/anotherdir/"
                     ]
                 });
-                
+
                 expect(changesFired).toBe(1);
                 expect(vm.treeData).not.toBe(originalTreeData);
                 expect(vm.treeData.getIn(["topdir", "children"]).toJS()).toEqual({});
                 expect(vm.treeData.getIn(["subdir", "children", "anotherdir", "children"]).toJS()).toEqual({});
             });
-            
+
             it("should remove an entry that's been deleted", function () {
                 vm.processChanges({
                     removed: [
@@ -624,6 +624,60 @@ define(function (require, exports, module) {
                 expect(changesFired).toBe(1);
                 expect(vm.treeData).not.toBe(originalTreeData);
                 expect(vm.treeData.get("topfile.js")).toBeUndefined();
+            });
+        });
+
+        describe("toggleCollapse", function () {
+            var vm = new FileTreeViewModel.FileTreeViewModel(),
+                changeFired;
+            vm.on(FileTreeViewModel.EVENT_CHANGE, function () {
+                changeFired = true;
+            });
+
+            beforeEach(function () {
+                changeFired = false;
+                vm.treeData = Immutable.fromJS({
+                    "level1": {
+                        open: false,
+                        children: {
+                            subdir1: {
+                                open: false,
+                                children: {
+                                    "afile.js": {},
+                                    subdir3: {
+                                        open: false,
+                                        children: {}
+                                    }
+                                }
+                            },
+                            subdir2: {
+                                open: false,
+                                children: {
+                                    "bfile.js" : {}
+                                }
+                            },
+                            "cfile.js" : {}
+                        }
+                    }
+                });
+            });
+
+            it("should expand 1st level subdirectories when alt pressed plus left click on toplevel directory", function () {
+                vm.toggleSubdirectories("level1", true);
+                expect(vm.treeData.getIn(["level1", "open"])).toBe(true);
+                expect(vm.treeData.getIn(["level1", "children", "subdir1", "open"])).toBe(true);
+                expect(vm.treeData.getIn(["level1", "children", "subdir2", "open"])).toBe(true);
+                expect(vm.treeData.getIn(["level1", "children", "subdir1", "children", "subdir3", "open"])).toBe(false);
+                expect(changeFired).toBe(true);
+            });
+
+            xit("should expand 1st level subdirectories when alt pressed plus left click on subdirectory", function () {
+                vm.toggleSubdirectories("level1/subdir1", true);
+                expect(vm.treeData.getIn(["level1", "open"])).toBe(true);
+                expect(vm.treeData.getIn(["level1", "children", "subdir1", "open"])).toBe(true);
+                expect(vm.treeData.getIn(["level1", "children", "subdir2", "open"])).toBe(false);
+                expect(vm.treeData.getIn(["level1", "children", "subdir1", "children", "subdir3", "open"])).toBe(true);
+                expect(changeFired).toBe(true);
             });
         });
     });
