@@ -827,6 +827,20 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Shows or hides the header.
+     * @param {boolean} show Whether to show header
+     */
+    Pane.prototype.showHeader = function (show) {
+        var $paneHeader = this.$el.find(".pane-header");
+
+        if (show) {
+            $paneHeader.show();
+        } else {
+            $paneHeader.hide();
+        }
+    };
+    
+    /**
      * Swaps the current view with the requested view. 
      * If the interstitial page is shown, it is hidden. 
      * If the currentView is a temporary view, it is destroyed.

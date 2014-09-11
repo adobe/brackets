@@ -931,21 +931,17 @@ define(function (require, exports, module) {
      * @private
      */
     function _updatePaneHeaders() {
-        var paneIdList = getPaneIdList();
+        var pane,
+            paneIdList = getPaneIdList();
 
         if (paneIdList.length === 1) {
-            var pane = _getPane(paneIdList[0]),
-                $paneHeader = pane.$el.find(".pane-header");
-        
-            $paneHeader.hide();
+            pane = _getPane(paneIdList[0]);
+            pane.showHeader(false);
             pane.updatePaneSize();
         } else {
             _.forEach(paneIdList, function (paneId) {
-                var pane = _getPane(paneId),
-                    file = pane.getCurrentlyViewedFile(),
-                    $paneHeader = pane.$el.find(".pane-header");
-
-                $paneHeader.show();
+                pane = _getPane(paneId);
+                pane.showHeader(true);
                 pane.updatePaneSize();
             });
         }
