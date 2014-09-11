@@ -378,5 +378,33 @@ define(function (require, exports, module) {
                 });
             });
         });
+
+        it("should allow refresh to be used to update the class list", function () {
+            runs(function () {
+
+                function classProvider(file) {
+                    return "one";
+                }
+                
+                WorkingSetView.addClassProvider(classProvider);
+
+                var master = ["three", "four"],
+                    classes = master.slice(0);
+
+                
+                WorkingSetView.refresh();
+                
+                runs(function () {
+                    var $list = testWindow.$(".open-files-container > li"),
+                        test = master.slice(0);
+                    
+                    $list.each(function (number, el) {
+                        expect($(el).hasClass(test.pop())).toBeTruthy();
+                        expect($(el).hasClass("one")).toBeFalsy();
+                    });
+                });
+            });
+        });
+    
     });
 });

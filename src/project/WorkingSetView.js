@@ -354,6 +354,8 @@ define(function (require, exports, module) {
             this.$workingSetListViewHeader.show();
             this._checkForDuplicatesInWorkingTree();
         }
+
+        this._updateItemClasses();
         this._adjustForScrollbars();
         this._fireSelectionChanged();
         this.updateOptionsButton();
@@ -608,6 +610,27 @@ define(function (require, exports, module) {
         if ($fileStatusIcon) {
             ViewUtils.toggleClass($fileStatusIcon, "dirty", isDirty);
             ViewUtils.toggleClass($fileStatusIcon, "can-close", canClose);
+        }
+    };
+    
+    /** 
+     * Updates the working set item class list
+     * @private
+     */
+    WorkingSetView.prototype._updateItemClasses = function () {
+        if (_classProviders.length > 0) {
+            this.$openFilesContainer.find("ul > li").each(function () {
+                var $li = $(this),
+                    file = $li.data(_FILE_KEY),
+                    data = {fullPath: file.fullPath,
+                        name: file.name,
+                        isFile: file.isFile};
+
+                $li.removeAttr("class");
+                _classProviders.forEach(function (provider) {
+                    $li.addClass(provider(data));
+                });
+            });
         }
     };
     
