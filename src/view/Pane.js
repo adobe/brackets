@@ -720,7 +720,7 @@ define(function (require, exports, module) {
         if (file) {
             $paneHeader.text(file.name);
         } else {
-            $paneHeader.text(Strings.EMPTY_VIEW_HEADER);
+            $paneHeader.html(Strings.EMPTY_VIEW_HEADER);
         }
     };
     
