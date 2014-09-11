@@ -827,20 +827,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Shows or hides the header.
-     * @param {boolean} show Whether to show header
-     */
-    Pane.prototype.showHeader = function (show) {
-        var $paneHeader = this.$el.find(".pane-header");
-
-        if (show) {
-            $paneHeader.show();
-        } else {
-            $paneHeader.hide();
-        }
-    };
-    
-    /**
      * Swaps the current view with the requested view. 
      * If the interstitial page is shown, it is hidden. 
      * If the currentView is a temporary view, it is destroyed.
@@ -884,15 +870,18 @@ define(function (require, exports, module) {
     /**
      * Sets pane content height.
      */
-    Pane.prototype.updatePaneSize = function () {
+    Pane.prototype.updateHeader = function () {
         var paneContentHeight = this.$el.height(),
-            $paneHeader;
+            $paneHeader = this.$el.find(".pane-header");
         
         // Adjust pane content height for header
         if (MainViewManager.getPaneCount() > 1) {
-            $paneHeader = this.$el.find(".pane-header");
+            $paneHeader.show();
             paneContentHeight -= $paneHeader.outerHeight();
+        } else {
+            $paneHeader.hide();
         }
+        
         this.$content.height(paneContentHeight);
     };
     
@@ -903,6 +892,7 @@ define(function (require, exports, module) {
      * of all editor DOM elements. Custom View implementations should just ignore this flag.
      */
     Pane.prototype.updateLayout = function (forceRefresh) {
+        this.updateHeader();
         if (this._currentView) {
             this._currentView.updateLayout(forceRefresh);
         }
