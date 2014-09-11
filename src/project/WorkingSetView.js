@@ -910,7 +910,18 @@ define(function (require, exports, module) {
         });
     }
     
+    /** 
+     * Synchronizes the selection Triangle for all views
+     */
+    function syncSelectionTriangle() {
+        _.forEach(_views, function (workingSetListView) {
+            workingSetListView.$openFilesContainer.triggerHandler("scroll");
+        });
+    }
+    
+    
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
     exports.refresh                       = refresh;
+    exports.syncSelectionTriangle         = syncSelectionTriangle;
 });

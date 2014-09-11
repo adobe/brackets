@@ -142,7 +142,7 @@ define(function (require, exports, module) {
             $sidebar.find(".sidebar-selection-triangle").css("display", "block").css("left", width);
             $sidebar.find(".scroller-shadow").css("display", "block");
             $projectFilesContainer.triggerHandler("scroll");
-            $openFilesContainer.triggerHandler("scroll");
+            WorkingSetView.syncSelectionTriangle();
         });
 		
         $sidebar.on("panelCollapsed", function (evt, width) {
@@ -155,7 +155,7 @@ define(function (require, exports, module) {
             $sidebar.find(".scroller-shadow").css("display", "block");
             $sidebar.find(".sidebar-selection-triangle").css("left", width);
             $projectFilesContainer.triggerHandler("scroll");
-            $openFilesContainer.triggerHandler("scroll");
+            WorkingSetView.syncSelectionTriangle();
             CommandManager.get(Commands.VIEW_HIDE_SIDEBAR).setName(Strings.CMD_HIDE_SIDEBAR);
         });
         
