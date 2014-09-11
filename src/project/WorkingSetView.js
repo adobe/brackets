@@ -971,8 +971,8 @@ define(function (require, exports, module) {
      * adds an icon provider to the view.  
      * Icon providers are called when a working set item is created
      * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string|jQuery} callback - the function to call for each item
-     * The callback can return a string that contains the html to place before the link of each WSV item. 
-     *  The return value can be a string or a jQuery node.
+     * The callback must return the html to place before the link of each WSV item. 
+     *  The return value can be a string representing the HTML, a jQuery object or undefined.
      * if a falsy value is returned then nothing is prepended to the list item
      */
     function addIconProvider(callback) {
