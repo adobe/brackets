@@ -445,7 +445,7 @@ define(function (require, exports, module) {
                 }
             } else {
                 // Editor is an inline editor, find the parent pane
-                var parents = $container.parents(".view-pane");
+                var parents = $container.parents(".view-content");
                 if (parents.length === 1) {
                     $container = $(parents[0]);
                     pane = _getPaneFromElement($container);
@@ -926,6 +926,28 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Shows or hides the pane header bar and adjust pane content height.
+     * If there's only 1 pane, then header is hidden, otherwise it's shown.
+     * @private
+     */
+    function _updatePaneHeaders() {
+        var pane,
+            paneIdList = getPaneIdList();
+
+        if (paneIdList.length === 1) {
+            pane = _getPane(paneIdList[0]);
+            pane.showHeader(false);
+            pane.updatePaneSize();
+        } else {
+            _.forEach(paneIdList, function (paneId) {
+                pane = _getPane(paneId);
+                pane.showHeader(true);
+                pane.updatePaneSize();
+            });
+        }
+    }
+    
+    /**
      * Creates a pane for paneId if one doesn't already exist
      * @param {!string} paneId - id of the pane to create
      * @private
@@ -940,6 +962,8 @@ define(function (require, exports, module) {
             _panes[paneId] = pane;
             
             $(exports).triggerHandler("paneCreate", [pane.id]);
+            
+            _updatePaneHeaders();
             
             pane.$el.on("click.mainview dragover.mainview", function () {
                 setActivePaneId(pane.id);
@@ -1119,8 +1143,10 @@ define(function (require, exports, module) {
             });
             
             _orientation = null;
+            _updatePaneHeaders();
             _updateLayout();
             _updateCommandState();
+            
             $(exports).triggerHandler("paneLayoutChange", [_orientation]);
 
             // if the current view before the merger was in the pane
@@ -1192,7 +1218,7 @@ define(function (require, exports, module) {
      */
     function _findPaneForDocument(document) {
         // First check for an editor view of the document 
-        var pane = _getPaneFromElement($(document._masterEditor.$el.parent()));
+        var pane = _getPaneFromElement($(document._masterEditor.$el.parent().parent()));
         
         if (!pane) {
             // No view of the document, it may be in a working set and not yet opened
@@ -1298,6 +1324,7 @@ define(function (require, exports, module) {
         
             AsyncUtils.waitForAll(promises).then(function () {
                 setActivePaneId(state.activePaneId);
+                _updatePaneHeaders();
                 _updateLayout();
                 _updateCommandState();
                 if (_orientation) {
@@ -1427,6 +1454,15 @@ define(function (require, exports, module) {
     }
     
     /** 
+     * Handle main window resize
+     */
+    function handlePaneResize() {
+        _.forEach(getPaneIdList(), function (paneId) {
+            _getPane(paneId).updatePaneSize();
+        });
+    }
+    
+    /** 
      * Add an app ready callback to register global commands. 
      */
     AppInit.appReady(function () {
@@ -1454,6 +1490,10 @@ define(function (require, exports, module) {
     $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
     $(DocumentManager).on("pathDeleted",                      _removeDeletedFileFromMRU);
     
+    /* Add this as a capture handler so we're guaranteed to run it before the editor does its own
+     * refresh on resize.
+     */
+    window.addEventListener("resize", handlePaneResize, true);
     
     // Init 
     

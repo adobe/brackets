@@ -160,6 +160,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
+        Strings             = require("strings"),
         ViewUtils           = require("utils/ViewUtils"),
         paneTemplate        = require("text!htmlContent/pane.html");
     
@@ -181,7 +182,8 @@ define(function (require, exports, module) {
         
         // Setup the container and the element we're inserting
         var self = this,
-            $el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id);
+            $el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id),
+            $content = $el.find(".pane-content");
         
         $el.on("focusin.pane", function (e) {
             self._lastFocusedElement = e.target;
@@ -208,6 +210,15 @@ define(function (require, exports, module) {
             }
         });
 
+        Object.defineProperty(this,  "$content", {
+            get: function () {
+                return $content;
+            },
+            set: function () {
+                console.error("cannot change the DOM node of a working pane");
+            }
+        });
+
         Object.defineProperty(this,  "$container", {
             get: function () {
                 return $container;
@@ -216,6 +227,8 @@ define(function (require, exports, module) {
                 console.error("cannot change the DOM node of a working pane");
             }
         });
+
+        this._updatePaneHeaderText();
 
         // Listen to document events so we can update ourself
         $(DocumentManager).on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
@@ -243,6 +256,13 @@ define(function (require, exports, module) {
      * @type {JQuery}
      */
     Pane.prototype.$el = null;
+  
+    /**
+     * the wrapped DOM node that contains editors
+     * @readonly
+     * @type {JQuery}
+     */
+    Pane.prototype.$content = null;
   
     /**
      * The list of files views
@@ -313,7 +333,7 @@ define(function (require, exports, module) {
      * @param {!View} view - the view to reparent
      */
     Pane.prototype._reparent = function (view) {
-        view.$el.appendTo(this.$el);
+        view.$el.appendTo(this.$content);
         this._views[view.getFile().fullPath] = view;
         if (view.notifyContainerChange) {
             view.notifyContainerChange();
@@ -584,6 +604,8 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype._notifyCurrentViewChange = function (newView, oldView) {
+        this._updatePaneHeaderText();
+        
         $(this).triggerHandler("currentViewChange", [newView, oldView]);
     };
     
@@ -689,6 +711,21 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Updates text in pane header
+     * @private
+     */
+    Pane.prototype._updatePaneHeaderText = function () {
+        var file = this.getCurrentlyViewedFile(),
+            $paneHeader = this.$el.find(".pane-header");
+
+        if (file) {
+            $paneHeader.text(file.name);
+        } else {
+            $paneHeader.html(Strings.EMPTY_VIEW_HEADER);
+        }
+    };
+    
+    /**
      * Event handler when a file changes name
      * @private
      * @param {!JQuery.Event} e - jQuery event object
@@ -710,6 +747,8 @@ define(function (require, exports, module) {
             this._views[newname] = view;
             delete this._views[oldname];
         }
+        
+        this._updatePaneHeaderText();
         
         // dispatch the change event
         if (dispatchEvent) {
@@ -734,8 +773,8 @@ define(function (require, exports, module) {
      * @param {boolean} show - show or hide the interstitial page
      */
     Pane.prototype.showInterstitial = function (show) {
-        if (this.$el) {
-            this.$el.find(".not-editor").css("display", (show) ? "" : "none");
+        if (this.$content) {
+            this.$content.find(".not-editor").css("display", (show) ? "" : "none");
         }
     };
     
@@ -762,7 +801,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        if (view.$el.parent() !== this.$el) {
+        if (view.$el.parent() !== this.$content) {
             this._reparent(view);
         } else {
             this._views[path] = view;
@@ -784,6 +823,20 @@ define(function (require, exports, module) {
         view.$el.css("display", (visible ? "" : "none"));
         if (view.notifyVisibilityChange) {
             view.notifyVisibilityChange(visible);
+        }
+    };
+    
+    /**
+     * Shows or hides the header.
+     * @param {boolean} show Whether to show header
+     */
+    Pane.prototype.showHeader = function (show) {
+        var $paneHeader = this.$el.find(".pane-header");
+
+        if (show) {
+            $paneHeader.show();
+        } else {
+            $paneHeader.hide();
         }
     };
     
@@ -829,10 +882,25 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Updates the layout causing the current view to redraw itself
-     * @param {boolean} forceRefresh - true to force a resize and refresh of the current view, false if just to resize
-     * forceRefresh is only used by Editor views to force a relayout of all editor DOM elements. 
-     * Custom View implemtations should just ignore this flag.
+     * Sets pane content height.
+     */
+    Pane.prototype.updatePaneSize = function () {
+        var paneContentHeight = this.$el.height(),
+            $paneHeader;
+        
+        // Adjust pane content height for header
+        if (MainViewManager.getPaneCount() > 1) {
+            $paneHeader = this.$el.find(".pane-header");
+            paneContentHeight -= $paneHeader.outerHeight();
+        }
+        this.$content.height(paneContentHeight);
+    };
+    
+    /**
+     * Sets pane content height. Updates the layout causing the current view to redraw itself
+     * @param {boolean} forceRefresh - true to force a resize and refresh of the current view,
+     * false if just to resize forceRefresh is only used by Editor views to force a relayout
+     * of all editor DOM elements. Custom View implementations should just ignore this flag.
      */
     Pane.prototype.updateLayout = function (forceRefresh) {
         if (this._currentView) {
