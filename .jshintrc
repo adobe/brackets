@@ -43,7 +43,7 @@
     
     "browser"       : true,
     "couch"         : false,
-    "devel"         : false,
+    "devel"         : true,
     "dojo"          : false,
     "jquery"        : false,
     "mootools"      : false,
