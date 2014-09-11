@@ -154,7 +154,7 @@ define(function (require, exports, module) {
      * @param {?Editor} current - the editor that will be the active editor
      * @param {boolean=} blurPreviousEditor - true to send a blur message to the current editor
      */
-    function _notifyActiveEditorChanged(current, blurPreviousEditor) {
+    function _notifyActiveEditorChanged(current) {
         // Skip if the Editor that gained focus was already the most recently focused editor.
         // This may happen e.g. if the window loses then regains focus.
         if (_lastFocusedEditor === current) {
@@ -162,10 +162,7 @@ define(function (require, exports, module) {
         }
         var previous = _lastFocusedEditor;
         _lastFocusedEditor = current;
-        
-        if (blurPreviousEditor && previous) {
-            //previous._codeMirror.blur();
-        }
+
         
         $(exports).triggerHandler("activeEditorChange", [current, previous]);
     }
@@ -184,7 +181,7 @@ define(function (require, exports, module) {
      */
     function _handlecurrentFileChange(e, file) {
         var doc = file && DocumentManager.getOpenDocumentForPath(file.fullPath);
-        _notifyActiveEditorChanged(doc && doc._masterEditor, true);
+        _notifyActiveEditorChanged(doc && doc._masterEditor);
     }
     
     /**
@@ -215,7 +212,7 @@ define(function (require, exports, module) {
         return editor;
     }
     
- /**
+    /**
      * @private
      * Finds an inline widget provider from the given list that can offer a widget for the current cursor
      * position, and once the widget has been created inserts it into the editor.
