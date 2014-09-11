@@ -337,11 +337,15 @@ define(function (require, exports, module) {
      * @param {boolean=} failOnReject       Whether to reject or not if one of the promises has been rejected.
      * @param {number=} timeout             Number of milliseconds to wait until rejecting the promise
      * 
-     * @return {$.Promise} Promise which will be completed once al the 
+     * @return {$.Promise} A Promise which will be resolved once all waiting promises on are resolved. 
+     *                     It is resolved with an array of results from each promise's that resolves successfully.
+     *                     The resulting array may not be in the same order or contain as many items as there were 
+     *                     promises to wait on or contain 'undefined' entries.
      * 
      */
     function waitForAll(promises, failOnReject, timeout) {
         var masterDeferred = new $.Deferred(),
+            results = [],
             count = 0,
             sawRejects = false;
         
@@ -362,13 +366,16 @@ define(function (require, exports, module) {
                 .fail(function (err) {
                     sawRejects = true;
                 })
+                .done(function (result) {
+                    results.push(result);
+                })
                 .always(function () {
                     count++;
                     if (count === promises.length) {
                         if (failOnReject && sawRejects) {
                             masterDeferred.reject();
                         } else {
-                            masterDeferred.resolve();
+                            masterDeferred.resolve(results);
                         }
                     }
                 });

@@ -721,7 +721,7 @@ define(function (require, exports, module) {
      * Event handler when a file is deleted
      * @private
      * @param {!JQuery.Event} e - jQuery event object
-     * @return {@return {} fullPath - path of the file that was deleted
+     * @param {!string} fullPath - path of the file that was deleted
      */
     Pane.prototype._handleFileDeleted = function (e, fullPath) {
         if (this.removeView({fullPath: fullPath})) {
@@ -1002,13 +1002,17 @@ define(function (require, exports, module) {
     
     
     /**
-     * serializes the pane state
+     * serializes the pane state from JSON
      * @param {!Object} state - the state to load 
+     * @return {jQuery.Promise} A promise which resolves to 
+     *              {fullPath:string, paneId:string} 
+     *              which can be passed as command data to FILE_OPEN
      */
     Pane.prototype.loadState = function (state) {
         var filesToAdd = [],
             viewStates = {},
             activeFile,
+            data,
             self = this;
         
         var getInitialViewFilePath = function () {
@@ -1030,16 +1034,16 @@ define(function (require, exports, module) {
         ViewStateManager.addViewStates(viewStates);
         
         activeFile = activeFile || getInitialViewFilePath();
-        
+       
         if (activeFile) {
-            return this._execOpenFile(activeFile);
+            data = {paneId: self.id, fullPath: activeFile};
         }
         
-        return new $.Deferred().resolve();
+        return new $.Deferred().resolve(data);
     };
     
     /**
-     * serializes the pane state
+     * Returns the JSON-ified state of the object so it can be serialize
      * @return {!Object} state - the state to save 
      */
     Pane.prototype.saveState = function () {

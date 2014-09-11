@@ -972,7 +972,8 @@ define(function (require, exports, module) {
             } else {
                 if (_orientation === VERTICAL) {
                     pane.$el.css({  height: "100%",
-                                    width: "auto"
+                                    width: "auto",
+                                    float: "none"
                                  });
                 } else {
                     pane.$el.css({ width: "100%",
@@ -1390,10 +1391,9 @@ define(function (require, exports, module) {
                     promise = pane.loadState(paneState);
                 
                 promises.push(promise);
-                
             });
 
-            AsyncUtils.waitForAll(promises).then(function () {
+            AsyncUtils.waitForAll(promises).then(function (opensList) {
                 setActivePaneId(state.activePaneId);
 
                 // this will set the default layout of 50/50 or 100 
@@ -1434,6 +1434,12 @@ define(function (require, exports, module) {
                         _mruList.push(_makeMRUListEntry(file, pane.id));
                     });
                     $(exports).triggerHandler("workingSetAddList", [fileList, pane.id]);
+                });
+                
+                opensList.forEach(function (openData) {
+                    if (openData) {
+                        CommandManager.execute(Commands.FILE_OPEN, openData);
+                    }
                 });
             });
         }
