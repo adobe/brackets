@@ -853,11 +853,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} Resolved when done; or rejected if not found
      */
     function showInTree(entry) {
-        var deferred = new $.Deferred();
-        model.setSelected(entry.fullPath);
-        // TODO we may need to do some work to ensure that this has actually been expanded
-        deferred.resolve();
-        return deferred.promise();
+        return model.showInTree(entry);
     }
     
     

@@ -223,6 +223,30 @@ define(function (require, exports, module) {
     FileTreeViewModel.prototype.isFilePathVisible = function (path) {
         return _isFilePathVisible(this.treeData, path);
     };
+    
+    /**
+     * Determines if a given path has been loaded.
+     * 
+     * @param {string} path project relative file or directory path
+     * @return {boolean} true if the path has been loaded
+     */
+    FileTreeViewModel.prototype.isPathLoaded = function (path) {
+        var objectPath = _filePathToObjectPath(this.treeData, path);
+        
+        if (!objectPath) {
+            return false;
+        }
+        
+        // If it's a directory, make sure that its children are loaded 
+        if (_.last(path) === "/") {
+            objectPath.push("children");
+            if (!this.treeData.getIn(objectPath)) {
+                return false;
+            }
+        }
+        
+        return true;
+    };
 
     /**
      * @private
@@ -381,8 +405,15 @@ define(function (require, exports, module) {
     function _setDirectoryOpen(treeData, path, open) {
         var objectPath = _filePathToObjectPath(treeData, path),
             directory = treeData.getIn(objectPath);
-
-        if (!objectPath || isFile(directory)) {
+        
+        if (!objectPath) {
+            return {
+                needsLoading: true,
+                treeData: treeData
+            };
+        }
+        
+        if (isFile(directory)) {
             return;
         }
 

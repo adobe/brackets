@@ -263,6 +263,15 @@ define(function (require, exports, module) {
         },
         
         /**
+         * If this node is newly selected, scroll it into view.
+         */
+        componentDidUpdate: function (prevProps, prevState) {
+            if (this.props.entry.get("selected") && !prevProps.entry.get("selected")) {
+                ViewUtils.scrollElementIntoView($("#project-files-container"), $(this.getDOMNode()), true);
+            }
+        },
+        
+        /**
          * When the user clicks on the node, we'll either select it or, if they've clicked twice
          * with a bit of delay in between, we'll invoke the `startRename` action.
          */

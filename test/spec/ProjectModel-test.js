@@ -490,6 +490,12 @@ define(function (require, exports, module) {
                     });
                     expect(model._selections.selected).toBe("/foo/afile.js");
                 });
+                
+                it("does not select directories", function () {
+                    model.setSelected("/foo/afile.js");
+                    model.setSelected("/foo/subdir1/");
+                    expect(model._selections.selected).toBe("/foo/afile.js");
+                });
             });
             
             describe("setFocused", function () {
@@ -506,7 +512,7 @@ define(function (require, exports, module) {
                     model.setSelected("/foo/subdir1/afile.js");
                     model.setCurrentFile("/foo/subdir1/afile.js");
                     model.setDirectoryOpen("/foo/subdir1/", false);
-                    expect(model._selections.selected).toBe("/foo/subdir1/");
+                    expect(model._selections.selected).toBe(null);
                     model.setDirectoryOpen("/foo/subdir1/", true);
                     expect(model._selections.selected).toBe("/foo/subdir1/afile.js");
                     expect(focusEvents).toBe(2);
@@ -536,6 +542,16 @@ define(function (require, exports, module) {
                                     children: null
                                 }
                             }
+                        });
+                    });
+                });
+                
+                it("shouldn't load a directory that will be closed", function () {
+                    spyOn(model, "_getDirectoryContents").andReturn(new $.Deferred().resolve([]).promise());
+                    waitsForDone(model.setDirectoryOpen("/foo/subdir2", false));
+                    runs(function () {
+                        expect(vm.treeData.get("subdir2").toJS()).toEqual({
+                            children: null
                         });
                     });
                 });
@@ -799,13 +815,11 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
-        describe("_reopenNodes and _refresh", function () {
-            var model,
+        function getLoadableFixture() {
+            var data = {},
+                model,
                 vm,
                 pathData,
-                gdcCalls,
-                changesFired,
                 nodesByDepth = [
                     [
                         "/foo/subdir1/",
@@ -816,79 +830,98 @@ define(function (require, exports, module) {
                     ]
                 ];
 
+            model = new ProjectModel.ProjectModel();
+            vm = model._viewModel;
+            model.projectRoot = {
+                fullPath: "/foo/",
+                getContents: function (callback) {
+                    return callback(null, [
+                        {
+                            name: "subdir1",
+                            isFile: false
+                        },
+                        {
+                            name: "subdir2",
+                            isFile: false
+                        },
+                        {
+                            name: "subdir3",
+                            isFile: false
+                        }
+                    ]);
+                }
+            };
+
+            pathData = {
+                "/foo/subdir1/": [
+                    {
+                        name: "subsubdir",
+                        isFile: false
+                    }
+                ],
+                "/foo/subdir1/subsubdir/": [
+                    {
+                        name: "interior.txt",
+                        isFile: true
+                    }
+                ],
+                "/foo/subdir3/": [
+                    {
+                        name: "higher.txt",
+                        isFile: true
+                    }
+                ]
+            };
+
+            vm.treeData = Immutable.fromJS({
+                subdir1: {
+                    children: null
+                },
+                subdir2: {
+                    children: null
+                },
+                subdir3: {
+                    children: null
+                },
+                "toplevel.txt": {
+                    isFile: true
+                }
+            });
+
+            data.changesFired = 0;
+            model.on(ProjectModel.EVENT_CHANGE, function () {
+                data.changesFired++;
+            });
+
+            data.gdcCalls = 0;
+            spyOn(model, "_getDirectoryContents").andCallFake(function (path) {
+                data.gdcCalls++;
+                expect(pathData[path]).toBeDefined();
+                return new $.Deferred().resolve(pathData[path]).promise();
+            });
+            
+            data.model = model;
+            data.vm = vm;
+            data.pathData = pathData;
+            data.nodesByDepth = nodesByDepth;
+            
+            return data;
+        }
+        
+        describe("_reopenNodes and _refresh", function () {
+            var data,
+                model,
+                vm;
 
 
             beforeEach(function () {
-                model = new ProjectModel.ProjectModel();
-                vm = model._viewModel;
-                model.projectRoot = {
-                    fullPath: "/foo/",
-                    getContents: function (callback) {
-                        return callback(null, [
-                            {
-                                name: "subdir1",
-                                isFile: false
-                            },
-                            {
-                                name: "subdir2",
-                                isFile: false
-                            },
-                            {
-                                name: "subdir3",
-                                isFile: false
-                            }
-                        ]);
-                    }
-                };
-
-                pathData = {
-                    "/foo/subdir1/": [
-                        {
-                            name: "subsubdir",
-                            isFile: false
-                        }
-                    ],
-                    "/foo/subdir1/subsubdir/": [
-                        {
-                            name: "interior.txt",
-                            isFile: true
-                        }
-                    ],
-                    "/foo/subdir3/": [
-                        {
-                            name: "higher.txt",
-                            isFile: true
-                        }
-                    ]
-                };
-
-                vm.treeData = Immutable.fromJS({
-                    subdir1: {
-                        children: null
-                    },
-                    subdir2: {
-                        children: null
-                    },
-                    subdir3: {
-                        children: null
-                    }
-                });
-
-                changesFired = 0;
-                model.on(ProjectModel.EVENT_CHANGE, function () {
-                    changesFired++;
-                });
-
-                gdcCalls = 0;
-                spyOn(model, "_getDirectoryContents").andCallFake(function (path) {
-                    gdcCalls++;
-                    expect(pathData[path]).toBeDefined();
-                    return new $.Deferred().resolve(pathData[path]).promise();
-                });
+                data = getLoadableFixture();
+                model = data.model;
+                vm = data.vm;
             });
 
             it("should reopen previously closed nodes", function () {
-                waitsForDone(model.reopenNodes(nodesByDepth));
+                waitsForDone(model.reopenNodes(data.nodesByDepth));
                 runs(function () {
                     var subdir1 = vm.treeData.get("subdir1");
                     expect(subdir1.get("open")).toBe(true);
@@ -899,14 +932,14 @@ define(function (require, exports, module) {
 
             it("should refresh the whole tree", function () {
                 var oldTree;
-                waitsForDone(model.reopenNodes(nodesByDepth));
+                waitsForDone(model.reopenNodes(data.nodesByDepth));
                 runs(function () {
                     model.setSelected("/foo/subdir1/subsubdir/interior.txt");
                     model.setContext("/foo/subdir3/higher.txt");
-                    gdcCalls = 0;
-                    changesFired = 0;
+                    data.gdcCalls = 0;
+                    data.changesFired = 0;
                     oldTree = vm.treeData;
-                    pathData["/foo/subdir1/subsubdir/"] = [
+                    data.pathData["/foo/subdir1/subsubdir/"] = [
                         {
                             name: "newInterior.txt",
                             isFile: true
@@ -915,12 +948,73 @@ define(function (require, exports, module) {
                     waitsForDone(model.refresh());
                 });
                 runs(function () {
-                    expect(changesFired).toBeGreaterThan(0);
+                    expect(data.changesFired).toBeGreaterThan(0);
                     expect(vm.treeData).not.toBe(oldTree);
                     expect(vm.treeData.get("subdir1")).toBeDefined();
                     expect(vm.treeData.getIn(["subdir1", "children", "subsubdir", "children", "newInterior.txt"])).toBeDefined();
                     expect(vm.treeData.getIn(["subdir1", "children", "subsubdir", "children", "interior.txt"])).toBeUndefined();
                     expect(vm.treeData.getIn(["subdir3", "children", "higher.txt", "context"])).toBe(true);
+                });
+            });
+        });
+        
+        describe("showInTree", function () {
+            var data,
+                model,
+                vm;
+
+            beforeEach(function () {
+                data = getLoadableFixture();
+                model = data.model;
+                vm = data.vm;
+            });
+            
+            it("should open a closed path via setDirectoryOpen", function () {
+                waitsForDone(model.setDirectoryOpen("/foo/subdir1/subsubdir/", true));
+                runs(function () {
+                    expect(vm.treeData.getIn(["subdir1", "open"])).toBe(true);
+                    expect(vm.treeData.getIn(["subdir1", "children", "subsubdir", "open"])).toBe(true);
+                    expect(vm.treeData.getIn(["subdir1", "children", "subsubdir", "children", "interior.txt"])).toBeDefined();
+                });
+            });
+            
+            it("should not have a problem at the root", function () {
+                waitsForDone(model.setDirectoryOpen("/foo/"));
+                runs(function () {
+                    expect(vm.treeData.get("open")).toBeUndefined();
+                });
+            });
+            
+            it("should do nothing for a path that is outside of the project", function () {
+                waitsForDone(model.showInTree("/bar/baz.js"));
+                runs(function () {
+                    expect(vm.treeData.get("baz.js")).toBeUndefined();
+                    expect(model._selections.selected).toBeUndefined();
+                });
+            });
+            
+            it("should select a file at the root", function () {
+                waitsForDone(model.showInTree("/foo/toplevel.txt"));
+                runs(function () {
+                    expect(vm.treeData.getIn(["toplevel.txt", "selected"])).toBe(true);
+                });
+            });
+            
+            it("should open a subdirectory", function () {
+                waitsForDone(model.showInTree("/foo/subdir1/"));
+                runs(function () {
+                    expect(vm.treeData.getIn(["subdir1", "open"])).toBe(true);
+                    expect(vm.treeData.getIn(["subdir1", "children", "subsubdir"])).toBeDefined();
+                    expect(model._selections.selected).toBeNull();
+                });
+            });
+            
+            it("should open a subdirectory and select a file", function () {
+                waitsForDone(model.showInTree("/foo/subdir1/subsubdir/interior.txt"));
+                runs(function () {
+                    expect(vm.treeData.getIn(["subdir1", "open"])).toBe(true);
+                    expect(vm.treeData.getIn(["subdir1", "children", "subsubdir", "open"])).toBe(true);
+                    expect(vm.treeData.getIn(["subdir1", "children", "subsubdir", "children", "interior.txt", "selected"])).toBe(true);
                 });
             });
         });

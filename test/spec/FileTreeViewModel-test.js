@@ -102,6 +102,14 @@ define(function (require, exports, module) {
                 expect(isFilePathVisible("DOESNOTEXIST")).toBe(null);
                 expect(isFilePathVisible("")).toBe(true);
             });
+            
+            it("can return whether a given path is loaded (in the tree)", function () {
+                var vm = new FileTreeViewModel.FileTreeViewModel();
+                vm.treeData = treeData;
+                expect(vm.isPathLoaded("subdir/afile.js")).toBe(true);
+                expect(vm.isPathLoaded("anothersub/")).toBe(true);
+                expect(vm.isPathLoaded("aclosedsub/")).toBe(false);
+            });
         });
 
         describe("setDirectoryOpen", function () {
