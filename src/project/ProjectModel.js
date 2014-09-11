@@ -607,7 +607,7 @@ define(function (require, exports, module) {
             var parentDirectory = FileUtils.getDirectoryPath(path),
                 self = this;
             this.setDirectoryOpen(parentDirectory, true).then(function () {
-                if (_.last(path) !== "/" && self._focused) {
+                if (_pathIsFile(path) && self._focused) {
                     self.setSelected(path);
                 }
                 d.resolve();
@@ -631,7 +631,7 @@ define(function (require, exports, module) {
         path = _getPathFromFSObject(path);
         
         // Directories are not selectable
-        if (_.last(path) === "/") {
+        if (!_pathIsFile(path)) {
             return;
         }
         
@@ -649,7 +649,7 @@ define(function (require, exports, module) {
             selected: path
         };
         
-        if (path && _.last(path) !== "/") {
+        if (path && _pathIsFile(path)) {
             $(this).trigger(EVENT_SHOULD_FOCUS);
             
             if (!doNotOpen) {
@@ -826,20 +826,22 @@ define(function (require, exports, module) {
      */
     function _renameItem(oldName, newName, isFolder) {
         var result = new $.Deferred();
-
+        
         if (oldName === newName) {
             result.resolve();
+        } else if (!isValidFilename(FileUtils.getBaseName(newName), _invalidChars)) {
+            result.reject(ERROR_INVALID_FILENAME);
             return result.promise();
+        } else {
+            var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
+            entry.rename(newName, function (err) {
+                if (err) {
+                    result.reject(err);
+                } else {
+                    result.resolve();
+                }
+            });
         }
-
-        var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
-        entry.rename(newName, function (err) {
-            if (err) {
-                result.reject(err);
-            } else {
-                result.resolve();
-            }
-        });
 
         return result.promise();
     }
@@ -920,7 +922,7 @@ define(function (require, exports, module) {
      * @return {jQuery.Promise} resolved when creation is complete
      */
     ProjectModel.prototype.createAtPath = function (path) {
-        var isFolder  = _.last(path) === "/",
+        var isFolder  = !_pathIsFile(path),
             name      = FileUtils.getBaseName(path),
             self      = this;
 

@@ -697,6 +697,19 @@ define(function (require, exports, module) {
                     expect(vm.treeData.getIn(["somethingelse", "open"])).toBe(true);
                     expect(model._renameItem).toHaveBeenCalledWith("/foo/subdir1/", "/foo/somethingelse/");
                 });
+                
+                it("fails for invalid filenames", function () {
+                    model.setContext("/foo/afile.js");
+                    var promise = model.startRename();
+                    model.setRenameValue("com1");
+                    model.performRename();
+                    waitsForFail(promise);
+                    runs(function () {
+                        promise.fail(function (err) {
+                            expect(err).toBe(ProjectModel.ERROR_INVALID_FILENAME);
+                        });
+                    });
+                });
             });
             
             describe("selectInWorkingSet", function () {
