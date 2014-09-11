@@ -1394,7 +1394,6 @@ define(function (require, exports, module) {
             });
 
             AsyncUtils.waitForAll(promises).then(function (opensList) {
-                setActivePaneId(state.activePaneId);
 
                 // this will set the default layout of 50/50 or 100 
                 //  based on the number of panes
@@ -1436,10 +1435,17 @@ define(function (require, exports, module) {
                     $(exports).triggerHandler("workingSetAddList", [fileList, pane.id]);
                 });
                 
+                promises = [];
+                
                 opensList.forEach(function (openData) {
                     if (openData) {
-                        CommandManager.execute(Commands.FILE_OPEN, openData);
+                        promises.push(CommandManager.execute(Commands.FILE_OPEN, openData));
                     }
+                });
+                
+                // finally set the active pane
+                AsyncUtils.waitForAll(promises).then(function () {
+                    setActivePaneId(state.activePaneId);
                 });
             });
         }

@@ -152,8 +152,9 @@ define(function (require, exports, module) {
      * Editor focus handler to change the currently active editor
      * @private
      * @param {?Editor} current - the editor that will be the active editor
+     * @param {boolean=} blurPreviousEditor - true to send a blur message to the current editor
      */
-    function _notifyActiveEditorChanged(current) {
+    function _notifyActiveEditorChanged(current, blurPreviousEditor) {
         // Skip if the Editor that gained focus was already the most recently focused editor.
         // This may happen e.g. if the window loses then regains focus.
         if (_lastFocusedEditor === current) {
@@ -161,6 +162,10 @@ define(function (require, exports, module) {
         }
         var previous = _lastFocusedEditor;
         _lastFocusedEditor = current;
+        
+        if (blurPreviousEditor && previous) {
+            //previous._codeMirror.blur();
+        }
         
         $(exports).triggerHandler("activeEditorChange", [current, previous]);
     }
@@ -178,8 +183,8 @@ define(function (require, exports, module) {
      * @param {?File} file - current file (can be null)
      */
     function _handlecurrentFileChange(e, file) {
-        var doc = file ? DocumentManager.getOpenDocumentForPath(file.fullPath) : null;
-        _notifyActiveEditorChanged(doc ? doc._masterEditor : null);
+        var doc = file && DocumentManager.getOpenDocumentForPath(file.fullPath);
+        _notifyActiveEditorChanged(doc && doc._masterEditor, true);
     }
     
     /**
@@ -554,9 +559,11 @@ define(function (require, exports, module) {
 
         // show the view
         pane.showView(document._masterEditor);
-        // give it focus
-        document._masterEditor.focus();
-        
+
+        if (MainViewManager.getActivePaneId() === pane.id) {
+            // give it focus
+            document._masterEditor.focus();
+        }
         if (createdNewEditor) {
             _restoreEditorViewState(document._masterEditor);
         }
