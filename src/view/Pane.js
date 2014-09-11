@@ -234,7 +234,6 @@ define(function (require, exports, module) {
         $(DocumentManager).on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
         $(DocumentManager).on(this._makeEventName("pathDeleted"), _.bind(this._handleFileDeleted, this));
         $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
-        $(MainViewManager).on(this._makeEventName("currentFileChange"), _.bind(this._updatePaneHeaderText, this));
     }
 
     /**
@@ -605,6 +604,8 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype._notifyCurrentViewChange = function (newView, oldView) {
+        this._updatePaneHeaderText();
+        
         $(this).triggerHandler("currentViewChange", [newView, oldView]);
     };
     
@@ -867,12 +868,9 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets pane content height. Updates the layout causing the current view to redraw itself
-     * @param {boolean} forceRefresh - true to force a resize and refresh of the current view,
-     * false if just to resize forceRefresh is only used by Editor views to force a relayout
-     * of all editor DOM elements. Custom View implementations should just ignore this flag.
+     * Sets pane content height.
      */
-    Pane.prototype.updateLayout = function (forceRefresh) {
+    Pane.prototype.updatePaneSize = function () {
         var paneContentHeight = this.$el.height(),
             $paneHeader;
         
@@ -882,7 +880,15 @@ define(function (require, exports, module) {
             paneContentHeight -= $paneHeader.outerHeight();
         }
         this.$content.height(paneContentHeight);
-        
+    };
+    
+    /**
+     * Sets pane content height. Updates the layout causing the current view to redraw itself
+     * @param {boolean} forceRefresh - true to force a resize and refresh of the current view,
+     * false if just to resize forceRefresh is only used by Editor views to force a relayout
+     * of all editor DOM elements. Custom View implementations should just ignore this flag.
+     */
+    Pane.prototype.updateLayout = function (forceRefresh) {
         if (this._currentView) {
             this._currentView.updateLayout(forceRefresh);
         }

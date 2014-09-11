@@ -926,12 +926,11 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Shows or hides the view header bar. If there's only 1 view, then it's hidden.
-     * For multiple views, it's shown.
-     * @return {boolean} true if layout needs to be recomputed
+     * Shows or hides the pane header bar and adjust pane content height.
+     * If there's only 1 pane, then header is hidden, otherwise it's shown.
      * @private
      */
-    function _updateViewHeaders() {
+    function _updatePaneHeaders() {
         var paneIdList = getPaneIdList();
 
         if (paneIdList.length === 1) {
@@ -939,6 +938,7 @@ define(function (require, exports, module) {
                 $paneHeader = pane.$el.find(".pane-header");
         
             $paneHeader.hide();
+            pane.updatePaneSize();
         } else {
             _.forEach(paneIdList, function (paneId) {
                 var pane = _getPane(paneId),
@@ -946,6 +946,7 @@ define(function (require, exports, module) {
                     $paneHeader = pane.$el.find(".pane-header");
 
                 $paneHeader.show();
+                pane.updatePaneSize();
             });
         }
     }
@@ -964,9 +965,9 @@ define(function (require, exports, module) {
             pane = new Pane(paneId, _$el);
             _panes[paneId] = pane;
             
-            _updateViewHeaders();
-            
             $(exports).triggerHandler("paneCreate", [pane.id]);
+            
+            _updatePaneHeaders();
             
             pane.$el.on("click.mainview dragover.mainview", function () {
                 setActivePaneId(pane.id);
@@ -1136,9 +1137,6 @@ define(function (require, exports, module) {
 
             secondPane.destroy();
             delete _panes[SECOND_PANE];
-            
-            _updateViewHeaders();
-            
             $(exports).triggerHandler("paneDestroy", secondPane.id);
             $(exports).triggerHandler("workingSetAddList", [fileList, firstPane.id]);
 
@@ -1149,8 +1147,10 @@ define(function (require, exports, module) {
             });
             
             _orientation = null;
+            _updatePaneHeaders();
             _updateLayout();
             _updateCommandState();
+            
             $(exports).triggerHandler("paneLayoutChange", [_orientation]);
 
             // if the current view before the merger was in the pane
@@ -1328,6 +1328,7 @@ define(function (require, exports, module) {
         
             AsyncUtils.waitForAll(promises).then(function () {
                 setActivePaneId(state.activePaneId);
+                _updatePaneHeaders();
                 _updateLayout();
                 _updateCommandState();
                 if (_orientation) {
@@ -1457,6 +1458,15 @@ define(function (require, exports, module) {
     }
     
     /** 
+     * Handle main window resize
+     */
+    function handlePaneResize() {
+        _.forEach(getPaneIdList(), function (paneId) {
+            _getPane(paneId).updatePaneSize();
+        });
+    }
+    
+    /** 
      * Add an app ready callback to register global commands. 
      */
     AppInit.appReady(function () {
@@ -1484,6 +1494,10 @@ define(function (require, exports, module) {
     $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
     $(DocumentManager).on("pathDeleted",                      _removeDeletedFileFromMRU);
     
+    /* Add this as a capture handler so we're guaranteed to run it before the editor does its own
+     * refresh on resize.
+     */
+    window.addEventListener("resize", handlePaneResize, true);
     
     // Init 
     
