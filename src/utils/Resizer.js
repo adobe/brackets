@@ -167,7 +167,7 @@ define(function (require, exports, module) {
      *                          the resizable element's size (useful for siblings laid out to the right of
      *                          the element). Must lie in element's parent's subtree.
      * @param {?boolean} createdByWorkspaceManager For internal use only
-     * @param {?boolean} usePercentagles Maintain the size of the element as a percentage of its parent
+     * @param {?boolean} usePercentages Maintain the size of the element as a percentage of its parent
      *                          the default is to maintain the size of the element in pixels
      */
     function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByWorkspaceManager, usePercentages) {
