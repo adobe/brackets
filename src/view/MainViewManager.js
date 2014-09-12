@@ -924,8 +924,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _updateLayout(event, viewAreaHeight, forceRefresh) {
-        var panes = Object.keys(_panes),
-            available;
+        var available;
         
         if (_orientation === VERTICAL) {
             available = _$el.innerWidth();
