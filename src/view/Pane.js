@@ -992,7 +992,7 @@ define(function (require, exports, module) {
      */
     Pane.prototype.removeView = function (file, suppressOpenNextFile) {
         var nextFile = !suppressOpenNextFile && this.traverseViewListByMRU(1, file.fullPath);
-        if (nextFile && nextFile.fullPath !== file.fullPath && this.getCurrentlyViewedFile() === file) {
+        if (nextFile && nextFile.fullPath !== file.fullPath && this.getCurrentlyViewedPath() === file.fullPath) {
             var self = this,
                 fullPath = nextFile.fullPath,
                 needOpenNextFile = this.findInViewList(fullPath) !== -1;
