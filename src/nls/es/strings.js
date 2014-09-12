@@ -83,7 +83,7 @@ define({
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Error indexando archivos",
-    "ERROR_MAX_FILES"                   : "Este proyecto contiene más de 30.000 archivos. Funciones que operan sobre múltiples archivos pueden estar deshabilitadas o funcionar igual que si el proyecto estuviese vacío. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Leer más acerca de cómo trabajar con  proyectos grandes</a>.",
+    "ERROR_MAX_FILES"                   : "Este proyecto contiene más de 30.000 archivos. Funciones que operan sobre múltiples archivos pueden estar deshabilitadas o funcionar igual que si el proyecto estuviese vacío. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Leer más acerca de cómo trabajar con proyectos grandes</a>.",
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error iniciando el navegador",
@@ -133,7 +133,7 @@ define({
     "DELETE"                            : "Eliminar",
     "SAVE_AS"                           : "Guardar como\u2026",
     "SAVE_AND_OVERWRITE"                : "Sobrescribir",
-    "BUTTON_YES"                        : "Sí",
+    "BUTTON_YES"                        : "Sí",gr
     "BUTTON_NO"                         : "No",
     
     // Find, Replace, Find in Files
