@@ -50,8 +50,7 @@ define(function (require, exports, module) {
     
     // These vars are initialized by the AppInit.htmlReady handler
     // below since they refer to DOM elements
-    var $editorContainer,
-        $statusInfo,
+    var $statusInfo,
         $statusBar,
         $indicators,
         $busyIndicator;
