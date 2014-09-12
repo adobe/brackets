@@ -183,6 +183,7 @@ define(function (require, exports, module) {
         // Setup the container and the element we're inserting
         var self = this,
             $el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id),
+            $header  = $el.find(".pane-header"),
             $content = $el.find(".pane-content");
         
         $el.on("focusin.pane", function (e) {
@@ -210,6 +211,15 @@ define(function (require, exports, module) {
             }
         });
 
+        Object.defineProperty(this,  "$header", {
+            get: function () {
+                return $header;
+            },
+            set: function () {
+                console.error("cannot change the DOM node of a working pane");
+            }
+        });
+
         Object.defineProperty(this,  "$content", {
             get: function () {
                 return $content;
@@ -228,7 +238,7 @@ define(function (require, exports, module) {
             }
         });
 
-        this._updatePaneHeaderText();
+        this._updateHeaderText();
 
         // Listen to document events so we can update ourself
         $(DocumentManager).on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
@@ -256,6 +266,13 @@ define(function (require, exports, module) {
      * @type {JQuery}
      */
     Pane.prototype.$el = null;
+  
+    /**
+     * the wrapped DOM node that contains name of current view, or informational string if there is no view
+     * @readonly
+     * @type {JQuery}
+     */
+    Pane.prototype.$header = null;
   
     /**
      * the wrapped DOM node that contains views
@@ -604,7 +621,7 @@ define(function (require, exports, module) {
     };
     
     Pane.prototype._notifyCurrentViewChange = function (newView, oldView) {
-        this._updatePaneHeaderText();
+        this._updateHeaderText();
         
         $(this).triggerHandler("currentViewChange", [newView, oldView]);
     };
@@ -714,14 +731,12 @@ define(function (require, exports, module) {
      * Updates text in pane header
      * @private
      */
-    Pane.prototype._updatePaneHeaderText = function () {
-        var file = this.getCurrentlyViewedFile(),
-            $paneHeader = this.$el.find(".pane-header");
-
+    Pane.prototype._updateHeaderText = function () {
+        var file = this.getCurrentlyViewedFile();
         if (file) {
-            $paneHeader.text(file.name);
+            this.$header.text(file.name);
         } else {
-            $paneHeader.html(Strings.EMPTY_VIEW_HEADER);
+            this.$header.html(Strings.EMPTY_VIEW_HEADER);
         }
     };
     
@@ -748,7 +763,7 @@ define(function (require, exports, module) {
             delete this._views[oldname];
         }
         
-        this._updatePaneHeaderText();
+        this._updateHeaderText();
         
         // dispatch the change event
         if (dispatchEvent) {
@@ -868,18 +883,17 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets pane content height.
+     * Update header and content height
      */
-    Pane.prototype.updateHeader = function () {
-        var paneContentHeight = this.$el.height(),
-            $paneHeader = this.$el.find(".pane-header");
+    Pane.prototype._updateHeaderHeight = function () {
+        var paneContentHeight = this.$el.height();
         
         // Adjust pane content height for header
         if (MainViewManager.getPaneCount() > 1) {
-            $paneHeader.show();
-            paneContentHeight -= $paneHeader.outerHeight();
+            this.$header.show();
+            paneContentHeight -= this.$header.outerHeight();
         } else {
-            $paneHeader.hide();
+            this.$header.hide();
         }
         
         this.$content.height(paneContentHeight);
@@ -892,7 +906,7 @@ define(function (require, exports, module) {
      * of all editor DOM elements. Custom View implementations should just ignore this flag.
      */
     Pane.prototype.updateLayout = function (forceRefresh) {
-        this.updateHeader();
+        this._updateHeaderHeight();
         if (this._currentView) {
             this._currentView.updateLayout(forceRefresh);
         }
