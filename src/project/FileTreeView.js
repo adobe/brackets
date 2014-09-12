@@ -138,7 +138,7 @@ define(function (require, exports, module) {
             measuringElement.text("pW" + this.props.name);
             var width = measuringElement.width();
             measuringElement.remove();
-            
+
             return DOM.input({
                 className: "jstree-rename-input",
                 type: "text",
@@ -286,7 +286,7 @@ define(function (require, exports, module) {
                 ViewUtils.scrollElementIntoView($("#project-files-container"), $(this.getDOMNode()), true);
             }
         },
-        
+
         /**
          * When the user clicks on the node, we'll either select it or, if they've clicked twice
          * with a bit of delay in between, we'll invoke the `startRename` action.
@@ -496,9 +496,12 @@ define(function (require, exports, module) {
         handleClick: function (event) {
             var setOpen = this.props.entry.get("open") ? false : true;
             if (event.altKey) {
-                this.props.actions.toggleSubdirectories(this.myPath(), setOpen);
+                if (setOpen) {
+                    this.props.actions.openSubdirectories(this.myPath());
+                } else {
+                    this.props.actions.closeSubdirectories(this.myPath());
+                }
             } else {
-                var setOpen = this.props.entry.get("open") ? false : true;
                 this.props.actions.setDirectoryOpen(this.myPath(), setOpen);
             }
             return false;

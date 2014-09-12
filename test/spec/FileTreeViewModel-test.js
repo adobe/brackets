@@ -102,7 +102,7 @@ define(function (require, exports, module) {
                 expect(isFilePathVisible("DOESNOTEXIST")).toBe(null);
                 expect(isFilePathVisible("")).toBe(true);
             });
-            
+
             it("can return whether a given path is loaded (in the tree)", function () {
                 var vm = new FileTreeViewModel.FileTreeViewModel();
                 vm._treeData = treeData;
@@ -453,6 +453,62 @@ define(function (require, exports, module) {
         });
 
 
+        describe("getChildNodes", function () {
+            var vm;
+
+            beforeEach(function () {
+                vm = new FileTreeViewModel.FileTreeViewModel();
+            });
+
+            it("should return an empty list when there are no open nodes", function () {
+                vm._treeData = Immutable.fromJS({
+                    file: {},
+                    subdir: {
+                        children: null
+                    }
+                });
+                expect(vm.getChildDirectories("/foo/bar/")).toEqual([]);
+            });
+
+            it("should return all child directories", function () {
+                vm._treeData = Immutable.fromJS({
+                    root: {
+                        children: {
+                            subdir1: {
+                                open: true,
+                                children: {
+                                    subsubdir: {
+                                        children: {},
+                                        open: true
+                                    }
+                                }
+                            },
+                            subdir2: {
+                                children: {}
+                            },
+                            subdir3: {
+                                open: true,
+                                children: null
+                            },
+                            subdir4: {
+                                open: true,
+                                children: {}
+                            },
+                            filea: {},
+                            fileb: {}
+                        }
+                    }
+                });
+
+                expect(vm.getChildDirectories("/root/")).toEqual([
+                    "subdir1/",
+                    "subdir2/",
+                    "subdir3/",
+                    "subdir4/"
+                ]);
+            });
+        });
+
         describe("moveMarker", function () {
             var vm = new FileTreeViewModel.FileTreeViewModel(),
                 changesFired;
@@ -500,7 +556,7 @@ define(function (require, exports, module) {
                 vm.moveMarker("selected", null, "");
                 expect(vm._treeData.get("selected")).toBeUndefined();
             });
-            
+
             it("should do nothing if the marker is moving to the same location", function () {
                 vm.moveMarker("selected", null, "subdir1/afile.js");
                 changesFired = 0;
@@ -509,7 +565,7 @@ define(function (require, exports, module) {
                 expect(changesFired).toBe(0);
                 expect(vm._treeData).toBe(originalTreeData);
             });
-            
+
             it("should make sure that the marker is actually present at the new location", function () {
                 vm.moveMarker("selected", "subdir1/afile.js", "subdir1/afile.js");
                 expect(changesFired).toBe(1);

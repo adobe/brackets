@@ -46,9 +46,6 @@ define(function (require, exports, module) {
 
     require("utils/Global");
 
-    // Load dependent non-module scripts
-    require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
-
     var _ = require("thirdparty/lodash");
 
     // Load dependent modules
@@ -327,10 +324,17 @@ define(function (require, exports, module) {
     };
 
     /**
-     * See `ProjectModel.toggleSubdirectories`
+     * See `ProjectModel.openSubdirectories`
      */
-    ActionCreator.prototype.toggleSubdirectories = function (path, open) {
-        this.model.toggleSubdirectories(path, open);
+    ActionCreator.prototype.openSubdirectories = function (path) {
+        this.model.openSubdirectories(path);
+    };
+
+    /**
+     * See `ProjectModel.closeSubdirectories`
+     */
+    ActionCreator.prototype.closeSubdirectories = function (path) {
+        this.model.closeSubdirectories(path);
     };
 
     /**
@@ -341,6 +345,9 @@ define(function (require, exports, module) {
     };
 
     /**
+     * @private
+     * @type {ActionCreator}
+     *
      * Singleton actionCreator that is used for dispatching changes to the ProjectModel.
      */
     var actionCreator = new ActionCreator(model);
@@ -396,7 +403,7 @@ define(function (require, exports, module) {
      * @param {File} curFile Currently viewed file.
      */
     function _currentFileChange(e, curFile) {
-        actionCreator.setCurrentFile(curFile.fullPath);
+        actionCreator.setCurrentFile(curFile);
     }
 
     /**
@@ -841,6 +848,28 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     * @type {?jQuery.Promise} Resolves when the currently running instance of
+     *      _refreshFileTreeInternal completes, or null if there is no currently
+     *      running instance.
+     */
+    var _refreshFileTreePromise = null;
+
+    /**
+     * @type {boolean} If refreshFileTree is called before _refreshFileTreePromise
+     *      has resolved then _refreshPending is set, which indicates that
+     *      refreshFileTree should be called again once the promise resolves.
+     */
+    var _refreshPending = false;
+
+    /**
+     * @const
+     * @private
+     * @type {number} Minimum delay in milliseconds between calls to refreshFileTree
+     */
+    var _refreshDelay = 1000;
+
+    /**
      * Refresh the project's file tree, maintaining the current selection.
      *
      * @return {$.Promise} A promise object that will be resolved when the
@@ -849,7 +878,30 @@ define(function (require, exports, module) {
      *  the promise is still resolved.
      */
     function refreshFileTree() {
-        return model.refresh();
+        if (!_refreshFileTreePromise) {
+            var internalRefreshPromise  = model.refresh(),
+                deferred                = new $.Deferred();
+
+            _refreshFileTreePromise = deferred.promise();
+
+            _refreshFileTreePromise.always(function () {
+                _refreshFileTreePromise = null;
+
+                if (_refreshPending) {
+                    _refreshPending = false;
+                    refreshFileTree();
+                }
+            });
+
+            // Wait at least one second before resolving the promise
+            window.setTimeout(function () {
+                internalRefreshPromise.then(deferred.resolve, deferred.reject);
+            }, _refreshDelay);
+        } else {
+            _refreshPending = true;
+        }
+
+        return _refreshFileTreePromise;
     }
 
     /**
@@ -860,11 +912,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} Resolved when done; or rejected if not found
      */
     function showInTree(entry) {
-        var deferred = new $.Deferred();
-        model.setSelected(entry.fullPath);
-        // TODO we may need to do some work to ensure that this has actually been expanded
-        deferred.resolve();
-        return deferred.promise();
+        return model.showInTree(entry);
     }
 
 
@@ -1048,10 +1096,6 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
 
-        $("#open-files-container").on("contentChanged", function () {
-            _renderTree(); // redraw jstree when working set size changes
-        });
-
         $(".main-view").click(function (jqEvent) {
             if (jqEvent.target.className !== "rename-input") {
                 forceFinishRename();
@@ -1072,8 +1116,11 @@ define(function (require, exports, module) {
         });
 
         $projectTreeContainer.on("scroll", function () {
-            Menus.closeAll();
-            actionCreator.setContext(null);
+            // Close open menus on scroll and clear the context, but only if there's a menu open.
+            if ($(".dropdown.open").length > 0) {
+                Menus.closeAll();
+                actionCreator.setContext(null);
+            }
         });
 
         _renderTree();
@@ -1231,6 +1278,9 @@ define(function (require, exports, module) {
         _renderTree(true);
     }
 
+    // Private API helpful in testing
+    exports._actionCreator                 = actionCreator;
+
     // Define public API
     exports.getProjectRoot                = getProjectRoot;
     exports.getBaseUrl                    = getBaseUrl;
@@ -1253,7 +1303,6 @@ define(function (require, exports, module) {
     exports.refreshFileTree               = refreshFileTree;
     exports.getAllFiles                   = getAllFiles;
     exports.getLanguageFilter             = getLanguageFilter;
-    exports.actionCreator                 = actionCreator;
     exports.addIconProvider               = addIconProvider;
     exports.addClassesProvider            = addClassesProvider;
     exports.rerenderTree                  = rerenderTree;

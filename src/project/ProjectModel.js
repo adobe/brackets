@@ -541,7 +541,7 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype.setDirectoryOpen = function (path, open) {
         var projectRelative = this.makeProjectRelativeIfPossible(path),
-            needsLoading    = this._viewModel.setDirectoryOpen(projectRelative, open),
+            needsLoading    = !this._viewModel.isPathLoaded(projectRelative),
             d               = new $.Deferred(),
             self            = this;
 
@@ -551,24 +551,33 @@ define(function (require, exports, module) {
                 self._viewModel.setDirectoryContents(projectRelative, contents);
             }
 
-            if (!open) {
-                self.setSelected(path, true);
-            } else if (open && self._focused) {
-                var currentPathInProject = self.makeProjectRelativeIfPossible(self._currentPath);
-                if (self._viewModel.isFilePathVisible(currentPathInProject)) {
-                    self.setSelected(self._currentPath, true);
+            if (open) {
+                self._viewModel.openPath(projectRelative);
+                if (self._focused) {
+                    var currentPathInProject = self.makeProjectRelativeIfPossible(self._currentPath);
+                    if (self._viewModel.isFilePathVisible(currentPathInProject)) {
+                        self.setSelected(self._currentPath, true);
+                    } else {
+                        self.setSelected(null);
+                    }
                 }
+            } else {
+                self._viewModel.setDirectoryOpen(projectRelative, false);
+                self.setSelected(null);
             }
-
-            $(self).trigger(EVENT_SHOULD_FOCUS);
 
             d.resolve();
         }
 
         // If the view model doesn't have the data it needs, we load it now, otherwise we can just
         // manage the selection and resovle the promise.
-        if (needsLoading) {
-            this._getDirectoryContents(path).then(onSuccess).fail(function (err) {
+        if (open && needsLoading) {
+            var parentDirectory = FileUtils.getDirectoryPath(FileUtils.stripTrailingSlash(path));
+            this.setDirectoryOpen(parentDirectory, true).then(function () {
+                self._getDirectoryContents(path).then(onSuccess).fail(function (err) {
+                    d.reject(err);
+                });
+            }, function (err) {
                 d.reject(err);
             });
         } else {
@@ -579,33 +588,73 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Shows the given path in the tree and selects it if it's a file. Any intermediate directories
+     * will be opened and a promise is returned to show when the entire operation is complete.
+     *
+     * @param {string|File|Directory} path full path to the file or directory
+     * @return {jQuery.Promise} promise resolved when the path is shown
+     */
+    ProjectModel.prototype.showInTree = function (path) {
+        var d = new $.Deferred();
+        path = _getPathFromFSObject(path);
+
+        var projectRelative = this.makeProjectRelativeIfPossible(path);
+
+        // Not in project?
+        if (projectRelative[0] === "/") {
+            d.resolve();
+        } else {
+            var parentDirectory = FileUtils.getDirectoryPath(path),
+                self = this;
+            this.setDirectoryOpen(parentDirectory, true).then(function () {
+                if (_pathIsFile(path) && self._focused) {
+                    self.setSelected(path);
+                }
+                d.resolve();
+            }, function (err) {
+                d.reject(err);
+            });
+        }
+        return d.promise();
+    };
+
+    /**
      * Selects the given path in the file tree and opens the file (unless doNotOpen is specified).
+     * Directories will not be selected.
      *
      * When the selection changes, any rename operation that is currently underway will be completed.
      *
-     * @param {string} path full path to the file or directory being selected
+     * @param {string} path full path to the file being selected
      * @param {boolean} doNotOpen `true` if the file should not be opened.
      */
     ProjectModel.prototype.setSelected = function (path, doNotOpen) {
         path = _getPathFromFSObject(path);
-        this.performRename();
-        var oldProjectPath = this.makeProjectRelativeIfPossible(this._selections.selected),
-            pathInProject = this.makeProjectRelativeIfPossible(path),
-            newPathIsVisible = this._viewModel.isFilePathVisible(pathInProject),
-            pathToSelectInTree = newPathIsVisible ? pathInProject : null;
 
-        this._viewModel.moveMarker("selected", oldProjectPath, pathToSelectInTree);
+        // Directories are not selectable
+        if (!_pathIsFile(path)) {
+            return;
+        }
+
+        this.performRename();
+
+        var oldProjectPath = this.makeProjectRelativeIfPossible(this._selections.selected),
+            pathInProject = this.makeProjectRelativeIfPossible(path);
+
+        this._viewModel.moveMarker("selected", oldProjectPath, pathInProject);
         if (this._selections.context) {
             this._viewModel.moveMarker("context", this.makeProjectRelativeIfPossible(this._selections.context), null);
+            delete this._selections.context;
         }
-        this._selections = {
-            selected: path
-        };
+        this._selections.selected = path;
 
-        if (!doNotOpen && path && _.last(path) !== "/") {
-            $(this).trigger(EVENT_SHOULD_SELECT, {
-                path: path
-            });
+        if (path && _pathIsFile(path)) {
+            $(this).trigger(EVENT_SHOULD_FOCUS);
+
+            if (!doNotOpen) {
+                $(this).trigger(EVENT_SHOULD_SELECT, {
+                    path: path
+                });
+            }
         }
     };
 
@@ -778,17 +827,19 @@ define(function (require, exports, module) {
 
         if (oldName === newName) {
             result.resolve();
+        } else if (!isValidFilename(FileUtils.getBaseName(newName), _invalidChars)) {
+            result.reject(ERROR_INVALID_FILENAME);
             return result.promise();
+        } else {
+            var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
+            entry.rename(newName, function (err) {
+                if (err) {
+                    result.reject(err);
+                } else {
+                    result.resolve();
+                }
+            });
         }
-
-        var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
-        entry.rename(newName, function (err) {
-            if (err) {
-                result.reject(err);
-            } else {
-                result.resolve();
-            }
-        });
 
         return result.promise();
     }
@@ -869,7 +920,7 @@ define(function (require, exports, module) {
      * @return {jQuery.Promise} resolved when creation is complete
      */
     ProjectModel.prototype.createAtPath = function (path) {
-        var isFolder  = _.last(path) === "/",
+        var isFolder  = !_pathIsFile(path),
             name      = FileUtils.getBaseName(path),
             self      = this;
 
@@ -944,6 +995,10 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype.getOpenNodes = function () {
         return this._viewModel.getOpenNodes(this.projectRoot.fullPath);
+    };
+
+    ProjectModel.prototype.getChildDirectories = function (parentNode, openOrClose) {
+        return this._viewModel.getChildDirectories(parentNode, openOrClose);
     };
 
     /**
@@ -1058,11 +1113,31 @@ define(function (require, exports, module) {
     /**
      * Toggle the open state of subdirectories.
      * @param {!string} path parent directory
-     * @param {boolean} open true to open all subdirectories, false to close
-
      */
-    ProjectModel.prototype.toggleSubdirectories = function (path, open) {
-        this._viewModel.toggleSubdirectories(path, open);
+    ProjectModel.prototype.openSubdirectories = function (path) {
+        var self = this;
+
+        this.setDirectoryOpen(path, true).then(function () {
+            var projectRelativePath = self.makeProjectRelativeIfPossible(path),
+                childNodes = self.getChildDirectories(projectRelativePath);
+
+            childNodes.forEach(function (node) {
+                self.setDirectoryOpen(path + node, true);
+            });
+        });
+    };
+
+    ProjectModel.prototype.closeSubdirectories = function (path) {
+        var self = this;
+
+        this.setDirectoryOpen(path, false).then(function () {
+            var projectRelativePath = self.makeProjectRelativeIfPossible(path),
+                childNodes = self.getChildDirectories(projectRelativePath);
+
+            childNodes.forEach(function (node) {
+                self.setDirectoryOpen(path + node, false);
+            });
+        });
     };
 
     /**
