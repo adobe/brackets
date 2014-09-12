@@ -261,10 +261,10 @@ define(function (require, exports, module) {
         }
         
         if (!current) {
-            StatusBar.hideAllPanels();
+            StatusBar.hideAllPanes();
         } else {
             var fullPath = current.document.file.fullPath;
-            StatusBar.showAllPanels();
+            StatusBar.showAllPanes();
             
             $(current).on("cursorActivity.statusbar", _updateCursorInfo);
             $(current).on("optionChange.statusbar", function () {

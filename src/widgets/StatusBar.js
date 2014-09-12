@@ -207,7 +207,7 @@ define(function (require, exports, module) {
     /**
      * Hides all panels but not the status bar
      */
-    function hideAllPanels() {
+    function hideAllPanes() {
         hideInformation();
         hideIndicators();
     }
@@ -215,7 +215,7 @@ define(function (require, exports, module) {
     /**
      * Shows all panels (will not show a hidden statusbar)
      */
-    function showAllPanels() {
+    function showAllPanes() {
         showInformation();
         showIndicators();
     }
@@ -273,8 +273,8 @@ define(function (require, exports, module) {
     exports.hideBusyIndicator = hideBusyIndicator;
     exports.hideIndicators    = hideIndicators;
     exports.showIndicators    = showIndicators;
-    exports.hideAllPanels     = hideAllPanels;
-    exports.showAllPanels     = showAllPanels;
+    exports.hideAllPanes      = hideAllPanes;
+    exports.showAllPanes      = showAllPanes;
     exports.addIndicator      = addIndicator;
     exports.updateIndicator   = updateIndicator;
     exports.hide              = hide;
