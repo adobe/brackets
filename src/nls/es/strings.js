@@ -133,7 +133,7 @@ define({
     "DELETE"                            : "Eliminar",
     "SAVE_AS"                           : "Guardar como\u2026",
     "SAVE_AND_OVERWRITE"                : "Sobrescribir",
-    "BUTTON_YES"                        : "Sí",gr
+    "BUTTON_YES"                        : "Sí",
     "BUTTON_NO"                         : "No",
     
     // Find, Replace, Find in Files
@@ -469,7 +469,7 @@ define({
     "DOWNLOAD_ID_IN_USE"                   : "Error interno: el ID de descarga ya está siendo utilizado.",
     "NO_SERVER_RESPONSE"                   : "No se puede conectar con el servidor.",
     "BAD_HTTP_STATUS"                      : "Archivo no encontrado en el servidor (HTTP {0}).",
-    "CANNOT_WRITE_TEMP"                    : "No se pudo guardar la descarga en un archivo temporero.",
+    "CANNOT_WRITE_TEMP"                    : "No se pudo guardar la descarga en un archivo temporal.",
     "ERROR_LOADING"                        : "La extensión ha encontrado un error al arrancar.",
     "MALFORMED_URL"                        : "La URL no es válida. Por favor, comprueba que la has escrito correctamente.",
     "UNSUPPORTED_PROTOCOL"                 : "La URL debe ser una dirección http o https.",
