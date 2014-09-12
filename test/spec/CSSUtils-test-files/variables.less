@@ -1,0 +1,43 @@
+// Variables
+@themes: "../../src/themes";
+
+// Usage
+@import "@{themes}/tidal-wave.less";@mySelector: banner;
+
+@fnord:  "I am fnord.";
+@var:    "fnord";
+content: @@var;
+
+.@{mySelector} {
+  font-weight: bold;
+}
+
+.after-variable-interpolated-selector {
+    color: green;
+}
+
+@property: color;
+
+.widget {
+  @{property}: #0ee;
+  background-@{property}: #999;
+}
+
+.after-variable-interpolated-property {
+    color: green;
+}
+
+// Variables
+@images: "../img";
+
+// Usage
+body {
+  color: #444;
+  background: url("@{images}/white-sand.png");
+}
+
+.after-variable-interpolated-url {
+    color: green;
+}
+
+
