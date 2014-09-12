@@ -388,9 +388,7 @@ define(function (require, exports, module) {
                 
                 WorkingSetView.addClassProvider(classProvider);
 
-                var master = ["three", "four"],
-                    classes = master.slice(0);
-
+                var master = ["three", "four"];
                 
                 WorkingSetView.refresh();
                 
