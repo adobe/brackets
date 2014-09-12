@@ -69,6 +69,7 @@ define(function (require, exports, module) {
     var AnimationUtils     = require("utils/AnimationUtils"),
         Async              = require("utils/Async"),
         CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
+        LanguageManager    = require("language/LanguageManager"),
         Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
         PopUpManager       = require("widgets/PopUpManager"),
@@ -176,6 +177,26 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Helper function to build preferences context based on the full path of
+     * the file.
+     *
+     * @param {string} fullPath Full path of the file
+     *
+     * @return {*} A context for the specified file name
+     */
+    function _buildContext(fullPath) {
+        if (!fullPath) {
+            return {};
+        } else {
+            return {
+                filename: fullPath,
+                language: fullPath ? LanguageManager.getLanguageForPath(fullPath).getId() : undefined
+            };
+        }
+            
+    }
+
+    /**
      * List of all current (non-destroy()ed) Editor instances. Needed when changing global preferences
      * that affect all editors, e.g. tabbing or color scheme settings.
      * @type {Array.<Editor>}
@@ -183,7 +204,7 @@ define(function (require, exports, module) {
     var _instances = [];
     
     /**
-     * Creates a new CodeMirror editor instance bound to the given Document. The Document need not have
+     * Creates a new CodeMirror editor instance bound to the given Docuoment. The Document need not have
      * a "master" Editor realized yet, even if makeMasterEditor is false; in that case, the first time
      * an edit occurs we will automatically ask EditorManager to create a "master" editor to render the
      * Document modifiable.
@@ -1998,7 +2019,7 @@ define(function (require, exports, module) {
      *     the start and end.
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode.
-     * @see {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
+     * @see {@link LanguageManager.getLanguageForPath()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForRange = function (start, end, knownMixed) {
         var outerMode = this._codeMirror.getMode(),
@@ -2024,7 +2045,7 @@ define(function (require, exports, module) {
      *
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode.
-     * @see {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
+     * @see {@link LanguageManager.getLanguageForPath()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
@@ -2077,7 +2098,7 @@ define(function (require, exports, module) {
     /**
      * Gets the syntax-highlighting mode for the document.
      *
-     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
+     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link LanguageManager.getLanguageForPath()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForDocument = function () {
         return this._codeMirror.getOption("mode");
@@ -2150,7 +2171,7 @@ define(function (require, exports, module) {
      * @return {*} current value of that pref
      */
     Editor.prototype._getOption = function (prefName) {
-        return PreferencesManager.get(prefName, this.document.file.fullPath);
+        return PreferencesManager.get(prefName, { filename: this.document.file.fullPath, language: this.document.getLanguage().getId() });
     };
     
     /**
@@ -2238,7 +2259,7 @@ define(function (require, exports, module) {
     
     
     // Global settings that affect Editor instances that share the same preference locations
-
+    
     /**
      * Sets whether to use tab characters (vs. spaces) when inserting new text.
      * Affects any editors that share the same preference location.
@@ -2257,7 +2278,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     Editor.getUseTabChar = function (fullPath) {
-        return PreferencesManager.get(USE_TAB_CHAR, fullPath);
+        return PreferencesManager.get(USE_TAB_CHAR, _buildContext(fullPath));
     };
     
     /**
@@ -2278,7 +2299,7 @@ define(function (require, exports, module) {
      * @return {number}
      */
     Editor.getTabSize = function (fullPath) {
-        return PreferencesManager.get(TAB_SIZE, fullPath);
+        return PreferencesManager.get(TAB_SIZE, _buildContext(fullPath));
     };
     
     /**
@@ -2299,7 +2320,7 @@ define(function (require, exports, module) {
      * @return {number}
      */
     Editor.getSpaceUnits = function (fullPath) {
-        return PreferencesManager.get(SPACE_UNITS, fullPath);
+        return PreferencesManager.get(SPACE_UNITS, _buildContext(fullPath));
     };
     
     /**
@@ -2320,7 +2341,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     Editor.getCloseBrackets = function (fullPath) {
-        return PreferencesManager.get(CLOSE_BRACKETS, fullPath);
+        return PreferencesManager.get(CLOSE_BRACKETS, _buildContext(fullPath));
     };
     
     /**
@@ -2341,7 +2362,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     Editor.getShowLineNumbers = function (fullPath) {
-        return PreferencesManager.get(SHOW_LINE_NUMBERS, fullPath);
+        return PreferencesManager.get(SHOW_LINE_NUMBERS, _buildContext(fullPath));
     };
     
     /**
@@ -2361,7 +2382,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     Editor.getShowActiveLine = function (fullPath) {
-        return PreferencesManager.get(STYLE_ACTIVE_LINE, fullPath);
+        return PreferencesManager.get(STYLE_ACTIVE_LINE, _buildContext(fullPath));
     };
     
     /**
@@ -2382,7 +2403,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     Editor.getWordWrap = function (fullPath) {
-        return PreferencesManager.get(WORD_WRAP, fullPath);
+        return PreferencesManager.get(WORD_WRAP, _buildContext(fullPath));
     };
     
     /**
