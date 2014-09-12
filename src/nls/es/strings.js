@@ -593,4 +593,4 @@ define({
     "DOCS_MORE_LINK"                            : "Más"
 });
 
-/* Last translated for 8712385a6bf12277e6d0788d408e630a40c95a14 */
+/* Last translated for 6a04a7aa53769b1e7e0a0989f95bcafb92b5a11e */
