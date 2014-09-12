@@ -237,20 +237,15 @@ define(function (require, exports, module) {
             context.isCompatible = context.isCompatibleLatest = true;
         }
 
-        // Extension metadata might have localized content. If so, overlay (or concatenate) those strings, first
-        //   using any shortlang-specified values, and then the long language form.
+        // Check if extension metadata contains localized content.
         var lang            = brackets.getLocale(),
             shortLang       = lang.split("-")[0];
         [shortLang, lang].forEach(function (locale) {
             if (info.metadata.hasOwnProperty(locale)) {
-                _.forEach(info.metadata[locale], function (value, prop) {
-                    if (prop !== "keywords") {
-                        // overlay existing string w/ localized string
-                        info.metadata[prop] = value;
-                    } else {
-                        // for keywords, add the localized keywords to the root language keywords
-                        var keywords = info.metadata[prop].concat(value);
-                        info.metadata[prop] = _.uniq(keywords);
+                // only overlay specific properties with the localized values
+                ['title', 'description', 'homepage', 'keywords'].forEach(function (prop) {
+                    if (info.metadata[locale].hasOwnProperty(prop)) {
+                        info.metadata[prop] = info.metadata[locale][prop];
                     }
                 });
             }
