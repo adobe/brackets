@@ -177,8 +177,8 @@ define(function (require, exports, module) {
      * @param {?File} file - current file (can be null)
      */
     function _handlecurrentFileChange(e, file) {
-        var doc = file ? DocumentManager.getOpenDocumentForPath(file.fullPath) : null;
-        _notifyActiveEditorChanged(doc ? doc._masterEditor : null);
+        var doc = file && DocumentManager.getOpenDocumentForPath(file.fullPath);
+        _notifyActiveEditorChanged(doc && doc._masterEditor);
     }
     
     /**
@@ -209,7 +209,7 @@ define(function (require, exports, module) {
         return editor;
     }
     
- /**
+    /**
      * @private
      * Finds an inline widget provider from the given list that can offer a widget for the current cursor
      * position, and once the widget has been created inserts it into the editor.
@@ -553,9 +553,10 @@ define(function (require, exports, module) {
 
         // show the view
         pane.showView(document._masterEditor);
+
         // give it focus
         document._masterEditor.focus();
-        
+
         if (createdNewEditor) {
             _restoreEditorViewState(document._masterEditor);
         }

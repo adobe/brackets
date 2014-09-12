@@ -720,7 +720,7 @@ define(function (require, exports, module) {
      * Event handler when a file is deleted
      * @private
      * @param {!JQuery.Event} e - jQuery event object
-     * @return {@return {} fullPath - path of the file that was deleted
+     * @param {!string} fullPath - path of the file that was deleted
      */
     Pane.prototype._handleFileDeleted = function (e, fullPath) {
         if (this.removeView({fullPath: fullPath})) {
@@ -933,7 +933,7 @@ define(function (require, exports, module) {
      */
     Pane.prototype.removeView = function (file, suppressOpenNextFile) {
         var nextFile = !suppressOpenNextFile && this.traverseViewListByMRU(1, file.fullPath);
-        if (nextFile && nextFile.fullPath !== file.fullPath && this.getCurrentlyViewedFile() === file) {
+        if (nextFile && nextFile.fullPath !== file.fullPath && this.getCurrentlyViewedPath() === file.fullPath) {
             var self = this,
                 fullPath = nextFile.fullPath,
                 needOpenNextFile = this.findInViewList(fullPath) !== -1;
@@ -980,6 +980,12 @@ define(function (require, exports, module) {
      * Gives focus to the last thing that had focus, the current view or the pane in that order
      */
     Pane.prototype.focus = function () {
+        // Blur the currently focused element which will move focus to the BODY tag
+        //  If the element we want to focus below cannot receive the input focus such as an ImageView
+        //  This will remove focus from the current view which is important if the current view is 
+        //  a codemirror view. 
+        document.activeElement.blur();
+        
         if (this._lastFocusedElement && $(this._lastFocusedElement).is(":visible")) {
             $(this._lastFocusedElement).focus();
         } else if (this._currentView) {
@@ -1001,13 +1007,17 @@ define(function (require, exports, module) {
     
     
     /**
-     * serializes the pane state
+     * serializes the pane state from JSON
      * @param {!Object} state - the state to load 
+     * @return {jQuery.Promise} A promise which resolves to 
+     *              {fullPath:string, paneId:string} 
+     *              which can be passed as command data to FILE_OPEN
      */
     Pane.prototype.loadState = function (state) {
         var filesToAdd = [],
             viewStates = {},
             activeFile,
+            data,
             self = this;
         
         var getInitialViewFilePath = function () {
@@ -1029,16 +1039,16 @@ define(function (require, exports, module) {
         ViewStateManager.addViewStates(viewStates);
         
         activeFile = activeFile || getInitialViewFilePath();
-        
+       
         if (activeFile) {
-            return this._execOpenFile(activeFile);
+            data = {paneId: self.id, fullPath: activeFile};
         }
         
-        return new $.Deferred().resolve();
+        return new $.Deferred().resolve(data);
     };
     
     /**
-     * serializes the pane state
+     * Returns the JSON-ified state of the object so it can be serialize
      * @return {!Object} state - the state to save 
      */
     Pane.prototype.saveState = function () {
