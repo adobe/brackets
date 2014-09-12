@@ -1,0 +1,165 @@
+@charset "utf-8";
+/* CSS Document */
+
+article, aside, figure, footer, header, nav, section {
+	display: block;
+	margin: 0;
+	padding: 0;
+}
+body {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	color: #000;
+	background-color: #66B034;
+	margin: 0px;
+	padding: 0px;
+}
+#container {
+	width: 840px;
+	margin-top: 0px;
+	margin-right: auto;
+	margin-bottom: 0px;
+	margin-left: auto;
+}
+#logo {
+	background-image: url(../images/lrg_logo.png);
+	background-repeat: no-repeat;
+	height: 138px;
+	width: 100%;
+}
+#logo h1, #logo h2 {
+	position: absolute;
+	top: -500px;
+}
+nav {
+	padding-top: 150px;
+}
+#maincontent {
+	margin-top: 80px;
+	padding-top: 10px;
+	padding-right: 0px;
+	padding-bottom: 10px;
+	padding-left: 0px;
+}
+ul {
+	padding:0;
+	margin:0;
+}
+nav ul {
+	list-style: none;
+	margin-bottom: 15px;
+	font-weight: bold;
+	font-size:20px;
+}
+nav ul li {
+	float: left;
+}
+nav ul a {
+	display: block;
+	width:140px;
+	padding: 10px;
+	text-align:center;
+	text-decoration: none;
+	color: #fff;
+	border: 1px solid #618A37;
+	margin: 5px 0px;
+	border-radius: 8px;
+	-moz-box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+	-webkit-box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+	box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+	text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+}
+nav ul a:link, nav ul a:visited {
+	background: rgba(255,255,255,0.2);
+}
+nav ul a:hover, nav ul a:active, nav ul a:focus {
+	background: rgba(255,255,255,0.4);
+}
+nav ul li:hover {
+	margin-top:-10px;
+}
+nav ul li {
+	float: left;
+	-webkit-transition-duration:.5s;
+	-webkit-transition-property:margin-top;
+	-webkit-transition-timing-function:ease-in-out;
+	-o-transition-duration:.5s;
+	-o-transition-property:margin-top;
+	-o-transition-timing-function:ease-in-out;
+	-moz-transition-duration:.5s;
+	-moz-transition-property:margin-top;
+	-moz-transition-timing-function:ease-in-out;
+	transition-duration:.5s;
+	transition-property:margin-top;
+	transition-timing-function:ease-in-out;
+}
+#vision {
+	font-family:"Palatino Linotype", "Book Antiqua", Palatino, serif;
+	font-size:32px;
+	font-weight:bold;
+	line-height:1.2;
+	background-image:url(../images/lrg_hero.jpg);
+	background-repeat:no-repeat;
+	width: 409px;
+	height:237px;
+	padding:60px 370px 0 40px;
+	margin-bottom:20px;
+}
+.pod {
+	background: #fff;
+	padding: 10px;
+	width: 244px;
+	float:left;
+	margin-right: 13px;
+}
+.podContent {
+	margin-top:10px;
+	width: 244px;
+	height:181px;
+	overflow:hidden;
+}
+#news .podContent {
+	margin-top:12px;
+	overflow:auto;
+}
+#news .podContent p {
+	margin-top: 5px;
+	margin-bottom: 5px;
+	margin-left:6px;
+	font-size:15px;
+}
+.pod h1 {
+	background: #CCC;
+	color: #000;
+	padding:5px;
+	background-image:url(../images/icon_chevron.png);
+	background-repeat:no-repeat;
+	background-position:95%;
+	font-size:16px;
+	font-weight:normal;
+	margin: 0 0 10px 0;
+}
+a.block {
+	text-decoration:none;
+	display:block;
+}
+time {
+	font-weight:bold;
+	display:inline-block;
+	width:2.5em;
+}
+footer {
+	padding: 10px 0;
+	clear:both;
+	color: #fff;
+}
+footer p {
+	margin:0 0 5px 0;
+}
+#phone {
+	font-weight:bold;
+	color: #000;
+}
+#facebookTwitter {
+	float:right;
+	margin-right:25px;
+}

@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     
     var Async           = require("utils/Async"),
         DocumentManager = require("document/DocumentManager"),
+        MainViewManager = require("view/MainViewManager"),
         FileSystem      = require("filesystem/FileSystem"),
         FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
@@ -71,6 +72,21 @@ define(function (require, exports, module) {
         return replaceWith;
     }
     
+    /*
+     * Returns the string used to prepopulate the find bar
+     * @param {!Editor} editor
+     * @return {string} first line of primary selection to populate the find bar
+     */
+    function getInitialQueryFromSelection(editor) {
+        var selectionText = editor.getSelectedText();
+        if (selectionText) {
+            return selectionText
+                .replace(/^\n*/, "") // Trim possible newlines at the very beginning of the selection
+                .split("\n")[0];
+        }
+        return "";
+    }
+
     /**
      * Does a set of replacements in a single document in memory.
      * @param {!Document} doc The document to do the replacements in.
@@ -161,7 +177,7 @@ define(function (require, exports, module) {
         options = options || {};
         // If we're forcing files open, or if the document is in the working set but not actually open
         // yet, we want to open the file and do the replacement in memory.
-        if (!doc && (options.forceFilesOpen || DocumentManager.findInWorkingSet(fullPath) !== -1)) {
+        if (!doc && (options.forceFilesOpen || MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, fullPath) !== -1)) {
             return DocumentManager.getDocumentForPath(fullPath).then(function (newDoc) {
                 return _doReplaceInDocument(newDoc, matchInfo, replaceText, options.isRegexp);
             });
@@ -229,7 +245,7 @@ define(function (require, exports, module) {
                         var newDoc = DocumentManager.getOpenDocumentForPath(firstPath);
                         // newDoc might be null if the replacement failed.
                         if (newDoc) {
-                            DocumentManager.setCurrentDocument(newDoc);
+                            MainViewManager._edit(MainViewManager.ACTIVE_PANE, newDoc);
                         }
                     }
                 }
@@ -255,9 +271,10 @@ define(function (require, exports, module) {
         }
     }
 
-    exports.parseDollars        = parseDollars;
-    exports.hasCheckedMatches   = hasCheckedMatches;
-    exports.performReplacements = performReplacements;
-    exports.labelForScope       = labelForScope;
-    exports.ERROR_FILE_CHANGED  = "fileChanged";
+    exports.parseDollars                    = parseDollars;
+    exports.getInitialQueryFromSelection    = getInitialQueryFromSelection;
+    exports.hasCheckedMatches               = hasCheckedMatches;
+    exports.performReplacements             = performReplacements;
+    exports.labelForScope                   = labelForScope;
+    exports.ERROR_FILE_CHANGED              = "fileChanged";
 });

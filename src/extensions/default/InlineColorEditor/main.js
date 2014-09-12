@@ -111,7 +111,7 @@ define(function (require, exports, module) {
     
     
     // Initialize extension
-    ExtensionUtils.loadStyleSheet(module, "css/main.css");
+    ExtensionUtils.loadStyleSheet(module, "css/main.less");
     
     EditorManager.registerInlineEditProvider(inlineColorEditorProvider);
     

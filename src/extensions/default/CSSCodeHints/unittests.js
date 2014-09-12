@@ -414,7 +414,8 @@ define(function (require, exports, module) {
                                                    "text-decoration-color",
                                                    "text-emphasis-color",
                                                    "column-count",
-                                                   "column-rule-color"]);
+                                                   "column-rule-color",
+                                                   "background-blend-mode"]);
             });
             
             it("should NOT list prop-name hints between closed styletag and new opening styletag", function () {

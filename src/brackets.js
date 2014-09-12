@@ -37,7 +37,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Load dependent non-module scripts
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
@@ -53,12 +53,13 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/addon/edit/closetag");
     require("thirdparty/CodeMirror2/addon/scroll/scrollpastend");
     require("thirdparty/CodeMirror2/addon/selection/active-line");
+    require("thirdparty/CodeMirror2/addon/selection/mark-selection");
     require("thirdparty/CodeMirror2/addon/mode/multiplex");
     require("thirdparty/CodeMirror2/addon/mode/overlay");
     require("thirdparty/CodeMirror2/addon/search/match-highlighter");
     require("thirdparty/CodeMirror2/addon/search/searchcursor");
     require("thirdparty/CodeMirror2/keymap/sublime");
-    
+
     // Load dependent modules
     var Global                  = require("utils/Global"),
         AppInit                 = require("utils/AppInit"),
@@ -68,8 +69,8 @@ define(function (require, exports, module) {
         EditorManager           = require("editor/EditorManager"),
         CSSInlineEditor         = require("editor/CSSInlineEditor"),
         JSUtils                 = require("language/JSUtils"),
-        WorkingSetView          = require("project/WorkingSetView"),
-        WorkingSetSort          = require("project/WorkingSetSort"),
+        WorkingSetView        = require("project/WorkingSetView"),
+        WorkingSetSort        = require("project/WorkingSetSort"),
         DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
         FileViewController      = require("project/FileViewController"),
         FileSyncManager         = require("project/FileSyncManager"),
@@ -103,6 +104,8 @@ define(function (require, exports, module) {
         NativeApp               = require("utils/NativeApp"),
         DeprecationWarning      = require("utils/DeprecationWarning"),
         ViewCommandHandlers     = require("view/ViewCommandHandlers"),
+        ThemeManager            = require("view/ThemeManager"),
+        MainViewManager         = require("view/MainViewManager"),
         _                       = require("thirdparty/lodash");
     
     // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
@@ -116,7 +119,7 @@ define(function (require, exports, module) {
             return CodeMirror;
         }
     });
-    
+  
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
@@ -136,6 +139,9 @@ define(function (require, exports, module) {
     require("project/FileIndexManager");
     require("file/NativeFileSystem");
     require("file/NativeFileError");
+    
+    // Compatibility shim for PanelManager to WorkspaceManager migration
+    require("view/PanelManager");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
     
@@ -186,6 +192,8 @@ define(function (require, exports, module) {
             LanguageManager         : LanguageManager,
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
+            MainViewManager         : MainViewManager,
+            MainViewFactory         : require("view/MainViewFactory"),
             Menus                   : Menus,
             MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
             NativeApp               : NativeApp,
@@ -196,7 +204,6 @@ define(function (require, exports, module) {
             ScrollTrackMarkers      : require("search/ScrollTrackMarkers"),
             UpdateNotification      : require("utils/UpdateNotification"),
             WorkingSetView          : WorkingSetView,
-
             doneLoading             : false
         };
 
@@ -210,8 +217,6 @@ define(function (require, exports, module) {
      */
     function _onReady() {
         PerfUtils.addMeasurement("window.document Ready");
-
-        EditorManager.setEditorHolder($("#editor-holder"));
 
         // Let the user know Brackets doesn't run in a web browser yet
         if (brackets.inBrowser) {
@@ -246,6 +251,9 @@ define(function (require, exports, module) {
             
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
+               // Signal that extensions are loaded
+                AppInit._dispatchReady(AppInit.EXTENSIONS_LOADED);
+
                 // Finish UI initialization
                 ViewCommandHandlers.restoreFontSize();
                 var initialProjectPath = ProjectManager.getInitialProjectPath();
@@ -263,7 +271,7 @@ define(function (require, exports, module) {
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
                             FileSystem.resolve(initialProjectPath + "index.html", function (err, file) {
                                 if (!err) {
-                                    var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: file.fullPath });
+                                    var promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: file.fullPath });
                                     promise.then(deferred.resolve, deferred.reject);
                                 } else {
                                     deferred.reject();
@@ -407,7 +415,7 @@ define(function (require, exports, module) {
                     $target.is("input:not([type])") || // input with no type attribute defaults to text
                     $target.is("textarea") ||
                     $target.is("select");
-    
+
             if (!isFormElement) {
                 e.preventDefault();
             }
@@ -432,6 +440,16 @@ define(function (require, exports, module) {
                 node = node.parentElement;
             }
         }, true);
+        
+        // Prevent extensions from using window.open() to insecurely load untrusted web content
+        var real_windowOpen = window.open;
+        window.open = function (url) {
+            // Allow file:// URLs, relative URLs (implicitly file: also), and about:blank
+            if (!url.match(/^file:\/\//) && url !== "about:blank" && url.indexOf(":") !== -1) {
+                throw new Error("Brackets-shell is not a secure general purpose web browser. Use NativeApp.openURLInDefaultBrowser() to open URLs in the user's main browser");
+            }
+            return real_windowOpen.apply(window, arguments);
+        };
     }
     
     // Wait for view state to load.

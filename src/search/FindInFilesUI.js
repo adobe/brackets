@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         Dialogs           = require("widgets/Dialogs"),
         DefaultDialogs    = require("widgets/DefaultDialogs"),
         EditorManager     = require("editor/EditorManager"),
+        WorkspaceManager  = require("view/WorkspaceManager"),
         FileFilters       = require("search/FileFilters"),
         FileUtils         = require("file/FileUtils"),
         FindBar           = require("search/FindBar").FindBar,
@@ -117,7 +118,7 @@ define(function (require, exports, module) {
     function _showFindBar(scope, showReplace) {
         // If the scope is a file with a custom viewer, then we
         // don't show find in files dialog.
-        if (scope && EditorManager.getCustomViewerForPath(scope.fullPath)) {
+        if (scope && !EditorManager.canOpenPath(scope.fullPath)) {
             return;
         }
         
@@ -130,12 +131,14 @@ define(function (require, exports, module) {
         
         // Default to searching for the current selection
         var currentEditor = EditorManager.getActiveEditor(),
-            initialString = currentEditor && currentEditor.getSelectedText();
+            initialQuery  = "";
 
         if (_findBar && !_findBar.isClosed()) {
             // The modalBar was already up. When creating the new modalBar, copy the
             // current query instead of using the passed-in selected text.
-            initialString = _findBar.getQueryInfo().query;
+            initialQuery = _findBar.getQueryInfo().query;
+        } else if (currentEditor) {
+            initialQuery = FindUtils.getInitialQueryFromSelection(currentEditor);
         }
         
         FindInFiles.clearSearch();
@@ -149,7 +152,7 @@ define(function (require, exports, module) {
         _findBar = new FindBar({
             multifile: true,
             replace: showReplace,
-            initialQuery: initialString,
+            initialQuery: initialQuery,
             queryPlaceholder: Strings.FIND_QUERY_PLACEHOLDER,
             scopeLabel: FindUtils.labelForScope(scope)
         });
@@ -224,41 +227,36 @@ define(function (require, exports, module) {
             // is hidden when we set options.multifile.
             $(_findBar).on("doReplaceAll.FindInFiles", startReplace);
         }
-                
+        
+        var oldModalBarHeight = _findBar._modalBar.height();
+        
         // Show file-exclusion UI *unless* search scope is just a single file
         if (!scope || scope.isDirectory) {
-            var oldModalBarHeight = _findBar._modalBar.height(),
-                exclusionsContext = {
-                    label: FindUtils.labelForScope(scope),
-                    promise: candidateFilesPromise
-                };
+            var exclusionsContext = {
+                label: FindUtils.labelForScope(scope),
+                promise: candidateFilesPromise
+            };
 
             filterPicker = FileFilters.createFilterPicker(exclusionsContext);
             // TODO: include in FindBar? (and disable it when FindBar is disabled)
             _findBar._modalBar.getRoot().find(".scope-group").append(filterPicker);
-
-            // Appending FilterPicker can change height of modal bar, so resize editor.
-            // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
-            // height of the modal bar so the code doesn't appear to shift if possible.
-            //
-            // TODO: This is an isolated fix for #8242.
-            // 1. If we keep this code, then this is done in a couple places in ModalBar,
-            //    so this code should be a utility function
-            // 2. Another solution is to pass this info FindBar.open
-            // 3. Also could make exclusion part of dialog a fixed height
-            var fullEditor = EditorManager.getCurrentFullEditor(),
-                scrollPos;
-            if (fullEditor) {
-                scrollPos = fullEditor.getScrollPos();
-                scrollPos.y -= oldModalBarHeight;   // modalbar already showing, adjust for old height
-            }
-            EditorManager.resizeEditor();
-            if (fullEditor) {
-                fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + _findBar._modalBar.height());
-            }
         }
         
         handleQueryChange();
+        
+        // Appending FilterPicker and query text can change height of modal bar, so resize editor.
+        // Preserve scroll position of the current full editor across the editor refresh, adjusting
+        // for the height of the modal bar so the code doesn't appear to shift if possible.
+        var fullEditor = EditorManager.getCurrentFullEditor(),
+            scrollPos;
+        if (fullEditor) {
+            scrollPos = fullEditor.getScrollPos();
+            scrollPos.y -= oldModalBarHeight;   // modalbar already showing, adjust for old height
+        }
+        WorkspaceManager.recomputeLayout();
+        if (fullEditor) {
+            fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + _findBar._modalBar.height());
+        }
     }
     
     /**

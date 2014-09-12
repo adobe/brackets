@@ -40,7 +40,9 @@ define({
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} stöder just nu bara textfiler kodade i UTF-8.",
     "FILE_EXISTS_ERR"                   : "Filen eller mappen existerar redan.",
     "FILE"                              : "fil",
+    "FILE_TITLE"                        : "Fil",
     "DIRECTORY"                         : "mapp",
+    "DIRECTORY_TITLE"                   : "Mapp",
     "DIRECTORY_NAMES_LEDE"              : "Mappnamn",
     "FILENAMES_LEDE"                    : "Filnamn",
     "FILENAME"                          : "filnamn",
@@ -161,11 +163,11 @@ define({
     "NO_UPDATE_TITLE"                   : "Du är uppdaterad!",
     "NO_UPDATE_MESSAGE"                 : "Du använder den senaste versionen av {APP_NAME}.",
 
-    // Replace All (in single file)
+    // Find and Replace
     "FIND_REPLACE_TITLE_LABEL"          : "Ersätt",
-    "FIND_REPLACE_TITLE_PART1"          : "Ersätt \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" med \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+    "FIND_REPLACE_TITLE_WITH"           : "med",
+    "FIND_TITLE_LABEL"                  : "Hittades",
+    "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} i {3}",
 
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} {1}",
@@ -246,6 +248,7 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Tillägg har avaktiverats",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "ÖVR",
+    "STATUSBAR_DEFAULT_LANG"                : "(standard)",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} fel",
@@ -283,6 +286,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Spara alla",
     "CMD_FILE_SAVE_AS"                    : "Spara som\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Förhandsvisning",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Tvinga uppdatering av förhandsvisningen",
     "CMD_PROJECT_SETTINGS"                : "Projektinställningar\u2026",
     "CMD_FILE_RENAME"                     : "Byt namn",
     "CMD_FILE_DELETE"                     : "Radera",
@@ -352,6 +356,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortera efter namn",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortera efter typ",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatisk sortering",
+    "CMD_THEMES"                          : "Teman\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigera",
@@ -414,6 +419,12 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Specialtecken som '{0}' måste vara %-kodade.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Okänt fel när adressen skulle läsas!",
     
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Nuvarande tema",
+    "USE_THEME_SCROLLBARS"                 : "Använd temats scrollbars",
+    "FONT_SIZE"                            : "Teckenstorlek",
+    "FONT_FAMILY"                          : "Typsnitt",
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Ny regel",
     
@@ -435,6 +446,8 @@ define({
     "CANCELING_INSTALL"                    : "Avbryter\u2026",
     "CANCELING_HUNG"                       : "Installationen avbröts då den tog för lång tid. Ett internt fel kan ha inträffat.",
     "INSTALL_CANCELED"                     : "Installationen avbröts.",
+    "VIEW_COMPLETE_DESCRIPTION"            : "Visa hela beskrivningen",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "Visa förkortad beskrivning",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Det nedladdade innehållet är inte en fungerande zip-fil.",
     "INVALID_PACKAGE_JSON"                 : "Filen package.json är inte korrekt (felet var: {0}).",
@@ -460,7 +473,11 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Tilläggshanteraren",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Kunde inte nå tilläggsregistret. Vänligen försök igen senare.",
+    "INSTALL_EXTENSION_DRAG"               : "Dra .zip hit eller",
+    "INSTALL_EXTENSION_DROP"               : "Släpp .zip här för att installera",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Installation/Uppdatering avbröts på grund av följande fel:",
     "INSTALL_FROM_URL"                     : "Installera från URL\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "Validerar\u2026",
     "EXTENSION_AUTHOR"                     : "Författare",
     "EXTENSION_DATE"                       : "Datum",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Detta tillägg kräver en nyare version av {APP_NAME}.",
@@ -471,6 +488,9 @@ define({
     "EXTENSION_MORE_INFO"                  : "Mer information...",
     "EXTENSION_ERROR"                      : "Tilläggsfel",
     "EXTENSION_KEYWORDS"                   : "Nyckelord",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "Översatt till {0} språk, inklusive ditt",
+    "EXTENSION_TRANSLATED_GENERAL"         : "Översatt till {0} språk",
+    "EXTENSION_TRANSLATED_LANGS"           : "Detta tillägg har översatts till dessa språk: {0}",
     "EXTENSION_INSTALLED"                  : "Installerade",
     "EXTENSION_UPDATE_INSTALLED"           : "Uppdateringen av detta tillägg har laddats ner och kommer att installeras när {APP_NAME} startas om.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Sök",
@@ -552,6 +572,8 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Gå till definition",
     "CMD_SHOW_PARAMETER_HINT"                   : "Visa parameterförslag",
     "NO_ARGUMENTS"                              : "<inga parametrar>",
+    "DETECTED_EXCLUSION_TITLE"                  : "Problem att slutleda JavaScript-fil",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets stötte på processeringsfel:<br><br>{0}<br><br>Denna fil kommer inte längre genomsökas efter kodförslag eller definitioner. Öppna <code>.brackets.json</code> och ta bort filen från jscodehints.detectedExclusions för att återställa detta.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -566,4 +588,4 @@ define({
     "DOCS_MORE_LINK"                            : "Läs mer"
 });
 
-/* Last translated for 3a762c3cf91d6f65a5bb19aeb2056afacd777c71 */
+/* Last translated for 2f5acd9c6fb21330cad0dae16e26bf659859583e */

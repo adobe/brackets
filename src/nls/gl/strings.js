@@ -165,7 +165,7 @@ define({
     "FIND_REPLACE_TITLE_LABEL"          : "Reemprazar",
     "FIND_REPLACE_TITLE_WITH"           : "con",
     "FIND_TITLE_LABEL"                  : "Atopado",
-    "FIND_TITLE_SUMMARY"                : " &mdash; {0} {1} {2} en {3}",
+    "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} en {3}",
 
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} {1}",

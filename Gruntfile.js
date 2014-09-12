@@ -128,6 +128,9 @@ module.exports = function (grunt) {
                     // `name` and `out` is set by grunt-usemin
                     baseUrl: 'src',
                     optimize: 'uglify2',
+                    // brackets.js should not be loaded until after polyfills defined in "utils/Compatibility"
+                    // so explicitly include it in main.js 
+                    include: ["utils/Compatibility", "brackets"],
                     // TODO: Figure out how to make sourcemaps work with grunt-usemin
                     // https://github.com/yeoman/grunt-usemin/issues/30
                     generateSourceMaps: true,
@@ -309,9 +312,9 @@ module.exports = function (grunt) {
     grunt.registerTask('test', ['jshint:all', 'jasmine']);
 //    grunt.registerTask('test', ['jshint:all', 'jasmine', 'jasmine_node']);
 
-    // task: set-sprint
-    // Update sprint number in package.json and rewrite src/config.json
-    grunt.registerTask('set-sprint', ['update-sprint-number', 'write-config']);
+    // task: set-release
+    // Update version number in package.json and rewrite src/config.json
+    grunt.registerTask('set-release', ['update-release-number', 'write-config']);
 
     // task: build
     grunt.registerTask('build', [

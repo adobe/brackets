@@ -43,10 +43,11 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var Commands                = require("command/Commands"),
-        PanelManager            = require("view/PanelManager"),
+        WorkspaceManager        = require("view/WorkspaceManager"),
         CommandManager          = require("command/CommandManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
+        MainViewManager         = require("view/MainViewManager"),
         FileUtils               = require("file/FileUtils"),
         LanguageManager         = require("language/LanguageManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
@@ -152,7 +153,7 @@ define(function (require, exports, module) {
     function _unregisterAll() {
         _providers = {};
     }
-    
+
     /**
      * Returns a list of provider for given file path, if available.
      * Decision is made depending on the file extension.
@@ -273,7 +274,7 @@ define(function (require, exports, module) {
      * @param {boolean} aborted - true if any provider returned a result with the 'aborted' flag set
      */
     function updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted) {
-        var message;
+        var message, tooltip;
 
         if (providersReportingProblems.length === 1) {
             // don't show a header if there is only one provider available for this file type
@@ -288,9 +289,6 @@ define(function (require, exports, module) {
 
                 message = StringUtils.format(Strings.MULTIPLE_ERRORS, providersReportingProblems[0].name, numProblems);
             }
-
-            $problemsPanel.find(".title").text(message);
-            StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", message);
         } else if (providersReportingProblems.length > 1) {
             $problemsPanelTable.find(".inspector-section").show();
 
@@ -299,9 +297,13 @@ define(function (require, exports, module) {
             }
 
             message = StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, numProblems);
-            $problemsPanel.find(".title").text(message);
-            StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", message);
+        } else {
+            return;
         }
+
+        $problemsPanel.find(".title").text(message);
+        tooltip = StringUtils.format(Strings.STATUSBAR_CODE_INSPECTION_TOOLTIP, message);
+        StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", tooltip);
     }
 
     /**
@@ -473,8 +475,12 @@ define(function (require, exports, module) {
     function updateListeners() {
         if (_enabled) {
             // register our event listeners
+            $(MainViewManager)
+                .on("currentFileChange.codeInspection", function () {
+                    run();
+                });
             $(DocumentManager)
-                .on("currentDocumentChange.codeInspection currentDocumentLanguageChanged.codeInspection", function () {
+                .on("currentDocumentLanguageChanged.codeInspection", function () {
                     run();
                 })
                 .on("documentSaved.codeInspection documentRefreshed.codeInspection", function (event, document) {
@@ -484,6 +490,7 @@ define(function (require, exports, module) {
                 });
         } else {
             $(DocumentManager).off(".codeInspection");
+            $(MainViewManager).off(".codeInspection");
         }
     }
 
@@ -576,7 +583,7 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         // Create bottom panel to list error details
         var panelHtml = Mustache.render(PanelTemplate, Strings);
-        var resultsPanel = PanelManager.createBottomPanel("errors", $(panelHtml), 100);
+        var resultsPanel = WorkspaceManager.createBottomPanel("errors", $(panelHtml), 100);
         $problemsPanel = $("#problems-panel");
 
         var $selectedRow;
@@ -607,7 +614,7 @@ define(function (require, exports, module) {
     
                         var editor = EditorManager.getCurrentFullEditor();
                         editor.setCursorPos(line, character, true);
-                        EditorManager.focusEditor();
+                        MainViewManager.focusActivePane();
                     }
                 }
             });

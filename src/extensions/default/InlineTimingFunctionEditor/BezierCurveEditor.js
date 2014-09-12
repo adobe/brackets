@@ -160,11 +160,11 @@ define(function (require, exports, module) {
                 setting;
 
             var defaultSettings = {
-                handleTimingFunction: "#1461FC",
+                handleTimingFunction: "#2893ef",
                 handleThickness: 0.008,
                 vBorderThickness: 0.02,
                 hBorderThickness: 0.01,
-                bezierTimingFunction: "#1461FC",
+                bezierTimingFunction: "#2893ef",
                 bezierThickness: 0.03
             };
 

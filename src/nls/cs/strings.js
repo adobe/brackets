@@ -40,7 +40,9 @@ define({
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} v této chvíli podporuje pouze UTF-8 textové soubory.",
     "FILE_EXISTS_ERR"                   : "Soubor již existuje.",
     "FILE"                              : "Soubor",
+    "FILE_TITLE"                        : "Soubor",
     "DIRECTORY"                         : "Složka",
+    "DIRECTORY_TITLE"                   : "Složka",
     "DIRECTORY_NAMES_LEDE"              : "Názvy složek",
     "FILENAMES_LEDE"                    : "Názvy souborů",
     "FILENAME"                          : "název souboru",
@@ -122,6 +124,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> byl smazán z disku, ale změny nebyly uloženy v {APP_NAME}.<br /><br />Chcete uložit změny?",
 
     // Obecné označení - dialogy, tlačítka
+    "DONE"                              : "Hotovo",
     "OK"                                : "OK",
     "CANCEL"                            : "Zrušit",
     "DONT_SAVE"                         : "Neukládat",
@@ -136,8 +139,10 @@ define({
     "FIND_RESULT_COUNT"                 : "{0} výsledků",
     "FIND_RESULT_COUNT_SINGLE"          : "1 výsledek",
     "FIND_NO_RESULTS"                   : "Žádné výsledky",
+    "FIND_QUERY_PLACEHOLDER"            : "Najít\u2026",
     "REPLACE_PLACEHOLDER"               : "Nahradit s\u2026",
     "BUTTON_REPLACE_ALL"                : "Vše\u2026",
+    "BUTTON_REPLACE_ALL_IN_FILES"       : "Nahradit\u2026",
     "BUTTON_REPLACE"                    : "Nahradit",
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
@@ -145,6 +150,9 @@ define({
     "BUTTON_PREV_HINT"                  : "Předchozí shoda",
     "BUTTON_CASESENSITIVE_HINT"         : "Rozlišovat velká a malá písmena",
     "BUTTON_REGEXP_HINT"                : "Regulární výraz",
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Nahradit bez možnosti vrátit změny",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Protože musí být změněno více než {0} souborů, {APP_NAME} změní neotevřené soubory na disku.<br />Nebude možné vrátit změny v těchto souborech.",
+    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Nahradit bez možnosti vrátit změny",
 
     "OPEN_FILE"                         : "Otevřít soubor",
     "SAVE_FILE_AS"                      : "Uložit soubor",
@@ -154,15 +162,14 @@ define({
     "NO_UPDATE_TITLE"                   : "Vše je aktuální!",
     "NO_UPDATE_MESSAGE"                 : "Verze {APP_NAME} je aktuální.",
 
-    // Nahradit vše (v jednom souboru)
-    "FIND_REPLACE_TITLE_PART1"          : "Nahradit \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" s \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+    // Find and Replace
+    "FIND_REPLACE_TITLE_LABEL"          : "Nahradit",
+    "FIND_REPLACE_TITLE_WITH"           : "s",
+    "FIND_TITLE_LABEL"                  : "Nalezeno",
+    "FIND_TITLE_SUMMARY"                : " &mdash; {0} {1} {2} in {3}",
 
     // Najít v souborech
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" nalezen",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} v {3} {4}",
+    "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "v <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "v projektu",
     "FIND_IN_FILES_ZERO_FILES"          : "Filtr vyloučil všechny soubory {0}",
@@ -174,8 +181,11 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "Soubor: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd klik pro rozbalení/zbalení všeho",
+    "REPLACE_IN_FILES_ERRORS_TITLE"     : "Nahradit chyby",
+    "REPLACE_IN_FILES_ERRORS"           : "Následující soubory nebyly změněny, protože se změnily po hledání nebo do nich nelze zapisovat.",
+
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Chyba při získávání informací o aktualizaci",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Nelze získat aktualizace. Ujistěte se, že máte připojení na internet a zkuste to znovu.",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Nelze získat aktualizace. Ujistěte se, že máte připojení k internetu a zkuste to znovu.",
 
     // Filtry vyloučení souborů
     "NEW_FILE_FILTER"                   : "Nová řada vyloučených souborů",
@@ -237,6 +247,7 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Doplňky zakázány",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_DEFAULT_LANG"                : "(default)",
 
     // CodeInspection: chyby/varování
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} chyb",
@@ -274,6 +285,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Uložit vše",
     "CMD_FILE_SAVE_AS"                    : "Uložit jako\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Živý náhled",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Vynutit obnovení živého náhledu",
     "CMD_PROJECT_SETTINGS"                : "Nastavení projektu\u2026",
     "CMD_FILE_RENAME"                     : "Přejmenovat",
     "CMD_FILE_DELETE"                     : "Smazat",
@@ -312,7 +324,6 @@ define({
     //Příkazy menu Najít
     "FIND_MENU"                           : "Najít",
     "CMD_FIND"                            : "Najít",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Najít\u2026",
     "CMD_FIND_NEXT"                       : "Najít další",
     "CMD_FIND_PREVIOUS"                   : "Najít předchozí",
     "CMD_FIND_ALL_AND_SELECT"             : "Najít vše a vybrat",
@@ -322,6 +333,9 @@ define({
     "CMD_FIND_IN_SELECTED"                : "Najít ve vybraném souboru/složce",
     "CMD_FIND_IN_SUBTREE"                 : "Najít v\u2026",
     "CMD_REPLACE"                         : "Nahradit",
+    "CMD_REPLACE_IN_FILES"                : "Nahradit v souborech",
+    "CMD_REPLACE_IN_SELECTED"             : "Nahradit ve vybraném souboru/složce",
+    "CMD_REPLACE_IN_SUBTREE"              : "Nahradit v\u2026",
 
     // Příkazy menu Zobrazit
     "VIEW_MENU"                           : "Zobrazit",
@@ -341,6 +355,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Řadit podle jména",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Řadit podle typu",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatické řazení",
+    "CMD_THEMES"                          : "Motivy\u2026",
 
     // Příkazy menu Navigace
     "NAVIGATE_MENU"                       : "Navigace",
@@ -370,7 +385,7 @@ define({
     "CMD_GET_INVOLVED"                    : "Zapojte se",
     "CMD_RELEASE_NOTES"                   : "Poznámky k verzi",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s doplňky",
-    "CMD_HOMEPAGE"                        : "Domovská stránka {APP_TITLE}",
+    "CMD_HOMEPAGE"                        : "{APP_TITLE} domovská stránka",
     "CMD_TWITTER"                         : "{TWITTER_NAME} - Twitter",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Otevřít soubor s preferencemi",
@@ -385,6 +400,7 @@ define({
     "ABOUT"                                : "O aplikaci",
     "CLOSE"                                : "Zavřít",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_BUILD_TIMESTAMP"           : "vytvořeno: ",
     "ABOUT_TEXT_LINE3"                     : "Oznámení, podmínky týkající se software třetích stran jsou umístěny na <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> a začleněny prostřednictvím odkazu zde.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentace a zdrojový kód na <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>.",
     "ABOUT_TEXT_LINE5"                     : "Vytvořeno s \u2764 a pomocí JavaScript těmito lidmi:",
@@ -402,6 +418,12 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL nemůže obsahovat znaky jako \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být %-enkódovány.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při zpracování URL",
+
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Aktuální motiv",
+    "USE_THEME_SCROLLBARS"                 : "Použít posuvníky motivu",
+    "FONT_SIZE"                            : "Velikost písma",
+    "FONT_FAMILY"                          : "Rodina písma",
 
       // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nové pravidlo",
@@ -424,6 +446,8 @@ define({
     "CANCELING_INSTALL"                    : "Rušení instalace\u2026",
     "CANCELING_HUNG"                       : "Rušení instalace trvá dlouho. Mohlo dojít k interní chybě.",
     "INSTALL_CANCELED"                     : "Instalace zrušena.",
+    "VIEW_COMPLETE_DESCRIPTION"            : "Zobrazit úplný popis",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "Zobrazit zkrácený popis",
     // Tyto musí odpovídat chybovým hlášením v ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Stažený soubor není platný zip soubor.",
     "INVALID_PACKAGE_JSON"                 : "Package.json balíček není platný (chyba byla: {0}).",
@@ -449,7 +473,11 @@ define({
     // Pro NOT_FOUND_ERR, vyhledejte obecné řetězce výše
     "EXTENSION_MANAGER_TITLE"              : "Správce doplňků",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Nelze získat přístup k registru doplňků. Prosím, zkuste to znovu později.",
+    "INSTALL_EXTENSION_DRAG"               : "Přetáhněte .zip zde nebo",
+    "INSTALL_EXTENSION_DROP"               : "Pusťte .zip pro instalaci",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Instalace/aktualizace byla zrušena kvůli následujících chyb:",
     "INSTALL_FROM_URL"                     : "Instalovat z URL\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "Ověření\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Datum",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Tento doplněk požaduje novější verzi {APP_NAME}.",
@@ -460,6 +488,9 @@ define({
     "EXTENSION_MORE_INFO"                  : "Více informací...",
     "EXTENSION_ERROR"                      : "Chyba doplňku",
     "EXTENSION_KEYWORDS"                   : "Klíčová slova",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "Přeloženo do {0} jazyků, včetně vašeho",
+    "EXTENSION_TRANSLATED_GENERAL"         : "Přeloženo do {0} jazyků",
+    "EXTENSION_TRANSLATED_LANGS"           : "Tento doplněk byl přeložen do těchto jazyků: {0}",
     "EXTENSION_INSTALLED"                  : "Nainstalováno",
     "EXTENSION_UPDATE_INSTALLED"           : "Aktualizace doplňku byla stažena a bude nainstalována při ukončení aplikace {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Hledat",
@@ -541,6 +572,8 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Přejít na definici",
     "CMD_SHOW_PARAMETER_HINT"                   : "Zobrazit nápovědu parametru",
     "NO_ARGUMENTS"                              : "<žádné parametry>",
+    "DETECTED_EXCLUSION_TITLE"                  : "Inferenční problém JavaScript souboru",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets narazil na problémy při zpracování:<br><br>{0}<br><br>Tento soubor nadále nebude používat nápovědu při kódování a funkci přejít na definici. Pro opětovné zapnutí těchto funkcí, otevřete <code>.brackets.json</code> ve vašem projektu a odstraňte soubor z jscodehints.detectedExclusions.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
