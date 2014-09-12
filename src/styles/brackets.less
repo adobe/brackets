@@ -765,7 +765,7 @@ a, img {
         height: 16px;
         line-height: 15px;
         margin-left: 18px;
-        padding: 3px (@sidebar-triangle-size * 2) 3px 0;
+        padding: 3px 0 3px 0;
 
         cursor: default;
 
@@ -804,7 +804,7 @@ a, img {
     position: absolute;
 }
 
-.sidebar-selection-triangle {
+.sidebar-selection-extension {
     background: @bc-sidebar-selection;
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
@@ -813,7 +813,7 @@ a, img {
     height: 22px;
     position: fixed;
 
-    z-index: @z-index-brackets-selection-triangle; /* scroller-shadow appears above this triangle */
+    z-index: @z-index-brackets-selection-extension; /* scroller-shadow appears above the extension */
 }
 
 
@@ -825,10 +825,6 @@ a, img {
 
 #project-files-container {
     .box-flex(1);
-
-    .jstree-brackets li > a {
-        padding-right: (@sidebar-triangle-size * 2);
-    }
 
     ul {
         padding-left: 8px;

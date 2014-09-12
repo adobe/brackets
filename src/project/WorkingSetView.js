@@ -911,9 +911,9 @@ define(function (require, exports, module) {
     }
     
     /** 
-     * Synchronizes the selection Triangle for all views
+     * Synchronizes the selection indicator for all views
      */
-    function syncSelectionTriangle() {
+    function syncSelectionIndicator() {
         _.forEach(_views, function (workingSetListView) {
             workingSetListView.$openFilesContainer.triggerHandler("scroll");
         });
@@ -923,5 +923,5 @@ define(function (require, exports, module) {
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
     exports.refresh                       = refresh;
-    exports.syncSelectionTriangle         = syncSelectionTriangle;
+    exports.syncSelectionIndicator         = syncSelectionIndicator;
 });

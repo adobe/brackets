@@ -129,7 +129,7 @@ define(function (require, exports, module) {
 
         // init
         $sidebar.on("panelResizeStart", function (evt, width) {
-            $sidebar.find(".sidebar-selection-triangle").css("display", "none");
+            $sidebar.find(".sidebar-selection-extension").css("display", "none");
             $sidebar.find(".scroller-shadow").css("display", "none");
         });
         
@@ -139,10 +139,10 @@ define(function (require, exports, module) {
         
         $sidebar.on("panelResizeEnd", function (evt, width) {
             _resizeSidebarSelection();
-            $sidebar.find(".sidebar-selection-triangle").css("display", "block").css("left", width);
+            $sidebar.find(".sidebar-selection-extension").css("display", "block").css("left", width);
             $sidebar.find(".scroller-shadow").css("display", "block");
             $projectFilesContainer.triggerHandler("scroll");
-            WorkingSetView.syncSelectionTriangle();
+            WorkingSetView.syncSelectionIndicator();
         });
 		
         $sidebar.on("panelCollapsed", function (evt, width) {
@@ -153,9 +153,9 @@ define(function (require, exports, module) {
             WorkingSetView.refresh();
             _resizeSidebarSelection();
             $sidebar.find(".scroller-shadow").css("display", "block");
-            $sidebar.find(".sidebar-selection-triangle").css("left", width);
+            $sidebar.find(".sidebar-selection-extension").css("left", width);
             $projectFilesContainer.triggerHandler("scroll");
-            WorkingSetView.syncSelectionTriangle();
+            WorkingSetView.syncSelectionIndicator();
             CommandManager.get(Commands.VIEW_HIDE_SIDEBAR).setName(Strings.CMD_HIDE_SIDEBAR);
         });
         
