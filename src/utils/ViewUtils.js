@@ -188,7 +188,7 @@ define(function (require, exports, module) {
             $selectionMarker,
             $selectionExtension,
             $sidebar = $("#sidebar"),
-            showExtender = true;
+            showExtension = true;
         
         // build selectionMarker and position absolute within the scroller
         $selectionMarker = $(window.document.createElement("div")).addClass("sidebar-selection");
@@ -211,22 +211,22 @@ define(function (require, exports, module) {
             var selectionMarkerHeight = $selectionMarker.height(),
                 selectionMarkerOffset = $selectionMarker.offset(),  // offset relative to *document*
                 scrollerOffset = $scrollerElement.offset(),
-                selectionExtenderHeight = $selectionExtension.outerHeight(),
+                selectionExtensionHeight = $selectionExtension.outerHeight(),
                 scrollerTop = scrollerOffset.top,
                 scrollerBottom = scrollerTop + $scrollerElement.outerHeight(),
                 scrollerLeft = scrollerOffset.left,
-                selectionExtenderTop = selectionMarkerOffset.top;
+                selectionExtensionTop = selectionMarkerOffset.top;
             
-            $selectionExtension.css("top", selectionExtenderTop);
+            $selectionExtension.css("top", selectionExtensionTop);
             $selectionExtension.css("left", $sidebar.width() - $selectionExtension.outerWidth());
-            toggleClass($selectionExtension, "selectionExtender-visible", showExtender);
+            toggleClass($selectionExtension, "selectionExtension-visible", showExtension);
                 
-            var selectionExtenderClipOffsetYBy = Math.floor((selectionMarkerHeight - selectionExtenderHeight) / 2),
-                selectionExtenderBottom = selectionExtenderTop + selectionExtenderHeight + selectionExtenderClipOffsetYBy;
+            var selectionExtensionClipOffsetYBy = Math.floor((selectionMarkerHeight - selectionExtensionHeight) / 2),
+                selectionExtensionBottom = selectionExtensionTop + selectionExtensionHeight + selectionExtensionClipOffsetYBy;
             
-            if (selectionExtenderTop < scrollerTop || selectionExtenderBottom > scrollerBottom) {
-                $selectionExtension.css("clip", "rect(" + Math.max(scrollerTop - selectionExtenderTop - selectionExtenderClipOffsetYBy, 0) + "px, auto, " +
-                                           (selectionExtenderHeight - Math.max(selectionExtenderBottom - scrollerBottom, 0)) + "px, auto)");
+            if (selectionExtensionTop < scrollerTop || selectionExtensionBottom > scrollerBottom) {
+                $selectionExtension.css("clip", "rect(" + Math.max(scrollerTop - selectionExtensionTop - selectionExtensionClipOffsetYBy, 0) + "px, auto, " +
+                                           (selectionExtensionHeight - Math.max(selectionExtensionBottom - scrollerBottom, 0)) + "px, auto)");
             } else {
                 $selectionExtension.css("clip", "");
             }
@@ -242,7 +242,7 @@ define(function (require, exports, module) {
             var $listItem = $listElement.find(selectedClassName).closest("li");
             
             if (leafClassName) {
-                showExtender = $listItem.hasClass(leafClassName);
+                showExtension = $listItem.hasClass(leafClassName);
             }
 
             $selectionExtension.removeClass("forced-hidden");
