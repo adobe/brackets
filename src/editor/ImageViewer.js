@@ -420,7 +420,7 @@ define(function (require, exports, module) {
         if (view) {
             pane.showView(view);
         } else {
-            view = new ImageView(file, pane.$el);
+            view = new ImageView(file, pane.$content);
             pane.addView(view, true);
         }
         return new $.Deferred().resolve().promise();
