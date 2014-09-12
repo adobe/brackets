@@ -241,11 +241,12 @@ define(function (require, exports, module) {
         var lang            = brackets.getLocale(),
             shortLang       = lang.split("-")[0];
         [shortLang, lang].forEach(function (locale) {
-            if (info.metadata.hasOwnProperty(locale)) {
+            if (info.metadata["package-i18n"] !== undefined &&
+                    info.metadata["package-i18n"].hasOwnProperty(locale)) {
                 // only overlay specific properties with the localized values
                 ['title', 'description', 'homepage', 'keywords'].forEach(function (prop) {
-                    if (info.metadata[locale].hasOwnProperty(prop)) {
-                        info.metadata[prop] = info.metadata[locale][prop];
+                    if (info.metadata["package-i18n"][locale].hasOwnProperty(prop)) {
+                        info.metadata[prop] = info.metadata["package-i18n"][locale][prop];
                     }
                 });
             }

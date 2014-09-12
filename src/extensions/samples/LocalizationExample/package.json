@@ -13,8 +13,10 @@
         "en", 
         "fr" 
     ],
-    "fr": {
-        "title": "fr title to replace the root title",
-        "description": "fr description to replace the root description"
+    "package-i18n": {
+        "fr": {
+            "title": "Localisation Exemple",
+            "description": "Un guide sur la façon de localiser votre poste."
+        }
     }
 }
