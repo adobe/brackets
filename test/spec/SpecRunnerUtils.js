@@ -440,8 +440,16 @@ define(function (require, exports, module) {
     }
     
     function createMockPane($el) {
+        createMockElement()
+            .attr("class", "pane-header")
+            .appendTo($el);
+        var $fakeContent = createMockElement()
+            .attr("class", "pane-content")
+            .appendTo($el);
+        
         return {
             $el: $el,
+            $content: $fakeContent,
             addView: function (path, editor) {
             },
             showView: function (editor) {
