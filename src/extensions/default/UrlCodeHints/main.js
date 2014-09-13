@@ -43,7 +43,8 @@ define(function (require, exports, module) {
 
         urlHints,
         data,
-        htmlAttrs;
+        htmlAttrs,
+        styleModes          = ["css", "text/x-less", "text/x-scss"];
     
     /**
      * @constructor
@@ -264,7 +265,7 @@ define(function (require, exports, module) {
         var mode = editor.getModeForSelection();
         if (mode === "html") {
             return this.hasHtmlHints(editor, implicitChar);
-        } else if (mode === "css") {
+        } else if (styleModes.indexOf(mode) > -1) {
             return this.hasCssHints(editor, implicitChar);
         }
 
@@ -424,7 +425,7 @@ define(function (require, exports, module) {
             }
             this.info = tagInfo;
 
-        } else if (mode === "css") {
+        } else if (styleModes.indexOf(mode) > -1) {
             this.info = CSSUtils.getInfoAtPos(this.editor, cursor);
 
             var context = this.info.context;
@@ -540,7 +541,7 @@ define(function (require, exports, module) {
         
         if (mode === "html") {
             return this.insertHtmlHint(completion);
-        } else if (mode === "css") {
+        } else if (styleModes.indexOf(mode) > -1) {
             return this.insertCssHint(completion);
         }
 
@@ -813,7 +814,7 @@ define(function (require, exports, module) {
         htmlAttrs       = data.htmlAttrs;
 
         urlHints        = new UrlCodeHints();
-        CodeHintManager.registerHintProvider(urlHints, ["css", "html"], 5);
+        CodeHintManager.registerHintProvider(urlHints, ["css", "html", "less", "scss"], 5);
         
         FileSystem.on("change", _clearCachedHints);
         FileSystem.on("rename", _clearCachedHints);
