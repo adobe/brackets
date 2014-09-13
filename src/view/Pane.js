@@ -1012,10 +1012,13 @@ define(function (require, exports, module) {
      * Removes the view and opens the next view
      * @param {File} file - the file to close
      * @param {boolean} suppressOpenNextFile - suppresses opening the next file in MRU order
+     * @param {boolean} preventViewChange - if suppressOpenNextFile is truthy, this flag can be used to 
+     *                                      prevent the current view from being destroyed. 
+     *                                      Ignred if suppressOpenNextFile IS falsy 
      * @return {boolean} true if the file was removed from the working set
      *  This function will remove a temporary view of a file but will return false in that case
      */
-    Pane.prototype.removeView = function (file, suppressOpenNextFile) {
+    Pane.prototype.removeView = function (file, suppressOpenNextFile, preventViewChange) {
         var nextFile = !suppressOpenNextFile && this.traverseViewListByMRU(1, file.fullPath);
         if (nextFile && nextFile.fullPath !== file.fullPath && this.getCurrentlyViewedPath() === file.fullPath) {
             var self = this,
@@ -1040,7 +1043,7 @@ define(function (require, exports, module) {
                 return false;
             }
         } else {
-            return this._doRemove(file);
+            return this._doRemove(file, preventViewChange);
         }
     };
     
@@ -1054,37 +1057,22 @@ define(function (require, exports, module) {
      */
     Pane.prototype.removeViews = function (list) {
         var self = this,
-            needsDestroyCurrentView = false,
-            doDestroyViewImpl = this._doDestroyView,
+            removeCurrentView = false,
             result;
 
-        // since we're closing a list of files, we don't want to change the view to the next one in succession
-        //  so pass true to removeView below to avoid opening the next file.  
-        // Doing so will calls the call to _removeView to destroy the current view if the current view is in 
-        //  the list of views to destroy. This will cause a currentFileChange notification and the interstitial 
-        //  page to be displayed.  Both bad.
-        // Override _destroyView so that it won't destroy the current view if it's in the list of views to destroy. 
-        // This will effectively make the current view act like a temporary view so we either replace it 
-        //  with the next one in line which will destroy it or we just destroy it out-right
-        this._doDestroyView = function (view) {
-            if (self._currentView === view) {
-                needsDestroyCurrentView = true;
-                return;
-            }
-            // call protype impl
-            doDestroyViewImpl.apply(self, [view]);
-        };
+        // Check to see if we need to remove the current view later
+        removeCurrentView = _.findIndex(list, function (file) {
+            return file.fullPath === self.getCurrentlyViewedPath();
+        });
 
         // destroy the views in the list 
         result = list.filter(function (file) {
-            return (self.removeView(file, true));
+            return (self.removeView(file, true, true));
         });
 
-        // cleanup
-        this._doDestroyView = doDestroyViewImpl;
 
-        // we may have been passed a list of files that did not include the current view so we're done in that case
-        if (needsDestroyCurrentView) {
+        // we may have been passed a list of files that did not include the current view
+        if (removeCurrentView) {
             // _doRemove will have whittled the MRU list down to just the remaining views 
             if (this._viewListMRUOrder.length) {
                 // Don't need to destroy the current view. 
