@@ -51,16 +51,17 @@ define(function (require, exports, module) {
     
     // Used as mocks
     require("LiveDevelopment/main");
-    var CommandsModule            = require("command/Commands"),
-        CommandsManagerModule     = require("command/CommandManager"),
-        LiveDevelopmentModule     = require("LiveDevelopment/LiveDevelopment"),
-        InspectorModule           = require("LiveDevelopment/Inspector/Inspector"),
-        CSSDocumentModule         = require("LiveDevelopment/Documents/CSSDocument"),
-        CSSAgentModule            = require("LiveDevelopment/Agents/CSSAgent"),
-        HighlightAgentModule      = require("LiveDevelopment/Agents/HighlightAgent"),
-        HTMLDocumentModule        = require("LiveDevelopment/Documents/HTMLDocument"),
-        HTMLInstrumentationModule = require("language/HTMLInstrumentation"),
-        NativeAppModule           = require("utils/NativeApp");
+    var CommandsModule                = require("command/Commands"),
+        CommandsManagerModule         = require("command/CommandManager"),
+        LiveDevelopmentModule         = require("LiveDevelopment/LiveDevelopment"),
+        InspectorModule               = require("LiveDevelopment/Inspector/Inspector"),
+        CSSDocumentModule             = require("LiveDevelopment/Documents/CSSDocument"),
+        CSSAgentModule                = require("LiveDevelopment/Agents/CSSAgent"),
+        HighlightAgentModule          = require("LiveDevelopment/Agents/HighlightAgent"),
+        HTMLDocumentModule            = require("LiveDevelopment/Documents/HTMLDocument"),
+        HTMLInstrumentationModule     = require("language/HTMLInstrumentation"),
+        NativeAppModule               = require("utils/NativeApp"),
+        CSSPreprocessorDocumentModule = require("LiveDevelopment/Documents/CSSPreprocessorDocument");
     
     var testPath    = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
         tempDir     = SpecRunnerUtils.getTempDirectory(),
@@ -369,6 +370,226 @@ define(function (require, exports, module) {
             });
         });
     
+        describe("Highlighting elements in browser from a rule in scss", function () {
+            
+            var testDocument,
+                testEditor,
+                testCSSDoc,
+                liveDevelopmentConfig,
+                inspectorConfig,
+                fileContent = "div[role='main'] {\n" +
+                              "  @include background-image(linear-gradient(lighten($color1, 30%), lighten($color2, 30%)));\n" +
+                              "  ul {\n    padding-top:14px;\n" +  // line 2 and 3
+                              "    li {\n" +
+                              "      a { }\n" +
+                              "      @media (max-width: 480px) {\n" +
+                              "        a {\n" +
+                              "          &:hover { }\n" +
+                              "          width: auto;\n" +
+                              "        }\n" +
+                              "      }\n" +
+                              "    }\n" +
+                              "  }\n" +
+                              "}\n";
+            
+            beforeEach(function () {
+                // save original configs
+                liveDevelopmentConfig = LiveDevelopmentModule.config;
+                inspectorConfig = InspectorModule.config;
+                
+                // force init
+                LiveDevelopmentModule.config = InspectorModule.config = {highlight: true};
+                HighlightAgentModule.load();
+                
+                // module spies
+                spyOn(CSSAgentModule, "styleForURL").andReturn([]);
+                spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return new $.Deferred().resolve(); });
+                spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
+                spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
+                spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () {});
+                spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () {});
+                
+                var mock = SpecRunnerUtils.createMockEditor(fileContent, "scss");
+                testDocument = mock.doc;
+                testEditor = mock.editor;
+                testCSSDoc = new CSSPreprocessorDocumentModule(testDocument, testEditor);
+            });
+            
+            afterEach(function () {
+                LiveDevelopmentModule.config = liveDevelopmentConfig;
+                InspectorModule.config = inspectorConfig;
+                
+                SpecRunnerUtils.destroyMockEditor(testDocument);
+                testDocument = null;
+                testEditor = null;
+                testCSSDoc = null;
+            });
+            
+            it("should toggle the highlight via a command", function () {
+                var cmd = CommandsManagerModule.get(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                cmd.setEnabled(true);
+                
+                // Run our tests in order depending on whether highlighting is on or off
+                // presently. By setting the order like this, we'll also leave highlighting
+                // in the state we found it in.
+                if (cmd.getChecked()) {
+                    CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                    expect(LiveDevelopmentModule.hideHighlight).toHaveBeenCalled();
+                    
+                    CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                    expect(LiveDevelopmentModule.showHighlight).toHaveBeenCalled();
+                } else {
+                    CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                    expect(LiveDevelopmentModule.showHighlight).toHaveBeenCalled();
+                    
+                    CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                    expect(LiveDevelopmentModule.hideHighlight).toHaveBeenCalled();
+                }
+            });
+            
+            it("should redraw highlights when the cursor moves", function () {
+                testEditor.setCursorPos(0, 9);  // after = sign in "div[role='main']" selector
+                expect(HighlightAgentModule.rule).toHaveBeenCalled();
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("div[role='main']");
+                
+                testEditor.setCursorPos(3, 12); // after - in "padding-top:14px;" on line 3
+                expect(HighlightAgentModule.rule.calls.length).toEqual(3);
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("div[role='main'] ul");
+
+                testEditor.setCursorPos(5, 6);  // right before "a" tag selector on line 5
+                expect(HighlightAgentModule.rule.calls.length).toEqual(4);
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("div[role='main'] ul li a");
+
+                testEditor.setCursorPos(6, 25); // after "@media (max-width: " on line 6
+                expect(HighlightAgentModule.rule.calls.length).toEqual(5);
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("div[role='main'] ul li");
+
+                testEditor.setCursorPos(8, 19); // after "&:hover {" on line 8
+                expect(HighlightAgentModule.rule.calls.length).toEqual(6);
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("div[role='main'] ul li a:hover");
+            });
+        });
+    
+        describe("Highlighting elements in browser from a rule in LESS", function () {
+            
+            var testDocument,
+                testEditor,
+                testCSSDoc,
+                liveDevelopmentConfig,
+                inspectorConfig,
+                fileContent = "@navbar-height: 50px;\n" +
+                              ".navbar-collapse {\n" +
+                              "  &.in {\n \n}\n" +  // line 2, 3 and 4
+                              "  @media (min-width: @grid-float-breakpoint) {\n" +
+                              "    width: auto;\n" +
+                              "    &.collapse { } \n" +
+                              "    &.in { } \n" +
+                              "  }\n}\n" +                                       // line 9 and 10
+                              "@text-color:@gray-dark;\n" +
+                              ".container,\n.container-fluid {\n" +             // line 12 and 13
+                              "  > .navbar-header,\n  > .navbar-collapse {\n" + // line 14 and 15
+                              "    a, img { }\n" +
+                              "  }\n" +
+                              "}";
+            
+            beforeEach(function () {
+                // save original configs
+                liveDevelopmentConfig = LiveDevelopmentModule.config;
+                inspectorConfig = InspectorModule.config;
+                
+                // force init
+                LiveDevelopmentModule.config = InspectorModule.config = {highlight: true};
+                HighlightAgentModule.load();
+                
+                // module spies
+                spyOn(CSSAgentModule, "styleForURL").andReturn([]);
+                spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return new $.Deferred().resolve(); });
+                spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
+                spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
+                spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () {});
+                spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () {});
+                
+                // TODO: Due to https://github.com/adobe/brackets/issues/8837, we are
+                // using "scss" as language id instead of "less".
+                var mock = SpecRunnerUtils.createMockEditor(fileContent, "scss");
+                testDocument = mock.doc;
+                testEditor = mock.editor;
+                testCSSDoc = new CSSPreprocessorDocumentModule(testDocument, testEditor);
+            });
+            
+            afterEach(function () {
+                LiveDevelopmentModule.config = liveDevelopmentConfig;
+                InspectorModule.config = inspectorConfig;
+                
+                SpecRunnerUtils.destroyMockEditor(testDocument);
+                testDocument = null;
+                testEditor = null;
+                testCSSDoc = null;
+            });
+            
+            it("should toggle the highlight via a command", function () {
+                var cmd = CommandsManagerModule.get(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                cmd.setEnabled(true);
+                
+                // Run our tests in order depending on whether highlighting is on or off
+                // presently. By setting the order like this, we'll also leave highlighting
+                // in the state we found it in.
+                if (cmd.getChecked()) {
+                    CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                    expect(LiveDevelopmentModule.hideHighlight).toHaveBeenCalled();
+                    
+                    CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                    expect(LiveDevelopmentModule.showHighlight).toHaveBeenCalled();
+                } else {
+                    CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                    expect(LiveDevelopmentModule.showHighlight).toHaveBeenCalled();
+                    
+                    CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                    expect(LiveDevelopmentModule.hideHighlight).toHaveBeenCalled();
+                }
+            });
+            
+            it("should not update any highlights when the cursor is in a LESS variable definition", function () {
+                testEditor.setCursorPos(0, 3);
+                expect(HighlightAgentModule.rule.calls.length).toEqual(0);
+
+                testEditor.setCursorPos(11, 10);
+                expect(HighlightAgentModule.rule.calls.length).toEqual(0);
+            });
+               
+            it("should redraw highlights when the cursor moves", function () {
+                testEditor.setCursorPos(1, 0);  // before .navbar-collapse on line 1
+                expect(HighlightAgentModule.rule).toHaveBeenCalled();
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual(".navbar-collapse");
+
+                testEditor.setCursorPos(4, 0);  // before } of &.in rule that starts on line 2
+                expect(HighlightAgentModule.rule.calls.length).toEqual(2);
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual(".navbar-collapse.in");
+
+                testEditor.setCursorPos(7, 15);  // before { of &.collapse rule on line 7
+                expect(HighlightAgentModule.rule.calls.length).toEqual(3);
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual(".navbar-collapse.collapse");
+
+                testEditor.setCursorPos(8, 5);  // after & of &.in rule on line 8
+                expect(HighlightAgentModule.rule.calls.length).toEqual(4);
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual(".navbar-collapse.in");
+            });
+
+            it("should redraw highlights on elements that have nested rules with group selectors", function () {
+                testEditor.setCursorPos(12, 11);  // at the end of line 12 (ie. after .container,)
+                expect(HighlightAgentModule.rule).toHaveBeenCalled();
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual(".container, .container-fluid");
+
+                testEditor.setCursorPos(14, 22);  // after "> .navbar-header,\n  >" on line 14
+                expect(HighlightAgentModule.rule.calls.length).toEqual(2);
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual(".container > .navbar-header, .container-fluid > .navbar-header, .container > .navbar-collapse, .container-fluid > .navbar-collapse");
+
+                testEditor.setCursorPos(16, 7);  // right before img tag in "a, img { }" on line 16
+                expect(HighlightAgentModule.rule.calls.length).toEqual(3);
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual(".container > .navbar-header a, .container-fluid > .navbar-header a, .container > .navbar-collapse a, .container-fluid > .navbar-collapse a, .container > .navbar-header img, .container-fluid > .navbar-header img, .container > .navbar-collapse img, .container-fluid > .navbar-collapse img");
+            });
+        });
+
         describe("Highlighting elements in browser from cursor positions in HTML page", function () {
             
             var testDocument,

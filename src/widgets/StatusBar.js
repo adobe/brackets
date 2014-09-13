@@ -49,7 +49,8 @@ define(function (require, exports, module) {
     
     // These vars are initialized by the AppInit.htmlReady handler
     // below since they refer to DOM elements
-    var $statusBar,
+    var $statusInfo,
+        $statusBar,
         $indicators,
         $busyIndicator;
         
@@ -174,6 +175,52 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Hide the statusbar Information Panel
+     */
+    function hideInformation() {
+        $statusInfo.css("display", "none");
+    }
+    
+    /**
+     * Show the statusbar Information Panel
+     */
+    function showInformation() {
+        $statusInfo.css("display", "");
+    }
+    
+    /**
+     * Hide the statusbar Indicators
+     */
+    function hideIndicators() {
+        $indicators.css("display", "none");
+    }
+    
+    /**
+     * Show the statusbar Indicators
+     */
+    function showIndicators() {
+        $indicators.css("display", "");
+    }
+
+    
+    /**
+     * Hides all panels but not the status bar
+     */
+    function hideAllPanes() {
+        hideInformation();
+        hideIndicators();
+    }
+    
+    /**
+     * Shows all panels (will not show a hidden statusbar)
+     */
+    function showAllPanes() {
+        showInformation();
+        showIndicators();
+    }
+    
+    
+    /**
      * Hide the statusbar
      */
     function hide() {
@@ -211,6 +258,7 @@ define(function (require, exports, module) {
         $statusBar          = $("#status-bar");
         $indicators         = $("#status-indicators");
         $busyIndicator      = $("#status-bar .spinner");
+        $statusInfo         = $("#status-info");
 
         _init = true;
 
@@ -218,10 +266,16 @@ define(function (require, exports, module) {
         hide();
     });
 
+    exports.hideInformation   = hideInformation;
+    exports.showInformation   = showInformation;
     exports.showBusyIndicator = showBusyIndicator;
     exports.hideBusyIndicator = hideBusyIndicator;
-    exports.addIndicator = addIndicator;
-    exports.updateIndicator = updateIndicator;
-    exports.hide = hide;
-    exports.show = show;
+    exports.hideIndicators    = hideIndicators;
+    exports.showIndicators    = showIndicators;
+    exports.hideAllPanes      = hideAllPanes;
+    exports.showAllPanes      = showAllPanes;
+    exports.addIndicator      = addIndicator;
+    exports.updateIndicator   = updateIndicator;
+    exports.hide              = hide;
+    exports.show              = show;
 });
