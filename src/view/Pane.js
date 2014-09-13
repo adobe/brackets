@@ -1057,11 +1057,11 @@ define(function (require, exports, module) {
      */
     Pane.prototype.removeViews = function (list) {
         var self = this,
-            removeCurrentView = false,
+            needsDestroyCurrentView = false,
             result;
 
-        // Check to see if we need to remove the current view later
-        removeCurrentView = _.findIndex(list, function (file) {
+        // Check to see if we need to destroy the current view later
+        needsDestroyCurrentView = _.findIndex(list, function (file) {
             return file.fullPath === self.getCurrentlyViewedPath();
         });
 
@@ -1072,7 +1072,7 @@ define(function (require, exports, module) {
 
 
         // we may have been passed a list of files that did not include the current view
-        if (removeCurrentView) {
+        if (needsDestroyCurrentView) {
             // _doRemove will have whittled the MRU list down to just the remaining views 
             if (this._viewListMRUOrder.length) {
                 // Don't need to destroy the current view. 
