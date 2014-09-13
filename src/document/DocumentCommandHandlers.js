@@ -336,15 +336,14 @@ define(function (require, exports, module) {
                     if (paths.length > 0) {
                         // Add all files to the workingset without verifying that
                         // they still exist on disk (for faster opening)
-                        var filesToOpen = [],
-                            filteredPaths = DragAndDrop.filterFilesToOpen(paths);
+                        var filesToOpen = [];
                         
-                        filteredPaths.forEach(function (file) {
+                        paths.forEach(function (file) {
                             filesToOpen.push(FileSystem.getFileForPath(file));
                         });
                         MainViewManager.addListToWorkingSet(paneId, filesToOpen);
                         
-                        _doOpen(filteredPaths[filteredPaths.length - 1], silent, paneId)
+                        _doOpen(paths[paths.length - 1], silent, paneId)
                             .done(function (file) {
                                 _defaultOpenDialogFullPath =
                                     FileUtils.getDirectoryPath(
