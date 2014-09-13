@@ -28,36 +28,20 @@
 define(function (require, exports, module) {
     "use strict";
    
-    var Async           = require("utils/Async"),
-        CommandManager  = require("command/CommandManager"),
-        Commands        = require("command/Commands"),
-        Dialogs         = require("widgets/Dialogs"),
-        DefaultDialogs  = require("widgets/DefaultDialogs"),
-        MainViewManager = require("view/MainViewManager"),
-        MainViewFactory = require("view/MainViewFactory"),
-        LanguageManager = require("language/LanguageManager"),
-        FileSystem      = require("filesystem/FileSystem"),
-        EditorManager   = require("editor/EditorManager"),
-        FileUtils       = require("file/FileUtils"),
-        ProjectManager  = require("project/ProjectManager"),
-        Strings         = require("strings"),
-        StringUtils     = require("utils/StringUtils");
-    
-    /**
-     * Return an array of files excluding all files without a registered viewer. 
-     *
-     * @param {Array.<string>} paths - filenames to filter before opening.
-     * @return {Array.<string>} paths which can actually be opened (may be empty)
-     */
-    function filterFilesToOpen(paths) {
-        // Filter out file in which we have no registered viewer
-        var filteredFiles = paths.filter(function (fullPath) {
-            return !LanguageManager.getLanguageForPath(fullPath).isBinary() ||
-                MainViewFactory.findSuitableFactoryForPath(fullPath);
-        });
-        
-        return filteredFiles;
-    }
+    var Async               = require("utils/Async"),
+        CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
+        Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
+        MainViewManager     = require("view/MainViewManager"),
+        MainViewFactory     = require("view/MainViewFactory"),
+        LanguageManager     = require("language/LanguageManager"),
+        FileSystem          = require("filesystem/FileSystem"),
+        EditorManager       = require("editor/EditorManager"),
+        FileUtils           = require("file/FileUtils"),
+        ProjectManager      = require("project/ProjectManager"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils");
     
     /**
      * Returns true if the drag and drop items contains valid drop objects.
@@ -91,11 +75,10 @@ define(function (require, exports, module) {
      * @return {Promise} Promise that is resolved if all files are opened, or rejected
      *     if there was an error. 
      */
-    function openDroppedFiles(files) {
-        var errorFiles = [],
-            filteredFiles = filterFilesToOpen(files);
+    function openDroppedFiles(paths) {
+        var errorFiles = [];
         
-        return Async.doInParallel(filteredFiles, function (path, idx) {
+        return Async.doInParallel(paths, function (path, idx) {
             var result = new $.Deferred();
             
             // Only open files.
@@ -104,7 +87,7 @@ define(function (require, exports, module) {
                     // If the file is already open, and this isn't the last
                     // file in the list, return. If this *is* the last file,
                     // always open it so it gets selected.
-                    if (idx < filteredFiles.length - 1) {
+                    if (idx < paths.length - 1) {
                         if (MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, path) !== -1) {
                             result.resolve();
                             return;
@@ -120,7 +103,7 @@ define(function (require, exports, module) {
                             errorFiles.push(path);
                             result.reject();
                         });
-                } else if (!err && item.isDirectory && filteredFiles.length === 1) {
+                } else if (!err && item.isDirectory && paths.length === 1) {
                     // One folder was dropped, open it.
                     ProjectManager.openProject(path)
                         .done(function () {
@@ -164,5 +147,4 @@ define(function (require, exports, module) {
     // Export public API
     exports.isValidDrop         = isValidDrop;
     exports.openDroppedFiles    = openDroppedFiles;
-    exports.filterFilesToOpen   = filterFilesToOpen;
 });
