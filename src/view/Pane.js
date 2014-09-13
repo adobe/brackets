@@ -1029,12 +1029,8 @@ define(function (require, exports, module) {
                 if (needOpenNextFile) {
                     this._execOpenFile(fullPath)
                         .fail(function () {
-                            // the FILE_OPEN op failed so
-                            //  we need to cleanup by hiding and destroying the current view
-                            self._hideCurrentView();
-                            var view = self._views[file.fullPath];
-                            delete self._views[file.fullPath];
-                            view.destroy();
+                            // the FILE_OPEN op failed so destroy the current view
+                            self._doDestroyView(self._currentView);
                         });
                 }
                 return true;
@@ -1078,10 +1074,14 @@ define(function (require, exports, module) {
                 // Don't need to destroy the current view. 
                 // It was marked for destroy so it's now a temporary view
                 //  and will get destroyed when the FILE_OPEN command opens the new view
-                this._execOpenFile(this._viewListMRUOrder[0].fullPath);
+                this._execOpenFile(this._viewListMRUOrder[0].fullPath)
+                    .fail(function () {
+                        // the FILE_OPEN op failed so destroy the current view
+                        self._doDestroyView(self._currentView);
+                    });
             } else {
-                // Nothing left to show.
-                this._doDestroyView(self._currentView);
+                // Nothing left to show so destroy the current view
+                this._doDestroyView(this._currentView);
             }
         }
         
