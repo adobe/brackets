@@ -478,6 +478,10 @@ define(function (require, exports, module) {
     directoryNode = React.createClass({
         mixins: [contextSettable, pathComputer, extendable],
 
+        getInitialState: function () {
+            return {subDirectoriesOpen: null};
+        },
+
         /**
          * We need to update this component if the sort order changes or our entry object
          * changes. Thanks to immutability, if any of the directory contents change, our
@@ -494,14 +498,27 @@ define(function (require, exports, module) {
          * If you click on a directory, it will toggle between open and closed.
          */
         handleClick: function (event) {
-            var setOpen = this.props.entry.get("open") ? false : true;
             if (event.altKey) {
-                if (setOpen) {
-                    this.props.actions.openSubdirectories(this.myPath());
+                if (event.metaKey || event.ctrlKey) {
+                    if (this.props.entry.get("open")) {
+                        this.props.actions.toggleSubdirectories(this.props.parentPath, false);
+                    } else {
+                        this.props.actions.toggleSubdirectories(this.props.parentPath, true);
+                    }
                 } else {
-                    this.props.actions.closeSubdirectories(this.myPath());
+                    var isOpen = this.props.entry.get("open");
+
+                    if ((!isOpen) || (isOpen && !this.state.subDirectoriesOpen)) {
+                        this.props.actions.toggleSubdirectories(this.myPath(), true);
+                        this.setState({subDirectoriesOpen: true});
+                    } else {
+                        this.props.actions.toggleSubdirectories(this.myPath(), false);
+                        this.setState({subDirectoriesOpen: false});
+                    }
                 }
             } else {
+                var setOpen = this.props.entry.get("open") ? false : true;
+
                 this.props.actions.setDirectoryOpen(this.myPath(), setOpen);
             }
             return false;

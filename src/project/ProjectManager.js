@@ -324,17 +324,10 @@ define(function (require, exports, module) {
     };
 
     /**
-     * See `ProjectModel.openSubdirectories`
+     * See `ProjectModel.toggleSubdirectories`
      */
-    ActionCreator.prototype.openSubdirectories = function (path) {
-        this.model.openSubdirectories(path);
-    };
-
-    /**
-     * See `ProjectModel.closeSubdirectories`
-     */
-    ActionCreator.prototype.closeSubdirectories = function (path) {
-        this.model.closeSubdirectories(path);
+    ActionCreator.prototype.toggleSubdirectories = function (path, openOrClose) {
+        this.model.toggleSubdirectories(path, openOrClose);
     };
 
     /**

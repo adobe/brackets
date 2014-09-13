@@ -460,11 +460,10 @@ define(function (require, exports, module) {
                 vm = new FileTreeViewModel.FileTreeViewModel();
             });
 
-            it("should return an empty list when there are no open nodes", function () {
+            it("should return an empty list when there are no child nodes", function () {
                 vm._treeData = Immutable.fromJS({
                     file: {},
                     subdir: {
-                        children: null
                     }
                 });
                 expect(vm.getChildDirectories("/foo/bar/")).toEqual([]);
@@ -472,35 +471,31 @@ define(function (require, exports, module) {
 
             it("should return all child directories", function () {
                 vm._treeData = Immutable.fromJS({
-                    root: {
+                    subdir1: {
+                        open: true,
                         children: {
-                            subdir1: {
-                                open: true,
-                                children: {
-                                    subsubdir: {
-                                        children: {},
-                                        open: true
-                                    }
-                                }
-                            },
-                            subdir2: {
-                                children: {}
-                            },
-                            subdir3: {
-                                open: true,
-                                children: null
-                            },
-                            subdir4: {
-                                open: true,
-                                children: {}
-                            },
-                            filea: {},
-                            fileb: {}
+                            subsubdir: {
+                                children: {},
+                                open: true
+                            }
                         }
-                    }
+                    },
+                    subdir2: {
+                        children: {}
+                    },
+                    subdir3: {
+                        open: true,
+                        children: null
+                    },
+                    subdir4: {
+                        open: true,
+                        children: {}
+                    },
+                    filea: {},
+                    fileb: {}
                 });
 
-                expect(vm.getChildDirectories("/root/")).toEqual([
+                expect(vm.getChildDirectories("")).toEqual([
                     "subdir1/",
                     "subdir2/",
                     "subdir3/",
@@ -703,60 +698,6 @@ define(function (require, exports, module) {
                 expect(changesFired).toBe(1);
                 expect(vm._treeData).not.toBe(originalTreeData);
                 expect(vm._treeData.get("topfile.js")).toBeUndefined();
-            });
-        });
-
-        describe("toggleCollapse", function () {
-            var vm = new FileTreeViewModel.FileTreeViewModel(),
-                changeFired;
-            vm.on(FileTreeViewModel.EVENT_CHANGE, function () {
-                changeFired = true;
-            });
-
-            beforeEach(function () {
-                changeFired = false;
-                vm.treeData = Immutable.fromJS({
-                    "level1": {
-                        open: false,
-                        children: {
-                            subdir1: {
-                                open: false,
-                                children: {
-                                    "afile.js": {},
-                                    subdir3: {
-                                        open: false,
-                                        children: {}
-                                    }
-                                }
-                            },
-                            subdir2: {
-                                open: false,
-                                children: {
-                                    "bfile.js" : {}
-                                }
-                            },
-                            "cfile.js" : {}
-                        }
-                    }
-                });
-            });
-
-            it("should expand 1st level subdirectories when alt pressed plus left click on toplevel directory", function () {
-                vm.toggleSubdirectories("level1", true);
-                expect(vm.treeData.getIn(["level1", "open"])).toBe(true);
-                expect(vm.treeData.getIn(["level1", "children", "subdir1", "open"])).toBe(true);
-                expect(vm.treeData.getIn(["level1", "children", "subdir2", "open"])).toBe(true);
-                expect(vm.treeData.getIn(["level1", "children", "subdir1", "children", "subdir3", "open"])).toBe(false);
-                expect(changeFired).toBe(true);
-            });
-
-            xit("should expand 1st level subdirectories when alt pressed plus left click on subdirectory", function () {
-                vm.toggleSubdirectories("level1/subdir1", true);
-                expect(vm.treeData.getIn(["level1", "open"])).toBe(true);
-                expect(vm.treeData.getIn(["level1", "children", "subdir1", "open"])).toBe(true);
-                expect(vm.treeData.getIn(["level1", "children", "subdir2", "open"])).toBe(false);
-                expect(vm.treeData.getIn(["level1", "children", "subdir1", "children", "subdir3", "open"])).toBe(true);
-                expect(changeFired).toBe(true);
             });
         });
     });

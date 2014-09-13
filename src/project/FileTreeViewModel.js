@@ -315,13 +315,11 @@ define(function (require, exports, module) {
             }
 
             treeData.forEach(function (value, key) {
-                if (isFile(value)) {
-                    return;
+                if (!isFile(value)) {
+                    var directoryPath = key + "/";
+
+                    childDirectories.push(directoryPath);
                 }
-
-                var directoryPath = key + "/";
-
-                childDirectories.push(directoryPath);
             });
         }
 
@@ -352,8 +350,15 @@ define(function (require, exports, module) {
             return;
         }
 
-        objectPath.push("children");
-        var children = this._treeData.getIn(objectPath);
+        var children;
+        if (objectPath.length === 0) {
+            // this is the root of the tree
+            children = this._treeData;
+        } else {
+            objectPath.push("children");
+            children = this._treeData.getIn(objectPath);
+        }
+
         return _getChildDirectories(children, parent);
     };
 
@@ -442,34 +447,6 @@ define(function (require, exports, module) {
             directory = directory["delete"](originalName);
             directory = directory.set(newName, currentObject);
             return directory;
-        });
-
-        this._commitTreeData(treeData);
-    };
-
-    FileTreeViewModel.prototype.toggleSubdirectories = function (currentPath, open) {
-        var treeData = this._treeData,
-            objectPath = _filePathToObjectPath(treeData, currentPath);
-
-        if (!objectPath) {
-            return;
-        }
-
-        objectPath.push("children");
-        treeData = treeData.updateIn(objectPath, function (map) {
-            var seq = map.map(function (node) {
-                if (!isFile(node)) {
-                    return node.set("open", open);
-                }
-
-                return node;
-            });
-
-            return seq.toMap();
-        });
-
-        treeData = treeData.updateIn(objectPath, function (directory) {
-            return directory.set("open", open);
         });
 
         this._commitTreeData(treeData);

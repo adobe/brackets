@@ -1112,9 +1112,10 @@ define(function (require, exports, module) {
 
     /**
      * Toggle the open state of subdirectories.
-     * @param {!string} path parent directory
+     * @param {!string}  path        parent directory
+     * @param {boolean} openOrClose  true to open directory, false to close
      */
-    ProjectModel.prototype.openSubdirectories = function (path) {
+    ProjectModel.prototype.toggleSubdirectories = function (path, openOrClose) {
         var self = this;
 
         this.setDirectoryOpen(path, true).then(function () {
@@ -1122,20 +1123,7 @@ define(function (require, exports, module) {
                 childNodes = self.getChildDirectories(projectRelativePath);
 
             childNodes.forEach(function (node) {
-                self.setDirectoryOpen(path + node, true);
-            });
-        });
-    };
-
-    ProjectModel.prototype.closeSubdirectories = function (path) {
-        var self = this;
-
-        this.setDirectoryOpen(path, false).then(function () {
-            var projectRelativePath = self.makeProjectRelativeIfPossible(path),
-                childNodes = self.getChildDirectories(projectRelativePath);
-
-            childNodes.forEach(function (node) {
-                self.setDirectoryOpen(path + node, false);
+                self.setDirectoryOpen(path + node, openOrClose);
             });
         });
     };
