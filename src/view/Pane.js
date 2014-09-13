@@ -1027,6 +1027,7 @@ define(function (require, exports, module) {
             
             if (this._doRemove(file, needOpenNextFile)) {
                 if (needOpenNextFile) {
+                    // this will destroy the current view
                     this._execOpenFile(fullPath)
                         .fail(function () {
                             // the FILE_OPEN op failed so destroy the current view
@@ -1059,22 +1060,23 @@ define(function (require, exports, module) {
         // Check to see if we need to destroy the current view later
         needsDestroyCurrentView = _.findIndex(list, function (file) {
             return file.fullPath === self.getCurrentlyViewedPath();
-        });
+        }) !== -1;
 
         // destroy the views in the list 
         result = list.filter(function (file) {
             return (self.removeView(file, true, true));
         });
 
-
         // we may have been passed a list of files that did not include the current view
         if (needsDestroyCurrentView) {
             // _doRemove will have whittled the MRU list down to just the remaining views 
-            if (this._viewListMRUOrder.length) {
-                // Don't need to destroy the current view. 
-                // It was marked for destroy so it's now a temporary view
-                //  and will get destroyed when the FILE_OPEN command opens the new view
-                this._execOpenFile(this._viewListMRUOrder[0].fullPath)
+            var nextFile = this.traverseViewListByMRU(1, this.getCurrentlyViewedPath()),
+                fullPath = nextFile && nextFile.fullPath,
+                needOpenNextFile = fullPath && (this.findInViewList(fullPath) !== -1);
+            
+            if (needOpenNextFile) {
+                // A successful open will destroy the current view 
+                this._execOpenFile(fullPath)
                     .fail(function () {
                         // the FILE_OPEN op failed so destroy the current view
                         self._doDestroyView(self._currentView);
