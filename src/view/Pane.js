@@ -626,6 +626,23 @@ define(function (require, exports, module) {
         $(this).triggerHandler("currentViewChange", [newView, oldView]);
     };
     
+    
+    /**
+     * Destroys a view and removes it from the view map. If it is the current view then the view 
+     * is first hidden and the interstitial page is displayed
+     * @private
+     * @param {!View} view - view to destroy
+     */
+    Pane.prototype._doDestroyView = function (view) {
+        if (this._currentView === view) {
+            // if we're removing the current
+            //  view then we need to hide the view
+            this._hideCurrentView();
+        }
+        delete this._views[view.getFile().fullPath];
+        view.destroy();
+    };
+    
     /**
      * Removes the specifed file from all internal lists, destroys the view of the file (if there is one)
      *  and shows the interstitial page if the current view is destroyed
@@ -658,13 +675,7 @@ define(function (require, exports, module) {
 
         if (view) {
             if (!preventViewChange) {
-                if (this._currentView === view) {
-                    // if we're removing the current
-                    //  view then we need to hide the view
-                    this._hideCurrentView();
-                }
-                delete this._views[file.fullPath];
-                view.destroy();
+                this._doDestroyView(view);
             }
         }
         
@@ -1042,11 +1053,52 @@ define(function (require, exports, module) {
      *  in the result set.  Only the file objects removed from the working set are returned.
      */
     Pane.prototype.removeViews = function (list) {
-        var self = this;
-        
-        return list.filter(function (file) {
-            return (self.removeView(file));
+        var self = this,
+            needsDestroyCurrentView = false,
+            doDestroyViewImpl = this._doDestroyView,
+            result;
+
+        // since we're closing a list of files, we don't want to change the view to the next one in succession
+        //  so pass true to removeView below to avoid opening the next file.  
+        // Doing so will calls the call to _removeView to destroy the current view if the current view is in 
+        //  the list of views to destroy. This will cause a currentFileChange notification and the interstitial 
+        //  page to be displayed.  Both bad.
+        // Override _destroyView so that it won't destroy the current view if it's in the list of views to destroy. 
+        // This will effectively make the current view act like a temporary view so we either replace it 
+        //  with the next one in line which will destroy it or we just destroy it out-right
+        this._doDestroyView = function (view) {
+            if (self._currentView === view) {
+                needsDestroyCurrentView = true;
+                return;
+            }
+            // call protype impl
+            doDestroyViewImpl.apply(self, [view]);
+        };
+
+        // destroy the views in the list 
+        result = list.filter(function (file) {
+            return (self.removeView(file, true));
         });
+
+        // cleanup
+        this._doDestroyView = doDestroyViewImpl;
+
+        // we may have been passed a list of files that did not include the current view so we're done in that case
+        if (needsDestroyCurrentView) {
+            // _doRemove will have whittled the MRU list down to just the remaining views 
+            if (this._viewListMRUOrder.length) {
+                // Don't need to destroy the current view. 
+                // It was marked for destroy so it's now a temporary view
+                //  and will get destroyed when the FILE_OPEN command opens the new view
+                this._execOpenFile(this._viewListMRUOrder[0].fullPath);
+            } else {
+                // Nothing left to show.
+                this._doDestroyView(self._currentView);
+            }
+        }
+        
+        // return the result
+        return result;
     };
     
     /**
