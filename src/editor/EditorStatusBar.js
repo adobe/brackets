@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         AppInit                      = require("utils/AppInit"),
         DropdownButton               = require("widgets/DropdownButton").DropdownButton,
         EditorManager                = require("editor/EditorManager"),
+        MainViewManager     = require("view/MainViewManager"),
         Editor                       = require("editor/Editor").Editor,
         FileUtils                    = require("file/FileUtils"),
         KeyEvent                     = require("utils/KeyEvent"),
@@ -184,7 +185,7 @@ define(function (require, exports, module) {
         $indentWidthInput.off("blur keyup");
         
         // restore focus to the editor
-        EditorManager.focusEditor();
+        MainViewManager.focusActivePane();
         
         var valInt = parseInt(value, 10);
         if (Editor.getUseTabChar(fullPath)) {
@@ -260,10 +261,10 @@ define(function (require, exports, module) {
         }
         
         if (!current) {
-            StatusBar.hide();  // calls resizeEditor() if needed
+            StatusBar.hideAllPanes();
         } else {
             var fullPath = current.document.file.fullPath;
-            StatusBar.show();  // calls resizeEditor() if needed
+            StatusBar.showAllPanes();
             
             $(current).on("cursorActivity.statusbar", _updateCursorInfo);
             $(current).on("optionChange.statusbar", function () {
@@ -396,8 +397,6 @@ define(function (require, exports, module) {
         });
 
         $statusOverwrite.on("click", _updateEditorOverwriteMode);
-        
-        _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
     }
 
     // Initialize: status bar focused listener
@@ -408,5 +407,7 @@ define(function (require, exports, module) {
         // Populate language switcher with all languages after startup; update it later if this set changes
         _populateLanguageDropdown();
         $(LanguageManager).on("languageAdded languageModified", _populateLanguageDropdown);
+        _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
+        StatusBar.show();
     });
 });

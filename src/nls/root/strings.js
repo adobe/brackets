@@ -38,6 +38,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
     "CONTENTS_MODIFIED_ERR"             : "The file has been modified outside of {APP_NAME}.",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} currently only supports UTF-8 encoded text files.",
+    "UNSUPPORTED_FILE_TYPE_ERR"         : "The file is not a supported file type.",
     "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
     "FILE"                              : "file",
     "FILE_TITLE"                        : "File",
@@ -219,7 +220,15 @@ define({
      */
     "PROJECT_LOADING"   : "Loading\u2026",
     "UNTITLED"          : "Untitled",
-    "WORKING_FILES"     : "Working Files",
+    "WORKING_FILES"        : "Working Files",
+
+    /**
+     * MainViewManager
+     */
+    "TOP"               : "Top",
+    "BOTTOM"            : "Bottom",
+    "LEFT"              : "Left",
+    "RIGHT"             : "Right",
 
     /**
      * Keyboard modifier names
@@ -277,7 +286,7 @@ define({
     "CMD_FILE_NEW"                        : "New File",
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Add To Working Set",
+    "CMD_ADD_TO_WORKINGSET_AND_OPEN"      : "Add To Working Set and Open",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
     "CMD_FILE_CLOSE"                      : "Close",
@@ -356,10 +365,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
     "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Files on Save",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sort by Added",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatic Sort",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Sort by Added",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Sort by Name",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sort by Type",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatic Sort",
     "CMD_THEMES"                          : "Themes\u2026",
 
     // Navigate menu Commands
@@ -403,7 +412,7 @@ define({
     "RELAUNCH_CHROME"                      : "Relaunch Chrome",
     "ABOUT"                                : "About",
     "CLOSE"                                : "Close",
-    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "Release {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_BUILD_TIMESTAMP"           : "build timestamp: ",
     "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
@@ -422,6 +431,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unknown error parsing Base URL",
+    "EMPTY_VIEW_HEADER"                    : "<em>Select a file while this view has focus</em>",
     
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Current Theme",
@@ -551,6 +561,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Open Brackets Source",
     
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",

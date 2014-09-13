@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         Menus               = brackets.getModule("command/Menus"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings"),
-        ViewUtils           = brackets.getModule("utils/ViewUtils");
+        ViewUtils           = brackets.getModule("utils/ViewUtils"),
+        TokenUtils          = brackets.getModule("utils/TokenUtils");
    
     var previewContainerHTML       = require("text!QuickViewTemplate.html");
     
@@ -54,6 +55,8 @@ define(function (require, exports, module) {
         POINTER_HEIGHT              = 15,   // Pointer height, used to shift popover above pointer (plus a little bit of space)
         POPOVER_HORZ_MARGIN         =  5;   // Horizontal margin
     
+    var styleLanguages = ["css", "text/x-less", "sass", "text/x-scss"];
+
     prefs = PreferencesManager.getExtensionPrefs("quickview");
     prefs.definePreference("enabled", "boolean", true);
 
@@ -107,18 +110,17 @@ define(function (require, exports, module) {
         popoverState = null;
     }
     
-    function positionPreview(xpos, ypos, ybot) {
+    function positionPreview(editor, xpos, ypos, ybot) {
         var previewWidth  = $previewContainer.outerWidth(),
             top           = ypos - $previewContainer.outerHeight() - POINTER_HEIGHT,
             left          = xpos - previewWidth / 2,
-            $editorHolder = $("#editor-holder"),
             elementRect = {
                 top:    top,
                 left:   left - POPOVER_HORZ_MARGIN,
                 height: $previewContainer.outerHeight() + POINTER_HEIGHT,
                 width:  previewWidth + 2 * POPOVER_HORZ_MARGIN
             },
-            clip = ViewUtils.getElementClipSize($editorHolder, elementRect);
+            clip = ViewUtils.getElementClipSize($(editor.getRootElement()), elementRect);
 
         // Prevent horizontal clipping
         if (clip.left > 0) {
@@ -233,8 +235,9 @@ define(function (require, exports, module) {
             };
         }
 
-        function execColorMatch(line) {
-            var colorMatch;
+        function execColorMatch(editor, line, pos) {
+            var colorMatch,
+                ignoreNamedColors;
 
             function hyphenOnMatchBoundary(match, line) {
                 var beforeIndex, afterIndex;
@@ -252,11 +255,24 @@ define(function (require, exports, module) {
                 
                 return false;
             }
+            function isNamedColor(match) {
+                if (match && match[0] && /^[a-z]+$/i.test(match[0])) { // only for color names, not for hex-/rgb-values
+                    return true;
+                }
+            }
 
             // Hyphens do not count as a regex word boundary (\b), so check for those here
             do {
                 colorMatch = colorRegEx.exec(line);
-            } while (colorMatch && hyphenOnMatchBoundary(colorMatch, line));
+                if (!colorMatch) {
+                    break;
+                }
+                if (ignoreNamedColors === undefined) {
+                    var mode = TokenUtils.getModeAt(editor._codeMirror, pos).name;
+                    ignoreNamedColors = styleLanguages.indexOf(mode) === -1;
+                }
+            } while (hyphenOnMatchBoundary(colorMatch, line) ||
+                    (ignoreNamedColors && isNamedColor(colorMatch)));
 
             return colorMatch;
         }
@@ -351,7 +367,7 @@ define(function (require, exports, module) {
         }
 
         var gradientMatch = execGradientMatch(line),
-            match = gradientMatch.match || execColorMatch(line),
+            match = gradientMatch.match || execColorMatch(editor, line, pos),
             cm = editor._codeMirror;
 
         while (match) {
@@ -397,7 +413,7 @@ define(function (require, exports, module) {
             if (gradientMatch.match) {
                 gradientMatch = execGradientMatch(line);
             }
-            match = gradientMatch.match || execColorMatch(line);
+            match = gradientMatch.match || execColorMatch(editor, line, pos);
         }
         
         return null;
@@ -472,7 +488,7 @@ define(function (require, exports, module) {
                                         "</div>"
                                     );
                             $previewContainer.show();
-                            positionPreview(popoverState.xpos, popoverState.ytop, popoverState.ybot);
+                            positionPreview(editor, popoverState.xpos, popoverState.ytop, popoverState.ybot);
                         });
                     };
                     
@@ -605,7 +621,7 @@ define(function (require, exports, module) {
             if (popoverState.onShow) {
                 popoverState.onShow();
             } else {
-                positionPreview(popoverState.xpos, popoverState.ytop, popoverState.ybot);
+                positionPreview(editor, popoverState.xpos, popoverState.ytop, popoverState.ybot);
             }
         }
     }
