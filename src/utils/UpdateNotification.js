@@ -31,13 +31,14 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Dialogs              = require("widgets/Dialogs"),
+    var _                    = require("thirdparty/lodash"),
+        Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         ExtensionManager     = require("extensibility/ExtensionManager"),
         PreferencesManager   = require("preferences/PreferencesManager"),
         Global               = require("utils/Global"),
+        LocalizationUtils    = require("utils/LocalizationUtils"),
         NativeApp            = require("utils/NativeApp"),
-        StringUtils          = require("utils/StringUtils"),
         Strings              = require("strings"),
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
         UpdateListTemplate   = require("text!htmlContent/update-list.html");
@@ -94,17 +95,9 @@ define(function (require, exports, module) {
     /**
      * Construct a new version update url with the given locale.
      *
-     * @param {string=} locale - optional locale, defaults to 'brackets.getLocale()' when omitted.
-     * @param {boolean=} removeCountryPartOfLocale - optional, remove existing country information from locale 'en-gb' => 'en'
      * return {string} the new version update url
      */
-    function _getVersionInfoUrl(locale, removeCountryPartOfLocale) {
-        locale = locale || brackets.getLocale();
-
-        if (removeCountryPartOfLocale) {
-            locale = locale.substring(0, 2);
-        }
-
+    function _getVersionInfoUrl(locale) {
         return brackets.config.update_info_url + locale + ".json";
     }
 
@@ -153,39 +146,28 @@ define(function (require, exports, module) {
             // Note: we check for both "en" and "en-US" to watch for the general case or
             //    country-specific English locale.  The former appears default on Mac, while
             //    the latter appears default on Windows.
-            var locale = brackets.getLocale().toLowerCase();
-            if (locale !== "en" && locale !== "en-us") {
-                localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl();
-                $.ajax({
-                    url: localVersionInfoUrl,
-                    cache: false,
-                    type: "HEAD"
-                }).fail(function (jqXHR, status, error) {
-                    // get rid of any country information from locale and try again
-                    var tmpUrl = _getVersionInfoUrl(brackets.getLocale(), true);
-                    if (tmpUrl !== localVersionInfoUrl) {
-                        $.ajax({
-                            url: tmpUrl,
-                            cache: false,
-                            type: "HEAD"
-                        }).fail(function (jqXHR, status, error) {
-                            localVersionInfoUrl = _getVersionInfoUrl("en");
-                        }).done(function (jqXHR, status, error) {
-                            localVersionInfoUrl = tmpUrl;
-                        }).always(function (jqXHR, status, error) {
-                            lookupPromise.resolve();
-                        });
-                    } else {
-                        localVersionInfoUrl = _getVersionInfoUrl("en");
-                        lookupPromise.resolve();
-                    }
-                }).done(function (jqXHR, status, error) {
+            _.forEach(LocalizationUtils.languages(), function (lang, i) {
+                lang = lang.toLowerCase();
+                localVersionInfoUrl = undefined;
+                if (i === 0 && _versionInfoUrl) { // for unit tests
+                    localVersionInfoUrl = _versionInfoUrl;
+                }
+                if (lang === "en" || lang === "en-us") {
+                    localVersionInfoUrl = localVersionInfoUrl || _getVersionInfoUrl("en");
                     lookupPromise.resolve();
-                });
-            } else {
-                localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl("en");
-                lookupPromise.resolve();
-            }
+                } else {
+                    localVersionInfoUrl = localVersionInfoUrl || _getVersionInfoUrl(lang);
+                    $.ajax({
+                        url: localVersionInfoUrl,
+                        async: false,
+                        cache: false,
+                        type: "HEAD"
+                    }).done(lookupPromise.resolve);
+                    if (lookupPromise.state() === "resolved") {
+                        return false; // break the loop
+                    }
+                }
+            });
 
             lookupPromise.done(function () {
                 $.ajax({

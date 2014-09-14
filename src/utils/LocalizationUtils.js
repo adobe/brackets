@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, brackets */
 
 /**
  *  Utilities functions related to localization/i18n
@@ -31,7 +31,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Strings = require("strings");
+    var _       = require("thirdparty/lodash"),
+        Strings = require("strings");
 
     /*
      * Converts a language code to its written name, if possible.
@@ -47,7 +48,39 @@ define(function (require, exports, module) {
         return i18n === undefined ? locale : i18n;
     }
 
+    /*
+     * Returns the locale with the country part removed.
+     * Example: en-US -> en
+     *
+     * @param {string} locale  The five-char or two-char language code. Defaults to brackets.getLocale()
+     * @return {string} The two-char language code with the country part removed
+     */
+    function shortLang(locale) {
+        locale = locale || brackets.getLocale();
+        return locale.split("-")[0];
+    }
+
+    /*
+     * @return {Array} The users preferred languages, in order of priority
+     */
+    function userLanguages() {
+        var locale = brackets.getLocale();
+        return _.uniq([locale, shortLang(locale)]);
+    }
+
+    /*
+     * @return {Array} The users preferred languages including English, in order of priority
+     */
+    function languages() {
+        var locale = brackets.getLocale();
+        return _.uniq([locale, shortLang(locale), "en"]);
+    }
+
 
     // Define public API
-    exports.getLocalizedLabel = getLocalizedLabel;
+    exports.shortLang           = shortLang;
+    exports.userLanguages       = userLanguages;
+    exports.languages           = languages;
+
+    exports.getLocalizedLabel   = getLocalizedLabel;
 });

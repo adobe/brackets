@@ -250,7 +250,7 @@ define(function (require, exports, module) {
 
         if (Array.isArray(info.metadata.i18n) && info.metadata.i18n.length > 0) {
             var lang      = brackets.getLocale(),
-                shortLang = lang.split("-")[0];
+                shortLang = LocalizationUtils.shortLang(lang);
 
             context.translated = true;
             context.translatedLangs =
