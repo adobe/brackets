@@ -39,12 +39,12 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "دسترسی های تعریف شده برای شما اجازه تغییرات را نمی دهند.",
     "CONTENTS_MODIFIED_ERR"             : "این پرونده قبل خارج از محیط این نرم افزار ویرایش شده است.",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} فعلا تنها از پرونده ها با ساختار یونیکدی UTF-8 پشتیبانی می کند.",
-    "UNSUPPORTED_FILE_TYPE_ERR"         : "از این نوع فایل پشتیبانی نمی شود.", 
+    "UNSUPPORTED_FILE_TYPE_ERR"         : "از این نوع پرونده پشتیبانی نمی شود.",
     "FILE_EXISTS_ERR"                   : "پرونده یا پوشه مد نظر موجود می باشد.",
     "FILE"                              : "پرونده",
-    "FILE_TITLE"                        : "پرونده", 
+    "FILE_TITLE"                        : "پرونده",
     "DIRECTORY"                         : "پوشه",
-    "DIRECTORY_TITLE"                   : "پوشه", 
+    "DIRECTORY_TITLE"                   : "پوشه",
     "DIRECTORY_NAMES_LEDE"              : "نام های پوشه",
     "FILENAMES_LEDE"                    : "نام های پرونده",
     "FILENAME"                          : "نام پرونده",
@@ -72,7 +72,7 @@ define({
     "INVALID_FILENAME_MESSAGE"          : "نام پرونده نمی تواند شامل مقادیر زیر باشد: {0} و همچنین نمی توانید از عبارات مورد استفاده نرم افزار استفاده نمایید.",
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "پوشه یا پروندهی با نام <span class='dialog-filename'>{0}</span> هم اکنون موجود است.",
     "ERROR_CREATING_FILE_TITLE"         : "خطا در ایجاد {0}",
-    "ERROR_CREATING_FILE"               : "خطا در هنگام ایجاد {0} <span class='dialog-filename'>{1}</span>. {2}", 
+    "ERROR_CREATING_FILE"               : "خطا در هنگام ایجاد {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE" : "خطا در خواندن تنظیمات",
@@ -123,7 +123,7 @@ define({
 
 
     // Generic dialog/button labels
-    "DONE"                              : "انجام", 
+    "DONE"                              : "انجام",
     "OK"                                : "تائید",
     "CANCEL"                            : "لغو",
     "DONT_SAVE"                         : "ذخیره نکن",
@@ -135,12 +135,12 @@ define({
     "BUTTON_NO"                         : "خیر",
 
     // Find, Replace, Find in Files
-    "FIND_MATCH_INDEX"                  : "{0} از {1}", 
+    "FIND_MATCH_INDEX"                  : "{0} از {1}",
     "FIND_NO_RESULTS"                   : "بدون نتیجه",
-    "FIND_QUERY_PLACEHOLDER"            : "جستجو\u2026", 
+    "FIND_QUERY_PLACEHOLDER"            : "جستجو\u2026",
     "REPLACE_PLACEHOLDER"               : "جایگزینی با\u2026",
     "BUTTON_REPLACE_ALL"                : "همه\u2026",
-    "BUTTON_REPLACE_ALL_IN_FILES"       : "جایگزینی\u2026", 
+    "BUTTON_REPLACE_ALL_IN_FILES"       : "جایگزینی\u2026",
     "BUTTON_REPLACE"                    : "جایگزینی",
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
@@ -165,7 +165,7 @@ define({
     "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} در {3}",
 
     // Find in Files
-    "FIND_NUM_FILES"                    : "{0} {1}", 
+    "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "در <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "در پروژ]",
     "FIND_IN_FILES_ZERO_FILES"          : "فیلترسازی تمامی پرونده های منع شده {0}",
@@ -178,19 +178,19 @@ define({
     "FIND_IN_FILES_FILE_PATH"           : "پرونده: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "جهت بازکردن/بستن منوها کلید Ctrl/Cmd را گرفته و کلیک کنید.",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "خطاهای جایگزینی مقادیر",
-    "REPLACE_IN_FILES_ERRORS"           : "پرونده های زیر قابل ویرایش نبودن. علت می تواند از قابل نوشتن نبودن پرونده های و یا تغییر آن های بعد از جستجو باشد.", 
+    "REPLACE_IN_FILES_ERRORS"           : "پرونده های زیر قابل ویرایش نبودن. علت می تواند از قابل نوشتن نبودن پرونده های و یا تغییر آن های بعد از جستجو باشد.",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "درحال بروزرسانی اطلاعات خطا",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "بروز خطا در هنگام دستیابی به آخرین اطلاعات بروزرسانی از سرویس دهنده. اطمینان حاصل کنید که به اینترنت متصل بوده و دوباره تلاش نمایید.",
 
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "اعمال یک تصویه(فیلتر) جدید\u2026",
-    "CLEAR_FILE_FILTER"                 : "رفع نادیده گیری پرونده ها", 
+    "CLEAR_FILE_FILTER"                 : "رفع نادیده گیری پرونده ها",
     "NO_FILE_FILTER"                    : "این پرونده ها از پرونده های نادیده گرفته شده نیستند",
     "EXCLUDE_FILE_FILTER"                : "نادیده گیری {0}",
     "EDIT_FILE_FILTER"                    : "ویرایش\u2026",
     "FILE_FILTER_DIALOG"                : "ویرایش نادیده گرفته شده ها",
     "FILE_FILTER_INSTRUCTIONS"            : "نادیده گیری پرونده ها و پوشه های منطبق با عبارات زیر یا برخی <a href='{0}' title='{0}'>نویسه های عام</a>. هر عبارت را در یک سطر جدید وارد کنید.",
-    "FILTER_NAME_PLACEHOLDER"           : "نام منع سازی(نادیده گیری مقادیر)-اختیاری", 
+    "FILTER_NAME_PLACEHOLDER"           : "نام منع سازی(نادیده گیری مقادیر)-اختیاری",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "و {0} بیشتر",
     "FILTER_COUNTING_FILES"            : "شمارش پرونده ها\u2026",
     "FILTER_FILE_COUNT"                : "همیشه {0} از {1} پرونده {2}",
@@ -251,10 +251,10 @@ define({
     "STATUSBAR_INSERT"                        : "واردسازی",
     "STATUSBAR_OVERWRITE"                    : "دوباره نویسی",
     "STATUSBAR_INSOVR_TOOLTIP"              : "جهت تغییر حالت از وارد سازی (INS) به بازنویسی (OVR) یا برعکس، کلیک کنید",
-    "STATUSBAR_LANG_TOOLTIP"                : "جهت تغییر نوع فایل، کلیک کنید.",
+    "STATUSBAR_LANG_TOOLTIP"                : "جهت تغییر نوع پرونده، کلیک کنید.",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. باز و بسته کردن پنل گزارشات.",
     "STATUSBAR_DEFAULT_LANG"                : "(پیش فرض)",
-    "STATUSBAR_SET_DEFAULT_LANG"            : "اعمال بعنوان پیش فرض برای .{0} پرونده", 
+    "STATUSBAR_SET_DEFAULT_LANG"            : "اعمال بعنوان پیش فرض برای .{0} پرونده",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} خطا",
@@ -291,7 +291,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "ذخیره همه",
     "CMD_FILE_SAVE_AS"                    : "ذخیره همه\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "پیش نمایش زنده",
-    "CMD_RELOAD_LIVE_PREVIEW"             : "بارگزاری مجدد پیش نمایش زنده(با فشار)", 
+    "CMD_RELOAD_LIVE_PREVIEW"             : "بارگزاری مجدد پیش نمایش زنده(با فشار)",
     "CMD_PROJECT_SETTINGS"                : "تنظیمات پروژه\u2026",
     "CMD_FILE_RENAME"                     : "تغییر نام",
     "CMD_FILE_DELETE"                     : "حذف",
@@ -340,7 +340,7 @@ define({
     "CMD_FIND_IN_SELECTED"                : "جستجو در پرونده/پوشه انتخاب شده",
     "CMD_FIND_IN_SUBTREE"                 : "جستجو در\u2026",
     "CMD_REPLACE"                         : "جستجو و جایگزینی",
-    "CMD_REPLACE_IN_FILES"                : "جایگزینی در پرونده ها", 
+    "CMD_REPLACE_IN_FILES"                : "جایگزینی در پرونده ها",
     "CMD_REPLACE_IN_SELECTED"             : "جایگزینی در پرونده/پوشه های انتخاب شده",
     "CMD_REPLACE_IN_SUBTREE"              : "جایگزینی در\u2026",
 
@@ -362,7 +362,7 @@ define({
     "CMD_WORKINGSET_SORT_BY_NAME"         : "مرتب سازی بر اساس نام",
     "CMD_WORKINGSET_SORT_BY_TYPE"         : "مرتب سازی بر اساس نوع",
     "CMD_WORKING_SORT_TOGGLE_AUTO"        : "مرتب سازی خودکار",
-    "CMD_THEMES"                          : "پوسته ها\u2026", 
+    "CMD_THEMES"                          : "پوسته ها\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "انتقال",
@@ -406,7 +406,7 @@ define({
     "ABOUT"                                : "پیرامون",
     "CLOSE"                                : "بستن",
     "ABOUT_TEXT_LINE1"                     : "پیش روی {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_BUILD_TIMESTAMP"           : "build timestamp: ", 
+    "ABOUT_TEXT_BUILD_TIMESTAMP"           : "build timestamp: ",
     "ABOUT_TEXT_LINE3"                     : "<div style='direction:rtl;margin-right:3px;'>یادداشتهای ها، شرایط و ضوابط مربوط به نرم افزار و حقوق شخص ثالث در آدرس<a href='#' class='clickable-link' data-href='http://www.adobe.com/go/thirdparty/'>http://www.adobe.com/go/thirdparty/</a> جهت تلفیق و بعنوان مرجع قرار داده شده.",
     "ABOUT_TEXT_LINE4"                     : "اسناد، نکات و منابع نرم افزار در پیوند <a href='#' class='clickable-link' data-href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a> در دسترس می باشد. می توانید جهت مشاهده سریع بروزرسانی های قبل از انتشار نرم افزار بهمین لینک مراجعه فرمایید.<br><b>ترجمه توسط محمد یعقوبی<b>",
     "ABOUT_TEXT_LINE5"                     : "ساخته شده با \u2764 و JavaScript و بدست:",
@@ -424,7 +424,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL اصلی نمی تواند hashes مشابه \"{0}\" داشته باشد.",
     "BASEURL_ERROR_INVALID_CHAR"           : "برخی کاراکتر های خاص شبیه '{0}' می بایست %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "خطای ناشناخته در URL اصلی/پایه",
-    "EMPTY_VIEW_HEADER"                    : "<em>Select a file while this view has focus</em>", 
+    "EMPTY_VIEW_HEADER"                    : "<em>Select a file while this view has focus</em>",
     
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "پوسته فعلی",
@@ -487,7 +487,7 @@ define({
     "INSTALL_EXTENSION_DROP"               : "پرونده زیپ را رها کنید تا نصب شود",
     "INSTALL_EXTENSION_DROP_ERROR"         : "نصب/بروزرسانی لغو شد، لطفا خطاهای زیر را برسی کنید:",
     "INSTALL_FROM_URL"                     : "با آدرس اینترنتی نصب کنید\u2026",
-    "INSTALL_EXTENSION_VALIDATING"         : "برسی صحت پرونده\u2026", 
+    "INSTALL_EXTENSION_VALIDATING"         : "برسی صحت پرونده\u2026",
     "EXTENSION_AUTHOR"                     : "مولف",
     "EXTENSION_DATE"                       : "تاریخ",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "این افزونه احتیاج به نسخه جدیدی از براکتس دارد.",
@@ -500,7 +500,7 @@ define({
     "EXTENSION_KEYWORDS"                   : "کلمات کلیدی",
     "EXTENSION_TRANSLATED_USER_LANG"       : "ترجمه شده به زبان های {0} که زبان شما را نیز در بر دارد",
     "EXTENSION_TRANSLATED_GENERAL"         : "ترجمه شده به زبان های {0}",
-    "EXTENSION_TRANSLATED_LANGS"           : "این افزونه تنها برای زبان های زیر ترجمه شده است: {0}", 
+    "EXTENSION_TRANSLATED_LANGS"           : "این افزونه تنها برای زبان های زیر ترجمه شده است: {0}",
     "EXTENSION_INSTALLED"                  : "نصب شده",
     "EXTENSION_UPDATE_INSTALLED"           : "این افزونه دریافت شده و بعد از ترک براکتس نصب خواهد شد.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "جستجو",
@@ -527,7 +527,7 @@ define({
 
     "EXTENSIONS_INSTALLED_TITLE"           : "نصب شده",
     "EXTENSIONS_AVAILABLE_TITLE"           : "در دسترس",
-    "EXTENSIONS_THEMES_TITLE"              : "پوسته ها", 
+    "EXTENSIONS_THEMES_TITLE"              : "پوسته ها",
     "EXTENSIONS_UPDATES_TITLE"             : "بروزرسانی ها",
     "INLINE_EDITOR_NO_MATCHES"             : "هیچ مورد سازگاری دردسترس نیست.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "هیچ قائده منطبقی برای CSSها نسبت به موردی که انتخاب کردید وجود ندارد.<br> از گزینه \"قائده جدید\" برای تغریف یک قائده جدید استفاده کنید.",
@@ -557,7 +557,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "ورود گره به حالت کنسول",
     "CMD_RESTART_NODE"                          : "شروع دوباره گره",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "نمایش خطاها در نوار وظیفه",
-    "CMD_OPEN_BRACKETS_SOURCE"                  : "باز کردن منبع براکتس", 
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "باز کردن منبع براکتس",
     "LANGUAGE_TITLE"                            : "انتخاب زبان",
     "LANGUAGE_MESSAGE"                          : "زبان:",
     "LANGUAGE_SUBMIT"                           : "بارگذاری مجدد براکتس",
@@ -585,8 +585,8 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "پرش جهت تعریف",
     "CMD_SHOW_PARAMETER_HINT"                   : "نمایش پارامتر",
     "NO_ARGUMENTS"                              : "<بدون پارامتر>",
-    "DETECTED_EXCLUSION_TITLE"                  : "خطای منطقی در پرونده JavaScript", 
-    "DETECTED_EXCLUSION_INFO"                   : "براکتس در حال انجام یک پردازه خطادار می باشد:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> in your project and remove the file from jscodehints.detectedExclusions.", 
+    "DETECTED_EXCLUSION_TITLE"                  : "خطای منطقی در پرونده JavaScript",
+    "DETECTED_EXCLUSION_INFO"                   : "براکتس در حال انجام یک پردازه خطادار می باشد:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> in your project and remove the file from jscodehints.detectedExclusions.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
