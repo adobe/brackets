@@ -261,7 +261,6 @@ define(function (require, exports, module) {
             var buttonOffset, buttonHeight;
 
             e.stopPropagation();
-            _registerContextMenus();
             
             if (menu.isOpen()) {
                 menu.close();
@@ -276,10 +275,12 @@ define(function (require, exports, module) {
         }
         
         $gearMenu.on("click", function (e) {
+            _registerContextMenus();
             _handleInvokeMenu(e, $gearMenu, _workingset_configuration_menu);
         });
         
         $splitViewMenu.on("click", function (e) {
+            _registerContextMenus();
             _handleInvokeMenu(e, $splitViewMenu, _splitview_menu);
         });
         
