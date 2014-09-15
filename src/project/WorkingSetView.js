@@ -240,7 +240,7 @@ define(function (require, exports, module) {
             this.$openFilesList.trigger("selectionHide");
         }
         // in-lieu of resize events, manually trigger contentChanged to update scroll shadows
-        this.$openFilesContainer.triggerHandler("contentChanged");
+        this.$openFilesContainer.trigger("contentChanged");
     };
 
     /**

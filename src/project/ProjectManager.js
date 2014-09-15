@@ -1096,6 +1096,10 @@ define(function (require, exports, module) {
         _renderTree();
     }
     
+    function _updateScrollerInfo() {
+        model.setScrollerInfo($projectTreeContainer.scrollTop(), $projectTreeContainer.scrollLeft(), $projectTreeContainer.offset().top);
+    }
+    
     
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
@@ -1131,8 +1135,10 @@ define(function (require, exports, module) {
                 Menus.closeAll();
                 actionCreator.setContext(null);
             }
-            model.setScrollerInfo($projectTreeContainer.scrollTop(), $projectTreeContainer.scrollLeft(), $projectTreeContainer.offset().top);
+            _updateScrollerInfo();
         });
+        
+        $("#sidebar").on("contentChanged", ".open-files-container", _updateScrollerInfo);
 
         _renderTree();
     });
