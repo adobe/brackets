@@ -430,6 +430,7 @@ define({
 	"BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",
 	"BASEURL_ERROR_INVALID_CHAR": "Les caractères spéciaux tels que '{0}' doivent être codés en %.",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
+	"EMPTY_VIEW_HEADER": "<em>Sélectionnez un fichier quand cette vue est active</em>",
     
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "Thème actuel ",
