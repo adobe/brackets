@@ -216,7 +216,6 @@ define(function (require, exports, module) {
      * Setup Brackets
      */
     function _onReady() {
-window.alert("brackets.js _onReady()");
         PerfUtils.addMeasurement("window.document Ready");
 
         // Let the user know Brackets doesn't run in a web browser yet
