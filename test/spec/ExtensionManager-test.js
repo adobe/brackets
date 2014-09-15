@@ -1795,5 +1795,68 @@ define(function (require, exports, module) {
                 });
             });
         });
+                
+        describe("ExtensionManagerView-i18n", function () {
+            var view, model, fakeLoadDeferred, modelDisposed;
+            
+            // Sets up the view using the normal (mock) ExtensionManager data.
+            function setupViewWithMockData(ModelClass) {
+                runs(function () {
+                    view = new ExtensionManagerView();
+                    model = new ModelClass();
+                    modelDisposed = false;
+                    waitsForDone(view.initialize(model), "view initializing");
+                    view.$el.appendTo(document.body);
+                });
+                runs(function () {
+                    spyOn(view.model, "dispose").andCallThrough();
+                });
+            }
+            
+            beforeEach(function () {
+                this.addMatchers({
+                    toHaveText: function (expected) {
+                        var notText = this.isNot ? " not" : "";
+                        this.message = function () {
+                            return "Expected view" + notText + " to contain text " + expected;
+                        };
+                        return SpecRunnerUtils.findDOMText(this.actual.$el, expected);
+                    }
+                });
+                spyOn(InstallExtensionDialog, "installUsingDialog").andCallFake(function (url) {
+                    var id = url.match(/fake-repository\.com\/([^\/]+)/)[1];
+                    mockLoadExtensions(["user/" + id]);
+                });
+                spyOn(brackets, "getLocale").andReturn("fr");
+            });
+                
+            
+            afterEach(function () {
+                if (view) {
+                    view.$el.remove();
+                    view = null;
+                }
+                if (model) {
+                    model.dispose();
+                }
+            });
+            
+            describe("when showing registry entries-i18n", function () {
+                it("should display localized description", function () {
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                    runs(function () {
+                        _.forEach(mockRegistry, function (item) {
+                            if (item.metadata["package-i18n"] &&
+                                    item.metadata["package-i18n"].hasOwnProperty("fr") &&
+                                    item.metadata["package-i18n"].fr.hasOwnProperty("description")) {
+                                expect(view).toHaveText(item.metadata["package-i18n"].fr.description);
+                                expect(view).toHaveText(item.metadata["package-i18n"].fr.title);
+                                expect(view).not.toHaveText(item.metadata["package-i18n"].fr.warnings);
+                            }
+                        });
+                    });
+                });
+            });
+        });
     });
 });
