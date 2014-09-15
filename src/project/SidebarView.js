@@ -118,6 +118,12 @@ define(function (require, exports, module) {
         $projectTitle           = $("#project-title");
         $projectFilesContainer  = $("#project-files-container");
         $workingSetViewsContainer  = $("#working-set-list-container");
+        
+        // When the working set changes, trigger a scroll on the project-files-container
+        // to make sure that everything is positioned properly.
+        $sidebar.on("contentChanged", ".open-files-container", function () {
+            $projectFilesContainer.triggerHandler("scroll");
+        });
     
         function _resizeSidebarSelection() {
             var $element;

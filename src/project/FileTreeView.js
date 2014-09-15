@@ -285,6 +285,11 @@ define(function (require, exports, module) {
         componentDidUpdate: function (prevProps, prevState) {
             var top;
             if (this.props.entry.get("selected") && !prevProps.entry.get("selected")) {
+                // TODO: This shouldn't really know about project-files-container
+                // directly. It is probably the case that our React tree should actually
+                // start with project-files-container instead of just the interior of
+                // project-files-container and then the file tree will be one self-contained
+                // functional unit.
                 ViewUtils.scrollElementIntoView($("#project-files-container"), $(this.getDOMNode()), true);
                 top = $(this.getDOMNode()).offset().top;
                 this.props.setSelectionPosition(top);

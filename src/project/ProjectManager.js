@@ -1087,15 +1087,22 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * 
      * Sets the width of the selection bar in the file tree.
      * 
      * @param {int} width New width value
      */
-    function setFileTreeSelectionWidth(width) {
+    function _setFileTreeSelectionWidth(width) {
         model.setSelectionWidth(width);
         _renderTree();
     }
     
+    /**
+     * @private
+     * 
+     * Updates the scroller positioning on scroll or sidebar changes.
+     */
     function _updateScrollerInfo() {
         model.setScrollerInfo($projectTreeContainer.scrollTop(), $projectTreeContainer.scrollLeft(), $projectTreeContainer.offset().top);
     }
@@ -1138,8 +1145,6 @@ define(function (require, exports, module) {
             _updateScrollerInfo();
         });
         
-        $("#sidebar").on("contentChanged", ".open-files-container", _updateScrollerInfo);
-
         _renderTree();
     });
 
@@ -1297,6 +1302,10 @@ define(function (require, exports, module) {
 
     // Private API helpful in testing
     exports._actionCreator                 = actionCreator;
+    
+    
+    // Private API for use with SidebarView
+    exports._setFileTreeSelectionWidth    = _setFileTreeSelectionWidth;
 
     // Define public API
     exports.getProjectRoot                = getProjectRoot;
@@ -1323,5 +1332,4 @@ define(function (require, exports, module) {
     exports.addIconProvider               = addIconProvider;
     exports.addClassesProvider            = addClassesProvider;
     exports.rerenderTree                  = rerenderTree;
-    exports.setFileTreeSelectionWidth     = setFileTreeSelectionWidth;
 });
