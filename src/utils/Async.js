@@ -346,7 +346,8 @@ define(function (require, exports, module) {
     function waitForAll(promises, failOnReject, timeout) {
 
         return new Promise(function (resolve, reject) {
-            var count = 0,
+            var results = [],
+                count = 0,
                 sawRejects = false;
 
             if (!promises || promises.length === 0) {
@@ -366,6 +367,8 @@ define(function (require, exports, module) {
                 var promise = Promise.resolve(p);
                 promise.catch(function (err) {
                     sawRejects = true;
+                }).then(function (result) {
+                    results.push(result);
                 });
 
                 var fnAlways = function () {
@@ -374,7 +377,7 @@ define(function (require, exports, module) {
                         if (failOnReject && sawRejects) {
                             reject();
                         } else {
-                            resolve();
+                            resolve(results);
                         }
                     }
                 };

@@ -338,11 +338,16 @@ a, img {
         display: block;
         margin: 0;
         overflow: hidden;
+    }
+
+    .pane-content {
+        display: block;
+        margin: 0;
+        overflow: hidden;
         height: 100%;
         width: 100%;
-        border: solid rgba(9, 9, 9, .05) 2px;
         box-sizing: border-box;
-    
+
         /* Image Preview */
         .image-view {
             overflow: hidden;
@@ -481,12 +486,32 @@ a, img {
             display: block;
         }
     }
-    .active-pane {
-        border: solid rgba(0, 0, 255, .2) 2px;
+    .pane-content {
+        border-right: solid @bc-shadow-small 1px;
+        .dark & {
+            border-right-color: @dark-bc-highlight;
+        }
+    }
+    .pane-header {
         box-sizing: border-box;
+        border-bottom: solid @bc-shadow-small 1px;
+        padding: 5px 10px;
+        color: @bc-menu-text;
+        background-color: @bc-menu-bg;
         
         .dark & {
-            border: solid rgba(255, 255, 255, .2) 2px;
+            color: @dark-bc-menu-text;
+            background-color: @dark-bc-menu-bg;
+            border-bottom-color: @dark-bc-highlight;
+        }
+    }
+    .active-pane {
+        .pane-header {
+            background-color: @bc-bg-highlight;
+
+            .dark & {
+                background-color: @dark-bc-bg-highlight;
+            }
         }
     }
 }
@@ -740,7 +765,7 @@ a, img {
         height: 16px;
         line-height: 15px;
         margin-left: 18px;
-        padding: 3px (@sidebar-triangle-size * 2) 3px 0;
+        padding: 3px 0 3px 0;
 
         cursor: default;
 
@@ -779,7 +804,7 @@ a, img {
     position: absolute;
 }
 
-.sidebar-selection-triangle {
+.sidebar-selection-extension {
     background: @bc-sidebar-selection;
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
@@ -788,25 +813,10 @@ a, img {
     height: 22px;
     position: fixed;
 
-    z-index: @z-index-brackets-selection-triangle; /* scroller-shadow appears above this triangle */
+    z-index: @z-index-brackets-selection-extension; /* scroller-shadow appears above the extension */
 }
 
-.sidebar-selection-triangle.triangle-visible:before {
-    content: "";
 
-    border-top: @sidebar-triangle-size solid transparent;
-    border-bottom: (@sidebar-triangle-size - 1) solid transparent;
-    border-left: @sidebar-triangle-size solid @bc-sidebar-selection;
-
-    display: block;
-    position: absolute;
-    top: -1px;
-    right: -9px;
-    width: 0;
-    height: 0;
-
-    .scale-x(0.8, right, top);
-}
 
 //Initially start with the open files hidden, they will get show as files are added
 .open-files-container {
@@ -815,10 +825,6 @@ a, img {
 
 #project-files-container {
     .box-flex(1);
-
-    .jstree-brackets li > a {
-        padding-right: (@sidebar-triangle-size * 2);
-    }
 
     ul {
         padding-left: 8px;

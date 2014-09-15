@@ -177,9 +177,9 @@ define(function (require, exports, module) {
      * @param {!jQuery.Event} e - event
      * @param {?File} file - current file (can be null)
      */
-    function _handlecurrentFileChange(e, file) {
-        var doc = file ? DocumentManager.getOpenDocumentForPath(file.fullPath) : null;
-        _notifyActiveEditorChanged(doc ? doc._masterEditor : null);
+    function _handleCurrentFileChange(e, file) {
+        var doc = file && DocumentManager.getOpenDocumentForPath(file.fullPath);
+        _notifyActiveEditorChanged(doc && doc._masterEditor);
     }
     
     /**
@@ -210,7 +210,7 @@ define(function (require, exports, module) {
         return editor;
     }
     
- /**
+    /**
      * @private
      * Finds an inline widget provider from the given list that can offer a widget for the current cursor
      * position, and once the widget has been created inserts it into the editor.
@@ -472,7 +472,7 @@ define(function (require, exports, module) {
      */
     function _createFullEditorForDocument(document, pane) {
         // Create editor; make it initially invisible
-        var editor = _createEditorForDocument(document, true, pane.$el);
+        var editor = _createEditorForDocument(document, true, pane.$content);
         editor.setVisible(false);
         pane.addView(editor);
         $(exports).triggerHandler("_fullEditorCreatedForDocument", [document, editor, pane.id]);
@@ -552,9 +552,10 @@ define(function (require, exports, module) {
 
         // show the view
         pane.showView(document._masterEditor);
+
         // give it focus
         document._masterEditor.focus();
-        
+
         if (createdNewEditor) {
             _restoreEditorViewState(document._masterEditor);
         }
@@ -783,7 +784,7 @@ define(function (require, exports, module) {
     // Create PerfUtils measurement
     PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
 
-    $(MainViewManager).on("currentFileChange", _handlecurrentFileChange);
+    $(MainViewManager).on("currentFileChange", _handleCurrentFileChange);
     $(MainViewManager).on("workingSetRemove workingSetRemoveList", _handleRemoveFromPaneView);
 
     
