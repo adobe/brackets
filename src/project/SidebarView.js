@@ -42,10 +42,11 @@ define(function (require, exports, module) {
     
     var AppInit             = require("utils/AppInit"),
         ProjectManager      = require("project/ProjectManager"),
-        WorkingSetView    = require("project/WorkingSetView"),
+        WorkingSetView      = require("project/WorkingSetView"),
         MainViewManager     = require("view/MainViewManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
+        Menus               = require("command/Menus"),
         Strings             = require("strings"),
         EditorManager       = require("editor/EditorManager"),
         Global              = require("utils/Global"),
@@ -55,11 +56,26 @@ define(function (require, exports, module) {
     // These vars are initialized by the htmlReady handler
     // below since they refer to DOM elements
     var $sidebar,
+        $gearMenu,
         $sidebarMenuText,
-        $openFilesContainer,
+        $openFilesContainers,
         $projectTitle,
         $projectFilesContainer,
         $workingSetViewsContainer;
+    
+    /**
+     * Context Menu
+     * @private
+     * @type {Menu}
+     */
+    var _workingset_cmenu;
+    
+    /**
+     * Context Menu
+     * @private
+     * @type {Menu}
+     */
+    var _workingset_configuration_menu;
     
     /**
      * @private
@@ -110,14 +126,47 @@ define(function (require, exports, module) {
         return Resizer.isVisible($sidebar);
     }
     
+    /**
+     * Determines if context menus are registered
+     * @private
+     * @return {boolean} true if the menus are registered, false if not
+     */
+    function _areContextMenusRegistered() {
+        return _workingset_cmenu && _workingset_configuration_menu;
+    }
+    
+    /**
+     * Determines if context menus are registered
+     * @private
+     * @return {boolean} true if the menus are registered, false if not
+     */
+    function _registerContextMenus() {
+        if (!_areContextMenusRegistered()) {
+            _workingset_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
+            _workingset_configuration_menu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONFIG_MENU);
+        }
+    }
+    
+    /**
+     * Update context menu handlers
+     * @private
+     */
+    function _updateContextMenuHandlers() {
+        $openFilesContainers.off(".sidebarView");
+        $openFilesContainers = $sidebar.find(".open-files-container");
+        $openFilesContainers.on("contextmenu.sidebarView", function (e) {
+            _registerContextMenus();
+            _workingset_cmenu.open(e);
+        });
+    }
+    
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        $sidebar                = $("#sidebar");
-        $sidebarMenuText        = $("#menu-view-hide-sidebar span");
-        $openFilesContainer     = $("#open-files-container");
-        $projectTitle           = $("#project-title");
-        $projectFilesContainer  = $("#project-files-container");
-        $workingSetViewsContainer  = $("#working-set-list-container");
+        $sidebar                  = $("#sidebar");
+        $gearMenu                 = $sidebar.find(".working-set-option-btn");
+        $projectTitle             = $sidebar.find("#project-title");
+        $projectFilesContainer    = $sidebar.find("#project-files-container");
+        $workingSetViewsContainer = $sidebar.find("#working-set-list-container");
     
         function _resizeSidebarSelection() {
             var $element;
@@ -142,7 +191,7 @@ define(function (require, exports, module) {
             $sidebar.find(".sidebar-selection-triangle").css("display", "block").css("left", width);
             $sidebar.find(".scroller-shadow").css("display", "block");
             $projectFilesContainer.triggerHandler("scroll");
-            $openFilesContainer.triggerHandler("scroll");
+            $openFilesContainers.triggerHandler("scroll");
         });
 		
         $sidebar.on("panelCollapsed", function (evt, width) {
@@ -155,8 +204,27 @@ define(function (require, exports, module) {
             $sidebar.find(".scroller-shadow").css("display", "block");
             $sidebar.find(".sidebar-selection-triangle").css("left", width);
             $projectFilesContainer.triggerHandler("scroll");
-            $openFilesContainer.triggerHandler("scroll");
+            $openFilesContainers.triggerHandler("scroll");
             CommandManager.get(Commands.VIEW_HIDE_SIDEBAR).setName(Strings.CMD_HIDE_SIDEBAR);
+        });
+        
+        $gearMenu.on("click", function (e) {
+            var buttonOffset,
+                buttonHeight;
+
+            e.stopPropagation();
+            _registerContextMenus();
+            
+            if (_workingset_configuration_menu.isOpen()) {
+                _workingset_configuration_menu.close();
+            } else {
+                buttonOffset = $gearMenu.offset();
+                buttonHeight = $gearMenu.outerHeight();
+                _workingset_configuration_menu.open({
+                    pageX: buttonOffset.left,
+                    pageY: buttonOffset.top + buttonHeight
+                });
+            }
         });
         
         // AppInit.htmlReady in utils/Resizer executes before, so it's possible that the sidebar
@@ -165,15 +233,21 @@ define(function (require, exports, module) {
             $sidebar.trigger("panelCollapsed");
         }
         
-        // wire up an event handler to monitor when panes are created
+        // wire up event handlers to monitor when panes are created or destroyed
         $(MainViewManager).on("paneCreate", function (evt, paneId) {
             WorkingSetView.createWorkingSetViewForPane($workingSetViewsContainer, paneId);
+            _updateContextMenuHandlers();
+        });
+        $(MainViewManager).on("paneDestroy", function (evt, paneId) {
+            _updateContextMenuHandlers();
         });
         
         // create WorkingSetViews for each pane already created
         _.forEach(MainViewManager.getPaneIdList(), function (paneId) {
             WorkingSetView.createWorkingSetViewForPane($workingSetViewsContainer, paneId);
         });
+        
+        $openFilesContainers = $sidebar.find(".open-files-container");
     });
     
     $(ProjectManager).on("projectOpen", _updateProjectTitle);
