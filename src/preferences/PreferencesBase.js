@@ -1605,12 +1605,12 @@ define(function (require, exports, module) {
             this._nextSave = {};
 
             Async.doInParallel(_.values(this._scopes), function (scope) {
-                    if (scope) {
-                        return scope.save();
-                    } else {
-                        return Promise.resolve();
-                    }
-                })
+                if (scope) {
+                    return scope.save();
+                } else {
+                    return Promise.resolve();
+                }
+            })
                 .then(function () {
                     if (this._saveInProgress.resolve) {
                         this._saveInProgress.resolve();
