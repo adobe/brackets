@@ -58,7 +58,6 @@ define(function (require, exports, module) {
     var $sidebar,
         $gearMenu,
         $splitViewMenu,
-        $sidebarMenuText,
         $openFilesContainers,
         $projectTitle,
         $projectFilesContainer,
