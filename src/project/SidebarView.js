@@ -57,25 +57,18 @@ define(function (require, exports, module) {
     // below since they refer to DOM elements
     var $sidebar,
         $gearMenu,
+        $splitViewMenu,
         $sidebarMenuText,
         $openFilesContainers,
         $projectTitle,
         $projectFilesContainer,
         $workingSetViewsContainer;
     
-    /**
-     * Context Menu
-     * @private
-     * @type {Menu}
-     */
-    var _workingset_cmenu;
+    var _workingset_cmenu,
+        _workingset_configuration_menu;
     
-    /**
-     * Context Menu
-     * @private
-     * @type {Menu}
-     */
-    var _workingset_configuration_menu;
+    var SPRITE_BASE   =  5,
+        SPRITE_OFFSET = 21;
     
     /**
      * @private
@@ -160,10 +153,30 @@ define(function (require, exports, module) {
         });
     }
     
+    /**
+     * Update visual state of buttons.
+     * @private
+     */
+    function _updateSplitViewButtonState() {
+        var ypos,
+            spriteIndex = 0,
+            layoutScheme = MainViewManager.getLayoutScheme();
+        
+        if (layoutScheme.columns > 1) {
+            spriteIndex = 1;
+        } else if (layoutScheme.rows > 1) {
+            spriteIndex = 2;
+        }
+        
+        ypos  = SPRITE_BASE - (spriteIndex * SPRITE_OFFSET);
+        $splitViewMenu.css("background-position-y", ypos);
+    }
+
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         $sidebar                  = $("#sidebar");
         $gearMenu                 = $sidebar.find(".working-set-option-btn");
+        $splitViewMenu            = $sidebar.find(".working-set-splitview-btn");
         $projectTitle             = $sidebar.find("#project-title");
         $projectFilesContainer    = $sidebar.find("#project-files-container");
         $workingSetViewsContainer = $sidebar.find("#working-set-list-container");
@@ -240,6 +253,13 @@ define(function (require, exports, module) {
         });
         $(MainViewManager).on("paneDestroy", function (evt, paneId) {
             _updateContextMenuHandlers();
+        });
+        
+        $(MainViewManager).on("paneLayoutChange", function () {
+            // TODO: seems weird that "paneLayoutChange" event passes orientation
+            // but MainViewManager.VERTICAL|HORIZONTAL are not public.
+            // This should pass layoutScheme object, instead
+            _updateSplitViewButtonState();
         });
         
         // create WorkingSetViews for each pane already created
