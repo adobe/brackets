@@ -258,40 +258,30 @@ define(function (require, exports, module) {
             CommandManager.get(Commands.VIEW_HIDE_SIDEBAR).setName(Strings.CMD_HIDE_SIDEBAR);
         });
         
-        $gearMenu.on("click", function (e) {
+        function _handleInvokeMenu(e, $el, menu) {
             var buttonOffset, buttonHeight;
 
             e.stopPropagation();
             _registerContextMenus();
             
-            if (_workingset_configuration_menu.isOpen()) {
-                _workingset_configuration_menu.close();
+            if (menu.isOpen()) {
+                menu.close();
             } else {
-                buttonOffset = $gearMenu.offset();
-                buttonHeight = $gearMenu.outerHeight();
-                _workingset_configuration_menu.open({
+                buttonOffset = $el.offset();
+                buttonHeight = $el.outerHeight();
+                menu.open({
                     pageX: buttonOffset.left,
                     pageY: buttonOffset.top + buttonHeight
                 });
             }
+        }
+        
+        $gearMenu.on("click", function (e) {
+            _handleInvokeMenu(e, $gearMenu, _workingset_configuration_menu);
         });
         
         $splitViewMenu.on("click", function (e) {
-            var buttonOffset, buttonHeight;
-
-            e.stopPropagation();
-            _registerContextMenus();
-            
-            if (_splitview_menu.isOpen()) {
-                _splitview_menu.close();
-            } else {
-                buttonOffset = $splitViewMenu.offset();
-                buttonHeight = $splitViewMenu.outerHeight();
-                _splitview_menu.open({
-                    pageX: buttonOffset.left,
-                    pageY: buttonOffset.top + buttonHeight
-                });
-            }
+            _handleInvokeMenu(e, $splitViewMenu, _splitview_menu);
         });
         
         // AppInit.htmlReady in utils/Resizer executes before, so it's possible that the sidebar
