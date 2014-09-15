@@ -486,15 +486,15 @@ a, img {
             display: block;
         }
     }
-    .pane-content {
-        border-right: solid @bc-shadow-small 1px;
+    #second-pane {
+        border-left: 1px solid @bc-panel-border;
         .dark & {
-            border-right-color: @dark-bc-highlight;
+            border-left: 1px solid @dark-bc-highlight-hard;
         }
     }
     .pane-header {
         box-sizing: border-box;
-        border-bottom: solid @bc-shadow-small 1px;
+        border-bottom: 1px solid @bc-shadow-small;
         padding: 5px 10px;
         color: @bc-text-thin-quiet;
         background-color: @bc-menu-bg;
