@@ -693,7 +693,7 @@ define(function (require, exports, module) {
                     });
                 });
                 runs(function () {
-                    expect(DocumentManager.getCurrentDocument()).toBeNull();
+                    expect(DocumentManager.getCurrentDocument()).toBeFalsy();
                 });
             });
         });
@@ -1133,7 +1133,7 @@ define(function (require, exports, module) {
         
         
         describe("Open image files", function () {
-            it("should return null after opening an image", function () {
+            it("document & editor should be null after opening an image", function () {
                 var path = testPath + "/couz.png",
                     promise;
                 runs(function () {
@@ -1142,12 +1142,12 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(EditorManager.getActiveEditor()).toEqual(null);
-                    expect(EditorManager.getCurrentFullEditor()).toEqual(null);
-                    expect(EditorManager.getFocusedEditor()).toEqual(null);
+                    expect(EditorManager.getActiveEditor()).toBeFalsy();
+                    expect(EditorManager.getCurrentFullEditor()).toBeFalsy();
+                    expect(EditorManager.getFocusedEditor()).toBeFalsy();
                     expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)).toEqual(path);
                     var d = DocumentManager.getCurrentDocument();
-                    expect(d).toEqual(null);
+                    expect(d).toBeFalsy();
                 });
             });
         

@@ -338,8 +338,8 @@ define(function (require, exports, module) {
                         // they still exist on disk (for faster opening)
                         var filesToOpen = [];
                         
-                        paths.forEach(function (file) {
-                            filesToOpen.push(FileSystem.getFileForPath(file));
+                        paths.forEach(function (path) {
+                            filesToOpen.push(FileSystem.getFileForPath(path));
                         });
                         MainViewManager.addListToWorkingSet(paneId, filesToOpen);
                         

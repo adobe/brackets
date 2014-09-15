@@ -34,10 +34,7 @@ define(function (require, exports, module) {
         Dialogs         = require("widgets/Dialogs"),
         DefaultDialogs  = require("widgets/DefaultDialogs"),
         MainViewManager = require("view/MainViewManager"),
-        MainViewFactory = require("view/MainViewFactory"),
-        LanguageManager = require("language/LanguageManager"),
         FileSystem      = require("filesystem/FileSystem"),
-        EditorManager   = require("editor/EditorManager"),
         FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
@@ -75,11 +72,11 @@ define(function (require, exports, module) {
      * @return {Promise} Promise that is resolved if all files are opened, or rejected
      *     if there was an error. 
      */
-    function openDroppedFiles(files) {
+    function openDroppedFiles(paths) {
         var errorFiles = [],
             ERR_MULTIPLE_ITEMS_WITH_DIR = {};
         
-        return Async.doInParallel(files, function (path, idx) {
+        return Async.doInParallel(paths, function (path, idx) {
             var result = new $.Deferred();
             
             // Only open files.
@@ -88,7 +85,7 @@ define(function (require, exports, module) {
                     // If the file is already open, and this isn't the last
                     // file in the list, return. If this *is* the last file,
                     // always open it so it gets selected.
-                    if (idx < files.length - 1) {
+                    if (idx < paths.length - 1) {
                         if (MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, path) !== -1) {
                             result.resolve();
                             return;
@@ -104,7 +101,7 @@ define(function (require, exports, module) {
                             errorFiles.push({path: path, error: openErr});
                             result.reject();
                         });
-                } else if (!err && item.isDirectory && files.length === 1) {
+                } else if (!err && item.isDirectory && paths.length === 1) {
                     // One folder was dropped, open it.
                     ProjectManager.openProject(path)
                         .done(function () {
