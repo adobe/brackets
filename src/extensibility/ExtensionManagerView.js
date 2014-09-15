@@ -28,8 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _                         = require("thirdparty/lodash"),
-        Strings                   = require("strings"),
+    var Strings                   = require("strings"),
         StringUtils               = require("utils/StringUtils"),
         ExtensionManager          = require("extensibility/ExtensionManager"),
         registry_utils            = require("extensibility/registry_utils"),
@@ -240,17 +239,18 @@ define(function (require, exports, module) {
         // Check if extension metadata contains localized content.
         var lang            = brackets.getLocale(),
             shortLang       = lang.split("-")[0];
-        [shortLang, lang].forEach(function (locale) {
-            if (info.metadata["package-i18n"] !== undefined &&
-                    info.metadata["package-i18n"].hasOwnProperty(locale)) {
-                // only overlay specific properties with the localized values
-                ['title', 'description', 'homepage', 'keywords'].forEach(function (prop) {
-                    if (info.metadata["package-i18n"][locale].hasOwnProperty(prop)) {
-                        info.metadata[prop] = info.metadata["package-i18n"][locale][prop];
-                    }
-                });
-            }
-        });
+        if (info.metadata["package-i18n"]) {
+            [shortLang, lang].forEach(function (locale) {
+                if (info.metadata["package-i18n"].hasOwnProperty(locale)) {
+                    // only overlay specific properties with the localized values
+                    ['title', 'description', 'homepage', 'keywords'].forEach(function (prop) {
+                        if (info.metadata["package-i18n"][locale].hasOwnProperty(prop)) {
+                            info.metadata[prop] = info.metadata["package-i18n"][locale][prop];
+                        }
+                    });
+                }
+            });
+        }
 
         if (info.metadata.description !== undefined) {
             info.metadata.shortdescription = StringUtils.truncate(info.metadata.description, 200);
