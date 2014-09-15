@@ -252,7 +252,7 @@ define(function (require, exports, module) {
             return classes;
         }
     };
-
+    
     /**
      * @private
      * 
@@ -279,11 +279,22 @@ define(function (require, exports, module) {
         },
         
         /**
-         * If this node is newly selected, scroll it into view.
+         * If this node is newly selected, scroll it into view. Also, move the selection or
+         * context boxes as appropriate.
          */
         componentDidUpdate: function (prevProps, prevState) {
+            var top;
             if (this.props.entry.get("selected") && !prevProps.entry.get("selected")) {
                 ViewUtils.scrollElementIntoView($("#project-files-container"), $(this.getDOMNode()), true);
+                top = $(this.getDOMNode()).offset().top;
+                this.props.setSelectionPosition(top);
+            }
+            
+            if (this.props.entry.get("context") && !prevProps.entry.get("context")) {
+                if (!top) {
+                    top = $(this.getDOMNode()).offset().top;
+                }
+                this.props.setContextPosition(top);
             }
         },
         
@@ -349,11 +360,8 @@ define(function (require, exports, module) {
             }
             
             var fileClasses = "";
-            if (this.props.entry.get("selected")) {
-                fileClasses = "jstree-clicked jstree-hovered sidebar-selection";
-            }
-            if (this.props.entry.get("context")) {
-                fileClasses += " jstree-clicked sidebar-context";
+            if (this.props.entry.get("selected") || this.props.entry.get("context")) {
+                fileClasses = "jstree-clicked";
             }
             
             var nameDisplay;
@@ -491,6 +499,16 @@ define(function (require, exports, module) {
         },
         
         /**
+         * If this directory becomes the context, we set the context border position to this
+         * node.
+         */
+        componentDidUpdate: function (prevProps, prevState) {
+            if (this.props.entry.get("context") && !prevProps.entry.get("context")) {
+                this.props.setContextPosition($(this.getDOMNode()).offset().top);
+            }
+        },
+        
+        /**
          * If you click on a directory, it will toggle between open and closed.
          */
         handleClick: function () {
@@ -527,7 +545,9 @@ define(function (require, exports, module) {
                     contents: children,
                     extensions: this.props.extensions,
                     actions: this.props.actions,
-                    forceRender: this.props.forceRender
+                    forceRender: this.props.forceRender,
+                    setSelectionPosition: this.props.setSelectionPosition,
+                    setContextPosition: this.props.setContextPosition
                 });
             } else {
                 nodeClass = "closed";
@@ -617,6 +637,8 @@ define(function (require, exports, module) {
                         actions: this.props.actions,
                         extensions: this.props.extensions,
                         forceRender: this.props.forceRender,
+                        setSelectionPosition: this.props.setSelectionPosition,
+                        setContextPosition: this.props.setContextPosition,
                         key: name
                     });
                 } else {
@@ -628,6 +650,8 @@ define(function (require, exports, module) {
                         extensions: this.props.extensions,
                         sortDirectoriesFirst: this.props.sortDirectoriesFirst,
                         forceRender: this.props.forceRender,
+                        setSelectionPosition: this.props.setSelectionPosition,
+                        setContextPosition: this.props.setContextPosition,
                         key: name
                     });
                 }
@@ -635,6 +659,59 @@ define(function (require, exports, module) {
         }
     });
     
+    /**
+     * Displays the absolutely positioned box for the selection or context in the
+     * file tree. Its position is determined by passed-in info about the scorller in which
+     * the tree resides and the top of the selected node (as reported by the node itself).
+     * 
+     * Props:
+     * * selectionViewInfo: Immutable.Map with width, scrollTop, scrollLeft and offsetTop for the tree container
+     * * visible: should this be visible now
+     * * widthAdjustment: if this box should not fill the entire width, pass in a positive number here which is subtracted from the width in selectionViewInfo
+     */
+    var fileSelectionBox = React.createClass({
+        
+        /**
+         * Sets up initial state.
+         */
+        getInitialState: function () {
+            return {
+                initialScroll: 0
+            };
+        },
+        
+        /**
+         * Called by the fileNode which is currently selected to set the top of this selection
+         * box.
+         * 
+         * @param {int} top offset().top of the DOM node for the selected node
+         */
+        setSelectionPosition: function (top) {
+            
+            // We keep track of the initial scroll position because that determines how much
+            // we need to move this box as the user scrolls.
+            this.setState({
+                top: top,
+                initialScroll: this.props.selectionViewInfo.get("scrollTop")
+            });
+        },
+        
+        render: function () {
+            var selectionViewInfo = this.props.selectionViewInfo;
+            
+            return DOM.div({
+                style: {
+                    overflow: "auto",
+                    top: this.state.top - selectionViewInfo.get("offsetTop") + this.state.initialScroll,
+                    left: selectionViewInfo.get("scrollLeft"),
+                    width: selectionViewInfo.get("width") - this.props.widthAdjustment,
+                    visibility: this.props.visible ? "visible" : "hidden"
+                },
+                className: this.props.className
+            });
+        }
+    });
+
     /**
      * @private
      * 
@@ -656,19 +733,50 @@ define(function (require, exports, module) {
             return nextProps.forceRender ||
                 this.props.treeData !== nextProps.treeData ||
                 this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst ||
-                this.props.extensions !== nextProps.extensions;
+                this.props.extensions !== nextProps.extensions ||
+                this.props.selectionViewInfo !== nextProps.selectionViewInfo;
+        },
+        
+        setSelectionPosition: function (top) {
+            this.refs.selectionBackground.setSelectionPosition(top);
+        },
+        
+        setContextPosition: function (top) {
+            this.refs.contextBackground.setSelectionPosition(top);
         },
         
         render: function () {
-            return directoryContents({
-                isRoot: true,
-                parentPath: this.props.parentPath,
-                sortDirectoriesFirst: this.props.sortDirectoriesFirst,
-                contents: this.props.treeData,
-                extensions: this.props.extensions,
-                actions: this.props.actions,
-                forceRender: this.props.forceRender
-            });
+            var selectionBackground = fileSelectionBox({
+                ref: "selectionBackground",
+                selectionViewInfo: this.props.selectionViewInfo,
+                className: "filetree-selection",
+                visible: this.props.selectionViewInfo.get("hasSelection"),
+                widthAdjustment: 0
+            }),
+                contextBackground = fileSelectionBox({
+                    ref: "contextBackground",
+                    selectionViewInfo: this.props.selectionViewInfo,
+                    className: "filetree-context",
+                    visible: this.props.selectionViewInfo.get("hasContext"),
+                    widthAdjustment: 2
+                });
+            
+            return DOM.div(
+                null,
+                selectionBackground,
+                contextBackground,
+                directoryContents({
+                    isRoot: true,
+                    parentPath: this.props.parentPath,
+                    sortDirectoriesFirst: this.props.sortDirectoriesFirst,
+                    contents: this.props.treeData,
+                    extensions: this.props.extensions,
+                    actions: this.props.actions,
+                    forceRender: this.props.forceRender,
+                    setSelectionPosition: this.setSelectionPosition,
+                    setContextPosition: this.setContextPosition
+                })
+            );
         }
         
     });
@@ -682,14 +790,13 @@ define(function (require, exports, module) {
      * @param {ActionCreator} actions object with methods used to communicate events that originate from the user
      */
     function render(element, viewModel, projectRoot, actions, forceRender) {
-        $(element).addClass("jstree jstree-brackets");
-        $(element).css("overflow", "auto");
         if (!projectRoot) {
             return;
         }
         
         React.renderComponent(fileTreeView({
-            treeData: viewModel.getTreeData(),
+            treeData: viewModel.treeData,
+            selectionViewInfo: viewModel.selectionViewInfo,
             sortDirectoriesFirst: viewModel.sortDirectoriesFirst,
             parentPath: projectRoot.fullPath,
             actions: actions,

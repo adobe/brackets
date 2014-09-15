@@ -58,8 +58,6 @@ define(function (require, exports, module) {
      * treeData.
      */
     function FileTreeViewModel() {
-        this._treeData = new Immutable.Map();
-        
         // For convenience in callbacks, make a bound version of this method so that we can
         // just refer to it as this._commitTreeData when passing in a callback.
         this._commitTreeData = this._commitTreeData.bind(this);
@@ -85,23 +83,39 @@ define(function (require, exports, module) {
      * * Most file entries are just empty maps
      *     * They can have flags like selected, context, rename, create with state information for the tree
      */
-    FileTreeViewModel.prototype._treeData = null;
+    FileTreeViewModel.prototype._treeData = Immutable.Map();
+    
+    Object.defineProperty(FileTreeViewModel.prototype, "treeData", {
+        get: function () {
+            return this._treeData;
+        }
+    });
     
     /**
-     * Gets the immutable tree data for the file tree view.
+     * @private
+     * @type {Immutable.Map}
+     * Selection view information determines how the seleciton bar appears.
      * 
-     * * It starts with a Map for the project root's contents.
-     * * Each directory entry has a `children` key.
-     *     * `children` will be null if the directory has not been loaded
-     *     * An `open` key denotes whether the directory is open
-     * * Most file entries are just empty maps
-     *     * They can have flags like selected, context, rename, create with state information for the tree
-     * 
-     * @return {Immutable.Map} the tree data
+     * * width: visible width of the selection area
+     * * scrollTop: current scroll position.
+     * * scrollLeft: current horizontal scroll position
+     * * offsetTop: top of the scroller element
+     * * visible: should the selection bar be visible?
      */
-    FileTreeViewModel.prototype.getTreeData = function () {
-        return this._treeData;
-    };
+    FileTreeViewModel.prototype._selectionViewInfo = Immutable.Map({
+        width: 0,
+        scrollTop: 0,
+        scrollLeft: 0,
+        offsetTop: 0,
+        hasContext: false,
+        hasSelection: false
+    });
+    
+    Object.defineProperty(FileTreeViewModel.prototype, "selectionViewInfo", {
+        get: function () {
+            return this._selectionViewInfo;
+        }
+    });
     
     /**
      * @private
@@ -373,7 +387,17 @@ define(function (require, exports, module) {
      * @param {string|null} newPath Project relative file path with where to place the marker, or null if the marker is being removed from the tree
      */
     FileTreeViewModel.prototype.moveMarker = function (markerName, oldPath, newPath) {
-        this._commitTreeData(_moveMarker(this._treeData, markerName, oldPath, newPath));
+        var newTreeData = _moveMarker(this._treeData, markerName, oldPath, newPath);
+        
+        if (newTreeData !== this._treeData) {
+            if (markerName === "selected") {
+                this._selectionViewInfo = this._selectionViewInfo.set("hasSelection", !!newPath);
+            }
+            if (markerName === "context") {
+                this._selectionViewInfo = this._selectionViewInfo.set("hasContext", !!newPath);
+            }
+            this._commitTreeData(newTreeData);
+        }
     };
 
     /**
@@ -894,7 +918,38 @@ define(function (require, exports, module) {
             $(this).trigger(EVENT_CHANGE);
         }
     };
-
+    
+    /**
+     * Sets the width of the selection bar.
+     * 
+     * @param {int} width New width
+     */
+    FileTreeViewModel.prototype.setSelectionWidth = function (width) {
+        this._selectionViewInfo = this._selectionViewInfo.set("width", width);
+        $(this).trigger(EVENT_CHANGE);
+    };
+    
+    /**
+     * Sets the scroll position of the file tree to help position the selection bar.
+     * 
+     * @param {int} scrollTop Scroll position
+     * @param {int=} scrollLeft Horizontal scroll position
+     * @param {int=} offsetTop top of the scroller
+     */
+    FileTreeViewModel.prototype.setSelectionScrollerInfo = function (scrollTop, scrollLeft, offsetTop) {
+        this._selectionViewInfo = this._selectionViewInfo.set("scrollTop", scrollTop);
+        
+        if (scrollLeft !== undefined) {
+            this._selectionViewInfo = this._selectionViewInfo.set("scrollLeft", scrollLeft);
+        }
+        
+        if (offsetTop !== undefined) {
+            this._selectionViewInfo = this._selectionViewInfo.set("offsetTop", offsetTop);
+        }
+        
+        $(this).trigger(EVENT_CHANGE);
+    };
+    
     /**
      * Listen for events. Currently a wrapper around jQuery's event system. See jQuery's .on
      * documentation.

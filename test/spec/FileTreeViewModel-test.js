@@ -515,6 +515,20 @@ define(function (require, exports, module) {
                 expect(changesFired).toBe(1);
                 expect(vm._treeData.getIn(["subdir1", "children", "afile.js", "selected"])).toBe(true);
             });
+            
+            it("should update selectionViewInfo for selections", function () {
+                vm.moveMarker("selected", null, "subdir1/afile.js");
+                expect(vm._selectionViewInfo.get("hasSelection")).toBe(true);
+                vm.moveMarker("selected", "subdir1/afile.js", null);
+                expect(vm._selectionViewInfo.get("hasSelection")).toBe(false);
+            });
+            
+            it("should update selectionViewInfo for context", function () {
+                vm.moveMarker("context", null, "subdir1/afile.js");
+                expect(vm._selectionViewInfo.get("hasContext")).toBe(true);
+                vm.moveMarker("context", "subdir1/afile.js", null);
+                expect(vm._selectionViewInfo.get("hasContext")).toBe(false);
+            });
         });
         
         describe("createPlaceholder", function () {

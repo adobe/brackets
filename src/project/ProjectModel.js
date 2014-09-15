@@ -302,6 +302,26 @@ define(function (require, exports, module) {
             this.setSelected(null);
         }
     };
+    
+    /**
+     * Sets the width of the selection bar.
+     * 
+     * @param {int} width New width
+     */
+    ProjectModel.prototype.setSelectionWidth = function (width) {
+        this._viewModel.setSelectionWidth(width);
+    };
+    
+    /**
+     * Tracks the scroller position.
+     * 
+     * @param {int} scrollTop Top of scroll position
+     * @param {int} scrollLeft Left of scroll position
+     * @param {int} offsetTop Top of scroller element
+     */
+    ProjectModel.prototype.setScrollerInfo = function (scrollTop, scrollLeft, offsetTop) {
+        this._viewModel.setSelectionScrollerInfo(scrollTop, scrollLeft, offsetTop);
+    };
 
     /**
      * Returns the encoded Base URL of the currently loaded project, or empty string if no project

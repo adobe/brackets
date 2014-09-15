@@ -357,7 +357,7 @@ define(function (require, exports, module) {
             }
 
             function expectSelected(fullPath) {
-                var $projectTreeItems = testWindow.$("#project-files-container > ul").children(),
+                var $projectTreeItems = testWindow.$("#project-files-container > div > ul").children(),
                     $selectedItem     = $projectTreeItems.find("a.jstree-clicked");
                 
                 var name = getItemName(fullPath);

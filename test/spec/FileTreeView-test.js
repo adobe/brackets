@@ -425,12 +425,22 @@ define(function (require, exports, module) {
         });
         
         describe("_fileTreeView", function () {
+            var selectionViewInfo = new Immutable.Map({
+                hasSelection: true,
+                width: 100,
+                hasContext: false,
+                scrollTop: 0,
+                scrollLeft: 0,
+                offsetTop: 0
+            });
+            
             it("should render the directory", function () {
                 var rendered = RTU.renderIntoDocument(FileTreeView._fileTreeView({
                     projectRoot: {},
                     treeData: new Immutable.Map({
                         "subdir": twoLevel.getIn(["children", "subdir"])
                     }),
+                    selectionViewInfo: selectionViewInfo,
                     sortDirectoriesFirst: false
                 })),
                     rootNode = RTU.findRenderedDOMComponentWithClass(rendered, "jstree-no-dots"),
@@ -444,6 +454,7 @@ define(function (require, exports, module) {
                 var props = {
                     parentPath          : "/foo/",
                     treeData            : Immutable.Map(),
+                    selectionViewInfo   : selectionViewInfo,
                     sortDirectoriesFirst: false,
                     extensions          : Immutable.Map()
                 };
@@ -480,13 +491,12 @@ define(function (require, exports, module) {
             it("should render into the given element", function () {
                 var el = document.createElement("div"),
                     viewModel = new FileTreeViewModel.FileTreeViewModel();
-                viewModel.treeData = new Immutable.Map({
+                viewModel._treeData = new Immutable.Map({
                     "subdir": twoLevel.getIn(["children", "subdir"])
                 });
                 FileTreeView.render(el, viewModel, {
                     fullPath: "/foo/"
                 });
-                expect($(el).hasClass("jstree")).toBe(true);
                 expect($(".jstree-no-dots", el).length).toBe(1);
             });
         });

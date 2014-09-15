@@ -771,7 +771,7 @@ a, img {
     }
 }
 
-.sidebar-selection {
+.sidebar-selection, .filetree-selection {
     background: @bc-sidebar-selection;
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
@@ -791,8 +791,10 @@ a, img {
     z-index: @z-index-brackets-selection-triangle; /* scroller-shadow appears above this triangle */
 }
 
-.sidebar-context {
+.filetree-context {
     border: 1px dashed @bc-text-alt;
+    position: absolute;
+    height: 22px;
 }
 
 .sidebar-selection-triangle.triangle-visible:before {

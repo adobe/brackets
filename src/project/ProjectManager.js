@@ -217,7 +217,7 @@ define(function (require, exports, module) {
         // activity.
         this.model.on(ProjectModel.EVENT_SHOULD_SELECT, function (e, data) {
             if (data.add) {
-                FileViewController.addToWorkingSetAndSelect(data.path);
+                FileViewController.openFileAndAddToWorkingSet(data.path);
             } else {
                 FileViewController.openAndSelectDocument(data.path, FileViewController.PROJECT_MANAGER);
             }
@@ -366,8 +366,10 @@ define(function (require, exports, module) {
         var curFullPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE);
         if (curFullPath && _hasFileSelectionFocus()) {
             actionCreator.setSelected(curFullPath, true);
+            actionCreator.setFocused(true);
         } else {
             actionCreator.setSelected(null);
+            actionCreator.setFocused(false);
         }
     }
 
@@ -1078,10 +1080,25 @@ define(function (require, exports, module) {
         actionCreator.performRename();
     }
     
+    /**
+     * Sets the width of the selection bar in the file tree.
+     * 
+     * @param {int} width New width value
+     */
+    function setFileTreeSelectionWidth(width) {
+        model.setSelectionWidth(width);
+        _renderTree();
+    }
+    
     
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
+        $projectTreeContainer.addClass("jstree jstree-brackets");
+        $projectTreeContainer.css("overflow", "auto");
+        $projectTreeContainer.css("position", "relative");
+        
+        model.setSelectionWidth($projectTreeContainer.width());
         
         $(".main-view").click(function (jqEvent) {
             if (jqEvent.target.className !== "rename-input") {
@@ -1108,6 +1125,7 @@ define(function (require, exports, module) {
                 Menus.closeAll();
                 actionCreator.setContext(null);
             }
+            model.setScrollerInfo($projectTreeContainer.scrollTop(), $projectTreeContainer.scrollLeft(), $projectTreeContainer.offset().top);
         });
         
         _renderTree();
@@ -1293,4 +1311,5 @@ define(function (require, exports, module) {
     exports.addIconProvider               = addIconProvider;
     exports.addClassesProvider            = addClassesProvider;
     exports.rerenderTree                  = rerenderTree;
+    exports.setFileTreeSelectionWidth     = setFileTreeSelectionWidth;
 });
