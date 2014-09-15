@@ -65,7 +65,12 @@ define(function (require, exports, module) {
         $workingSetViewsContainer;
     
     var _workingset_cmenu,
-        _workingset_configuration_menu;
+        _workingset_configuration_menu,
+        _splitview_menu;
+    
+    var _cmdSplitNone,
+        _cmdSplitVertical,
+        _cmdSplitHorizontal;
     
     var SPRITE_BASE   =  5,
         SPRITE_OFFSET = 21;
@@ -125,7 +130,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if the menus are registered, false if not
      */
     function _areContextMenusRegistered() {
-        return _workingset_cmenu && _workingset_configuration_menu;
+        return _workingset_cmenu && _workingset_configuration_menu && _splitview_menu;
     }
     
     /**
@@ -137,6 +142,7 @@ define(function (require, exports, module) {
         if (!_areContextMenusRegistered()) {
             _workingset_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
             _workingset_configuration_menu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONFIG_MENU);
+            _splitview_menu = Menus.getContextMenu(Menus.ContextMenuIds.SPLITVIEW_MENU);
         }
     }
     
@@ -154,24 +160,55 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Update visual state of buttons.
+     * Update state of splitview button icon and menu checkmarks
      * @private
      */
     function _updateSplitViewButtonState() {
-        var ypos,
-            spriteIndex = 0,
+        var ypos, spriteIndex,
             layoutScheme = MainViewManager.getLayoutScheme();
-        
+
         if (layoutScheme.columns > 1) {
             spriteIndex = 1;
         } else if (layoutScheme.rows > 1) {
             spriteIndex = 2;
+        } else {
+            spriteIndex = 0;
         }
         
+        // Icon
         ypos  = SPRITE_BASE - (spriteIndex * SPRITE_OFFSET);
         $splitViewMenu.css("background-position-y", ypos);
-    }
 
+        // Menu
+        _cmdSplitNone.setChecked(spriteIndex === 0);
+        _cmdSplitVertical.setChecked(spriteIndex === 1);
+        _cmdSplitHorizontal.setChecked(spriteIndex === 2);
+    }
+    
+    /**
+     * Handle No Split Command
+     * @private
+     */
+    function _handleSplitViewNone() {
+        MainViewManager.setLayoutScheme(1, 1);
+    }
+    
+    /**
+     * Handle Vertical Split Command
+     * @private
+     */
+    function _handleSplitViewVertical() {
+        MainViewManager.setLayoutScheme(1, 2);
+    }
+    
+    /**
+     * Handle Horizontal Split Command
+     * @private
+     */
+    function _handleSplitViewHorizontal() {
+        MainViewManager.setLayoutScheme(2, 1);
+    }
+    
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         $sidebar                  = $("#sidebar");
@@ -222,8 +259,7 @@ define(function (require, exports, module) {
         });
         
         $gearMenu.on("click", function (e) {
-            var buttonOffset,
-                buttonHeight;
+            var buttonOffset, buttonHeight;
 
             e.stopPropagation();
             _registerContextMenus();
@@ -234,6 +270,24 @@ define(function (require, exports, module) {
                 buttonOffset = $gearMenu.offset();
                 buttonHeight = $gearMenu.outerHeight();
                 _workingset_configuration_menu.open({
+                    pageX: buttonOffset.left,
+                    pageY: buttonOffset.top + buttonHeight
+                });
+            }
+        });
+        
+        $splitViewMenu.on("click", function (e) {
+            var buttonOffset, buttonHeight;
+
+            e.stopPropagation();
+            _registerContextMenus();
+            
+            if (_splitview_menu.isOpen()) {
+                _splitview_menu.close();
+            } else {
+                buttonOffset = $splitViewMenu.offset();
+                buttonHeight = $splitViewMenu.outerHeight();
+                _splitview_menu.open({
                     pageX: buttonOffset.left,
                     pageY: buttonOffset.top + buttonHeight
                 });
@@ -256,9 +310,6 @@ define(function (require, exports, module) {
         });
         
         $(MainViewManager).on("paneLayoutChange", function () {
-            // TODO: seems weird that "paneLayoutChange" event passes orientation
-            // but MainViewManager.VERTICAL|HORIZONTAL are not public.
-            // This should pass layoutScheme object, instead
             _updateSplitViewButtonState();
         });
         
@@ -268,9 +319,21 @@ define(function (require, exports, module) {
         });
         
         $openFilesContainers = $sidebar.find(".open-files-container");
+
+        // Tooltips
+        $gearMenu.attr("title", Strings.GEAR_MENU_TOOLTIP);
+        $splitViewMenu.attr("title", Strings.SPLITVIEW_MENU_TOOLTIP);
     });
     
     $(ProjectManager).on("projectOpen", _updateProjectTitle);
+    
+    /**
+     * Register Command Handlers
+     */
+    _cmdSplitNone       = CommandManager.register(Strings.CMD_SPLITVIEW_NONE,       Commands.CMD_SPLITVIEW_NONE,       _handleSplitViewNone);
+    _cmdSplitVertical   = CommandManager.register(Strings.CMD_SPLITVIEW_VERTICAL,   Commands.CMD_SPLITVIEW_VERTICAL,   _handleSplitViewVertical);
+    _cmdSplitHorizontal = CommandManager.register(Strings.CMD_SPLITVIEW_HORIZONTAL, Commands.CMD_SPLITVIEW_HORIZONTAL, _handleSplitViewHorizontal);
+    
     CommandManager.register(Strings.CMD_HIDE_SIDEBAR, Commands.VIEW_HIDE_SIDEBAR, toggle);
     
     

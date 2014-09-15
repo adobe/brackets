@@ -234,6 +234,10 @@ define(function (require, exports, module) {
         workingset_configuration_menu.addMenuDivider();
         workingset_configuration_menu.addMenuItem(Commands.CMD_WORKING_SORT_TOGGLE_AUTO);
         
+        var splitview_menu = Menus.registerContextMenu(Menus.ContextMenuIds.SPLITVIEW_MENU);
+        splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_NONE);
+        splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_VERTICAL);
+        splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_HORIZONTAL);
         
         /*
          * Context Menus
