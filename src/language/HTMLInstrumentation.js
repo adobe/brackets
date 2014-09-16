@@ -163,6 +163,26 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     * Dumps the current list of mark ranges for instrumented tags to the console. Used for debugging.
+     * @param {Editor} editor The editor to find the mark ranges for.
+     * @param {Object=} nodeMap If specified, a map of tag IDs to DOM nodes, used so we can indicate which tag name
+     *     the DOM thinks corresponds to the given mark.
+     */
+    function _dumpMarks(editor, nodeMap) {
+        var markCache = {},
+            marks = _getSortedTagMarks(editor._codeMirror.getAllMarks(), markCache);
+        marks.forEach(function (markInfo) {
+            var mark = markInfo.mark,
+                range = markInfo.range;
+            console.log("<" + nodeMap[mark.tagID].tag + "> (" + mark.tagID + ") " +
+                        range.from.line + ":" + range.from.ch + " - " + range.to.line + ":" + range.to.ch);
+        });
+    }
+    // Workaround for JSHint to not complain about the unused function
+    void(_dumpMarks);
+
+    /**
      * Get the instrumented tagID at the specified position. Returns -1 if
      * there are no instrumented tags at the location.
      * The _markText() function must be called before calling this function.
