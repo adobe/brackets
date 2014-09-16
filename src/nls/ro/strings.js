@@ -38,7 +38,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Nu aveți destule drepturi pentru a face modificări.",
     "CONTENTS_MODIFIED_ERR"             : "Fișierul a fost modificat din afara la {APP_NAME}.",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} suportă, pentru moment, doar fișierele textuale codificate cu UTF-8.",
-    "UNSUPPORTED_FILE_TYPE_ERR"         : "Acest tip de fișier nu e suportat.",
+    "UNSUPPORTED_FILE_TYPE_ERR"         : "Acest tip de fișiere nu e suportat.",
     "FILE_EXISTS_ERR"                   : "Fișierul sau directoriul există deja.",
     "FILE"                              : "fișier",
     "FILE_TITLE"                        : "Fișier",
@@ -258,7 +258,7 @@ define({
     "STATUSBAR_OVERWRITE"                   : "RSC",
     "STATUSBAR_INSOVR_TOOLTIP"              : "Clic pentru a modifica cursorul între modul de Inserare(INS) și modul de Rescriere(RSC)",
     "STATUSBAR_LANG_TOOLTIP"                : "Clic pentru a modifica tipul fișierului",
-    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Clic pentru a arăta / ascunde panela raporturilor.",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Clic pentru a arăta / ascunde panoul de rapoarte.",
     "STATUSBAR_DEFAULT_LANG"                : "(implicit)",
     "STATUSBAR_SET_DEFAULT_LANG"            : "Setează ca implicit pentru fișierele .{0}",
 
