@@ -63,8 +63,7 @@ define(function (require, exports, module) {
         $projectFilesContainer,
         $workingSetViewsContainer;
     
-    var _workingset_cmenu,
-        _workingset_configuration_menu,
+    var _workingset_configuration_menu,
         _splitview_menu;
     
     var _cmdSplitNone,
@@ -128,8 +127,8 @@ define(function (require, exports, module) {
      * @private
      * @return {boolean} true if the menus are registered, false if not
      */
-    function _areContextMenusRegistered() {
-        return _workingset_cmenu && _workingset_configuration_menu && _splitview_menu;
+    function _areMenusRegistered() {
+        return _workingset_configuration_menu && _splitview_menu;
     }
     
     /**
@@ -137,25 +136,11 @@ define(function (require, exports, module) {
      * @private
      * @return {boolean} true if the menus are registered, false if not
      */
-    function _registerContextMenus() {
-        if (!_areContextMenusRegistered()) {
-            _workingset_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
+    function _registerMenus() {
+        if (!_areMenusRegistered()) {
             _workingset_configuration_menu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONFIG_MENU);
             _splitview_menu = Menus.getContextMenu(Menus.ContextMenuIds.SPLITVIEW_MENU);
         }
-    }
-    
-    /**
-     * Update context menu handlers
-     * @private
-     */
-    function _updateContextMenuHandlers() {
-        $openFilesContainers.off(".sidebarView");
-        $openFilesContainers = $sidebar.find(".open-files-container");
-        $openFilesContainers.on("contextmenu.sidebarView", function (e) {
-            _registerContextMenus();
-            _workingset_cmenu.open(e);
-        });
     }
     
     /**
@@ -275,12 +260,12 @@ define(function (require, exports, module) {
         }
         
         $gearMenu.on("click", function (e) {
-            _registerContextMenus();
+            _registerMenus();
             _handleInvokeMenu(e, $gearMenu, _workingset_configuration_menu);
         });
         
         $splitViewMenu.on("click", function (e) {
-            _registerContextMenus();
+            _registerMenus();
             _handleInvokeMenu(e, $splitViewMenu, _splitview_menu);
         });
         
@@ -293,10 +278,6 @@ define(function (require, exports, module) {
         // wire up event handlers to monitor when panes are created or destroyed
         $(MainViewManager).on("paneCreate", function (evt, paneId) {
             WorkingSetView.createWorkingSetViewForPane($workingSetViewsContainer, paneId);
-            _updateContextMenuHandlers();
-        });
-        $(MainViewManager).on("paneDestroy", function (evt, paneId) {
-            _updateContextMenuHandlers();
         });
         
         $(MainViewManager).on("paneLayoutChange", function () {

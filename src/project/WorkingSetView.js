@@ -55,21 +55,47 @@ define(function (require, exports, module) {
     var _views = [];
     
     /**
+     * Context Menu
+     * @private
+     * @type {Menu}
+     */
+    var _workingset_cmenu;
+    
+    /**
      * Constants for event.which values
      * @enum {number}
      */
     var LEFT_BUTTON = 1,
         MIDDLE_BUTTON = 2;
     
-    /** 
+    /**
      * Each list item in the working set stores a references to the related document in the list item's data.  
      *  Use `listItem.data(_FILE_KEY)` to get the document reference
      * @type {string}
      * @private
      */
     var _FILE_KEY = "file";
-
-    /** 
+    
+    /*
+     * Determines if context menu is registered
+     * @private
+     * @return {boolean} true if the menu is registered, false if not
+     */
+    function _isContextMenuRegistered() {
+        return _workingset_cmenu;
+    }
+    
+    /*
+     * Registers context menus
+     * @private
+     */
+    function _registerContextMenus() {
+        if (!_isContextMenuRegistered()) {
+            _workingset_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
+        }
+    }
+    
+    /**
      * Updates the appearance of the list element based on the parameters provided.
      * @private
      * @param {!HTMLLIElement} listElement
@@ -81,7 +107,7 @@ define(function (require, exports, module) {
         ViewUtils.toggleClass($(listItem), "selected", shouldBeSelected);
     }
 
-    /** 
+    /**
      * Determines if a file is dirty
      * @private
      * @param {!File} file - file to test
@@ -508,7 +534,7 @@ define(function (require, exports, module) {
         });
     };
     
-    /** 
+    /**
      * Updates the appearance of the list element based on the parameters provided
      * @private
      * @param {!HTMLLIElement} listElement
@@ -549,7 +575,7 @@ define(function (require, exports, module) {
         }
     };
     
-    /** 
+    /**
      * Builds the UI for a new list item and inserts in into the end of the list
      * @private
      * @param {File} file
@@ -586,7 +612,7 @@ define(function (require, exports, module) {
         );
     };
     
-    /** 
+    /**
      * Deletes all the list items in the view and rebuilds them from the working set model
      * @private
      */
@@ -605,7 +631,7 @@ define(function (require, exports, module) {
         }
     };
 
-    /** 
+    /**
      * Updates the pane view's selection marker and scrolls the item into view
      * @private
      */
@@ -622,7 +648,7 @@ define(function (require, exports, module) {
         this._fireSelectionChanged();
     };
 
-    /** 
+    /**
      * workingSetAdd event handler
      * @private
      * @param {jQuery.Event} e - event object
@@ -649,7 +675,7 @@ define(function (require, exports, module) {
         }
     };
 
-    /** 
+    /**
      * workingSetRemove event handler
      * @private 
      * @param {jQuery.Event} e - event object
@@ -676,7 +702,7 @@ define(function (require, exports, module) {
         }
     };
 
-    /** 
+    /**
      * workingSetRemoveList event handler
      * @private
      * @param {jQuery.Event} e - event object
@@ -709,7 +735,7 @@ define(function (require, exports, module) {
         }
     };
 
-    /** 
+    /**
      * dirtyFlagChange event handler
      * @private
      * @param {jQuery.Event} e - event object
@@ -736,7 +762,7 @@ define(function (require, exports, module) {
     };
     
 
-    /** 
+    /**
      * Initializes the WorkingSetView object
      */
     WorkingSetView.prototype.init = function () {
@@ -768,12 +794,25 @@ define(function (require, exports, module) {
         
         // Disable horizontal scrolling until WebKit bug #99379 is fixed
         this.$openFilesContainer.css("overflow-x", "hidden");
+        
+        this.installMenuHandler();
 
         this._redraw();
     };
 
-
-    /** 
+    /**
+     * Installs the context menu handler
+     */
+    WorkingSetView.prototype.installMenuHandler = function () {
+        var self = this;
+        
+        this.$openFilesContainer.on("contextmenu", function (e) {
+            _registerContextMenus();
+            _workingset_cmenu.open(e);
+        });
+    };
+ 
+    /**
      * Destroys the WorkingSetView DOM element and removes all event handlers
      */
     WorkingSetView.prototype.destroy = function () {
@@ -799,7 +838,7 @@ define(function (require, exports, module) {
         }
     });
     
-    /** 
+    /**
      * Creates a new WorkingSetView object for the specified pane
      * @param {!jQuery} $container - the WorkingSetView's DOM parent node
      * @param {!string} paneId - the id of the pane the view is being created for
@@ -816,7 +855,7 @@ define(function (require, exports, module) {
         }
     }
 
-    /** 
+    /**
      * Refreshes all Pane View List Views
      */
     function refresh() {
