@@ -152,11 +152,11 @@ define(function (require, exports, module) {
      * Restores themes settings to factory settings.
      */
     function restore() {
-        prefs.set("theme", ThemeManager.defaultThemeName);
+        prefs.set("theme", defaults.theme);
         prefs.set("themeScrollbars", defaults.themeScrollbars);
     }
 
-    prefs.definePreference("theme", "string", ThemeManager.defaultThemeName);
+    prefs.definePreference("theme", "string", defaults.theme);
     prefs.definePreference("themeScrollbars", "boolean", defaults.themeScrollbars);
 
     exports.restore    = restore;
