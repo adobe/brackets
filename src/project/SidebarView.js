@@ -122,27 +122,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Determines if context menus are registered
-     * @private
-     * @return {boolean} true if the menus are registered, false if not
-     */
-    function _areMenusRegistered() {
-        return _workingset_configuration_menu && _splitview_menu;
-    }
-    
-    /**
-     * Determines if context menus are registered
-     * @private
-     * @return {boolean} true if the menus are registered, false if not
-     */
-    function _registerMenus() {
-        if (!_areMenusRegistered()) {
-            _workingset_configuration_menu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONFIG_MENU);
-            _splitview_menu = Menus.getContextMenu(Menus.ContextMenuIds.SPLITVIEW_MENU);
-        }
-    }
-    
-    /**
      * Update state of splitview button icon and menu checkmarks
      * @private
      */
@@ -239,33 +218,6 @@ define(function (require, exports, module) {
             $projectFilesContainer.triggerHandler("scroll");
             WorkingSetView.syncSelectionIndicator();
             CommandManager.get(Commands.VIEW_HIDE_SIDEBAR).setName(Strings.CMD_HIDE_SIDEBAR);
-        });
-        
-        function _handleInvokeMenu(e, $el, menu) {
-            var buttonOffset, buttonHeight;
-
-            e.stopPropagation();
-            
-            if (menu.isOpen()) {
-                menu.close();
-            } else {
-                buttonOffset = $el.offset();
-                buttonHeight = $el.outerHeight();
-                menu.open({
-                    pageX: buttonOffset.left,
-                    pageY: buttonOffset.top + buttonHeight
-                });
-            }
-        }
-        
-        $gearMenu.on("click", function (e) {
-            _registerMenus();
-            _handleInvokeMenu(e, $gearMenu, _workingset_configuration_menu);
-        });
-        
-        $splitViewMenu.on("click", function (e) {
-            _registerMenus();
-            _handleInvokeMenu(e, $splitViewMenu, _splitview_menu);
         });
         
         // AppInit.htmlReady in utils/Resizer executes before, so it's possible that the sidebar
