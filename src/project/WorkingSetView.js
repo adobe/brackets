@@ -332,14 +332,7 @@ define(function (require, exports, module) {
             this.$el.removeClass("active");
         }
         
-        if (!fileList || fileList.length === 0) {
-            this.$openFilesContainer.hide();
-            this.$workingSetListViewHeader.hide();
-        } else {
-            this.$openFilesContainer.show();
-            this.$workingSetListViewHeader.show();
-            this._checkForDuplicatesInWorkingTree();
-        }
+        this._checkForDuplicatesInWorkingTree();
         this._adjustForScrollbars();
         this._fireSelectionChanged();
         this.updateOptionsButton();
