@@ -31,15 +31,11 @@ define(function (require, exports, module) {
         Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
         ViewCommandHandlers = require("view/ViewCommandHandlers"),
+        ThemeManager        = require("view/ThemeManager"),
         settingsTemplate    = require("text!htmlContent/themes-settings.html"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         prefs               = PreferencesManager.getExtensionPrefs("themes");
 
-    /**
-     * @type {Object}
-     * Currently loaded themes that are available to choose from.
-     */
-    var loadedThemes = {};
 
     /**
      * Object with all default values that can be configure via the settings UI
@@ -99,9 +95,8 @@ define(function (require, exports, module) {
     function showDialog() {
         var currentSettings = getValues();
         var newSettings     = {};
-        var themes          = _.map(loadedThemes, function (theme) { return theme; });
         var template        = $("<div>").append($settings).html();
-        var $template       = $(Mustache.render(template, {"settings": currentSettings, "themes": themes, "Strings": Strings}));
+        var $template       = $(Mustache.render(template, {"settings": currentSettings, "themes": ThemeManager.getAllThemes(), "Strings": Strings}));
 
         // Select the correct theme.
         var $currentThemeOption = $template
@@ -157,14 +152,6 @@ define(function (require, exports, module) {
 
 
     /**
-     * Interface to set the themes that are available to chose from in the setting dialog
-     * @param {ThemeManager.Theme} themes is a collection of themes created by the ThemeManager
-     */
-    function setThemes(themes) {
-        loadedThemes = themes;
-    }
-
-    /**
      * Restores themes to factory settings.
      */
     function restore() {
@@ -175,7 +162,6 @@ define(function (require, exports, module) {
     prefs.definePreference("theme", "string", defaults.theme);
     prefs.definePreference("themeScrollbars", "boolean", defaults.themeScrollbars);
 
-    exports._setThemes = setThemes;
     exports.restore    = restore;
     exports.showDialog = showDialog;
 });
