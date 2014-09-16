@@ -58,7 +58,6 @@ define(function (require, exports, module) {
     var $sidebar,
         $gearMenu,
         $splitViewMenu,
-        $openFilesContainers,
         $projectTitle,
         $projectFilesContainer,
         $workingSetViewsContainer;
@@ -225,7 +224,6 @@ define(function (require, exports, module) {
             $sidebar.find(".sidebar-selection-extension").css("display", "block").css("left", width);
             $sidebar.find(".scroller-shadow").css("display", "block");
             $projectFilesContainer.triggerHandler("scroll");
-            $openFilesContainers.triggerHandler("scroll");
             WorkingSetView.syncSelectionIndicator();
         });
 		
@@ -239,7 +237,6 @@ define(function (require, exports, module) {
             $sidebar.find(".scroller-shadow").css("display", "block");
             $sidebar.find(".sidebar-selection-extension").css("left", width);
             $projectFilesContainer.triggerHandler("scroll");
-            $openFilesContainers.triggerHandler("scroll");
             WorkingSetView.syncSelectionIndicator();
             CommandManager.get(Commands.VIEW_HIDE_SIDEBAR).setName(Strings.CMD_HIDE_SIDEBAR);
         });
@@ -291,8 +288,6 @@ define(function (require, exports, module) {
             WorkingSetView.createWorkingSetViewForPane($workingSetViewsContainer, paneId);
         });
         
-        $openFilesContainers = $sidebar.find(".open-files-container");
-
         // Tooltips
         $gearMenu.attr("title", Strings.GEAR_MENU_TOOLTIP);
         $splitViewMenu.attr("title", Strings.SPLITVIEW_MENU_TOOLTIP);
