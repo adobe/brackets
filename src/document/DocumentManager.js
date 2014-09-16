@@ -662,7 +662,7 @@ define(function (require, exports, module) {
             $(oldDoc).off("languageChanged.DocumentManager");
         }
         
-        PreferencesManager._manager.setLanguage(newDoc ? newDoc.getLanguage().getId() : undefined);
+        PreferencesManager._setCurrentLanguage(newDoc ? newDoc.getLanguage().getId() : undefined);
         var count = DeprecationWarning.getEventHandlerCount(exports, "currentDocumentChange");
         if (count > 0) {
             DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChange' instead.", true);

@@ -185,15 +185,8 @@ define(function (require, exports, module) {
      * @return {*} A context for the specified file name
      */
     function _buildContext(fullPath) {
-        if (!fullPath) {
-            return {};
-        } else {
-            return {
-                filename: fullPath,
-                language: fullPath ? LanguageManager.getLanguageForPath(fullPath).getId() : undefined
-            };
-        }
-            
+        return PreferencesManager._buildContext(fullPath,
+            fullPath ? LanguageManager.getLanguageForPath(fullPath).getId() : undefined);
     }
 
     /**
@@ -2171,7 +2164,7 @@ define(function (require, exports, module) {
      * @return {*} current value of that pref
      */
     Editor.prototype._getOption = function (prefName) {
-        return PreferencesManager.get(prefName, { filename: this.document.file.fullPath, language: this.document.getLanguage().getId() });
+        return PreferencesManager.get(prefName, PreferencesManager._buildContext(this.document.file.fullPath, this.document.getLanguage().getId()));
     };
     
     /**
