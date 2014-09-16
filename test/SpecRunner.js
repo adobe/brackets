@@ -95,10 +95,10 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/keymap/sublime");
 
     var selectedSuites,
-        params                  = new UrlParams(),
+        params          = new UrlParams(),
         reporter,
         reporterView,
-        _writeResults           = new $.Deferred(),
+        _writeResults   = new $.Deferred(),
         resultsPath;
     
     /**

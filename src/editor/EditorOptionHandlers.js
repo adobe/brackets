@@ -27,13 +27,13 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var AppInit                 = require("utils/AppInit"),
-        Editor                  = require("editor/Editor").Editor,
-        Commands                = require("command/Commands"),
-        CommandManager          = require("command/CommandManager"),
-        PreferencesManager      = require("preferences/PreferencesManager"),
-        Strings                 = require("strings"),
-        _                       = require("thirdparty/lodash");
+    var AppInit             = require("utils/AppInit"),
+        Editor              = require("editor/Editor").Editor,
+        Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        Strings             = require("strings"),
+        _                   = require("thirdparty/lodash");
     
     // Constants for the preferences referred to in this file
     var SHOW_LINE_NUMBERS = "showLineNumbers",

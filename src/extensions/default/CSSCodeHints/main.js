@@ -27,16 +27,16 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var AppInit             = brackets.getModule("utils/AppInit"),
-        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
-        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
-        CSSUtils            = brackets.getModule("language/CSSUtils"),
-        HTMLUtils           = brackets.getModule("language/HTMLUtils"),
-        LanguageManager     = brackets.getModule("language/LanguageManager"),
-        TokenUtils          = brackets.getModule("utils/TokenUtils"),
-        StringMatch         = brackets.getModule("utils/StringMatch"),
-        CSSProperties       = require("text!CSSProperties.json"),
-        properties          = JSON.parse(CSSProperties);
+    var AppInit         = brackets.getModule("utils/AppInit"),
+        ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
+        CodeHintManager = brackets.getModule("editor/CodeHintManager"),
+        CSSUtils        = brackets.getModule("language/CSSUtils"),
+        HTMLUtils       = brackets.getModule("language/HTMLUtils"),
+        LanguageManager = brackets.getModule("language/LanguageManager"),
+        TokenUtils      = brackets.getModule("utils/TokenUtils"),
+        StringMatch     = brackets.getModule("utils/StringMatch"),
+        CSSProperties   = require("text!CSSProperties.json"),
+        properties      = JSON.parse(CSSProperties);
     
     // Context of the last request for hints: either CSSUtils.PROP_NAME,
     // CSSUtils.PROP_VALUE or null.

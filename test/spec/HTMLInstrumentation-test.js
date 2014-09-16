@@ -891,6 +891,15 @@ define(function (require, exports, module) {
                 });
             });
         });
+        
+        // Log useful information when debugging a test.
+        function debuggingDump(result, previousDOM) {
+            console.log("Old DOM", HTMLSimpleDOM._dumpDOM(previousDOM));
+            console.log("New DOM", HTMLSimpleDOM._dumpDOM(result.dom));
+            console.log("Edits", JSON.stringify(result.edits, null, 2));
+        }
+        // Workaround for JSHint to not complain about the unused function
+        void(debuggingDump);
 
         describe("HTML Instrumentation in dirty files", function () {
             var changeList, offsets;

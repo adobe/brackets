@@ -27,17 +27,17 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Commands              = require("command/Commands"),
-        KeyEvent              = require("utils/KeyEvent"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
-        FileSystemError       = require("filesystem/FileSystemError"),
-        FileUtils             = require("file/FileUtils"),
-        FindUtils             = require("search/FindUtils"),
-        Async                 = require("utils/Async"),
-        LanguageManager       = require("language/LanguageManager"),
-        StringUtils           = require("utils/StringUtils"),
-        Strings               = require("strings"),
-        _                     = require("thirdparty/lodash");
+    var Commands        = require("command/Commands"),
+        KeyEvent        = require("utils/KeyEvent"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+        FileSystemError = require("filesystem/FileSystemError"),
+        FileUtils       = require("file/FileUtils"),
+        FindUtils       = require("search/FindUtils"),
+        Async           = require("utils/Async"),
+        LanguageManager = require("language/LanguageManager"),
+        StringUtils     = require("utils/StringUtils"),
+        Strings         = require("strings"),
+        _               = require("thirdparty/lodash");
 
     var promisify = Async.promisify; // for convenience
 

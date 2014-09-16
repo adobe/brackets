@@ -27,7 +27,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var SpecRunnerUtils          = require("spec/SpecRunnerUtils");
+    var SpecRunnerUtils = require("spec/SpecRunnerUtils");
 
     describe("MainViewFactory", function () {
         this.category = "mainview";
@@ -58,14 +58,14 @@ define(function (require, exports, module) {
                     _$ = testWindow.$;
 
                     // Load module instances from brackets.test
-                    CommandManager          = testWindow.brackets.test.CommandManager;
-                    Commands                = testWindow.brackets.test.Commands;
-                    DocumentManager         = testWindow.brackets.test.DocumentManager;
-                    EditorManager           = testWindow.brackets.test.EditorManager;
-                    MainViewManager         = testWindow.brackets.test.MainViewManager;
-                    ProjectManager          = testWindow.brackets.test.ProjectManager;
-                    FileSystem              = testWindow.brackets.test.FileSystem;
-                    Dialogs                 = testWindow.brackets.test.Dialogs;
+                    CommandManager  = testWindow.brackets.test.CommandManager;
+                    Commands        = testWindow.brackets.test.Commands;
+                    DocumentManager = testWindow.brackets.test.DocumentManager;
+                    EditorManager   = testWindow.brackets.test.EditorManager;
+                    MainViewManager = testWindow.brackets.test.MainViewManager;
+                    ProjectManager  = testWindow.brackets.test.ProjectManager;
+                    FileSystem      = testWindow.brackets.test.FileSystem;
+                    Dialogs         = testWindow.brackets.test.Dialogs;
                 });
             });
             runs(function () {
@@ -75,13 +75,13 @@ define(function (require, exports, module) {
         
         afterEach(function () {
             MainViewManager._closeAll(MainViewManager.ALL_PANES);
-            testWindow              = null;
-            CommandManager          = null;
-            Commands                = null;
-            DocumentManager         = null;
-            EditorManager           = null;
-            ProjectManager          = null;
-            FileSystem              = null;
+            testWindow      = null;
+            CommandManager  = null;
+            Commands        = null;
+            DocumentManager = null;
+            EditorManager   = null;
+            ProjectManager  = null;
+            FileSystem      = null;
             SpecRunnerUtils.closeTestWindow();
         });
         

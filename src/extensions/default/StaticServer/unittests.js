@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         FileUtils       = brackets.getModule("file/FileUtils"),
         StaticServer    = require("StaticServer");
     
-    var testFolder     = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files";
+    var testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files";
     
     var CONNECT_TIMEOUT = 20000;
 

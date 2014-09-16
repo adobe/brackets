@@ -40,15 +40,15 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var AppInit             = require("utils/AppInit"),
-        ProjectManager      = require("project/ProjectManager"),
-        WorkingSetView    = require("project/WorkingSetView"),
-        MainViewManager     = require("view/MainViewManager"),
-        CommandManager      = require("command/CommandManager"),
-        Commands            = require("command/Commands"),
-        Strings             = require("strings"),
-        Resizer             = require("utils/Resizer"),
-        _                   = require("thirdparty/lodash");
+    var AppInit         = require("utils/AppInit"),
+        ProjectManager  = require("project/ProjectManager"),
+        WorkingSetView  = require("project/WorkingSetView"),
+        MainViewManager = require("view/MainViewManager"),
+        CommandManager  = require("command/CommandManager"),
+        Commands        = require("command/Commands"),
+        Strings         = require("strings"),
+        Resizer         = require("utils/Resizer"),
+        _               = require("thirdparty/lodash");
 
     // These vars are initialized by the htmlReady handler
     // below since they refer to DOM elements

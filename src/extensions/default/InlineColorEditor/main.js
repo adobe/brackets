@@ -42,8 +42,7 @@ define(function (require, exports, module) {
      * @return {?{color:String, start:TextMarker, end:TextMarker}}
      */
     function prepareEditorForProvider(hostEditor, pos) {
-        var colorRegEx, cursorLine, match,
-            sel, start, end, startBookmark, endBookmark;
+        var colorRegEx, cursorLine, match, sel, start, end, startBookmark, endBookmark;
         
         sel = hostEditor.getSelection();
         if (sel.start.line !== sel.end.line) {

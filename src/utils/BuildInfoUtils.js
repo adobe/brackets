@@ -32,8 +32,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystem          = require("filesystem/FileSystem"),
-        FileUtils           = require("file/FileUtils");
+    var FileSystem  = require("filesystem/FileSystem"),
+        FileUtils   = require("file/FileUtils");
     
     // make sure the global brackets variable is loaded
     require("utils/Global");

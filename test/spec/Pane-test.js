@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     'use strict';
 
-    var Pane            = require("view/Pane").Pane;
+    var Pane = require("view/Pane").Pane;
 
     describe("Pane", function () {
         var myPane,

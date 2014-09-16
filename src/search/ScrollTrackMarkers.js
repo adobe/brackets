@@ -35,7 +35,7 @@ define(function (require, exports, module) {
     
     var _ = require("thirdparty/lodash");
     
-    var WorkspaceManager    = require("view/WorkspaceManager");
+    var WorkspaceManager = require("view/WorkspaceManager");
     
     
     /**

@@ -27,13 +27,13 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Menus                   = brackets.getModule("command/Menus"),
-        CommandManager          = brackets.getModule("command/CommandManager"),
-        Commands                = brackets.getModule("command/Commands"),
-        MainViewManager         = brackets.getModule("view/MainViewManager"),
-        Strings                 = brackets.getModule("strings"),
-        workingSetListCmenu       = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU),
-        PreferencesManager      = brackets.getModule("preferences/PreferencesManager");
+    var Menus               = brackets.getModule("command/Menus"),
+        CommandManager      = brackets.getModule("command/CommandManager"),
+        Commands            = brackets.getModule("command/Commands"),
+        MainViewManager     = brackets.getModule("view/MainViewManager"),
+        Strings             = brackets.getModule("strings"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        workingSetListCmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
 
     // Constants
     var closeOthers             = "file.close_others",

@@ -333,8 +333,8 @@ define(function (require, exports, module) {
      *   contain a map of all function names from the document and each function's start offset.
      */
     function _getFunctionsInFiles(fileInfos) {
-        var result          = new $.Deferred(),
-            docEntries      = [];
+        var result      = new $.Deferred(),
+            docEntries  = [];
         
         PerfUtils.markStart(PerfUtils.JSUTILS_GET_ALL_FUNCTIONS);
         
@@ -373,8 +373,8 @@ define(function (require, exports, module) {
      *      Does not addRef() the documents returned in the array.
      */
     function findMatchingFunctions(functionName, fileInfos, keepAllFiles) {
-        var result          = new $.Deferred(),
-            jsFiles         = [];
+        var result  = new $.Deferred(),
+            jsFiles = [];
         
         if (!keepAllFiles) {
             // Filter fileInfos for .js files

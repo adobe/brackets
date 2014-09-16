@@ -28,17 +28,17 @@ define(function (require, exports, module) {
     "use strict";
     
     // Brackets modules
-    var AppInit             = brackets.getModule("utils/AppInit"),
-        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
-        CSSUtils            = brackets.getModule("language/CSSUtils"),
-        EditorManager       = brackets.getModule("editor/EditorManager"),
-        FileSystem          = brackets.getModule("filesystem/FileSystem"),
-        FileUtils           = brackets.getModule("file/FileUtils"),
-        HTMLUtils           = brackets.getModule("language/HTMLUtils"),
-        ProjectManager      = brackets.getModule("project/ProjectManager"),
-        StringUtils         = brackets.getModule("utils/StringUtils"),
+    var AppInit         = brackets.getModule("utils/AppInit"),
+        CodeHintManager = brackets.getModule("editor/CodeHintManager"),
+        CSSUtils        = brackets.getModule("language/CSSUtils"),
+        EditorManager   = brackets.getModule("editor/EditorManager"),
+        FileSystem      = brackets.getModule("filesystem/FileSystem"),
+        FileUtils       = brackets.getModule("file/FileUtils"),
+        HTMLUtils       = brackets.getModule("language/HTMLUtils"),
+        ProjectManager  = brackets.getModule("project/ProjectManager"),
+        StringUtils     = brackets.getModule("utils/StringUtils"),
 
-        Data                = require("text!data.json"),
+        Data            = require("text!data.json"),
 
         urlHints,
         data,

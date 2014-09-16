@@ -438,7 +438,7 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {Document} doc
      */
     function _docIsOutOfSync(doc) {
-        var liveDoc     = _server && _server.get(doc.file.fullPath),
+        var liveDoc = _server && _server.get(doc.file.fullPath),
             isLiveEditingEnabled = liveDoc && liveDoc.isLiveEditingEnabled();
 
         return doc.isDirty && !isLiveEditingEnabled;

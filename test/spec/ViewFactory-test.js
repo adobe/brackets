@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     'use strict';
 
-    var MainViewFactory          = require("view/MainViewFactory");
+    var MainViewFactory = require("view/MainViewFactory");
 
     describe("ViewFactory", function () {
         function createMockFactory() {

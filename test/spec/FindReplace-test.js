@@ -28,11 +28,11 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var Commands              = require("command/Commands"),
-        FindReplace           = require("search/FindReplace"),
-        KeyEvent              = require("utils/KeyEvent"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
-        StringUtils           = require("utils/StringUtils"),
+    var Commands        = require("command/Commands"),
+        FindReplace     = require("search/FindReplace"),
+        KeyEvent        = require("utils/KeyEvent"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+        StringUtils     = require("utils/StringUtils"),
         Strings;
 
     var defaultContent = "/* Test comment */\n" +

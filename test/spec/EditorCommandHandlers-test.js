@@ -27,12 +27,12 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var EditorManager         = require("editor/EditorManager"),
-        Commands              = require("command/Commands"),
-        CommandManager        = require("command/CommandManager"),
-        LanguageManager       = require("language/LanguageManager"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
-        _                     = require("thirdparty/lodash");
+    var EditorManager   = require("editor/EditorManager"),
+        Commands        = require("command/Commands"),
+        CommandManager  = require("command/CommandManager"),
+        LanguageManager = require("language/LanguageManager"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+        _               = require("thirdparty/lodash");
 
     require("editor/EditorCommandHandlers");
 

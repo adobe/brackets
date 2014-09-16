@@ -43,16 +43,16 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var ProjectManager      = require("project/ProjectManager"),
-        DocumentManager     = require("document/DocumentManager"),
-        MainViewManager     = require("view/MainViewManager"),
-        Async               = require("utils/Async"),
-        Dialogs             = require("widgets/Dialogs"),
-        DefaultDialogs      = require("widgets/DefaultDialogs"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils"),
-        FileUtils           = require("file/FileUtils"),
-        FileSystemError     = require("filesystem/FileSystemError");
+    var ProjectManager  = require("project/ProjectManager"),
+        DocumentManager = require("document/DocumentManager"),
+        MainViewManager = require("view/MainViewManager"),
+        Async           = require("utils/Async"),
+        Dialogs         = require("widgets/Dialogs"),
+        DefaultDialogs  = require("widgets/DefaultDialogs"),
+        Strings         = require("strings"),
+        StringUtils     = require("utils/StringUtils"),
+        FileUtils       = require("file/FileUtils"),
+        FileSystemError = require("filesystem/FileSystemError");
 
     
     /**

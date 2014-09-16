@@ -27,7 +27,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var RemoteFunctions     = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
+    var RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
     
     // "load" RemoteFunctions
     RemoteFunctions = eval("(" + RemoteFunctions.trim() + ")()");

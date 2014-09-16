@@ -30,10 +30,10 @@ define(function (require, exports, module) {
     var KeyEvent        = brackets.getModule("utils/KeyEvent"),
         Strings         = brackets.getModule("strings");
 
-    var TimingFunctionUtils            = require("TimingFunctionUtils");
+    var TimingFunctionUtils = require("TimingFunctionUtils");
     
     /** Mustache template that forms the bare DOM structure of the UI */
-    var BezierCurveEditorTemplate   = require("text!BezierCurveEditorTemplate.html");
+    var BezierCurveEditorTemplate = require("text!BezierCurveEditorTemplate.html");
     
     /** @const @type {number} */
     var HEIGHT_ABOVE    =  75,    // extra height above main grid

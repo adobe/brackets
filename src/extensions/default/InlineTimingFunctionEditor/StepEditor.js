@@ -27,17 +27,17 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var KeyEvent        = brackets.getModule("utils/KeyEvent"),
-        Strings         = brackets.getModule("strings");
+    var KeyEvent    = brackets.getModule("utils/KeyEvent"),
+        Strings     = brackets.getModule("strings");
 
-    var TimingFunctionUtils            = require("TimingFunctionUtils");
+    var TimingFunctionUtils = require("TimingFunctionUtils");
     
     /** Mustache template that forms the bare DOM structure of the UI */
     var StepEditorTemplate   = require("text!StepEditorTemplate.html");
     
     /** @const @type {number} */
-    var STEP_LINE       =   1,
-        DASH_LINE       =   2;
+    var STEP_LINE   = 1,
+        DASH_LINE   = 2;
 
     /**
      * StepParameters object constructor

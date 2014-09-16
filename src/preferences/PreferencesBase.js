@@ -58,11 +58,11 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils         = require("file/FileUtils"),
-        FileSystem        = require("filesystem/FileSystem"),
-        _                 = require("thirdparty/lodash"),
-        Async             = require("utils/Async"),
-        globmatch         = require("thirdparty/globmatch");
+    var FileUtils   = require("file/FileUtils"),
+        FileSystem  = require("filesystem/FileSystem"),
+        _           = require("thirdparty/lodash"),
+        Async       = require("utils/Async"),
+        globmatch   = require("thirdparty/globmatch");
     
     // CONSTANTS
     var PREFERENCE_CHANGE = "change",

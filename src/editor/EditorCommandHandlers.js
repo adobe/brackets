@@ -552,7 +552,7 @@ define(function (require, exports, module) {
      *      An edit description suitable for including in the edits array passed to `Document.doMultipleEdits()`.
      */
     function _getLineCommentPrefixSuffixEdit(editor, prefix, suffix, lineSel) {
-        var sel             = lineSel.selectionForEdit;
+        var sel = lineSel.selectionForEdit;
         
         // For one-line selections, we shrink the selection to exclude the trailing newline.
         if (sel.end.line === sel.start.line + 1 && sel.end.ch === 0) {

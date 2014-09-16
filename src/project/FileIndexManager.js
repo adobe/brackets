@@ -33,7 +33,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var ProjectManager      = require("project/ProjectManager");
+    var ProjectManager  = require("project/ProjectManager");
     
     function _warn() {
         console.error("Warning: FileIndexManager is deprecated. Use ProjectManager.getAllFiles() instead");

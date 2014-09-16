@@ -312,7 +312,7 @@
      *     Each path should begin with a forward slash "/".
      */
     function _cmdSetRequestFilterPaths(root, paths) {
-        var pathKey  = getPathKey(root),
+        var pathKey = getPathKey(root),
             rewritePaths = {};
 
         // reset list of filtered paths for each call to setRequestFilterPaths
