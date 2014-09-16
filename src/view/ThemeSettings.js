@@ -74,6 +74,26 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     * Applies setting's value to the correct place.  Either as a preference or in the ViewCommandHandler.
+     * Settings that go in the ViewCommandHandler as only for font settings at this point.
+     */
+    function applySetting(setting, value) {
+        var setterFn;
+
+        if (defaults.hasOwnProperty(setting)) {
+            prefs.set(setting, value);
+        } else {
+            // Figure out if the setting is in the ViewCommandHandlers, which means it is
+            // a font setting
+            setterFn = "set" + setting[0].toLocaleUpperCase() + setting.substr(1);
+            if (typeof ViewCommandHandlers[setterFn] === 'function') {
+                ViewCommandHandlers[setterFn](value);
+            }
+        }
+    }
+
+    /**
      * Opens the settings dialog
      */
     function showDialog() {
@@ -100,45 +120,41 @@ define(function (require, exports, module) {
             .on("change", "[data-target]:checkbox", function () {
                 var $target = $(this);
                 var attr = $target.attr("data-target");
-                newSettings[attr] = $target.is(":checked");
+
+                if (attr) {
+                    newSettings[attr] = $target.is(":checked");
+                    applySetting(attr, newSettings[attr]);
+                }
             })
-            .on("input", "[data-target]:text", function () {
+            .on("input", "[data-target]:text", _.debounce(function () {
                 var $target = $(this);
                 var attr = $target.attr("data-target");
-                newSettings[attr] = $target.val();
-            })
+
+                if (attr) {
+                    newSettings[attr] = $target.val();
+                    applySetting(attr, newSettings[attr]);
+                }
+            }, 500))
             .on("change", function () {
                 var $target = $(":selected", this);
                 var attr = $target.attr("data-target");
 
                 if (attr) {
-                    prefs.set(attr, $target.val());
+                    newSettings[attr] = $target.val();
+                    applySetting(attr, newSettings[attr]);
                 }
             });
 
         Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
-            var setterFn;
-
-            if (id === "save") {
+            if (id === "cancel") {
                 // Go through each new setting and apply it
                 Object.keys(newSettings).forEach(function (setting) {
-                    if (defaults.hasOwnProperty(setting)) {
-                        prefs.set(setting, newSettings[setting]);
-                    } else {
-                        // Figure out if the setting is in the ViewCommandHandlers, which means it is
-                        // a font setting
-                        setterFn = "set" + setting[0].toLocaleUpperCase() + setting.substr(1);
-                        if (typeof ViewCommandHandlers[setterFn] === 'function') {
-                            ViewCommandHandlers[setterFn](newSettings[setting]);
-                        }
-                    }
+                    applySetting(setting, currentSettings[setting]);
                 });
-            } else if (id === "cancel") {
-                // Make sure we revert any changes to theme selection
-                prefs.set("theme", currentSettings.theme);
             }
         });
     }
+
 
     /**
      * Interface to set the themes that are available to chose from in the setting dialog
