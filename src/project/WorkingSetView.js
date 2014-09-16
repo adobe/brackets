@@ -923,5 +923,5 @@ define(function (require, exports, module) {
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
     exports.refresh                       = refresh;
-    exports.syncSelectionIndicator         = syncSelectionIndicator;
+    exports.syncSelectionIndicator        = syncSelectionIndicator;
 });
