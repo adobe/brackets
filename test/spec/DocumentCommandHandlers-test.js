@@ -673,7 +673,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "CMD_ADD_TO_WORKINGSET_AND_OPEN");
                 });
             });
-            it("should should not close the current view", function () {
+            it("should not close the current view", function () {
                 var currentPath,
                     docsToClose;
                 runs(function () {
@@ -690,7 +690,7 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getCurrentlyViewedPath()).toBe(currentPath);
                 });
             });
-            it("should should close all views", function () {
+            it("should close all views", function () {
                 var docsToClose;
                 runs(function () {
                     docsToClose = DocumentManager.getAllOpenDocuments();
@@ -703,7 +703,7 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getCurrentlyViewedFile()).toBeFalsy();
                 });
             });
-            it("should should open the next view when the current view is closed", function () {
+            it("should open the next view when the current view is closed", function () {
                 var currentPath,
                     docsToClose;
                 runs(function () {

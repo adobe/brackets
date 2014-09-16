@@ -1014,7 +1014,7 @@ define(function (require, exports, module) {
      * @param {boolean} suppressOpenNextFile - suppresses opening the next file in MRU order
      * @param {boolean} preventViewChange - if suppressOpenNextFile is truthy, this flag can be used to 
      *                                      prevent the current view from being destroyed. 
-     *                                      Ignred if suppressOpenNextFile is falsy 
+     *                                      Ignored if suppressOpenNextFile is falsy 
      * @return {boolean} true if the file was removed from the working set
      *  This function will remove a temporary view of a file but will return false in that case
      */
