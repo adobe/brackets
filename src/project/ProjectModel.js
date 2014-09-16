@@ -627,7 +627,7 @@ define(function (require, exports, module) {
             var parentDirectory = FileUtils.getDirectoryPath(path),
                 self = this;
             this.setDirectoryOpen(parentDirectory, true).then(function () {
-                if (_pathIsFile(path) && self._focused) {
+                if (_pathIsFile(path)) {
                     self.setSelected(path);
                 }
                 d.resolve();
@@ -667,7 +667,7 @@ define(function (require, exports, module) {
         }
         this._selections.selected = path;
 
-        if (path && _pathIsFile(path)) {
+        if (path) {
             $(this).trigger(EVENT_SHOULD_FOCUS);
 
             if (!doNotOpen) {

@@ -828,6 +828,11 @@ define(function (require, exports, module) {
                 });
             });
         });
+        
+        /**
+         * Creates a text fixture with some event trackers that has data that simulates being
+         * loaded.
+         */
         function getLoadableFixture() {
             var data = {},
                 model,
@@ -905,6 +910,10 @@ define(function (require, exports, module) {
             model.on(ProjectModel.EVENT_CHANGE, function () {
                 data.changesFired++;
             });
+            
+            model.on(ProjectModel.EVENT_SHOULD_SELECT, function (e, eventData) {
+                data.shouldSelectEvents.push(eventData);
+            });
 
             data.gdcCalls = 0;
             spyOn(model, "_getDirectoryContents").andCallFake(function (path) {
@@ -915,6 +924,7 @@ define(function (require, exports, module) {
             
             data.model = model;
             data.vm = vm;
+            data.shouldSelectEvents = [];
             data.pathData = pathData;
             data.nodesByDepth = nodesByDepth;
             
@@ -1023,11 +1033,15 @@ define(function (require, exports, module) {
             });
             
             it("should open a subdirectory and select a file", function () {
+                model.setFocused(false);
                 waitsForDone(model.showInTree("/foo/subdir1/subsubdir/interior.txt"));
                 runs(function () {
                     expect(vm._treeData.getIn(["subdir1", "open"])).toBe(true);
                     expect(vm._treeData.getIn(["subdir1", "children", "subsubdir", "open"])).toBe(true);
                     expect(vm._treeData.getIn(["subdir1", "children", "subsubdir", "children", "interior.txt", "selected"])).toBe(true);
+                    expect(data.shouldSelectEvents).toEqual([{
+                        path: "/foo/subdir1/subsubdir/interior.txt"
+                    }]);
                 });
             });
         });
