@@ -776,7 +776,7 @@ a, img {
         height: 16px;
         line-height: 15px;
         margin-left: 18px;
-        padding: 3px (@sidebar-triangle-size * 2) 3px 0;
+        padding: 3px 0 3px 0;
 
         cursor: default;
 
@@ -815,7 +815,7 @@ a, img {
     position: absolute;
 }
 
-.sidebar-selection-triangle {
+.sidebar-selection-extension {
     background: @bc-sidebar-selection;
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
@@ -824,25 +824,10 @@ a, img {
     height: 22px;
     position: fixed;
 
-    z-index: @z-index-brackets-selection-triangle; /* scroller-shadow appears above this triangle */
+    z-index: @z-index-brackets-selection-extension; /* scroller-shadow appears above the extension */
 }
 
-.sidebar-selection-triangle.triangle-visible:before {
-    content: "";
 
-    border-top: @sidebar-triangle-size solid transparent;
-    border-bottom: (@sidebar-triangle-size - 1) solid transparent;
-    border-left: @sidebar-triangle-size solid @bc-sidebar-selection;
-
-    display: block;
-    position: absolute;
-    top: -1px;
-    right: -9px;
-    width: 0;
-    height: 0;
-
-    .scale-x(0.8, right, top);
-}
 
 //Initially start with the open files hidden, they will get show as files are added
 .open-files-container {
@@ -851,10 +836,6 @@ a, img {
 
 #project-files-container {
     .box-flex(1);
-
-    .jstree-brackets li > a {
-        padding-right: (@sidebar-triangle-size * 2);
-    }
 
     ul {
         padding-left: 8px;
