@@ -283,7 +283,6 @@ define(function (require, exports, module) {
          * context boxes as appropriate.
          */
         componentDidUpdate: function (prevProps, prevState) {
-            var top;
             if (this.props.entry.get("selected") && !prevProps.entry.get("selected")) {
                 // TODO: This shouldn't really know about project-files-container
                 // directly. It is probably the case that our React tree should actually
@@ -291,15 +290,6 @@ define(function (require, exports, module) {
                 // project-files-container and then the file tree will be one self-contained
                 // functional unit.
                 ViewUtils.scrollElementIntoView($("#project-files-container"), $(this.getDOMNode()), true);
-                top = $(this.getDOMNode()).offset().top;
-                this.props.setSelectionPosition(top);
-            }
-            
-            if (this.props.entry.get("context") && !prevProps.entry.get("context")) {
-                if (!top) {
-                    top = $(this.getDOMNode()).offset().top;
-                }
-                this.props.setContextPosition(top);
             }
         },
 
@@ -365,8 +355,12 @@ define(function (require, exports, module) {
             }
 
             var fileClasses = "";
-            if (this.props.entry.get("selected") || this.props.entry.get("context")) {
-                fileClasses = "jstree-clicked";
+            if (this.props.entry.get("selected")) {
+                fileClasses += "jstree-clicked selected-node";
+            }
+            
+            if (this.props.entry.get("context")) {
+                fileClasses += "context-node";
             }
 
             var nameDisplay;
@@ -508,16 +502,6 @@ define(function (require, exports, module) {
         },
 
         /**
-         * If this directory becomes the context, we set the context border position to this
-         * node.
-         */
-        componentDidUpdate: function (prevProps, prevState) {
-            if (this.props.entry.get("context") && !prevProps.entry.get("context")) {
-                this.props.setContextPosition($(this.getDOMNode()).offset().top);
-            }
-        },
-        
-        /**
          * If you click on a directory, it will toggle between open and closed.
          */
         handleClick: function (event) {
@@ -575,9 +559,7 @@ define(function (require, exports, module) {
                     contents: children,
                     extensions: this.props.extensions,
                     actions: this.props.actions,
-                    forceRender: this.props.forceRender,
-                    setSelectionPosition: this.props.setSelectionPosition,
-                    setContextPosition: this.props.setContextPosition
+                    forceRender: this.props.forceRender
                 });
             } else {
                 nodeClass = "closed";
@@ -588,7 +570,7 @@ define(function (require, exports, module) {
             }
 
             if (entry.get("context")) {
-                directoryClasses += " sidebar-context";
+                directoryClasses += " context-node";
             }
 
             var nameDisplay;
@@ -667,8 +649,6 @@ define(function (require, exports, module) {
                         actions: this.props.actions,
                         extensions: this.props.extensions,
                         forceRender: this.props.forceRender,
-                        setSelectionPosition: this.props.setSelectionPosition,
-                        setContextPosition: this.props.setContextPosition,
                         key: name
                     });
                 } else {
@@ -680,8 +660,6 @@ define(function (require, exports, module) {
                         extensions: this.props.extensions,
                         sortDirectoriesFirst: this.props.sortDirectoriesFirst,
                         forceRender: this.props.forceRender,
-                        setSelectionPosition: this.props.setSelectionPosition,
-                        setContextPosition: this.props.setContextPosition,
                         key: name
                     });
                 }
@@ -711,19 +689,23 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Called by the fileNode which is currently selected to set the top of this selection
-         * box.
-         * 
-         * @param {int} top offset().top of the DOM node for the selected node
+         * When the component has updated in the DOM, reposition it to where the currently
+         * selected node is located now.
          */
-        setSelectionPosition: function (top) {
+        componentDidUpdate: function () {
+            if (!this.props.visible) {
+                return;
+            }
             
-            // We keep track of the initial scroll position because that determines how much
-            // we need to move this box as the user scrolls.
-            this.setState({
-                top: top,
-                initialScroll: this.props.selectionViewInfo.get("scrollTop")
-            });
+            var node = this.getDOMNode(),
+                selectedNode = $(node.parentNode).find(this.props.selectedClassName),
+                selectionViewInfo = this.props.selectionViewInfo;
+
+            if (selectedNode.length === 0) {
+                return;
+            }
+            
+            node.style.top = selectedNode.offset().top - selectionViewInfo.get("offsetTop") + selectionViewInfo.get("scrollTop") + "px";
         },
         
         render: function () {
@@ -732,7 +714,6 @@ define(function (require, exports, module) {
             return DOM.div({
                 style: {
                     overflow: "auto",
-                    top: this.state.top - selectionViewInfo.get("offsetTop") + this.state.initialScroll,
                     left: selectionViewInfo.get("scrollLeft"),
                     width: selectionViewInfo.get("width") - this.props.widthAdjustment,
                     visibility: this.props.visible ? "visible" : "hidden"
@@ -767,28 +748,24 @@ define(function (require, exports, module) {
                 this.props.selectionViewInfo !== nextProps.selectionViewInfo;
         },
         
-        setSelectionPosition: function (top) {
-            this.refs.selectionBackground.setSelectionPosition(top);
-        },
-        
-        setContextPosition: function (top) {
-            this.refs.contextBackground.setSelectionPosition(top);
-        },
-
         render: function () {
             var selectionBackground = fileSelectionBox({
                 ref: "selectionBackground",
                 selectionViewInfo: this.props.selectionViewInfo,
                 className: "filetree-selection",
                 visible: this.props.selectionViewInfo.get("hasSelection"),
-                widthAdjustment: 0
+                widthAdjustment: 0,
+                selectedClassName: ".selected-node",
+                forceUpdate: true
             }),
                 contextBackground = fileSelectionBox({
                     ref: "contextBackground",
                     selectionViewInfo: this.props.selectionViewInfo,
                     className: "filetree-context",
                     visible: this.props.selectionViewInfo.get("hasContext"),
-                    widthAdjustment: 2
+                    widthAdjustment: 2,
+                    selectedClassName: ".context-node",
+                    forceUpdate: true
                 });
             
             return DOM.div(
@@ -802,9 +779,7 @@ define(function (require, exports, module) {
                     contents: this.props.treeData,
                     extensions: this.props.extensions,
                     actions: this.props.actions,
-                    forceRender: this.props.forceRender,
-                    setSelectionPosition: this.setSelectionPosition,
-                    setContextPosition: this.setContextPosition
+                    forceRender: this.props.forceRender
                 })
             );
         }
