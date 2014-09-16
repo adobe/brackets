@@ -115,9 +115,7 @@ define(function (require, exports, module) {
     exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";      // EditorOptionHandlers.js      _getToggler()
     exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";        // EditorOptionHandlers.js      _getToggler()
 
-    exports.CMD_ADD_TO_WORKING_SET       = "cmd.addToWorkingSet";        // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()
-    exports.CMD_OPEN                     = "cmd.open";
-    
+    exports.CMD_OPEN                        = "cmd.open";
     exports.CMD_ADD_TO_WORKINGSET_AND_OPEN  = "cmd.addToWorkingSetAndOpen";          // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()
     exports.CMD_WORKINGSET_SORT_BY_ADDED    = "cmd.sortWorkingSetByAdded";           // WorkingSetSort.js          _handleSort()
     exports.CMD_WORKINGSET_SORT_BY_NAME     = "cmd.sortWorkingSetByName";            // WorkingSetSort.js          _handleSort()
