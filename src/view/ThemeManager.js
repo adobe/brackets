@@ -43,7 +43,7 @@ define(function (require, exports, module) {
     var loadedThemes    = {},
         currentTheme    = null,
         styleNode       = $(ExtensionUtils.addEmbeddedStyleSheet("")),
-        defaultTheme    = "thor-light-theme",
+        defaultTheme    = "light-theme",
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
         scrollbarsRegex = /((?:[^}|,]*)::-webkit-scrollbar(?:[^{]*)[{](?:[^}]*?)[}])/mgi,
         stylesPath      = FileUtils.getNativeBracketsDirectoryPath() + "/styles/",
@@ -262,7 +262,7 @@ define(function (require, exports, module) {
      * @return {Theme} the current theme instance
      */
     function getCurrentTheme() {
-        return currentTheme;
+        return (currentTheme && loadedThemes[currentTheme.name]) || loadedThemes[defaultTheme];
     }
 
 
@@ -292,7 +292,7 @@ define(function (require, exports, module) {
         }
 
         // Save off the current theme
-        currentTheme = loadedThemes[themeName] || loadedThemes[defaultTheme];
+        currentTheme = loadedThemes[themeName];
 
         // Refresh editor with the new theme
         refresh(true).done(function () {
@@ -371,7 +371,7 @@ define(function (require, exports, module) {
 
     prefs.on("change", "themeScrollbars", function () {
         refresh();
-        ThemeView.updateScrollbars(currentTheme);
+        ThemeView.updateScrollbars(getCurrentTheme());
     });
 
     // Monitor file changes.  If the file that has changed is actually the currently loaded
@@ -403,12 +403,13 @@ define(function (require, exports, module) {
     });
 
     
-    exports.refresh         = refresh;
-    exports.loadFile        = loadFile;
-    exports.loadPackage     = loadPackage;
-    exports.getCurrentTheme = getCurrentTheme;
-    exports.setCurrentTheme = setCurrentTheme;
-    exports.getAllThemes    = getAllThemes;
+    exports.refresh          = refresh;
+    exports.loadFile         = loadFile;
+    exports.loadPackage      = loadPackage;
+    exports.getCurrentTheme  = getCurrentTheme;
+    exports.setCurrentTheme  = setCurrentTheme;
+    exports.getAllThemes     = getAllThemes;
+    exports.defaultThemeName = defaultTheme;
 
     // Exposed for testing purposes
     exports._toDisplayName     = toDisplayName;

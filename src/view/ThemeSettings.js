@@ -42,7 +42,7 @@ define(function (require, exports, module) {
      */
     var defaults = {
         "themeScrollbars": true,
-        "theme": "light-theme"
+        "theme": ThemeManager.defaultThemeName
     };
 
 
@@ -57,7 +57,7 @@ define(function (require, exports, module) {
      *
      * @return {Object} a collection with all the settings
      */
-    function getValues() {
+    function getCurrentSettings() {
         var result = {};
 
         Object.keys(defaults).forEach(function (key) {
@@ -74,7 +74,7 @@ define(function (require, exports, module) {
      * Applies setting's value to the correct place.  Either as a preference or in the ViewCommandHandler.
      * Settings that go in the ViewCommandHandler as only for font settings at this point.
      */
-    function applySetting(setting, value) {
+    function setSetting(setting, value) {
         var setterFn;
 
         if (defaults.hasOwnProperty(setting)) {
@@ -90,21 +90,18 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Opens the settings dialog
+     * Opens the settings dialog for themes
      */
     function showDialog() {
-        var currentSettings = getValues();
+        var currentSettings = getCurrentSettings();
         var newSettings     = {};
-        var template        = $("<div>").append($settings).html();
-        var $template       = $(Mustache.render(template, {"settings": currentSettings, "themes": ThemeManager.getAllThemes(), "Strings": Strings}));
+        var templateData    = {"settings": currentSettings, "themes": ThemeManager.getAllThemes(), "Strings": Strings};
+        var $template       = $(Mustache.render($("<div>").append($settings).html(), templateData));
 
         // Select the correct theme.
         var $currentThemeOption = $template
-            .find("[value='" + currentSettings.theme + "']");
-        
-        if ($currentThemeOption.length === 0) {
-            $currentThemeOption = $template.find("[value='" + defaults.theme + "']");
-        }
+            .find("[value='" + ThemeManager.getCurrentTheme().name + "']");
+
         $currentThemeOption.attr("selected", "selected");
 
         $template
@@ -118,7 +115,7 @@ define(function (require, exports, module) {
 
                 if (attr) {
                     newSettings[attr] = $target.is(":checked");
-                    applySetting(attr, newSettings[attr]);
+                    setSetting(attr, newSettings[attr]);
                 }
             })
             .on("input", "[data-target]:text", _.debounce(function () {
@@ -127,7 +124,7 @@ define(function (require, exports, module) {
 
                 if (attr) {
                     newSettings[attr] = $target.val();
-                    applySetting(attr, newSettings[attr]);
+                    setSetting(attr, newSettings[attr]);
                 }
             }, 500))
             .on("change", function () {
@@ -136,7 +133,7 @@ define(function (require, exports, module) {
 
                 if (attr) {
                     newSettings[attr] = $target.val();
-                    applySetting(attr, newSettings[attr]);
+                    setSetting(attr, newSettings[attr]);
                 }
             });
 
@@ -144,7 +141,7 @@ define(function (require, exports, module) {
             if (id === "cancel") {
                 // Go through each new setting and apply it
                 Object.keys(newSettings).forEach(function (setting) {
-                    applySetting(setting, currentSettings[setting]);
+                    setSetting(setting, currentSettings[setting]);
                 });
             }
         });
@@ -152,14 +149,14 @@ define(function (require, exports, module) {
 
 
     /**
-     * Restores themes to factory settings.
+     * Restores themes settings to factory settings.
      */
     function restore() {
-        prefs.set("theme", defaults.theme);
+        prefs.set("theme", ThemeManager.defaultThemeName);
         prefs.set("themeScrollbars", defaults.themeScrollbars);
     }
 
-    prefs.definePreference("theme", "string", defaults.theme);
+    prefs.definePreference("theme", "string", ThemeManager.defaultThemeName);
     prefs.definePreference("themeScrollbars", "boolean", defaults.themeScrollbars);
 
     exports.restore    = restore;
