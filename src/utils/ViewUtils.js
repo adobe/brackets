@@ -186,9 +186,9 @@ define(function (require, exports, module) {
     function sidebarList($scrollerElement, selectedClassName, leafClassName) {
         var $listElement = $scrollerElement.find("ul"),
             $selectionMarker,
-            $selectionTriangle,
+            $selectionExtension,
             $sidebar = $("#sidebar"),
-            showTriangle = true;
+            showExtension = true;
         
         // build selectionMarker and position absolute within the scroller
         $selectionMarker = $(window.document.createElement("div")).addClass("sidebar-selection");
@@ -200,40 +200,40 @@ define(function (require, exports, module) {
         // use relative postioning for clipping the selectionMarker within the scrollElement
         $scrollerElement.css("position", "relative");
         
-        // build selectionTriangle and position fixed to the window
-        $selectionTriangle = $(window.document.createElement("div")).addClass("sidebar-selection-triangle");
+        // build selectionExtension and position fixed to the window
+        $selectionExtension = $(window.document.createElement("div")).addClass("sidebar-selection-extension");
         
-        $scrollerElement.append($selectionTriangle);
+        $scrollerElement.append($selectionExtension);
         
         selectedClassName = "." + (selectedClassName || "selected");
         
-        var updateSelectionTriangle = function () {
+        var updateSelectionExtension = function () {
             var selectionMarkerHeight = $selectionMarker.height(),
                 selectionMarkerOffset = $selectionMarker.offset(),  // offset relative to *document*
                 scrollerOffset = $scrollerElement.offset(),
-                triangleHeight = $selectionTriangle.outerHeight(),
+                selectionExtensionHeight = $selectionExtension.outerHeight(),
                 scrollerTop = scrollerOffset.top,
                 scrollerBottom = scrollerTop + $scrollerElement.outerHeight(),
                 scrollerLeft = scrollerOffset.left,
-                triangleTop = selectionMarkerOffset.top;
+                selectionExtensionTop = selectionMarkerOffset.top;
             
-            $selectionTriangle.css("top", triangleTop);
-            $selectionTriangle.css("left", $sidebar.width() - $selectionTriangle.outerWidth());
-            toggleClass($selectionTriangle, "triangle-visible", showTriangle);
+            $selectionExtension.css("top", selectionExtensionTop);
+            $selectionExtension.css("left", $sidebar.width() - $selectionExtension.outerWidth());
+            toggleClass($selectionExtension, "selectionExtension-visible", showExtension);
                 
-            var triangleClipOffsetYBy = Math.floor((selectionMarkerHeight - triangleHeight) / 2),
-                triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
+            var selectionExtensionClipOffsetYBy = Math.floor((selectionMarkerHeight - selectionExtensionHeight) / 2),
+                selectionExtensionBottom = selectionExtensionTop + selectionExtensionHeight + selectionExtensionClipOffsetYBy;
             
-            if (triangleTop < scrollerTop || triangleBottom > scrollerBottom) {
-                $selectionTriangle.css("clip", "rect(" + Math.max(scrollerTop - triangleTop - triangleClipOffsetYBy, 0) + "px, auto, " +
-                                           (triangleHeight - Math.max(triangleBottom - scrollerBottom, 0)) + "px, auto)");
+            if (selectionExtensionTop < scrollerTop || selectionExtensionBottom > scrollerBottom) {
+                $selectionExtension.css("clip", "rect(" + Math.max(scrollerTop - selectionExtensionTop - selectionExtensionClipOffsetYBy, 0) + "px, auto, " +
+                                           (selectionExtensionHeight - Math.max(selectionExtensionBottom - scrollerBottom, 0)) + "px, auto)");
             } else {
-                $selectionTriangle.css("clip", "");
+                $selectionExtension.css("clip", "");
             }
         };
         
         var hideSelectionMarker = function (event) {
-            $selectionTriangle.addClass("forced-hidden");
+            $selectionExtension.addClass("forced-hidden");
             $selectionMarker.addClass("forced-hidden");
         };
         
@@ -242,14 +242,14 @@ define(function (require, exports, module) {
             var $listItem = $listElement.find(selectedClassName).closest("li");
             
             if (leafClassName) {
-                showTriangle = $listItem.hasClass(leafClassName);
+                showExtension = $listItem.hasClass(leafClassName);
             }
 
-            $selectionTriangle.removeClass("forced-hidden");
+            $selectionExtension.removeClass("forced-hidden");
             $selectionMarker.removeClass("forced-hidden");
             
             // always hide selection visuals first to force layout (issue #719)
-            $selectionTriangle.hide();
+            $selectionExtension.hide();
             $selectionMarker.hide();
             
             if ($listItem.length === 1) {
@@ -263,8 +263,8 @@ define(function (require, exports, module) {
                 $selectionMarker.css("top", selectionMarkerTop);
                 $selectionMarker.show();
                 
-                updateSelectionTriangle();
-                $selectionTriangle.show();
+                updateSelectionExtension();
+                $selectionExtension.show();
             
                 // fully scroll to the selectionMarker if it's not initially in the viewport
                 var scrollerElement = $scrollerElement.get(0),
@@ -285,15 +285,15 @@ define(function (require, exports, module) {
         };
         
         $listElement.on("selectionChanged", updateSelectionMarker);
-        $scrollerElement.on("scroll", updateSelectionTriangle);
-        $scrollerElement.on("selectionRedraw", updateSelectionTriangle);
+        $scrollerElement.on("scroll", updateSelectionExtension);
+        $scrollerElement.on("selectionRedraw", updateSelectionExtension);
         $scrollerElement.on("selectionHide", hideSelectionMarker);
         
         // update immediately
         updateSelectionMarker();
         
         // update clipping when the window resizes
-        _resizeHandlers.push(updateSelectionTriangle);
+        _resizeHandlers.push(updateSelectionExtension);
     }
     
     /**
