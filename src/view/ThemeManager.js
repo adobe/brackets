@@ -35,6 +35,8 @@ define(function (require, exports, module) {
         ThemeSettings      = require("view/ThemeSettings"),
         ThemeView          = require("view/ThemeView"),
         AppInit            = require("utils/AppInit"),
+        ExtensionManager   = require("extensibility/ExtensionManager"),
+        Package            = require("extensibility/Package"),
         PreferencesManager = require("preferences/PreferencesManager"),
         prefs              = PreferencesManager.getExtensionPrefs("themes");
 
@@ -208,21 +210,104 @@ define(function (require, exports, module) {
 
 
     /**
+     * @private
+     * Process and load the current theme into the editor
+     *
+     * @return {$.Promise} promise object resolved with the theme object and all
+     *    corresponding new css/less and scrollbar information
+     */
+    function loadCurrentTheme() {
+        var pending = currentTheme && FileUtils.readAsText(currentTheme.file)
+            .then(function (lessContent) {
+                return lessifyTheme(lessContent.replace(commentRegex, ""), currentTheme);
+            })
+            .then(function (content) {
+                var result = extractScrollbars(content);
+                currentTheme.scrollbar = result.scrollbar;
+                return result.content;
+            })
+            .then(function (cssContent) {
+                $("body").toggleClass("dark", currentTheme.dark);
+                styleNode.text(cssContent);
+                return currentTheme;
+            });
+
+        return $.when(pending);
+    }
+
+
+    /**
+     * Refresh current theme in the editor.  It handle two type of refresh, soft and hard refresh.
+     * - A soft refresh simply causes the editor to reload the current theme.
+     * - A hard refresh will cause the theme file to be reloaded from disk and reprocessed.
+     *
+     * @param {boolean} force To trigger a soft or hard refresh
+     * @return {$.Promise} Which resolves when refresh is done, or rejected if refreshing fails.
+     */
+    function refresh(force) {
+        return $.when(force && loadCurrentTheme()).done(function () {
+            var editor = EditorManager.getActiveEditor();
+            if (!editor || !editor._codeMirror) {
+                return;
+            }
+
+            ThemeView.updateThemes(editor._codeMirror);
+        });
+    }
+
+
+    /**
      * Get current theme object that is loaded in the editor.
      *
      * @return {Theme} the current theme instance
      */
     function getCurrentTheme() {
-        if (!currentTheme) {
-            currentTheme = loadedThemes[prefs.get("theme")] || loadedThemes[defaultTheme];
-        }
-
         return currentTheme;
     }
 
 
     /**
-     * Gets all available themes
+     * Sets the theme with the given name as the current theme.  Only themes that
+     * have been loaded in the ThemeManager can be set as current themes.  If the
+     * theme to be set as current is already set, then a soft refresh is done and
+     * no updates will occur.
+     *
+     * @param {string} themeName is the name of the theme to be set as current.
+     */
+    function setCurrentTheme(themeName) {
+        // Only themes that have been loaded can be set as current themes
+        if (!loadedThemes.hasOwnProperty(themeName)) {
+            return;
+        }
+
+        if (prefs.get("theme") !== themeName) {
+            prefs.set("theme", themeName);
+        }
+
+        // If the theme to be set as current is already current, then we don't have anymore
+        // work to do here...  We do a courtesy soft refresh
+        if (currentTheme && currentTheme.name === themeName) {
+            refresh(); // Do soft refresh
+            return;
+        }
+
+        // Save off the current theme
+        currentTheme = loadedThemes[themeName] || loadedThemes[defaultTheme];
+
+        // Refresh editor with the new theme
+        refresh(true).done(function () {
+            // Process the scrollbars for the editor
+            ThemeView.updateScrollbars(currentTheme);
+        });
+
+        // Expose event for theme changes
+        $(exports).trigger("themeChange", currentTheme);
+    }
+
+
+    /**
+     * Gets all available themes that have been loaded in the ThemeManager.
+     *
      * @return {Array.<Theme>} collection of all available themes
      */
     function getAllThemes() {
@@ -233,58 +318,7 @@ define(function (require, exports, module) {
 
 
     /**
-     * @private
-     * Process and load the current theme into the editor
-     *
-     * @return {$.Promise} promise object resolved with the theme object and all
-     *    corresponding new css/less and scrollbar information
-     */
-    function loadCurrentTheme() {
-        var theme = getCurrentTheme();
-
-        var pending = theme && FileUtils.readAsText(theme.file)
-            .then(function (lessContent) {
-                return lessifyTheme(lessContent.replace(commentRegex, ""), theme);
-            })
-            .then(function (content) {
-                var result = extractScrollbars(content);
-                theme.scrollbar = result.scrollbar;
-                return result.content;
-            })
-            .then(function (cssContent) {
-                $("body").toggleClass("dark", theme.dark);
-                styleNode.text(cssContent);
-                return theme;
-            });
-
-        return $.when(pending);
-    }
-
-
-    /**
-     * Refresh current theme in the editor
-     *
-     * @param {boolean} force Forces a reload the current theme.  It reload the theme file.
-     */
-    function refresh(force) {
-        if (force) {
-            currentTheme = null;
-        }
-
-        $.when(force && loadCurrentTheme()).done(function () {
-            var editor = EditorManager.getActiveEditor();
-            if (!editor || !editor._codeMirror) {
-                return;
-            }
-
-            var cm = editor._codeMirror;
-            ThemeView.updateThemes(cm);
-        });
-    }
-
-
-    /**
-     * Loads a theme from a file.
+     * Loads a theme from a file and makes the theme available in the ThemeManager for used.
      *
      * @param {string} fileName is the full path to the file to be opened
      * @param {Object} options is an optional parameter to specify metadata
@@ -294,19 +328,18 @@ define(function (require, exports, module) {
     function loadFile(fileName, options) {
         var deferred         = new $.Deferred(),
             file             = FileSystem.getFileForPath(fileName),
+            theme            = new Theme(file, options),
             currentThemeName = prefs.get("theme");
 
         file.exists(function (err, exists) {
-            var theme;
-
             if (exists) {
-                theme = new Theme(file, options);
                 loadedThemes[theme.name] = theme;
                 ThemeSettings._setThemes(loadedThemes);
 
                 // For themes that are loaded after ThemeManager has been loaded,
                 // we should check if it's the current theme.  If it is, then we just
                 // load it.
+
                 if (currentThemeName === theme.name) {
                     refresh(true);
                 }
@@ -322,7 +355,7 @@ define(function (require, exports, module) {
 
 
     /**
-     * Loads a theme from an extension package.
+     * Loads a theme from an extension package and makes the theme available in the ThemeManager for use.
      *
      * @param {Object} themePackage is a package from the extension manager for the theme to be loaded.
      * @return {$.Promise} promise object resolved with the theme to be loaded from the pacakge
@@ -334,24 +367,12 @@ define(function (require, exports, module) {
 
 
     prefs.on("change", "theme", function () {
-        // Make sure we don't reprocess a theme that's already loaded
-        if (currentTheme && currentTheme.name === prefs.get("theme")) {
-            return;
-        }
-
-        // Refresh editor with the new theme
-        refresh(true);
-
-        // Process the scrollbars for the editor
-        ThemeView.updateScrollbars(getCurrentTheme());
-
-        // Expose event for theme changes
-        $(exports).trigger("themeChange", getCurrentTheme());
+        setCurrentTheme(prefs.get("theme"));
     });
 
     prefs.on("change", "themeScrollbars", function () {
         refresh();
-        ThemeView.updateScrollbars(getCurrentTheme());
+        ThemeView.updateScrollbars(currentTheme);
     });
 
     // Monitor file changes.  If the file that has changed is actually the currently loaded
@@ -371,10 +392,23 @@ define(function (require, exports, module) {
     });
 
 
+    $(ExtensionManager).on("statusChange", function (evt, id, operationType) {
+        var extension = ExtensionManager.extensions[id];
+        if (extension.installInfo && extension.installInfo.metadata && extension.installInfo.metadata.theme) {
+            loadPackage(extension.installInfo).done(function (theme) {
+                if (operationType === Package.OperationTypes.INSTALL || operationType === Package.OperationTypes.UPDATE) {
+                    setCurrentTheme(theme.name);
+                }
+            });
+        }
+    });
+
+    
     exports.refresh         = refresh;
     exports.loadFile        = loadFile;
     exports.loadPackage     = loadPackage;
     exports.getCurrentTheme = getCurrentTheme;
+    exports.setCurrentTheme = setCurrentTheme;
     exports.getAllThemes    = getAllThemes;
 
     // Exposed for testing purposes

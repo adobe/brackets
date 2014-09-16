@@ -58,6 +58,11 @@ define(function (require, exports, module) {
         NEEDS_UPDATE: "NEEDS_UPDATE",
         DISABLED: "DISABLED"
     };
+    
+    var OperationTypes = {
+        INSTALL: "install",
+        UPDATE: "update"
+    };
 
     /**
      * @private
@@ -151,8 +156,8 @@ define(function (require, exports, module) {
                 destinationDirectory    = ExtensionLoader.getUserExtensionPath(),
                 disabledDirectory       = destinationDirectory.replace(/\/user$/, "/disabled"),
                 systemDirectory         = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default/";
-            
-            var operation = _doUpdate ? "update" : "install";
+
+            var operation = _doUpdate ? OperationTypes.UPDATE : OperationTypes.INSTALL;
             extensionManager[operation](path, destinationDirectory, {
                 disabledDirectory: disabledDirectory,
                 systemExtensionDirectory: systemDirectory,
@@ -171,7 +176,7 @@ define(function (require, exports, module) {
                             // On Windows, it looks like Node converts Unix-y paths to backslashy paths.
                             // We need to convert them back.
                             baseUrl: FileUtils.convertWindowsPathToUnixPath(result.installedTo)
-                        }, "main").then(function () {
+                        }, "main", operation).then(function () {
                             d.resolve(result);
                         }, function () {
                             d.reject(Errors.ERROR_LOADING);
@@ -506,4 +511,5 @@ define(function (require, exports, module) {
     exports.installUpdate = installUpdate;
     exports.formatError = formatError;
     exports.InstallationStatuses = InstallationStatuses;
+    exports.OperationTypes = OperationTypes;
 });
