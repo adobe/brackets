@@ -288,6 +288,8 @@ define(function (require, exports, module) {
             WorkingSetView.createWorkingSetViewForPane($workingSetViewsContainer, paneId);
         });
         
+        _updateSplitViewButtonState();
+        
         // Tooltips
         $gearMenu.attr("title", Strings.GEAR_MENU_TOOLTIP);
         $splitViewMenu.attr("title", Strings.SPLITVIEW_MENU_TOOLTIP);
