@@ -587,6 +587,14 @@ define(function (require, exports, module) {
             return;
         }
         FileTreeView.render($projectTreeContainer[0], model._viewModel, projectRoot, actionCreator, forceRender);
+        // reposition the selection "extension"
+        $projectTreeContainer.triggerHandler("selectionRedraw");
+
+        // in-lieu of resize events, manually trigger contentChanged for every
+        // FileViewController focus change. This event triggers scroll shadows
+        // on the jstree to update. documentSelectionFocusChange fires when
+        // a new file is added and removed (causing a new selection) from the working set
+//        _projectTree.triggerHandler("contentChanged");
     };
 
     /**
