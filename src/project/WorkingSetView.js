@@ -906,7 +906,18 @@ define(function (require, exports, module) {
         });
     }
     
+    /** 
+     * Synchronizes the selection indicator for all views
+     */
+    function syncSelectionIndicator() {
+        _.forEach(_views, function (workingSetListView) {
+            workingSetListView.$openFilesContainer.triggerHandler("scroll");
+        });
+    }
+    
+    
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
     exports.refresh                       = refresh;
+    exports.syncSelectionIndicator         = syncSelectionIndicator;
 });

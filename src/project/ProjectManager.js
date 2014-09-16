@@ -271,7 +271,7 @@ define(function (require, exports, module) {
                 $projectTreeList.triggerHandler("selectionChanged", reveal);
             }
 
-            // reposition the selection triangle
+            // reposition the selection "extension"
             $projectTreeContainer.triggerHandler("selectionRedraw");
             
             // in-lieu of resize events, manually trigger contentChanged for every
