@@ -485,10 +485,6 @@ define(function (require, exports, module) {
     directoryNode = React.createClass({
         mixins: [contextSettable, pathComputer, extendable],
 
-        getInitialState: function () {
-            return {subDirectoriesOpen: null};
-        },
-
         /**
          * We need to update this component if the sort order changes or our entry object
          * changes. Thanks to immutability, if any of the directory contents change, our
