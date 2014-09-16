@@ -129,7 +129,7 @@ a, img {
     z-index: @z-index-brackets-toolbar;
     
     .dark & {
-        border-bottom: 1px solid @dark-bc-shadow;
+        border-bottom: 1px solid @dark-bc-panel-border;
         box-shadow: 0 1px 3px @dark-bc-shadow-small;
     }
 }
@@ -486,31 +486,31 @@ a, img {
             display: block;
         }
     }
-    #second-pane {
-        border-left: 1px solid @bc-panel-border;
+    .pane-content {
+        border-right: solid @bc-shadow-small 1px;
         .dark & {
-            border-left: 1px solid @dark-bc-highlight-hard;
+            border-right-color: @dark-bc-highlight;
         }
     }
     .pane-header {
         box-sizing: border-box;
-        border-bottom: 1px solid @bc-shadow-small;
+        border-bottom: solid @bc-shadow-small 1px;
         padding: 5px 10px;
-        color: @bc-text-thin-quiet;
+        color: @bc-menu-text;
         background-color: @bc-menu-bg;
         
         .dark & {
-            color: @dark-bc-text-quiet;
-            background-color: rgba(255, 255, 255, 0.1);
+            color: @dark-bc-menu-text;
+            background-color: @dark-bc-menu-bg;
             border-bottom-color: @dark-bc-highlight;
         }
     }
     .active-pane {
         .pane-header {
-            color: @bc-menu-text;
+            background-color: @bc-bg-highlight;
 
             .dark & {
-                color: @dark-bc-menu-text;
+                background-color: @dark-bc-bg-highlight;
             }
         }
     }
