@@ -520,6 +520,18 @@ define(function (require, exports, module) {
                     expect(vm._treeData.getIn(["subdir1", "selected"])).toBeUndefined();
                 });
                 
+                it("shouldn't clear the selection when closing the directory if the selected file is still visible", function () {
+                    vm._treeData = vm._treeData.updateIn(["subdir2", "children"], function () {
+                        return Immutable.Map();
+                    });
+                    model.setSelected("/foo/subdir1/afile.js");
+                    model.setCurrentFile("/foo/subdir1/afile.js");
+                    model.setDirectoryOpen("/foo/subdir2/", true);
+                    expect(model._selections.selected).toBe("/foo/subdir1/afile.js");
+                    model.setDirectoryOpen("/foo/subdir2/", false);
+                    expect(model._selections.selected).toBe("/foo/subdir1/afile.js");
+                });
+                
                 it("will load the contents of a closed directory when opened", function () {
                     spyOn(model, "_getDirectoryContents").andReturn(new $.Deferred().resolve([
                         {

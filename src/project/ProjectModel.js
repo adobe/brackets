@@ -583,7 +583,13 @@ define(function (require, exports, module) {
                 }
             } else {
                 self._viewModel.setDirectoryOpen(projectRelative, false);
-                self.setSelected(null);
+                var selected = self._selections.selected;
+                if (selected) {
+                    var relativeSelected = self.makeProjectRelativeIfPossible(selected);
+                    if (!self._viewModel.isFilePathVisible(relativeSelected)) {
+                        self.setSelected(null);
+                    }
+                }
             }
 
             d.resolve();
