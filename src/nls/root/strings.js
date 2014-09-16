@@ -93,8 +93,8 @@ define({
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Live Preview Error",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connecting to Browser",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Unable to load Live Preview page",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?<br /><br />",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Unable to load Live Preview page.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file or make sure there is an index.html file in your project in order to launch live preview.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error starting up the HTTP server for live preview files. Please try again.",
@@ -284,14 +284,14 @@ define({
     /**
      * Command Name Constants
      */
-
+ 
     // File menu commands
     "FILE_MENU"                           : "File",
     "CMD_FILE_NEW_UNTITLED"               : "New",
     "CMD_FILE_NEW"                        : "New File",
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
-    "CMD_ADD_TO_WORKINGSET_AND_OPEN"      : "Add To Working Set and Open",
+    "CMD_ADD_TO_WORKING_SET"              : "Open To Working Set",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
     "CMD_FILE_CLOSE"                      : "Close",
