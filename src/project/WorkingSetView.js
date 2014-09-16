@@ -34,7 +34,8 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var DocumentManager       = require("document/DocumentManager"),
+    var AppInit               = require("utils/AppInit"),
+        DocumentManager       = require("document/DocumentManager"),
         MainViewManager       = require("view/MainViewManager"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
@@ -75,25 +76,6 @@ define(function (require, exports, module) {
      * @private
      */
     var _FILE_KEY = "file";
-    
-    /*
-     * Determines if context menu is registered
-     * @private
-     * @return {boolean} true if the menu is registered, false if not
-     */
-    function _isContextMenuRegistered() {
-        return _workingset_cmenu;
-    }
-    
-    /*
-     * Registers context menus
-     * @private
-     */
-    function _registerContextMenus() {
-        if (!_isContextMenuRegistered()) {
-            _workingset_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
-        }
-    }
     
     /**
      * Updates the appearance of the list element based on the parameters provided.
@@ -804,27 +786,18 @@ define(function (require, exports, module) {
         // Disable horizontal scrolling until WebKit bug #99379 is fixed
         this.$openFilesContainer.css("overflow-x", "hidden");
         
-        this.installMenuHandler();
+        this.$openFilesContainer.on("contextmenu.workingSetView", function (e) {
+            _workingset_cmenu.open(e);
+        });
 
         this._redraw();
     };
 
     /**
-     * Installs the context menu handler
-     */
-    WorkingSetView.prototype.installMenuHandler = function () {
-        var self = this;
-        
-        this.$openFilesContainer.on("contextmenu", function (e) {
-            _registerContextMenus();
-            _workingset_cmenu.open(e);
-        });
-    };
- 
-    /**
      * Destroys the WorkingSetView DOM element and removes all event handlers
      */
     WorkingSetView.prototype.destroy = function () {
+        this.$openFilesContainer.off(".workingSetView");
         this.$el.remove();
         $(MainViewManager).off(this._makeEventName(""));
         $(DocumentManager).off(this._makeEventName(""));
@@ -882,6 +855,9 @@ define(function (require, exports, module) {
         });
     }
     
+    AppInit.appReady(function () {
+        _workingset_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
+    });
     
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
