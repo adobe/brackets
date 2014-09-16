@@ -1140,18 +1140,26 @@ define(function (require, exports, module) {
      * Toggle the open state of subdirectories.
      * @param {!string}  path        parent directory
      * @param {boolean} openOrClose  true to open directory, false to close
+     * @return {jQuery.Promise} promise resolved when the directories are open
      */
     ProjectModel.prototype.toggleSubdirectories = function (path, openOrClose) {
-        var self = this;
+        var self = this,
+            d = new $.Deferred();
 
         this.setDirectoryOpen(path, true).then(function () {
             var projectRelativePath = self.makeProjectRelativeIfPossible(path),
                 childNodes = self.getChildDirectories(projectRelativePath);
-
-            childNodes.forEach(function (node) {
-                self.setDirectoryOpen(path + node, openOrClose);
+            
+            Async.doInParallel(childNodes, function (node) {
+                return self.setDirectoryOpen(path + node, openOrClose);
+            }, true).then(function () {
+                d.resolve();
+            }, function (err) {
+                d.reject(err);
             });
         });
+        
+        return d.promise();
     };
 
     /**

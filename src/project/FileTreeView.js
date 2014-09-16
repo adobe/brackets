@@ -505,27 +505,20 @@ define(function (require, exports, module) {
          * If you click on a directory, it will toggle between open and closed.
          */
         handleClick: function (event) {
-            if (event.altKey) {
-                if (event.metaKey || event.ctrlKey) {
-                    if (this.props.entry.get("open")) {
-                        this.props.actions.toggleSubdirectories(this.props.parentPath, false);
-                    } else {
-                        this.props.actions.toggleSubdirectories(this.props.parentPath, true);
-                    }
+            var isOpen = this.props.entry.get("open"),
+                setOpen = isOpen ? false : true;
+            
+            if (event.metaKey || event.ctrlKey) {
+                // ctrl-alt-click toggles this directory and its immediate children
+                if (event.altKey) {
+                    this.props.actions.toggleSubdirectories(this.myPath(), setOpen);
+                    this.props.actions.setDirectoryOpen(this.myPath(), setOpen);
                 } else {
-                    var isOpen = this.props.entry.get("open");
-
-                    if ((!isOpen) || (isOpen && !this.state.subDirectoriesOpen)) {
-                        this.props.actions.toggleSubdirectories(this.myPath(), true);
-                        this.setState({subDirectoriesOpen: true});
-                    } else {
-                        this.props.actions.toggleSubdirectories(this.myPath(), false);
-                        this.setState({subDirectoriesOpen: false});
-                    }
+                    // ctrl-click toggles the sibling directories
+                    this.props.actions.toggleSubdirectories(this.props.parentPath, setOpen);
                 }
             } else {
-                var setOpen = this.props.entry.get("open") ? false : true;
-
+                // directory toggle with no modifier
                 this.props.actions.setDirectoryOpen(this.myPath(), setOpen);
             }
             return false;

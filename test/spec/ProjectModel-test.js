@@ -877,6 +877,10 @@ define(function (require, exports, module) {
                         {
                             name: "subdir3",
                             isFile: false
+                        },
+                        {
+                            name: "subdir4",
+                            isFile: false
                         }
                     ]);
                 }
@@ -899,6 +903,42 @@ define(function (require, exports, module) {
                     {
                         name: "higher.txt",
                         isFile: true
+                    }
+                ],
+                "/foo/subdir4/": [
+                    {
+                        name: "afile.md",
+                        isFile: true
+                    },
+                    {
+                        name: "css",
+                        isFile: false
+                    },
+                    {
+                        name: "js",
+                        isFile: false
+                    },
+                    {
+                        name: "tmpl",
+                        isFile: false
+                    }
+                ],
+                "/foo/subdir4/css/": [
+                    {
+                        name: "styles.css",
+                        isFile: true
+                    }
+                ],
+                "/foo/subdir4/js/": [
+                    {
+                        name: "code.js",
+                        isFile: false
+                    }
+                ],
+                "/foo/subdir4/tmpl/": [
+                    {
+                        name: "index.hbs",
+                        isFile: false
                     }
                 ]
             };
@@ -1054,6 +1094,44 @@ define(function (require, exports, module) {
                     expect(data.shouldSelectEvents).toEqual([{
                         path: "/foo/subdir1/subsubdir/interior.txt"
                     }]);
+                });
+            });
+        });
+        
+        describe("toggleSubdirectories", function () {
+            var data,
+                model,
+                vm;
+
+            beforeEach(function () {
+                data = getLoadableFixture();
+                model = data.model;
+                vm = data.vm;
+            });
+
+            it("should open all of the sibling directories", function () {
+                waitsForDone(model.setDirectoryOpen("/foo/subdir4/", true));
+                runs(function () {
+                    waitsForDone(model.toggleSubdirectories("/foo/subdir4/", true));
+                });
+                
+                runs(function () {
+                    expect(vm.treeData.getIn(["subdir4", "children", "css", "open"])).toBe(true);
+                    expect(vm.treeData.getIn(["subdir4", "children", "js", "open"])).toBe(true);
+                });
+            });
+            
+            it("should close all of the sibling directories", function () {
+                waitsForDone(model.setDirectoryOpen("/foo/subdir4/", true));
+                runs(function () {
+                    waitsForDone(model.toggleSubdirectories("/foo/subdir4/", true));
+                });
+                runs(function () {
+                    waitsForDone(model.toggleSubdirectories("/foo/subdir4/", false));
+                });
+                runs(function () {
+                    expect(vm.treeData.getIn(["subdir4", "children", "css", "open"])).toBeUndefined();
+                    expect(vm.treeData.getIn(["subdir4", "children", "js", "open"])).toBeUndefined();
                 });
             });
         });
