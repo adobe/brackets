@@ -28,8 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemEntry = require("filesystem/FileSystemEntry"),
-        FileSystemError = require("filesystem/FileSystemError");
+    var FileSystemEntry = require("filesystem/FileSystemEntry");
     
     
     /*

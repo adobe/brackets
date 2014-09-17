@@ -22,13 +22,12 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, beforeFirst, afterLast */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var Async                      = require("utils/Async"),
-        FileSystem                 = require("filesystem/FileSystem"),
+    var FileSystem                 = require("filesystem/FileSystem"),
         FileUtils                  = require("file/FileUtils"),
         CSSUtils                   = require("language/CSSUtils"),
         HTMLUtils                  = require("language/HTMLUtils"),
@@ -76,9 +75,7 @@ define(function (require, exports, module) {
         
         if (fileEntry) {
             spec.addMatchers({toMatchSelector: toMatchSelector});
-            
-            var doneLoading = false;
-            
+
             runs(function () {
                 FileUtils.readAsText(fileEntry)
                     .done(function (text) {
