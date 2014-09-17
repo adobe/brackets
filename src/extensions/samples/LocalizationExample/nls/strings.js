@@ -24,17 +24,19 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define */
 
+/**
+ * This file tells the Require i18n plugin which localized versions of strings.js exist. If you add a new
+ * folder under nls/, you must list it here or else Require won't know it exists.
+ * 
+ * The extension does not reference this file directly. It references strings.js in the extension's
+ * root, which in turn references this file and the rest of the files under nls/ via RequireJS i18n
+ * plugin.
+ */
 define(function (require, exports, module) {
     
     'use strict';
     
-    // Code that needs to display user strings should call require("strings") to load
-    // strings.js. This file will dynamically load strings.js for the specified by bracketes.locale.
-    // 
-    // Translations for other locales should be placed in nls/<locale<optional country code>>/strings.js
-    // Localization is provided via the i18n plugin.
-    // All other bundles for languages need to add a prefix to the exports below so i18n can find them.
-    // TODO: dynamically populate the local prefix list below?
+    // Translations for individual locales are placed in nls/<locale<optional country code>>/strings.js
     module.exports = {
         root: true,
         "fr": true

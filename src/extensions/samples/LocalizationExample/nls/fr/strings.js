@@ -22,13 +22,13 @@
  */
 
 // French Translation
+// Any strings that are missing from here will be provided by nls/root/strings.js instead
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define */
 
-
 define({
-    "COMMAND_NAME"      : "Ma nouvelle commande",
+    "COMMAND_NAME"      : "Ma commande localisée",
     "ALERT_MESSAGE"     : "Ceci est un exemple d'alerte",
     "DIALOG_TITLE"      : "Exemple de boite de dialogue traduite",
     "DIALOG_TEXT"       : "Ceci est un exemple de texte traduit dans Brackets",

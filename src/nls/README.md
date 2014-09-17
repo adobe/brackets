@@ -1,41 +1,4 @@
-# How to add translations for a *new* locale
-
-1. Create a subfolder of the `nls` folder whose name is the language or locale you want to
-   create a translation for.
-    * If you're creating a general translation for a language, just use its two-letter code
-      (e.g. `en`, `de`).
-    * If you're creating a locale-specific translation for a particular country, add a hyphen
-      and the country code in lowercase (e.g. `en-ca`, `en-gb`).
-2. Add an entry for your translation to the `module.exports` object in `nls/strings.js`.
-3. Edit the root `strings-app.js` file and add a new `LOCALE_`* entry for your language, as seen in
-   the Debug > Switch Language UI.
-4. Copy the root `strings.js` file into your subfolder and start translating!
-5. Use the [UI walkthrough steps](https://github.com/adobe/brackets/wiki/Localization-Tests) to
-   see strings in context.
-6. Add this comment ``/* Last translated for commit_SHA_of_root_strings.js */`` at the end 
-   of your `strings.js` and replace `commit_SHA_of_root_strings.js` with the actual SHA.
-   You can copy the actual SHA in this [history page](https://github.com/adobe/brackets/commits/master/src/nls/root/strings.js)
-   by hovering on the one you used for this translation and click on Copy SHA button.
-7. Edit this file and update the list of languages below!
-
-Strings not specified in a given locale will fall back to the general language (without hyphen)
-first, and then will fall back to the English string from `nls/root/strings.js`.
-
-Localization is provided via the [require.js i18n plugin](http://requirejs.org/docs/api.html#i18n).
-
-### Translating the Getting Started project
-
-When first installed, Brackets will open a Getting Started project that serves
-as an introduction to Brackets features. This project can be translated by
-providing a ``urls.js`` file that points to a localized directory under the
-``samples`` folder at the root of the Brackets repository. See the French
-localization (`src/nls/fr/urls.js`) for an example.
-
-It is also recommended to add this comment ``<!-- Last translated for commit_SHA_of_root_index.html -->``
-at the end of your `index.html` and replace `commit_SHA_of_root_index.html` with the actual SHA.
-
-
-# How to modify *existing* translations
+# Translation process
 
 ### Adobe-maintained translations
 
@@ -44,7 +7,7 @@ Adobe provides translations for the following languages:
 * French (fr)
 * Japanese (ja)
 
-These translations cannot be modified through our normal pull request
+These translations _cannot_ be modified through our normal pull request
 process. Please contribute changes one of these ways:
 
 1. File an issue in our GitHub repository
@@ -55,7 +18,7 @@ process. Please contribute changes one of these ways:
 
 ### Community-maintained translations
 
-The following languages have been contributed by the Brackets community:
+The following translations have been contributed by the Brackets community:
 
 * Czech (cs)
 * Danish (da)
@@ -67,7 +30,7 @@ The following languages have been contributed by the Brackets community:
 * Galician (gl)
 * Croatian (hr)
 * Hungarian (hu)
-* Indonesia (id)
+* Indonesian (id)
 * Italian (it)
 * Korean (ko)
 * Norwegian (nb)
@@ -86,95 +49,143 @@ The following languages have been contributed by the Brackets community:
 * Traditional Chinese (zh-tw)
 
 These translations _can be directly modified_ through our normal pull request
-process. Make sure that you also update the comment on the last line with the 
-correct SHA of `strings.js` from root directory, which you used for your translation.
-If the SHA comment is missing, then add one with the correct SHA. See step 6 in 
-__How to add translations for a *new* locale__ section for adding a new one.
+process. Read the next section for instructions.
 
-In the future, Adobe may begin maintaining some of these languages too, at which
-point the process will switch to the one above. But until then, please _do not
-use_ http://translate.adobe.com for these languages.
+Please _do not_ use http://translate.adobe.com for these languages.
 
 
-## Contributing Translations directly from github.com
+# How to contribute translations
 
-You must be logged in to your github.com id (e.g. `user1`).
+Localized strings are stored in language-specific `strings.js` files, which are loaded by
+[Require.js](http://requirejs.org/docs/api.html#i18n). You can edit these files online at
+GitHub.com, or locally on your computer using Git and a text editor.
 
-### Adding a New Translation
-To add a new translation, you need to start with a copy of the
-root `strings.js` file which is located at
-[https://github.com/adobe/brackets/blob/master/src/nls/root/strings.js](https://github.com/adobe/brackets/blob/master/src/nls/root/strings.js).
-New translations can be added by navigating to the
-[nls folder on github](https://github.com/adobe/brackets/tree/master/src/nls)
-and then clicking on the [+] button to add a new file.
-You will be taken to a New File page where you:
+## Using GitHub.com online
 
-1. Specify the file name as *language-id*/strings.js
-2. Paste in the contents of root/strings.js and edit strings for new language
-3. Add this comment `/* Last translated for commit_SHA_of_root_strings.js */`
-at the end of your strings.js and replace `commit_SHA_of_root_strings.js` with the
-actual SHA.
-You can copy the actual SHA in this
-[history page](https://github.com/adobe/brackets/commits/master/src/nls/root/strings.js)
-by hovering on the one you used for this translation and click on Copy SHA button.
-4. Add short and (optional) long description of new file
-5. Click "Propose New File" button
+### Adding a New Locale
+Adding translations for a new locale requires modifying several files at once, so
+it's best to use Git with local source files (see "Using a local Git clone of Brackets"
+below). For help with this, [contact the Brackets team](https://github.com/adobe/brackets#contact-info).
 
 ### Editing an Existing Translation
-Existing files can be edited directly in
-[brackets repo on github](https://github.com/adobe/brackets).
+If you're just correcting mistakes/typos, the process is simple:
 
-Navigate to the file to edit and click "Edit" button above file.
-You will be taken to an Edit File page where you:
+1. Navigate to the appropriate file in the [nls folder on GitHub](https://github.com/adobe/brackets/tree/master/src/nls)
+and click "Edit" button above file.
+2. Edit the strings in the file
+3. Add a short description at bottom
+4. Click "Propose File Change"
 
-1. Make desired edits to file
-2. Make sure that you also update the comment on the last line with the correct SHA of
-strings.js from root directory, which you used for your translation. If the SHA comment
-is missing, then add one with the correct SHA. See step 6 in How to add translations
-for a new locale section for adding a new one.
-3. Add short and (optional) long description of Commit changes
-4. Click "Commit changes" button
+When updating a translation to reflect changes in the Brackets UI, it's important to
+make sure you're covering _all_ changes since the last translation udate:
 
-### Branch and Pull Request
-For either case, if you have not yet forked the brackets repository in your
-github account (`https://github.com/user1/brackets`), it's done automatically.
-A new branch will be created in your Brackets fork with a unique name
-which is something like `patch-1` that contains your changes.
+1. Locate the "SHA" commit code for the last version of the translation: look for "Last
+translated for" at the bottom of the file.
+2. Go to this URL: `https://github.com/adobe/brackets/compare/<SHA>...master` (replacing
+`<SHA>` with the value from step 1).
+3. Click "Files changed," then search for "nls/root/strings.js" on the page. You'll see a
+comparison view showing every string that was added, removed, or modified since the
+translation was last updated. (If there is no "nls/root/strings.js", then the translation
+is already fully up to date!).
+4. Update the translation accordingly
+5. Update the "Last translated for" comment with the _current_ SHA code: visit the 
+[history page](https://github.com/adobe/brackets/commits/master/src/nls/root/strings.js),
+and click the clipboard icon ("Copy the full SHA") on the right.
+6. Add a short description and click "Propose File Change" to finish
 
-You are then taken to the New Pull Request dialog which is filled in
-with all of the information from previous dialog.
-It also shows contents of new file or a "diff" of changes to existing file.
-You can make any changes if desired, then click "Send Pull Request" when done
-(or close page to Cancel).
-A pull request for your branch is created and submitted to the Brackets "repo".
+#### Creating the Pull Request
+The New Pull Request screen will appear, reviewing your changes. If everything looks ok,
+click "Send Pull Request" to submit your changes to the Brackets team.
 
-### Code Review
-Someone on the Brackets team will review the pull request. If it's ok, it will
-be merged. If changes need to be made, the reviewer will post comments in the
-pull request which will send you an e-mail notification.
+> Behind the scenes, GitHub has automatically created your own personal fork of the
+Brackets repository (e.g. `https://github.com/user1/brackets`) if you don't have one
+already, and a new branch within it (named something like `patch-1`) that contains your
+changes.
 
-### Updating Existing Branch and Pull Request
+#### Code Review: Updating Your Pull Request
+Someone on the Brackets team will review the pull request. If any changes need to be made
+the reviewer will post comments in the pull request, which will send you an e-mail
+notification.
 
-If you need to make changes to an existing branch, 
-you should make updates in the `patch-1` branch in your Github fork of Brackets
-so all of your changes for this update are in a single branch.
-Creating a new branch for every update makes it difficult for core team
-to see all changes at once, and can even create conflicts that are
-very difficult to resolve. For example:
+You should make updates in the _same_ branch your pull request was created from (e.g.
+`patch-1`):
 
-1. After submitting your pull request, look at the top where it says something like:
+1. Find the branch name listed at the top of your pull request's web page (e.g. "`user1`
+   wants to merge 1 commit into `adobe:master` from `user1:patch-1`" tells you the branch
+   name is `patch-1`)
+2. Go to your fork of Brackets on GitHub (e.g. `https://github.com/user1/brackets`)
+3. Change the branch dropdown at upper left to your pull request's branch name
+4. Navigate to "strings.js" and click "Edit" button.
+5. Make any changes requested, and save by clicking "Commit changes." This will
+automatically update your pull request.
 
-    `user1` wants to merge 1 commit into `adobe:master` from `user1:patch-1`
-    
-2. Go to your github fork of brackets page: `github.com/user1/brackets`
-3. Click on the Branches Tab: `github.com/user1/brackets/branches`
-4. Click on the link to the branch: `github.com/user1/brackets/tree/patch-1`
-5. This is where you make changes to your `patch-1` branch.
+After you finish addressing code review feedback, add a comment to the pull request to
+notify the reviewer that it's ready to look at again.
 
-Saved edits show up as a new commit, so they automatically show up in the original
-pull request. After making an update, add a comment to the pull request such as
-"Changes made -- ready for another review" to notify reviewer
-that it's time to review the changes again.
+
+## Using a local Git clone of Brackets
+
+### Adding a New Locale
+
+1. Create a `src/nls/*language-id*` subfolder
+    * If you're creating a general language translation, use its two-letter code (e.g. `en`, `de`).
+    * If you're creating a locale-specific translation for a particular country, add a hyphen
+      and the country code in lowercase (e.g. `en-ca`, `en-gb`).
+2. Add an entry for your translation in `nls/strings.js`.
+3. Edit the root `strings-app.js` file and add a new `LOCALE_`* entry for your language, as seen in
+   the Debug > Switch Language UI.
+4. Copy the `nls/root/strings.js` file into your subfolder and start translating!
+    * Tip: Use the [UI walkthrough steps](https://github.com/adobe/brackets/wiki/Localization-Tests)
+      to see strings in context.
+    * If you omit any strings, Brackets will fall back to the general language (without hyphen) if
+      any, and then to the English string in `nls/root/strings.js`.
+5. Use `git log -- src/nls/root/strings.js` to find the commit SHA code of the `root/strings.js`
+   copy you used (latest version is listed first).
+6. Add a comment `/* Last translated for <SHA> */` to the bottom of your new file,
+   using the value you got on the previous step in place of `<SHA>`. This records which
+   version of the original English strings you used as a reference point, which aids in
+   updating the translation later.
+7. Edit this README and update the list of languages at the top!
+
+Also consider **translating the Getting Started project**:
+
+1. Create a new `samples/*language-id*` folder and copy the `samples/root/Getting Started`
+content into it to use as a starting point. (You can translate the "Getting Started" folder
+name as well, but it _cannot_ contain Unicode characters -
+[see bug #2425](https://github.com/adobe/brackets/issues/2425)).
+2. Create or edit the `src/nls/*language-id*/urls.js` file to point to your new folder.
+3. If `urls.js` didn't exist before, update `src/nls/urls.js` to add a `true` entry for this
+locale.
+4. Add a comment `<!-- Last translated for <SHA> -->` to the bottom of index.html, similar
+to above.
+
+
+### Editing an Existing Translation
+If you're just correcting mistakes/typos, simply edit the appropriate `strings.js` file and
+submit a pull request with your changes.
+
+But to update a translation to reflect changes in the Brackets UI, it's important to
+make sure you're covering _all_ changes since the last translation udate:
+
+1. Ensure your local Git copy is
+[up to date from upstream/master](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets#getting-updates-from-the-main-repository).
+2. Locate the SHA code for the last translation update: look for "Last translated for" at
+the bottom of the file.
+3. Run `git difftool <SHA>...master -- src/nls/root/strings.js` to see a diff showing every
+string that was added, removed, or modified since the translation was last updated.
+4. Update the translation accordingly
+5. Update the "Last translated for" comment with the _current_ SHA code: use
+`git log master -- src/nls/root/strings.js` to find the version that was used in the diff
+above.
+
+
+
+# Translation timing
+
+During a Brackets release cycle, English strings are modified and added. Near the end of the cycle,
+there's a _string freeze_ - the changes stop. This is the window of opportunity to update translations
+before the build is released. Watch the [brackets-dev forum](http://groups.google.com/group/brackets-dev)
+for announcements of each string freeze and its translation deadline.
 
 
 # Translation limitations
@@ -184,5 +195,3 @@ Some strings cannot be localized yet:
 * [Keyboard shortcuts](https://trello.com/c/4k2yalBd)
 * [Some native menus on Mac](https://trello.com/c/0IsE7q02) (hardcoded support only for English, French, Japanese)
 * Windows installer UI (hardcoded support only for English, Japanese - with some limitations)
-* Localized folder name of "Getting Started" has to be made of up basic English characters only, as described
-[here](https://github.com/adobe/brackets/pull/8332#issuecomment-48767847).
