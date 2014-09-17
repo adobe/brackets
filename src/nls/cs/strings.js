@@ -136,8 +136,7 @@ define({
     "BUTTON_NO"                         : "Ne",
 
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} výsledků",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 výsledek",
+    "FIND_MATCH_INDEX"                  : "{0} z {1}",
     "FIND_NO_RESULTS"                   : "Žádné výsledky",
     "FIND_QUERY_PLACEHOLDER"            : "Najít\u2026",
     "REPLACE_PLACEHOLDER"               : "Nahradit s\u2026",
@@ -247,7 +246,11 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Doplňky zakázány",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
-    "STATUSBAR_DEFAULT_LANG"                : "(default)",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Klikněte pro přepnutí kurzoru mezi módem Insert (INS) a Overwrite (OVR)",
+    "STATUSBAR_LANG_TOOLTIP"                : "Klikněte pro změnu typu souboru",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Klikněte pro zapnutí panelu zpráv.",
+    "STATUSBAR_DEFAULT_LANG"                : "(výchozí)",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Nastavit jako výchozí pro .{0} soubory",
 
     // CodeInspection: chyby/varování
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} chyb",
@@ -419,13 +422,14 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být %-enkódovány.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při zpracování URL",
 
-    // Strings for themes-settings.html and themes-general.html
+    // Řetězce pro themes-settings.html a themes-general.html
     "CURRENT_THEME"                        : "Aktuální motiv",
     "USE_THEME_SCROLLBARS"                 : "Použít posuvníky motivu",
     "FONT_SIZE"                            : "Velikost písma",
     "FONT_FAMILY"                          : "Rodina písma",
+    "THEMES_SETTINGS"                      : "Nastavení motivů",
 
-      // CSS Quick Edit
+    // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nové pravidlo",
 
     // Řetězce pro správce doplňků
@@ -516,6 +520,7 @@ define({
     "REGISTRY_SANITY_CHECK_WARNING"        : "Buďte opatrní při instalaci doplňků z neznámých zdrojů.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Nainstalované",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Dostupné",
+    "EXTENSIONS_THEMES_TITLE"              : "Motivy",
     "EXTENSIONS_UPDATES_TITLE"             : "Aktualizace",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Žádné dostupné shody.",
