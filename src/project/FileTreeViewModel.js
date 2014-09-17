@@ -94,13 +94,14 @@ define(function (require, exports, module) {
     /**
      * @private
      * @type {Immutable.Map}
-     * Selection view information determines how the seleciton bar appears.
+     * Selection view information determines how the selection bar appears.
      * 
      * * width: visible width of the selection area
      * * scrollTop: current scroll position.
      * * scrollLeft: current horizontal scroll position
      * * offsetTop: top of the scroller element
-     * * visible: should the selection bar be visible?
+     * * hasSelection: is the selection bar visible?
+     * * hasContext: is the context bar visible?
      */
     FileTreeViewModel.prototype._selectionViewInfo = Immutable.Map({
         width: 0,

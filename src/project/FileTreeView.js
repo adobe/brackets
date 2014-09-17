@@ -42,6 +42,13 @@ define(function (require, exports, module) {
 
     var DOM = React.DOM;
 
+    /**
+     * @private
+     * @type {Immutable.Map}
+     * 
+     * Stores the file tree extensions for adding classes and icons. The keys of the map
+     * are the "categories" of the extensions and values are vectors of the callback functions.
+     */
     var _extensions = Immutable.Map();
 
     // Constants
@@ -158,7 +165,7 @@ define(function (require, exports, module) {
      * @private
      *
      * This mixin handles middle click action to make a file the "context" object for performing
-     * operations like reanme.
+     * operations like rename.
      */
     var contextSettable = {
 
@@ -476,7 +483,7 @@ define(function (require, exports, module) {
      *
      * Props:
      * * parentPath: the full path of the directory containing this file
-     * * name: the name of the file, including the extension
+     * * name: the name of the directory
      * * entry: the object with the relevant metadata for the file (whether it's selected or is the context file)
      * * actions: the action creator responsible for communicating actions the user has taken
      * * sortDirectoriesFirst: whether the directories should be displayed first when listing the contents of a directory
@@ -658,7 +665,7 @@ define(function (require, exports, module) {
 
     /**
      * Displays the absolutely positioned box for the selection or context in the
-     * file tree. Its position is determined by passed-in info about the scorller in which
+     * file tree. Its position is determined by passed-in info about the scroller in which
      * the tree resides and the top of the selected node (as reported by the node itself).
      * 
      * Props:
@@ -772,7 +779,6 @@ define(function (require, exports, module) {
                 })
             );
         }
-
     });
 
     /**
@@ -803,12 +809,16 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * Add an extension to for the given category (icons, addClass).
+     * Add an extension for the given category (icons, addClass).
      *
      * @param {string} category Category to which the extension is being added
      * @param {function} callback The extension function itself
      */
     function _addExtension(category, callback) {
+        if (!callback || typeof callback !== "function") {
+            console.error("Attempt to add FileTreeView", category, "extension without a callback function");
+            return;
+        }
         var callbackList = _extensions.get(category);
         if (!callbackList) {
             callbackList = Immutable.Vector();
