@@ -395,7 +395,8 @@ define(function (require, exports, module) {
         var extension = ExtensionManager.extensions[id];
         if (extension.installInfo && extension.installInfo.metadata && extension.installInfo.metadata.theme) {
             loadPackage(extension.installInfo).done(function (theme) {
-                if (operationType === Package.OperationTypes.INSTALL || operationType === Package.OperationTypes.UPDATE) {
+                // Set the newly installed theme as the current theme.
+                if (operationType === Package.OperationTypes.INSTALL) {
                     setCurrentTheme(theme.name);
                 }
             });
