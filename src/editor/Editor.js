@@ -263,8 +263,8 @@ define(function (require, exports, module) {
                     self.removeAllInlineWidgets();
                 }
             },
-            "Home":     "goLineLeftSmart",
-            "Cmd-Left": "goLineLeftSmart",
+            "Home":      "goLineLeftSmart",
+            "Cmd-Left":  "goLineLeftSmart",
             "End":       "goLineRight",
             "Cmd-Right": "goLineRight"
         };
