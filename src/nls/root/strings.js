@@ -219,7 +219,7 @@ define({
      */
     "PROJECT_LOADING"   : "Loading\u2026",
     "UNTITLED"          : "Untitled",
-    "WORKING_FILES"        : "Working Files",
+    "WORKING_FILES"     : "Working Files",
 
     /**
      * MainViewManager
@@ -228,6 +228,12 @@ define({
     "BOTTOM"            : "Bottom",
     "LEFT"              : "Left",
     "RIGHT"             : "Right",
+
+    "CMD_SPLITVIEW_NONE"        : "No Split",
+    "CMD_SPLITVIEW_VERTICAL"    : "Vertical Split",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Horizontal Split",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Split the editor vertically or horizontally",
+    "GEAR_MENU_TOOLTIP"         : "Configure Working Set",
 
     /**
      * Keyboard modifier names
