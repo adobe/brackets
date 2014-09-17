@@ -116,10 +116,10 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Update state of option elements
+     * Update state of working set
      * @private
      */
-    function _updateOptionState() {
+    function _updateWorkingSetState() {
         var showWorkingSet = true;
         if (MainViewManager.getPaneCount() === 1 &&
                 MainViewManager.getWorkingSetSize(MainViewManager.ACTIVE_PANE) === 0) {
@@ -160,7 +160,7 @@ define(function (require, exports, module) {
         _cmdSplitHorizontal.setChecked(spriteIndex === 2);
         
         // Options icon
-        _updateOptionState();
+        _updateWorkingSetState();
     }
     
     /**
@@ -252,7 +252,7 @@ define(function (require, exports, module) {
         });
         
         $(MainViewManager).on("workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList workingSetUpdate", function () {
-            _updateOptionState();
+            _updateWorkingSetState();
         });
         
         // create WorkingSetViews for each pane already created
