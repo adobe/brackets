@@ -767,13 +767,6 @@ a, img {
         padding: 0 0 0 8px;
         min-height: 18px;
         vertical-align: baseline;
-        
-        &.selected {
-            a,
-            .extension {
-                color: #99dbff;
-            }
-        }
     }
 
     a {
@@ -804,18 +797,7 @@ a, img {
     }
 }
 
-.open-files-container.active {
 
-    li {
-        &.selected a {
-            color: @open-working-file-name-highlight;
-        }
-
-        &.selected .extension {
-            color: @open-working-file-ext-highlight;
-        }
-    }
-}
 
 .sidebar-selection {
     background: @bc-sidebar-selection;
@@ -856,6 +838,17 @@ a, img {
     }
 }
 
+.open-files-container.active{
+    li {
+        &.selected a {
+            color: @open-working-file-name-highlight;
+        }
+
+        &.selected .extension {
+            color: @open-working-file-ext-highlight;
+        }
+    }
+}
 .scroller-shadow {
     background-size: 100%;
     background-repeat: no-repeat;

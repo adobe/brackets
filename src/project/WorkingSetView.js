@@ -301,16 +301,7 @@ define(function (require, exports, module) {
      * @private
      */
     WorkingSetView.prototype._redraw = function () {
-        var paneId = MainViewManager.getActivePaneId();
-        
-        if (paneId === this.paneId) {
-            this.$el.addClass("active");
-            this.$openFilesContainer.addClass("active");
-        } else {
-            this.$el.removeClass("active");
-            this.$openFilesContainer.removeClass("active");
-        }
-
+        this._updateViewState();
         this._updateVisibility();
         this._adjustForScrollbars();
         this._fireSelectionChanged();
@@ -625,12 +616,31 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Updates the pane view's selection state 
+     * @private
+     */
+    WorkingSetView.prototype._updateViewState = function () {
+        var paneId = MainViewManager.getActivePaneId();
+        if ((FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW) &&
+                (paneId === this.paneId)) {
+            this.$el.addClass("active");
+            this.$openFilesContainer.addClass("active");
+        } else {
+            this.$el.removeClass("active");
+            this.$openFilesContainer.removeClass("active");
+        }
+    };
+    
+    /**
      * Updates the pane view's selection marker and scrolls the item into view
      * @private
      */
     WorkingSetView.prototype._updateListSelection = function () {
         var file = MainViewManager.getCurrentlyViewedFile(this.paneId);
-            
+        
+        this._updateViewState();
+        
+        
         // Iterate through working set list and update the selection on each
         var items = this.$openFilesContainer.find("ul").children().each(function () {
             _updateListItemSelection(this, file);
