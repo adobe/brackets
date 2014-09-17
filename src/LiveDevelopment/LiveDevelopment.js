@@ -269,6 +269,16 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * @private
+     * Make a message to direct users to the troubleshooting page
+     * @param {string} msg Original message
+     * @return {string} Original message plus link to troubleshooting page.
+     */
+    function _makeTroubleshootingMessage(msg) {
+        return msg + " " + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
+    }
+
+    /**
+     * @private
      * Close a live document
      */
     function _closeDocument(liveDocument) {
@@ -625,7 +635,7 @@ define(function LiveDevelopment(require, exports, module) {
                 Dialogs.showModalDialog(
                     Dialogs.DIALOG_ID_ERROR,
                     Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
+                    _makeTroubleshootingMessage(Strings.LIVE_DEV_LOADING_ERROR_MESSAGE)
                 );
             })
             .always(function () {
@@ -1093,7 +1103,7 @@ define(function LiveDevelopment(require, exports, module) {
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_ERROR,
                     Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
+                    _makeTroubleshootingMessage(Strings.LIVE_DEV_LOADING_ERROR_MESSAGE)
                 );
             })
             .done(_onInterstitialPageLoad);
@@ -1103,7 +1113,7 @@ define(function LiveDevelopment(require, exports, module) {
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,
             Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-            Strings.LIVE_DEV_NEED_HTML_MESSAGE
+            _makeTroubleshootingMessage(Strings.LIVE_DEV_NEED_HTML_MESSAGE)
         );
         _openDeferred.reject();
     }
@@ -1112,7 +1122,7 @@ define(function LiveDevelopment(require, exports, module) {
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,
             Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-            Strings.LIVE_DEV_SERVER_NOT_READY_MESSAGE
+            _makeTroubleshootingMessage(Strings.LIVE_DEV_SERVER_NOT_READY_MESSAGE)
         );
         _openDeferred.reject();
     }
@@ -1134,7 +1144,7 @@ define(function LiveDevelopment(require, exports, module) {
                 var dialogPromise = Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_LIVE_DEVELOPMENT,
                     Strings.LIVE_DEVELOPMENT_RELAUNCH_TITLE,
-                    Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE,
+                    _makeTroubleshootingMessage(Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE),
                     [
                         {
                             className: Dialogs.DIALOG_BTN_CLASS_LEFT,
@@ -1202,15 +1212,10 @@ define(function LiveDevelopment(require, exports, module) {
                             message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
                         }
                         
-                        // Append a message to direct users to the troubleshooting page.
-                        if (message) {
-                            message += " " + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
-                        }
-
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
                             Strings.ERROR_LAUNCHING_BROWSER_TITLE,
-                            message
+                            _makeTroubleshootingMessage(message)
                         );
 
                         _openDeferred.reject("OPEN_LIVE_BROWSER");
