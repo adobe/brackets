@@ -241,8 +241,6 @@ define(function (require, exports, module) {
         if (!filename || !projectDirectory) {
             return false;
         }
-        console.log("Filename: " + filename);
-        console.log("Project: " + projectDirectory);
         return FileUtils.getRelativeFilename(projectDirectory, filename) !== undefined;
     }
     
@@ -423,16 +421,15 @@ define(function (require, exports, module) {
     function _buildContext(filename, languageId) {
         var ctx = {};
         if (filename) {
-            ctx = {
-                path: filename,
-                language: languageId
-            };
+            ctx.path = filename;
+        }
+        if (languageId) {
+            ctx.language = languageId;
         }
         ctx.scopeOrder = _includeProjectScope(ctx.path) ?
                         scopeOrderWithProject :
                         scopeOrderWithoutProject;
         return ctx;
-
     }
 
     function _getContext(context) {
@@ -453,7 +450,7 @@ define(function (require, exports, module) {
      * 
      * @param {string} newFilename Full path to currently edited file
      */
-    function _setCurrentEditingFile(newFilename) {
+    function _setCurrentFile(newFilename) {
         var oldFilename = currentFilename;
         if (oldFilename === newFilename) {
             return;
@@ -592,7 +589,7 @@ define(function (require, exports, module) {
     // Private API for unit testing and use elsewhere in Brackets core
     exports._isUserScopeCorrupt     = PreferencesImpl.isUserScopeCorrupt;
     exports._manager                = PreferencesImpl.manager;
-    exports._setCurrentEditingFile  = _setCurrentEditingFile;
+    exports._setCurrentFile         = _setCurrentFile;
     exports._setCurrentLanguage     = _setCurrentLanguage;
     exports._setProjectSettingsFile = _setProjectSettingsFile;
     exports._smUserScopeLoading     = PreferencesImpl.smUserScopeLoading;

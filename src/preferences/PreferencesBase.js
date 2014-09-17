@@ -496,11 +496,11 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Determines if there are likely to be any changes based on the current
-         * language.
+         * Determines if there are likely to be any changes based on the change
+         * of context.
          * 
-         * @param {string} languageID New language id
-         * @param {string} oldLanguageID Old language id
+         * @param {{path: string, language: string}} oldContext Old context
+         * @param {{path: string, language: string}} newContext New context
          * @return {Array.<string>} List of changed IDs
          */
         contextChanged: function (oldContext, newContext) {
@@ -517,7 +517,6 @@ define(function (require, exports, module) {
                     }
                 }
             });
-            
             return _.union.apply(null, changes);
         }
     });
@@ -784,12 +783,13 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Determines if there are preference IDs that could change as a result of
-         * the language change.
+         * Determines if there are preference IDs that could change as a result
+         * of the context change. This implementation considers only changes in
+         * language.
          * 
          * @param {Object} data Data in the Scope
-         * @param {string} languageID New language id
-         * @param {string} oldLanguageID Old language id
+         * @param {{language: string}} oldContext Old context
+         * @param {{language: string}} newContext New context
          * @return {Array.<string>|undefined} list of preference IDs that could have changed
          */
         contextChanged: function (data, oldContext, newContext) {
@@ -952,11 +952,12 @@ define(function (require, exports, module) {
         
         /**
          * Determines if there are preference IDs that could change as a result of
-         * a change to the default filename.
+         * a change in the context. This implementation considers only the path portion
+         * of the context and looks up matching globes if any.
          * 
          * @param {Object} data Data in the Scope
-         * @param {string} filename New filename
-         * @param {string} oldFilename Old filename
+         * @param {{path: string}} oldContext Old context
+         * @param {{path: string}} newContext New context
          * @return {Array.<string>} list of preference IDs that could have changed
          */
         contextChanged: function (data, oldContext, newContext) {
@@ -965,6 +966,9 @@ define(function (require, exports, module) {
                 oldGlob = _findMatchingGlob(data,
                               FileUtils.getRelativeFilename(this.prefFilePath, oldContext[this.key]));
                         
+            if (newGlob === oldGlob) {
+                return;
+            }
             if (newGlob === undefined) {
                 return _.keys(data[oldGlob]);
             }
@@ -1200,7 +1204,7 @@ define(function (require, exports, module) {
         
         this._scopes["default"].load();
         
-        this._defaultScopeOrder = {
+        this._defaults = {
             scopeOrder: ["default"],
             _shadowScopeOrder: [{
                 id: "default",
@@ -1295,7 +1299,7 @@ define(function (require, exports, module) {
          * @param {string} before Id of the scope to add it before
          */
         _pushToScopeOrder: function (id, before) {
-            var defaultScopeOrder = this._defaultScopeOrder.scopeOrder,
+            var defaultScopeOrder = this._defaults.scopeOrder,
                 index = _.findIndex(defaultScopeOrder, function (id) {
                     return id === before;
                 });
@@ -1318,8 +1322,8 @@ define(function (require, exports, module) {
          * @param {Object} shadowEntry Shadow entry of the resolved scope
          */
         _tryAddToScopeOrder: function (shadowEntry) {
-            var defaultScopeOrder = this._defaultScopeOrder.scopeOrder,
-                shadowScopeOrder = this._defaultScopeOrder._shadowScopeOrder,
+            var defaultScopeOrder = this._defaults.scopeOrder,
+                shadowScopeOrder = this._defaults._shadowScopeOrder,
                 index = _.findIndex(shadowScopeOrder, function (entry) {
                     return entry === shadowEntry;
                 }),
@@ -1380,8 +1384,8 @@ define(function (require, exports, module) {
          * @param {?string} addBefore Name of the Scope before which this new one is added
          */
         _addToScopeOrder: function (id, scope, promise, addBefore) {
-            var defaultScopeOrder = this._defaultScopeOrder.scopeOrder,
-                shadowScopeOrder = this._defaultScopeOrder._shadowScopeOrder,
+            var defaultScopeOrder = this._defaults.scopeOrder,
+                shadowScopeOrder = this._defaults._shadowScopeOrder,
                 shadowEntry,
                 index,
                 isPending = false,
@@ -1452,7 +1456,7 @@ define(function (require, exports, module) {
          *
          */
         addToScopeOrder: function (id, addBefore) {
-            var shadowScopeOrder = this._defaultScopeOrder._shadowScopeOrder,
+            var shadowScopeOrder = this._defaults._shadowScopeOrder,
                 index = _.findIndex(shadowScopeOrder, function (entry) {
                     return entry.id === id;
                 }),
@@ -1471,7 +1475,7 @@ define(function (require, exports, module) {
         removeFromScopeOrder: function (id) {
             var scope = this._scopes[id];
             if (scope) {
-                _.pull(this._defaultScopeOrder.scopeOrder, id);
+                _.pull(this._defaults.scopeOrder, id);
                 var $this = $(this);
                 $(scope).off(".prefsys");
                 $this.trigger(SCOPEORDER_CHANGE, {
@@ -1501,11 +1505,11 @@ define(function (require, exports, module) {
                     context = this.contextBuilder(context);
                 }
                 if (!context.scopeOrder) {
-                    context.scopeOrder = this._defaultScopeOrder.scopeOrder;
+                    context.scopeOrder = this._defaults.scopeOrder;
                 }
                 return context;
             }
-            return { scopeOrder: this._defaultScopeOrder.scopeOrder };
+            return { scopeOrder: this._defaults.scopeOrder };
         },
         
         /**
@@ -1562,10 +1566,10 @@ define(function (require, exports, module) {
             }
 
             this.removeFromScopeOrder(id);
-            shadowIndex = _.findIndex(this._defaultScopeOrder._shadowScopeOrder, function (entry) {
+            shadowIndex = _.findIndex(this._defaults._shadowScopeOrder, function (entry) {
                 return entry.id === id;
             });
-            this._defaultScopeOrder._shadowScopeOrder.splice(shadowIndex, 1);
+            this._defaults._shadowScopeOrder.splice(shadowIndex, 1);
             delete this._scopes[id];
         },
         
@@ -1576,11 +1580,11 @@ define(function (require, exports, module) {
          * If the context contains a scopeOrder, that will be used. If not,
          * the default scopeOrder is used.
          * 
-         * @param {{scopeOrder: ?Array.<string>, filename: ?string} context 
+         * @param {{scopeOrder: ?Array.<string>} context 
          * @return {Array.<string>} list of scopes in the correct order for traversal
          */
         _getScopeOrder: function (context) {
-            return context.scopeOrder || this._defaultScopeOrder.scopeOrder;
+            return context.scopeOrder || this._defaults.scopeOrder;
         },
         
         /**
@@ -1747,12 +1751,12 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Signal the context change to all the scopes within the preferences layer.
-         * PreferencesManager is in charge of computing the context and signal the changes to
-         * PreferencesSystem.
+         * Signals the context change to all the scopes within the preferences
+         * layer.  PreferencesManager is in charge of computing the context and
+         * signaling the changes to PreferencesSystem.
          *
-         * @param {{filename: string, language: string}} oldContext Old context
-         * @param {{filename: string, language: string}} newContext New context
+         * @param {{path: string, language: string}} oldContext Old context
+         * @param {{path: string, language: string}} newContext New context
          */
         signalContextChanged: function (oldContext, newContext) {
             var changes = [];

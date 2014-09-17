@@ -767,7 +767,7 @@ define(function (require, exports, module) {
     // File-based preferences handling
     $(exports).on("activeEditorChange", function (e, current) {
         if (current && current.document && current.document.file) {
-            PreferencesManager._setCurrentEditingFile(current.document.file.fullPath);
+            PreferencesManager._setCurrentFile(current.document.file.fullPath);
         }
     });
     

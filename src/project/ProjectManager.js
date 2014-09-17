@@ -1273,7 +1273,7 @@ define(function (require, exports, module) {
                         
                         if (projectRootChanged) {
                             _reloadProjectPreferencesScope();
-                            PreferencesManager._setCurrentEditingFile(rootPath);
+                            PreferencesManager._setCurrentFile(rootPath);
                         }
 
                         _projectBaseUrl = PreferencesManager.getViewState("project.baseUrl", context) || "";
