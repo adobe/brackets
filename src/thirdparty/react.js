@@ -1,5 +1,5 @@
 /**
- * React (with addons) v0.11.1
+ * React (with addons) v0.11.2
  */
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.React=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 /**
@@ -3713,6 +3713,7 @@ var HTMLDOMPropertyConfig = {
     loop: MUST_USE_PROPERTY | HAS_BOOLEAN_VALUE,
     max: null,
     maxLength: MUST_USE_ATTRIBUTE,
+    media: MUST_USE_ATTRIBUTE,
     mediaGroup: null,
     method: null,
     min: null,
@@ -3720,6 +3721,7 @@ var HTMLDOMPropertyConfig = {
     muted: MUST_USE_PROPERTY | HAS_BOOLEAN_VALUE,
     name: null,
     noValidate: HAS_BOOLEAN_VALUE,
+    open: null,
     pattern: null,
     placeholder: null,
     poster: null,
@@ -3740,11 +3742,12 @@ var HTMLDOMPropertyConfig = {
     selected: MUST_USE_PROPERTY | HAS_BOOLEAN_VALUE,
     shape: null,
     size: MUST_USE_ATTRIBUTE | HAS_POSITIVE_NUMERIC_VALUE,
+    sizes: MUST_USE_ATTRIBUTE,
     span: HAS_POSITIVE_NUMERIC_VALUE,
     spellCheck: null,
     src: null,
     srcDoc: MUST_USE_PROPERTY,
-    srcSet: null,
+    srcSet: MUST_USE_ATTRIBUTE,
     start: HAS_NUMERIC_VALUE,
     step: null,
     style: null,
@@ -4279,8 +4282,20 @@ var ReactServerRendering = _dereq_("./ReactServerRendering");
 var ReactTextComponent = _dereq_("./ReactTextComponent");
 
 var onlyChild = _dereq_("./onlyChild");
+var warning = _dereq_("./warning");
 
 ReactDefaultInjection.inject();
+
+// Specifying arguments isn't necessary since we just use apply anyway, but it
+// makes it clear for those actually consuming this API.
+function createDescriptor(type, props, children) {
+  var args = Array.prototype.slice.call(arguments, 1);
+  return type.apply(null, args);
+}
+
+if ("production" !== "development") {
+  var _warnedForDeprecation = false;
+}
 
 var React = {
   Children: {
@@ -4295,10 +4310,18 @@ var React = {
     EventPluginUtils.useTouchEvents = shouldUseTouch;
   },
   createClass: ReactCompositeComponent.createClass,
-  createDescriptor: function(type, props, children) {
-    var args = Array.prototype.slice.call(arguments, 1);
-    return type.apply(null, args);
+  createDescriptor: function() {
+    if ("production" !== "development") {
+      ("production" !== "development" ? warning(
+        _warnedForDeprecation,
+        'React.createDescriptor is deprecated and will be removed in the ' +
+        'next version of React. Use React.createElement instead.'
+      ) : null);
+      _warnedForDeprecation = true;
+    }
+    return createDescriptor.apply(this, arguments);
   },
+  createElement: createDescriptor,
   constructAndRenderComponent: ReactMount.constructAndRenderComponent,
   constructAndRenderComponentByID: ReactMount.constructAndRenderComponentByID,
   renderComponent: ReactPerf.measure(
@@ -4367,11 +4390,11 @@ if ("production" !== "development") {
 
 // Version exists only in the open-source version of React, not in Facebook's
 // internal version.
-React.version = '0.11.1';
+React.version = '0.11.2';
 
 module.exports = React;
 
-},{"./DOMPropertyOperations":12,"./EventPluginUtils":20,"./ExecutionEnvironment":22,"./ReactChildren":34,"./ReactComponent":35,"./ReactCompositeComponent":38,"./ReactContext":39,"./ReactCurrentOwner":40,"./ReactDOM":41,"./ReactDOMComponent":43,"./ReactDefaultInjection":53,"./ReactDescriptor":56,"./ReactInstanceHandles":64,"./ReactMount":67,"./ReactMultiChild":68,"./ReactPerf":71,"./ReactPropTypes":75,"./ReactServerRendering":79,"./ReactTextComponent":83,"./onlyChild":149}],30:[function(_dereq_,module,exports){
+},{"./DOMPropertyOperations":12,"./EventPluginUtils":20,"./ExecutionEnvironment":22,"./ReactChildren":34,"./ReactComponent":35,"./ReactCompositeComponent":38,"./ReactContext":39,"./ReactCurrentOwner":40,"./ReactDOM":41,"./ReactDOMComponent":43,"./ReactDefaultInjection":53,"./ReactDescriptor":56,"./ReactInstanceHandles":64,"./ReactMount":67,"./ReactMultiChild":68,"./ReactPerf":71,"./ReactPropTypes":75,"./ReactServerRendering":79,"./ReactTextComponent":83,"./onlyChild":149,"./warning":158}],30:[function(_dereq_,module,exports){
 /**
  * Copyright 2013-2014 Facebook, Inc.
  *
@@ -7408,6 +7431,7 @@ var ReactDOM = mapObject({
   del: false,
   details: false,
   dfn: false,
+  dialog: false,
   div: false,
   dl: false,
   dt: false,
@@ -7455,6 +7479,7 @@ var ReactDOM = mapObject({
   output: false,
   p: false,
   param: true,
+  picture: false,
   pre: false,
   progress: false,
   q: false,
