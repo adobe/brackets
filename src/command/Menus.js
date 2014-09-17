@@ -62,7 +62,8 @@ define(function (require, exports, module) {
         INLINE_EDITOR_MENU:             "inline-editor-context-menu",
         PROJECT_MENU:                   "project-context-menu",
         WORKING_SET_CONTEXT_MENU:       "workingset-context-menu",
-        WORKING_SET_CONFIG_MENU:        "workingset-configuration-menu"
+        WORKING_SET_CONFIG_MENU:        "workingset-configuration-menu",
+        SPLITVIEW_MENU:                 "splitview-menu"
     };
 
     /**
