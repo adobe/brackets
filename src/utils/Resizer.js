@@ -332,7 +332,7 @@ define(function (require, exports, module) {
                 var maxSize = $element.data("maxsize");
                 
                 // Specify maxSize for side to prevent user from extending it to full window width. Isssue#6822
-                if($element.hasClass('sidebar') && maxSize === undefined){
+                if ($element.hasClass('sidebar') && maxSize === undefined) {
                     maxSize = $(window).width() * 0.45;
                 }
 
