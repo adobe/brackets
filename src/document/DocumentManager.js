@@ -672,7 +672,7 @@ define(function (require, exports, module) {
 
         if (newDoc) {
             $(newDoc).on("languageChanged.DocumentManager", function (e, oldLang, newLang) {
-                PreferencesManager._manager.setLanguage(newLang.getId());
+                PreferencesManager._setCurrentLanguage(newLang.getId());
                 $(exports).trigger("currentDocumentLanguageChanged", [oldLang, newLang]);
             });
         }
