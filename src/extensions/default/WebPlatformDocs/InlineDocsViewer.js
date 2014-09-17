@@ -32,11 +32,10 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load Brackets modules
-    var ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
-        InlineWidget        = brackets.getModule("editor/InlineWidget").InlineWidget,
-        KeyEvent            = brackets.getModule("utils/KeyEvent"),
-        NativeApp           = brackets.getModule("utils/NativeApp"),
-        Strings             = brackets.getModule("strings");
+    var ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
+        InlineWidget    = brackets.getModule("editor/InlineWidget").InlineWidget,
+        KeyEvent        = brackets.getModule("utils/KeyEvent"),
+        Strings         = brackets.getModule("strings");
     
     // Load template
     var inlineEditorTemplate = require("text!InlineDocsViewer.html");

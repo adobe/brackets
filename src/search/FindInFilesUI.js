@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $ */
 
 /*
  * UI and controller logic for find/replace across multiple files within the project.
@@ -275,8 +275,7 @@ define(function (require, exports, module) {
             replacedFiles = Object.keys(resultsClone).filter(function (path) {
                 return FindUtils.hasCheckedMatches(resultsClone[path]);
             }),
-            isRegexp = model.queryInfo.isRegexp,
-            replacePromise;
+            isRegexp = model.queryInfo.isRegexp;
         
         function processReplace(forceFilesOpen) {
             StatusBar.showBusyIndicator(true);

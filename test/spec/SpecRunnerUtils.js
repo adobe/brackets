@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, jasmine, describe, it, expect, beforeEach, afterEach, waitsFor, waits, waitsForDone, runs */
+/*global define, $, brackets, jasmine, expect, beforeEach, waitsFor, waitsForDone, runs */
 define(function (require, exports, module) {
     'use strict';
     
@@ -39,14 +39,12 @@ define(function (require, exports, module) {
         WorkspaceManager    = require("view/WorkspaceManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams,
-        LanguageManager     = require("language/LanguageManager"),
-        PreferencesBase     = require("preferences/PreferencesBase");
+        LanguageManager     = require("language/LanguageManager");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         EDITOR_USE_TABS         = false,
         EDITOR_SPACE_UNITS      = 4,
         OPEN_TAG                = "{{",
-        CLOSE_TAG               = "}}",
         RE_MARKER               = /\{\{(\d+)\}\}/g,
         absPathPrefix           = (brackets.platform === "win" ? "c:/" : "/"),
         _testSuites             = {},
@@ -237,7 +235,7 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred();
 
         runs(function () {
-            var dir = _getFileSystem().getDirectoryForPath(getTempDirectory()).create(function (err) {
+            _getFileSystem().getDirectoryForPath(getTempDirectory()).create(function (err) {
                 if (err && err !== FileSystemError.ALREADY_EXISTS) {
                     deferred.reject(err);
                 } else {
@@ -250,8 +248,7 @@ define(function (require, exports, module) {
     }
     
     function _resetPermissionsOnSpecialTempFolders() {
-        var i,
-            folders = [],
+        var folders = [],
             baseDir = getTempDirectory(),
             promise;
         
@@ -720,28 +717,6 @@ define(function (require, exports, module) {
         }
         
         return arg;
-    }
-    
-    /**
-     * Parses offsets from a file using offset markup (e.g. "{{1}}" for offset 1).
-     * @param {!File} entry File to open
-     * @return {$.Promise} A promise resolved with a record that contains parsed offsets, 
-     *  the file text without offset markup, the original file content, and the corresponding
-     *  file entry.
-     */
-    function parseOffsetsFromFile(entry) {
-        var result = new $.Deferred();
-        
-        FileUtils.readAsText(entry).done(function (text) {
-            var info = parseOffsetsFromText(text);
-            info.fileEntry = entry;
-            
-            result.resolve(info);
-        }).fail(function (err) {
-            result.reject(err);
-        });
-        
-        return result.promise();
     }
     
     /**

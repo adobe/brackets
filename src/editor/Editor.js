@@ -74,7 +74,6 @@ define(function (require, exports, module) {
         PerfUtils          = require("utils/PerfUtils"),
         PopUpManager       = require("widgets/PopUpManager"),
         PreferencesManager = require("preferences/PreferencesManager"),
-        Strings            = require("strings"),
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
         ValidationUtils    = require("utils/ValidationUtils"),
@@ -277,7 +276,10 @@ define(function (require, exports, module) {
                     self.removeAllInlineWidgets();
                 }
             },
-            "Cmd-Left": "goLineStartSmart"
+            "Home":      "goLineLeftSmart",
+            "Cmd-Left":  "goLineLeftSmart",
+            "End":       "goLineRight",
+            "Cmd-Right": "goLineRight"
         };
         
         var currentOptions = this._currentOptions = _.zipObject(
@@ -801,8 +803,6 @@ define(function (require, exports, module) {
      *    the document an editor change that originated with us
      */
     Editor.prototype._handleDocumentChange = function (event, doc, changeList) {
-        var change;
-        
         // we're currently syncing to the Document, so don't echo back FROM the Document
         if (this._duringSync) {
             return;

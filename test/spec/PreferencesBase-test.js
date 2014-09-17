@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast, spyOn, brackets */
+/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst */
 /*unittests: Preferences Base*/
 
 define(function (require, exports, module) {
@@ -62,7 +62,6 @@ define(function (require, exports, module) {
         });
         
         describe("Path Layer", function () {
-            
             it("handles a variety of glob patterns", function () {
                 var data = {
                     "**.html": {
@@ -186,9 +185,7 @@ define(function (require, exports, module) {
                         spaceUnits: 3
                     }
                 };
-                
-                var originalData = _.clone(data, true);
-                
+
                 var layer = new PreferencesBase.PathLayer("/.brackets.json");
                 
                 expect(layer.set(data, "spaceUnits", 11, {
