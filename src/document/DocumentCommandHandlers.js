@@ -1664,12 +1664,12 @@ define(function (require, exports, module) {
     }
 
     // Deprecated commands
-    CommandManager.register(Strings.CMD_ADD_TO_WORKINGSET_AND_OPEN,  Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);
+    CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);
     CommandManager.register(Strings.CMD_FILE_OPEN,                   Commands.FILE_OPEN,                      handleDocumentOpen);
     
     // New commands
+    CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, handleFileAddToWorkingSetAndOpen);
     CommandManager.register(Strings.CMD_FILE_OPEN,                   Commands.CMD_OPEN,                       handleFileOpen);
-    CommandManager.register(Strings.CMD_ADD_TO_WORKINGSET_AND_OPEN,  Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, handleFileAddToWorkingSetAndOpen);
     
     // File Commands
     CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,           Commands.FILE_NEW_UNTITLED,              handleFileNew);

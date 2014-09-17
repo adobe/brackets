@@ -430,7 +430,7 @@ define({
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
-	"EMPTY_VIEW_HEADER": "!能=[7760705] <em>Select a file while this view has focus</em>_=!",
+	"EMPTY_VIEW_HEADER": "<em>このビューにフォーカスがあるときにファイルを選択</em>",
     
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "現在のテーマ",

@@ -665,6 +665,68 @@ define(function (require, exports, module) {
         });
         
         
+        describe("Close List", function () {
+            beforeEach(function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/test.js"});
+                    waitsForDone(promise, "CMD_ADD_TO_WORKINGSET_AND_OPEN");
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/test2.js"});
+                    waitsForDone(promise, "CMD_ADD_TO_WORKINGSET_AND_OPEN");
+                });
+            });
+            it("should not close the current view", function () {
+                var currentPath,
+                    docsToClose;
+                runs(function () {
+                    currentPath = MainViewManager.getCurrentlyViewedPath();
+                    docsToClose = DocumentManager.getAllOpenDocuments().filter(function (doc) {
+                        return (doc !== DocumentManager.getCurrentDocument());
+                    });
+                    promise = CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: docsToClose.map(function (doc) {
+                        return doc.file;
+                    })});
+                    waitsForDone(promise, "FILE_CLOSE_LIST");
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedPath()).toBe(currentPath);
+                });
+            });
+            it("should close all views", function () {
+                var docsToClose;
+                runs(function () {
+                    docsToClose = DocumentManager.getAllOpenDocuments();
+                    promise = CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: docsToClose.map(function (doc) {
+                        return doc.file;
+                    })});
+                    waitsForDone(promise, "FILE_CLOSE_LIST");
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedFile()).toBeFalsy();
+                });
+            });
+            it("should open the next view when the current view is closed", function () {
+                var currentPath,
+                    docsToClose;
+                runs(function () {
+                    currentPath = MainViewManager.getCurrentlyViewedPath();
+                    docsToClose = DocumentManager.getAllOpenDocuments().filter(function (doc) {
+                        return (doc === DocumentManager.getCurrentDocument());
+                    });
+                    promise = CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: docsToClose.map(function (doc) {
+                        return doc.file;
+                    })});
+                    waitsForDone(promise, "FILE_CLOSE_LIST");
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedPath()).not.toBe(currentPath);
+                    expect(MainViewManager.getCurrentlyViewedPath()).toBeTruthy();
+                });
+            });
+        });
+        
+        
         describe("Open File", function () {
             it("should open a file in the editor", function () {
                 var promise;
@@ -1150,7 +1212,7 @@ define(function (require, exports, module) {
                     expect(d).toBeFalsy();
                 });
             });
-        
+            
             it("opening image while text file open should fire currentDocumentChange and activeEditorChange events", function () {
                 var promise,
                     docChangeListener = jasmine.createSpy(),
@@ -1240,7 +1302,7 @@ define(function (require, exports, module) {
                     _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
                 });
             });
-        
+            
             it("should return an editor after opening a text file", function () {
                 var path = testPath + "/test.js",
                     promise;

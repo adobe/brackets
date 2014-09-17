@@ -257,7 +257,7 @@ define(function (require, exports, module) {
      * @param {!Document} document  The Document to make current. 
      */
     function setCurrentDocument(doc) {
-        DeprecationWarning.deprecationWarning("Use CommandManager.doCommand(Commands.CMD_OPEN) instead of DocumentManager.setCurrentDocument()", true);
+        DeprecationWarning.deprecationWarning("Use CommandManager.execute(Commands.CMD_OPEN) instead of DocumentManager.setCurrentDocument()", true);
         CommandManager.execute(Commands.CMD_OPEN, {fullPath: doc.file.fullPath});
     }
 

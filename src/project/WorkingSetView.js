@@ -159,12 +159,29 @@ define(function (require, exports, module) {
     };
     
     /*
+     * Hides or shows the WorkingSetView
+     */
+    WorkingSetView.prototype._updateVisibility = function () {
+        var fileList = MainViewManager.getWorkingSet(this.paneId);
+        if (MainViewManager.getPaneCount() === 1 && (!fileList || fileList.length === 0)) {
+            this.$openFilesContainer.hide();
+            this.$workingSetListViewHeader.hide();
+        } else {
+            this.$openFilesContainer.show();
+            this.$workingSetListViewHeader.show();
+            this._checkForDuplicatesInWorkingTree();
+        }
+    };
+    
+    /*
      * paneLayoutChange event listener
      * @private
      */
     WorkingSetView.prototype._handlePaneLayoutChange = function () {
         var $titleEl = this.$el.find(".working-set-header-title"),
             title = Strings.WORKING_FILES;
+        
+        this._updateVisibility();
         
         if (MainViewManager.getPaneCount() > 1) {
             title = MainViewManager.getPaneTitle(this.paneId);
@@ -323,23 +340,15 @@ define(function (require, exports, module) {
      * @private
      */
     WorkingSetView.prototype._redraw = function () {
-        var fileList = MainViewManager.getWorkingSet(this.paneId),
-            paneId = MainViewManager.getActivePaneId();
+        var paneId = MainViewManager.getActivePaneId();
         
         if (paneId === this.paneId) {
             this.$el.addClass("active");
         } else {
             this.$el.removeClass("active");
         }
-        
-        if (!fileList || fileList.length === 0) {
-            this.$openFilesContainer.hide();
-            this.$workingSetListViewHeader.hide();
-        } else {
-            this.$openFilesContainer.show();
-            this.$workingSetListViewHeader.show();
-            this._checkForDuplicatesInWorkingTree();
-        }
+
+        this._updateVisibility();
         this._adjustForScrollbars();
         this._fireSelectionChanged();
         this.updateOptionsButton();
@@ -910,7 +919,18 @@ define(function (require, exports, module) {
         });
     }
     
+    /** 
+     * Synchronizes the selection indicator for all views
+     */
+    function syncSelectionIndicator() {
+        _.forEach(_views, function (workingSetListView) {
+            workingSetListView.$openFilesContainer.triggerHandler("scroll");
+        });
+    }
+    
+    
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
     exports.refresh                       = refresh;
+    exports.syncSelectionIndicator        = syncSelectionIndicator;
 });
