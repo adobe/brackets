@@ -120,17 +120,13 @@ define(function (require, exports, module) {
      * @private
      */
     function _updateWorkingSetState() {
-        var showWorkingSet = true;
         if (MainViewManager.getPaneCount() === 1 &&
                 MainViewManager.getWorkingSetSize(MainViewManager.ACTIVE_PANE) === 0) {
-            showWorkingSet = false;
-        }
-        if (showWorkingSet) {
-            $workingSetViewsContainer.show();
-            $gearMenu.show();
-        } else {
             $workingSetViewsContainer.hide();
             $gearMenu.hide();
+        } else {
+            $workingSetViewsContainer.show();
+            $gearMenu.show();
         }
     }
     
