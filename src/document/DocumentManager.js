@@ -87,6 +87,7 @@ define(function (require, exports, module) {
         DocumentModule      = require("document/Document"),
         DeprecationWarning  = require("utils/DeprecationWarning"),
         MainViewManager     = require("view/MainViewManager"),
+        MainViewFactory     = require("view/MainViewFactory"),
         ProjectManager      = require("project/ProjectManager"),
         EditorManager       = require("editor/EditorManager"),
         FileSyncManager     = require("project/FileSyncManager"),
@@ -162,10 +163,8 @@ define(function (require, exports, module) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.getViews() instead of DocumentManager.getWorkingSet()", true);
         return MainViewManager.getWorkingSet(MainViewManager.ALL_PANES)
             .filter(function (file) {
-                // Document.file objects were added to Working Sets
-                //  so filter the result set from the new API
-                //  for those files who have document objects
-                return getOpenDocumentForPath(file.fullPath);
+                // Legacy didn't allow for files with custom viewers
+                return !MainViewFactory.findSuitableFactoryForPath(file.fullPath);
             });
     }
 
@@ -259,7 +258,7 @@ define(function (require, exports, module) {
      * @param {!Document} document  The Document to make current. 
      */
     function setCurrentDocument(doc) {
-        DeprecationWarning.deprecationWarning("Use CommandManager.doCommand(Commands.CMD_OPEN) instead of DocumentManager.setCurrentDocument()", true);
+        DeprecationWarning.deprecationWarning("Use CommandManager.execute(Commands.CMD_OPEN) instead of DocumentManager.setCurrentDocument()", true);
         CommandManager.execute(Commands.CMD_OPEN, {fullPath: doc.file.fullPath});
     }
 
@@ -687,6 +686,7 @@ define(function (require, exports, module) {
     exports.getCurrentDocument             = getCurrentDocument;
     exports.beginDocumentNavigation        = beginDocumentNavigation;
     exports.finalizeDocumentNavigation     = finalizeDocumentNavigation;
+    exports.getNextPrevFile                = getNextPrevFile;
     exports.setCurrentDocument             = setCurrentDocument;
     exports.closeFullEditor                = closeFullEditor;
     exports.closeAll                       = closeAll;

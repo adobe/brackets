@@ -261,10 +261,10 @@ define(function (require, exports, module) {
         }
         
         if (!current) {
-            StatusBar.hide();
+            StatusBar.hideAllPanes();
         } else {
             var fullPath = current.document.file.fullPath;
-            StatusBar.show();
+            StatusBar.showAllPanes();
             
             $(current).on("cursorActivity.statusbar", _updateCursorInfo);
             $(current).on("optionChange.statusbar", function () {
@@ -397,8 +397,6 @@ define(function (require, exports, module) {
         });
 
         $statusOverwrite.on("click", _updateEditorOverwriteMode);
-        
-        _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
     }
 
     // Initialize: status bar focused listener
@@ -409,5 +407,7 @@ define(function (require, exports, module) {
         // Populate language switcher with all languages after startup; update it later if this set changes
         _populateLanguageDropdown();
         $(LanguageManager).on("languageAdded languageModified", _populateLanguageDropdown);
+        _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
+        StatusBar.show();
     });
 });
