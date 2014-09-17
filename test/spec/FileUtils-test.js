@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, window, $, jasmine, brackets, spyOn */
+/*global define, describe, it, expect, beforeEach, afterEach, brackets, spyOn */
 /*unittests: FileUtils*/
 
 define(function (require, exports, module) {

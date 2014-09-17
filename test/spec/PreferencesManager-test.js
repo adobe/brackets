@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, beforeFirst, afterLast, spyOn, waitsForDone */
+/*global define, describe, it, expect, beforeEach, runs, beforeFirst, afterLast, spyOn, waitsForDone */
 define(function (require, exports, module) {
     'use strict';
     
@@ -89,7 +89,6 @@ define(function (require, exports, module) {
         
         it("should throw errors for invalid values", function () {
             var store = new PreferenceStorage(CLIENT_ID, {"foo": 42});
-            var error = null;
             
             expect(store.getValue("foo")).toBe(42);
             // function data is not valid JSON

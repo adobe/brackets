@@ -88,8 +88,6 @@ define(function (require, exports, module) {
         DeprecationWarning  = require("utils/DeprecationWarning"),
         MainViewManager     = require("view/MainViewManager"),
         MainViewFactory     = require("view/MainViewFactory"),
-        ProjectManager      = require("project/ProjectManager"),
-        EditorManager       = require("editor/EditorManager"),
         FileSyncManager     = require("project/FileSyncManager"),
         FileSystem          = require("filesystem/FileSystem"),
         PreferencesManager  = require("preferences/PreferencesManager"),
@@ -97,7 +95,6 @@ define(function (require, exports, module) {
         InMemoryFile        = require("document/InMemoryFile"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
-        Async               = require("utils/Async"),
         PerfUtils           = require("utils/PerfUtils"),
         LanguageManager     = require("language/LanguageManager"),
         Strings             = require("strings");
@@ -258,7 +255,7 @@ define(function (require, exports, module) {
      * @param {!Document} document  The Document to make current. 
      */
     function setCurrentDocument(doc) {
-        DeprecationWarning.deprecationWarning("Use CommandManager.doCommand(Commands.CMD_OPEN) instead of DocumentManager.setCurrentDocument()", true);
+        DeprecationWarning.deprecationWarning("Use CommandManager.execute(Commands.CMD_OPEN) instead of DocumentManager.setCurrentDocument()", true);
         CommandManager.execute(Commands.CMD_OPEN, {fullPath: doc.file.fullPath});
     }
 
