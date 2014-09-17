@@ -35,7 +35,6 @@ define(function (require, exports, module) {
         CommandManager          = brackets.getModule("command/CommandManager"),
         KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
         Menus                   = brackets.getModule("command/Menus"),
-        EditorManager           = brackets.getModule("editor/EditorManager"),
         MainViewManager         = brackets.getModule("view/MainViewManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         FileSystem              = brackets.getModule("filesystem/FileSystem"),

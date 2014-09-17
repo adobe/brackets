@@ -93,8 +93,8 @@ define({
     
 	"LIVE_DEVELOPMENT_ERROR_TITLE": "ライブプレビューのエラーが発生しました。",
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "ブラウザーに接続しています",
-	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "ライブプレビューに接続するには、リモートデバッグを有効にして Chrome を再起動する必要があります。<br /><br />Chrome を再起動してリモートデバッグを有効にしますか？",
-	"LIVE_DEV_LOADING_ERROR_MESSAGE": "ライブプレビューページを読み込めません",
+	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "!能=[6307160] In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?<br /><br />_=!",
+	"LIVE_DEV_LOADING_ERROR_MESSAGE": "!能=[6742878] Unable to load Live Preview page._=!",
 	"LIVE_DEV_NEED_HTML_MESSAGE": "ライブプレビューを起動するには、HTML ファイルを開くか、index.html ファイルがプロジェクトに含まれていることを確認してください。",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "サーバー側ファイルでライブプレビューを起動するには、このプロジェクトのベース URL を指定する必要があります。",
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "ファイルのライブプレビューで使用する HTTP サーバーの起動時にエラーが発生しました。もう一度実行してください。",
@@ -229,6 +229,12 @@ define({
 	"LEFT": "左",
 	"RIGHT": "右",
 
+	"CMD_SPLITVIEW_NONE": "!能=[7762334] No Split_=!",
+	"CMD_SPLITVIEW_VERTICAL": "!能=[7762335] Vertical Split_=!",
+	"CMD_SPLITVIEW_HORIZONTAL": "!能=[7762333] Horizontal Split_=!",
+	"SPLITVIEW_MENU_TOOLTIP": "!能=[7762337] Split the editor vertically or horizontally_=!",
+	"GEAR_MENU_TOOLTIP": "!能=[7762336] Configure Working Set_=!",
+
     /**
      * Keyboard modifier names
      */
@@ -278,14 +284,14 @@ define({
     /**
      * Command Name Constants
      */
-
+ 
     // File menu commands
 	"FILE_MENU": "ファイル",
 	"CMD_FILE_NEW_UNTITLED": "新規作成",
 	"CMD_FILE_NEW": "新しいファイル",
 	"CMD_FILE_NEW_FOLDER": "新しいフォルダー",
 	"CMD_FILE_OPEN": "開く\u2026",
-	"CMD_ADD_TO_WORKINGSET_AND_OPEN": "ワーキングセットに追加して開く",
+	"CMD_ADD_TO_WORKING_SET": "!能=[6307081] Open To Working Set_=!",
 	"CMD_OPEN_DROPPED_FILES": "ドロップしたファイルを開く",
 	"CMD_OPEN_FOLDER": "フォルダーを開く\u2026",
 	"CMD_FILE_CLOSE": "閉じる",

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, brackets */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -37,8 +37,6 @@ define(function (require, exports, module) {
         MainViewFactory = require("view/MainViewFactory"),
         LanguageManager = require("language/LanguageManager"),
         FileSystem      = require("filesystem/FileSystem"),
-        EditorManager   = require("editor/EditorManager"),
-        FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
         StringUtils     = require("utils/StringUtils");

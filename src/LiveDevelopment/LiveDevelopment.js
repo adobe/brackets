@@ -337,7 +337,6 @@ define(function LiveDevelopment(require, exports, module) {
     function _handleLiveDocumentStatusChanged(liveDocument) {
         var startLine,
             endLine,
-            lineInfo,
             i,
             lineHandle,
             status = (liveDocument.errors.length) ? STATUS_SYNC_ERROR : STATUS_ACTIVE;
@@ -449,8 +448,7 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {Document} doc
      */
     function _docIsOutOfSync(doc) {
-        var docClass    = _classForDocument(doc),
-            liveDoc     = _server && _server.get(doc.file.fullPath),
+        var liveDoc = _server && _server.get(doc.file.fullPath),
             isLiveEditingEnabled = liveDoc && liveDoc.isLiveEditingEnabled();
 
         return doc.isDirty && !isLiveEditingEnabled;
@@ -586,8 +584,6 @@ define(function LiveDevelopment(require, exports, module) {
         }
         
         var result = new $.Deferred(),
-            promises = [],
-            enableAgentsPromise,
             allAgentsPromise;
         
         _loadAgentsPromise = result.promise();

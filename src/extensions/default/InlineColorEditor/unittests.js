@@ -23,16 +23,13 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, brackets, waitsForDone, spyOn, tinycolor, KeyEvent */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, runs, $, brackets, waitsForDone, spyOn, tinycolor */
 
 define(function (require, exports, module) {
     "use strict";
 
     // Modules from the SpecRunner window
     var SpecRunnerUtils   = brackets.getModule("spec/SpecRunnerUtils"),
-        Editor            = brackets.getModule("editor/Editor").Editor,
-        DocumentManager   = brackets.getModule("document/DocumentManager"),
-        Strings           = brackets.getModule("strings"),
         KeyEvent          = brackets.getModule("utils/KeyEvent"),
         testContentCSS    = require("text!unittest-files/unittests.css"),
         testContentHTML   = require("text!unittest-files/unittests.html"),

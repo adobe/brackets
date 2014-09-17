@@ -70,7 +70,6 @@ define(function (require, exports, module) {
             var clientHeight        = scrollElement.clientHeight,
                 outerHeight         = $displayElement.outerHeight(),
                 scrollHeight        = scrollElement.scrollHeight,
-                bottomOffset        = outerHeight - clientHeight,
                 bottomShadowOffset  = SCROLL_SHADOW_HEIGHT; // outside of shadow div viewport
             
             if (scrollHeight > clientHeight) {
@@ -214,7 +213,6 @@ define(function (require, exports, module) {
                 selectionExtensionHeight = $selectionExtension.outerHeight(),
                 scrollerTop = scrollerOffset.top,
                 scrollerBottom = scrollerTop + $scrollerElement.outerHeight(),
-                scrollerLeft = scrollerOffset.left,
                 selectionExtensionTop = selectionMarkerOffset.top;
             
             $selectionExtension.css("top", selectionExtensionTop);
@@ -317,8 +315,7 @@ define(function (require, exports, module) {
     function getElementClipSize($view, elementRect) {
         var delta,
             clip = { top: 0, right: 0, bottom: 0, left: 0 },
-            viewOffset = $view.offset() || { top: 0, left: 0},
-            viewScroller = $view.get(0);
+            viewOffset = $view.offset() || { top: 0, left: 0};
 
         // Check if element extends below viewport
         delta = (elementRect.top + elementRect.height) - (viewOffset.top + $view.height());
@@ -365,10 +362,7 @@ define(function (require, exports, module) {
      * @param {?boolean} scrollHorizontal - whether to also scroll horizontally
      */
     function scrollElementIntoView($view, $element, scrollHorizontal) {
-        var viewOffset = $view.offset(),
-            viewScroller = $view.get(0),
-            element = $element.get(0),
-            elementOffset = $element.offset();
+        var elementOffset = $element.offset();
 
         // scroll minimum amount
         var elementRect = {
