@@ -826,6 +826,18 @@ a, img {
     display:none;
 }
 
+.open-files-container.active{
+    li {
+        &.selected a {
+            color: @open-working-file-name-highlight;
+        }
+
+        &.selected .extension {
+            color: @open-working-file-ext-highlight;
+        }
+    }
+}
+
 #project-files-container {
     .box-flex(1);
 
@@ -838,17 +850,6 @@ a, img {
     }
 }
 
-.open-files-container.active{
-    li {
-        &.selected a {
-            color: @open-working-file-name-highlight;
-        }
-
-        &.selected .extension {
-            color: @open-working-file-ext-highlight;
-        }
-    }
-}
 .scroller-shadow {
     background-size: 100%;
     background-repeat: no-repeat;
