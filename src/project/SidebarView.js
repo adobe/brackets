@@ -226,7 +226,7 @@ define(function (require, exports, module) {
             $sidebar.trigger("panelCollapsed");
         }
         
-        // wire up event handlers to monitor when panes are created or destroyed
+        // wire up an event handler to monitor when panes are created
         $(MainViewManager).on("paneCreate", function (evt, paneId) {
             WorkingSetView.createWorkingSetViewForPane($workingSetViewsContainer, paneId);
         });
