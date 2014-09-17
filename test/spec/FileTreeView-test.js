@@ -21,7 +21,7 @@
  *
  */
 
-/*global $, define, brackets, describe, xdescribe, it, xit, beforeEach, expect, setTimeout, waitsForDone, waitsForFail, runs, spyOn */
+/*global $, define, describe, it, expect */
 /*unittests: FileTreeView*/
 
 define(function (require, exports, module) {

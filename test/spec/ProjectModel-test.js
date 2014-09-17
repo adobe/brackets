@@ -22,13 +22,12 @@
  */
 
 /* unittests: ProjectModel */
-/*global $, define, brackets, describe, it, xit, expect, beforeEach, waitsForDone, waitsForFail, runs, spyOn, jasmine */
+/*global $, define, describe, it, xit, expect, beforeEach, waitsForDone, waitsForFail, runs, spyOn, jasmine */
 
 define(function (require, exports, module) {
     "use strict";
     
     var ProjectModel = require("project/ProjectModel"),
-        _ = require("thirdparty/lodash"),
         Immutable = require("thirdparty/immutable");
     
     describe("ProjectModel", function () {
@@ -630,7 +629,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("can take a filesystem object or string", function () {
-                    var promise = model.startRename({
+                    model.startRename({
                         fullPath: "/foo/afile.js"
                     });
                     expect(vm._treeData.getIn(["afile.js", "rename"])).toBe(true);

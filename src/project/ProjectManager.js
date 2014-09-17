@@ -54,7 +54,6 @@ define(function (require, exports, module) {
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
-        InMemoryFile        = require("document/InMemoryFile"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
@@ -67,12 +66,9 @@ define(function (require, exports, module) {
         FileSystem          = require("filesystem/FileSystem"),
         FileViewController  = require("project/FileViewController"),
         PerfUtils           = require("utils/PerfUtils"),
-        ViewUtils           = require("utils/ViewUtils"),
         FileUtils           = require("file/FileUtils"),
         FileSystemError     = require("filesystem/FileSystemError"),
         Urls                = require("i18n!nls/urls"),
-        KeyEvent            = require("utils/KeyEvent"),
-        Async               = require("utils/Async"),
         FileSyncManager     = require("project/FileSyncManager"),
         ProjectModel        = require("project/ProjectModel"),
         FileTreeView        = require("project/FileTreeView");
@@ -163,7 +159,9 @@ define(function (require, exports, module) {
     function _displayCreationError(e, errorInfo) {
         window.setTimeout(function () {
             var error = errorInfo.type,
-                isFolder = errorInfo.isFolder;
+                isFolder = errorInfo.isFolder,
+                name = errorInfo.name;
+            
             if (error === FileSystemError.ALREADY_EXISTS) {
                 _showErrorDialog(ERR_TYPE_CREATE_EXISTS, isFolder, null, name);
             } else if (error === ProjectModel.ERROR_INVALID_FILENAME) {
@@ -733,8 +731,7 @@ define(function (require, exports, module) {
      */
     function _loadProject(rootPath, isUpdating) {
         var result = new $.Deferred(),
-            startLoad = new $.Deferred(),
-            resultRenderTree;
+            startLoad = new $.Deferred();
 
         // Some legacy code calls this API with a non-canonical path
         rootPath = ProjectModel._ensureTrailingSlash(rootPath);
@@ -787,7 +784,6 @@ define(function (require, exports, module) {
                     if (exists) {
                         var projectRootChanged = (!model.projectRoot || !rootEntry) ||
                             model.projectRoot.fullPath !== rootEntry.fullPath;
-                        var i;
 
                         // Success!
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
@@ -972,25 +968,6 @@ define(function (require, exports, module) {
      */
     function _projectSettings() {
         return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl()).getPromise();
-    }
-
-    /**
-     * @private
-     * Check a filename for illegal characters. If any are found, show an error
-     * dialog and return false. If no illegal characters are found, return true.
-     * Although Mac and Linux allow ?*| characters, we still cannot allow them
-     * since these have special meaning for all file systems.
-     *
-     * @param {string} filename
-     * @param {boolean} isFolder
-     * @return {boolean} Returns true if no illegal characters are found
-     */
-    function _checkForValidFilename(filename, isFolder) {
-        if (!ProjectModel.isValidFilename(filename, ProjectModel._invalidChars)) {
-            _showErrorDialog(ERR_TYPE_INVALID_FILENAME, isFolder, ProjectModel._invalidChars);
-            return false;
-        }
-        return true;
     }
 
     /**
