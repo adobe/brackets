@@ -120,13 +120,10 @@ define(function (require, exports, module) {
      * @private
      */
     function _updateOptionState() {
-        var fileList,
-            showWorkingSet = true;
-        if (MainViewManager.getPaneCount() === 1) {
-            fileList = MainViewManager.getWorkingSet(MainViewManager.getActivePaneId());
-            if (!fileList || fileList.length === 0) {
-                showWorkingSet = false;
-            }
+        var showWorkingSet = true;
+        if (MainViewManager.getPaneCount() === 1 &&
+                MainViewManager.getWorkingSetSize(MainViewManager.ACTIVE_PANE) === 0) {
+            showWorkingSet = false;
         }
         if (showWorkingSet) {
             $workingSetViewsContainer.show();
