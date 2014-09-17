@@ -121,16 +121,18 @@ define(function (require, exports, module) {
      */
     function _updateOptionState() {
         var fileList,
-            showOptionsIcon = true;
+            showWorkingSet = true;
         if (MainViewManager.getPaneCount() === 1) {
             fileList = MainViewManager.getWorkingSet(MainViewManager.getActivePaneId());
             if (!fileList || fileList.length === 0) {
-                showOptionsIcon = false;
+                showWorkingSet = false;
             }
         }
-        if (showOptionsIcon) {
+        if (showWorkingSet) {
+            $workingSetViewsContainer.show();
             $gearMenu.show();
         } else {
+            $workingSetViewsContainer.hide();
             $gearMenu.hide();
         }
     }
