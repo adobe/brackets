@@ -262,7 +262,10 @@ define(function (require, exports, module) {
                     self.removeAllInlineWidgets();
                 }
             },
-            "Cmd-Left": "goLineStartSmart"
+            "Home":      "goLineLeftSmart",
+            "Cmd-Left":  "goLineLeftSmart",
+            "End":       "goLineRight",
+            "Cmd-Right": "goLineRight"
         };
         
         var currentOptions = this._currentOptions = _.zipObject(
