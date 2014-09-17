@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $, Mustache */
 
  /**
   * Pane objects host views of files, editors, etc... Clients cannot access
@@ -153,7 +153,6 @@ define(function (require, exports, module) {
         
     var _                   = require("thirdparty/lodash"),
         FileSystem          = require("filesystem/FileSystem"),
-        File                = require("filesystem/File"),
         InMemoryFile        = require("document/InMemoryFile"),
         ViewStateManager    = require("view/ViewStateManager"),
         MainViewManager     = require("view/MainViewManager"),
@@ -626,6 +625,23 @@ define(function (require, exports, module) {
         $(this).triggerHandler("currentViewChange", [newView, oldView]);
     };
     
+    
+    /**
+     * Destroys a view and removes it from the view map. If it is the current view then the view 
+     * is first hidden and the interstitial page is displayed
+     * @private
+     * @param {!View} view - view to destroy
+     */
+    Pane.prototype._doDestroyView = function (view) {
+        if (this._currentView === view) {
+            // if we're removing the current
+            //  view then we need to hide the view
+            this._hideCurrentView();
+        }
+        delete this._views[view.getFile().fullPath];
+        view.destroy();
+    };
+    
     /**
      * Removes the specifed file from all internal lists, destroys the view of the file (if there is one)
      *  and shows the interstitial page if the current view is destroyed
@@ -658,13 +674,7 @@ define(function (require, exports, module) {
 
         if (view) {
             if (!preventViewChange) {
-                if (this._currentView === view) {
-                    // if we're removing the current
-                    //  view then we need to hide the view
-                    this._hideCurrentView();
-                }
-                delete this._views[file.fullPath];
-                view.destroy();
+                this._doDestroyView(view);
             }
         }
         
@@ -1001,10 +1011,13 @@ define(function (require, exports, module) {
      * Removes the view and opens the next view
      * @param {File} file - the file to close
      * @param {boolean} suppressOpenNextFile - suppresses opening the next file in MRU order
+     * @param {boolean} preventViewChange - if suppressOpenNextFile is truthy, this flag can be used to 
+     *                                      prevent the current view from being destroyed. 
+     *                                      Ignored if suppressOpenNextFile is falsy 
      * @return {boolean} true if the file was removed from the working set
      *  This function will remove a temporary view of a file but will return false in that case
      */
-    Pane.prototype.removeView = function (file, suppressOpenNextFile) {
+    Pane.prototype.removeView = function (file, suppressOpenNextFile, preventViewChange) {
         var nextFile = !suppressOpenNextFile && this.traverseViewListByMRU(1, file.fullPath);
         if (nextFile && nextFile.fullPath !== file.fullPath && this.getCurrentlyViewedPath() === file.fullPath) {
             var self = this,
@@ -1013,14 +1026,11 @@ define(function (require, exports, module) {
             
             if (this._doRemove(file, needOpenNextFile)) {
                 if (needOpenNextFile) {
+                    // this will destroy the current view
                     this._execOpenFile(fullPath)
                         .fail(function () {
-                            // the FILE_OPEN op failed so
-                            //  we need to cleanup by hiding and destroying the current view
-                            self._hideCurrentView();
-                            var view = self._views[file.fullPath];
-                            delete self._views[file.fullPath];
-                            view.destroy();
+                            // the FILE_OPEN op failed so destroy the current view
+                            self._doDestroyView(self._currentView);
                         });
                 }
                 return true;
@@ -1029,7 +1039,7 @@ define(function (require, exports, module) {
                 return false;
             }
         } else {
-            return this._doRemove(file);
+            return this._doRemove(file, preventViewChange);
         }
     };
     
@@ -1042,11 +1052,42 @@ define(function (require, exports, module) {
      *  in the result set.  Only the file objects removed from the working set are returned.
      */
     Pane.prototype.removeViews = function (list) {
-        var self = this;
-        
-        return list.filter(function (file) {
-            return (self.removeView(file));
+        var self = this,
+            needsDestroyCurrentView = false,
+            result;
+
+        // Check to see if we need to destroy the current view later
+        needsDestroyCurrentView = _.findIndex(list, function (file) {
+            return file.fullPath === self.getCurrentlyViewedPath();
+        }) !== -1;
+
+        // destroy the views in the list 
+        result = list.filter(function (file) {
+            return (self.removeView(file, true, true));
         });
+
+        // we may have been passed a list of files that did not include the current view
+        if (needsDestroyCurrentView) {
+            // _doRemove will have whittled the MRU list down to just the remaining views 
+            var nextFile = this.traverseViewListByMRU(1, this.getCurrentlyViewedPath()),
+                fullPath = nextFile && nextFile.fullPath,
+                needOpenNextFile = fullPath && (this.findInViewList(fullPath) !== -1);
+            
+            if (needOpenNextFile) {
+                // A successful open will destroy the current view 
+                this._execOpenFile(fullPath)
+                    .fail(function () {
+                        // the FILE_OPEN op failed so destroy the current view
+                        self._doDestroyView(self._currentView);
+                    });
+            } else {
+                // Nothing left to show so destroy the current view
+                this._doDestroyView(this._currentView);
+            }
+        }
+        
+        // return the result
+        return result;
     };
     
     /**
@@ -1125,8 +1166,7 @@ define(function (require, exports, module) {
      * @return {!Object} state - the state to save 
      */
     Pane.prototype.saveState = function () {
-        var view,
-            result = [],
+        var result = [],
             currentlyViewedPath = this.getCurrentlyViewedPath();
 
         // Save the current view state first

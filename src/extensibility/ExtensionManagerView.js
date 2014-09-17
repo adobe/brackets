@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, window, $, brackets, Mustache */
+/*global define, $, brackets, Mustache */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -334,8 +334,7 @@ define(function (require, exports, module) {
      * new items for entries that haven't yet been rendered, but will not re-render existing items.
      */
     ExtensionManagerView.prototype._render = function () {
-        var self = this,
-            $item;
+        var self = this;
         
         this._$table.empty();
         this._updateMessage();
