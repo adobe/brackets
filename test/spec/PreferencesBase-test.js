@@ -915,7 +915,7 @@ define(function (require, exports, module) {
                     elephants: "charging"
                 }));
                 
-                expect(pm._defaultScopeOrder.scopeOrder).toEqual(["user", "default"]);
+                expect(pm._defaults.scopeOrder).toEqual(["user", "default"]);
                 
                 expect(eventData).toEqual([{
                     ids: ["spaceUnits", "elephants"]
@@ -929,7 +929,7 @@ define(function (require, exports, module) {
                 scopeEvents = [];
                 eventData = [];
                 pm.removeScope("user");
-                expect(pm._defaultScopeOrder.scopeOrder).toEqual(["default"]);
+                expect(pm._defaults.scopeOrder).toEqual(["default"]);
                 expect(eventData).toEqual([{
                     ids: ["spaceUnits", "elephants"]
                 }]);
@@ -980,23 +980,22 @@ define(function (require, exports, module) {
                 expect(keys.sort()).toEqual(["spaceUnits", "alpha"].sort());
                 
                 expect(pm.get("spaceUnits")).toBe(4);
+                expect(pm.get("spaceUnits", {path: "/foo.txt"})).toBe(2);
+                
                 eventData = [];
-                pm.setDefaultFilename("/foo.txt");
-                expect(pm.get("spaceUnits")).toBe(2);
+                pm.signalContextChanged({path: "/README.md"}, {path: "/README.txt"});
                 expect(eventData).toEqual([{
                     ids: ["spaceUnits", "alpha"]
                 }]);
                 
                 eventData = [];
-                pm.setDefaultFilename("/README.txt");
+                pm.signalContextChanged({path: "/foo.txt"}, {path: "/README.txt"});
                 expect(eventData).toEqual([]);
                 
                 // Test to make sure there are no exceptions when there is no path data
                 delete data.path;
                 scope.load();
                 expect(scope.data).toEqual(data);
-                pm.setDefaultFilename("/foo.txt");
-                pm.setDefaultFilename("/bar.md");
             });
             
             it("can notify changes for single preference objects", function () {
@@ -1079,14 +1078,14 @@ define(function (require, exports, module) {
                 }));
                 pm.addScope("session", new PreferencesBase.MemoryStorage());
                 expect(pm.get("spaceUnits")).toBe(2);
-                expect(pm._defaultScopeOrder.scopeOrder).toEqual(["session", "project", "user", "default"]);
+                expect(pm._defaults.scopeOrder).toEqual(["session", "project", "user", "default"]);
                 
                 var eventData = [];
                 pm.on("change", function (e, data) {
                     eventData.push(data);
                 });
                 pm.removeFromScopeOrder("project");
-                expect(pm._defaultScopeOrder.scopeOrder).toEqual(["session", "user", "default"]);
+                expect(pm._defaults.scopeOrder).toEqual(["session", "user", "default"]);
                 expect(eventData).toEqual([{
                     ids: ["spaceUnits"]
                 }]);
@@ -1098,7 +1097,7 @@ define(function (require, exports, module) {
                 
                 eventData = [];
                 pm.addToScopeOrder("project", "user");
-                expect(pm._defaultScopeOrder.scopeOrder).toEqual(["session", "project", "user", "default"]);
+                expect(pm._defaults.scopeOrder).toEqual(["session", "project", "user", "default"]);
                 expect(eventData).toEqual([{
                     ids: ["spaceUnits"]
                 }]);
@@ -1180,14 +1179,14 @@ define(function (require, exports, module) {
                 expect(pm.get("spaceUnits")).toBe(7);
                 expect(Object.keys(session.data)).toEqual([]);
                 
-                pm.setDefaultFilename("/index.html");
+                pm.signalContextChanged({}, {path: "/index.html"});
                 expect(changes).toBe(6);
-                expect(pm.get("spaceUnits")).toBe(2);
-                expect(pm.set("spaceUnits", 10).stored).toBe(true);
+                expect(pm.get("spaceUnits", {path: "/index.html"})).toBe(2);
+                expect(pm.set("spaceUnits", 10, {context: {path: "/index.html"}}).stored).toBe(true);
                 expect(changes).toBe(7);
                 expect(project.data.path["**.html"].spaceUnits).toBe(10);
                 
-                pm.setDefaultFilename("/foo.txt");
+                pm.signalContextChanged({path: "/index.html"}, {path: "/foo.txt"});
                 expect(pm.getPreferenceLocation("spaceUnits")).toEqual({
                     scope: "user"
                 });
@@ -1213,15 +1212,16 @@ define(function (require, exports, module) {
                     scope: "project"
                 });
                 
-                var context = pm.buildContext({
+                expect(pm.getPreferenceLocation("spaceUnits", {
                     path: "/Gruntfile.js"
-                });
-                expect(pm.getPreferenceLocation("spaceUnits", context)).toEqual({
+                })).toEqual({
                     scope: "project",
                     layer: "path",
                     layerID: "**.js"
                 });
-                expect(pm.get("spaceUnits", context)).toBe(13);
+                expect(pm.get("spaceUnits", {
+                    path: "/Gruntfile.js"
+                })).toBe(13);
             });
             
             it("supports removal of scopes", function () {
