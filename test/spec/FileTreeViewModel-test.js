@@ -698,8 +698,8 @@ define(function (require, exports, module) {
 
                 expect(changesFired).toBe(1);
                 expect(vm._treeData).not.toBe(originalTreeData);
-                expect(vm._treeData.getIn(["topdir", "children"]).toJS()).toEqual({});
-                expect(vm._treeData.getIn(["subdir", "children", "anotherdir", "children"]).toJS()).toEqual({});
+                expect(vm._treeData.getIn(["topdir", "children"])).toEqual(null);
+                expect(vm._treeData.getIn(["subdir", "children", "anotherdir", "children"])).toEqual(null);
             });
 
             it("should remove an entry that's been deleted", function () {

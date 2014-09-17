@@ -791,7 +791,14 @@ define(function (require, exports, module) {
         }
 
         if (isFolder) {
-            newObject.children = Immutable.Map();
+            // If we're creating a folder, then we know it's empty.
+            // But if we're not in create mode, (we're adding a folder based on an
+            // FS event), we don't know anything about the new directory's children.
+            if (options.notInCreateMode) {
+                newObject.children = null;
+            } else {
+                newObject.children = Immutable.Map();
+            }
         }
 
         var newFile = Immutable.Map(newObject);
