@@ -656,6 +656,7 @@ define(function (require, exports, module) {
                         promiseValue = value;
                     });
                     expect(vm._treeData.getIn(["afile.js", "rename"])).toBe(true);
+                    expect(vm._treeData.getIn(["afile.js", "context"])).toBe(true);
                     changesFired = 0;
                     model.cancelRename();
                     expect(vm._treeData.getIn(["afile.js", "rename"])).toBeUndefined();
@@ -780,6 +781,7 @@ define(function (require, exports, module) {
                     expect(changesFired).toBeGreaterThan(0);
                     expect(vm._treeData.getIn(["subdir1", "children", "Untitled"])).toBeUndefined();
                     expect(model._selections.rename).toBeUndefined();
+                    expect(vm.selectionViewInfo.get("hasContext")).toBe(false);
                 });
 
                 it("can create files at the root", function () {

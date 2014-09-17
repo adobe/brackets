@@ -436,15 +436,12 @@ define(function (require, exports, module) {
     FileTreeViewModel.prototype.moveMarker = function (markerName, oldPath, newPath) {
         var newTreeData = _moveMarker(this._treeData, markerName, oldPath, newPath);
         
-        if (newTreeData !== this._treeData) {
-            if (markerName === "selected") {
-                this._selectionViewInfo = this._selectionViewInfo.set("hasSelection", !!newPath);
-            }
-            if (markerName === "context") {
-                this._selectionViewInfo = this._selectionViewInfo.set("hasContext", !!newPath);
-            }
-            this._commitTreeData(newTreeData);
+        if (markerName === "selected") {
+            this._selectionViewInfo = this._selectionViewInfo.set("hasSelection", !!newPath);
+        } else if (markerName === "context") {
+            this._selectionViewInfo = this._selectionViewInfo.set("hasContext", !!newPath);
         }
+        this._commitTreeData(newTreeData);
     };
 
     /**

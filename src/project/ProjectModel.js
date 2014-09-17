@@ -1004,6 +1004,7 @@ define(function (require, exports, module) {
         this._viewModel.deleteAtPath(this.makeProjectRelativeIfPossible(renameInfo.path));
         renameInfo.deferred.resolve(RENAME_CANCELLED);
         delete this._selections.rename;
+        this.setContext(null);
     };
 
     /**
