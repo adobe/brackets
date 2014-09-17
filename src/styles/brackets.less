@@ -687,6 +687,11 @@ a, img {
 
 /* Project panel */
 
+#working-set-list-container {
+    background: @bc-sidebar-bg;
+    padding-bottom: 23px;
+}
+
 .working-set-header {
     position: relative;
     height: 19px;
@@ -747,7 +752,6 @@ a, img {
 
 .open-files-container {
     .box-flex(0);
-    background: @bc-sidebar-bg;
     padding: 0px;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
@@ -755,7 +759,6 @@ a, img {
     ul {
         list-style-type: none;
         margin: 0;
-        padding-bottom: 23px;
     }
 
     li {
