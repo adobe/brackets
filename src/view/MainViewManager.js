@@ -994,6 +994,9 @@ define(function (require, exports, module) {
         _cmdSplitHorizontally.setChecked(_orientation === HORIZONTAL);
     }
     
+    /**
+     * Updates the header text for all panes
+     */
     function _updatePaneHeaders() {
         _forEachPaneOrPanes(ALL_PANES, function (pane) {
             pane.updateHeaderText();
