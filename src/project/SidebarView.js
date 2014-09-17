@@ -122,10 +122,30 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Update state of splitview button icon and menu checkmarks
+     * Update state of option elements
      * @private
      */
-    function _updateSplitViewButtonState() {
+    function _updateOptionState() {
+        var fileList,
+            showOptionsIcon = true;
+        if (MainViewManager.getPaneCount() === 1) {
+            fileList = MainViewManager.getWorkingSet(MainViewManager.getActivePaneId());
+            if (!fileList || fileList.length === 0) {
+                showOptionsIcon = false;
+            }
+        }
+        if (showOptionsIcon) {
+            $gearMenu.show();
+        } else {
+            $gearMenu.hide();
+        }
+    }
+    
+    /**
+     * Update state of splitview and option elements
+     * @private
+     */
+    function _updateUIStates() {
         var ypos, spriteIndex,
             layoutScheme = MainViewManager.getLayoutScheme();
 
@@ -137,14 +157,17 @@ define(function (require, exports, module) {
             spriteIndex = 0;
         }
         
-        // Icon
+        // SplitView Icon
         ypos  = SPRITE_BASE - (spriteIndex * SPRITE_OFFSET);
         $splitViewMenu.css("background-position-y", ypos);
 
-        // Menu
+        // SplitView Menu
         _cmdSplitNone.setChecked(spriteIndex === 0);
         _cmdSplitVertical.setChecked(spriteIndex === 1);
         _cmdSplitHorizontal.setChecked(spriteIndex === 2);
+        
+        // Options icon
+        _updateOptionState();
     }
     
     /**
@@ -232,7 +255,11 @@ define(function (require, exports, module) {
         });
         
         $(MainViewManager).on("paneLayoutChange", function () {
-            _updateSplitViewButtonState();
+            _updateUIStates();
+        });
+        
+        $(MainViewManager).on("workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList workingSetUpdate", function () {
+            _updateOptionState();
         });
         
         // create WorkingSetViews for each pane already created
@@ -240,7 +267,7 @@ define(function (require, exports, module) {
             WorkingSetView.createWorkingSetViewForPane($workingSetViewsContainer, paneId);
         });
         
-        _updateSplitViewButtonState();
+        _updateUIStates();
         
         // Tooltips
         $gearMenu.attr("title", Strings.GEAR_MENU_TOOLTIP);
