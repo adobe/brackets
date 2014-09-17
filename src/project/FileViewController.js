@@ -200,6 +200,9 @@ define(function (require, exports, module) {
             // image file, we get a null doc here but we still want to keep _fileSelectionFocus
             // as PROJECT_MANAGER. Regardless of doc is null or not, call _activatePane
             // to trigger documentSelectionFocusChange event.
+            _fileSelectionFocus = WORKING_SET_VIEW;
+            _activatePane(paneId);
+            
             result.resolve(file);
         }).fail(function (err) {
             result.reject(err);

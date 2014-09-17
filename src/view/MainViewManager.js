@@ -994,6 +994,13 @@ define(function (require, exports, module) {
         _cmdSplitHorizontally.setChecked(_orientation === HORIZONTAL);
     }
     
+    function _updatePaneHeaders() {
+        _forEachPaneOrPanes(ALL_PANES, function (pane) {
+            pane.updateHeaderText();
+        });
+        
+    }
+    
     /**
      * Creates a pane for paneId if one doesn't already exist
      * @param {!string} paneId - id of the pane to create
@@ -1015,9 +1022,11 @@ define(function (require, exports, module) {
             });
 
             $(pane).on("viewListChange.mainview", function () {
+                _updatePaneHeaders();
                 $(exports).triggerHandler("workingSetUpdate", [pane.id]);
             });
             $(pane).on("currentViewChange.mainview", function (e, newView, oldView) {
+                _updatePaneHeaders();
                 if (_activePaneId === pane.id) {
                     $(exports).triggerHandler("currentFileChange",
                                               [newView && newView.getFile(),
