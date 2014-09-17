@@ -323,8 +323,6 @@ define(function (require, exports, module) {
                     }
                 };
                 
-                var originalData = _.clone(data, true);
-                
                 var layer = new PreferencesBase.LanguageLayer();
                 
                 expect(layer.set(data, "spaceUnits", 11, {}, "javascript")).toBe(true);
