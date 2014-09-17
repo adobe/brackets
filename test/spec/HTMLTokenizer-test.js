@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, spyOn, xdescribe, jasmine */
+/*global define, describe, it, expect */
 /*unittests: HTML Tokenizer*/
 
 define(function (require, exports, module) {

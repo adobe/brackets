@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, brackets, beforeFirst, afterLast */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -486,8 +486,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var hostEditor = EditorManager.getCurrentFullEditor(),
-                        inlineWidget = hostEditor.getInlineWidgets()[0],
-                        inlinePos = inlineWidget.editor.getCursorPos();
+                        inlineWidget = hostEditor.getInlineWidgets()[0];
 
                     // verify inline widget
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
@@ -672,7 +671,7 @@ define(function (require, exports, module) {
             });
 
             it("should scroll cursor into view and position message popover inside right edge of window", function () {
-                var $popover, scrollPos, editor,
+                var $popover, editor,
                     openFile = "test1.html";
 
                 runs(function () {
@@ -775,8 +774,7 @@ define(function (require, exports, module) {
             it("should save changes in the inline editor", function () {
                 initInlineTest("test1.html", 1);
                 
-                var saved = false,
-                    err = false,
+                var err = false,
                     hostEditor,
                     inlineEditor,
                     newText = "\n/* jasmine was here */",
@@ -919,8 +917,7 @@ define(function (require, exports, module) {
                 
                 it("should close inline editor when file deleted on disk", function () {
                     // Create an expendable CSS file
-                    var fileToWrite,
-                        savedTempCSSFile = false;
+                    var fileToWrite;
 
                     runs(function () {
                         // Important: must create file using test window's FS so that it sees the new file right away
@@ -1401,8 +1398,6 @@ define(function (require, exports, module) {
                 });
             
                 it("should close inline if the contents of the full editor are all deleted", function () {
-                    var newInlineText = "/* jasmine was inline */\n";
-                    
                     // verify inline is open
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
                     

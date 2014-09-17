@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets */
+/*global define, $ */
 
 /**
  * MainViewManager Manages the arrangement of all open panes as well as provides the controller
@@ -83,16 +83,13 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         MainViewFactory     = require("view/MainViewFactory"),
         ViewStateManager    = require("view/ViewStateManager"),
-        Menus               = require("command/Menus"),
         Commands            = require("command/Commands"),
         EditorManager       = require("editor/EditorManager"),
-        FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
         DocumentManager     = require("document/DocumentManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         ProjectManager      = require("project/ProjectManager"),
         WorkspaceManager    = require("view/WorkspaceManager"),
-        InMemoryFile        = require("document/InMemoryFile"),
         AsyncUtils          = require("utils/Async"),
         ViewUtils           = require("utils/ViewUtils"),
         Resizer             = require("utils/Resizer"),
@@ -329,9 +326,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _makePaneMostRecent(paneId) {
-        var index,
-            entry,
-            pane = _getPane(paneId);
+        var pane = _getPane(paneId);
 
         if (pane.getCurrentlyViewedFile()) {
             _makeFileMostRecent(paneId, pane.getCurrentlyViewedFile());
@@ -971,8 +966,7 @@ define(function (require, exports, module) {
      * @return {Pane} - the pane object of the pane 
      */
     function _createPaneIfNecessary(paneId) {
-        var currentPane,
-            pane;
+        var pane;
         
         if (!_panes.hasOwnProperty(paneId)) {
             pane = new Pane(paneId, _$el);
@@ -1053,9 +1047,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _edit(paneId, doc) {
-        var currentPaneId = _getPaneIdForPath(doc.file.fullPath),
-            oldPane = _getPane(ACTIVE_PANE),
-            oldFile = oldPane.getCurrentlyViewedFile();
+        var currentPaneId = _getPaneIdForPath(doc.file.fullPath);
             
         if (currentPaneId) {
             // If the doc is open in another pane
@@ -1089,9 +1081,7 @@ define(function (require, exports, module) {
      *                           rejects with a File error or string
      */
     function _open(paneId, file) {
-        var oldPane = _getPane(ACTIVE_PANE),
-            oldFile = oldPane.getCurrentlyViewedFile(),
-            result = new $.Deferred();
+        var result = new $.Deferred();
         
         if (!file || !_getPane(paneId)) {
             throw new Error("bad argument");
@@ -1110,8 +1100,7 @@ define(function (require, exports, module) {
         }
         
         // See if there is already a view for the file
-        var pane = _getPane(paneId),
-            view = pane.getViewForPath(file.fullPath);
+        var pane = _getPane(paneId);
 
         // See if there is a factory to create a view for this file
         //  we want to do this first because, we don't want our internal 
@@ -1306,9 +1295,6 @@ define(function (require, exports, module) {
     function _loadViewState(e) {
         // file root is appended for each project
         var panes,
-            filesToOpen,
-            viewStates,
-            activeFile,
             promises = [],
             context = { location : { scope: "user",
                                      layer: "project" } },

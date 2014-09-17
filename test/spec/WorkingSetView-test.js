@@ -287,7 +287,6 @@ define(function (require, exports, module) {
 
                     // Now close last opened file to hide the directories again
                     DocumentManager.getCurrentDocument()._markClean(); // so we can close without a save dialog
-                    var didClose = false, gotError = false;
                     waitsForDone(CommandManager.execute(Commands.FILE_CLOSE), "timeout on FILE_CLOSE", 1000);
 
                     // there should be no more directories shown

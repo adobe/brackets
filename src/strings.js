@@ -35,11 +35,13 @@ define(function (require, exports, module) {
     
     var _ = require("thirdparty/lodash");
     
-    var strings         = require("i18n!nls/strings"),
-        urls            = require("i18n!nls/urls"),
-        stringsApp      = require("i18n!nls/strings-app"),
-        Global          = require("utils/Global"),
-        StringUtils     = require("utils/StringUtils");
+    var strings     = require("i18n!nls/strings"),
+        urls        = require("i18n!nls/urls"),
+        stringsApp  = require("i18n!nls/strings-app"),
+        StringUtils = require("utils/StringUtils");
+
+    // make sure the global brackets variable is loaded
+    require("utils/Global");
 
     // Add URLs as additional globals
     var additionalGlobals = $.extend({}, urls),

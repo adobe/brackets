@@ -22,15 +22,12 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, require */
+/*global $, define */
 
 define(function (require, exports, module) {
     "use strict";
 
-    var currentThemes = [];
-
-    var _                  = require("thirdparty/lodash"),
-        CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
+    var CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
         PreferencesManager = require("preferences/PreferencesManager"),
         prefs              = PreferencesManager.getExtensionPrefs("themes");
 
