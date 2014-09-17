@@ -294,7 +294,7 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._checkForDuplicatesInWorkingTree = function () {
         var self = this,
             map = {},
-            fileList = MainViewManager.getWorkingSet(this.paneId);
+            fileList = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
 
         // We need to always clear current directories as files could be removed from working tree.
         this.$openFilesContainer.find("ul > li > a > span.directory").remove();
@@ -328,8 +328,10 @@ define(function (require, exports, module) {
         
         if (paneId === this.paneId) {
             this.$el.addClass("active");
+            this.$openFilesContainer.addClass("active");
         } else {
             this.$el.removeClass("active");
+            this.$openFilesContainer.removeClass("active");
         }
         
         if (!fileList || fileList.length === 0) {
@@ -681,6 +683,8 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._handleFileAdded = function (e, fileAdded, index, paneId) {
         if (paneId === this.paneId) {
             this._rebuildViewList(true);
+        } else {
+            this._checkForDuplicatesInWorkingTree();
         }
     };
 
@@ -694,6 +698,8 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._handleFileListAdded = function (e, files, paneId) {
         if (paneId === this.paneId) {
             this._rebuildViewList(true);
+        } else {
+            this._checkForDuplicatesInWorkingTree();
         }
     };
 
@@ -721,6 +727,8 @@ define(function (require, exports, module) {
             }
             
             this._redraw();
+        } else {
+            this._checkForDuplicatesInWorkingTree();
         }
     };
 
@@ -742,6 +750,8 @@ define(function (require, exports, module) {
             });
 
             this._redraw();
+        } else {
+            this._checkForDuplicatesInWorkingTree();
         }
     };
     
@@ -780,6 +790,8 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._handleWorkingSetUpdate = function (e, paneId) {
         if (this.paneId === paneId) {
             this._rebuildViewList(true);
+        } else {
+            this._checkForDuplicatesInWorkingTree();
         }
     };
     
