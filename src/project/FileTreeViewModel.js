@@ -585,7 +585,7 @@ define(function (require, exports, module) {
 
             // Look at the list of names that we currently have in the treeData that no longer
             // appear in the directory and delete those.
-            var currentEntries = children.keys().toJS(),
+            var currentEntries = children.keySeq().toJS(),
                 deletedEntries = _.difference(currentEntries, keysSeen);
 
             deletedEntries.forEach(function (name) {

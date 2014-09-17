@@ -630,7 +630,7 @@ define(function (require, exports, module) {
         var file = MainViewManager.getCurrentlyViewedFile(this.paneId);
             
         // Iterate through working set list and update the selection on each
-        var items = this.$openFilesContainer.find("ul").children().each(function () {
+        this.$openFilesContainer.find("ul").children().each(function () {
             _updateListItemSelection(this, file);
         });
 
@@ -757,9 +757,6 @@ define(function (require, exports, module) {
      * Initializes the WorkingSetView object
      */
     WorkingSetView.prototype.init = function () {
-        // Init DOM element
-        var self = this;
-        
         this.$openFilesContainer = this.$el.find(".open-files-container");
         this.$workingSetListViewHeader = this.$el.find(".working-set-header");
         

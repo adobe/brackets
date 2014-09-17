@@ -41,7 +41,6 @@ define(function DOMAgent(require, exports, module) {
     var $exports = $(exports);
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent");
     var EditAgent = require("LiveDevelopment/Agents/EditAgent");
     var DOMNode = require("LiveDevelopment/Agents/DOMNode");
     var DOMHelpers = require("LiveDevelopment/Agents/DOMHelpers");
@@ -121,14 +120,6 @@ define(function DOMAgent(require, exports, module) {
             _pendingRequests++;
         }
         Inspector.DOM.requestChildNodes(node.nodeId);
-    }
-
-    /** Resolve a node
-     * @param {DOMNode} node
-     */
-    function resolveNode(node, callback) {
-        console.assert(node.nodeId, "Attempted to resolve node without id");
-        Inspector.DOM.resolveNode(node.nodeId, callback);
     }
 
     /** Eliminate the query string from a URL

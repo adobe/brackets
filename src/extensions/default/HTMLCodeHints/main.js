@@ -294,8 +294,7 @@ define(function (require, exports, module) {
         var pos = editor.getCursorPos(),
             tokenType,
             offset,
-            query,
-            textAfterCursor;
+            query;
         
         this.editor = editor;
         this.tagInfo = HTMLUtils.getTagInfo(editor, pos);
@@ -385,8 +384,7 @@ define(function (require, exports, module) {
             query = {queryStr: null},
             tokenType,
             offset,
-            result = [],
-            textAfterCursor;
+            result = [];
  
         this.tagInfo = HTMLUtils.getTagInfo(this.editor, cursor);
         tokenType = this.tagInfo.position.tokenType;

@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, FileError, window */
+/*global define, $, brackets, window */
 
 /**
  * ProjectManager glues together the project model and file tree view and integrates as needed with other parts
@@ -74,10 +74,8 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async"),
         FileSyncManager     = require("project/FileSyncManager"),
-        EditorManager       = require("editor/EditorManager"),
         ProjectModel        = require("project/ProjectModel"),
         FileTreeView        = require("project/FileTreeView");
-
 
     /**
      * @private

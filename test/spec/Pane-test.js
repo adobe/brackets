@@ -23,13 +23,12 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, expect: false, beforeFirst: false, afterLast: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, jasmine: false, spyOn */
+/*global define, describe, it, expect, beforeEach, afterEach, $, jasmine, spyOn */
 
 define(function (require, exports, module) {
     'use strict';
 
-    var Pane            = require("view/Pane").Pane,
-        SpecRunnerUtils = require("spec/SpecRunnerUtils");
+    var Pane = require("view/Pane").Pane;
 
     describe("Pane", function () {
         var myPane,
@@ -425,7 +424,6 @@ define(function (require, exports, module) {
             });
             it("should maintain order", function () {
                 var i,
-                    previous,
                     views = [],
                     files = [];
                 

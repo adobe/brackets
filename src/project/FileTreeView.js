@@ -441,9 +441,9 @@ define(function (require, exports, module) {
      */
     function _sortDirectoryContents(contents, dirsFirst) {
         if (dirsFirst) {
-            return contents.keys().sort(_buildDirsFirstComparator(contents));
+            return contents.keySeq().sort(_buildDirsFirstComparator(contents));
         } else {
-            return contents.keys().sort(FileUtils.compareFilenames);
+            return contents.keySeq().sort(FileUtils.compareFilenames);
         }
     }
 

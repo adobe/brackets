@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define, $ */
 
 /**
  * Manages the workingSetList sort methods.
@@ -190,7 +190,6 @@ define(function (require, exports, module) {
      * @param {Sort} newSort
      */
     function _setCurrentSort(newSort) {
-        var command;
         if (_currentSort !== newSort) {
             if (_currentSort !== null) {
                 _currentSort.setChecked(false);
