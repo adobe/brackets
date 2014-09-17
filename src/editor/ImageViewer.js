@@ -51,7 +51,8 @@ define(function (require, exports, module) {
      */
     function ImageView(file, $container) {
         this.file = file;
-        this.$el = $(Mustache.render(ImageViewTemplate, {fullPath: file.fullPath}));
+        this.$el = $(Mustache.render(ImageViewTemplate, {fullPath: file.fullPath,
+                                                         now: new Date().valueOf()}));
         
         $container.append(this.$el);
 
@@ -187,7 +188,6 @@ define(function (require, exports, module) {
         
         var x                   = Math.round(e.offsetX * 100 / this._scale),
             y                   = Math.round(e.offsetY * 100 / this._scale),
-            $target             = $(e.target),
             imagePos            = this.$imagePreview.position(),
             left                = e.offsetX + imagePos.left,
             top                 = e.offsetY + imagePos.top,
@@ -394,15 +394,18 @@ define(function (require, exports, module) {
      */
     ImageView.prototype.refresh = function () {
         var noCacheUrl = this.$imagePreview.attr("src"),
-            now = new Date().valueOf();
+            now = new Date().valueOf(),
+            index = noCacheUrl.indexOf("?");
 
-        // Append a #<time-stamp> fragement to the URL 
-        //  to force a reload of the image
-        if (noCacheUrl.indexOf("#") > 0) {
-            noCacheUrl = noCacheUrl.replace(/#\d+/, "#" + now);
-        } else {
-            noCacheUrl = noCacheUrl + "#" + now;
+        // strip the old param off 
+        if (index > 0) {
+            noCacheUrl = noCacheUrl.slice(0, index);
         }
+        
+        // add a new param which will force chrome to 
+        //  re-read the image from disk 
+        noCacheUrl = noCacheUrl + "?ver=" + now;
+        
 
         // Update the DOM node with the src URL 
         this.$imagePreview.attr("src", noCacheUrl);
@@ -420,7 +423,7 @@ define(function (require, exports, module) {
         if (view) {
             pane.showView(view);
         } else {
-            view = new ImageView(file, pane.$el);
+            view = new ImageView(file, pane.$content);
             pane.addView(view, true);
         }
         return new $.Deferred().resolve().promise();

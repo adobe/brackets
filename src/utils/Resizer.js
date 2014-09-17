@@ -102,6 +102,29 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Removes the resizability of an element if it's resizable
+     * @param {DOMNode} element Html element in which to remove sizing 
+     */
+    function removeSizable(element) {
+        var removeSizableFunc = $(element).data("removeSizable");
+        if (removeSizableFunc) {
+            removeSizableFunc.apply(element);
+        }
+    }
+    
+    /**
+     * Updates the sizing div by resyncing to the sizing edge of the element
+     * Call this method after manually changing the size of the element
+     * @param {DOMNode} element Html element whose sizer should be resynchronized
+     */
+    function resyncSizer(element) {
+        var resyncSizerFunc = $(element).data("resyncSizer");
+        if (resyncSizerFunc) {
+            resyncSizerFunc.apply(element);
+        }
+    }
+    
+    /**
      * Returns the visibility state of a resizable element.
      * @param {DOMNode} element Html element to toggle
      * @return {boolean} true if element is visible, false if it is not visible
@@ -144,9 +167,10 @@ define(function (require, exports, module) {
      *                          the resizable element's size (useful for siblings laid out to the right of
      *                          the element). Must lie in element's parent's subtree.
      * @param {?boolean} createdByWorkspaceManager For internal use only
+     * @param {?boolean} usePercentages Maintain the size of the element as a percentage of its parent
+     *                          the default is to maintain the size of the element in pixels
      */
-    function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByWorkspaceManager) {
-        
+    function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByWorkspaceManager, usePercentages) {
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
             $parent             = $element.parent(),
@@ -157,7 +181,40 @@ define(function (require, exports, module) {
             animationRequest    = null,
             directionProperty   = direction === DIRECTION_HORIZONTAL ? "clientX" : "clientY",
             directionIncrement  = (position === POSITION_TOP || position === POSITION_LEFT) ? 1 : -1,
-            elementSizeFunction = direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
+            parentSizeFunction  = direction === DIRECTION_HORIZONTAL ? $parent.innerWidth : $parent.innerHeight,
+            
+            elementSizeFunction = function (newSize) {
+                if (!newSize) {
+                    // calling the function as a getter
+                    if (direction === DIRECTION_HORIZONTAL) {
+                        return this.width();
+                    } else {
+                        return this.height();
+                    }
+                } else if (!usePercentages) {
+                    if (direction === DIRECTION_HORIZONTAL) {
+                        return this.width(newSize);
+                    } else {
+                        return this.height(newSize);
+                    }
+                } else {
+                    // calling the function as a setter
+                    var parentSize = parentSizeFunction.apply($parent),
+                        percentage,
+                        prop;
+
+                    if (direction === DIRECTION_HORIZONTAL) {
+                        prop = "width";
+                    } else {
+                        prop = "height";
+                    }
+                    percentage = newSize / parentSize;
+                    this.css(prop, (percentage * 100) + "%");
+                    
+                    return this; // chainable
+                }
+            },
+            
             resizerCSSPosition  = direction === DIRECTION_HORIZONTAL ? "left" : "top",
             contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
 
@@ -197,11 +254,34 @@ define(function (require, exports, module) {
             }
         }
         
+        // If the resizer is positioned right or bottom of the panel, we need to listen to
+        // reposition it if the element size changes externally
+        function repositionResizer(elementSize) {
+            var resizerPosition = elementSize || 1;
+            if (position === POSITION_RIGHT || position === POSITION_BOTTOM) {
+                $resizer.css(resizerCSSPosition, resizerPosition);
+            }
+        }
+            
+        $element.data("removeSizable", function () {
+            $resizer.off(".resizer");
+            
+            $element.removeData("show");
+            $element.removeData("hide");
+            $element.removeData("resyncSizer");
+            $element.removeData("removeSizable");
+            
+            $resizer.remove();
+        });
+        
+        $element.data("resyncSizer", function () {
+            repositionResizer(elementSizeFunction.apply($element));
+        });
+        
         $element.data("show", function () {
             var elementOffset   = $element.offset(),
                 elementSize     = elementSizeFunction.apply($element) || elementPrefs.size,
-                contentSize     = contentSizeFunction.apply($resizableElement) || elementPrefs.contentSize,
-                resizerSize     = elementSizeFunction.apply($resizer);
+                contentSize     = contentSizeFunction.apply($resizableElement) || elementPrefs.contentSize;
             
             // Resize the element before showing it again. If the panel was collapsed by dragging
             // the resizer, the size of the element should be 0, so we restore size in preferences
@@ -248,16 +328,8 @@ define(function (require, exports, module) {
             PreferencesManager.setViewState(elementID, elementPrefs, null, isResizing);
         });
         
-        // If the resizer is positioned right or bottom of the panel, we need to listen to
-        // reposition it if the element size changes externally
-        function repositionResizer(elementSize) {
-            var resizerPosition = elementSize || 1;
-            if (position === POSITION_RIGHT || position === POSITION_BOTTOM) {
-                $resizer.css(resizerCSSPosition, resizerPosition);
-            }
-        }
-    
-        $resizer.on("mousedown", function (e) {
+
+        $resizer.on("mousedown.resizer", function (e) {
             var $resizeShield   = $("<div class='resizing-container " + direction + "-resizing' />"),
                 startPosition   = e[directionProperty],
                 startSize       = $element.is(":visible") ? elementSizeFunction.apply($element) : 0,
@@ -409,7 +481,7 @@ define(function (require, exports, module) {
             }
         }
     }
-	
+
     // Scan DOM for horz-resizable and vert-resizable classes and make them resizable
     AppInit.htmlReady(function () {
         var minSize = DEFAULT_MIN_SIZE;
@@ -466,6 +538,8 @@ define(function (require, exports, module) {
     PreferencesManager.convertPreferences(module, {"panelState": "user"}, true, _isPanelPreferences);
     
     exports.makeResizable   = makeResizable;
+    exports.removeSizable   = removeSizable;
+    exports.resyncSizer     = resyncSizer;
     exports.toggle          = toggle;
     exports.show            = show;
     exports.hide            = hide;
@@ -476,4 +550,6 @@ define(function (require, exports, module) {
     exports.DIRECTION_HORIZONTAL = DIRECTION_HORIZONTAL;
     exports.POSITION_TOP         = POSITION_TOP;
     exports.POSITION_RIGHT       = POSITION_RIGHT;
+    exports.POSITION_BOTTOM      = POSITION_BOTTOM;
+    exports.POSITION_LEFT        = POSITION_LEFT;
 });

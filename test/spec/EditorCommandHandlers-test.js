@@ -22,19 +22,19 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waits, runs, $, waitsForDone, beforeFirst, afterLast */
+/*global define, describe, it, expect, beforeEach, afterEach, runs, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
     
-    var Editor                = require("editor/Editor").Editor,
-        EditorManager         = require("editor/EditorManager"),
-        EditorCommandHandlers = require("editor/EditorCommandHandlers"),
-        Commands              = require("command/Commands"),
-        CommandManager        = require("command/CommandManager"),
-        LanguageManager       = require("language/LanguageManager"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
-        _                     = require("thirdparty/lodash");
+    var EditorManager   = require("editor/EditorManager"),
+        Commands        = require("command/Commands"),
+        CommandManager  = require("command/CommandManager"),
+        LanguageManager = require("language/LanguageManager"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+        _               = require("thirdparty/lodash");
+
+    require("editor/EditorCommandHandlers");
 
     describe("EditorCommandHandlers", function () {
         
@@ -509,7 +509,7 @@ define(function (require, exports, module) {
                     myEditor.setSelections([{start: {line: 1, ch: 0}, end: {line: 1, ch: 0}},
                                             {start: {line: 3, ch: 0}, end: {line: 3, ch: 6}}]);
                     
-                    var lines = defaultContent.split("\n"), i;
+                    var lines = defaultContent.split("\n");
                     lines[1] = "//    function bar() {";
                     lines[3] = "//        a();";
                     var expectedText = lines.join("\n");

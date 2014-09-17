@@ -22,23 +22,22 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, window, jasmine, spyOn */
+/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
 
-    var Commands              = require("command/Commands"),
-        KeyEvent              = require("utils/KeyEvent"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
-        FileSystem            = require("filesystem/FileSystem"),
-        FileSystemError       = require("filesystem/FileSystemError"),
-        FileUtils             = require("file/FileUtils"),
-        FindUtils             = require("search/FindUtils"),
-        Async                 = require("utils/Async"),
-        LanguageManager       = require("language/LanguageManager"),
-        StringUtils           = require("utils/StringUtils"),
-        Strings               = require("strings"),
-        _                     = require("thirdparty/lodash");
+    var Commands        = require("command/Commands"),
+        KeyEvent        = require("utils/KeyEvent"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+        FileSystemError = require("filesystem/FileSystemError"),
+        FileUtils       = require("file/FileUtils"),
+        FindUtils       = require("search/FindUtils"),
+        Async           = require("utils/Async"),
+        LanguageManager = require("language/LanguageManager"),
+        StringUtils     = require("utils/StringUtils"),
+        Strings         = require("strings"),
+        _               = require("thirdparty/lodash");
 
     var promisify = Async.promisify; // for convenience
 
@@ -907,8 +906,7 @@ define(function (require, exports, module) {
                         waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: fullTestPath("foo.html") }));
                     });
                     runs(function () {
-                        var doc = DocumentManager.getOpenDocumentForPath(fullTestPath("foo.html")),
-                            i;
+                        var doc = DocumentManager.getOpenDocumentForPath(fullTestPath("foo.html"));
                         expect(doc).toBeTruthy();
 
                         // Replace all matches and check that the entire file was removed from the results list.
