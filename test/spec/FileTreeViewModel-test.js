@@ -35,20 +35,7 @@ define(function (require, exports, module) {
             fullPath: "/path/to/project/subdir/",
             name: "subdir",
             isFile: false
-        },
-            contents = [
-                {
-                    fullPath: "/path/to/project/README.md",
-                    name: "README.md",
-                    isFile: true
-                },
-                {
-                    fullPath: "/path/to/project/afile.js",
-                    name: "afile.js",
-                    isFile: true
-                },
-                subdir
-            ];
+        };
 
         describe("_filePathToObjectPath", function () {
             var treeData;
