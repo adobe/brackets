@@ -1507,12 +1507,13 @@ define(function (require, exports, module) {
      */
     AppInit.htmlReady(function () {
         _initialize($("#editor-holder"));
+        // Ingnore workspace manager events until we're initialized
+        $(WorkspaceManager).on("workspaceUpdateLayout", _updateLayout);
     });
     
     // Event handlers
     $(ProjectManager).on("projectOpen",                       _loadViewState);
     $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
-    $(WorkspaceManager).on("workspaceUpdateLayout",           _updateLayout);
     $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
     $(DocumentManager).on("pathDeleted",                      _removeDeletedFileFromMRU);
     
