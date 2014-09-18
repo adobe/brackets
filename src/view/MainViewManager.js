@@ -1011,6 +1011,11 @@ define(function (require, exports, module) {
         var firstPane = _panes[FIRST_PANE];
         Resizer.removeSizable(firstPane.$el);
 
+        if (_orientation) {
+            _$el.removeClass("split-" + _orientation.toLowerCase());
+        }
+        _$el.addClass("split-" + orientation.toLowerCase());
+        
         _orientation = orientation;
         _createPaneIfNecessary(SECOND_PANE);
         _makeFirstPaneResizable();
@@ -1162,6 +1167,7 @@ define(function (require, exports, module) {
                 }
             });
             
+            _$el.removeClass("split-" + _orientation.toLowerCase());
             _orientation = null;
             // this will set the remaining pane to 100%
             _initialLayout();
@@ -1365,6 +1371,7 @@ define(function (require, exports, module) {
                 }
                 
                 if (_orientation) {
+                    _$el.addClass("split-" + _orientation.toLowerCase());
                     $(exports).triggerHandler("paneLayoutChange", _orientation);
                 }
 
