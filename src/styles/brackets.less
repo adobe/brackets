@@ -767,6 +767,14 @@ a, img {
         padding: 0 0 0 8px;
         min-height: 18px;
         vertical-align: baseline;
+        
+        &.selected a {
+            color: @open-working-file-name-highlight;
+        }
+
+        &.selected .extension {
+            color: @open-working-file-ext-highlight;
+        }
     }
 
     a {
@@ -824,18 +832,6 @@ a, img {
 //Initially start with the open files hidden, they will get show as files are added
 .open-files-container {
     display:none;
-}
-
-.open-files-container.active{
-    li {
-        &.selected a {
-            color: @open-working-file-name-highlight;
-        }
-
-        &.selected .extension {
-            color: @open-working-file-ext-highlight;
-        }
-    }
 }
 
 #project-files-container {
