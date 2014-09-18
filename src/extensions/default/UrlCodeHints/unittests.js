@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
             testHtmlPath    = extensionPath + "/testfiles/test.html",
             testCssPath     = extensionPath + "/testfiles/subfolder/test.css",
+            testScssPath    = extensionPath + "/testfiles/subfolder/test.scss",
             testDocument,
             testEditor,
             hintsObj;
@@ -50,7 +51,7 @@ define(function (require, exports, module) {
         // strategically so that they sort the same on all OS's (i.e. folders are listed
         // first, and then files), but this is not true for UrlCodeHints folder.
         var testfilesDirHints       = [ "subfolder/", "test.html"],
-            subfolderDirHints       = [ "chevron.png", "test.css", "test.js"],
+            subfolderDirHints       = [ "chevron.png", "test.css", "test.js", "test.scss"],
             UrlCodeHintsDirHintsMac = [ "../data.json", "../main.js", "../testfiles/", "../unittests.js"],
             UrlCodeHintsDirHints    = [ "../testfiles/", "../data.json", "../main.js", "../unittests.js"];
         
@@ -277,9 +278,26 @@ define(function (require, exports, module) {
                 tearDownTests();
             });
 
-            it("should hint for background-image: url()", function () {
+            it("should hint for background-image: url() in CSS", function () {
                 runs(function () {
                     testEditor.setCursorPos({ line: 3, ch: 26 });
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    verifyUrlHints(hintsObj.hints, subfolderDirHints);
+                });
+
+                runs(function () {
+                    tearDownTests();
+                    setupTests(testScssPath);
+                });
+            });
+
+            it("should hint for background-image: url() in SCSS", function () {
+                runs(function () {
+                    testEditor.setCursorPos({ line: 4, ch: 34 });
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
@@ -471,7 +489,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
-                    expect(hintsObj.hints.length).toBe(3);
+                    expect(hintsObj.hints.length).toBe(subfolderDirHints.length);
 
                     // Complete path is displayed
                     expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
@@ -526,7 +544,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
-                    expect(hintsObj.hints.length).toBe(3);
+                    expect(hintsObj.hints.length).toBe(subfolderDirHints.length);
 
                     // Complete path is displayed
                     expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
@@ -578,7 +596,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
-                    expect(hintsObj.hints.length).toBe(3);
+                    expect(hintsObj.hints.length).toBe(subfolderDirHints.length);
                     
                     // Complete path is displayed
                     expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
@@ -675,7 +693,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
-                    expect(hintsObj.hints.length).toBe(3);
+                    expect(hintsObj.hints.length).toBe(subfolderDirHints.length);
                     
                     // Complete path is displayed
                     expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
