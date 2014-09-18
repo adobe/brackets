@@ -467,7 +467,7 @@ define(function (require, exports, module) {
      * Sets the project root to the given directory, resetting the ProjectModel and file tree in the process.
      *
      * @param {Directory} rootEntry directory object for the project root
-     * @return {jQuery.Promise} resolved when the project is done setting up
+     * @return {$.Promise} resolved when the project is done setting up
      */
     function _setProjectRoot(rootEntry) {
         var d = new $.Deferred();
@@ -846,7 +846,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type {?jQuery.Promise} Resolves when the currently running instance of
+     * @type {?$.Promise} Resolves when the currently running instance of
      *      _refreshFileTreeInternal completes, or null if there is no currently
      *      running instance.
      */
@@ -1204,7 +1204,7 @@ define(function (require, exports, module) {
      * The Promise returned is resolved with an object with a `newPath` property with the renamed path. If the user cancels the operation, the promise is resolved with the value RENAME_CANCELLED.
      *
      * @param {FileSystemEntry} entry file or directory filesystem object to rename
-     * @return {jQuery.Promise} a promise resolved when the rename is done.
+     * @return {$.Promise} a promise resolved when the rename is done.
      */
     function renameItemInline(entry) {
         return actionCreator.startRename(entry);

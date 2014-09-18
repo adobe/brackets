@@ -163,7 +163,7 @@ define(function (require, exports, module) {
      *
      * @param {string} path path to create
      * @param {boolean} isFolder true if the new entry is a folder
-     * @return {jQuery.Promise} resolved when the file or directory has been created.
+     * @return {$.Promise} resolved when the file or directory has been created.
      */
     function doCreate(path, isFolder) {
         var d = new $.Deferred();
@@ -275,7 +275,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type {?jQuery.Promise.<Array<File>>}
+     * @type {?$.Promise.<Array<File>>}
      * 
      * A promise that is resolved with an array of all project files. Used by
      * ProjectManager.getAllFiles().
@@ -375,7 +375,7 @@ define(function (require, exports, module) {
      * starting up. The cache is cleared on every filesystem change event, and
      * also on project load and unload.
      *
-     * @return {jQuery.Promise.<Array.<File>>}
+     * @return {$.Promise.<Array.<File>>}
      */
     ProjectModel.prototype._getAllFilesCache = function _getAllFilesCache() {
         if (!this._allFilesCachePromise) {
@@ -499,7 +499,7 @@ define(function (require, exports, module) {
      * Sets the project root (effectively resetting this ProjectModel).
      *
      * @param {Directory} projectRoot new project root
-     * @return {jQuery.Promise} resolved when the project root has been updated
+     * @return {$.Promise} resolved when the project root has been updated
      */
     ProjectModel.prototype.setProjectRoot = function (projectRoot) {
         this.projectRoot = projectRoot;
@@ -526,7 +526,7 @@ define(function (require, exports, module) {
      * Gets the contents of a directory at the given path.
      *
      * @param {string} path path to retrieve
-     * @return {jQuery.Promise} Resolved with the directory contents.
+     * @return {$.Promise} Resolved with the directory contents.
      */
     ProjectModel.prototype._getDirectoryContents = function (path) {
         var d = new $.Deferred();
@@ -545,7 +545,7 @@ define(function (require, exports, module) {
      *
      * @param {string} path Path to open
      * @param {boolean} open `true` to open the path
-     * @return {jQuery.Promise} resolved when the path has been opened.
+     * @return {$.Promise} resolved when the path has been opened.
      */
     ProjectModel.prototype.setDirectoryOpen = function (path, open) {
         var projectRelative = this.makeProjectRelativeIfPossible(path),
@@ -606,7 +606,7 @@ define(function (require, exports, module) {
      * will be opened and a promise is returned to show when the entire operation is complete.
      *
      * @param {string|File|Directory} path full path to the file or directory
-     * @return {jQuery.Promise} promise resolved when the path is shown
+     * @return {$.Promise} promise resolved when the path is shown
      */
     ProjectModel.prototype.showInTree = function (path) {
         var d = new $.Deferred();
@@ -757,7 +757,7 @@ define(function (require, exports, module) {
      * The Promise returned is resolved with an object with a `newPath` property with the renamed path. If the user cancels the operation, the promise is resolved with the value RENAME_CANCELLED.
      *
      * @param {string=} path optional path to start renaming
-     * @return {jQuery.Promise} resolved when the operation is complete.
+     * @return {$.Promise} resolved when the operation is complete.
      */
     ProjectModel.prototype.startRename = function (path) {
         path = _getPathFromFSObject(path);
@@ -929,7 +929,7 @@ define(function (require, exports, module) {
      * If an error comes up during creation, the ERROR_CREATION event is triggered.
      *
      * @param {string} path full path to file or folder to create
-     * @return {jQuery.Promise} resolved when creation is complete
+     * @return {$.Promise} resolved when creation is complete
      */
     ProjectModel.prototype.createAtPath = function (path) {
         var isFolder  = !_pathIsFile(path),
@@ -957,7 +957,7 @@ define(function (require, exports, module) {
      * @param {string} basedir directory that should contain the new entry
      * @param {string} newName initial name for the new entry (the user can rename it)
      * @param {boolean} isFolder `true` if the entry being created is a folder
-     * @return {jQuery.Promise} resolved when the user is done creating the entry.
+     * @return {$.Promise} resolved when the user is done creating the entry.
      */
     ProjectModel.prototype.startCreating = function (basedir, newName, isFolder) {
         this.performRename();
@@ -1047,7 +1047,7 @@ define(function (require, exports, module) {
     /**
      * Refreshes the contents of the tree.
      *
-     * @return {jQuery.Promise} resolved when the tree has been refreshed
+     * @return {$.Promise} resolved when the tree has been refreshed
      */
     ProjectModel.prototype.refresh = function () {
         var projectRoot = this.projectRoot,
@@ -1125,7 +1125,7 @@ define(function (require, exports, module) {
      * Toggle the open state of subdirectories.
      * @param {!string}  path        parent directory
      * @param {boolean} openOrClose  true to open directory, false to close
-     * @return {jQuery.Promise} promise resolved when the directories are open
+     * @return {$.Promise} promise resolved when the directories are open
      */
     ProjectModel.prototype.toggleSubdirectories = function (path, openOrClose) {
         var self = this,
