@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, brackets, Promise */
+/*global define, $, Promise */
 
 define(function (require, exports, module) {
     "use strict";
@@ -34,30 +34,11 @@ define(function (require, exports, module) {
         Dialogs         = require("widgets/Dialogs"),
         DefaultDialogs  = require("widgets/DefaultDialogs"),
         MainViewManager = require("view/MainViewManager"),
-        MainViewFactory = require("view/MainViewFactory"),
-        LanguageManager = require("language/LanguageManager"),
         FileSystem      = require("filesystem/FileSystem"),
-        EditorManager   = require("editor/EditorManager"),
         FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
         StringUtils     = require("utils/StringUtils");
-    
-    /**
-     * Return an array of files excluding all files without a registered viewer. 
-     *
-     * @param {Array.<string>} paths - filenames to filter before opening.
-     * @return {Array.<string>} paths which can actually be opened (may be empty)
-     */
-    function filterFilesToOpen(paths) {
-        // Filter out file in which we have no registered viewer
-        var filteredFiles = paths.filter(function (fullPath) {
-            return !LanguageManager.getLanguageForPath(fullPath).isBinary() ||
-                MainViewFactory.findSuitableFactoryForPath(fullPath);
-        });
-        
-        return filteredFiles;
-    }
     
     /**
      * Returns true if the drag and drop items contains valid drop objects.
@@ -91,11 +72,11 @@ define(function (require, exports, module) {
      * @return {Promise} Promise that is resolved if all files are opened, or rejected
      *     if there was an error. 
      */
-    function openDroppedFiles(files) {
+    function openDroppedFiles(paths) {
         var errorFiles = [],
-            filteredFiles = filterFilesToOpen(files);
+            ERR_MULTIPLE_ITEMS_WITH_DIR = {};
         
-        return Async.doInParallel(filteredFiles, function (path, idx) {
+        return Async.doInParallel(paths, function (path, idx) {
             
             return new Promise(function (resolve, reject) {
                 // Only open files.
@@ -104,7 +85,7 @@ define(function (require, exports, module) {
                         // If the file is already open, and this isn't the last
                         // file in the list, return. If this *is* the last file,
                         // always open it so it gets selected.
-                        if (idx < filteredFiles.length - 1) {
+                        if (idx < paths.length - 1) {
                             if (MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, path) !== -1) {
                                 resolve();
                                 return;
@@ -115,11 +96,11 @@ define(function (require, exports, module) {
                                                {fullPath: path, silent: true})
                             .then(function () {
                                 resolve();
-                            }).catch(function () {
-                                errorFiles.push(path);
+                            }).catch(function (openErr) {
+                                errorFiles.push({path: path, error: openErr});
                                 reject();
                             });
-                    } else if (!err && item.isDirectory && filteredFiles.length === 1) {
+                    } else if (!err && item.isDirectory && paths.length === 1) {
                         // One folder was dropped, open it.
                         ProjectManager.openProject(path)
                             .then(function () {
@@ -129,21 +110,30 @@ define(function (require, exports, module) {
                                 reject();
                             });
                     } else {
-                        errorFiles.push(path);
+                        errorFiles.push({path: path, error: err || ERR_MULTIPLE_ITEMS_WITH_DIR});
                         reject();
                     }
                 });
             });
         }, false)
             .catch(function () {
+                function errorToString(err) {
+                    if (err === ERR_MULTIPLE_ITEMS_WITH_DIR) {
+                        return Strings.ERROR_MIXED_DRAGDROP;
+                    } else {
+                        return FileUtils.getFileErrorString(err);
+                    }
+                }
+
                 if (errorFiles.length > 0) {
                     var message = Strings.ERROR_OPENING_FILES;
                     
                     message += "<ul class='dialog-list'>";
-                    errorFiles.forEach(function (file) {
+                    errorFiles.forEach(function (info) {
                         message += "<li><span class='dialog-filename'>" +
-                            StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(file)) +
-                            "</span></li>";
+                            StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(info.path)) +
+                            "</span> - " + errorToString(info.error) +
+                            "</li>";
                     });
                     message += "</ul>";
                     
@@ -161,5 +151,4 @@ define(function (require, exports, module) {
     // Export public API
     exports.isValidDrop         = isValidDrop;
     exports.openDroppedFiles    = openDroppedFiles;
-    exports.filterFilesToOpen   = filterFilesToOpen;
 });

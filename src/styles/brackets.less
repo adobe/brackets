@@ -129,7 +129,7 @@ a, img {
     z-index: @z-index-brackets-toolbar;
     
     .dark & {
-        border-bottom: 1px solid @dark-bc-panel-border;
+        border-bottom: 1px solid @dark-bc-shadow;
         box-shadow: 0 1px 3px @dark-bc-shadow-small;
     }
 }
@@ -486,31 +486,31 @@ a, img {
             display: block;
         }
     }
-    .pane-content {
-        border-right: solid @bc-shadow-small 1px;
+    #second-pane {
+        border-left: 1px solid @bc-panel-border;
         .dark & {
-            border-right-color: @dark-bc-highlight;
+            border-left: 1px solid @dark-bc-highlight-hard;
         }
     }
     .pane-header {
         box-sizing: border-box;
-        border-bottom: solid @bc-shadow-small 1px;
+        border-bottom:  1px solid @bc-shadow-small;
         padding: 5px 10px;
-        color: @bc-menu-text;
-        background-color: @bc-menu-bg;
+        color: @bc-text-quiet;
+        background-color: @background;
         
         .dark & {
-            color: @dark-bc-menu-text;
-            background-color: @dark-bc-menu-bg;
+            color: @dark-bc-text-quiet;
+            background-color: #1d1f21; // not using a variable on purpose.
             border-bottom-color: @dark-bc-highlight;
         }
     }
     .active-pane {
         .pane-header {
-            background-color: @bc-bg-highlight;
+            color: @bc-menu-text;
 
             .dark & {
-                background-color: @dark-bc-bg-highlight;
+                color: @dark-bc-menu-text;
             }
         }
     }
@@ -687,6 +687,11 @@ a, img {
 
 /* Project panel */
 
+#working-set-list-container {
+    background: @bc-sidebar-bg;
+    padding-bottom: 23px;
+}
+
 .working-set-header {
     position: relative;
     height: 19px;
@@ -704,12 +709,24 @@ a, img {
 
 .working-set-option-btn {
     position: absolute;
-    right: 4px;
+    right: 30px;
     top: 7px;
     padding: 4px 6px;
     .sprite-icon(0, 0, 13px, 13px, "images/topcoat-settings-13.svg");
-    background-position:center;
+    background-position: center;
     opacity: 0.8;
+    z-index: 1;
+}
+
+.working-set-splitview-btn {
+    position: absolute;
+    right: 4px;
+    top: 7px;
+    padding: 4px 6px;
+    .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons.svg");
+    background-position: center 5px;
+    z-index: 1;
+    -webkit-filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
 }
 
 #sidebar {
@@ -736,7 +753,6 @@ a, img {
 
 .open-files-container {
     .box-flex(0);
-    background: @bc-sidebar-bg;
     padding: 0px;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
@@ -744,7 +760,6 @@ a, img {
     ul {
         list-style-type: none;
         margin: 0;
-        padding-bottom: 23px;
     }
 
     li {
@@ -753,6 +768,14 @@ a, img {
         padding: 0 0 0 8px;
         min-height: 18px;
         vertical-align: baseline;
+        
+        &.selected a {
+            color: @open-working-file-name-highlight;
+        }
+
+        &.selected .extension {
+            color: @open-working-file-ext-highlight;
+        }
     }
 
     a {
@@ -783,18 +806,7 @@ a, img {
     }
 }
 
-.open-files-container.active {
 
-    li {
-        &.selected a {
-            color: @open-working-file-name-highlight;
-        }
-
-        &.selected .extension {
-            color: @open-working-file-ext-highlight;
-        }
-    }
-}
 
 .sidebar-selection {
     background: @bc-sidebar-selection;

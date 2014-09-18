@@ -51,10 +51,8 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         PopUpManager        = require("widgets/PopUpManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
-        DragAndDrop         = require("utils/DragAndDrop"),
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent"),
-        LanguageManager     = require("language/LanguageManager"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         Menus               = require("command/Menus"),
         UrlParams           = require("utils/UrlParams").UrlParams,
@@ -248,31 +246,32 @@ define(function (require, exports, module) {
      * @param {string=} paneId, the id oi the pane in which to open the file. Can be undefined, a valid pane id or ACTIVE_PANE. 
      * @return {Promise} a promise that will either
      * - be resolved with a file for the specified file path or
-     * - be rejected if the file can not be read.
+     * - be rejected with FileSystemError if the file can not be read.
      * If paneId is undefined, the ACTIVE_PANE constant
      */
     function _doOpen(fullPath, silent, paneId) {
         var perfTimerName, result;
         
-        function _cleanup(fullFilePath) {
-            if (fullFilePath) {
-                // For performance, we do lazy checking of file existence, so it may be in workingset
-                MainViewManager._removeView(paneId, FileSystem.getFileForPath(fullFilePath));
-                MainViewManager.focusActivePane();
-            }
-        }
-        
-        function _showErrorAndCleanUp(fileError, fullFilePath) {
-            if (silent) {
-                _cleanup(fullFilePath);
-            } else {
-                FileUtils.showFileOpenError(fileError, fullFilePath).then(function () {
-                    _cleanup(fullFilePath);
-                });
-            }
-        }
-        
         result = new Promise(function (resolve, reject) {
+            function _cleanup(fileError, fullFilePath) {
+                if (fullFilePath) {
+                    // For performance, we do lazy checking of file existence, so it may be in workingset
+                    MainViewManager._removeView(paneId, FileSystem.getFileForPath(fullFilePath));
+                    MainViewManager.focusActivePane();
+                }
+                reject(fileError);
+            }
+        
+            function _showErrorAndCleanUp(fileError, fullFilePath) {
+                if (silent) {
+                    _cleanup(fileError, fullFilePath);
+                } else {
+                    FileUtils.showFileOpenError(fileError, fullFilePath).done(function () {
+                        _cleanup(fileError, fullFilePath);
+                    });
+                }
+            }
+
             if (MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE) === fullPath) {
                 // workaround for https://github.com/adobe/brackets/issues/6001
                 // TODO should be removed once bug is closed.
@@ -281,9 +280,7 @@ define(function (require, exports, module) {
                 resolve(DocumentManager.getCurrentDocument());
                 
             } else if (!fullPath) {
-                console.error("doOpen() called without fullPath");
-                reject();
-                
+                throw new Error("_doOpen() called without fullPath");
             } else {
                 perfTimerName = PerfUtils.markStart("Open File:\t" + fullPath);
                 var file = FileSystem.getFileForPath(fullPath);
@@ -337,22 +334,18 @@ define(function (require, exports, module) {
                 }
                 // Prompt the user with a dialog
                 FileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null, function (err, paths) {
-                    if (err) {
-                        // Reject if the user canceled the dialog
-                        reject(err);
-                    } else {
+                    if (!err) {
                         if (paths.length > 0) {
                             // Add all files to the working set without verifying that
                             // they still exist on disk (for faster opening)
-                            var filesToOpen = [],
-                                filteredPaths = DragAndDrop.filterFilesToOpen(paths);
+                            var filesToOpen = [];
 
-                            filteredPaths.forEach(function (file) {
-                                filesToOpen.push(FileSystem.getFileForPath(file));
+                            paths.forEach(function (path) {
+                                filesToOpen.push(FileSystem.getFileForPath(path));
                             });
                             MainViewManager.addListToWorkingSet(paneId, filesToOpen);
 
-                            _doOpen(filteredPaths[filteredPaths.length - 1], silent)
+                            _doOpen(paths[paths.length - 1], silent)
                                 .then(function (file) {
                                     _defaultOpenDialogFullPath =
                                         FileUtils.getDirectoryPath(
@@ -365,6 +358,9 @@ define(function (require, exports, module) {
                         } else {
                             reject();
                         }
+                    } else {
+                        // Reject if the user canceled the dialog
+                        reject(err);
                     }
                 });
             });
@@ -749,8 +745,6 @@ define(function (require, exports, module) {
             }
 
             if (docToSave.isDirty) {
-                var writeError = false;
-
                 if (docToSave.keepChangesTime) {
                     // The user has decided to keep conflicting changes in the editor. Check to make sure
                     // the file hasn't changed since they last decided to do that.
@@ -1690,12 +1684,12 @@ define(function (require, exports, module) {
     }
 
     // Deprecated commands
-    CommandManager.register(Strings.CMD_ADD_TO_WORKINGSET_AND_OPEN,  Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);
+    CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);
     CommandManager.register(Strings.CMD_FILE_OPEN,                   Commands.FILE_OPEN,                      handleDocumentOpen);
     
     // New commands
+    CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, handleFileAddToWorkingSetAndOpen);
     CommandManager.register(Strings.CMD_FILE_OPEN,                   Commands.CMD_OPEN,                       handleFileOpen);
-    CommandManager.register(Strings.CMD_ADD_TO_WORKINGSET_AND_OPEN,  Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, handleFileAddToWorkingSetAndOpen);
     
     // File Commands
     CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,           Commands.FILE_NEW_UNTITLED,              handleFileNew);

@@ -278,8 +278,7 @@ define(function (require, exports, module) {
      *      Or null if the query is invalid
      */
     function extractCursorPos(query) {
-        var regInfo = query.match(CURSOR_POS_EXP),
-            result;
+        var regInfo = query.match(CURSOR_POS_EXP);
         
         if (query.length <= 1 || !regInfo ||
                 (regInfo[1] && isNaN(regInfo[1])) ||

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
@@ -38,7 +38,6 @@ define(function (require, exports, module) {
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
     var testPath = SpecRunnerUtils.getTestPath("/spec/JSUtils-test-files"),
-        testWindow,
         doneLoading = false;
 
     // Verifies whether one of the results returned by JSUtils.findAllMatchingFunctionsInText()

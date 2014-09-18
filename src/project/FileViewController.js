@@ -52,7 +52,6 @@ define(function (require, exports, module) {
     var DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
         CommandManager      = require("command/CommandManager"),
-        EditorManager       = require("editor/EditorManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands"),
         DeprecationWarning  = require("utils/DeprecationWarning");
@@ -105,11 +104,7 @@ define(function (require, exports, module) {
     
     /** 
      * @private
-<<<<<<< HEAD
-     * @return {Promise}
-=======
      * @param {string=} paneId - the Pane to activate
->>>>>>> origin/master
      */
     function _activatePane(paneId) {
         if (paneId) {
@@ -141,23 +136,18 @@ define(function (require, exports, module) {
     /** 
      * Opens a document if it's not open and selects the file in the UI corresponding to
      * fileSelectionFocus
-<<<<<<< HEAD
-     * @param {!fullPath}
-     * @param {string} - must be either WORKING_SET_VIEW or PROJECT_MANAGER
-     * @return {Promise}
-=======
      * @param {!fullPath} fullPath - full path of the document to open
      * @param {string} fileSelectionFocus - (WORKING_SET_VIEW || PROJECT_MANAGER)
      * @param {string} paneId - pane in which to open the document
-     * @return {$.Promise}
->>>>>>> origin/master
+     * @return {Promise}
      */
     function openAndSelectDocument(fullPath, fileSelectionFocus, paneId) {
-        var result;
+        var result,
+            curDocChangedDueToMe = _curDocChangedDueToMe;
 
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
             console.error("Bad parameter passed to FileViewController.openAndSelectDocument");
-            return;
+            return Promise.reject();
         }
 
         // Opening files are asynchronous and we want to know when this function caused a file
@@ -183,7 +173,7 @@ define(function (require, exports, module) {
         
         // clear after notification is done
         var fnAlways = function () {
-            _curDocChangedDueToMe = false;
+            _curDocChangedDueToMe = curDocChangedDueToMe;
         };
         result.then(fnAlways, fnAlways);
         
@@ -211,6 +201,9 @@ define(function (require, exports, module) {
                 // image file, we get a null doc here but we still want to keep _fileSelectionFocus
                 // as PROJECT_MANAGER. Regardless of doc is null or not, call _activatePane
                 // to trigger documentSelectionFocusChange event.
+                _fileSelectionFocus = WORKING_SET_VIEW;
+                _activatePane(paneId);
+            
                 resolve(file);
             }).catch(function (err) {
                 reject(err);

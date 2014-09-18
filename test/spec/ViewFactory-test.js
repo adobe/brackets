@@ -23,13 +23,12 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, expect: false, beforeFirst: false, afterLast: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, jasmine: false, spyOn */
+/*global define, describe, it, expect, runs, spyOn */
 
 define(function (require, exports, module) {
     'use strict';
 
-    var MainViewFactory          = require("view/MainViewFactory"),
-        SpecRunnerUtils          = require("spec/SpecRunnerUtils");
+    var MainViewFactory = require("view/MainViewFactory");
 
     describe("ViewFactory", function () {
         function createMockFactory() {

@@ -32,12 +32,12 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Global              = require("utils/Global"),
-        FileSystem          = require("filesystem/FileSystem"),
-        FileUtils           = require("file/FileUtils");
-            
-    var _bracketsSHA;
+    var FileSystem  = require("filesystem/FileSystem"),
+        FileUtils   = require("file/FileUtils");
     
+    // make sure the global brackets variable is loaded
+    require("utils/Global");
+
     /**
      * Loads a SHA from Git metadata file. If the file contains a symbolic ref name, follows the ref
      * and loads the SHA from that file in turn.

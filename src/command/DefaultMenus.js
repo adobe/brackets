@@ -33,7 +33,6 @@ define(function (require, exports, module) {
     
     var AppInit         = require("utils/AppInit"),
         Commands        = require("command/Commands"),
-        ContextMenu     = require("command/Menus"),
         EditorManager   = require("editor/EditorManager"),
         Menus           = require("command/Menus"),
         Strings         = require("strings");
@@ -234,6 +233,10 @@ define(function (require, exports, module) {
         workingset_configuration_menu.addMenuDivider();
         workingset_configuration_menu.addMenuItem(Commands.CMD_WORKING_SORT_TOGGLE_AUTO);
         
+        var splitview_menu = Menus.registerContextMenu(Menus.ContextMenuIds.SPLITVIEW_MENU);
+        splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_NONE);
+        splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_VERTICAL);
+        splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_HORIZONTAL);
         
         /*
          * Context Menus
@@ -310,6 +313,11 @@ define(function (require, exports, module) {
             project_cmenu.open(e);
         });
 
+        // Dropdown menu for workspace sorting
+        Menus.ContextMenu.assignContextMenuToSelector(".working-set-option-btn", workingset_configuration_menu);
+
+        // Dropdown menu for view splitting
+        Menus.ContextMenu.assignContextMenuToSelector(".working-set-splitview-btn", splitview_menu);
 
         // Prevent the browser context menu since Brackets creates a custom context menu
         $(window).contextmenu(function (e) {

@@ -35,7 +35,6 @@ define(function (require, exports, module) {
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
         StringUtils     = require("utils/StringUtils"),
-        CodeMirror      = require("thirdparty/CodeMirror2/lib/codemirror"),
         _               = require("thirdparty/lodash");
     
     /**

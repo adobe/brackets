@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $ */
+/*global define, $ */
 
 /**
  * The ViewCommandHandlers object dispatches the following event(s):
@@ -36,16 +36,15 @@ define(function (require, exports, module) {
 
     var Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
-        KeyBindingManager   = require("command/KeyBindingManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
-        ProjectManager      = require("project/ProjectManager"),
         EditorManager       = require("editor/EditorManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
         ThemeSettings       = require("view/ThemeSettings"),
         MainViewManager     = require("view/MainViewManager"),
-        AppInit             = require("utils/AppInit");
+        AppInit             = require("utils/AppInit"),
+        _                   = require("thirdparty/lodash");
 
     var prefs = PreferencesManager.getExtensionPrefs("fonts");
 
@@ -158,11 +157,11 @@ define(function (require, exports, module) {
     /**
      * @private
      * Sets the font size and restores the scroll position as best as possible.
+     * @param {!Editor} editor  Editor to update.
      * @param {string=} fontSize  A string with the font size and the size unit
      */
-    function _updateScroll(fontSize) {
-        var editor      = EditorManager.getCurrentFullEditor(),
-            oldWidth    = editor._codeMirror.defaultCharWidth(),
+    function _updateScroll(editor, fontSize) {
+        var oldWidth    = editor._codeMirror.defaultCharWidth(),
             oldFontSize = prefs.get("fontSize"),
             newFontSize = fontSize,
             delta       = 0,
@@ -205,9 +204,14 @@ define(function (require, exports, module) {
             _addDynamicFontSize(fontSize);
         }
 
-        if (EditorManager.getCurrentFullEditor()) {
-            _updateScroll(fontSize);
-        }
+        // Update scroll metrics in viewed editors
+        _.forEach(MainViewManager.getPaneIdList(), function (paneId) {
+            var currentPath = MainViewManager.getCurrentlyViewedPath(paneId),
+                doc = currentPath && DocumentManager.getOpenDocumentForPath(currentPath);
+            if (doc && doc._masterEditor) {
+                _updateScroll(doc._masterEditor, fontSize);
+            }
+        });
 
         $(exports).triggerHandler("fontSizeChange", [fontSize, oldValue]);
         prefs.set("fontSize", fontSize);

@@ -32,8 +32,6 @@ define(function (require, exports, module) {
     "use strict";
     
     var _                  = require("thirdparty/lodash"),
-        ProjectManager     = require("project/ProjectManager"),
-        DefaultDialogs     = require("widgets/DefaultDialogs"),
         Dialogs            = require("widgets/Dialogs"),
         DropdownButton     = require("widgets/DropdownButton").DropdownButton,
         StringUtils        = require("utils/StringUtils"),
@@ -110,8 +108,7 @@ define(function (require, exports, module) {
      * @return {{name: string, patterns: Array.<string>}} filter
      */
     function _getFilterIndex(filterSets, filter) {
-        var index = -1,
-            found = false;
+        var index = -1;
         
         if (!filter || !filterSets.length) {
             return index;

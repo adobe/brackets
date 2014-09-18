@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global brackets, define, $, Mustache, window, Promise */
+/*global brackets, define, $, Mustache, Promise */
 
 define(function (require, exports, module) {
     "use strict";

@@ -32,8 +32,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager    = require("editor/EditorManager"),
-        MainViewManager  = require("view/MainViewManager"),
+    var MainViewManager  = require("view/MainViewManager"),
         KeyEvent         = require("utils/KeyEvent"),
         AnimationUtils   = require("utils/AnimationUtils"),
         WorkspaceManager = require("view/WorkspaceManager");

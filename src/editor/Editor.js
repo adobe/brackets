@@ -73,7 +73,6 @@ define(function (require, exports, module) {
         PerfUtils          = require("utils/PerfUtils"),
         PopUpManager       = require("widgets/PopUpManager"),
         PreferencesManager = require("preferences/PreferencesManager"),
-        Strings            = require("strings"),
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
         ValidationUtils    = require("utils/ValidationUtils"),
@@ -81,18 +80,19 @@ define(function (require, exports, module) {
         _                  = require("thirdparty/lodash");
     
     /** Editor preferences */
-    var CLOSE_BRACKETS    = "closeBrackets",
-        CLOSE_TAGS        = "closeTags",
-        HIGHLIGHT_MATCHES = "highlightMatches",
-        SCROLL_PAST_END   = "scrollPastEnd",
-        SHOW_LINE_NUMBERS = "showLineNumbers",
-        SMART_INDENT      = "smartIndent",
-        SOFT_TABS         = "softTabs",
-        SPACE_UNITS       = "spaceUnits",
-        STYLE_ACTIVE_LINE = "styleActiveLine",
-        TAB_SIZE          = "tabSize",
-        WORD_WRAP         = "wordWrap",
-        USE_TAB_CHAR      = "useTabChar";
+    var CLOSE_BRACKETS      = "closeBrackets",
+        CLOSE_TAGS          = "closeTags",
+        HIGHLIGHT_MATCHES   = "highlightMatches",
+        SCROLL_PAST_END     = "scrollPastEnd",
+        SHOW_CURSOR_SELECT  = "showCursorWhenSelecting",
+        SHOW_LINE_NUMBERS   = "showLineNumbers",
+        SMART_INDENT        = "smartIndent",
+        SOFT_TABS           = "softTabs",
+        SPACE_UNITS         = "spaceUnits",
+        STYLE_ACTIVE_LINE   = "styleActiveLine",
+        TAB_SIZE            = "tabSize",
+        WORD_WRAP           = "wordWrap",
+        USE_TAB_CHAR        = "useTabChar";
     
     var cmOptions         = {};
     
@@ -112,6 +112,7 @@ define(function (require, exports, module) {
     cmOptions[CLOSE_TAGS]         = "autoCloseTags";
     cmOptions[HIGHLIGHT_MATCHES]  = "highlightSelectionMatches";
     cmOptions[SCROLL_PAST_END]    = "scrollPastEnd";
+    cmOptions[SHOW_CURSOR_SELECT] = "showCursorWhenSelecting";
     cmOptions[SHOW_LINE_NUMBERS]  = "lineNumbers";
     cmOptions[SMART_INDENT]       = "smartIndent";
     cmOptions[SPACE_UNITS]        = "indentUnit";
@@ -120,22 +121,23 @@ define(function (require, exports, module) {
     cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
     cmOptions[WORD_WRAP]          = "lineWrapping";
     
-    PreferencesManager.definePreference(CLOSE_BRACKETS,    "boolean", false);
-    PreferencesManager.definePreference(CLOSE_TAGS,        "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
-    PreferencesManager.definePreference(HIGHLIGHT_MATCHES, "boolean", false);
-    PreferencesManager.definePreference(SCROLL_PAST_END,   "boolean", false);
-    PreferencesManager.definePreference(SHOW_LINE_NUMBERS, "boolean", true);
-    PreferencesManager.definePreference(SMART_INDENT,      "boolean", true);
-    PreferencesManager.definePreference(SOFT_TABS,         "boolean", true);
-    PreferencesManager.definePreference(SPACE_UNITS,       "number", DEFAULT_SPACE_UNITS, {
+    PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", false);
+    PreferencesManager.definePreference(CLOSE_TAGS,         "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
+    PreferencesManager.definePreference(HIGHLIGHT_MATCHES,  "boolean", false);
+    PreferencesManager.definePreference(SCROLL_PAST_END,    "boolean", false);
+    PreferencesManager.definePreference(SHOW_CURSOR_SELECT, "boolean", false);
+    PreferencesManager.definePreference(SHOW_LINE_NUMBERS,  "boolean", true);
+    PreferencesManager.definePreference(SMART_INDENT,       "boolean", true);
+    PreferencesManager.definePreference(SOFT_TABS,          "boolean", true);
+    PreferencesManager.definePreference(SPACE_UNITS,        "number", DEFAULT_SPACE_UNITS, {
         validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_SPACE_UNITS, MAX_SPACE_UNITS)
     });
-    PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false);
-    PreferencesManager.definePreference(TAB_SIZE,          "number", DEFAULT_TAB_SIZE, {
+    PreferencesManager.definePreference(STYLE_ACTIVE_LINE,  "boolean", false);
+    PreferencesManager.definePreference(TAB_SIZE,           "number", DEFAULT_TAB_SIZE, {
         validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_TAB_SIZE, MAX_TAB_SIZE)
     });
-    PreferencesManager.definePreference(USE_TAB_CHAR,      "boolean", false);
-    PreferencesManager.definePreference(WORD_WRAP,         "boolean", true);
+    PreferencesManager.definePreference(USE_TAB_CHAR,       "boolean", false);
+    PreferencesManager.definePreference(WORD_WRAP,          "boolean", true);
     
     var editorOptions = Object.keys(cmOptions);
 
@@ -263,7 +265,10 @@ define(function (require, exports, module) {
                     self.removeAllInlineWidgets();
                 }
             },
-            "Cmd-Left": "goLineStartSmart"
+            "Home":      "goLineLeftSmart",
+            "Cmd-Left":  "goLineLeftSmart",
+            "End":       "goLineRight",
+            "Cmd-Right": "goLineRight"
         };
         
         var currentOptions = this._currentOptions = _.zipObject(
@@ -297,6 +302,7 @@ define(function (require, exports, module) {
             lineWrapping                : currentOptions[WORD_WRAP],
             matchBrackets               : { maxScanLineLength: 50000, maxScanLines: 1000 },
             matchTags                   : { bothTags: true },
+            showCursorWhenSelecting     : currentOptions[SHOW_CURSOR_SELECT],
             scrollPastEnd               : !range && currentOptions[SCROLL_PAST_END],
             smartIndent                 : currentOptions[SMART_INDENT],
             styleActiveLine             : currentOptions[STYLE_ACTIVE_LINE],
@@ -787,8 +793,6 @@ define(function (require, exports, module) {
      *    the document an editor change that originated with us
      */
     Editor.prototype._handleDocumentChange = function (event, doc, changeList) {
-        var change;
-        
         // we're currently syncing to the Document, so don't echo back FROM the Document
         if (this._duringSync) {
             return;

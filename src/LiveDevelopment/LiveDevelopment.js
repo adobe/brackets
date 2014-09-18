@@ -289,6 +289,16 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * @private
+     * Make a message to direct users to the troubleshooting page
+     * @param {string} msg Original message
+     * @return {string} Original message plus link to troubleshooting page.
+     */
+    function _makeTroubleshootingMessage(msg) {
+        return msg + " " + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
+    }
+
+    /**
+     * @private
      * Close a live document
      */
     function _closeDocument(liveDocument) {
@@ -347,7 +357,6 @@ define(function LiveDevelopment(require, exports, module) {
     function _handleLiveDocumentStatusChanged(liveDocument) {
         var startLine,
             endLine,
-            lineInfo,
             i,
             lineHandle,
             status = (liveDocument.errors.length) ? STATUS_SYNC_ERROR : STATUS_ACTIVE;
@@ -459,8 +468,7 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {Document} doc
      */
     function _docIsOutOfSync(doc) {
-        var docClass    = _classForDocument(doc),
-            liveDoc     = _server && _server.get(doc.file.fullPath),
+        var liveDoc = _server && _server.get(doc.file.fullPath),
             isLiveEditingEnabled = liveDoc && liveDoc.isLiveEditingEnabled();
 
         return doc.isDirty && !isLiveEditingEnabled;
@@ -596,9 +604,7 @@ define(function LiveDevelopment(require, exports, module) {
             return _loadAgentsPromise;
         }
         
-        var promises = [],
-            enableAgentsPromise,
-            allAgentsPromise;
+        var allAgentsPromise;
         
         _setStatus(STATUS_LOADING_AGENTS);
 
@@ -645,7 +651,7 @@ define(function LiveDevelopment(require, exports, module) {
                 Dialogs.showModalDialog(
                     Dialogs.DIALOG_ID_ERROR,
                     Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
+                    _makeTroubleshootingMessage(Strings.LIVE_DEV_LOADING_ERROR_MESSAGE)
                 );
                 _loadAgentsPromise = null;
             })
@@ -1126,7 +1132,7 @@ define(function LiveDevelopment(require, exports, module) {
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_ERROR,
                     Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
+                    _makeTroubleshootingMessage(Strings.LIVE_DEV_LOADING_ERROR_MESSAGE)
                 );
             })
             .then(_onInterstitialPageLoad);
@@ -1136,7 +1142,7 @@ define(function LiveDevelopment(require, exports, module) {
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,
             Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-            Strings.LIVE_DEV_NEED_HTML_MESSAGE
+            _makeTroubleshootingMessage(Strings.LIVE_DEV_NEED_HTML_MESSAGE)
         );
         _reject(_openCallbacks);
     }
@@ -1145,7 +1151,7 @@ define(function LiveDevelopment(require, exports, module) {
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,
             Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-            Strings.LIVE_DEV_SERVER_NOT_READY_MESSAGE
+            _makeTroubleshootingMessage(Strings.LIVE_DEV_SERVER_NOT_READY_MESSAGE)
         );
         _reject(_openCallbacks);
     }
@@ -1167,7 +1173,7 @@ define(function LiveDevelopment(require, exports, module) {
                 var dialogPromise = Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_LIVE_DEVELOPMENT,
                     Strings.LIVE_DEVELOPMENT_RELAUNCH_TITLE,
-                    Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE,
+                    _makeTroubleshootingMessage(Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE),
                     [
                         {
                             className: Dialogs.DIALOG_BTN_CLASS_LEFT,
@@ -1239,11 +1245,11 @@ define(function LiveDevelopment(require, exports, module) {
                         if (message) {
                             message += " " + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
                         }
-
+                        
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
                             Strings.ERROR_LAUNCHING_BROWSER_TITLE,
-                            message
+                            _makeTroubleshootingMessage(message)
                         );
 
                         _reject(_openCallbacks, "OPEN_LIVE_BROWSER");

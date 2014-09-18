@@ -22,13 +22,12 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine */
+/*global define, describe, beforeEach, afterEach, it, runs, expect, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
     
-    var MainViewFactory          = require("view/MainViewFactory"),
-        SpecRunnerUtils          = require("spec/SpecRunnerUtils");
+    var SpecRunnerUtils = require("spec/SpecRunnerUtils");
 
     describe("MainViewFactory", function () {
         this.category = "mainview";
@@ -43,7 +42,6 @@ define(function (require, exports, module) {
             Dialogs;                 // loaded from brackets.test
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/MainViewFactory-test-files"),
-            testFile = testPath + "/test.js",
             testWindow,
             _$,
             promise;
@@ -60,14 +58,14 @@ define(function (require, exports, module) {
                     _$ = testWindow.$;
 
                     // Load module instances from brackets.test
-                    CommandManager          = testWindow.brackets.test.CommandManager;
-                    Commands                = testWindow.brackets.test.Commands;
-                    DocumentManager         = testWindow.brackets.test.DocumentManager;
-                    EditorManager           = testWindow.brackets.test.EditorManager;
-                    MainViewManager         = testWindow.brackets.test.MainViewManager;
-                    ProjectManager          = testWindow.brackets.test.ProjectManager;
-                    FileSystem              = testWindow.brackets.test.FileSystem;
-                    Dialogs                 = testWindow.brackets.test.Dialogs;
+                    CommandManager  = testWindow.brackets.test.CommandManager;
+                    Commands        = testWindow.brackets.test.Commands;
+                    DocumentManager = testWindow.brackets.test.DocumentManager;
+                    EditorManager   = testWindow.brackets.test.EditorManager;
+                    MainViewManager = testWindow.brackets.test.MainViewManager;
+                    ProjectManager  = testWindow.brackets.test.ProjectManager;
+                    FileSystem      = testWindow.brackets.test.FileSystem;
+                    Dialogs         = testWindow.brackets.test.Dialogs;
                 });
             });
             runs(function () {
@@ -77,13 +75,13 @@ define(function (require, exports, module) {
         
         afterEach(function () {
             MainViewManager._closeAll(MainViewManager.ALL_PANES);
-            testWindow              = null;
-            CommandManager          = null;
-            Commands                = null;
-            DocumentManager         = null;
-            EditorManager           = null;
-            ProjectManager          = null;
-            FileSystem              = null;
+            testWindow      = null;
+            CommandManager  = null;
+            Commands        = null;
+            DocumentManager = null;
+            EditorManager   = null;
+            ProjectManager  = null;
+            FileSystem      = null;
             SpecRunnerUtils.closeTestWindow();
         });
         

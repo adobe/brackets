@@ -57,8 +57,7 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var _                   = require("thirdparty/lodash"),
-        Commands            = require("command/Commands"),
+    var Commands            = require("command/Commands"),
         WorkspaceManager    = require("view/WorkspaceManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         CommandManager      = require("command/CommandManager"),

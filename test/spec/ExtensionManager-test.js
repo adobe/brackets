@@ -24,8 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
 indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, xit, expect, beforeEach, afterEach,
-waitsFor, runs, $, brackets, waitsForDone, spyOn, jasmine */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone, spyOn, jasmine */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -757,8 +756,7 @@ define(function (require, exports, module) {
             });
 
             it("should set flag to keep local files for new installs", function () {
-                var id = "mock-extension",
-                    filename = "/path/to/downloaded/file.zip",
+                var filename = "/path/to/downloaded/file.zip",
                     file = FileSystem.getFileForPath(filename),
                     result;
 
@@ -791,7 +789,6 @@ define(function (require, exports, module) {
                     file = FileSystem.getFileForPath(filename),
                     result,
                     dialogDeferred = new $.Deferred(),
-                    updatePromise,
                     $mockDlg,
                     didClose;
 

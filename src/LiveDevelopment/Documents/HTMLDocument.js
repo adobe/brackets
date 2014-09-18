@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, brackets */
+/*global define, $ */
 
 /**
  * HTMLDocument manages a single HTML source document
@@ -44,16 +44,13 @@
 define(function HTMLDocumentModule(require, exports, module) {
     "use strict";
 
-    var DocumentManager     = require("document/DocumentManager"),
-        DOMAgent            = require("LiveDevelopment/Agents/DOMAgent"),
-        EditorManager       = require("editor/EditorManager"),
+    var EditorManager       = require("editor/EditorManager"),
         HighlightAgent      = require("LiveDevelopment/Agents/HighlightAgent"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
         PerfUtils           = require("utils/PerfUtils"),
         RemoteAgent         = require("LiveDevelopment/Agents/RemoteAgent"),
-        StringUtils         = require("utils/StringUtils"),
         _                   = require("thirdparty/lodash");
 
     /**
@@ -62,8 +59,6 @@ define(function HTMLDocumentModule(require, exports, module) {
      * @param {!Editor} editor The editor for this document
      */
     var HTMLDocument = function HTMLDocument(doc, editor) {
-        var self = this;
-
         this.doc = doc;
         if (this.doc) {
             this.doc.addRef();
@@ -190,7 +185,6 @@ define(function HTMLDocumentModule(require, exports, module) {
      */
     HTMLDocument.prototype.updateHighlight = function () {
         var editor = this.editor,
-            codeMirror = editor._codeMirror,
             ids = [];
         if (Inspector.config.highlight) {
             _.each(this.editor.getSelections(), function (sel) {
