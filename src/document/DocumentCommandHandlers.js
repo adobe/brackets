@@ -51,7 +51,6 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         PopUpManager        = require("widgets/PopUpManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
-        DragAndDrop         = require("utils/DragAndDrop"),
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
