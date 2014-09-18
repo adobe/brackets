@@ -34,8 +34,7 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var AppInit               = require("utils/AppInit"),
-        DocumentManager       = require("document/DocumentManager"),
+    var DocumentManager       = require("document/DocumentManager"),
         MainViewManager       = require("view/MainViewManager"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
@@ -54,13 +53,6 @@ define(function (require, exports, module) {
      * 
      */
     var _views = [];
-    
-    /**
-     * Context Menu
-     * @private
-     * @type {Menu}
-     */
-    var _workingset_cmenu;
     
     /**
      * Constants for event.which values
@@ -784,7 +776,7 @@ define(function (require, exports, module) {
         this.$openFilesContainer.css("overflow-x", "hidden");
         
         this.$openFilesContainer.on("contextmenu.workingSetView", function (e) {
-            _workingset_cmenu.open(e);
+            Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).open(e);
         });
 
         this._redraw();
@@ -852,9 +844,6 @@ define(function (require, exports, module) {
         });
     }
     
-    AppInit.appReady(function () {
-        _workingset_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
-    });
     
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
