@@ -769,11 +769,12 @@ a, img {
         min-height: 18px;
         vertical-align: baseline;
         
-        &.selected {
-            a,
-            .extension {
-                color: #99dbff;
-            }
+        &.selected a {
+            color: @open-working-file-name-highlight;
+        }
+
+        &.selected .extension {
+            color: @open-working-file-ext-highlight;
         }
     }
 
@@ -805,18 +806,7 @@ a, img {
     }
 }
 
-.open-files-container.active {
 
-    li {
-        &.selected a {
-            color: @open-working-file-name-highlight;
-        }
-
-        &.selected .extension {
-            color: @open-working-file-ext-highlight;
-        }
-    }
-}
 
 .sidebar-selection {
     background: @bc-sidebar-selection;
