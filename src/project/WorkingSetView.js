@@ -272,7 +272,7 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._checkForDuplicatesInWorkingTree = function () {
         var self = this,
             map = {},
-            fileList = MainViewManager.getWorkingSet(this.paneId);
+            fileList = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
 
         // We need to always clear current directories as files could be removed from working tree.
         this.$openFilesContainer.find("ul > li > a > span.directory").remove();
@@ -301,14 +301,7 @@ define(function (require, exports, module) {
      * @private
      */
     WorkingSetView.prototype._redraw = function () {
-        var paneId = MainViewManager.getActivePaneId();
-        
-        if (paneId === this.paneId) {
-            this.$el.addClass("active");
-        } else {
-            this.$el.removeClass("active");
-        }
-
+        this._updateViewState();
         this._updateVisibility();
         this._adjustForScrollbars();
         this._fireSelectionChanged();
@@ -623,12 +616,31 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Updates the pane view's selection state 
+     * @private
+     */
+    WorkingSetView.prototype._updateViewState = function () {
+        var paneId = MainViewManager.getActivePaneId();
+        if ((FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW) &&
+                (paneId === this.paneId)) {
+            this.$el.addClass("active");
+            this.$openFilesContainer.addClass("active");
+        } else {
+            this.$el.removeClass("active");
+            this.$openFilesContainer.removeClass("active");
+        }
+    };
+    
+    /**
      * Updates the pane view's selection marker and scrolls the item into view
      * @private
      */
     WorkingSetView.prototype._updateListSelection = function () {
         var file = MainViewManager.getCurrentlyViewedFile(this.paneId);
-            
+        
+        this._updateViewState();
+        
+        
         // Iterate through working set list and update the selection on each
         this.$openFilesContainer.find("ul").children().each(function () {
             _updateListItemSelection(this, file);
@@ -650,6 +662,8 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._handleFileAdded = function (e, fileAdded, index, paneId) {
         if (paneId === this.paneId) {
             this._rebuildViewList(true);
+        } else {
+            this._checkForDuplicatesInWorkingTree();
         }
     };
 
@@ -663,6 +677,8 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._handleFileListAdded = function (e, files, paneId) {
         if (paneId === this.paneId) {
             this._rebuildViewList(true);
+        } else {
+            this._checkForDuplicatesInWorkingTree();
         }
     };
 
@@ -675,21 +691,38 @@ define(function (require, exports, module) {
      * @param {!string} paneId - the id of the pane the item that was to
      */
     WorkingSetView.prototype._handleFileRemoved = function (e, file, suppressRedraw, paneId) {
-        if (paneId === this.paneId && !suppressRedraw) {
-            var $listItem = this._findListItemFromFile(file);
-            if ($listItem) {
-                // Make the next file in the list show the close icon, 
-                // without having to move the mouse, if there is a next file.
-                var $nextListItem = $listItem.next();
-                if ($nextListItem && $nextListItem.length > 0) {
-                    var canClose = ($listItem.find(".can-close").length === 1);
-                    var isDirty = _isOpenAndDirty($nextListItem.data(_FILE_KEY));
-                    this._updateFileStatusIcon($nextListItem, isDirty, canClose);
+        /* 
+         * The suppressRedraw flag is used in cases when we are replacing the working
+         * set entry with another one. There are only 2 use cases for this:
+         *
+         *      1) When an untitled document is being saved.
+         *      2) When a file is saved with a new name.
+         */
+        if (paneId === this.paneId) {
+            if (!suppressRedraw) {
+                var $listItem = this._findListItemFromFile(file);
+                if ($listItem) {
+                    // Make the next file in the list show the close icon, 
+                    // without having to move the mouse, if there is a next file.
+                    var $nextListItem = $listItem.next();
+                    if ($nextListItem && $nextListItem.length > 0) {
+                        var canClose = ($listItem.find(".can-close").length === 1);
+                        var isDirty = _isOpenAndDirty($nextListItem.data(_FILE_KEY));
+                        this._updateFileStatusIcon($nextListItem, isDirty, canClose);
+                    }
+                    $listItem.remove();
                 }
-                $listItem.remove();
+
+                this._redraw();
             }
-            
-            this._redraw();
+        } else {
+            /*
+             * When this event is handled by a pane that is not being updated then 
+             * the suppressRedraw flag does not need to be respected.  
+             * _checkForDuplicatesInWorkingTree() does not remove any entries so it's
+             * safe to call at any time.
+             */
+            this._checkForDuplicatesInWorkingTree();
         }
     };
 
@@ -711,6 +744,8 @@ define(function (require, exports, module) {
             });
 
             this._redraw();
+        } else {
+            this._checkForDuplicatesInWorkingTree();
         }
     };
     
@@ -749,6 +784,8 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._handleWorkingSetUpdate = function (e, paneId) {
         if (this.paneId === paneId) {
             this._rebuildViewList(true);
+        } else {
+            this._checkForDuplicatesInWorkingTree();
         }
     };
     
