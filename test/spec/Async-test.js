@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, Promise, describe, beforeEach, afterEach, it, xit, runs, waits, waitsFor, waitsForFulfillment, waitsForRejection, expect, $, jasmine  */
+/*global define, describe, beforeEach, it, runs, waitsFor, waitsForDone, waitsForFail, expect, $  */
 
 define(function (require, exports, module) {
     "use strict";
@@ -34,170 +34,146 @@ define(function (require, exports, module) {
         
         describe("Chain", function () {
 
-            function noArgThatSucceeds() {
-                var d = new Promise(function (resolve, reject) {
-                    setTimeout(function () {
-                        resolve();
-                    }, 1);
-                });
-                return d;
+            function zeroArgThatSucceeds() {
+                var d = new $.Deferred();
+                setTimeout(function () {
+                    d.resolve();
+                }, 1);
+                return d.promise();
             }
             
-            function noArgThatFails() {
-                var d = new Promise(function (resolve, reject) {
-                    setTimeout(function () {
-                        reject();
-                    }, 1);
-                });
-                return d;
+            function zeroArgThatFails() {
+                var d = new $.Deferred();
+                setTimeout(function () {
+                    d.reject();
+                }, 1);
+                return d.promise();
             }
 
-            function withArgThatSucceeds(arg) {
-                var d = new Promise(function (resolve, reject) {
-                    setTimeout(function () {
-                        resolve(arg);
-                    }, 1);
-                });
-                return d;
+            function oneArgThatSucceeds(x) {
+                var d = new $.Deferred();
+                setTimeout(function () {
+                    d.resolveWith(null, [x]);
+                }, 1);
+                return d.promise();
+            }
+
+            function twoArgThatSucceeds(x, y) {
+                var d = new $.Deferred();
+                setTimeout(function () {
+                    d.resolveWith(null, [x, y]);
+                }, 1);
+                return d.promise();
             }
             
-            function withArgThatFails(arg) {
-                var d = new Promise(function (resolve, reject) {
-                    setTimeout(function () {
-                        reject(arg);
-                    }, 1);
-                });
-                return d;
+            function twoArgThatFails(x, y) {
+                var d = new $.Deferred();
+                setTimeout(function () {
+                    d.rejectWith(null, [x, y]);
+                }, 1);
+                return d.promise();
             }
             
-            function syncAddArrayElements(arg) {
-                var sum = 0;
-                arg.forEach(function (element) {
-                    sum += element;
-                });
-                return sum;
+            function syncAddTwoArg(x, y) {
+                return x + y;
             }
             
             function syncException() {
-                var d = new Promise(function (resolve, reject) {
-                    throw new Error("sync error");
-                });
-                return d;
+                throw new Error("sync error");
             }
             
             function createArrayComparator(arrayOne) {
                 return function (arrayTwo) {
                     var i, l;
-                    expect(!arrayOne).toBe(!arrayTwo);
-                    if (arrayOne && arrayTwo) {
-                        expect(arrayOne.length).toBe(arrayTwo.length);
-                        l = Math.min(arrayOne.length, arrayTwo.length);
-                        for (i = 0; i < l; i++) {
-                            expect(arrayOne[i]).toBe(arrayTwo[i]);
-                        }
+                    expect(arrayOne.length).toBe(arrayTwo.length);
+                    l = Math.min(arrayOne.length, arrayTwo.length);
+                    for (i = 0; i < l; i++) {
+                        expect(arrayOne[i]).toBe(arrayTwo[i]);
                     }
                 };
             }
             
             function expectChainHelper(functions, args, shouldSucceed, responseComparator) {
-                var done      = false,
-                    success   = false,
-                    response  = null,
-                    responses = null;
-                
+                var done = false;
+                var success = false;
+                var response = null;
                 runs(function () {
-                    var result,
-                        promises = [];
-                    
-                    functions.forEach(function (fn) {
-                        promises.push(fn(args));
-                    });
-                    result = Promise.all(promises);
-                    
-                    result.then(function () {
+                    var result = Async.chain(
+                        functions,
+                        args
+                    );
+                    result.done(function () {
                         done = true;
                         success = true;
-                        // on success, an array of args from all promises is returned
-                        responses = arguments["0"];
-                    }, function () {
+                        response = arguments;
+                    });
+                    result.fail(function () {
                         done = true;
                         success = false;
-                        // on fail, only args from first failing promise is returned
-                        response = arguments["0"];
+                        response = arguments;
                     });
                 });
-                
                 waitsFor(function () {
                     return done;
                 }, "The chain should complete", 100);
-                
                 runs(function () {
                     expect(success).toBe(shouldSucceed);
-
-                    if (response) {
-                        // should be single comparator for single response
-                        responseComparator(response);
-                    } else if (responses) {
-                        // should be array of comparators for array of responses
-                        responses.forEach(function (response, index) {
-                            (responseComparator[index])(response);
-                        });
-                    }
+                    responseComparator(response);
                 });
             }
             
             describe("Zero-argument deferreds", function () {
-                it("[no-arg] work with a null argument array", function () {
+                it("[zero-arg] work with a null argument array", function () {
                     expectChainHelper(
-                        [noArgThatSucceeds, noArgThatSucceeds, noArgThatSucceeds],
+                        [zeroArgThatSucceeds, zeroArgThatSucceeds, zeroArgThatSucceeds],
                         null,
                         true,
-                        [createArrayComparator(null), createArrayComparator(null), createArrayComparator(null)]
+                        createArrayComparator([])
                     );
                 });
                 
-                it("[no-arg] call error callback when first deferred fails", function () {
+                it("[zero-arg] call error callback when first deferred fails", function () {
                     expectChainHelper(
-                        [noArgThatFails, noArgThatSucceeds, noArgThatSucceeds],
-                        null,
+                        [zeroArgThatFails, zeroArgThatSucceeds, zeroArgThatSucceeds],
+                        [],
                         false,
-                        createArrayComparator(null)
+                        createArrayComparator([])
                     );
                 });
                 
-                it("[no-arg] call error callback when middle deferred fails", function () {
+                it("[zero-arg] call error callback when middle deferred fails", function () {
                     expectChainHelper(
-                        [noArgThatSucceeds, noArgThatFails, noArgThatSucceeds],
-                        null,
+                        [zeroArgThatSucceeds, zeroArgThatFails, zeroArgThatSucceeds],
+                        [],
                         false,
-                        createArrayComparator(null)
+                        createArrayComparator([])
                     );
                 });
                 
-                it("[no-arg] call error callback when last deferred fails", function () {
+                it("[zero-arg] call error callback when last deferred fails", function () {
                     expectChainHelper(
-                        [noArgThatSucceeds, noArgThatSucceeds, noArgThatFails],
-                        null,
+                        [zeroArgThatSucceeds, zeroArgThatSucceeds, zeroArgThatFails],
+                        [],
                         false,
-                        createArrayComparator(null)
+                        createArrayComparator([])
                     );
                 });
                 
-                it("[no-arg] call success callback when all deferreds succeed", function () {
+                it("[zero-arg] call success callback when all deferreds succeed", function () {
                     expectChainHelper(
-                        [noArgThatSucceeds, noArgThatSucceeds, noArgThatSucceeds],
-                        null,
+                        [zeroArgThatSucceeds, zeroArgThatSucceeds, zeroArgThatSucceeds],
+                        [],
                         true,
-                        [createArrayComparator(null), createArrayComparator(null), createArrayComparator(null)]
+                        createArrayComparator([])
                     );
                 });
                 
-                it("[no-arg] call success callback immediately if there are no deferreds", function () {
+                it("[zero-arg] call success callback immediately if there are no deferreds", function () {
                     expectChainHelper(
                         [],
-                        null,
+                        [],
                         true,
-                        [createArrayComparator(null), createArrayComparator(null), createArrayComparator(null)]
+                        createArrayComparator([])
                     );
                 });
             });
@@ -205,7 +181,7 @@ define(function (require, exports, module) {
             describe("Nonzero-argument deferreds", function () {
                 it("[nonzero-arg] call error callback when first deferred fails", function () {
                     expectChainHelper(
-                        [withArgThatFails, withArgThatSucceeds, withArgThatSucceeds],
+                        [twoArgThatFails, twoArgThatSucceeds, twoArgThatSucceeds],
                         [1, 2],
                         false,
                         createArrayComparator([1, 2])
@@ -214,7 +190,7 @@ define(function (require, exports, module) {
                 
                 it("[nonzero-arg] call error callback when middle deferred fails", function () {
                     expectChainHelper(
-                        [withArgThatSucceeds, withArgThatFails, withArgThatSucceeds],
+                        [twoArgThatSucceeds, twoArgThatFails, twoArgThatSucceeds],
                         [1, 2],
                         false,
                         createArrayComparator([1, 2])
@@ -223,7 +199,7 @@ define(function (require, exports, module) {
                 
                 it("[nonzero-arg] call error callback when last deferred fails", function () {
                     expectChainHelper(
-                        [withArgThatSucceeds, withArgThatSucceeds, withArgThatFails],
+                        [twoArgThatSucceeds, twoArgThatSucceeds, twoArgThatFails],
                         [1, 2],
                         false,
                         createArrayComparator([1, 2])
@@ -232,10 +208,10 @@ define(function (require, exports, module) {
                 
                 it("[nonzero-arg] call success callback when all deferreds succeed", function () {
                     expectChainHelper(
-                        [withArgThatSucceeds, withArgThatSucceeds, withArgThatSucceeds],
+                        [twoArgThatSucceeds, twoArgThatSucceeds, twoArgThatSucceeds],
                         [1, 2],
                         true,
-                        [createArrayComparator([1, 2]), createArrayComparator([1, 2]), createArrayComparator([1, 2])]
+                        createArrayComparator([1, 2])
                     );
                 });
                 
@@ -244,7 +220,7 @@ define(function (require, exports, module) {
                         [],
                         [1, 2],
                         true,
-                        [createArrayComparator([1, 2]), createArrayComparator([1, 2]), createArrayComparator([1, 2])]
+                        createArrayComparator([1, 2])
                     );
                 });
             });
@@ -252,212 +228,139 @@ define(function (require, exports, module) {
             
             describe("With Timeout", function () {
                 function promiseThatSucceeds(duration) {
-                    var d = new Promise(function (resolve, reject) {
-                        setTimeout(function () {
-                            resolve();
-                        }, duration);
-                    });
-                    return d;
+                    var d = new $.Deferred();
+                    setTimeout(function () {
+                        d.resolve();
+                    }, duration);
+                    return d.promise();
                 }
                 
                 function promiseThatFails(duration) {
-                    var d = new Promise(function (resolve, reject) {
-                        setTimeout(function () {
-                            reject();
-                        }, duration);
-                    });
-                    return d;
+                    var d = new $.Deferred();
+                    setTimeout(function () {
+                        d.reject();
+                    }, duration);
+                    return d.promise();
                 }
                 
                 it("should resolve promise before rejected with timeout", function () {
-                    var promiseBase, promiseWrapper,
-                        baseSuccess = false,
-                        baseFail    = false,
-                        wrapSuccess = false,
-                        wrapFail    = false;
+                    var promiseBase, promiseWrapper;
                     
                     runs(function () {
-                        promiseBase = promiseThatSucceeds(5);
-                        promiseBase.then(function () {
-                            baseSuccess = true;
-                        }, function () {
-                            baseFail = true;
-                        });
-                        
+                        promiseBase    = promiseThatSucceeds(5);
                         promiseWrapper = Async.withTimeout(promiseBase, 10);
-                        promiseWrapper.then(function () {
-                            wrapSuccess = true;
-                        }, function () {
-                            wrapFail = true;
-                        });
-                        
-                        waitsForFulfillment(promiseWrapper, "promise resolves before timeout", 100);
+                        waitsForDone(promiseWrapper, "promise resolves before timeout");
                     });
                     
                     runs(function () {
-                        // base promise resolves wrapper promise timesout
-                        expect(baseSuccess).toBe(true);
-                        expect(baseFail).toBe(false);
-                        expect(wrapSuccess).toBe(true);
-                        expect(wrapFail).toBe(false);
+                        // base promise resolves wrapper promise
+                        expect(promiseBase.state()).toBe("resolved");
+                        expect(promiseWrapper.state()).toBe("resolved");
                     });
                 });
                 
                 it("should reject promise before resolved with timeout", function () {
-                    var promiseBase, promiseWrapper,
-                        baseSuccess = false,
-                        baseFail    = false,
-                        wrapSuccess = false,
-                        wrapFail    = false;
+                    var promiseBase, promiseWrapper;
                     
                     runs(function () {
-                        promiseBase = promiseThatFails(5);
-                        promiseBase.then(function () {
-                            baseSuccess = true;
-                        }, function () {
-                            baseFail = true;
-                        });
-                        
+                        promiseBase    = promiseThatFails(5);
                         promiseWrapper = Async.withTimeout(promiseBase, 10, true);
-                        promiseWrapper.then(function () {
-                            wrapSuccess = true;
-                        }, function () {
-                            wrapFail = true;
-                        });
-                        
-                        waitsForRejection(promiseWrapper, "promise rejected before timeout");
+                        waitsForFail(promiseWrapper, "promise rejected before timeout");
                     });
                     
                     runs(function () {
                         // base promise rejects wrapper promise
-                        expect(baseSuccess).toBe(false);
-                        expect(baseFail).toBe(true);
-                        expect(wrapSuccess).toBe(false);
-                        expect(wrapFail).toBe(true);
+                        expect(promiseBase.state()).toBe("rejected");
+                        expect(promiseWrapper.state()).toBe("rejected");
                     });
                 });
                 
                 it("should timeout with reject before promise resolves", function () {
-                    var promiseBase, promiseWrapper,
-                        baseSuccess = false,
-                        baseFail    = false,
-                        wrapSuccess = false,
-                        wrapFail    = false;
+                    var promiseBase, promiseWrapper;
                     
                     runs(function () {
-                        promiseBase = promiseThatSucceeds(10);
-                        promiseBase.then(function () {
-                            baseSuccess = true;
-                        }, function () {
-                            baseFail = true;
-                        });
-                        
+                        promiseBase    = promiseThatSucceeds(10);
                         promiseWrapper = Async.withTimeout(promiseBase, 5);
-                        promiseWrapper.then(function () {
-                            wrapSuccess = true;
-                        }, function () {
-                            wrapFail = true;
-                        });
-                        
-                        waitsForRejection(promiseWrapper, "times out before promise resolves");
+                        waitsForFail(promiseWrapper, "times out before promise resolves");
                     });
                     
                     runs(function () {
-                        expect(wrapSuccess).toBe(false);
-                        expect(wrapFail).toBe(true);
-                        waitsForFulfillment(promiseBase, "promise resolves after timeout", 100);
+                        expect(promiseWrapper.state()).toBe("rejected");
+                        waitsForDone(promiseBase, "promise resolves after timeout");
                     });
                     
                     runs(function () {
-                        expect(baseSuccess).toBe(true);
-                        expect(baseFail).toBe(false);
+                        expect(promiseBase.state()).toBe("resolved");
                     });
                 });
                 
                 it("should timeout with resolve before promise rejected", function () {
-                    var promiseBase, promiseWrapper,
-                        baseSuccess = false,
-                        baseFail    = false,
-                        wrapSuccess = false,
-                        wrapFail    = false;
+                    var promiseBase, promiseWrapper;
                     
                     runs(function () {
-                        promiseBase = promiseThatFails(10);
-                        promiseBase.then(function () {
-                            baseSuccess = true;
-                        }, function () {
-                            baseFail = true;
-                        });
-                        
+                        promiseBase    = promiseThatFails(10);
                         promiseWrapper = Async.withTimeout(promiseBase, 5, true);
-                        promiseWrapper.then(function () {
-                            wrapSuccess = true;
-                        }, function () {
-                            wrapFail = true;
-                        });
-                        
-                        waitsForFulfillment(promiseWrapper, "times out before promise is rejected", 100);
+                        waitsForDone(promiseWrapper, "times out before promise is rejected");
                     });
                     
                     runs(function () {
-                        expect(wrapSuccess).toBe(true);
-                        expect(wrapFail).toBe(false);
-                        waitsForRejection(promiseBase, "promise is rejected after timeout");
+                        expect(promiseWrapper.state()).toBe("resolved");
+                        waitsForFail(promiseBase, "promise is rejected after timeout");
                     });
                     
                     runs(function () {
-                        expect(baseSuccess).toBe(false);
-                        expect(baseFail).toBe(true);
+                        expect(promiseBase.state()).toBe("rejected");
                     });
                 });
             });
             
+            
             describe("Async/sync mix", function () {
                 it("[async/sync] succeed with sync command at beginning", function () {
                     expectChainHelper(
-                        [syncAddArrayElements, withArgThatSucceeds, withArgThatSucceeds],
+                        [syncAddTwoArg, oneArgThatSucceeds, oneArgThatSucceeds],
                         [1, 2],
                         true,
-                        [createArrayComparator(3), createArrayComparator([1, 2]), createArrayComparator([1, 2])]
+                        createArrayComparator([3])
                     );
                 });
                 
                 it("[async/sync] succeed with sync command at middle", function () {
                     expectChainHelper(
-                        [withArgThatSucceeds, syncAddArrayElements, withArgThatSucceeds],
+                        [twoArgThatSucceeds, syncAddTwoArg, oneArgThatSucceeds],
                         [1, 2],
                         true,
-                        [createArrayComparator([1, 2]), createArrayComparator(3), createArrayComparator([1, 2])]
+                        createArrayComparator([3])
                     );
                 });
-                
+
                 it("[async/sync] succeed with sync command at end", function () {
                     expectChainHelper(
-                        [withArgThatSucceeds, withArgThatSucceeds, syncAddArrayElements],
+                        [twoArgThatSucceeds, twoArgThatSucceeds, syncAddTwoArg],
                         [1, 2],
                         true,
-                        [createArrayComparator([1, 2]), createArrayComparator([1, 2]), createArrayComparator(3)]
+                        createArrayComparator([3])
                     );
                 });
                 
                 it("[async/sync] call error callback if sync command fails", function () {
                     expectChainHelper(
-                        [withArgThatSucceeds, syncException, withArgThatSucceeds],
+                        [twoArgThatSucceeds, syncException, twoArgThatSucceeds],
                         [1, 2],
                         false,
                         function (response) {
-                            expect(response instanceof Error).toBe(true);
+                            expect(response.length).toBe(1);
+                            expect(response[0] instanceof Error).toBe(true);
                         }
                     );
                 });
                 
-                // ES6 Promise shim does not execute callbacks synchronously when promise resolved or rejected synchronously
-                xit("[async/sync] two sync commands in order are executed completely synchronously", function () {
-                    var result = null,
+                it("[async/sync] two sync commands in order are executed completely synchronously", function () {
+                    var promise = null,
                         flag = true;
-                    
+
                     runs(function () {
-                        
+                    
                         function negate(b) {
                             return !b;
                         }
@@ -465,18 +368,12 @@ define(function (require, exports, module) {
                             flag = b;
                             return flag;
                         }
-                        
-                        var functions = [negate, setFlag],
-                            promises  = [];
-
-                        functions.forEach(function (fn) {
-                            promises.push(fn(flag));
-                        });
-                        result = Promise.all(promises);
-                        result.then(function (b) {
+                    
+                        promise = Async.chain([negate, setFlag], [flag]);
+                        promise.done(function (b) {
                             expect(b).toBe(flag);
-                        }, null);
-
+                        });
+                        
                         // note, we WANT to test this synchronously. This is not a bug
                         // in the unit test. A series of synchronous functions should
                         // execute synchronously.
@@ -489,17 +386,19 @@ define(function (require, exports, module) {
                         // move to a different promise implementation (e.g. Q) then resolution
                         // handlers will get called asynchronously. So, we check completion
                         // of the promise on a separate pass.
-                        waitsForFulfillment(result, "The chain to complete", 100);
+                        waitsForDone(promise, "The chain to complete");
                     });
                 });
+                
             });
+                        
         });
         
         describe("promisify", function () {
             var testObj = {
                 someVal: 5,
                 succeeder: function (input, cb) {
-                    cb(null, { input: input, someVal: this.someVal });
+                    cb(null, input, this.someVal);
                 },
                 failer: function (input, cb) {
                     cb("this is an error");
@@ -508,9 +407,9 @@ define(function (require, exports, module) {
             
             it("should resolve its returned promise when the errback is called with null err", function () {
                 Async.promisify(testObj, "succeeder", "myInput")
-                    .then(function (result) {
-                        expect(result.input).toBe("myInput");
-                        expect(result.someVal).toBe(testObj.someVal);
+                    .then(function (input, someVal) {
+                        expect(input).toBe("myInput");
+                        expect(someVal).toBe(testObj.someVal);
                     }, function (err) {
                         expect("should not have called fail callback").toBe(false);
                     });
@@ -518,7 +417,7 @@ define(function (require, exports, module) {
             
             it("should reject its returned promise when the errback is called with an err", function () {
                 Async.promisify(testObj, "failer", "myInput")
-                    .then(function (result) {
+                    .then(function (input, someVal) {
                         expect("should not have called success callback").toBe(false);
                     }, function (err) {
                         expect(err).toBe("this is an error");
@@ -533,347 +432,234 @@ define(function (require, exports, module) {
                 queue = new PromiseQueue();
                 calledFns = {};
             });
-
-            function makeFn(id, resolveTimeout, rejectTimeout) {
-                var func;
-                var result = new Promise(function (resolve, reject) {
-                    func = function () {
-                        calledFns[id] = true;
-                        if (rejectTimeout !== null) {
-                            if (rejectTimeout === 0) {
-                                reject();
-                            } else {
-                                setTimeout(function () {
-                                    reject();
-                                }, rejectTimeout);
-                            }
-                        } else if (resolveTimeout !== null) {
-                            if (resolveTimeout === 0) {
-                                resolve();
-                            } else {
-                                setTimeout(function () {
-                                    resolve();
-                                }, resolveTimeout);
-                            }
-                        }
-                        return result;
-                    };
-                });
+            
+            function makeFn(id, resolveNow, rejectNow) {
+                var result = new $.Deferred();
                 return {
-                    fn: func,
-                    promise: result
+                    fn: function () {
+                        calledFns[id] = true;
+                        if (rejectNow) {
+                            result.reject();
+                        } else if (resolveNow) {
+                            result.resolve();
+                        }
+                        return result.promise();
+                    },
+                    deferred: result
                 };
             }
             
             it("should immediately execute a function when the queue is empty", function () {
-                var fnInfo;
+                var fnInfo = makeFn("one");
                 
-                runs(function () {
-                    fnInfo = makeFn("one", 5, null);
-                    queue.add(fnInfo.fn);
-                    expect(calledFns.one).toBe(true);
-                    waitsForFulfillment(fnInfo.promise, "promise one", 100);
-                });
+                queue.add(fnInfo.fn);
+                expect(calledFns.one).toBe(true);
                 
-                runs(function () {
-                    expect(queue._queue.length).toBe(0);
-                    expect(queue._curPromise).toBe(null);
-                });
+                fnInfo.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
             });
             
             it("should wait to execute the second added function", function () {
-                var fnInfo1, fnInfo2;
+                var fnInfo1 = makeFn("one"),
+                    fnInfo2 = makeFn("two");
                 
-                runs(function () {
-                    fnInfo1 = makeFn("one",  5, null);
-                    fnInfo2 = makeFn("two", 10, null);
-                    
-                    queue.add(fnInfo1.fn);
-                    expect(calledFns.one).toBe(true);
-                    queue.add(fnInfo2.fn);
-                    expect(calledFns.two).toBeUndefined();
-
-                    waitsForFulfillment(fnInfo1.promise, "promise one", 100);
-                });
+                queue.add(fnInfo1.fn);
+                expect(calledFns.one).toBe(true);
                 
-                runs(function () {
-                    expect(calledFns.two).toBe(true);
-                    waitsForFulfillment(fnInfo2.promise, "promise two", 100);
-                });
+                queue.add(fnInfo2.fn);
+                expect(calledFns.two).toBeUndefined();
                 
-                runs(function () {
-                    expect(queue._queue.length).toBe(0);
-                    expect(queue._curPromise).toBe(null);
-                });
+                fnInfo1.deferred.resolve();
+                expect(calledFns.two).toBe(true);
+                
+                fnInfo2.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
             });
             
-            // ES6 Promise shim does not execute callbacks synchronously when promise resolved or rejected synchronously
-            xit("should properly handle the case where the first function completes synchronously", function () {
-                var fnInfo1, fnInfo2;
+            it("should properly handle the case where the first function completes synchronously", function () {
+                var fnInfo1 = makeFn("one", true),
+                    fnInfo2 = makeFn("two");
                 
-                runs(function () {
-                    fnInfo1 = makeFn("one", 0, null);
-                    fnInfo2 = makeFn("two", 5, null);
-
-                    queue.add(fnInfo1.fn);
-                    expect(calledFns.one).toBe(true);
-
-                    queue.add(fnInfo2.fn);
-                    expect(calledFns.two).toBe(true);
-
-                    waitsForFulfillment(fnInfo2.promise, "promise two", 100);
-                });
+                queue.add(fnInfo1.fn);
+                expect(calledFns.one).toBe(true);
                 
-                runs(function () {
-                    expect(queue._queue.length).toBe(0);
-                    expect(queue._curPromise).toBe(null);
-                });
+                queue.add(fnInfo2.fn);
+                expect(calledFns.two).toBe(true);
+                
+                fnInfo2.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
             });
             
-            // ES6 Promise shim does not execute callbacks synchronously when promise resolved or rejected synchronously
-            xit("should sequentially execute a second and third function if they're both added while the first is executing", function () {
-                var fnInfo1, fnInfo2, fnInfo3;
+            it("should sequentially execute a second and third function if they're both added while the first is executing", function () {
+                var fnInfo1 = makeFn("one"),
+                    fnInfo2 = makeFn("two"),
+                    fnInfo3 = makeFn("three");
                 
-                runs(function () {
-                    fnInfo1 = makeFn("one",   5, null);
-                    fnInfo2 = makeFn("two",   0, null);
-                    fnInfo3 = makeFn("three", 0, null);
-
-                    queue.add(fnInfo1.fn);
-                    expect(calledFns.one).toBe(true);
-
-                    queue.add(fnInfo2.fn);
-                    queue.add(fnInfo3.fn);
-                    expect(calledFns.two).toBeUndefined();
-                    expect(calledFns.three).toBeUndefined();
-
-                    waitsForFulfillment(fnInfo1.promise, "promise one", 100);
-                });
+                queue.add(fnInfo1.fn);
+                expect(calledFns.one).toBe(true);
                 
-                runs(function () {
-                    expect(calledFns.two).toBe(true);
-                    expect(calledFns.three).toBeUndefined();
-                    waitsForFulfillment(fnInfo2.promise, "promise two", 100);
-                });
+                queue.add(fnInfo2.fn);
+                queue.add(fnInfo3.fn);
+                expect(calledFns.two).toBeUndefined();
+                expect(calledFns.three).toBeUndefined();
                 
-                runs(function () {
-                    expect(calledFns.three).toBe(true);
-                    waitsForFulfillment(fnInfo3.promise, "promise three", 100);
-                });
+                fnInfo1.deferred.resolve();
+                expect(calledFns.two).toBe(true);
+                expect(calledFns.three).toBeUndefined();
                 
-                runs(function () {
-                    expect(queue._queue.length).toBe(0);
-                    expect(queue._curPromise).toBe(null);
-                });
+                fnInfo2.deferred.resolve();
+                expect(calledFns.three).toBe(true);
+                
+                fnInfo3.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
             });
     
-            // ES6 Promise shim does not execute callbacks synchronously when promise resolved or rejected synchronously
-            xit("should sequentially execute a second and third function if the third is added while the second is executing", function () {
-                var fnInfo1, fnInfo2, fnInfo3;
+            it("should sequentially execute a second and third function if the third is added while the second is executing", function () {
+                var fnInfo1 = makeFn("one"),
+                    fnInfo2 = makeFn("two"),
+                    fnInfo3 = makeFn("three");
                 
-                runs(function () {
-                    fnInfo1 = makeFn("one",   0, null);
-                    fnInfo2 = makeFn("two",   5, null);
-                    fnInfo3 = makeFn("three", 0, null);
-
-                    queue.add(fnInfo1.fn);
-                    expect(calledFns.one).toBe(true);
-
-                    queue.add(fnInfo2.fn);
-                    expect(calledFns.two).toBeUndefined();
-
-                    waitsForFulfillment(fnInfo1.promise, "promise one", 100);
-                });
+                queue.add(fnInfo1.fn);
+                expect(calledFns.one).toBe(true);
                 
-                runs(function () {
-                    expect(calledFns.two).toBe(true);
-
-                    queue.add(fnInfo3.fn);
-                    expect(calledFns.three).toBeUndefined();
-
-                    waitsForFulfillment(fnInfo2.promise, "promise two", 100);
-                });
+                queue.add(fnInfo2.fn);
+                expect(calledFns.two).toBeUndefined();
+    
+                fnInfo1.deferred.resolve();
+                expect(calledFns.two).toBe(true);
+    
+                queue.add(fnInfo3.fn);
+                expect(calledFns.three).toBeUndefined();
                 
-                runs(function () {
-                    expect(calledFns.three).toBe(true);
-                    waitsForFulfillment(fnInfo3.promise, "promise three", 100);
-                });
+                fnInfo2.deferred.resolve();
+                expect(calledFns.three).toBe(true);
                 
-                runs(function () {
-                    expect(queue._queue.length).toBe(0);
-                    expect(queue._curPromise).toBe(null);
-                });
+                fnInfo3.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
             });
             
             it("should execute a second function when added to the empty queue after the first function has completed", function () {
-                var fnInfo1, fnInfo2;
+                var fnInfo1 = makeFn("one"),
+                    fnInfo2 = makeFn("two");
                 
-                runs(function () {
-                    fnInfo1 = makeFn("one", 0, null);
-                    fnInfo2 = makeFn("two", 5, null);
-
-                    queue.add(fnInfo1.fn);
-                    expect(calledFns.one).toBe(true);
-
-                    waitsForFulfillment(fnInfo1.promise, "promise one", 100);
-                });
+                queue.add(fnInfo1.fn);
+                expect(calledFns.one).toBe(true);
                 
-                runs(function () {
-                    expect(queue._queue.length).toBe(0);
-                    expect(queue._curPromise).toBe(null);
-
-                    queue.add(fnInfo2.fn);
-                    expect(calledFns.two).toBe(true);
-
-                    waitsForFulfillment(fnInfo2.promise, "promise two", 100);
-                });
+                fnInfo1.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
                 
-                runs(function () {
-                    expect(queue._queue.length).toBe(0);
-                    expect(queue._curPromise).toBe(null);
-                });
+                queue.add(fnInfo2.fn);
+                expect(calledFns.two).toBe(true);
+    
+                fnInfo2.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
             });
             
             it("should execute the second function if the first function is rejected", function () {
-                var fnInfo1, fnInfo2;
+                var fnInfo1 = makeFn("one"),
+                    fnInfo2 = makeFn("two");
                 
-                runs(function () {
-                    fnInfo1 = makeFn("one", null, 5);
-                    fnInfo2 = makeFn("two",   10, null);
-
-                    queue.add(fnInfo1.fn);
-                    expect(calledFns.one).toBe(true);
-
-                    queue.add(fnInfo2.fn);
-                    expect(calledFns.two).toBeUndefined();
-
-                    waitsForRejection(fnInfo1.promise, "promise one", 100);
-                });
+                queue.add(fnInfo1.fn);
+                expect(calledFns.one).toBe(true);
                 
-                runs(function () {
-                    expect(calledFns.two).toBe(true);
-                    waitsForFulfillment(fnInfo2.promise, "promise two", 100);
-                });
+                queue.add(fnInfo2.fn);
+                expect(calledFns.two).toBeUndefined();
                 
-                runs(function () {
-                    expect(queue._queue.length).toBe(0);
-                    expect(queue._curPromise).toBe(null);
-                });
+                fnInfo1.deferred.reject();
+                expect(calledFns.two).toBe(true);
+                
+                fnInfo2.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
             });
             
             it("should execute the third function after first and second functions are rejected", function () {
-                var fnInfo1, fnInfo2, fnInfo3;
+                var fnInfo1 = makeFn("one"),
+                    fnInfo2 = makeFn("two"),
+                    fnInfo3 = makeFn("three");
                 
-                runs(function () {
-                    fnInfo1 = makeFn("one",  null,    5);
-                    fnInfo2 = makeFn("two",  null,   10);
-                    fnInfo3 = makeFn("three",  15, null);
-
-                    queue.add(fnInfo1.fn);
-                    expect(calledFns.one).toBe(true);
-
-                    queue.add(fnInfo2.fn);
-                    queue.add(fnInfo3.fn);
-                    expect(calledFns.two).toBeUndefined();
-                    expect(calledFns.three).toBeUndefined();
-
-                    waitsForRejection(fnInfo1.promise, "promise one", 100);
-                });
+                queue.add(fnInfo1.fn);
+                expect(calledFns.one).toBe(true);
                 
-                runs(function () {
-                    expect(calledFns.two).toBe(true);
-                    waitsForRejection(fnInfo2.promise, "promise two", 100);
-                });
+                queue.add(fnInfo2.fn);
+                queue.add(fnInfo3.fn);
+                expect(calledFns.two).toBeUndefined();
+                expect(calledFns.three).toBeUndefined();
                 
-                runs(function () {
-                    expect(calledFns.three).toBe(true);
-                    waitsForFulfillment(fnInfo3.promise, "promise three", 100);
-                });
+                fnInfo1.deferred.reject();
+                expect(calledFns.two).toBe(true);
                 
-                runs(function () {
-                    expect(queue._queue.length).toBe(0);
-                    expect(queue._curPromise).toBe(null);
-                });
+                fnInfo2.deferred.reject();
+                expect(calledFns.three).toBe(true);
+                
+                fnInfo3.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
             });
             
-            // ES6 Promise shim does not execute callbacks synchronously when promise resolved or rejected synchronously
-            xit("should execute the second function after the already-rejected first function is added to the queue", function () {
-                var fnInfo1, fnInfo2;
+            it("should execute the second function after the already-rejected first function is added to the queue", function () {
+                var fnInfo1 = makeFn("one", false, true),
+                    fnInfo2 = makeFn("two");
                 
-                runs(function () {
-                    fnInfo1 = makeFn("one", null,    0);
-                    fnInfo2 = makeFn("two",    5, null);
-
-                    queue.add(fnInfo1.fn);
-                    expect(calledFns.one).toBe(true);
-
-                    queue.add(fnInfo2.fn);
-                    expect(calledFns.two).toBe(true);
-
-                    waitsForFulfillment(fnInfo2.promise, "promise two", 100);
-                });
+                queue.add(fnInfo1.fn);
+                expect(calledFns.one).toBe(true);
                 
-                runs(function () {
-                    expect(queue._queue.length).toBe(0);
-                    expect(queue._curPromise).toBe(null);
-                });
+                queue.add(fnInfo2.fn);
+                expect(calledFns.two).toBe(true);
+                
+                fnInfo2.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
             });
             
             it("should be able to run two queues simultaneously without clashing", function () {
-                var queue2, q1FnInfo1, q1FnInfo2, q2FnInfo3, q2FnInfo4;
+                var queue2 = new PromiseQueue(),
+                    q1FnInfo1 = makeFn("one"),
+                    q1FnInfo2 = makeFn("two"),
+                    q2FnInfo3 = makeFn("three"),
+                    q2FnInfo4 = makeFn("four");
                 
-                runs(function () {
-                    queue2 = new PromiseQueue();
-                    q1FnInfo1 = makeFn("one",    5, null);
-                    q1FnInfo2 = makeFn("two",   10, null);
-                    q2FnInfo3 = makeFn("three",  5, null);
-                    q2FnInfo4 = makeFn("four",  10, null);
-
-                    //queue one
-                    queue.add(q1FnInfo1.fn);
-                    queue.add(q1FnInfo2.fn);
-                    expect(calledFns.one).toBe(true);
-                    expect(calledFns.two).toBeUndefined();
-                    
-                    //queue one should have one in _queue,
-                    //queue two should have zero in _queue
-                    expect(queue._queue.length).toBe(1);
-                    expect(queue2._queue.length).toBe(0);
-
-                    //queue two
-                    queue2.add(q2FnInfo3.fn);
-                    queue2.add(q2FnInfo4.fn);
-                    expect(calledFns.three).toBe(true);
-                    expect(calledFns.four).toBeUndefined();
-                    
-                    //queue one and two should have one in _queue
-                    expect(queue._queue.length).toBe(1);
-                    expect(queue2._queue.length).toBe(1);
-                    waitsForFulfillment(q1FnInfo1.promise, "promise one", 100);
-                });
+                //queue one
+                queue.add(q1FnInfo1.fn);
+                queue.add(q1FnInfo2.fn);
+                expect(calledFns.one).toBe(true);
+                expect(calledFns.two).toBeUndefined();
+                //queue one should have one in _queue,
+                //queue two should have zero in _queue
+                expect(queue._queue.length).toBe(1);
+                expect(queue2._queue.length).toBe(0);
                 
-                runs(function () {
-                    expect(calledFns.two).toBe(true);
-                    expect(queue._queue.length).toBe(0);
-                    waitsForFulfillment(q1FnInfo2.promise, "promise two", 100);
-                });
+                //queue two
+                queue2.add(q2FnInfo3.fn);
+                queue2.add(q2FnInfo4.fn);
+                expect(calledFns.three).toBe(true);
+                expect(calledFns.four).toBeUndefined();
+                //queue one and two should have one in _queue
+                expect(queue._queue.length).toBe(1);
+                expect(queue2._queue.length).toBe(1);
                 
-                runs(function () {
-                    expect(queue._queue.length).toBe(0);
-                    expect(queue._curPromise).toBe(null);
-                    waitsForFulfillment(q2FnInfo3.promise, "promise three", 100);
-                });
+                q1FnInfo1.deferred.resolve();
+                expect(calledFns.two).toBe(true);
+                expect(queue._queue.length).toBe(0);
                 
-                runs(function () {
-                    expect(calledFns.three).toBe(true);
-                    expect(queue2._queue.length).toBe(0);
-                    waitsForFulfillment(q2FnInfo4.promise, "promise four", 100);
-                });
+                q1FnInfo2.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
                 
-                runs(function () {
-                    expect(queue2._queue.length).toBe(0);
-                    expect(queue2._curPromise).toBe(null);
-                });
+                q2FnInfo3.deferred.resolve();
+                expect(calledFns.three).toBe(true);
+                expect(queue2._queue.length).toBe(0);
+                
+                q2FnInfo4.deferred.resolve();
+                expect(queue2._queue.length).toBe(0);
+                expect(queue2._curPromise).toBe(null);
             });
         });
     });

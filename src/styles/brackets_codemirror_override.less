@@ -172,7 +172,7 @@ div.CodeMirror-cursors {
     color: @accent-comment;
     min-width: 2.5em;
     /*font-size: 0.9em;*/  /* restore after SourceCodePro font fix? */
-    padding: 0 @code-padding 0 10px;  /* left padding for project panel selection triangle */
+    padding: 0 @code-padding 0 10px;
 }
 .CodeMirror .CodeMirror-selected {
     background: @selection-color-unfocused;
@@ -249,7 +249,7 @@ div.CodeMirror-cursors {
     
     .CodeMirror .CodeMirror-activeline .CodeMirror-gutter-elt {
         background: transparent;
-        color: @activeline-number;
+        color: @accent-comment;
     }
     
     .CodeMirror-focused .CodeMirror-activeline-background {
@@ -262,7 +262,7 @@ div.CodeMirror-cursors {
     
     .CodeMirror-focused .CodeMirror-activeline {
         .CodeMirror-gutter-elt {
-            background: @background;
+            background: @activeline-number-bg-inline;
             color: @activeline-number;
         }
     }

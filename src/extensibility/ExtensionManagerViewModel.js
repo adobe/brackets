@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, window, $, brackets, Mustache */
+/*global define, $ */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -31,7 +31,6 @@ define(function (require, exports, module) {
     var _ = require("thirdparty/lodash");
     
     var ExtensionManager = require("extensibility/ExtensionManager"),
-        Package          = require("extensibility/Package"),
         registry_utils   = require("extensibility/registry_utils"),
         Strings          = require("strings");
 
@@ -539,7 +538,7 @@ define(function (require, exports, module) {
                 // Sort the registry by last published date and store the sorted list of IDs.
                 self.sortedFullSet = registry_utils.sortRegistry(self.extensions, "registryInfo")
                     .filter(function (entry) {
-                        return entry.installInfo === undefined && entry.registryInfo !== undefined && entry.registryInfo.metadata.theme;
+                        return entry.registryInfo !== undefined && entry.registryInfo.metadata.theme;
                     })
                     .map(function (entry) {
                         return entry.registryInfo.metadata.name;

@@ -339,6 +339,7 @@ define(function (require, exports, module) {
      * @param {boolean=} failOnReject  Whether to reject or not if one of the promises has been rejected.
      * @param {number=} timeout        Number of milliseconds to wait until rejecting the promise
      * 
+<<<<<<< HEAD
      * @return {Promise} Promise which will be completed once all the other Promises complete
      * 
      */
@@ -366,12 +367,52 @@ define(function (require, exports, module) {
                 });
 
                 var fnAlways = function () {
+=======
+     * @return {$.Promise} A Promise which will be resolved once all dependent promises are resolved. 
+     *                     It is resolved with an array of results from the successfully resolved dependent promises.
+     *                     The resulting array may not be in the same order or contain as many items as there were 
+     *                     promises to wait on and it will contain 'undefined' entries for those promises that resolve
+     *                     without a result.
+     * 
+     */
+    function waitForAll(promises, failOnReject, timeout) {
+        var masterDeferred = new $.Deferred(),
+            results = [],
+            count = 0,
+            sawRejects = false;
+        
+        if (!promises || promises.length === 0) {
+            masterDeferred.resolve();
+            return masterDeferred.promise();
+        }
+        
+        // set defaults if needed
+        failOnReject = (failOnReject === undefined) ? false : true;
+        
+        if (timeout !== undefined) {
+            withTimeout(masterDeferred, timeout);
+        }
+        
+        promises.forEach(function (promise) {
+            promise
+                .fail(function (err) {
+                    sawRejects = true;
+                })
+                .done(function (result) {
+                    results.push(result);
+                })
+                .always(function () {
+>>>>>>> upstream/master
                     count++;
                     if (count === promises.length) {
                         if (failOnReject && sawRejects) {
                             reject();
                         } else {
+<<<<<<< HEAD
                             resolve();
+=======
+                            masterDeferred.resolve(results);
+>>>>>>> upstream/master
                         }
                     }
                 };

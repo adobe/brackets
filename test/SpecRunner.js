@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, $, waitsForDone, beforeEach, afterEach, beforeFirst, afterLast, jasmine, brackets */
+/*global require, define, $, beforeEach, afterEach, beforeFirst, afterLast, jasmine, brackets */
 
 // Set the baseUrl to brackets/src
 require.config({
@@ -40,27 +40,28 @@ require.config({
 
 define(function (require, exports, module) {
     'use strict';
-    
-    var _ = require("thirdparty/lodash");
-    
+
     // Utility dependencies
     var AppInit                 = require("utils/AppInit"),
-        CodeHintManager         = require("editor/CodeHintManager"),
-        Global                  = require("utils/Global"),
         SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         Async                   = require("utils/Async"),
         FileSystem              = require("filesystem/FileSystem"),
         FileUtils               = require("file/FileUtils"),
-        Menus                   = require("command/Menus"),
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         NodeConnection          = require("utils/NodeConnection"),
-        NodeDomain              = require("utils/NodeDomain"),
         BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView,
-        ColorUtils              = require("utils/ColorUtils"),
-        PreferencesBase         = require("preferences/PreferencesBase"),
         NativeApp               = require("utils/NativeApp");
+
+    // Load modules for later use
+    require("thirdparty/lodash");
+    require("editor/CodeHintManager");
+    require("utils/Global");
+    require("command/Menus");
+    require("utils/NodeDomain");
+    require("utils/ColorUtils");
+    require("preferences/PreferencesBase");
 
     // Load modules that self-register and just need to get included in the test-runner window
     require("document/ChangedDocumentTracker");
@@ -94,11 +95,10 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/keymap/sublime");
 
     var selectedSuites,
-        params                  = new UrlParams(),
+        params          = new UrlParams(),
         reporter,
         reporterView,
-        _writeResults           = new $.Deferred(),
-        _writeResultsPromise    = _writeResults.promise(),
+        _writeResults   = new $.Deferred(),
         resultsPath;
     
     /**

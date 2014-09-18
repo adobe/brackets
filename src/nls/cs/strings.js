@@ -40,7 +40,9 @@ define({
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} v této chvíli podporuje pouze UTF-8 textové soubory.",
     "FILE_EXISTS_ERR"                   : "Soubor již existuje.",
     "FILE"                              : "Soubor",
+    "FILE_TITLE"                        : "Soubor",
     "DIRECTORY"                         : "Složka",
+    "DIRECTORY_TITLE"                   : "Složka",
     "DIRECTORY_NAMES_LEDE"              : "Názvy složek",
     "FILENAMES_LEDE"                    : "Názvy souborů",
     "FILENAME"                          : "název souboru",
@@ -134,8 +136,7 @@ define({
     "BUTTON_NO"                         : "Ne",
 
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} výsledků",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 výsledek",
+    "FIND_MATCH_INDEX"                  : "{0} z {1}",
     "FIND_NO_RESULTS"                   : "Žádné výsledky",
     "FIND_QUERY_PLACEHOLDER"            : "Najít\u2026",
     "REPLACE_PLACEHOLDER"               : "Nahradit s\u2026",
@@ -245,6 +246,11 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Doplňky zakázány",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Klikněte pro přepnutí kurzoru mezi módem Insert (INS) a Overwrite (OVR)",
+    "STATUSBAR_LANG_TOOLTIP"                : "Klikněte pro změnu typu souboru",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Klikněte pro zapnutí panelu zpráv.",
+    "STATUSBAR_DEFAULT_LANG"                : "(výchozí)",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Nastavit jako výchozí pro .{0} soubory",
 
     // CodeInspection: chyby/varování
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} chyb",
@@ -282,6 +288,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Uložit vše",
     "CMD_FILE_SAVE_AS"                    : "Uložit jako\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Živý náhled",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Vynutit obnovení živého náhledu",
     "CMD_PROJECT_SETTINGS"                : "Nastavení projektu\u2026",
     "CMD_FILE_RENAME"                     : "Přejmenovat",
     "CMD_FILE_DELETE"                     : "Smazat",
@@ -351,6 +358,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Řadit podle jména",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Řadit podle typu",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatické řazení",
+    "CMD_THEMES"                          : "Motivy\u2026",
 
     // Příkazy menu Navigace
     "NAVIGATE_MENU"                       : "Navigace",
@@ -414,7 +422,14 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být %-enkódovány.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při zpracování URL",
 
-      // CSS Quick Edit
+    // Řetězce pro themes-settings.html a themes-general.html
+    "CURRENT_THEME"                        : "Aktuální motiv",
+    "USE_THEME_SCROLLBARS"                 : "Použít posuvníky motivu",
+    "FONT_SIZE"                            : "Velikost písma",
+    "FONT_FAMILY"                          : "Rodina písma",
+    "THEMES_SETTINGS"                      : "Nastavení motivů",
+
+    // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nové pravidlo",
 
     // Řetězce pro správce doplňků
@@ -435,6 +450,8 @@ define({
     "CANCELING_INSTALL"                    : "Rušení instalace\u2026",
     "CANCELING_HUNG"                       : "Rušení instalace trvá dlouho. Mohlo dojít k interní chybě.",
     "INSTALL_CANCELED"                     : "Instalace zrušena.",
+    "VIEW_COMPLETE_DESCRIPTION"            : "Zobrazit úplný popis",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "Zobrazit zkrácený popis",
     // Tyto musí odpovídat chybovým hlášením v ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Stažený soubor není platný zip soubor.",
     "INVALID_PACKAGE_JSON"                 : "Package.json balíček není platný (chyba byla: {0}).",
@@ -460,7 +477,11 @@ define({
     // Pro NOT_FOUND_ERR, vyhledejte obecné řetězce výše
     "EXTENSION_MANAGER_TITLE"              : "Správce doplňků",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Nelze získat přístup k registru doplňků. Prosím, zkuste to znovu později.",
+    "INSTALL_EXTENSION_DRAG"               : "Přetáhněte .zip zde nebo",
+    "INSTALL_EXTENSION_DROP"               : "Pusťte .zip pro instalaci",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Instalace/aktualizace byla zrušena kvůli následujících chyb:",
     "INSTALL_FROM_URL"                     : "Instalovat z URL\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "Ověření\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Datum",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Tento doplněk požaduje novější verzi {APP_NAME}.",
@@ -471,6 +492,9 @@ define({
     "EXTENSION_MORE_INFO"                  : "Více informací...",
     "EXTENSION_ERROR"                      : "Chyba doplňku",
     "EXTENSION_KEYWORDS"                   : "Klíčová slova",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "Přeloženo do {0} jazyků, včetně vašeho",
+    "EXTENSION_TRANSLATED_GENERAL"         : "Přeloženo do {0} jazyků",
+    "EXTENSION_TRANSLATED_LANGS"           : "Tento doplněk byl přeložen do těchto jazyků: {0}",
     "EXTENSION_INSTALLED"                  : "Nainstalováno",
     "EXTENSION_UPDATE_INSTALLED"           : "Aktualizace doplňku byla stažena a bude nainstalována při ukončení aplikace {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Hledat",
@@ -496,6 +520,7 @@ define({
     "REGISTRY_SANITY_CHECK_WARNING"        : "Buďte opatrní při instalaci doplňků z neznámých zdrojů.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Nainstalované",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Dostupné",
+    "EXTENSIONS_THEMES_TITLE"              : "Motivy",
     "EXTENSIONS_UPDATES_TITLE"             : "Aktualizace",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Žádné dostupné shody.",
@@ -552,6 +577,8 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Přejít na definici",
     "CMD_SHOW_PARAMETER_HINT"                   : "Zobrazit nápovědu parametru",
     "NO_ARGUMENTS"                              : "<žádné parametry>",
+    "DETECTED_EXCLUSION_TITLE"                  : "Inferenční problém JavaScript souboru",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets narazil na problémy při zpracování:<br><br>{0}<br><br>Tento soubor nadále nebude používat nápovědu při kódování a funkci přejít na definici. Pro opětovné zapnutí těchto funkcí, otevřete <code>.brackets.json</code> ve vašem projektu a odstraňte soubor z jscodehints.detectedExclusions.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",

@@ -22,8 +22,8 @@
         "build_timestamp": ""
     },
     "name": "Brackets",
-    "version": "0.43.0-0",
-    "apiVersion": "0.43.0",
+    "version": "0.44.0-0",
+    "apiVersion": "0.44.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"

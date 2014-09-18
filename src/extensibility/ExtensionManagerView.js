@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, window, $, brackets, Mustache */
+/*global define, $, brackets, Mustache */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -112,6 +112,31 @@ define(function (require, exports, module) {
     ExtensionManagerView.prototype._itemViews = null;
 
     /**
+     * Toggles between truncated and full length extension descriptions
+     * @param {string} id The id of the extension clicked
+     * @param {JQueryElement} $element The DOM element of the extension clicked
+     * @param {boolean} showFull true if full length description should be shown, false for shortened version.
+     */
+    ExtensionManagerView.prototype._toggleDescription = function (id, $element, showFull) {
+        var description, linkTitle,
+            info = this.model._getEntry(id);
+
+        // Toggle between appropriate descriptions and link title,
+        // depending on if extension is installed or not
+        if (showFull) {
+            description = info.metadata.description;
+            linkTitle = Strings.VIEW_TRUNCATED_DESCRIPTION;
+        } else {
+            description = info.metadata.shortdescription;
+            linkTitle = Strings.VIEW_COMPLETE_DESCRIPTION;
+        }
+
+        $element.data("toggle-desc", showFull ? "trunc-desc" : "expand-desc")
+                .attr("title", linkTitle)
+                .prev(".ext-full-description").text(description);
+    };
+    
+    /**
      * @private
      * Attaches our event handlers. We wait to do this until we've fully fetched the extension list.
      */
@@ -154,12 +179,12 @@ define(function (require, exports, module) {
                     ExtensionManager.markForRemoval($target.attr("data-extension-id"), true);
                 } else if ($target.hasClass("undo-update")) {
                     ExtensionManager.removeUpdate($target.attr("data-extension-id"));
-                } else if ($target.attr("data-toggle-desc") === "expand-desc") {
-                    ExtensionManager.toggleDescription($target.attr("data-extension-id"), $target, true);
-                } else if ($target.attr("data-toggle-desc") === "trunc-desc") {
-                    ExtensionManager.toggleDescription($target.attr("data-extension-id"), $target, false);
+                } else if ($target.data("toggle-desc") === "expand-desc") {
+                    this._toggleDescription($target.attr("data-extension-id"), $target, true);
+                } else if ($target.data("toggle-desc") === "trunc-desc") {
+                    this._toggleDescription($target.attr("data-extension-id"), $target, false);
                 }
-            })
+            }.bind(this))
             .on("click", "button.install", function (e) {
                 self._installUsingDialog($(e.target).attr("data-extension-id"));
             })
@@ -309,8 +334,7 @@ define(function (require, exports, module) {
      * new items for entries that haven't yet been rendered, but will not re-render existing items.
      */
     ExtensionManagerView.prototype._render = function () {
-        var self = this,
-            $item;
+        var self = this;
         
         this._$table.empty();
         this._updateMessage();

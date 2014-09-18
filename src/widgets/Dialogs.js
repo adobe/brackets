@@ -35,7 +35,6 @@ define(function (require, exports, module) {
 
     var KeyBindingManager = require("command/KeyBindingManager"),
         KeyEvent          = require("utils/KeyEvent"),
-        NativeApp         = require("utils/NativeApp"),
         Strings           = require("strings"),
         DialogTemplate    = require("text!htmlContent/dialog-template.html");
     

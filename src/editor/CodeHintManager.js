@@ -22,7 +22,11 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+<<<<<<< HEAD
 /*global define, $, brackets, Promise */
+=======
+/*global define, $ */
+>>>>>>> upstream/master
 
 /*
  * __CodeHintManager Overview:__
@@ -318,9 +322,7 @@ define(function (require, exports, module) {
      *     to all languages.
      */
     function _removeHintProvider(provider, targetLanguageId) {
-        var languageId,
-            languages,
-            index,
+        var index,
             providers,
             targetLanguageIdArr;
 

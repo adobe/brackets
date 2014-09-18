@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, HTMLElement: false, beforeFirst: false, afterLast: false, waitsForDone: false */
+/*global define, describe, it, expect, beforeEach, afterEach, runs, $, HTMLElement, beforeFirst, afterLast, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
@@ -31,8 +31,6 @@ define(function (require, exports, module) {
     var MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
         InlineTextEditor        = require("editor/InlineTextEditor").InlineTextEditor,
         InlineWidget            = require("editor/InlineWidget").InlineWidget,
-        Editor                  = require("editor/Editor").Editor,
-        EditorManager           = require("editor/EditorManager"),
         SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         Commands                = require("command/Commands");
 
@@ -482,7 +480,7 @@ define(function (require, exports, module) {
                     inlineEditor = new TWMultiRangeInlineEditor(mockRanges);
                     inlineEditor.load(hostEditor);
                 
-                    // add widget directly, bypass _openInlineWidget
+                    // add widget
                     waitsForDone(hostEditor.addInlineWidget({line: 0, ch: 0}, inlineEditor));
                 });
                 
