@@ -632,8 +632,7 @@ define(function (require, exports, module) {
             });
             
             it("should remove a directory", function () {
-                var isDirectory,
-                    delDirName  = baseDir + "/unlink_dir",
+                var delDirName  = baseDir + "/unlink_dir",
                     cb          = errSpy(),
                     statCB      = statSpy(),
                     unlinkCB    = errSpy();
@@ -729,7 +728,7 @@ define(function (require, exports, module) {
         });
         
         describe("rename", function () {
-            var error, complete;
+            var complete;
             
             it("should rename a file", function () {
                 var oldName     = baseDir + "/file_one.txt",
@@ -876,7 +875,7 @@ define(function (require, exports, module) {
         });
         
         describe("copyFile", function () {
-            var error, complete;
+            var complete;
             
             it("should copy a file", function () {
                 var fileName     = baseDir + "/file_one.txt",
@@ -961,8 +960,6 @@ define(function (require, exports, module) {
         });
         
         describe("moveToTrash", function () {
-            var error, complete, isDirectory;
-            
             it("should move a file to the trash", function () {
                 var newFileName = baseDir + "/brackets_unittests_delete_me.txt",
                     writeFileCB = errSpy(),

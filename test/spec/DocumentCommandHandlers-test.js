@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine, xit */
+/*global define, describe, beforeEach, afterEach, it, runs, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine, xit */
 
 define(function (require, exports, module) {
     'use strict';
@@ -40,9 +40,7 @@ define(function (require, exports, module) {
         EditorManager,          // loaded from brackets.test
         SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
         FileUtils                = require("file/FileUtils"),
-        StringUtils              = require("utils/StringUtils"),
-        FileSystemError          = require("filesystem/FileSystemError"),
-        Editor                   = require("editor/Editor");
+        FileSystemError          = require("filesystem/FileSystemError");
                     
     
     describe("DocumentCommandHandlers", function () {
@@ -780,7 +778,6 @@ define(function (require, exports, module) {
                 });
 
                 // confirm file contents
-                var actualContent = null, error = -1;
                 runs(function () {
                     promise = FileUtils.readAsText(FileSystem.getFileForPath(filePath))
                         .done(function (actualText) {

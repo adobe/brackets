@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine */
+/*global define, $, describe, beforeEach, afterEach, it, runs, expect, waitsForDone, spyOn, jasmine */
 
 define(function (require, exports, module) {
     'use strict';
@@ -41,7 +41,6 @@ define(function (require, exports, module) {
         this.category = "mainview";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/MainViewManager-test-files"),
-            testFile = testPath + "/test.js",
             testWindow,
             _$,
             promise;
@@ -498,8 +497,7 @@ define(function (require, exports, module) {
                 });
             });
             it("should activate pane when inline editor gains focus", function () {
-                var editor,
-                    inlineEditor,
+                var inlineEditor,
                     editors = {},
                     handler = function (e, doc, editor, paneId) {
                         editors[doc.file.name] = editor;

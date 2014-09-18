@@ -22,19 +22,18 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, $, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, window, jasmine, spyOn */
+/*global define, describe, $, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, waitsForDone, runs, jasmine */
 /*unittests: FindReplace*/
 
 define(function (require, exports, module) {
     'use strict';
     
-    var Commands              = require("command/Commands"),
-        FindReplace           = require("search/FindReplace"),
-        KeyEvent              = require("utils/KeyEvent"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
-        StringUtils           = require("utils/StringUtils"),
-        Strings,
-        _                     = require("thirdparty/lodash");
+    var Commands        = require("command/Commands"),
+        FindReplace     = require("search/FindReplace"),
+        KeyEvent        = require("utils/KeyEvent"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+        StringUtils     = require("utils/StringUtils"),
+        Strings;
 
     var defaultContent = "/* Test comment */\n" +
                          "define(function (require, exports, module) {\n" +
@@ -298,7 +297,6 @@ define(function (require, exports, module) {
         this.category = "integration";
         
         var LINE_FIRST_REQUIRE = 2;
-        var LINE_AFTER_REQUIRES = 5;
         var CH_REQUIRE_START = 14;
         var CH_REQUIRE_PAREN = CH_REQUIRE_START + "require".length;
         

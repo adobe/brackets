@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, FileError, brackets, unescape, window */
+/*global define, $, brackets, unescape, window */
 
 /**
  * Set of utilites for working with files and text content.

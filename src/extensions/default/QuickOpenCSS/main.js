@@ -46,7 +46,6 @@ define(function (require, exports, module) {
             return;
         }
 
-        var selectorList = [];
         var docText = doc.getText();
         return CSSUtils.extractAllSelectors(docText, doc.getLanguage().getMode());
     }

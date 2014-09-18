@@ -34,12 +34,12 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var DocumentManager       = require("document/DocumentManager"),
+    var AppInit               = require("utils/AppInit"),
+        DocumentManager       = require("document/DocumentManager"),
         MainViewManager       = require("view/MainViewManager"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
         Menus                 = require("command/Menus"),
-        DefaultMenus          = require("command/DefaultMenus"),
         FileViewController    = require("project/FileViewController"),
         ViewUtils             = require("utils/ViewUtils"),
         paneListTemplate      = require("text!htmlContent/working-set.html"),
@@ -59,17 +59,8 @@ define(function (require, exports, module) {
      * Context Menu
      * @private
      * @type {Menu}
-     * 
      */
     var _workingset_cmenu;
-    
-    /**
-     * Context Menu
-     * @private
-     * @type {Menu}
-     * 
-     */
-    var _workingset_configuration_menu;
     
     /**
      * Constants for event.which values
@@ -78,35 +69,15 @@ define(function (require, exports, module) {
     var LEFT_BUTTON = 1,
         MIDDLE_BUTTON = 2;
     
-    /** 
+    /**
      * Each list item in the working set stores a references to the related document in the list item's data.  
      *  Use `listItem.data(_FILE_KEY)` to get the document reference
      * @type {string}
      * @private
      */
     var _FILE_KEY = "file";
-
-    /* 
-     * Determines if context menus are registered
-     * @private
-     * @return {boolean} true if the menus are registered, false if not
-     */
-    function _areContextMenusRegistered() {
-        return _workingset_cmenu && _workingset_configuration_menu;
-    }
     
-    /* 
-     * Registers context menus
-     * @private
-     */
-    function _registerContextMenus() {
-        if (!_areContextMenusRegistered()) {
-            _workingset_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
-            _workingset_configuration_menu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONFIG_MENU);
-        }
-    }
-    
-    /** 
+    /**
      * Updates the appearance of the list element based on the parameters provided.
      * @private
      * @param {!HTMLLIElement} listElement
@@ -118,7 +89,7 @@ define(function (require, exports, module) {
         ViewUtils.toggleClass($(listItem), "selected", shouldBeSelected);
     }
 
-    /** 
+    /**
      * Determines if a file is dirty
      * @private
      * @param {!File} file - file to test
@@ -146,18 +117,9 @@ define(function (require, exports, module) {
         this.suppressSortRedraw = false;
         this.paneId = paneId;
         
-        this.updateOptionsButton();
         this.init();
     }
 
-    /*
-     * updates the visibility state of the gear button
-     */
-    WorkingSetView.prototype.updateOptionsButton = function () {
-        var visible = (MainViewManager.getActivePaneId() === this.paneId);
-        this.$el.find(".working-set-option-btn").toggle(visible);
-    };
-    
     /*
      * Hides or shows the WorkingSetView
      */
@@ -188,7 +150,6 @@ define(function (require, exports, module) {
         }
         
         $titleEl.text(title);
-        this.updateOptionsButton();
     };
 
     /**
@@ -351,7 +312,6 @@ define(function (require, exports, module) {
         this._updateVisibility();
         this._adjustForScrollbars();
         this._fireSelectionChanged();
-        this.updateOptionsButton();
     };
     
     /**
@@ -565,7 +525,7 @@ define(function (require, exports, module) {
         });
     };
     
-    /** 
+    /**
      * Updates the appearance of the list element based on the parameters provided
      * @private
      * @param {!HTMLLIElement} listElement
@@ -606,7 +566,7 @@ define(function (require, exports, module) {
         }
     };
     
-    /** 
+    /**
      * Builds the UI for a new list item and inserts in into the end of the list
      * @private
      * @param {File} file
@@ -643,7 +603,7 @@ define(function (require, exports, module) {
         );
     };
     
-    /** 
+    /**
      * Deletes all the list items in the view and rebuilds them from the working set model
      * @private
      */
@@ -662,7 +622,7 @@ define(function (require, exports, module) {
         }
     };
 
-    /** 
+    /**
      * Updates the pane view's selection marker and scrolls the item into view
      * @private
      */
@@ -670,7 +630,7 @@ define(function (require, exports, module) {
         var file = MainViewManager.getCurrentlyViewedFile(this.paneId);
             
         // Iterate through working set list and update the selection on each
-        var items = this.$openFilesContainer.find("ul").children().each(function () {
+        this.$openFilesContainer.find("ul").children().each(function () {
             _updateListItemSelection(this, file);
         });
 
@@ -679,7 +639,7 @@ define(function (require, exports, module) {
         this._fireSelectionChanged();
     };
 
-    /** 
+    /**
      * workingSetAdd event handler
      * @private
      * @param {jQuery.Event} e - event object
@@ -706,7 +666,7 @@ define(function (require, exports, module) {
         }
     };
 
-    /** 
+    /**
      * workingSetRemove event handler
      * @private 
      * @param {jQuery.Event} e - event object
@@ -733,7 +693,7 @@ define(function (require, exports, module) {
         }
     };
 
-    /** 
+    /**
      * workingSetRemoveList event handler
      * @private
      * @param {jQuery.Event} e - event object
@@ -766,7 +726,7 @@ define(function (require, exports, module) {
         }
     };
 
-    /** 
+    /**
      * dirtyFlagChange event handler
      * @private
      * @param {jQuery.Event} e - event object
@@ -793,16 +753,12 @@ define(function (require, exports, module) {
     };
     
 
-    /** 
+    /**
      * Initializes the WorkingSetView object
      */
     WorkingSetView.prototype.init = function () {
-        // Init DOM element
-        var self = this;
-        
         this.$openFilesContainer = this.$el.find(".open-files-container");
         this.$workingSetListViewHeader = this.$el.find(".working-set-header");
-        this.$gearMenu = this.$el.find(".working-set-option-btn");
         
         this.$openFilesList = this.$el.find("ul");
         
@@ -826,51 +782,19 @@ define(function (require, exports, module) {
         
         // Disable horizontal scrolling until WebKit bug #99379 is fixed
         this.$openFilesContainer.css("overflow-x", "hidden");
-
-        this.installMenuHandlers();
         
-        this._redraw();
-    };
-
-
-    /** 
-     * Installs the gear and context menu handlers
-     */
-    WorkingSetView.prototype.installMenuHandlers = function () {
-        var self = this;
-        
-        this.$openFilesContainer.on("contextmenu", function (e) {
-            _registerContextMenus();
+        this.$openFilesContainer.on("contextmenu.workingSetView", function (e) {
             _workingset_cmenu.open(e);
         });
 
-        this.$gearMenu.on("click", function (e) {
-            var buttonOffset,
-                buttonHeight;
-
-            e.stopPropagation();
-
-            MainViewManager.setActivePaneId(self.paneId);
-            _registerContextMenus();
-            
-            if (_workingset_configuration_menu.isOpen()) {
-                _workingset_configuration_menu.close();
-            } else {
-                buttonOffset = $(this).offset();
-                buttonHeight = $(this).outerHeight();
-                _workingset_configuration_menu.open({
-                    pageX: buttonOffset.left,
-                    pageY: buttonOffset.top + buttonHeight
-                });
-            }
-        });
-            
+        this._redraw();
     };
-    
-    /** 
+
+    /**
      * Destroys the WorkingSetView DOM element and removes all event handlers
      */
     WorkingSetView.prototype.destroy = function () {
+        this.$openFilesContainer.off(".workingSetView");
         this.$el.remove();
         $(MainViewManager).off(this._makeEventName(""));
         $(DocumentManager).off(this._makeEventName(""));
@@ -893,7 +817,7 @@ define(function (require, exports, module) {
         }
     });
     
-    /** 
+    /**
      * Creates a new WorkingSetView object for the specified pane
      * @param {!jQuery} $container - the WorkingSetView's DOM parent node
      * @param {!string} paneId - the id of the pane the view is being created for
@@ -910,7 +834,7 @@ define(function (require, exports, module) {
         }
     }
 
-    /** 
+    /**
      * Refreshes all Pane View List Views
      */
     function refresh() {
@@ -928,6 +852,9 @@ define(function (require, exports, module) {
         });
     }
     
+    AppInit.appReady(function () {
+        _workingset_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
+    });
     
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;

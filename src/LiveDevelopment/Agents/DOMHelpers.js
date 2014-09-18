@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define */
 
 /**
  * DOMHelpers is a collection of functions used by the DOMAgent exports `eachNode(src, callback)`
@@ -230,7 +230,6 @@ define(function DOMHelpersModule(require, exports, module) {
     function eachNode(src, callback) {
         var index = 0;
         var text, range, length, payload;
-        var x = 0;
         while (index < src.length) {
 
             // find the next tag

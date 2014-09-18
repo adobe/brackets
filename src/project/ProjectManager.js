@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, FileError, window */
+/*global define, $, brackets, window */
 
 /**
  * ProjectManager is the model for the set of currently open project. It is responsible for
@@ -76,8 +76,7 @@ define(function (require, exports, module) {
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async"),
-        FileSyncManager     = require("project/FileSyncManager"),
-        EditorManager       = require("editor/EditorManager");
+        FileSyncManager     = require("project/FileSyncManager");
     
     
     // Define the preference to decide how to sort the Project Tree files
@@ -955,9 +954,7 @@ define(function (require, exports, module) {
      */
     function _convertEntriesToJSON(entries) {
         var jsonEntryList = [],
-            entry,
-            entryI,
-            jsonEntry;
+            entryI;
 
         for (entryI = 0; entryI < entries.length; entryI++) {
             jsonEntryList.push(_entryToJSON(entries[entryI]));

@@ -895,9 +895,6 @@ define(function (require, exports, module) {
             
             // Used for various tests below where two write operations (to two different files) overlap in various ways
             function dualWrite(cb1Delay, cb2Delay) {
-                var testFile1 = fileSystem.getFileForPath("/file1.txt"),
-                    testFile2 = fileSystem.getFileForPath("/file2.txt");
-                
                 runs(function () {
                     var write1Done = false, change1Done = false;
                     var write2Done = false, change2Done = false;
@@ -1073,7 +1070,6 @@ define(function (require, exports, module) {
             it("should verify blind writes", function () {
                 var file = fileSystem.getFileForPath(filename),
                     cb1 = writeCallback(),
-                    cb2 = writeCallback(),
                     newFileContent = "Computer programming is an exact science",
                     checkedContent = file._contents = fileSystem._impl._model.readFile(filename);   // avoids having to use a callback
                 
@@ -1412,8 +1408,7 @@ define(function (require, exports, module) {
                 var file,
                     cb0 = readCallback(),
                     cb1 = errorCallback(),
-                    cb2 = readCallback(),
-                    savedHash;
+                    cb2 = readCallback();
                 
                 // confirm watched and empty cached data
                 runs(function () {
@@ -1462,8 +1457,7 @@ define(function (require, exports, module) {
             it("should unwatch when watchers go offline", function () {
                 var file,
                     cb0 = readCallback(),
-                    cb1 = readCallback(),
-                    savedHash;
+                    cb1 = readCallback();
 
                 // confirm watched and empty cached data
                 runs(function () {
@@ -1654,8 +1648,7 @@ define(function (require, exports, module) {
             it("should fire change event after rapid delete-add pair", function () {
                 var dirname = "/subdir/",
                     filename = "/subdir/file3.txt",
-                    dir,
-                    newfile;
+                    dir;
                 
                 runs(function () {
                     // Delay watcher change notifications so that the FS doesn't get a chance to
