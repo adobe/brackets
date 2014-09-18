@@ -829,7 +829,8 @@ define(function (require, exports, module) {
 
     /**
      * Adds an icon provider. The icon provider is a function which takes a data object and
-     * returns a React.DOM.ins instance for the icons within the tree.
+     * returns a React.DOM.ins instance for the icons within the tree. The callback can
+     * alternatively return a string, DOM node or a jQuery object for the ins node to be added.
      *
      * The data object contains:
      *

@@ -192,13 +192,9 @@ define(function (require, exports, module) {
                     // Create an empty file
                     var file = FileSystem.getFileForPath(path);
 
-                    file.write("", function (err) {
-                        if (err) {
-                            d.reject(err);
-                        } else {
-                            d.resolve(file);
-                        }
-                    });
+                    FileUtils.writeText(file, "").then(function () {
+                        d.resolve(file);
+                    }, d.reject);
                 }
             }
         });
@@ -229,23 +225,24 @@ define(function (require, exports, module) {
     }
 
     /**
-     * The root Directory object for the project.
-     *
      * @type {Directory}
+     * 
+     * The root Directory object for the project.
      */
     ProjectModel.prototype.projectRoot = null;
 
     /**
      * @private
+     * @type {FileTreeViewModel}
      *
      * The view model for this project.
-     *
-     * @type {FileTreeViewModel}
      */
     ProjectModel.prototype._viewModel = null;
 
     /**
      * @private
+     * @type {string}
+     * 
      * Encoded URL
      * @see getBaseUrl(), setBaseUrl()
      */
@@ -253,21 +250,15 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Promise for generating the cache of all files
-     * @type {jQuery.Promise}
-     */
-    ProjectModel.prototype._projectBaseUrl = null;
-
-    /**
-     * @private
+     * @type {{selected: ?string, context: ?string, previousContext: ?string, rename: ?Object}}
      *
-     * Keeps track of selected files, context and files that are being renamed or created.
+     * Keeps track of selected files, context, previous context and files 
+     * that are being renamed or created.
      */
     ProjectModel.prototype._selections = null;
 
     /**
      * @private
-     *
      * @type {boolean}
      *
      * Flag to store whether the file tree has focus.
@@ -276,7 +267,6 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     *
      * @type {string}
      *
      * Current file path being viewed.
@@ -286,6 +276,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * @type {?jQuery.Promise.<Array<File>>}
+     * 
      * A promise that is resolved with an array of all project files. Used by
      * ProjectManager.getAllFiles().
      */
@@ -404,9 +395,6 @@ define(function (require, exports, module) {
 
             this.projectRoot.visit(allFilesVisitor, function (err) {
                 if (err) {
-                    // TODO handle TOO_MANY_ENTRIES error
-                    // Probably should move the warned flag in here and emit an error
-                    // event.
                     deferred.reject(err);
                 } else {
                     deferred.resolve(allFiles);
@@ -699,8 +687,7 @@ define(function (require, exports, module) {
      * @param {File|string} curFile Currently edited file.
      */
     ProjectModel.prototype.setCurrentFile = function (curFile) {
-        var path = _getPathFromFSObject(curFile);
-        this._currentPath = path;
+        this._currentPath = _getPathFromFSObject(curFile);
     };
 
     /**
@@ -777,7 +764,7 @@ define(function (require, exports, module) {
         if (!path) {
             path = this._selections.context;
             if (!path) {
-                return;
+                return new $.Deferred().resolve().promise();
             }
         }
 
@@ -855,7 +842,6 @@ define(function (require, exports, module) {
             result.resolve();
         } else if (!isValidFilename(FileUtils.getBaseName(newName), _invalidChars)) {
             result.reject(ERROR_INVALID_FILENAME);
-            return result.promise();
         } else {
             var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
             entry.rename(newName, function (err) {
@@ -1009,6 +995,8 @@ define(function (require, exports, module) {
 
     /**
      * Sets the `sortDirectoriesFirst` option for the file tree view.
+     * 
+     * @param {boolean} True if directories should appear first
      */
     ProjectModel.prototype.setSortDirectoriesFirst = function (sortDirectoriesFirst) {
         this._viewModel.setSortDirectoriesFirst(sortDirectoriesFirst);
@@ -1022,10 +1010,6 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype.getOpenNodes = function () {
         return this._viewModel.getOpenNodes(this.projectRoot.fullPath);
-    };
-
-    ProjectModel.prototype.getChildDirectories = function (parentNode, openOrClose) {
-        return this._viewModel.getChildDirectories(parentNode, openOrClose);
     };
 
     /**
@@ -1149,7 +1133,7 @@ define(function (require, exports, module) {
 
         this.setDirectoryOpen(path, true).then(function () {
             var projectRelativePath = self.makeProjectRelativeIfPossible(path),
-                childNodes = self.getChildDirectories(projectRelativePath);
+                childNodes = self._viewModel.getChildDirectories(projectRelativePath);
             
             Async.doInParallel(childNodes, function (node) {
                 return self.setDirectoryOpen(path + node, openOrClose);
@@ -1170,7 +1154,7 @@ define(function (require, exports, module) {
      * @return {!string} Path that ends in "/"
      */
     function _ensureTrailingSlash(fullPath) {
-        if (fullPath[fullPath.length - 1] !== "/") {
+        if (_pathIsFile(fullPath)) {
             return fullPath + "/";
         }
         return fullPath;
@@ -1201,7 +1185,7 @@ define(function (require, exports, module) {
      * Adds the path to the list of welcome projects we've ever seen, if not on the list already.
      *
      * @param {string} path Path to possibly add
-     * @param {=Array.<string>} currentProjects Array of current welcome projects
+     * @param {Array.<string>=} currentProjects Array of current welcome projects
      * @return {Array.<string>} New array of welcome projects with the additional project added
      */
     function _addWelcomeProjectPath(path, currentProjects) {

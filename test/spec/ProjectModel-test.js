@@ -610,6 +610,10 @@ define(function (require, exports, module) {
             });
 
             describe("startRename and friends", function () {
+                it("should resolve if there's no path or context", function () {
+                    waitsForDone(model.startRename());
+                });
+                
                 it("should set the rename flag on a file", function () {
                     var promise = model.startRename("/foo/afile.js");
                     expect(vm._treeData.getIn(["afile.js", "rename"])).toBe(true);
@@ -1196,7 +1200,7 @@ define(function (require, exports, module) {
                 }]);
                 
                 expect(vm._treeData.get("newfile.js").toJS()).toEqual({});
-                expect(vm._treeData.getIn(["subdir", "children", "newdir", "children"]).toJS()).toEqual({});
+                expect(vm._treeData.getIn(["subdir", "children", "newdir", "children"])).toBeNull();
             });
             
             it("should handle removed files and directories", function () {

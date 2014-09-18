@@ -31,12 +31,6 @@ define(function (require, exports, module) {
         Immutable = require("thirdparty/immutable");
 
     describe("FileTreeViewModel", function () {
-        var subdir = {
-            fullPath: "/path/to/project/subdir/",
-            name: "subdir",
-            isFile: false
-        };
-
         describe("_filePathToObjectPath", function () {
             var treeData;
             beforeEach(function () {
