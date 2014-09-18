@@ -220,11 +220,14 @@ define(function (require, exports, module) {
                 spyOn(testWindow.$, "ajax").andCallFake(function (req) {
                     var d = new $.Deferred();
 
-                    if (req.url === defaultUpdateUrl) {
-                        d.resolve(expectedResult);
-                    } else {
-                        d.reject();
-                    }
+                    testWindow.setTimeout(function () {
+                        if (req.url === defaultUpdateUrl) {
+                            d.resolve(expectedResult);
+                        } else {
+                            d.reject();
+                        }
+                    }, 75);
+                    // we need to set a timeout in order to emulate the async behavior of $.ajax
 
                     return d.promise();
                 });

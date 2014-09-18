@@ -31,8 +31,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _                    = require("thirdparty/lodash"),
-        Dialogs              = require("widgets/Dialogs"),
+    var Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         ExtensionManager     = require("extensibility/ExtensionManager"),
         PreferencesManager   = require("preferences/PreferencesManager"),
@@ -116,6 +115,48 @@ define(function (require, exports, module) {
      * _versionInfoUrl is used for unit testing.
      */
     function _getUpdateInformation(force, dontCache, _versionInfoUrl) {
+
+        // If the current locale isn't "en" or "en-US", check whether we actually have a
+        //   locale-specific update notification, and fall back to "en" if not.
+        // Note: we check for both "en" and "en-US" to watch for the general case or
+        //    country-specific English locale.  The former appears default on Mac, while
+        //    the latter appears default on Windows.
+        function loadLocalizedContent(langIndex, languages, lookupPromise) {
+            langIndex = langIndex || 0;
+            languages = languages || LocalizationUtils.languages();
+            lookupPromise = lookupPromise || new $.Deferred();
+            var lang = languages[langIndex],
+                localVersionInfoUrl;
+
+            if (lang) {
+                lang = lang.toLowerCase();
+            } else {
+                lookupPromise.reject();
+            }
+
+            if (langIndex === 0 && _versionInfoUrl) { // for unit tests
+                localVersionInfoUrl = _versionInfoUrl;
+            }
+            if (lang === "en" || lang === "en-us") {
+                localVersionInfoUrl = localVersionInfoUrl || _getVersionInfoUrl("en");
+                lookupPromise.resolve(localVersionInfoUrl);
+            } else {
+                localVersionInfoUrl = localVersionInfoUrl || _getVersionInfoUrl(lang);
+                $.ajax({
+                    url: localVersionInfoUrl,
+                    cache: false,
+                    type: "HEAD"
+                })
+                    .done(function () {
+                        lookupPromise.resolve(localVersionInfoUrl);
+                    })
+                    .fail(function () {
+                        loadLocalizedContent(langIndex + 1, languages, lookupPromise);
+                    });
+            }
+            return lookupPromise.promise();
+        }
+
         // Last time the versionInfoURL was fetched
         var lastInfoURLFetchTime = PreferencesManager.getViewState("lastInfoURLFetchTime");
 
@@ -140,68 +181,41 @@ define(function (require, exports, module) {
         }
         
         if (fetchData) {
-            var lookupPromise = new $.Deferred(),
-                localVersionInfoUrl;
-
-            // If the current locale isn't "en" or "en-US", check whether we actually have a
-            //   locale-specific update notification, and fall back to "en" if not.
-            // Note: we check for both "en" and "en-US" to watch for the general case or
-            //    country-specific English locale.  The former appears default on Mac, while
-            //    the latter appears default on Windows.
-            _.forEach(LocalizationUtils.languages(), function (lang, i) {
-                lang = lang.toLowerCase();
-                localVersionInfoUrl = undefined;
-                if (i === 0 && _versionInfoUrl) { // for unit tests
-                    localVersionInfoUrl = _versionInfoUrl;
-                }
-                if (lang === "en" || lang === "en-us") {
-                    localVersionInfoUrl = localVersionInfoUrl || _getVersionInfoUrl("en");
-                    lookupPromise.resolve();
-                } else {
-                    localVersionInfoUrl = localVersionInfoUrl || _getVersionInfoUrl(lang);
+            loadLocalizedContent()
+                .done(function (localVersionInfoUrl) {
                     $.ajax({
                         url: localVersionInfoUrl,
-                        async: false,
-                        cache: false,
-                        type: "HEAD"
-                    }).done(lookupPromise.resolve);
-                    if (lookupPromise.state() === "resolved") {
-                        return false; // break the loop
-                    }
-                }
-            });
+                        dataType: "json",
+                        cache: false
+                    }).done(function (updateInfo, textStatus, jqXHR) {
+                        if (!dontCache) {
+                            lastInfoURLFetchTime = (new Date()).getTime();
+                            PreferencesManager.setViewState("lastInfoURLFetchTime", lastInfoURLFetchTime);
+                            PreferencesManager.setViewState("updateInfo", updateInfo);
+                        }
+                        result.resolve(updateInfo);
+                    }).fail(function (jqXHR, status, error) {
+                        // When loading data for unit tests, the error handler is
+                        // called but the responseText is valid. Try to use it here,
+                        // but *don't* save the results in prefs.
 
-            lookupPromise.done(function () {
-                $.ajax({
-                    url: localVersionInfoUrl,
-                    dataType: "json",
-                    cache: false
-                }).done(function (updateInfo, textStatus, jqXHR) {
-                    if (!dontCache) {
-                        lastInfoURLFetchTime = (new Date()).getTime();
-                        PreferencesManager.setViewState("lastInfoURLFetchTime", lastInfoURLFetchTime);
-                        PreferencesManager.setViewState("updateInfo", updateInfo);
-                    }
-                    result.resolve(updateInfo);
-                }).fail(function (jqXHR, status, error) {
-                    // When loading data for unit tests, the error handler is
-                    // called but the responseText is valid. Try to use it here,
-                    // but *don't* save the results in prefs.
+                        if (!jqXHR.responseText) {
+                            // Text is NULL or empty string, reject().
+                            result.reject();
+                            return;
+                        }
 
-                    if (!jqXHR.responseText) {
-                        // Text is NULL or empty string, reject().
-                        result.reject();
-                        return;
-                    }
-
-                    try {
-                        data = JSON.parse(jqXHR.responseText);
-                        result.resolve(data);
-                    } catch (e) {
-                        result.reject();
-                    }
+                        try {
+                            data = JSON.parse(jqXHR.responseText);
+                            result.resolve(data);
+                        } catch (e) {
+                            result.reject();
+                        }
+                    });
+                })
+                .fail(function () {
+                    result.reject();
                 });
-            });
         } else {
             result.resolve(data);
         }
