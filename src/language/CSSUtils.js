@@ -336,7 +336,6 @@ define(function (require, exports, module) {
      */
     function _getSucceedingPropValues(ctx, currentValue) {
         var lastValue = currentValue,
-            curValue,
             propValues = [];
         
         while (ctx.token.string !== ";" && ctx.token.string !== "}" && TokenUtils.moveNextToken(ctx)) {
@@ -527,16 +526,13 @@ define(function (require, exports, module) {
      *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
     function _getImportUrlInfo(ctx, editor) {
-        var propNamePos = $.extend({}, ctx.pos),
-            backwardPos = $.extend({}, ctx.pos),
+        var backwardPos = $.extend({}, ctx.pos),
             forwardPos  = $.extend({}, ctx.pos),
             backwardCtx,
             forwardCtx,
             index = 0,
             propValues = [],
-            offset = TokenUtils.offsetInToken(ctx),
-            testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
-            testToken = editor._codeMirror.getTokenAt(testPos, true);
+            offset = TokenUtils.offsetInToken(ctx);
 
         // Currently only support url. May be null if starting to type
         if (ctx.token.type && ctx.token.type !== "string") {
@@ -602,8 +598,6 @@ define(function (require, exports, module) {
         // the pos the caller passed in so we use extend to make a safe copy of it.	
         var pos = $.extend({}, constPos),
             ctx = TokenUtils.getInitialContext(editor._codeMirror, pos),
-            offset = TokenUtils.offsetInToken(ctx),
-            propName = "",
             mode = editor.getModeForSelection();
         
         // Check if this is inside a style block or in a css/less document.
@@ -1332,12 +1326,10 @@ define(function (require, exports, module) {
     function _findAllMatchingSelectorsInText(text, selector, mode) {
         var allSelectors = extractAllSelectors(text, mode);
         var result = [];
-        var i;
         
         // For now, we only match the rightmost simple selector, and ignore
         // attribute selectors and pseudo selectors
         var classOrIdSelector = selector[0] === "." || selector[0] === "#";
-        var prefix = "";
         
         // Escape initial "." in selector, if present.
         if (selector[0] === ".") {
@@ -1503,7 +1495,7 @@ define(function (require, exports, module) {
     function findSelectorAtDocumentPos(editor, pos) {
         var cm = editor._codeMirror;
         var ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
-        var selector = "", inSelector = false, foundChars = false;
+        var selector = "", foundChars = false;
         var isPreprocessorDoc = FileUtils.isCSSPreprocessorFile(editor.document.file.fullPath);
         var selectorArray = [];
 

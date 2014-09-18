@@ -336,7 +336,6 @@ define(function (require, exports, module) {
     SearchResultsView.prototype._showSummary = function () {
         var count     = this._model.countFilesMatches(),
             lastIndex = this._getLastIndex(count.matches),
-            fileList  = Object.keys(this._model.results),
             filesStr,
             summary;
         

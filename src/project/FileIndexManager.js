@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define */
 
 /**
  * This is a compatibility shim for legacy Brackets APIs that will be removed soon.
@@ -33,8 +33,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var ProjectManager      = require("project/ProjectManager"),
-        FileUtils           = require("file/FileUtils");
+    var ProjectManager  = require("project/ProjectManager");
     
     function _warn() {
         console.error("Warning: FileIndexManager is deprecated. Use ProjectManager.getAllFiles() instead");

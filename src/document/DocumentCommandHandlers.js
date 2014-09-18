@@ -54,7 +54,6 @@ define(function (require, exports, module) {
         DragAndDrop         = require("utils/DragAndDrop"),
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent"),
-        LanguageManager     = require("language/LanguageManager"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         Menus               = require("command/Menus"),
         UrlParams           = require("utils/UrlParams").UrlParams,
@@ -740,8 +739,6 @@ define(function (require, exports, module) {
         }
 
         if (docToSave.isDirty) {
-            var writeError = false;
-            
             if (docToSave.keepChangesTime) {
                 // The user has decided to keep conflicting changes in the editor. Check to make sure
                 // the file hasn't changed since they last decided to do that.
@@ -1666,12 +1663,12 @@ define(function (require, exports, module) {
     }
 
     // Deprecated commands
-    CommandManager.register(Strings.CMD_ADD_TO_WORKINGSET_AND_OPEN,  Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);
+    CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);
     CommandManager.register(Strings.CMD_FILE_OPEN,                   Commands.FILE_OPEN,                      handleDocumentOpen);
     
     // New commands
+    CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, handleFileAddToWorkingSetAndOpen);
     CommandManager.register(Strings.CMD_FILE_OPEN,                   Commands.CMD_OPEN,                       handleFileOpen);
-    CommandManager.register(Strings.CMD_ADD_TO_WORKINGSET_AND_OPEN,  Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, handleFileAddToWorkingSetAndOpen);
     
     // File Commands
     CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,           Commands.FILE_NEW_UNTITLED,              handleFileNew);

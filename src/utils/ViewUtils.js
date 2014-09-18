@@ -70,7 +70,6 @@ define(function (require, exports, module) {
             var clientHeight        = scrollElement.clientHeight,
                 outerHeight         = $displayElement.outerHeight(),
                 scrollHeight        = scrollElement.scrollHeight,
-                bottomOffset        = outerHeight - clientHeight,
                 bottomShadowOffset  = SCROLL_SHADOW_HEIGHT; // outside of shadow div viewport
             
             if (scrollHeight > clientHeight) {
@@ -186,7 +185,9 @@ define(function (require, exports, module) {
     function sidebarList($scrollerElement, selectedClassName, leafClassName) {
         var $listElement = $scrollerElement.find("ul"),
             $selectionMarker,
-            $sidebar = $("#sidebar");
+            $selectionExtension,
+            $sidebar = $("#sidebar"),
+            showExtension = true;
         
         // build selectionMarker and position absolute within the scroller
         $selectionMarker = $(window.document.createElement("div")).addClass("sidebar-selection");
@@ -197,12 +198,40 @@ define(function (require, exports, module) {
         
         // use relative postioning for clipping the selectionMarker within the scrollElement
         $scrollerElement.css("position", "relative");
-
+        
+        // build selectionExtension and position fixed to the window
+        $selectionExtension = $(window.document.createElement("div")).addClass("sidebar-selection-extension");
+        
+        $scrollerElement.append($selectionExtension);
         
         selectedClassName = "." + (selectedClassName || "selected");
         
+        var updateSelectionExtension = function () {
+            var selectionMarkerHeight = $selectionMarker.height(),
+                selectionMarkerOffset = $selectionMarker.offset(),  // offset relative to *document*
+                scrollerOffset = $scrollerElement.offset(),
+                selectionExtensionHeight = $selectionExtension.outerHeight(),
+                scrollerTop = scrollerOffset.top,
+                scrollerBottom = scrollerTop + $scrollerElement.outerHeight(),
+                selectionExtensionTop = selectionMarkerOffset.top;
+            
+            $selectionExtension.css("top", selectionExtensionTop);
+            $selectionExtension.css("left", $sidebar.width() - $selectionExtension.outerWidth());
+            toggleClass($selectionExtension, "selectionExtension-visible", showExtension);
+                
+            var selectionExtensionClipOffsetYBy = Math.floor((selectionMarkerHeight - selectionExtensionHeight) / 2),
+                selectionExtensionBottom = selectionExtensionTop + selectionExtensionHeight + selectionExtensionClipOffsetYBy;
+            
+            if (selectionExtensionTop < scrollerTop || selectionExtensionBottom > scrollerBottom) {
+                $selectionExtension.css("clip", "rect(" + Math.max(scrollerTop - selectionExtensionTop - selectionExtensionClipOffsetYBy, 0) + "px, auto, " +
+                                           (selectionExtensionHeight - Math.max(selectionExtensionBottom - scrollerBottom, 0)) + "px, auto)");
+            } else {
+                $selectionExtension.css("clip", "");
+            }
+        };
         
         var hideSelectionMarker = function (event) {
+            $selectionExtension.addClass("forced-hidden");
             $selectionMarker.addClass("forced-hidden");
         };
         
@@ -210,9 +239,15 @@ define(function (require, exports, module) {
             // find the selected list item
             var $listItem = $listElement.find(selectedClassName).closest("li");
             
+            if (leafClassName) {
+                showExtension = $listItem.hasClass(leafClassName);
+            }
+
+            $selectionExtension.removeClass("forced-hidden");
             $selectionMarker.removeClass("forced-hidden");
             
             // always hide selection visuals first to force layout (issue #719)
+            $selectionExtension.hide();
             $selectionMarker.hide();
             
             if ($listItem.length === 1) {
@@ -226,6 +261,9 @@ define(function (require, exports, module) {
                 $selectionMarker.css("top", selectionMarkerTop);
                 $selectionMarker.show();
                 
+                updateSelectionExtension();
+                $selectionExtension.show();
+            
                 // fully scroll to the selectionMarker if it's not initially in the viewport
                 var scrollerElement = $scrollerElement.get(0),
                     scrollerHeight = scrollerElement.clientHeight,
@@ -245,10 +283,15 @@ define(function (require, exports, module) {
         };
         
         $listElement.on("selectionChanged", updateSelectionMarker);
+        $scrollerElement.on("scroll", updateSelectionExtension);
+        $scrollerElement.on("selectionRedraw", updateSelectionExtension);
         $scrollerElement.on("selectionHide", hideSelectionMarker);
         
         // update immediately
         updateSelectionMarker();
+        
+        // update clipping when the window resizes
+        _resizeHandlers.push(updateSelectionExtension);
     }
     
     /**
@@ -272,8 +315,7 @@ define(function (require, exports, module) {
     function getElementClipSize($view, elementRect) {
         var delta,
             clip = { top: 0, right: 0, bottom: 0, left: 0 },
-            viewOffset = $view.offset() || { top: 0, left: 0},
-            viewScroller = $view.get(0);
+            viewOffset = $view.offset() || { top: 0, left: 0};
 
         // Check if element extends below viewport
         delta = (elementRect.top + elementRect.height) - (viewOffset.top + $view.height());
@@ -320,10 +362,7 @@ define(function (require, exports, module) {
      * @param {?boolean} scrollHorizontal - whether to also scroll horizontally
      */
     function scrollElementIntoView($view, $element, scrollHorizontal) {
-        var viewOffset = $view.offset(),
-            viewScroller = $view.get(0),
-            element = $element.get(0),
-            elementOffset = $element.offset();
+        var elementOffset = $element.offset();
 
         // scroll minimum amount
         var elementRect = {

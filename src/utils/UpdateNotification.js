@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils, window, Mustache */
+/*global define, $, brackets, window, Mustache */
 
 /**
  *  Utilities functions for displaying update notifications
@@ -35,13 +35,14 @@ define(function (require, exports, module) {
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         ExtensionManager     = require("extensibility/ExtensionManager"),
         PreferencesManager   = require("preferences/PreferencesManager"),
-        Global               = require("utils/Global"),
         NativeApp            = require("utils/NativeApp"),
-        StringUtils          = require("utils/StringUtils"),
         Strings              = require("strings"),
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
         UpdateListTemplate   = require("text!htmlContent/update-list.html");
     
+    // make sure the global brackets variable is loaded
+    require("utils/Global");
+
     // duration of one day in milliseconds
     var ONE_DAY = 1000 * 60 * 60 * 24;
 
