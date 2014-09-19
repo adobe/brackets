@@ -729,13 +729,13 @@ a, img {
     z-index: 1;
 }
 .splitview-icon-none {
-    background-position: center 2px;
+    background-position: center 1px;
 }
 .splitview-icon-vertical {
-    background-position: center -19px;
+    background-position: center -20px;
 }
 .splitview-icon-horizontal {
-    background-position: center -40px;
+    background-position: center -41px;
 }
 
 // Show splitview icons on the button's dropdown menu too
@@ -744,6 +744,7 @@ a, img {
         display: inline-block;
         .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons.svg");
         margin: 0 5px 0 -1px;
+        vertical-align: -2px;
     }
     &:nth-child(1) .menu-name::before {
         .splitview-icon-none();

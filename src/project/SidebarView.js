@@ -132,7 +132,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _updateUIStates() {
-        var ypos, spriteIndex,
+        var spriteIndex,
             ICON_CLASSES = ["splitview-icon-none", "splitview-icon-vertical", "splitview-icon-horizontal"],
             layoutScheme = MainViewManager.getLayoutScheme();
 
