@@ -1524,7 +1524,8 @@ define(function (require, exports, module) {
     }
 
     /**
-     *
+     * Warn user when file is already open in another view
+     * @param {string} fullPath Full path to file.
      */
     function checkOtherPanesForFilepath(fullPath) {
         // Only show dialog once

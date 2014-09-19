@@ -208,7 +208,7 @@ define(function (require, exports, module) {
             // to trigger documentSelectionFocusChange event.
             _fileSelectionFocus = WORKING_SET_VIEW;
             _activatePane(paneId);
-
+            
             result.resolve(file);
         }).fail(function (err) {
             result.reject(err);
