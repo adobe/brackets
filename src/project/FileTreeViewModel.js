@@ -22,6 +22,7 @@
  */
 
 /*global define, $*/
+/*jslint es5: true */
 /*unittests: FileTreeViewModel*/
 
 /**
