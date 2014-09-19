@@ -204,10 +204,12 @@ define(function (require, exports, module) {
             // to trigger documentSelectionFocusChange event.
             _fileSelectionFocus = WORKING_SET_VIEW;
             _activatePane(paneId);
-            
+
+            // Temporary fix: currently do not allow same file to be open in multiple views,
+            // so display a twipsy over filename in working set.
             if (findResults.length > 0) {
-                var fileSelector = "#working-set-list-" + findResults[0].paneId + " .open-files-container > ul:nth-child(" + (findResults[0].index + 1) + ")";
-                var $workingSetFile = $(fileSelector);
+                var item = findResults[0],
+                    $workingSetFile = $("#working-set-list-" + item.paneId + " .open-files-container > ul:nth-child(" + (item.index + 1) + ")");
 
                 // Destroy the previous twipsy (options are not updated otherwise)
                 $workingSetFile.twipsy("hide").removeData("twipsy");
