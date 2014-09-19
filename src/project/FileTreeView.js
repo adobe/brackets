@@ -271,6 +271,7 @@ define(function (require, exports, module) {
      * * entry: the object with the relevant metadata for the file (whether it's selected or is the context file)
      * * actions: the action creator responsible for communicating actions the user has taken
      * * extensions: registered extensions for the file tree
+     * * forceRender: causes the component to run render
      */
     var fileNode = React.createClass({
         mixins: [contextSettable, pathComputer, extendable],
@@ -488,6 +489,7 @@ define(function (require, exports, module) {
      * * actions: the action creator responsible for communicating actions the user has taken
      * * sortDirectoriesFirst: whether the directories should be displayed first when listing the contents of a directory
      * * extensions: registered extensions for the file tree
+     * * forceRender: causes the component to run render
      */
     directoryNode = React.createClass({
         mixins: [contextSettable, pathComputer, extendable],
@@ -611,6 +613,7 @@ define(function (require, exports, module) {
      * * actions: the action creator responsible for communicating actions the user has taken
      * * sortDirectoriesFirst: whether the directories should be displayed first when listing the contents of a directory
      * * extensions: registered extensions for the file tree
+     * * forceRender: causes the component to run render
      */
     directoryContents = React.createClass({
 
@@ -730,6 +733,7 @@ define(function (require, exports, module) {
      * * parentPath: the full path of the directory containing this file
      * * actions: the action creator responsible for communicating actions the user has taken
      * * extensions: registered extensions for the file tree
+     * * forceRender: causes the component to run render
      */
     var fileTreeView = React.createClass({
 
@@ -788,6 +792,7 @@ define(function (require, exports, module) {
      * @param {FileTreeViewModel} viewModel the data container
      * @param {Directory} projectRoot Directory object from which the fullPath of the project root is extracted
      * @param {ActionCreator} actions object with methods used to communicate events that originate from the user
+     * @param {boolean} forceRender Run render on the entire tree (useful if an extension has new data that it needs rendered)
      */
     function render(element, viewModel, projectRoot, actions, forceRender) {
         if (!projectRoot) {
