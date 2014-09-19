@@ -1122,6 +1122,15 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Closes the directory at path and recursively closes all of its children.
+     * 
+     * @param {string} path Path of subtree to close
+     */
+    ProjectModel.prototype.closeSubtree = function (path) {
+        this._viewModel.closeSubtree(this.makeProjectRelativeIfPossible(path));
+    };
+
+    /**
      * Toggle the open state of subdirectories.
      * @param {!string}  path        parent directory
      * @param {boolean} openOrClose  true to open directory, false to close

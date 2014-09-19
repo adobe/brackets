@@ -514,10 +514,18 @@ define(function (require, exports, module) {
                 setOpen = isOpen ? false : true;
             
             if (event.metaKey || event.ctrlKey) {
-                // ctrl-alt-click toggles this directory and its immediate children
+                // ctrl-alt-click toggles this directory and its children
                 if (event.altKey) {
-                    this.props.actions.toggleSubdirectories(this.myPath(), setOpen);
-                    this.props.actions.setDirectoryOpen(this.myPath(), setOpen);
+                    if (setOpen) {
+                        // when opening, we only open the immediate children because
+                        // opening a whole subtree could be really slow (consider
+                        // a `node_modules` directory, for example).
+                        this.props.actions.toggleSubdirectories(this.myPath(), setOpen);
+                        this.props.actions.setDirectoryOpen(this.myPath(), setOpen);
+                    } else {
+                        // When closing, we recursively close the whole subtree.
+                        this.props.actions.closeSubtree(this.myPath());
+                    }
                 } else {
                     // ctrl-click toggles the sibling directories
                     this.props.actions.toggleSubdirectories(this.props.parentPath, setOpen);

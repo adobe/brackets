@@ -328,6 +328,13 @@ define(function (require, exports, module) {
     };
 
     /**
+     * See `ProjectModel.closeSubtree`
+     */
+    ActionCreator.prototype.closeSubtree = function (path) {
+        this.model.closeSubtree(path);
+    };
+
+    /**
      * See `ProjectModel.refresh`
      */
     ActionCreator.prototype.refresh = function () {

@@ -958,6 +958,9 @@ define(function (require, exports, module) {
                 subdir3: {
                     children: null
                 },
+                subdir4: {
+                    children: null
+                },
                 "toplevel.txt": {
                     isFile: true
                 }
@@ -1137,6 +1140,29 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(vm.treeData.getIn(["subdir4", "children", "css", "open"])).toBeUndefined();
                     expect(vm.treeData.getIn(["subdir4", "children", "js", "open"])).toBeUndefined();
+                });
+            });
+        });
+        
+        describe("closeSubtree", function () {
+            var data,
+                model,
+                vm;
+            
+            beforeEach(function () {
+                data = getLoadableFixture();
+                model = data.model;
+                vm = data.vm;
+            });
+
+            it("should close the directory and its children", function () {
+                waitsForDone(model.setDirectoryOpen("/foo/subdir4/", true));
+                runs(function () {
+                    waitsForDone(model.toggleSubdirectories("/foo/subdir4/", true));
+                });
+                runs(function () {
+                    model.closeSubtree("/foo/subdir4/");
+                    expect(vm._getObject("subdir4/js").get("open")).toBeUndefined();
                 });
             });
         });

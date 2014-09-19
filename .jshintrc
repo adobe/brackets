@@ -19,7 +19,7 @@
     "boss"          : false,
     "debug"         : false,
     "eqnull"        : false,
-    "es5"           : false,
+    "es5"           : true,
     "esnext"        : false,
     "evil"          : false,
     "expr"          : false,

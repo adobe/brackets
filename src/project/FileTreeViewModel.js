@@ -413,7 +413,7 @@ define(function (require, exports, module) {
             var lastObjectPath = _filePathToObjectPath(treeData, oldPath);
             if (lastObjectPath) {
                 newTreeData = newTreeData.updateIn(lastObjectPath, function (entry) {
-                    return entry["delete"](markerName);
+                    return entry.delete(markerName);
                 });
             }
         }
@@ -466,7 +466,7 @@ define(function (require, exports, module) {
         objectPath.pop();
 
         treeData = treeData.updateIn(objectPath, function (directory) {
-            directory = directory["delete"](originalName);
+            directory = directory.delete(originalName);
             directory = directory.set(newName, currentObject);
             return directory;
         });
@@ -504,7 +504,7 @@ define(function (require, exports, module) {
             if (open) {
                 return directory.set("open", true);
             } else {
-                return directory["delete"]("open");
+                return directory.delete("open");
             }
         });
 
@@ -534,6 +534,64 @@ define(function (require, exports, module) {
             this._commitTreeData(result.treeData);
         }
         return result ? result.needsLoading : false;
+    };
+    
+    /**
+     * Returns the object at the given file path.
+     * 
+     * @param {string} path Path to the object
+     * @return {Immutable.Map=} directory or file object from the tree. Null if it's not found.
+     */
+    FileTreeViewModel.prototype._getObject = function (path) {
+        var objectPath = _filePathToObjectPath(this._treeData, path);
+        if (!objectPath) {
+            return null;
+        }
+        return this._treeData.getIn(objectPath);
+    };
+    
+    /**
+     * Closes a subtree path, given by an object path.
+     * 
+     * @param {Immutable.Map} directory Current directory
+     * @return {Immutable.Map} new directory
+     */
+    function _closeSubtree(directory) {
+        directory = directory.delete("open");
+        
+        var children = directory.get("children");
+        if (children) {
+            children.keySeq().forEach(function (name) {
+                var subdir = children.get(name);
+                if (!isFile(subdir)) {
+                    subdir = _closeSubtree(subdir);
+                    children = children.set(name, subdir);
+                }
+            });
+        }
+        
+        directory = directory.set("children", children);
+        return directory;
+    }
+    
+    /**
+     * Closes the directory at path and recursively closes all of its children.
+     * 
+     * @param {string} path Path of subtree to close
+     */
+    FileTreeViewModel.prototype.closeSubtree = function (path) {
+        var treeData = this._treeData,
+            subtreePath = _filePathToObjectPath(treeData, path);
+        
+        if (!subtreePath) {
+            return;
+        }
+        
+        var directory = treeData.getIn(subtreePath);
+        
+        directory = _closeSubtree(directory);
+        treeData = _setIn(treeData, subtreePath, directory);
+        this._commitTreeData(treeData);
     };
 
     /**
@@ -589,7 +647,7 @@ define(function (require, exports, module) {
                 deletedEntries = _.difference(currentEntries, keysSeen);
 
             deletedEntries.forEach(function (name) {
-                children["delete"](name);
+                children.delete(name);
             });
         });
         return children;
@@ -710,7 +768,7 @@ define(function (require, exports, module) {
             // If the directory had been created previously as `notFullyLoaded`, we can
             // remove that flag now because this is the step that is loading the directory.
             if (directory.get("notFullyLoaded")) {
-                directory = directory["delete"]("notFullyLoaded");
+                directory = directory.delete("notFullyLoaded");
             }
 
             if (!directory.get("children")) {
@@ -850,7 +908,7 @@ define(function (require, exports, module) {
         objectPath.pop();
 
         treeData = treeData.updateIn(objectPath, function (directory) {
-            directory = directory["delete"](originalName);
+            directory = directory.delete(originalName);
             return directory;
         });
 

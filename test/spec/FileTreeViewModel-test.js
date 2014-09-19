@@ -141,6 +141,59 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("closeSubtree", function () {
+            var vm = new FileTreeViewModel.FileTreeViewModel(),
+                changesFired;
+
+            vm.on(FileTreeViewModel.EVENT_CHANGE, function () {
+                changesFired++;
+            });
+
+            beforeEach(function () {
+                changesFired = 0;
+                vm._treeData = Immutable.fromJS({
+                    "subdir": {
+                        open: true,
+                        children: {
+                            "afile.js": {},
+                            "subsubdir": {
+                                open: true,
+                                children: {
+                                    "evensubbersubdir": {
+                                        open: true,
+                                        children: {
+                                            waydownhere: {
+                                                children: null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+            
+            it("closes the top dir and its children without clearing the children", function () {
+                vm.closeSubtree("subdir/");
+                expect(changesFired).toBe(1);
+                expect(vm._getObject("subdir/subsubdir/evensubbersubdir/").get("open")).toBeUndefined();
+                expect(vm._getObject("subdir/subsubdir/").get("open")).toBeUndefined();
+                expect(vm._getObject("subdir/").get("open")).toBeUndefined();
+            });
+            
+            it("doesn't fail on an unknown path", function () {
+                vm.closeSubtree("foo");
+            });
+            
+            it("will close a directory that's already hidden", function () {
+                vm.setDirectoryOpen("subdir/subsubdir/", false);
+                expect(vm._getObject("subdir/subsubdir/evensubbersubdir/").get("open")).toBe(true);
+                vm.closeSubtree("subdir/");
+                expect(vm._getObject("subdir/subsubdir/evensubbersubdir/").get("open")).toBeUndefined();
+            });
+        });
+
         describe("setDirectoryContents", function () {
             var vm = new FileTreeViewModel.FileTreeViewModel(),
                 changesFired;
