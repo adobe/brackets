@@ -50,9 +50,12 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
+        Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         MainViewManager     = require("view/MainViewManager"),
         CommandManager      = require("command/CommandManager"),
         PerfUtils           = require("utils/PerfUtils"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
         Commands            = require("command/Commands"),
         DeprecationWarning  = require("utils/DeprecationWarning"),
         Strings             = require("strings");
@@ -143,12 +146,33 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function openAndSelectDocument(fullPath, fileSelectionFocus, paneId) {
-        var result,
+        var result, findResults,
+            origPaneId = MainViewManager.getActivePaneId(),
             curDocChangedDueToMe = _curDocChangedDueToMe;
 
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
             console.error("Bad parameter passed to FileViewController.openAndSelectDocument");
             return;
+        }
+
+        // Temporary fix: currently not allowed to have a file open in multiple views, so when
+        // user clicks or double-clicks in project tree, display an info message (only once).
+        if (!PreferencesManager.getViewState("splitview.multipane-info")) {
+            if (fileSelectionFocus === "ProjectManager") {
+                findResults = MainViewManager.findInAllWorkingSets(fullPath);
+                if (findResults.length > 0 && findResults[0].paneId !== origPaneId) {
+                    // File tree also executes single-click code prior to executing double-click code,
+                    // so delay showing modal dialog to prevent eating second click
+                    window.setTimeout(function () {
+                        PreferencesManager.setViewState("splitview.multipane-info", "true");
+                        Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_INFO,
+                            Strings.SPLITVIEW_INFO_TITLE,
+                            Strings.SPLITVIEW_MULTIPANE_WARNING
+                        );
+                    }, 500);
+                }
+            }
         }
 
         // Opening files are asynchronous and we want to know when this function caused a file
@@ -188,8 +212,7 @@ define(function (require, exports, module) {
      * @return {!$.Promise}
      */
     function openFileAndAddToWorkingSet(fullPath, paneId) {
-        var findResults = MainViewManager.findInAllWorkingSets(fullPath),
-            result = new $.Deferred(),
+        var result = new $.Deferred(),
             promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath,
                                                                                   paneId: paneId});
 
@@ -205,29 +228,6 @@ define(function (require, exports, module) {
             _fileSelectionFocus = WORKING_SET_VIEW;
             _activatePane(paneId);
 
-            // Temporary fix: currently do not allow same file to be open in multiple views,
-            // so display a twipsy over filename in working set.
-            if (findResults.length > 0) {
-                var item = findResults[0],
-                    $workingSetFile = $("#working-set-list-" + item.paneId + " .open-files-container > ul:nth-child(" + (item.index + 1) + ")");
-
-                // Destroy the previous twipsy (options are not updated otherwise)
-                $workingSetFile.twipsy("hide").removeData("twipsy");
-
-                // Configure the twipsy
-                var options = {
-                    placement: "right",
-                    trigger: "manual",
-                    autoHideDelay: 3000,
-                    title: function () {
-                        return Strings.SPLITVIEW_MULTIPANE_WARNING;
-                    }
-                };
-
-                // Show the twipsy with the explanation
-                $workingSetFile.twipsy(options).twipsy("show");
-            }
-            
             result.resolve(file);
         }).fail(function (err) {
             result.reject(err);

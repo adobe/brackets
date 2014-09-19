@@ -236,7 +236,8 @@ define({
     "SPLITVIEW_MENU_TOOLTIP"    : "Split the editor vertically or horizontally",
     "GEAR_MENU_TOOLTIP"         : "Configure Working Set",
 
-    "SPLITVIEW_MULTIPANE_WARNING"       : "File is already open in another pane and it's not yet possible to open a file in multiple panes.",
+    "SPLITVIEW_INFO_TITLE"              : "Split View Information",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "File is already open in another view and it's not yet possible to open a file in multiple views, so file will be displayed in other view.<br /><br />(You'll only see this message once.)",
 
     /**
      * Keyboard modifier names
