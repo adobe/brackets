@@ -1472,12 +1472,18 @@ define(function (require, exports, module) {
         if (_activePaneId) {
             throw new Error("MainViewManager has already been initialized");
         }
+
         _$el = $container;
         _createPaneIfNecessary(FIRST_PANE);
         _activePaneId = FIRST_PANE;
         // One-time init so the pane has the "active" appearance   
         _panes[FIRST_PANE]._handleActivePaneChange(undefined, _activePaneId);
         _initialLayout();
+
+        // This ensures that unit tests that use this function 
+        //  get an event handler for workspace events and we don't listen
+        //  to the event before we've been initialized
+        $(WorkspaceManager).on("workspaceUpdateLayout", _updateLayout);
     }
     
     /** 
@@ -1526,8 +1532,6 @@ define(function (require, exports, module) {
      */
     AppInit.htmlReady(function () {
         _initialize($("#editor-holder"));
-        // Ingnore workspace manager events until we're initialized
-        $(WorkspaceManager).on("workspaceUpdateLayout", _updateLayout);
     });
     
     // Event handlers
