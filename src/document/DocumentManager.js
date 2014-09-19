@@ -61,10 +61,9 @@
  *       Some WorkingSet APIs that have been identified as being used by 3rd party extensions will
  *       emit deprecation warnings and call the WorkingSet APIS to maintain backwards compatibility
  *
- *    - currentDocumentChange -- This is being deprecated and is currently only used as a shim to assist 
- *      the document open process so that the editor will actually open or close the desired document. 
- *      This will change accordingly once work begins to refactor EditorManager to be a view provider
- *      and open documents directly.
+ *    - currentDocumentChange -- Deprecated: use EditorManager activeEditorChange (which covers all editors,
+ *      not just full-sized editors) or MainViewManager currentFileChange (which covers full-sized views
+ *      only, but is also triggered for non-editor views e.g. image files).
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.  Generally, however, file objects have already been changed by the 
@@ -659,12 +658,14 @@ define(function (require, exports, module) {
             $(oldDoc).off("languageChanged.DocumentManager");
         }
         
-        var count = DeprecationWarning.getEventHandlerCount(exports, "currentDocumentChange");
-        if (count > 0) {
-            DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChange' instead.", true);
+        if (newDoc !== oldDoc) {
+            var count = DeprecationWarning.getEventHandlerCount(exports, "currentDocumentChange");
+            if (count > 0) {
+                DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChange' instead.", true);
+            }
+
+            $(exports).triggerHandler("currentDocumentChange", [newDoc, oldDoc]);
         }
-        
-        $(exports).triggerHandler("currentDocumentChange", [newDoc, oldDoc]);
 
         if (newDoc) {
             $(newDoc).on("languageChanged.DocumentManager", function (data) {
