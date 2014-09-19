@@ -63,9 +63,6 @@ define(function (require, exports, module) {
         _cmdSplitVertical,
         _cmdSplitHorizontal;
     
-    var SPRITE_BASE   =  5,
-        SPRITE_OFFSET = 21;
-    
     /**
      * @private
      * Update project title when the project root changes
@@ -135,7 +132,8 @@ define(function (require, exports, module) {
      * @private
      */
     function _updateUIStates() {
-        var ypos, spriteIndex,
+        var spriteIndex,
+            ICON_CLASSES = ["splitview-icon-none", "splitview-icon-vertical", "splitview-icon-horizontal"],
             layoutScheme = MainViewManager.getLayoutScheme();
 
         if (layoutScheme.columns > 1) {
@@ -147,8 +145,8 @@ define(function (require, exports, module) {
         }
         
         // SplitView Icon
-        ypos  = SPRITE_BASE - (spriteIndex * SPRITE_OFFSET);
-        $splitViewMenu.css("background-position-y", ypos);
+        $splitViewMenu.removeClass(ICON_CLASSES.join(" "))
+                      .addClass(ICON_CLASSES[spriteIndex]);
 
         // SplitView Menu
         _cmdSplitNone.setChecked(spriteIndex === 0);

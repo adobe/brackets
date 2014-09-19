@@ -204,16 +204,14 @@ define(function (require, exports, module) {
             menu.addMenuItem(Commands.HELP_ABOUT);
         }
         
+        
         /*
-         * WorkingSet context and gear menus
-         * NOTE: Unlike most context menus defined here, these menus cannot
-         *       be setup to listen to click or context menu events when 
-         *       this module intializes because the DOM nodes for these are 
-         *       created by pane views which are created at runtime. 
-         *       All other context menus have DOM elements to attach to
-         *       out of index.html
+         * Context Menus
          */
-
+        
+        // WorkingSet context menu - Unlike most context menus, we can't attach
+        // listeners here because the DOM nodes for each pane's working set are
+        // created dynamically. Each WorkingSetView attaches its own listeners.
         var workingset_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
         workingset_cmenu.addMenuItem(Commands.FILE_SAVE);
         workingset_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
@@ -238,9 +236,6 @@ define(function (require, exports, module) {
         splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_VERTICAL);
         splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_HORIZONTAL);
         
-        /*
-         * Context Menus
-         */
         var project_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
         project_cmenu.addMenuItem(Commands.FILE_NEW);
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
