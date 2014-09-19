@@ -84,6 +84,8 @@ define(function (require, exports, module) {
         MainViewFactory     = require("view/MainViewFactory"),
         ViewStateManager    = require("view/ViewStateManager"),
         Commands            = require("command/Commands"),
+        Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         EditorManager       = require("editor/EditorManager"),
         FileSystemError     = require("filesystem/FileSystemError"),
         DocumentManager     = require("document/DocumentManager"),
@@ -1520,7 +1522,31 @@ define(function (require, exports, module) {
         
         return result;
     }
-    
+
+    /**
+     *
+     */
+    function checkOtherPanesForFilepath(fullPath) {
+        // Only show dialog once
+        if (PreferencesManager.getViewState("splitview.multipane-info")) {
+            return;
+        }
+
+        var paneId = _getPaneIdForPath(fullPath);
+        if (paneId && paneId !== _activePaneId) {
+            // File tree also executes single-click code prior to executing double-click
+            // code, so delay showing modal dialog to prevent eating second click
+            window.setTimeout(function () {
+                PreferencesManager.setViewState("splitview.multipane-info", "true");
+                Dialogs.showModalDialog(
+                    DefaultDialogs.DIALOG_ID_INFO,
+                    Strings.SPLITVIEW_INFO_TITLE,
+                    Strings.SPLITVIEW_MULTIPANE_WARNING
+                );
+            }, 500);
+        }
+    }
+
     /** 
      * Setup a ready event to initialize ourself
      */
@@ -1573,7 +1599,7 @@ define(function (require, exports, module) {
     // Traversal
     exports.beginTraversal                = beginTraversal;
     exports.endTraversal                  = endTraversal;
-    exports.traverseToNextViewByMRU            = traverseToNextViewByMRU;
+    exports.traverseToNextViewByMRU       = traverseToNextViewByMRU;
     
     // PaneView Attributes
     exports.getActivePaneId               = getActivePaneId;
@@ -1592,6 +1618,7 @@ define(function (require, exports, module) {
     // Convenience
     exports.getCurrentlyViewedFile        = getCurrentlyViewedFile;
     exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;
+    exports.checkOtherPanesForFilepath    = checkOtherPanesForFilepath;
     
     // Constants
     exports.ALL_PANES                     = ALL_PANES;

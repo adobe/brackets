@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -82,6 +82,11 @@ define(function (require, exports, module) {
             // Only open files.
             FileSystem.resolve(path, function (err, item) {
                 if (!err && item.isFile) {
+                    // Temporary fix: currently not allowed to have a file open
+                    // in multiple views, so when user drops a file, display an
+                    // info message (only once).
+                    MainViewManager.checkOtherPanesForFilepath(path);
+                    
                     // If the file is already open, and this isn't the last
                     // file in the list, return. If this *is* the last file,
                     // always open it so it gets selected.

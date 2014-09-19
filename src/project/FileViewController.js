@@ -50,12 +50,9 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
-        Dialogs             = require("widgets/Dialogs"),
-        DefaultDialogs      = require("widgets/DefaultDialogs"),
         MainViewManager     = require("view/MainViewManager"),
         CommandManager      = require("command/CommandManager"),
         PerfUtils           = require("utils/PerfUtils"),
-        PreferencesManager  = require("preferences/PreferencesManager"),
         Commands            = require("command/Commands"),
         DeprecationWarning  = require("utils/DeprecationWarning"),
         Strings             = require("strings");
@@ -146,8 +143,7 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function openAndSelectDocument(fullPath, fileSelectionFocus, paneId) {
-        var result, findResults,
-            origPaneId = MainViewManager.getActivePaneId(),
+        var result,
             curDocChangedDueToMe = _curDocChangedDueToMe;
 
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
@@ -157,22 +153,8 @@ define(function (require, exports, module) {
 
         // Temporary fix: currently not allowed to have a file open in multiple views, so when
         // user clicks or double-clicks in project tree, display an info message (only once).
-        if (!PreferencesManager.getViewState("splitview.multipane-info")) {
-            if (fileSelectionFocus === "ProjectManager") {
-                findResults = MainViewManager.findInAllWorkingSets(fullPath);
-                if (findResults.length > 0 && findResults[0].paneId !== origPaneId) {
-                    // File tree also executes single-click code prior to executing double-click code,
-                    // so delay showing modal dialog to prevent eating second click
-                    window.setTimeout(function () {
-                        PreferencesManager.setViewState("splitview.multipane-info", "true");
-                        Dialogs.showModalDialog(
-                            DefaultDialogs.DIALOG_ID_INFO,
-                            Strings.SPLITVIEW_INFO_TITLE,
-                            Strings.SPLITVIEW_MULTIPANE_WARNING
-                        );
-                    }, 500);
-                }
-            }
+        if (fileSelectionFocus === "ProjectManager") {
+            MainViewManager.checkOtherPanesForFilepath(fullPath);
         }
 
         // Opening files are asynchronous and we want to know when this function caused a file
