@@ -152,8 +152,9 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * Displays an error based on a problem creating a file.
+     * Event handler which displays an error based on a problem creating a file.
      *
+     * @param {$.Event} e jQuery event object
      * @param {{type:any,isFolder:boolean}} errorInfo Information passed in the error events
      */
     function _displayCreationError(e, errorInfo) {
@@ -398,6 +399,17 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     *
+     * Creates a context object for doing project view state lookups.
+     */
+    function _getProjectViewStateContext() {
+        return { location : { scope: "user",
+                             layer: "project",
+                             layerID: model.projectRoot.fullPath } };
+    }
+
+    /**
      * Returns the encoded Base URL of the currently loaded project, or empty string if no project
      * is open (during startup, or running outside of app shell).
      * @return {String}
@@ -411,9 +423,7 @@ define(function (require, exports, module) {
      * @param {String}
      */
     function setBaseUrl(projectBaseUrl) {
-        var context = { location : { scope: "user",
-                                     layer: "project",
-                                     layerID: model.projectRoot.fullPath} };
+        var context = _getProjectViewStateContext();
 
         projectBaseUrl = model.setBaseUrl(projectBaseUrl);
 
@@ -439,17 +449,6 @@ define(function (require, exports, module) {
      */
     function makeProjectRelativeIfPossible(absPath) {
         return model.makeProjectRelativeIfPossible(absPath);
-    }
-
-    /**
-     * @private
-     *
-     * Creates a context object for doing project view state lookups.
-     */
-    function _getProjectViewStateContext() {
-        return { location : { scope: "user",
-                             layer: "project",
-                             layerID: model.projectRoot.fullPath } };
     }
 
     /**
@@ -576,6 +575,8 @@ define(function (require, exports, module) {
      * @private
      *
      * Rerender the file tree view.
+     * 
+     * @param {boolean} forceRender Force the tree to rerender. Should only be needed by extensions that call rerenderTree.
      */
     _renderTree = function (forceRender) {
         var projectRoot = getProjectRoot();
@@ -583,14 +584,6 @@ define(function (require, exports, module) {
             return;
         }
         FileTreeView.render($projectTreeContainer[0], model._viewModel, projectRoot, actionCreator, forceRender);
-        // reposition the selection "extension"
-        $projectTreeContainer.triggerHandler("selectionRedraw");
-
-        // in-lieu of resize events, manually trigger contentChanged for every
-        // FileViewController focus change. This event triggers scroll shadows
-        // on the jstree to update. documentSelectionFocusChange fires when
-        // a new file is added and removed (causing a new selection) from the working set
-//        _projectTree.triggerHandler("contentChanged");
     };
 
     /**
@@ -690,7 +683,7 @@ define(function (require, exports, module) {
             FileSystem.unwatch(model.projectRoot, function (err) {
                 if (err) {
                     console.error("Error unwatching project root: ", model.projectRoot.fullPath, err);
-                    result.reject();
+                    result.reject(err);
                 } else {
                     result.resolve();
                 }
@@ -1212,8 +1205,8 @@ define(function (require, exports, module) {
 
     /**
      * Returns an Array of all files for this project, optionally including
-     * files in the working set that are *not* under the project root. Files filtered
-     * out by shouldShow().
+     * files in the working set that are *not* under the project root. Files are
+     * filtered out by ProjectModel.shouldShow().
      *
      * @param {function (File, number):boolean=} filter Optional function to filter
      *          the file list (does not filter directory traversal). API matches Array.filter().
@@ -1247,7 +1240,8 @@ define(function (require, exports, module) {
 
     /**
      * Adds an icon provider. The icon provider is a function which takes a data object and
-     * returns a React.DOM.ins instance for the icons within the tree.
+     * returns a React.DOM.ins instance, a string, a DOM node or a jQuery instance
+     * for the icons within the tree.
      *
      * The data object contains:
      *
