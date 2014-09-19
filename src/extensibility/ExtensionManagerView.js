@@ -243,7 +243,7 @@ define(function (require, exports, module) {
             [shortLang, lang].forEach(function (locale) {
                 if (info.metadata["package-i18n"].hasOwnProperty(locale)) {
                     // only overlay specific properties with the localized values
-                    ['title', 'description', 'homepage', 'keywords'].forEach(function (prop) {
+                    ["title", "description", "homepage", "keywords"].forEach(function (prop) {
                         if (info.metadata["package-i18n"][locale].hasOwnProperty(prop)) {
                             info.metadata[prop] = info.metadata["package-i18n"][locale][prop];
                         }
