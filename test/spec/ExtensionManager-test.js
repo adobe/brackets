@@ -159,7 +159,23 @@ define(function (require, exports, module) {
             };
         }
         
-        function setupExtensionManagerViewTests() {
+        function setupExtensionManagerViewTests(context) {
+            context.addMatchers({
+                toHaveText: function (expected) {
+                    var notText = this.isNot ? " not" : "";
+                    this.message = function () {
+                        return "Expected view" + notText + " to contain text " + expected;
+                    };
+                    return SpecRunnerUtils.findDOMText(this.actual.$el, expected);
+                },
+                toHaveLink: function (expected) {
+                    var notText = this.isNot ? " not" : "";
+                    this.message = function () {
+                        return "Expected view" + notText + " to contain link " + expected;
+                    };
+                    return SpecRunnerUtils.findDOMText(this.actual.$el, expected, true);
+                }
+            });
             spyOn(InstallExtensionDialog, "installUsingDialog").andCallFake(function (url) {
                 var id = url.match(/fake-repository\.com\/([^\/]+)/)[1];
                 mockLoadExtensions(["user/" + id]);
@@ -896,23 +912,7 @@ define(function (require, exports, module) {
         describe("ExtensionManagerView", function () {
 
             beforeEach(function () {
-                this.addMatchers({
-                    toHaveText: function (expected) {
-                        var notText = this.isNot ? " not" : "";
-                        this.message = function () {
-                            return "Expected view" + notText + " to contain text " + expected;
-                        };
-                        return SpecRunnerUtils.findDOMText(this.actual.$el, expected);
-                    },
-                    toHaveLink: function (expected) {
-                        var notText = this.isNot ? " not" : "";
-                        this.message = function () {
-                            return "Expected view" + notText + " to contain link " + expected;
-                        };
-                        return SpecRunnerUtils.findDOMText(this.actual.$el, expected, true);
-                    }
-                });
-                setupExtensionManagerViewTests();
+                setupExtensionManagerViewTests(this);
                 spyOn(brackets, "getLocale").andReturn("en");
             });
                 
@@ -1807,20 +1807,10 @@ define(function (require, exports, module) {
         describe("ExtensionManagerView-i18n", function () {
             
             beforeEach(function () {
-                this.addMatchers({
-                    toHaveText: function (expected) {
-                        var notText = this.isNot ? " not" : "";
-                        this.message = function () {
-                            return "Expected view" + notText + " to contain text " + expected;
-                        };
-                        return SpecRunnerUtils.findDOMText(this.actual.$el, expected);
-                    }
-                });
-                setupExtensionManagerViewTests();
+                setupExtensionManagerViewTests(this);
                 spyOn(brackets, "getLocale").andReturn("fr");
             });
                 
-            
             afterEach(function () {
                 cleanupExtensionManagerViewTests();
             });
