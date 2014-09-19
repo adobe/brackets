@@ -54,7 +54,8 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands"),
-        DeprecationWarning  = require("utils/DeprecationWarning");
+        DeprecationWarning  = require("utils/DeprecationWarning"),
+        Strings             = require("strings");
 
     /** 
      * Tracks whether a "currentFileChange" notification occured due to a call to 
@@ -187,7 +188,8 @@ define(function (require, exports, module) {
      * @return {!$.Promise}
      */
     function openFileAndAddToWorkingSet(fullPath, paneId) {
-        var result = new $.Deferred(),
+        var findResults = MainViewManager.findInAllWorkingSets(fullPath),
+            result = new $.Deferred(),
             promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath,
                                                                                   paneId: paneId});
 
@@ -202,6 +204,27 @@ define(function (require, exports, module) {
             // to trigger documentSelectionFocusChange event.
             _fileSelectionFocus = WORKING_SET_VIEW;
             _activatePane(paneId);
+            
+            if (findResults.length > 0) {
+                var fileSelector = "#working-set-list-" + findResults[0].paneId + " .open-files-container > ul:nth-child(" + (findResults[0].index + 1) + ")";
+                var $workingSetFile = $(fileSelector);
+
+                // Destroy the previous twipsy (options are not updated otherwise)
+                $workingSetFile.twipsy("hide").removeData("twipsy");
+
+                // Configure the twipsy
+                var options = {
+                    placement: "right",
+                    trigger: "manual",
+                    autoHideDelay: 3000,
+                    title: function () {
+                        return Strings.SPLITVIEW_MULTIPANE_WARNING;
+                    }
+                };
+
+                // Show the twipsy with the explanation
+                $workingSetFile.twipsy(options).twipsy("show");
+            }
             
             result.resolve(file);
         }).fail(function (err) {
