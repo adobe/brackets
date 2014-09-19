@@ -54,8 +54,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands"),
-        DeprecationWarning  = require("utils/DeprecationWarning"),
-        Strings             = require("strings");
+        DeprecationWarning  = require("utils/DeprecationWarning");
 
     /** 
      * Tracks whether a "currentFileChange" notification occured due to a call to 
