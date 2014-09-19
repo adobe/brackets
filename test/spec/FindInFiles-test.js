@@ -105,6 +105,11 @@ define(function (require, exports, module) {
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
         }
         
+        
+        // Note: these utilities can be called without wrapping in a runs() block, because all their top-level
+        // statements are calls to runs() or waitsFor() (or other functions that make the same guarantee). But after
+        // calling one of these, calls to other Jasmine APIs (e.g. such as expects()) *must* be wrapped in runs().
+        
         function waitForSearchBarClose() {
             // Make sure search bar from previous test has animated out fully
             waitsFor(function () {
@@ -167,6 +172,10 @@ define(function (require, exports, module) {
                 expect(numMatches(searchResults)).toBe(options.numMatches);
             });
         }
+        
+        
+        // The functions below are *not* safe to call without wrapping in runs(), if there were any async steps previously
+        // (including calls to any of the utilities above)
 
         function doReplace(options) {
             return FindInFiles.doReplace(searchResults, options.replaceText, {
@@ -577,7 +586,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should not clear the model immediately when opening the Find in Files bar", function () {
+            it("should not clear the model until next search is actually committed", function () {
                 var filePath = testPath + "/foo.js",
                     fileEntry = FileSystem.getFileForPath(filePath);
 
@@ -587,11 +596,19 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(Object.keys(FindInFiles.searchModel.results).length).not.toBe(0);
                 });
-
+                
                 closeSearchBar();
                 openSearchBar(fileEntry);
-
+                
                 runs(function () {
+                    // Search model shouldn't be cleared from merely reopening search bar
+                    expect(Object.keys(FindInFiles.searchModel.results).length).not.toBe(0);
+                });
+                
+                closeSearchBar();
+                
+                runs(function () {
+                    // Search model shouldn't be cleared after search bar closed without running a search
                     expect(Object.keys(FindInFiles.searchModel.results).length).not.toBe(0);
                 });
             });
