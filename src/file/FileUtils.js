@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, FileError, brackets, unescape, window */
+/*global define, $, brackets, unescape, window */
 
 /**
  * Set of utilites for working with files and text content.
@@ -149,6 +149,10 @@ define(function (require, exports, module) {
         return text.replace(findAnyEol, eolStr);
     }
 
+    /**
+     * @param {!FileSystemError} name
+     * @return {!string} User-friendly, localized error message
+     */
     function getFileErrorString(name) {
         // There are a few error codes that we have specific error messages for. The rest are
         // displayed with a generic "(error N)" message.
@@ -164,6 +168,8 @@ define(function (require, exports, module) {
             result = Strings.CONTENTS_MODIFIED_ERR;
         } else if (name === FileSystemError.UNSUPPORTED_ENCODING) {
             result = Strings.UNSUPPORTED_ENCODING_ERR;
+        } else if (name === FileSystemError.UNSUPPORTED_FILETYPE) {
+            result = Strings.UNSUPPORTED_FILE_TYPE_ERR;
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
         }
@@ -171,6 +177,11 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /**
+     * Shows an error dialog indicating that the given file could not be opened due to the given error
+     * @param {!FileSystemError} name
+     * @return {!Dialog}
+     */
     function showFileOpenError(name, path) {
         return Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,
@@ -387,7 +398,7 @@ define(function (require, exports, module) {
      * File extensions - hard-coded for now, but may want to make these preferences
      * @const {Array.<string>}
      */
-    var _staticHtmlFileExts = ["htm", "html"],
+    var _staticHtmlFileExts = ["htm", "html", "xhtml"],
         _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
 
     /**
@@ -417,6 +428,16 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Determines if file extension is a CSS preprocessor file extension that Brackets supports.
+     * @param {string} filePath could be a path, a file name
+     * @return {boolean} true if LanguageManager identifies filePath as less or scss language.
+     */
+    function isCSSPreprocessorFile(filePath) {
+        var languageId = LanguageManager.getLanguageForPath(filePath).getId();
+        return (languageId === "less" || languageId === "scss");
+    }
+    
+    /**
      * Get the parent directory of a file. If a directory is passed in the directory is returned.
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the path to the parent directory of a file or the path of a directory,
@@ -427,12 +448,11 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
      * Get the file name without the extension.
      * @param {string} filename File name of a file or directory
      * @return {string} Returns the file name without the extension
      */
-    function _getFilenameWithoutExtension(filename) {
+    function getFilenameWithoutExtension(filename) {
         var index = filename.lastIndexOf(".");
         return index === -1 ? filename : filename.slice(0, index);
     }
@@ -452,8 +472,8 @@ define(function (require, exports, module) {
             cmpNames;
         
         if (brackets.platform === "win") {
-            filename1 = _getFilenameWithoutExtension(filename1);
-            filename2 = _getFilenameWithoutExtension(filename2);
+            filename1 = getFilenameWithoutExtension(filename1);
+            filename2 = getFilenameWithoutExtension(filename2);
         }
         cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase(), undefined, {numeric: true});
         
@@ -511,11 +531,13 @@ define(function (require, exports, module) {
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
     exports.canonicalizeFolderPath         = canonicalizeFolderPath;
     exports.stripTrailingSlash             = stripTrailingSlash;
+    exports.isCSSPreprocessorFile          = isCSSPreprocessorFile;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getBaseName                    = getBaseName;
     exports.getRelativeFilename            = getRelativeFilename;
+    exports.getFilenameWithoutExtension    = getFilenameWithoutExtension;
     exports.getFileExtension               = getFileExtension;
     exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;

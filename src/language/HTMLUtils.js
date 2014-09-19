@@ -314,7 +314,6 @@ define(function (require, exports, module) {
         // the pos the caller passed in so we use extend to make a safe copy of it.	
         var pos = $.extend({}, constPos),
             ctx = TokenUtils.getInitialContext(editor._codeMirror, pos),
-            tempCtx = null,
             offset = TokenUtils.offsetInToken(ctx),
             tagInfo,
             tokenType;

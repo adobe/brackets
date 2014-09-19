@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $ */
 
 /*
  * UI and controller logic for find/replace across multiple files within the project.
@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         Dialogs           = require("widgets/Dialogs"),
         DefaultDialogs    = require("widgets/DefaultDialogs"),
         EditorManager     = require("editor/EditorManager"),
+        WorkspaceManager  = require("view/WorkspaceManager"),
         FileFilters       = require("search/FileFilters"),
         FileUtils         = require("file/FileUtils"),
         FindBar           = require("search/FindBar").FindBar,
@@ -117,7 +118,7 @@ define(function (require, exports, module) {
     function _showFindBar(scope, showReplace) {
         // If the scope is a file with a custom viewer, then we
         // don't show find in files dialog.
-        if (scope && EditorManager.getCustomViewerForPath(scope.fullPath)) {
+        if (scope && !EditorManager.canOpenPath(scope.fullPath)) {
             return;
         }
         
@@ -130,12 +131,14 @@ define(function (require, exports, module) {
         
         // Default to searching for the current selection
         var currentEditor = EditorManager.getActiveEditor(),
-            initialString = currentEditor && currentEditor.getSelectedText();
+            initialQuery  = "";
 
         if (_findBar && !_findBar.isClosed()) {
             // The modalBar was already up. When creating the new modalBar, copy the
             // current query instead of using the passed-in selected text.
-            initialString = _findBar.getQueryInfo().query;
+            initialQuery = _findBar.getQueryInfo().query;
+        } else if (currentEditor) {
+            initialQuery = FindUtils.getInitialQueryFromSelection(currentEditor);
         }
 
         // Close our previous find bar, if any. (The open() of the new _findBar will
@@ -147,8 +150,8 @@ define(function (require, exports, module) {
         _findBar = new FindBar({
             multifile: true,
             replace: showReplace,
-            initialQuery: initialString,
-            queryPlaceholder: (showReplace ? Strings.CMD_REPLACE_IN_SUBTREE : Strings.CMD_FIND_IN_SUBTREE),
+            initialQuery: initialQuery,
+            queryPlaceholder: Strings.FIND_QUERY_PLACEHOLDER,
             scopeLabel: FindUtils.labelForScope(scope)
         });
         _findBar.open();
@@ -222,7 +225,9 @@ define(function (require, exports, module) {
             // is hidden when we set options.multifile.
             $(_findBar).on("doReplaceAll.FindInFiles", startReplace);
         }
-                
+        
+        var oldModalBarHeight = _findBar._modalBar.height();
+        
         // Show file-exclusion UI *unless* search scope is just a single file
         if (!scope || scope.isDirectory) {
             var exclusionsContext = {
@@ -236,6 +241,20 @@ define(function (require, exports, module) {
         }
         
         handleQueryChange();
+        
+        // Appending FilterPicker and query text can change height of modal bar, so resize editor.
+        // Preserve scroll position of the current full editor across the editor refresh, adjusting
+        // for the height of the modal bar so the code doesn't appear to shift if possible.
+        var fullEditor = EditorManager.getCurrentFullEditor(),
+            scrollPos;
+        if (fullEditor) {
+            scrollPos = fullEditor.getScrollPos();
+            scrollPos.y -= oldModalBarHeight;   // modalbar already showing, adjust for old height
+        }
+        WorkspaceManager.recomputeLayout();
+        if (fullEditor) {
+            fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + _findBar._modalBar.height());
+        }
     }
     
     /**
@@ -254,8 +273,7 @@ define(function (require, exports, module) {
             replacedFiles = Object.keys(resultsClone).filter(function (path) {
                 return FindUtils.hasCheckedMatches(resultsClone[path]);
             }),
-            isRegexp = model.queryInfo.isRegexp,
-            replacePromise;
+            isRegexp = model.queryInfo.isRegexp;
         
         function processReplace(forceFilesOpen) {
             StatusBar.showBusyIndicator(true);

@@ -33,7 +33,6 @@ define(function (require, exports, module) {
     
     var AppInit         = require("utils/AppInit"),
         Commands        = require("command/Commands"),
-        ContextMenu     = require("command/Menus"),
         EditorManager   = require("editor/EditorManager"),
         Menus           = require("command/Menus"),
         Strings         = require("strings");
@@ -72,10 +71,13 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_UNDO);
         menu.addMenuItem(Commands.EDIT_REDO);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_CUT);
-        menu.addMenuItem(Commands.EDIT_COPY);
-        menu.addMenuItem(Commands.EDIT_PASTE);
-        menu.addMenuDivider();
+        if (brackets.nativeMenus) {
+            // Native-only - can't programmatically trigger clipboard actions from JS menus
+            menu.addMenuItem(Commands.EDIT_CUT);
+            menu.addMenuItem(Commands.EDIT_COPY);
+            menu.addMenuItem(Commands.EDIT_PASTE);
+            menu.addMenuDivider();
+        }
         menu.addMenuItem(Commands.EDIT_SELECT_ALL);
         menu.addMenuItem(Commands.EDIT_SELECT_LINE);
         menu.addMenuItem(Commands.EDIT_SPLIT_SEL_INTO_LINES);
@@ -118,6 +120,8 @@ define(function (require, exports, module) {
          * View menu
          */
         menu = Menus.addMenu(Strings.VIEW_MENU, Menus.AppMenuBar.VIEW_MENU);
+        menu.addMenuItem(Commands.CMD_THEMES_OPEN_SETTINGS);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.VIEW_HIDE_SIDEBAR);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE);
@@ -199,10 +203,39 @@ define(function (require, exports, module) {
         if (hasAboutItem) {
             menu.addMenuItem(Commands.HELP_ABOUT);
         }
-
+        
+        
         /*
          * Context Menus
          */
+        
+        // WorkingSet context menu - Unlike most context menus, we can't attach
+        // listeners here because the DOM nodes for each pane's working set are
+        // created dynamically. Each WorkingSetView attaches its own listeners.
+        var workingset_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
+        workingset_cmenu.addMenuItem(Commands.FILE_SAVE);
+        workingset_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
+        workingset_cmenu.addMenuItem(Commands.FILE_RENAME);
+        workingset_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
+        workingset_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
+        workingset_cmenu.addMenuDivider();
+        workingset_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
+        workingset_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
+        workingset_cmenu.addMenuDivider();
+        workingset_cmenu.addMenuItem(Commands.FILE_CLOSE);
+        
+        var workingset_configuration_menu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_CONFIG_MENU);
+        workingset_configuration_menu.addMenuItem(Commands.CMD_WORKINGSET_SORT_BY_ADDED);
+        workingset_configuration_menu.addMenuItem(Commands.CMD_WORKINGSET_SORT_BY_NAME);
+        workingset_configuration_menu.addMenuItem(Commands.CMD_WORKINGSET_SORT_BY_TYPE);
+        workingset_configuration_menu.addMenuDivider();
+        workingset_configuration_menu.addMenuItem(Commands.CMD_WORKING_SORT_TOGGLE_AUTO);
+        
+        var splitview_menu = Menus.registerContextMenu(Menus.ContextMenuIds.SPLITVIEW_MENU);
+        splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_NONE);
+        splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_VERTICAL);
+        splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_HORIZONTAL);
+        
         var project_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
         project_cmenu.addMenuItem(Commands.FILE_NEW);
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
@@ -214,27 +247,7 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
         project_cmenu.addMenuDivider();
         project_cmenu.addMenuItem(Commands.FILE_REFRESH);
-
-        var working_set_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU);
-        working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
-        working_set_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
-        working_set_cmenu.addMenuItem(Commands.FILE_RENAME);
-        working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
-        working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
-        working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
-        working_set_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
-        working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         
-        
-        var working_set_settings_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_SETTINGS_MENU);
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_ADDED);
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_NAME);
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_TYPE);
-        working_set_settings_cmenu.addMenuDivider();
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_AUTO);
-
         var editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
         // editor_cmenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
@@ -289,20 +302,17 @@ define(function (require, exports, module) {
         });
 
         /**
-         * Context menus for folder tree & working set list
+         * Context menu for folder tree 
          */
         $("#project-files-container").on("contextmenu", function (e) {
             project_cmenu.open(e);
         });
 
-        $("#open-files-container").on("contextmenu", function (e) {
-            working_set_cmenu.open(e);
-        });
+        // Dropdown menu for workspace sorting
+        Menus.ContextMenu.assignContextMenuToSelector(".working-set-option-btn", workingset_configuration_menu);
 
-        /**
-         * Dropdown menu for workspace sorting
-         */
-        Menus.ContextMenu.assignContextMenuToSelector("#working-set-option-btn", working_set_settings_cmenu);
+        // Dropdown menu for view splitting
+        Menus.ContextMenu.assignContextMenuToSelector(".working-set-splitview-btn", splitview_menu);
 
         // Prevent the browser context menu since Brackets creates a custom context menu
         $(window).contextmenu(function (e) {

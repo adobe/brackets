@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $ */
 
 /*
  * The core search functionality used by Find in Files and single-file Replace Batch.
@@ -30,18 +30,19 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _               = require("thirdparty/lodash"),
-        FileFilters     = require("search/FileFilters"),
-        Async           = require("utils/Async"),
-        StringUtils     = require("utils/StringUtils"),
-        ProjectManager  = require("project/ProjectManager"),
-        DocumentModule  = require("document/Document"),
-        DocumentManager = require("document/DocumentManager"),
-        FileSystem      = require("filesystem/FileSystem"),
-        LanguageManager = require("language/LanguageManager"),
-        SearchModel     = require("search/SearchModel").SearchModel,
-        PerfUtils       = require("utils/PerfUtils"),
-        FindUtils       = require("search/FindUtils");
+    var _                     = require("thirdparty/lodash"),
+        FileFilters           = require("search/FileFilters"),
+        Async                 = require("utils/Async"),
+        StringUtils           = require("utils/StringUtils"),
+        ProjectManager        = require("project/ProjectManager"),
+        DocumentModule        = require("document/Document"),
+        DocumentManager       = require("document/DocumentManager"),
+        MainViewManager       = require("view/MainViewManager"),
+        FileSystem            = require("filesystem/FileSystem"),
+        LanguageManager       = require("language/LanguageManager"),
+        SearchModel           = require("search/SearchModel").SearchModel,
+        PerfUtils             = require("utils/PerfUtils"),
+        FindUtils             = require("search/FindUtils");
     
     /**
      * Token used to indicate a specific reason for zero search results
@@ -70,7 +71,7 @@ define(function (require, exports, module) {
         if (searchModel.hasResults()) {
             // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
             _removeListeners();
-
+        
             $(DocumentModule).on("documentChange", _documentChangeHandler);
             FileSystem.on("change", _fileSystemChangeHandler);
             $(DocumentManager).on("fileNameChange",  _fileNameChangeHandler);
@@ -90,22 +91,25 @@ define(function (require, exports, module) {
             return [];
         }
         
-        var match, lineNum, line, ch, matchLength,
+        var match, lineNum, line, ch, totalMatchLength, matchedLines, numMatchedLines, lastLineLength,
             lines   = StringUtils.getLines(contents),
             matches = [];
         
         while ((match = queryExpr.exec(contents)) !== null) {
-            lineNum     = StringUtils.offsetToLineNum(lines, match.index);
-            line        = lines[lineNum];
-            ch          = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
-            matchLength = match[0].length;
+            lineNum          = StringUtils.offsetToLineNum(lines, match.index);
+            line             = lines[lineNum];
+            ch               = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
+            matchedLines     = match[0].split("\n");
+            numMatchedLines  = matchedLines.length;
+            totalMatchLength = match[0].length;
+            lastLineLength   = matchedLines[matchedLines.length - 1].length;
             
             // Don't store more than 200 chars per line
             line = line.substr(0, Math.min(200, line.length));
             
             matches.push({
                 start:       {line: lineNum, ch: ch},
-                end:         {line: lineNum, ch: ch + matchLength},
+                end:         {line: lineNum + numMatchedLines - 1, ch: (numMatchedLines === 1 ? ch + totalMatchLength : lastLineLength)},
                 
                 // Note that the following offsets from the beginning of the file are *not* updated if the search
                 // results change. These are currently only used for multi-file replacement, and we always
@@ -114,7 +118,7 @@ define(function (require, exports, module) {
                 // doing everything in terms of line/ch offsets, though that will require re-splitting files when
                 // doing a replace) or properly update them.
                 startOffset: match.index,
-                endOffset:   match.index + matchLength,
+                endOffset:   match.index + totalMatchLength,
                 
                 line:        line,
                 result:      match,
@@ -126,6 +130,11 @@ define(function (require, exports, module) {
             if (matches.length >= SearchModel.MAX_TOTAL_RESULTS) {
                 queryExpr.lastIndex = 0;
                 break;
+            }
+            
+            // Pathological regexps like /^/ return 0-length matches. Ensure we make progress anyway
+            if (totalMatchLength === 0) {
+                queryExpr.lastIndex++;
             }
         }
 
@@ -231,8 +240,8 @@ define(function (require, exports, module) {
             searchModel.fireChanged(true);
         }
     }
-    
-    
+        
+
     /**
      * Checks that the file matches the given subtree scope. To fully check whether the file
      * should be in the search set, use _inSearchScope() instead - a supserset of this.
@@ -302,10 +311,7 @@ define(function (require, exports, module) {
             // Still need to make sure it's within project or working set
             // In getCandidateFiles(), this is covered by the baseline getAllFiles() itself
             if (file.fullPath.indexOf(ProjectManager.getProjectRoot().fullPath) !== 0) {
-                var inWorkingSet = DocumentManager.getWorkingSet().some(function (wsFile) {
-                    return wsFile.fullPath === file.fullPath;
-                });
-                if (!inWorkingSet) {
+                if (MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, file.fullPath) === -1) {
                     return false;
                 }
             }
@@ -377,7 +383,7 @@ define(function (require, exports, module) {
      */
     function _doSearch(queryInfo, candidateFilesPromise, filter) {
         searchModel.filter = filter;
-
+        
         var queryResult = searchModel.setQueryInfo(queryInfo);
         if (!queryResult) {
             return null;
@@ -400,7 +406,7 @@ define(function (require, exports, module) {
             .then(function (zeroFilesToken) {
                 exports._searchDone = true; // for unit tests
                 PerfUtils.addMeasurement(perfTimer);
-
+                
                 // Listen for FS & Document changes to keep results up to date
                 _addListeners();
                 
@@ -428,7 +434,7 @@ define(function (require, exports, module) {
         _removeListeners();
         searchModel.clear();
     }
-    
+
     /**
      * Does a search in the given scope with the given filter. Used when you want to start a search
      * programmatically.
@@ -451,7 +457,7 @@ define(function (require, exports, module) {
         candidateFilesPromise = candidateFilesPromise || getCandidateFiles(scope);
         return _doSearch(queryInfo, candidateFilesPromise, filter);
     }
-    
+        
     /**
      * Given a set of search results, replaces them with the given replaceText, either on disk or in memory.
      * @param {Object.<fullPath: string, {matches: Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, startOffset: number, endOffset: number, line: string}>, collapsed: boolean}>} results
@@ -484,7 +490,7 @@ define(function (require, exports, module) {
     _fileNameChangeHandler = function (event, oldName, newName) {
         var resultsChanged = false;
         
-        // Update the search results
+            // Update the search results
         _.forEach(searchModel.results, function (item, fullPath) {
             if (fullPath.indexOf(oldName) === 0) {
                 searchModel.removeResults(fullPath);

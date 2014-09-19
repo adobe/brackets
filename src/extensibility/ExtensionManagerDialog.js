@@ -22,13 +22,16 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global brackets, define, $, Mustache, window */
+/*global brackets, define, $, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var Dialogs                     = require("widgets/Dialogs"),
+    var _                           = require("thirdparty/lodash"),
+        Dialogs                     = require("widgets/Dialogs"),
         DefaultDialogs              = require("widgets/DefaultDialogs"),
+        FileSystem                  = require("filesystem/FileSystem"),
+        FileUtils                   = require("file/FileUtils"),
         Package                     = require("extensibility/Package"),
         Strings                     = require("strings"),
         StringUtils                 = require("utils/StringUtils"),
@@ -37,6 +40,7 @@ define(function (require, exports, module) {
         InstallExtensionDialog      = require("extensibility/InstallExtensionDialog"),
         AppInit                     = require("utils/AppInit"),
         Async                       = require("utils/Async"),
+        KeyEvent                    = require("utils/KeyEvent"),
         ExtensionManager            = require("extensibility/ExtensionManager"),
         ExtensionManagerView        = require("extensibility/ExtensionManagerView").ExtensionManagerView,
         ExtensionManagerViewModel   = require("extensibility/ExtensionManagerViewModel");
@@ -47,6 +51,11 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-tab");
     
     var _activeTabIndex;
+
+    function _stopEvent(event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
 
     /**
      * @private
@@ -156,6 +165,98 @@ define(function (require, exports, module) {
         });
     }
     
+    
+    /**
+     * @private
+     * Install extensions from the local file system using the install dialog.
+     * @return {$.Promise}
+     */
+    function _installUsingDragAndDrop() {
+        var installZips = [],
+            updateZips = [],
+            deferred = new $.Deferred(),
+            validatePromise;
+
+        brackets.app.getDroppedFiles(function (err, paths) {
+            if (err) {
+                // Only possible error is invalid params, silently ignore
+                console.error(err);
+                deferred.resolve();
+                return;
+            }
+
+            // Parse zip files and separate new installs vs. updates
+            validatePromise = Async.doInParallel_aggregateErrors(paths, function (path) {
+                var result = new $.Deferred();
+                
+                FileSystem.resolve(path, function (err, file) {
+                    var extension = FileUtils.getFileExtension(path),
+                        isZip = file.isFile && (extension === "zip"),
+                        errStr;
+                    
+                    if (err) {
+                        errStr = FileUtils.getFileErrorString(err);
+                    } else if (!isZip) {
+                        errStr = Strings.INVALID_ZIP_FILE;
+                    }
+
+                    if (errStr) {
+                        result.reject(errStr);
+                        return;
+                    }
+                    
+                    // Call validate() so that we open the local zip file and parse the
+                    // package.json. We need the name to detect if this zip will be a
+                    // new install or an update.
+                    Package.validate(path, { requirePackageJSON: true }).done(function (info) {
+                        if (info.errors.length) {
+                            result.reject(Package.formatError(info.errors));
+                            return;
+                        }
+
+                        var extensionName = info.metadata.name,
+                            extensionInfo = ExtensionManager.extensions[extensionName],
+                            isUpdate = extensionInfo && !!extensionInfo.installInfo;
+
+                        if (isUpdate) {
+                            updateZips.push(file);
+                        } else {
+                            installZips.push(file);
+                        }
+
+                        result.resolve();
+                    }).fail(function (err) {
+                        result.reject(Package.formatError(err));
+                    });
+                });
+                
+                return result.promise();
+            });
+
+            validatePromise.done(function () {
+                var installPromise = Async.doSequentially(installZips, function (file) {
+                    return InstallExtensionDialog.installUsingDialog(file);
+                });
+
+                var updatePromise = installPromise.then(function () {
+                    return Async.doSequentially(updateZips, function (file) {
+                        return InstallExtensionDialog.updateUsingDialog(file).done(function (result) {
+                            ExtensionManager.updateFromDownload(result);
+                        });
+                    });
+                });
+                
+                // InstallExtensionDialog displays it's own errors, always
+                // resolve the outer promise
+                updatePromise.always(deferred.resolve);
+            }).fail(function (errorArray) {
+                deferred.reject(errorArray);
+            });
+        });
+        
+        return deferred.promise();
+    }
+    
     /**
      * @private
      * Show a dialog that allows the user to browse and manage extensions.
@@ -172,6 +273,7 @@ define(function (require, exports, module) {
         // Load registry only if the registry URL exists
         if (context.showRegistry) {
             models.push(new ExtensionManagerViewModel.RegistryViewModel());
+            models.push(new ExtensionManagerViewModel.ThemesViewModel());
         }
         
         models.push(new ExtensionManagerViewModel.InstalledViewModel());
@@ -203,16 +305,36 @@ define(function (require, exports, module) {
         $dlg = dialog.getElement();
         $search = $(".search", $dlg);
         $searchClear = $(".search-clear", $dlg);
-        
+
+        function setActiveTab($tab) {
+            models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
+            $tab.tab("show");
+            $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
+            $searchClear.click();
+        }
+
         // Dialog tabs
         $dlg.find(".nav-tabs a")
             .on("click", function (event) {
-                models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
-                $(this).tab("show");
-                $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
-                $searchClear.click();
+                setActiveTab($(this));
             });
-        
+
+        // navigate through tabs via Ctrl-(Shift)-Tab
+        $dlg.on("keyup", function (event) {
+            if (event.keyCode === KeyEvent.DOM_VK_TAB && event.ctrlKey) {
+                var $tabs = $(".nav-tabs a", $dlg),
+                    tabIndex = _activeTabIndex;
+
+                if (event.shiftKey) {
+                    tabIndex--;
+                } else {
+                    tabIndex++;
+                }
+                tabIndex %= $tabs.length;
+                setActiveTab($tabs.eq(tabIndex));
+            }
+        });
+
         // Update & hide/show the notification overlay on a tab's icon, based on its model's notifyCount
         function updateNotificationIcon(index) {
             var model = models[index],
@@ -296,9 +418,7 @@ define(function (require, exports, module) {
             // Open dialog to Installed tab if extension updates are available
             if ($("#toolbar-extension-manager").hasClass('updatesAvailable')) {
                 $dlg.find(".nav-tabs a.installed").tab("show");
-            }
-            // Otherwise show the first tab
-            else {
+            } else { // Otherwise show the first tab
                 $dlg.find(".nav-tabs a:first").tab("show");
             }
         });
@@ -307,6 +427,86 @@ define(function (require, exports, module) {
         $(".extension-manager-dialog .install-from-url")
             .click(function () {
                 InstallExtensionDialog.showDialog().done(ExtensionManager.updateFromDownload);
+            });
+        
+        // Handle the drag/drop zone
+        var $dropzone = $("#install-drop-zone"),
+            $dropmask = $("#install-drop-zone-mask");
+        
+        $dropzone
+            .on("dragover", function (event) {
+                _stopEvent(event);
+
+                if (!event.originalEvent.dataTransfer.files) {
+                    return;
+                }
+
+                var items = event.originalEvent.dataTransfer.items,
+                    isValidDrop = false;
+
+                isValidDrop = _.every(items, function (item) {
+                    if (item.kind === "file") {
+                        var entry = item.webkitGetAsEntry(),
+                            extension = FileUtils.getFileExtension(entry.fullPath);
+
+                        return entry.isFile && extension === "zip";
+                    }
+
+                    return false;
+                });
+
+                if (isValidDrop) {
+                    // Set an absolute width to stabilize the button size
+                    $dropzone.width($dropzone.width());
+
+                    // Show drop styling and message
+                    $dropzone.removeClass("drag");
+                    $dropzone.addClass("drop");
+                } else {
+                    event.originalEvent.dataTransfer.dropEffect = "none";
+                }
+            })
+            .on("drop", _stopEvent);
+        
+        $dropmask
+            .on("dragover", function (event) {
+                _stopEvent(event);
+                event.originalEvent.dataTransfer.dropEffect = "copy";
+            })
+            .on("dragleave", function () {
+                $dropzone.removeClass("drop");
+                $dropzone.addClass("drag");
+            })
+            .on("drop", function (event) {
+                _stopEvent(event);
+                
+                if (event.originalEvent.dataTransfer.files) {
+                    // Attempt install
+                    _installUsingDragAndDrop().fail(function (errorArray) {
+                        var message = Strings.INSTALL_EXTENSION_DROP_ERROR;
+
+                        message += "<ul class='dialog-list'>";
+                        errorArray.forEach(function (info) {
+                            message += "<li><span class='dialog-filename'>";
+                            message += StringUtils.breakableUrl(info.item);
+                            message += "</span>: " + info.error + "</li>";
+                        });
+                        message += "</ul>";
+
+                        Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_ERROR,
+                            Strings.EXTENSION_MANAGER_TITLE,
+                            message
+                        );
+                    }).always(function () {
+                        $dropzone.removeClass("validating");
+                        $dropzone.addClass("drag");
+                    });
+                    
+                    // While installing, show validating message
+                    $dropzone.removeClass("drop");
+                    $dropzone.addClass("validating");
+                }
             });
         
         return new $.Deferred().resolve(dialog).promise();

@@ -26,10 +26,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _           = require("thirdparty/lodash"),
-        FileUtils   = require("file/FileUtils"),
-        FindUtils   = require("search/FindUtils"),
-        StringUtils = require("utils/StringUtils");
+    var FileUtils   = require("file/FileUtils"),
+        FindUtils   = require("search/FindUtils");
 
     /**
      * @constructor
@@ -150,6 +148,10 @@ define(function (require, exports, module) {
         if (this.foundMaximum || !resultInfo.matches.length) {
             return;
         }
+        
+        // Make sure that the optional `collapsed` property is explicitly set to either true or false,
+        // to avoid logic issues later with comparing values.
+        resultInfo.collapsed = !!resultInfo.collapsed;
         
         this.results[fullpath] = resultInfo;
         this.numMatches += resultInfo.matches.length;

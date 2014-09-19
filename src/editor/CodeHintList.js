@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, brackets, Mustache */
+/*global define, $, window, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -147,8 +147,8 @@ define(function (require, exports, module) {
             var $item = $(items[this.selectedIndex]);
             var $view = this.$hintMenu.find("ul.dropdown-menu");
 
-            ViewUtils.scrollElementIntoView($view, $item, false);
             $item.find("a").addClass("highlight");
+            ViewUtils.scrollElementIntoView($view, $item, false);
         }
     };
 
@@ -505,11 +505,13 @@ define(function (require, exports, module) {
      * Closes the hint list
      */
     CodeHintList.prototype.close = function () {
-        this.$hintMenu.removeClass("open");
         this.opened = false;
         
-        PopUpManager.removePopUp(this.$hintMenu);
-        this.$hintMenu.remove();
+        if (this.$hintMenu) {
+            this.$hintMenu.removeClass("open");
+            PopUpManager.removePopUp(this.$hintMenu);
+            this.$hintMenu.remove();
+        }
         
         KeyBindingManager.removeGlobalKeydownHook(this._keydownHook);
     };

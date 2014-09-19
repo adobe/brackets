@@ -29,10 +29,9 @@ define(function (require, exports, module) {
     "use strict";
     
     // Brackets modules
-    var CommandManager      = brackets.getModule("command/CommandManager"),
-        EditorManager       = brackets.getModule("editor/EditorManager"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
-        Menus               = brackets.getModule("command/Menus");
+    var CommandManager  = brackets.getModule("command/CommandManager"),
+        EditorManager   = brackets.getModule("editor/EditorManager"),
+        Menus           = brackets.getModule("command/Menus");
 
     // Define the functions that Commands will execute
     function TestCommand1() {

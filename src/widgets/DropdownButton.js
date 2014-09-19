@@ -43,7 +43,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var DropdownEventHandler    = require("utils/DropdownEventHandler").DropdownEventHandler,
-        PanelManager            = require("view/PanelManager"),
+        WorkspaceManager        = require("view/WorkspaceManager"),
         Menus                   = require("command/Menus"),
         ViewUtils               = require("utils/ViewUtils"),
         _                       = require("thirdparty/lodash");
@@ -56,9 +56,12 @@ define(function (require, exports, module) {
      *  - "select" - when an option in the dropdown is clicked. Passed item object and index.
      * 
      * @param {!string} label  Label to display on the button
-     * @param {!Array.<*>} items  Items in the dropdown list
-     * @param {?function(*, number):!string} itemRenderer  Optional function to convert a single item to HTML
-     *          (see itemRenderer() docs below). If not provided, items are assumed to be plain text strings.
+     * @param {!Array.<*>} items  Items in the dropdown list. It generally doesn't matter what type/value the
+     *          items have, except that any item === "---" will be treated as a divider. Such items are not
+     *          clickable and itemRenderer() will not be called for them.
+     * @param {?function(*, number):!string|{html:string, enabled:boolean} itemRenderer  Optional function to
+     *          convert a single item to HTML (see itemRenderer() docs below). If not provided, items are
+     *          assumed to be plain text strings.
      */
     function DropdownButton(label, items, itemRenderer) {
         this.items = items;
@@ -140,7 +143,9 @@ define(function (require, exports, module) {
      * Called for each item when rendering the dropdown.
      * @param {*} item from items array
      * @param {number} index in items array
-     * @return {!string} Formatted & escaped HTML
+     * @return {!string|{html:string, enabled:boolean}} Formatted & escaped HTML, either as a simple string
+     *      or as the 'html' field in an object that also conveys enabled state. Disabled items inherit gray
+     *      text color and cannot be selected.
      */
     DropdownButton.prototype.itemRenderer = function (item, index) {
         return _.escape(String(item));
@@ -161,8 +166,12 @@ define(function (require, exports, module) {
             if (item === "---") {
                 html += "<li class='divider'></li>";
             } else {
-                html += "<li><a class='stylesheet-link' data-index='" + i + "'>";
-                html += this.itemRenderer(item, i);
+                var rendered = this.itemRenderer(item, i),
+                    itemHtml = rendered.html || rendered,
+                    disabledClass = (rendered.html && !rendered.enabled) ? "disabled" : "";
+                
+                html += "<li><a class='stylesheet-link " + disabledClass + "' data-index='" + i + "'>";
+                html += itemHtml;
                 html += "</a></li>";
             }
         }.bind(this));
@@ -228,7 +237,8 @@ define(function (require, exports, module) {
         Menus.closeAll();
         
         var $dropdown = $("<ul class='dropdown-menu dropdownbutton-popup' tabindex='-1'>")
-            .addClass(this.dropdownExtraClasses);  // (no-op if unspecified)
+            .addClass(this.dropdownExtraClasses)  // (no-op if unspecified)
+            .css("min-width", this.$button.outerWidth());  // do this before the clipping calcs below
         
         this.$dropdown = $dropdown;
         this._renderList(this.$dropdown)
@@ -259,8 +269,7 @@ define(function (require, exports, module) {
 
         $dropdown.css({
             left: posLeft,
-            top: posTop,
-            minWidth: this.$button.outerWidth()
+            top: posTop
         });
 
         // Attach event handlers
@@ -268,7 +277,7 @@ define(function (require, exports, module) {
         this._dropdownEventHandler.open();
 
         window.document.body.addEventListener("mousedown", this._onClickOutside, true);
-        $(PanelManager).on("editorAreaResize", this.closeDropdown);
+        $(WorkspaceManager).on("workspaceUpdateLayout", this.closeDropdown);
         
         // Manage focus
         this._lastFocus = window.document.activeElement;
@@ -282,7 +291,7 @@ define(function (require, exports, module) {
      */
     DropdownButton.prototype._onDropdownClose = function () {
         window.document.body.removeEventListener("mousedown", this._onClickOutside, true);
-        $(PanelManager).off("editorAreaResize", this.closeDropdown);
+        $(WorkspaceManager).off("workspaceUpdateLayout", this.closeDropdown);
         
         // Restore focus to old pos, unless "select" handler changed it
         if (window.document.activeElement === this.$dropdown[0]) {

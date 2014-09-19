@@ -85,6 +85,7 @@ define(function LiveDevelopment(require, exports, module) {
         FileSystemError      = require("filesystem/FileSystemError"),
         FileUtils            = require("file/FileUtils"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
+        MainViewManager      = require("view/MainViewManager"),
         NativeApp            = require("utils/NativeApp"),
         PreferencesDialogs   = require("preferences/PreferencesDialogs"),
         ProjectManager       = require("project/ProjectManager"),
@@ -97,6 +98,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     // Documents
     var CSSDocument     = require("LiveDevelopment/Documents/CSSDocument"),
+        CSSPreprocessorDocument = require("LiveDevelopment/Documents/CSSPreprocessorDocument"),
         HTMLDocument    = require("LiveDevelopment/Documents/HTMLDocument"),
         JSDocument      = require("LiveDevelopment/Documents/JSDocument");
     
@@ -206,6 +208,9 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function _classForDocument(doc) {
         switch (doc.getLanguage().getId()) {
+        case "less":
+        case "scss":
+            return CSSPreprocessorDocument;
         case "css":
             return CSSDocument;
         case "javascript":
@@ -260,6 +265,16 @@ define(function LiveDevelopment(require, exports, module) {
                 liveDocument.editor._codeMirror.removeLineClass(lineHandle, "wrap", SYNC_ERROR_CLASS);
             }
         });
+    }
+
+    /**
+     * @private
+     * Make a message to direct users to the troubleshooting page
+     * @param {string} msg Original message
+     * @return {string} Original message plus link to troubleshooting page.
+     */
+    function _makeTroubleshootingMessage(msg) {
+        return msg + " " + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
     }
 
     /**
@@ -322,7 +337,6 @@ define(function LiveDevelopment(require, exports, module) {
     function _handleLiveDocumentStatusChanged(liveDocument) {
         var startLine,
             endLine,
-            lineInfo,
             i,
             lineHandle,
             status = (liveDocument.errors.length) ? STATUS_SYNC_ERROR : STATUS_ACTIVE;
@@ -434,8 +448,7 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {Document} doc
      */
     function _docIsOutOfSync(doc) {
-        var docClass    = _classForDocument(doc),
-            liveDoc     = _server && _server.get(doc.file.fullPath),
+        var liveDoc = _server && _server.get(doc.file.fullPath),
             isLiveEditingEnabled = liveDoc && liveDoc.isLiveEditingEnabled();
 
         return doc.isDirty && !isLiveEditingEnabled;
@@ -483,9 +496,12 @@ define(function LiveDevelopment(require, exports, module) {
         var docPromise = DocumentManager.getDocumentForPath(path);
 
         docPromise.done(function (doc) {
-            if ((_classForDocument(doc) === CSSDocument) &&
+            if ((_classForDocument(doc) === CSSDocument ||
+                    _classForDocument(doc) === CSSPreprocessorDocument) &&
                     (!_liveDocument || (doc !== _liveDocument.doc))) {
-                var liveDoc = _createDocument(doc);
+                // The doc may already have an editor (e.g. starting live preview from an css file),
+                // so pass the editor if any
+                var liveDoc = _createDocument(doc, doc._masterEditor);
                 if (liveDoc) {
                     _server.add(liveDoc);
                     _relatedDocuments[doc.url] = liveDoc;
@@ -568,8 +584,6 @@ define(function LiveDevelopment(require, exports, module) {
         }
         
         var result = new $.Deferred(),
-            promises = [],
-            enableAgentsPromise,
             allAgentsPromise;
         
         _loadAgentsPromise = result.promise();
@@ -617,7 +631,7 @@ define(function LiveDevelopment(require, exports, module) {
                 Dialogs.showModalDialog(
                     Dialogs.DIALOG_ID_ERROR,
                     Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
+                    _makeTroubleshootingMessage(Strings.LIVE_DEV_LOADING_ERROR_MESSAGE)
                 );
             })
             .always(function () {
@@ -750,6 +764,34 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /**
+     * If the current editor is for a CSS preprocessor file, then add it to the style sheet 
+     * so that we can track cursor positions in the editor to show live preview highlighting.
+     * For normal CSS we only do highlighting from files we know for sure are referenced by the 
+     * current live preview document, but for preprocessors we just assume that any preprocessor 
+     * file you edit is probably related to the live preview.
+     *
+     * @param {Event} event (unused)
+     * @param {Editor} current Current editor
+     * @param {Editor} previous Previous editor
+     *
+     */
+    function onActiveEditorChange(event, current, previous) {
+        if (previous && previous.document &&
+                FileUtils.isCSSPreprocessorFile(previous.document.file.fullPath)) {
+            var prevDocUrl = _server && _server.pathToUrl(previous.document.file.fullPath);
+            
+            if (_relatedDocuments && _relatedDocuments[prevDocUrl]) {
+                _closeRelatedDocument(_relatedDocuments[prevDocUrl]);
+            }
+        }
+        if (current && current.document &&
+                FileUtils.isCSSPreprocessorFile(current.document.file.fullPath)) {
+            var docUrl = _server && _server.pathToUrl(current.document.file.fullPath);
+            _styleSheetAdded(null, docUrl);
+        }
+    }
+    
+    /**
      * @private
      * While still connected to the Inspector, do cleanup for agents,
      * documents and server.
@@ -761,6 +803,8 @@ define(function LiveDevelopment(require, exports, module) {
             deferred    = new $.Deferred(),
             connected   = Inspector.connected();
 
+        $(EditorManager).off("activeEditorChange", onActiveEditorChange);
+        
         $(Inspector.Page).off(".livedev");
         $(Inspector).off(".livedev");
 
@@ -933,6 +977,19 @@ define(function LiveDevelopment(require, exports, module) {
         return loadAgents();
     }
 
+    /** reload the live preview */
+    function reload() {
+        // Unload and reload agents before reloading the page
+        // Some agents (e.g. DOMAgent and RemoteAgent) require us to
+        // navigate to the page first before loading can complete.
+        // To accomodate this, we load all agents (in reconnect())
+        // and navigate in parallel.
+        reconnect();
+
+        // Reload HTML page
+        Inspector.Page.reload();
+    }
+
     /**
      * Close the connection and the associated window asynchronously
      * @return {jQuery.Promise} Resolves once the connection is closed
@@ -1042,7 +1099,7 @@ define(function LiveDevelopment(require, exports, module) {
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_ERROR,
                     Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
+                    _makeTroubleshootingMessage(Strings.LIVE_DEV_LOADING_ERROR_MESSAGE)
                 );
             })
             .done(_onInterstitialPageLoad);
@@ -1052,7 +1109,7 @@ define(function LiveDevelopment(require, exports, module) {
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,
             Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-            Strings.LIVE_DEV_NEED_HTML_MESSAGE
+            _makeTroubleshootingMessage(Strings.LIVE_DEV_NEED_HTML_MESSAGE)
         );
         _openDeferred.reject();
     }
@@ -1061,7 +1118,7 @@ define(function LiveDevelopment(require, exports, module) {
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,
             Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-            Strings.LIVE_DEV_SERVER_NOT_READY_MESSAGE
+            _makeTroubleshootingMessage(Strings.LIVE_DEV_SERVER_NOT_READY_MESSAGE)
         );
         _openDeferred.reject();
     }
@@ -1083,7 +1140,7 @@ define(function LiveDevelopment(require, exports, module) {
                 var dialogPromise = Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_LIVE_DEVELOPMENT,
                     Strings.LIVE_DEVELOPMENT_RELAUNCH_TITLE,
-                    Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE,
+                    _makeTroubleshootingMessage(Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE),
                     [
                         {
                             className: Dialogs.DIALOG_BTN_CLASS_LEFT,
@@ -1151,15 +1208,10 @@ define(function LiveDevelopment(require, exports, module) {
                             message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
                         }
                         
-                        // Append a message to direct users to the troubleshooting page.
-                        if (message) {
-                            message += " " + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
-                        }
-
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
                             Strings.ERROR_LAUNCHING_BROWSER_TITLE,
-                            message
+                            _makeTroubleshootingMessage(message)
                         );
 
                         _openDeferred.reject("OPEN_LIVE_BROWSER");
@@ -1189,6 +1241,18 @@ define(function LiveDevelopment(require, exports, module) {
         
         // open browser to the interstitial page to prepare for loading agents
         _openInterstitialPage();
+        
+        // Once all agents loaded (see _onInterstitialPageLoad()), begin Live Highlighting for preprocessor documents
+        _openDeferred.done(function () {
+            // Setup activeEditorChange event listener so that we can track cursor positions in
+            // CSS preprocessor files and perform live preview highlighting on all elements with
+            // the current selector in the preprocessor file.
+            $(EditorManager).on("activeEditorChange", onActiveEditorChange);
+
+            // Explicitly trigger onActiveEditorChange so that live preview highlighting
+            // can be set up for the preprocessor files.
+            onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
+        });
     }
     
     function _prepareServer(doc) {
@@ -1259,18 +1323,18 @@ define(function LiveDevelopment(require, exports, module) {
             }
         }
         
-        // TODO: need to run _onDocumentChange() after load if doc != currentDocument here? Maybe not, since activeEditorChange
+        // TODO: need to run _onFileChanged() after load if doc != currentDocument here? Maybe not, since activeEditorChange
         // doesn't trigger it, while inline editors can still cause edits in doc other than currentDoc...
         _getInitialDocFromCurrent().done(function (doc) {
             var prepareServerPromise = (doc && _prepareServer(doc)) || new $.Deferred().reject(),
                 otherDocumentsInWorkingFiles;
 
             if (doc && !doc._masterEditor) {
-                otherDocumentsInWorkingFiles = DocumentManager.getWorkingSet().length;
-                DocumentManager.addToWorkingSet(doc.file);
+                otherDocumentsInWorkingFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).length;
+                MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, doc.file);
 
                 if (!otherDocumentsInWorkingFiles) {
-                    DocumentManager.setCurrentDocument(doc);
+                    MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                 }
             }
 
@@ -1312,9 +1376,9 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * @private
-     * DocumentManager currentDocumentChange event handler. 
+     * MainViewManager.currentFileChange event handler. 
      */
-    function _onDocumentChange() {
+    function _onFileChanged() {
         var doc = _getCurrentDocument();
         
         if (!doc || !Inspector.connected()) {
@@ -1373,15 +1437,7 @@ define(function LiveDevelopment(require, exports, module) {
             wasRequested    = agents.network && agents.network.wasURLRequested(documentUrl);
         
         if (wasRequested) {
-            // Unload and reload agents before reloading the page
-            // Some agents (e.g. DOMAgent and RemoteAgent) require us to
-            // navigate to the page first before loading can complete.
-            // To accomodate this, we load all agents (in reconnect())
-            // and navigate in parallel.
-            reconnect();
-
-            // Reload HTML page
-            Inspector.Page.reload();
+            reload();
         }
     }
 
@@ -1421,10 +1477,13 @@ define(function LiveDevelopment(require, exports, module) {
         // We may get interim added/removed events when pushing incremental updates
         $(CSSAgent).on("styleSheetAdded.livedev", _styleSheetAdded);
         
-        $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
+        $(MainViewManager)
+            .on("currentFileChange", _onFileChanged);
+        $(DocumentManager)
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
-        $(ProjectManager).on("beforeProjectClose beforeAppClose", close);
+        $(ProjectManager)
+            .on("beforeProjectClose beforeAppClose", close);
         
         // Register user defined server provider
         LiveDevServerManager.registerServer({ create: _createUserServer }, 99);
@@ -1442,6 +1501,8 @@ define(function LiveDevelopment(require, exports, module) {
         return _server && _server.getBaseUrl();
     }
 
+
+
     // For unit testing
     exports.launcherUrl               = launcherUrl;
     exports._getServer                = _getServer;
@@ -1452,6 +1513,7 @@ define(function LiveDevelopment(require, exports, module) {
     exports.open                = open;
     exports.close               = close;
     exports.reconnect           = reconnect;
+    exports.reload              = reload;
     exports.enableAgent         = enableAgent;
     exports.disableAgent        = disableAgent;
     exports.getLiveDocForPath   = getLiveDocForPath;

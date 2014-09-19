@@ -37,6 +37,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Non hai i permessi necessari per effettuare la modifica.",
     "CONTENTS_MODIFIED_ERR"             : "Il file è stato modificato fuori {APP_NAME}.",
     "UNSUPPORTED_ENCODING_ERR"          : "Il file non è testo codificato in UTF-8",
+    "UNSUPPORTED_FILE_TYPE_ERR"         : "Il file non è un tipo di file supportato.",
     "FILE_EXISTS_ERR"                   : "Il file è già presente.",
     "FILE"                              : "file",
     "DIRECTORY"                         : "cartella",
@@ -113,6 +114,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> è stato eliminato sul disco ma ha delle modifiche non ancora salvate in {APP_NAME}.<br /><br />Vuoi mantenere le tue modifiche?",
 
     // Generic dialog/button labels
+    "DONE"                              : "Fatto",
     "OK"                                : "OK",
     "CANCEL"                            : "Annulla",
     "DONT_SAVE"                         : "Non salvare",
@@ -124,9 +126,9 @@ define({
     "BUTTON_NO"                         : "No",
         
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} risultati",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 risultato",
+    "FIND_MATCH_INDEX"                  : "{0} di {1}",
     "FIND_NO_RESULTS"                   : "Nessun risultato",
+    "FIND_QUERY_PLACEHOLDER"            : "Trova\u2026",
     "REPLACE_PLACEHOLDER"               : "Sostituisci con\u2026",
     "BUTTON_REPLACE_ALL"                : "Tutti\u2026",
     "BUTTON_REPLACE"                    : "Sostituisci",
@@ -136,6 +138,11 @@ define({
     "BUTTON_PREV_HINT"                  : "Corrispondenza precedente",
     "BUTTON_CASESENSITIVE_HINT"         : "Rispetta maiuscole/minuscole",
     "BUTTON_REGEXP_HINT"                : "Espressione regolare",
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Sostituire senza Annulla",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Perché più di {0} file hanno bisogno di essere sostituiti, {APP_NAME} modificherà i file aperti sul disco.<br />Non sarai in grado di annullare le sostituzioni in quei file.",
+    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Sostituire senza Annulla",
+    "FIND_REPLACE_TITLE_LABEL"          : "Sostituire",
+    "FIND_REPLACE_TITLE_WITH"           : "con",
 
     "OPEN_FILE"                         : "Apri File",
     "SAVE_FILE_AS"                      : "Salva File",
@@ -171,19 +178,39 @@ define({
     "ERROR_CSSQUICKEDIT_IDNOTFOUND"     : "CSS Quick Edit: attributo id incompleto",
     "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: posiziona il cursore su etichetta, classe, oppure id",
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: posiziona il cursore su nome della funziona",
-    "EDIT_FILE_FILTER"  : "Modifica\u2026",
+    "EDIT_FILE_FILTER"                      : "Modifica\u2026",
     "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Quick Docs non disponibile per posizione attuale del cursore",
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Quick Edit non disponibile per posizione attuale del cursore",
     "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Funzione CSS Timing Quick Edit:  sintassi invalida",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "e {0} in più ",
     "FILE_FILTER_INSTRUCTIONS"          : "Esclude i file e cartelle che sono uguali a qualsiasi delle seguente stringhe / sottostringhe o <a href='{0}' title='{0}'>caratteri jolly</a>.  Digita ciascun stringa su una nuova riga.",
  
+    // File exclusion filters
+    "NEW_FILE_FILTER"                   : "Nuova regola di esclusione\u2026",
+    "CLEAR_FILE_FILTER"                 : "Non escludere file",
+    "NO_FILE_FILTER"                    : "Nessun file escluso",
+    "EXCLUDE_FILE_FILTER"               : "Escludere {0}",
+    "FILE_FILTER_DIALOG"                : "Modifica regole di esclusione",
+    "FILTER_NAME_PLACEHOLDER"           : "Nome delle regole di esclusione (facoltativo)",
+    "FILTER_COUNTING_FILES"             : "Contando i file\u2026",
+    "FILTER_FILE_COUNT"                 : "Consentire {0} di {1} file {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Consentire tutti {0} file {1}",
+     
+      
     /**
      * ProjectManager
      */
     "PROJECT_LOADING"   : "Caricamento\u2026",
     "UNTITLED"          : "Senza titolo",
     "WORKING_FILES"     : "File attivi",
+    
+    /**
+     * MainViewManager
+     */
+    "TOP"               : "Superiore",
+    "BOTTOM"            : "Inferiore",
+    "LEFT"              : "Sinistra",
+    "RIGHT"             : "Destra",
 
     /**
      * Keyboard modifier names
@@ -197,9 +224,10 @@ define({
      */
     "STATUSBAR_CURSOR_POSITION"             : "Linea {0}, Colonna {1}",
     "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Selezionata {0} colonna",
-    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selezionare {0} colonne",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selezionate {0} colonne",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Selezionata {0} linea",
-    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selezionare {0} linee",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selezionate {0} linee",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} selezioni",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Clicca per passare alla indentazione a spazi",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Clicca per passare alla indentazione a tabulazione",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Clicca per cambiare il numero di spazi usati per l’indentazione",
@@ -209,6 +237,13 @@ define({
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Linea",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Linee",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Estensioni disabilitate",
+    "STATUSBAR_INSERT"                      : "INS",
+    "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Fare clic per cambiare il cursore tra la modalità Inserisci (INS) e Sovrascrivi (OVR)",
+    "STATUSBAR_LANG_TOOLTIP"                : "Clicca per cambiare il tipo di file",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Clicca per attivare pannello dei report.",
+    "STATUSBAR_DEFAULT_LANG"                : "(default)",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Imposta come predefinito per .{0} File",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problemi",
@@ -219,6 +254,8 @@ define({
     "LINT_DISABLED"                         : "Linting disabilitato",
     "NO_LINT_AVAILABLE"                     : "Linter disponibile {0}",
     "NOTHING_TO_LINT"                       : "Niente dal lint",
+    "LINTER_TIMED_OUT"                      : "{0} è scaduto dopo aver atteso per {1} ms",
+    "LINTER_FAILED"                         : "{0} terminato con errore: {1}",
     
     
     /**
@@ -231,7 +268,7 @@ define({
     "CMD_FILE_NEW"                        : "Nuovo File",
     "CMD_FILE_NEW_FOLDER"                 : "Nuova cartella",
     "CMD_FILE_OPEN"                       : "Apri\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Aggiungi uno spazio di lavoro",
+    "CMD_ADD_TO_WORKINGSET_AND_OPEN"      : "Aggiungi uno spazio di lavoro e apri",
     "CMD_OPEN_DROPPED_FILES"              : "Apri un file abbandonato",
     "CMD_OPEN_FOLDER"                     : "Apri cartella\u2026",
     "CMD_FILE_CLOSE"                      : "Chiudi",
@@ -244,6 +281,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Salva tutto",
     "CMD_FILE_SAVE_AS"                    : "Salva come\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Anteprima Live",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Forza ricarica Anteprima Live",
     "CMD_PROJECT_SETTINGS"                : "Impostazioni del progetto\u2026",
     "CMD_FILE_RENAME"                     : "Rinomina",
     "CMD_FILE_DELETE"                     : "Elimina",
@@ -263,28 +301,38 @@ define({
     "CMD_PASTE"                         : "Incolla",
     "CMD_SELECT_ALL"                    : "Seleziona tutto",
     "CMD_SELECT_LINE"                   : "Seleziona riga",
-    "CMD_FIND"                          : "Cerca",
+    "CMD_SPLIT_SEL_INTO_LINES"          : "Dividi selezione dentro alle righe",
+    "CMD_ADD_CUR_TO_NEXT_LINE"          : "Aggiungi cursore alla riga successiva",
+    "CMD_ADD_CUR_TO_PREV_LINE"          : "Aggiungi il cursore sulla riga precedente",
     "CMD_FIND_FIELD_PLACEHOLDER"        : "Trova\u2026",
-    "CMD_FIND_IN_FILES"                 : "Cerca nei file",
-    "CMD_FIND_IN_SELECTED"              : "Cerca nel file/cartella selezionata",
-    "CMD_FIND_IN_SUBTREE"               : "Cerca in\u2026",
-    "CMD_FIND_NEXT"                     : "Cerca il successivo",
-    "CMD_FIND_PREVIOUS"                 : "Cerca il precedente",
-    "CMD_REPLACE"                       : "Sostituisci",
     "CMD_INDENT"                        : "Aumenta indentazione",
     "CMD_UNINDENT"                      : "Riduci indentazione",
     "CMD_DUPLICATE"                     : "Duplica",
     "CMD_DELETE_LINES"                  : "Elimina linea",
     "CMD_COMMENT"                       : "Commenta/De-commenta linee",
     "CMD_BLOCK_COMMENT"                 : "Commenta/De-commenta blocco",
-    "CMD_ADD_NEXT_MATCH"                : "Aggiungi la prossima correspondenza alla selezione",
-    "CMD_SKIP_CURRENT_MATCH"            : "Salta e aggiungi prossima correspondenza",
     "CMD_LINE_UP"                       : "Sposta la riga in alto",
     "CMD_LINE_DOWN"                     : "Sposta la riga in basso",
     "CMD_OPEN_LINE_ABOVE"               : "Apri linea sopra",
     "CMD_OPEN_LINE_BELOW"               : "Apri linea sotto",
     "CMD_TOGGLE_CLOSE_BRACKETS"         : "Chiudi le parentesi automaticamente",
     "CMD_SHOW_CODE_HINTS"               : "Mostra suggerimenti",
+    
+     // Search menu commands
+    "FIND_MENU"                           : "Cerca",
+    "CMD_FIND"                            : "Cerca",
+    "CMD_FIND_NEXT"                       : "Cerca il successivo",
+    "CMD_FIND_PREVIOUS"                   : "Cerca il precedente",
+    "CMD_FIND_ALL_AND_SELECT"             : "Trova tutto e seleziona",
+    "CMD_ADD_NEXT_MATCH"                  : "Aggiungi la prossima corrispondenza alla selezione",
+    "CMD_SKIP_CURRENT_MATCH"              : "Salta e aggiungi prossima correspondenza",
+    "CMD_FIND_IN_FILES"                   : "Cerca nei file",
+    "CMD_FIND_IN_SELECTED"                : "Cerca nel file/cartella selezionata",
+    "CMD_FIND_IN_SUBTREE"                 : "Cerca in\u2026",
+    "CMD_REPLACE"                         : "Sostituisci",
+    "CMD_REPLACE_IN_FILES"                : "Sostituisci nei file",
+    "CMD_REPLACE_IN_SELECTED"             : "Sostituisci nei selezionati file/cartelle",
+    "CMD_REPLACE_IN_SUBTREE"              : "Sostituisci in\u2026",
     
     // View menu commands
     "VIEW_MENU"                         : "Vista",
@@ -300,13 +348,13 @@ define({
     "CMD_TOGGLE_WORD_WRAP"              : "A capo automaticamente",
     "CMD_LIVE_HIGHLIGHT"                : "Ispezione Anteprima Live",
     "CMD_VIEW_TOGGLE_INSPECTION"        : "Lint Files al salvataggio",
-    "CMD_SORT_WORKINGSET_BY_ADDED"      : "Ordina per data di aggiunta",
-    "CMD_SORT_WORKINGSET_BY_NAME"       : "Ordina per nome",
-    "CMD_SORT_WORKINGSET_BY_TYPE"       : "Ordina per tipo",
-    "CMD_SORT_WORKINGSET_AUTO"          : "Ordinamento automatico",
+    "CMD_WORKINGSET_SORT_BY_ADDED"      : "Ordina per Aggiunta",
+    "CMD_WORKINGSET_SORT_BY_NAME"       : "Ordina per Nome",
+    "CMD_WORKINGSET_SORT_BY_TYPE"       : "Ordina per Tipo",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"      : "Ordina Automaticamente",
+    "CMD_THEMES"                        : "Temi\u2026",
 
     // Navigate menu Commands
-    "FIND_MENU"                         : "Trova",
     "NAVIGATE_MENU"                     : "Naviga",
     "CMD_QUICK_OPEN"                    : "Apri velocemente",
     "CMD_GOTO_LINE"                     : "Vai alla linea",
@@ -326,21 +374,22 @@ define({
     "HELP_MENU"                         : "Aiuto",
     "CMD_CHECK_FOR_UPDATE"              : "Controlla aggiornamenti",
     "CMD_HOW_TO_USE_BRACKETS"           : "Come usare {APP_NAME}",
-    "CMD_FORUM"                         : "Forum di{APP_NAME}",
-    "CMD_RELEASE_NOTES"                 : "Note del lancio",
+    "CMD_FORUM"                         : "Forum di {APP_NAME}",
+    "CMD_RELEASE_NOTES"                 : "Note del rilascio",
     "CMD_REPORT_AN_ISSUE"               : "Segnala un problema",
     "CMD_SHOW_EXTENSIONS_FOLDER"        : "Mostra cartella estensioni",
+    "CMD_HOMEPAGE"                      : "Sito WEB di {APP_TITLE}",
     "CMD_TWITTER"                       : "{TWITTER_NAME} su Twitter",
     "CMD_ABOUT"                         : "Informazioni su {APP_TITLE}",
     "CMD_SHOW_IN_EXPLORER"              : "Mostra in Explorer",
-    "CMD_SHOW_IN_FINDER"                : "Mostra nel finder",
+    "CMD_SHOW_IN_FINDER"                : "Mostra nel Finder",
 
     "CMD_OPEN_PREFERENCES"              : "Apri il file delle preferenze",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                : "Build sperimentale",
     "DEVELOPMENT_BUILD"                 : "Build di sviluppo",
-    "CMD_SUGGEST"                       : "Suggerisci una feature",
+    "CMD_SUGGEST"                       : "Suggerisci una funzionalità",
     "CMD_SUPPORT"                       : "Supporto per {APP_NAME}",
     "RELOAD_FROM_DISK"                  : "Ricarica dal disco",
     "CMD_GET_INVOLVED"                  : "Far parte",
@@ -367,6 +416,14 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"     : "L’URL di base non può contenere hash come \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"        : "I caratteri speciali come '{0}' devono essere %-encodate.",
     "BASEURL_ERROR_UNKNOWN_ERROR"       : "Trovato un carattere sconosciuto durante l'analisi del URL di base",
+    
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Tema attuale",
+    "USE_THEME_SCROLLBARS"                 : "Utilizzare le barre di scorrimento a tema",
+    "FONT_SIZE"                            : "Dimensioni carattere",
+    "FONT_FAMILY"                          : "Tipo di carattere",
+    "THEMES_SETTINGS"                      : "Impostazioni Temi",
+ 
     
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nuova regola",
@@ -414,6 +471,9 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Manager delle Estensioni",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Impossibile accedere al registro delle estensioni. Riprova più tardi.",
+    "INSTALL_EXTENSION_DRAG"               : "Trascina .zip qui o",
+    "INSTALL_EXTENSION_DROP"               : "Rilascia .zip per l'installazione",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Installazione/Aggiornamento interrotto a causa dei seguenti errori:",
     "INSTALL_FROM_URL"                     : "Installo dall’indirizzo URL\u2026",
     "EXTENSION_AUTHOR"                     : "Autore",
     "EXTENSION_DATE"                       : "Data",
@@ -425,6 +485,9 @@ define({
     "EXTENSION_MORE_INFO"                  : "Più info...",
     "EXTENSION_ERROR"                      : "Errore di estensione",
     "EXTENSION_KEYWORDS"                   : "Parole chiave",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "Tradotto in {0} lingue, inclusa la tua",
+    "EXTENSION_TRANSLATED_GENERAL"         : "Tradotto in {0} lingue",
+    "EXTENSION_TRANSLATED_LANGS"           : "Questa estensione è stata tradotta in queste lingue: {0}",
     "EXTENSION_INSTALLED"                  : "Installata",
     "EXTENSION_UPDATE_INSTALLED"           : "Questo aggiornamento dell’estensione è stato scaricato e sarà installato dopo il riavvio di {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Cerca",
@@ -447,14 +510,18 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Impossibile rimuovere l’estensione {0}. Non era installata.",
     "NO_EXTENSIONS"                        : "Nessuna estensione ancora installata.<br />Clicca nel tab delle Disponibili per iniziare.",
     "NO_EXTENSION_MATCHES"                 : "Nessuna estensione soddisfa la tua ricerca.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "Fai attenzione quando installi le estensioni da sorgenti sconosciute.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "NOTA: Queste estensioni possono provenire da autori diversi da {APP_NAME} se stessi. Le estensioni non vengono riviste e dispongono di privilegi locali completi. Fai attenzione quando installi le estensioni da sorgenti sconosciute.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installata",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Disponibili",
+    "EXTENSIONS_THEMES_TITLE"              : "Temi",
     "EXTENSIONS_UPDATES_TITLE"             : "Aggiornamenti",
     
     "INLINE_EDITOR_NO_MATCHES"             : "Nessuna corrispondenza disponibile.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Non ci sono regole CSS esistenti che corrispondano alla tua selezione.<br />Clicca \"Nuova Regola\" per crearne una.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Non ci sono fogli di stile nel tuo progetto.<br />Creane uno per aggiungere regole CSS.",
+    
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "il più grande",
     
     /**
      * Unit names
@@ -475,6 +542,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Registra i Log Node State nella Console",
     "CMD_RESTART_NODE"                          : "Riavvia Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Mostra errori nella barra di stato",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Apri sorgente di Brackets",
     "ERRORS"                                    : "Errori",
 
     
@@ -503,6 +571,8 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Passa alla definizione",
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostra suggerimenti sul parametro",
     "NO_ARGUMENTS"                              : "<nessun parametro>",
+    "DETECTED_EXCLUSION_TITLE"                  : "Problema Conseguente File JavaScript",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets ha dei problemi per elaborare il file:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> nel tuo progetto e rimuovi il file da jscodehints.detectedExclusions.",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -517,5 +587,5 @@ define({
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
 
-/* Last translation of: 0565e3daa00e27f02ce0975be779a583971b016f */
+/* Last translation of: 0f21bf6b9740a302609ad0111c5cf0ae1951c3d4*/
 

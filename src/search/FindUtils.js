@@ -29,12 +29,12 @@ define(function (require, exports, module) {
     
     var Async           = require("utils/Async"),
         DocumentManager = require("document/DocumentManager"),
+        MainViewManager = require("view/MainViewManager"),
         FileSystem      = require("filesystem/FileSystem"),
         FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
         StringUtils     = require("utils/StringUtils"),
-        CodeMirror      = require("thirdparty/CodeMirror2/lib/codemirror"),
         _               = require("thirdparty/lodash");
     
     /**
@@ -48,20 +48,44 @@ define(function (require, exports, module) {
      */
     function parseDollars(replaceWith, match) {
         replaceWith = replaceWith.replace(/(\$+)(\d{1,2}|&)/g, function (whole, dollars, index) {
-            var parsedIndex = parseInt(index, 10);
-            if (dollars.length % 2 === 1) { // check if dollar signs escape themselves (for example $$1, $$$$&)
+            if (dollars.length % 2 === 1) { // make sure dollar signs don't escape themselves (like $$1, $$$$&)
                 if (index === "&") { // handle $&
+                    // slice the first dollar (but leave any others to get unescaped below) and return the
+                    // whole match
                     return dollars.substr(1) + (match[0] || "");
-                } else if (parsedIndex !== 0) { // handle $n or $nn, don't handle $0 or $00
-                    return dollars.substr(1) + (match[parsedIndex] || "");
+                } else {
+                    // now we're sure index is an integer, so we can parse it
+                    var parsedIndex = parseInt(index, 10);
+                    if (parsedIndex !== 0) { // handle $n or $nn, but don't handle $0 or $00
+                        // slice the first dollar (but leave any others to get unescaped below) and return the
+                        // the corresponding match
+                        return dollars.substr(1) + (match[parsedIndex] || "");
+                    }
                 }
             }
-            return whole;
+            // this code gets called if the dollar signs escape themselves or if $0/$00 (not handled) was present
+            return whole; // return everything to get handled below
         });
-        replaceWith = replaceWith.replace(/\$\$/g, "$"); // replace escaped dollar signs (for example $$) with single ones
+        // replace escaped dollar signs (i.e. $$, $$$$, ...) with single ones (unescaping)
+        replaceWith = replaceWith.replace(/\$\$/g, "$");
         return replaceWith;
     }
     
+    /*
+     * Returns the string used to prepopulate the find bar
+     * @param {!Editor} editor
+     * @return {string} first line of primary selection to populate the find bar
+     */
+    function getInitialQueryFromSelection(editor) {
+        var selectionText = editor.getSelectedText();
+        if (selectionText) {
+            return selectionText
+                .replace(/^\n*/, "") // Trim possible newlines at the very beginning of the selection
+                .split("\n")[0];
+        }
+        return "";
+    }
+
     /**
      * Does a set of replacements in a single document in memory.
      * @param {!Document} doc The document to do the replacements in.
@@ -150,7 +174,9 @@ define(function (require, exports, module) {
     function _doReplaceInOneFile(fullPath, matchInfo, replaceText, options) {
         var doc = DocumentManager.getOpenDocumentForPath(fullPath);
         options = options || {};
-        if (options.forceFilesOpen && !doc) {
+        // If we're forcing files open, or if the document is in the working set but not actually open
+        // yet, we want to open the file and do the replacement in memory.
+        if (!doc && (options.forceFilesOpen || MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, fullPath) !== -1)) {
             return DocumentManager.getDocumentForPath(fullPath).then(function (newDoc) {
                 return _doReplaceInDocument(newDoc, matchInfo, replaceText, options.isRegexp);
             });
@@ -218,7 +244,7 @@ define(function (require, exports, module) {
                         var newDoc = DocumentManager.getOpenDocumentForPath(firstPath);
                         // newDoc might be null if the replacement failed.
                         if (newDoc) {
-                            DocumentManager.setCurrentDocument(newDoc);
+                            MainViewManager._edit(MainViewManager.ACTIVE_PANE, newDoc);
                         }
                     }
                 }
@@ -284,10 +310,11 @@ define(function (require, exports, module) {
         return {valid: true, queryExpr: queryExpr};
     }
 
-    exports.parseDollars        = parseDollars;
-    exports.hasCheckedMatches   = hasCheckedMatches;
-    exports.performReplacements = performReplacements;
-    exports.labelForScope       = labelForScope;
-    exports.parseQueryInfo      = parseQueryInfo;
-    exports.ERROR_FILE_CHANGED  = "fileChanged";
+    exports.parseDollars                    = parseDollars;
+    exports.getInitialQueryFromSelection    = getInitialQueryFromSelection;
+    exports.hasCheckedMatches               = hasCheckedMatches;
+    exports.performReplacements             = performReplacements;
+    exports.labelForScope                   = labelForScope;
+    exports.parseQueryInfo                  = parseQueryInfo;
+    exports.ERROR_FILE_CHANGED              = "fileChanged";
 });

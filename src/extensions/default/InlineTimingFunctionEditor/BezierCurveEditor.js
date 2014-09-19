@@ -27,19 +27,16 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager   = brackets.getModule("editor/EditorManager"),
-        KeyEvent        = brackets.getModule("utils/KeyEvent"),
+    var KeyEvent        = brackets.getModule("utils/KeyEvent"),
         Strings         = brackets.getModule("strings");
 
-    var TimingFunctionUtils            = require("TimingFunctionUtils"),
-        InlineTimingFunctionEditor     = require("InlineTimingFunctionEditor").InlineTimingFunctionEditor;
+    var TimingFunctionUtils = require("TimingFunctionUtils");
     
     /** Mustache template that forms the bare DOM structure of the UI */
-    var BezierCurveEditorTemplate   = require("text!BezierCurveEditorTemplate.html");
+    var BezierCurveEditorTemplate = require("text!BezierCurveEditorTemplate.html");
     
     /** @const @type {number} */
-    var STEP_MULTIPLIER =   5,
-        HEIGHT_ABOVE    =  75,    // extra height above main grid
+    var HEIGHT_ABOVE    =  75,    // extra height above main grid
         HEIGHT_BELOW    =  75,    // extra height below main grid
         HEIGHT_MAIN     = 150,    // height of main grid
         WIDTH_MAIN      = 150;    // width of main grid
@@ -134,9 +131,7 @@ define(function (require, exports, module) {
         offsetsToCoordinates: function (element) {
             var p = this.padding,
                 w = this.canvas.width,
-                h = this.canvas.height * 0.5,
-                x,
-                y;
+                h = this.canvas.height * 0.5;
 
             // Convert padding percentage to actual padding
             p = p.map(function (a, i) {
@@ -160,11 +155,11 @@ define(function (require, exports, module) {
                 setting;
 
             var defaultSettings = {
-                handleTimingFunction: "#1461FC",
+                handleTimingFunction: "#2893ef",
                 handleThickness: 0.008,
                 vBorderThickness: 0.02,
                 hBorderThickness: 0.01,
-                bezierTimingFunction: "#1461FC",
+                bezierTimingFunction: "#2893ef",
                 bezierThickness: 0.03
             };
 

@@ -25,7 +25,7 @@
 // (MIT-licensed), but with significant customizations for use in HTML live development.
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, continue: true */
-/*global define, $ */
+/*global define */
 /*unittests: HTML Tokenizer*/
 
 define(function (require, exports, module) {

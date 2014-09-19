@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, FileError, window */
+/*global define, $, brackets, window */
 
 /**
  * ProjectManager is the model for the set of currently open project. It is responsible for
@@ -56,6 +56,7 @@ define(function (require, exports, module) {
         PreferencesDialogs  = require("preferences/PreferencesDialogs"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
         InMemoryFile        = require("document/InMemoryFile"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
@@ -75,8 +76,7 @@ define(function (require, exports, module) {
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async"),
-        FileSyncManager     = require("project/FileSyncManager"),
-        EditorManager       = require("editor/EditorManager");
+        FileSyncManager     = require("project/FileSyncManager");
     
     
     // Define the preference to decide how to sort the Project Tree files
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
      *    https://github.com/adobe/brackets/issues/6781
      * @type {RegExp}
      */
-    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.hgtags$|^\.idea$|^\.c9revisions$|^\.SyncArchive$|^\.SyncID$|^\.SyncIgnore$|\~$/;
+    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.hgtags$|^\.idea$|^\.c9revisions$|^\.sass-cache$|^\.SyncArchive$|^\.SyncID$|^\.SyncIgnore$|\~$/;
 
     /**
      * @private
@@ -114,6 +114,22 @@ define(function (require, exports, module) {
      * @type {string}
      */
     var SETTINGS_FILENAME = "." + PreferencesManager.SETTINGS_FILENAME;
+
+    /**
+     * @const
+     * @private
+     * Error context to show the correct error message
+     * @type {int}
+     */
+    var ERR_TYPE_CREATE = 1,
+        ERR_TYPE_CREATE_EXISTS = 2,
+        ERR_TYPE_RENAME = 3,
+        ERR_TYPE_DELETE = 4,
+        ERR_TYPE_LOADING_PROJECT = 5,
+        ERR_TYPE_LOADING_PROJECT_NATIVE = 6,
+        ERR_TYPE_MAX_FILES = 7,
+        ERR_TYPE_OPEN_DIALOG = 8,
+        ERR_TYPE_INVALID_FILENAME = 9;
 
     /**
      * @private
@@ -202,6 +218,14 @@ define(function (require, exports, module) {
     /**
      * @private
      * @type {boolean}
+     * A flag to remember when user has been warned about too many files, so they
+     * are only warned once per project/session.
+     */
+    var _projectWarnedForTooManyFiles = false;
+    
+    /**
+     * @private
+     * @type {boolean}
      * Current sort order for the tree, true if directories are first. This is
      * initialized in _generateSortPrefixes.
      */
@@ -222,8 +246,8 @@ define(function (require, exports, module) {
     function _generateSortPrefixes() {
         var previousDirFirst  = _dirFirst;
         _dirFirst             = PreferencesManager.get("sortDirectoriesFirst");
-        _sortPrefixDir        = _dirFirst ? "0" : "";
-        _sortPrefixFile       = _dirFirst ? "1" : "";
+        _sortPrefixDir        = _dirFirst ? "a" : "";
+        _sortPrefixFile       = _dirFirst ? "b" : "";
         
         return previousDirFirst !== _dirFirst;
     }
@@ -247,7 +271,7 @@ define(function (require, exports, module) {
                 $projectTreeList.triggerHandler("selectionChanged", reveal);
             }
 
-            // reposition the selection triangle
+            // reposition the selection "extension"
             $projectTreeContainer.triggerHandler("selectionRedraw");
             
             // in-lieu of resize events, manually trigger contentChanged for every
@@ -283,8 +307,7 @@ define(function (require, exports, module) {
         // Prefer file tree selection, else use working set selection
         var selectedEntry = _getTreeSelectedItem();
         if (!selectedEntry) {
-            var doc = DocumentManager.getCurrentDocument();
-            selectedEntry = (doc && doc.file);
+            selectedEntry = MainViewManager.getCurrentlyViewedFile();
         }
         return selectedEntry;
     }
@@ -294,12 +317,12 @@ define(function (require, exports, module) {
     }
     
     function _documentSelectionFocusChange() {
-        var curFile = EditorManager.getCurrentlyViewedPath();
-        if (curFile && _hasFileSelectionFocus()) {
+        var curFullPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE);
+        if (curFullPath && _hasFileSelectionFocus()) {
             var nodeFound = $("#project-files-container li").is(function (index) {
                 var $treeNode = $(this),
                     entry = $treeNode.data("entry");
-                if (entry && entry.fullPath === curFile) {
+                if (entry && entry.fullPath === curFullPath) {
                     if (!_projectTree.jstree("is_selected", $treeNode)) {
                         if ($treeNode.parents(".jstree-closed").length) {
                             //don't auto-expand tree to show file - but remember it if parent is manually expanded later
@@ -626,12 +649,12 @@ define(function (require, exports, module) {
                 function (event, data) {
                     if (event.type === "open_node") {
                         // select the current document if it becomes visible when this folder is opened
-                        var curDoc = DocumentManager.getCurrentDocument();
+                        var curFile = MainViewManager.getCurrentlyViewedFile();
                         
-                        if (_hasFileSelectionFocus() && curDoc && data) {
+                        if (_hasFileSelectionFocus() && curFile && data) {
                             var entry = data.rslt.obj.data("entry");
                             
-                            if (entry && curDoc.file.fullPath.indexOf(entry.fullPath) === 0) {
+                            if (entry && curFile.fullPath.indexOf(entry.fullPath) === 0) {
                                 _forceSelection(data.rslt.obj, _lastSelected);
                             } else {
                                 _redraw(true, false);
@@ -664,11 +687,23 @@ define(function (require, exports, module) {
                     }
                 }
             ).bind("mouseup.jstree", function (event) {
-                var $treenode = $(event.target).closest("li");
-                if ($treenode.is($(_projectTree.jstree("get_selected")))) {
+                if (event.button !== 0) { // 0 = Left mouse button
+                    return;
+                }
+
+                var $treenode = $(event.target).closest("li"),
+                    entry = $treenode.data("entry");
+
+                // If we are already in a rename, don't re-invoke it, just cancel it.
+                if (_isInRename($treenode)) {
+                    return;
+                }
+
+                // Don't do the rename for folders, because clicking on a folder name collapses/expands it.
+                if (entry && entry.isFile && $treenode.is($(_projectTree.jstree("get_selected")))) {
                     // wrap this in a setTimeout function so that we can check if it's a double click.
-                    _mouseupTimeoutId = window.setTimeout(function (event) {
-                        // if we get a double-click,_mouseupTimeoutId will have been set to lull by the double-click handler before this runs.
+                    _mouseupTimeoutId = window.setTimeout(function () {
+                        // if we get a double-click, _mouseupTimeoutId will have been set to null by the double-click handler before this runs.
                         if (_mouseupTimeoutId !== null) {
                             CommandManager.execute(Commands.FILE_RENAME);
                         }
@@ -734,7 +769,7 @@ define(function (require, exports, module) {
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
                     if (entry && entry.isFile && !_isInRename(event.target)) {
-                        FileViewController.addToWorkingSetAndSelect(entry.fullPath);
+                        FileViewController.openFileAndAddToWorkingSet(entry.fullPath);
                     }
                     if (_mouseupTimeoutId !== null) {
                         window.clearTimeout(_mouseupTimeoutId);
@@ -750,6 +785,62 @@ define(function (require, exports, module) {
         });
 
         return Async.withTimeout(result.promise(), 1000);
+    }
+    
+    function _showErrorDialog(errType, isFolder, error, path) {
+        var titleType = isFolder ? Strings.DIRECTORY_TITLE : Strings.FILE_TITLE,
+            entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
+            title,
+            message;
+        path = StringUtils.breakableUrl(path);
+
+        switch (errType) {
+        case ERR_TYPE_CREATE:
+            title = StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, titleType);
+            message = StringUtils.format(Strings.ERROR_CREATING_FILE, entryType, path, error);
+            break;
+        case ERR_TYPE_CREATE_EXISTS:
+            title = StringUtils.format(Strings.INVALID_FILENAME_TITLE, titleType);
+            message = StringUtils.format(Strings.ENTRY_WITH_SAME_NAME_EXISTS, path);
+            break;
+        case ERR_TYPE_RENAME:
+            title = StringUtils.format(Strings.ERROR_RENAMING_FILE_TITLE, titleType);
+            message = StringUtils.format(Strings.ERROR_RENAMING_FILE, path, error, entryType);
+            break;
+        case ERR_TYPE_DELETE:
+            title = StringUtils.format(Strings.ERROR_DELETING_FILE_TITLE, titleType);
+            message = StringUtils.format(Strings.ERROR_DELETING_FILE, path, error, entryType);
+            break;
+        case ERR_TYPE_LOADING_PROJECT:
+            title = Strings.ERROR_LOADING_PROJECT;
+            message = StringUtils.format(Strings.READ_DIRECTORY_ENTRIES_ERROR, path, error);
+            break;
+        case ERR_TYPE_LOADING_PROJECT_NATIVE:
+            title = Strings.ERROR_LOADING_PROJECT;
+            message = StringUtils.format(Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR, path, error);
+            break;
+        case ERR_TYPE_MAX_FILES:
+            title = Strings.ERROR_MAX_FILES_TITLE;
+            message = Strings.ERROR_MAX_FILES;
+            break;
+        case ERR_TYPE_OPEN_DIALOG:
+            title = Strings.ERROR_LOADING_PROJECT;
+            message = StringUtils.format(Strings.OPEN_DIALOG_ERROR, error);
+            break;
+        case ERR_TYPE_INVALID_FILENAME:
+            title = StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME);
+            message = StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE, error);
+            break;
+        }
+
+        if (title && message) {
+            return Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_ERROR,
+                title,
+                message
+            );
+        }
+        return null;
     }
     
     /**
@@ -863,9 +954,7 @@ define(function (require, exports, module) {
      */
     function _convertEntriesToJSON(entries) {
         var jsonEntryList = [],
-            entry,
-            entryI,
-            jsonEntry;
+            entryI;
 
         for (entryI = 0; entryI < entries.length; entryI++) {
             jsonEntryList.push(_entryToJSON(entries[entryI]));
@@ -933,15 +1022,7 @@ define(function (require, exports, module) {
         // Fetch dirEntry's contents
         dirEntry.getContents(function (err, contents, stats, statsErrs) {
             if (err) {
-                Dialogs.showModalDialog(
-                    DefaultDialogs.DIALOG_ID_ERROR,
-                    Strings.ERROR_LOADING_PROJECT,
-                    StringUtils.format(
-                        Strings.READ_DIRECTORY_ENTRIES_ERROR,
-                        StringUtils.breakableUrl(dirEntry.fullPath),
-                        err
-                    )
-                );
+                _showErrorDialog(ERR_TYPE_LOADING_PROJECT, null, err, dirEntry.fullPath);
                 // Reject the render promise so we can move on.
                 deferred.reject();
             } else {
@@ -1037,25 +1118,16 @@ define(function (require, exports, module) {
         return updateWelcomeProjectPath(PreferencesManager.getViewState("projectPath"));
     }
     
-    /**
-     * Error dialog when max files in index is hit
-     * @return {Dialog}
-     */
-    function _showMaxFilesDialog() {
-        return Dialogs.showModalDialog(
-            DefaultDialogs.DIALOG_ID_ERROR,
-            Strings.ERROR_MAX_FILES_TITLE,
-            Strings.ERROR_MAX_FILES
-        );
-    }
-    
     function _watchProjectRoot(rootPath) {
         FileSystem.on("change", _fileSystemChange);
         FileSystem.on("rename", _fileSystemRename);
 
         FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), _shouldShowName, function (err) {
             if (err === FileSystemError.TOO_MANY_ENTRIES) {
-                _showMaxFilesDialog();
+                if (!_projectWarnedForTooManyFiles) {
+                    _showErrorDialog(ERR_TYPE_MAX_FILES);
+                    _projectWarnedForTooManyFiles = true;
+                }
             } else if (err) {
                 console.error("Error watching project root: ", rootPath, err);
             }
@@ -1111,8 +1183,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Loads the given folder as a project. Normally, you would call openProject() instead to let the
-     * user choose a folder.
+     * Loads the given folder as a project. Does NOT prompt about any unsaved changes - use openProject()
+     * instead to check for unsaved changes and (optionally) let the user choose the folder to open.
      *
      * @param {!string} rootPath  Absolute path to the root folder of the project.
      *  A trailing "/" on the path is optional (unlike many Brackets APIs that assume a trailing "/").
@@ -1146,11 +1218,13 @@ define(function (require, exports, module) {
             }
             
             // close all the old files
-            DocumentManager.closeAll();
+            MainViewManager._closeAll(MainViewManager.ALL_PANES);
     
             _unwatchProjectRoot().always(function () {
-                // Done closing old project (if any)
+                // Finish closing old project (if any)
                 if (_projectRoot) {
+                    LanguageManager._resetPathLanguageOverrides();
+                    PreferencesManager._reloadUserPrefs(_projectRoot);
                     $(exports).triggerHandler("projectClose", _projectRoot);
                 }
                 
@@ -1187,12 +1261,12 @@ define(function (require, exports, module) {
                     if (exists) {
                         var projectRootChanged = (!_projectRoot || !rootEntry) ||
                             _projectRoot.fullPath !== rootEntry.fullPath;
-                        var i;
                         
                         // Success!
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectRoot = rootEntry;
+                        _projectWarnedForTooManyFiles = false;
                         
                         if (projectRootChanged) {
                             _reloadProjectPreferencesScope();
@@ -1233,31 +1307,24 @@ define(function (require, exports, module) {
                             PerfUtils.addMeasurement(perfTimerName);
                         });
                     } else {
-                        Dialogs.showModalDialog(
-                            DefaultDialogs.DIALOG_ID_ERROR,
-                            Strings.ERROR_LOADING_PROJECT,
-                            StringUtils.format(
-                                Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
-                                StringUtils.breakableUrl(rootPath),
-                                err || FileSystemError.NOT_FOUND
-                            )
-                        ).done(function () {
-                            // Reset _projectRoot to null so that the following _loadProject call won't 
-                            // run the 'beforeProjectClose' event a second time on the original project, 
-                            // which is now partially torn down (see #6574).
-                            _projectRoot = null;
-                            
-                            // The project folder stored in preference doesn't exist, so load the default
-                            // project directory.
-                            // TODO (issue #267): When Brackets supports having no project directory
-                            // defined this code will need to change
-                            _loadProject(_getWelcomeProjectPath()).always(function () {
-                                // Make sure not to reject the original deferred until the fallback
-                                // project is loaded, so we don't violate expectations that there is always
-                                // a current project before continuing after _loadProject().
-                                result.reject();
+                        _showErrorDialog(ERR_TYPE_LOADING_PROJECT_NATIVE, null, rootPath, err || FileSystemError.NOT_FOUND)
+                            .done(function () {
+                                // Reset _projectRoot to null so that the following _loadProject call won't 
+                                // run the 'beforeProjectClose' event a second time on the original project, 
+                                // which is now partially torn down (see #6574).
+                                _projectRoot = null;
+
+                                // The project folder stored in preference doesn't exist, so load the default
+                                // project directory.
+                                // TODO (issue #267): When Brackets supports having no project directory
+                                // defined this code will need to change
+                                _loadProject(_getWelcomeProjectPath()).always(function () {
+                                    // Make sure not to reject the original deferred until the fallback
+                                    // project is loaded, so we don't violate expectations that there is always
+                                    // a current project before continuing after _loadProject().
+                                    result.reject();
+                                });
                             });
-                        });
                     }
                 });
             }
@@ -1509,11 +1576,7 @@ define(function (require, exports, module) {
                                 result.reject();
                             }
                         } else {
-                            Dialogs.showModalDialog(
-                                DefaultDialogs.DIALOG_ID_ERROR,
-                                Strings.ERROR_LOADING_PROJECT,
-                                StringUtils.format(Strings.OPEN_DIALOG_ERROR, err)
-                            );
+                            _showErrorDialog(ERR_TYPE_OPEN_DIALOG, null, err);
                             result.reject();
                         }
                     });
@@ -1552,11 +1615,7 @@ define(function (require, exports, module) {
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
         if ((filename.search(new RegExp("[" + _invalidChars + "]+")) !== -1) ||
                 filename.match(_illegalFilenamesRegEx)) {
-            Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_ERROR,
-                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME),
-                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE,  _invalidChars)
-            );
+            _showErrorDialog(ERR_TYPE_INVALID_FILENAME, isFolder, _invalidChars);
             return false;
         }
         return true;
@@ -1681,27 +1740,15 @@ define(function (require, exports, module) {
                     _createNode($baseDirNode, null, _entryToJSON(entry), true, true);
                 };
                 
-                var errorCallback = function (error, entry) {
-                    var titleType = isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME,
-                        entryType = isFolder ? Strings.DIRECTORY : Strings.FILE;
+                var errorCallback = function (error) {
                     if (error === FileSystemError.ALREADY_EXISTS) {
-                        Dialogs.showModalDialog(
-                            DefaultDialogs.DIALOG_ID_ERROR,
-                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, titleType),
-                            StringUtils.format(Strings.ENTRY_WITH_SAME_NAME_EXISTS,
-                                StringUtils.breakableUrl(data.rslt.name))
-                        );
+                        _showErrorDialog(ERR_TYPE_CREATE_EXISTS, isFolder, null, data.rslt.name);
                     } else {
                         var errString = error === FileSystemError.NOT_WRITABLE ?
                                          Strings.NO_MODIFICATION_ALLOWED_ERR :
                                          StringUtils.format(Strings.GENERIC_ERROR, error);
 
-                        Dialogs.showModalDialog(
-                            DefaultDialogs.DIALOG_ID_ERROR,
-                            StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, entryType),
-                            StringUtils.format(Strings.ERROR_CREATING_FILE, entryType,
-                                StringUtils.breakableUrl(data.rslt.name), errString)
-                        );
+                        _showErrorDialog(ERR_TYPE_CREATE, isFolder, errString, data.rslt.name);
                     }
 
                     errorCleanup();
@@ -1709,10 +1756,10 @@ define(function (require, exports, module) {
                 
                 var newItemPath = baseDirEntry.fullPath + data.rslt.name;
                 
-                FileSystem.resolve(newItemPath, function (err, item) {
+                FileSystem.resolve(newItemPath, function (err) {
                     if (!err) {
                         // Item already exists, fail with error
-                        errorCallback(FileSystemError.ALREADY_EXISTS, item);
+                        errorCallback(FileSystemError.ALREADY_EXISTS);
                     } else {
                         if (isFolder) {
                             var directory = FileSystem.getDirectoryForPath(newItemPath);
@@ -1796,9 +1843,9 @@ define(function (require, exports, module) {
         var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
         entry.rename(newName, function (err) {
             if (!err) {
-                if (EditorManager.getCurrentlyViewedPath()) {
+                if (MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)) {
                     FileViewController.openAndSelectDocument(
-                        EditorManager.getCurrentlyViewedPath(),
+                        MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE),
                         FileViewController.getFileSelectionFocus()
                     );
                 }
@@ -1807,17 +1854,11 @@ define(function (require, exports, module) {
                 result.resolve();
             } else {
                 // Show an error alert
-                Dialogs.showModalDialog(
-                    DefaultDialogs.DIALOG_ID_ERROR,
-                    Strings.ERROR_RENAMING_FILE_TITLE,
-                    StringUtils.format(
-                        Strings.ERROR_RENAMING_FILE,
-                        StringUtils.breakableUrl(newName),
-                        err === FileSystemError.ALREADY_EXISTS ?
+                var errString = err === FileSystemError.ALREADY_EXISTS ?
                                 Strings.FILE_EXISTS_ERR :
-                                FileUtils.getFileErrorString(err)
-                    )
-                );
+                                FileUtils.getFileErrorString(err);
+
+                _showErrorDialog(ERR_TYPE_RENAME, isFolder, errString, newName);
                 result.reject(err);
             }
         });
@@ -1972,11 +2013,7 @@ define(function (require, exports, module) {
         
         // Trigger notifications after tree updates are complete
         arr.forEach(function (entry) {
-            if (DocumentManager.getCurrentDocument()) {
-                DocumentManager.notifyPathDeleted(entry.fullPath);
-            } else {
-                EditorManager.notifyPathDeleted(entry.fullPath);
-            }
+            DocumentManager.notifyPathDeleted(entry.fullPath);
         });
     }
 
@@ -1992,16 +2029,7 @@ define(function (require, exports, module) {
                 _deleteTreeNode(entry);
                 result.resolve();
             } else {
-                // Show an error alert
-                Dialogs.showModalDialog(
-                    Dialogs.DIALOG_ID_ERROR,
-                    Strings.ERROR_DELETING_FILE_TITLE,
-                    StringUtils.format(
-                        Strings.ERROR_DELETING_FILE,
-                        _.escape(entry.fullPath),
-                        FileUtils.getFileErrorString(err)
-                    )
-                );
+                _showErrorDialog(ERR_TYPE_DELETE, entry.isDirectory, FileUtils.getFileErrorString(err), entry.fullPath);
     
                 result.reject(err);
             }
@@ -2039,8 +2067,11 @@ define(function (require, exports, module) {
             
             getProjectRoot().visit(allFilesVisitor, function (err) {
                 if (err) {
-                    deferred.reject();
-                    _allFilesCachePromise = null;
+                    if (err === FileSystemError.TOO_MANY_ENTRIES && !_projectWarnedForTooManyFiles) {
+                        _showErrorDialog(ERR_TYPE_MAX_FILES);
+                        _projectWarnedForTooManyFiles = true;
+                    }
+                    deferred.reject(err);
                 } else {
                     deferred.resolve(allFiles);
                 }
@@ -2074,43 +2105,57 @@ define(function (require, exports, module) {
         var filteredFilesDeferred = new $.Deferred();
         
         // First gather all files in project proper
-        _getAllFilesCache().done(function (result) {
+        _getAllFilesCache()
+            .done(function (result) {
             // Add working set entries, if requested
-            if (includeWorkingSet) {
-                DocumentManager.getWorkingSet().forEach(function (file) {
-                    if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
-                        result.push(file);
-                    }
-                });
-            }
-            
-            // Filter list, if requested
-            if (filter) {
-                result = result.filter(filter);
-            }
-            
-            // If a done handler attached to the returned filtered files promise
-            // throws an exception that isn't handled here then it will leave
-            // _allFilesCachePromise in an inconsistent state such that no
-            // additional done handlers will ever be called!
-            try {
-                filteredFilesDeferred.resolve(result);
-            } catch (e) {
-                console.warn("Unhandled exception in getAllFiles handler: ", e);
-            }
-        });
+                if (includeWorkingSet) {
+                    MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).forEach(function (file) {
+                        if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
+                            result.push(file);
+                        }
+                    });
+                }
+
+                // Filter list, if requested
+                if (filter) {
+                    result = result.filter(filter);
+                }
+
+                // If a done handler attached to the returned filtered files promise
+                // throws an exception that isn't handled here then it will leave
+                // _allFilesCachePromise in an inconsistent state such that no
+                // additional done handlers will ever be called!
+                try {
+                    filteredFilesDeferred.resolve(result);
+                } catch (e) {
+                    console.warn("Unhandled exception in getAllFiles handler: ", e);
+                }
+            })
+            .fail(function (err) {
+                // resolve with empty list
+                try {
+                    filteredFilesDeferred.resolve([]);
+                } catch (e) {
+                    console.warn("Unhandled exception in getAllFiles handler: ", e);
+                }
+            });
         
         return filteredFilesDeferred.promise();
     }
     
     /**
      * Returns a filter for use with getAllFiles() that filters files based on LanguageManager language id
-     * @param {!string} languageId
+     * @param {!(string|Array.<string>)} languageId a single string of a language id or an array of language ids
      * @return {!function(File):boolean}
      */
     function getLanguageFilter(languageId) {
         return function languageFilter(file) {
-            return (LanguageManager.getLanguageForPath(file.fullPath).getId() === languageId);
+            var id = LanguageManager.getLanguageForPath(file.fullPath).getId();
+            if (typeof languageId === "string") {
+                return (id === languageId);
+            } else {
+                return (languageId.indexOf(id) !== -1);
+            }
         };
     }
         

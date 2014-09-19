@@ -65,6 +65,9 @@ define(function (require, exports, module) {
      *
      * __deleted__ -- When the file for this document has been deleted. All views onto the document should
      * be closed. The document will no longer be editable or dispatch "change" events.
+     * 
+     * __languageChanged__ -- When the value of getLanguage() has changed. 2nd argument is the old value,
+     * 3rd argument is the new value.
      *
      * @constructor
      * @param {!File} file  Need not lie within the project.
@@ -156,7 +159,7 @@ define(function (require, exports, module) {
      * @type {FileUtils.LINE_ENDINGS_CRLF|FileUtils.LINE_ENDINGS_LF}
      */
     Document.prototype._lineEndings = null;
-
+    
     /** Add a ref to keep this Document alive */
     Document.prototype.addRef = function () {
         //console.log("+++REF+++ "+this);
@@ -224,7 +227,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._ensureMasterEditor = function () {
         if (!this._masterEditor) {
-            EditorManager._createFullEditorForDocument(this);
+            EditorManager._createUnattachedMasterEditor(this);
         }
     };
     
@@ -670,14 +673,13 @@ define(function (require, exports, module) {
     Document.prototype.getLanguage = function () {
         return this.language;
     };
-
+    
     /**
-     * Updates the language according to the file extension
+     * Updates the language to match the current mapping given by LanguageManager
      */
     Document.prototype._updateLanguage = function () {
         var oldLanguage = this.language;
         this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
-        
         if (oldLanguage && oldLanguage !== this.language) {
             $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
         }
@@ -697,7 +699,6 @@ define(function (require, exports, module) {
     Document.prototype.isUntitled = function () {
         return this.file instanceof InMemoryFile;
     };
-
 
     // Define public API
     exports.Document = Document;

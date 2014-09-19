@@ -35,15 +35,13 @@ define(function (require, exports, module) {
         Menus           = brackets.getModule("command/Menus"),
         Strings         = brackets.getModule("strings"),
         HintsUtils2     = require("HintUtils2"),
-        ScopeManager    = require("ScopeManager"),
-        Session         = require("Session");
+        ScopeManager    = require("ScopeManager");
 
 
     /** @const {string} Show Function Hint command ID */
     var SHOW_PARAMETER_HINT_CMD_ID   = "showParameterHint", // string must MATCH string in native code (brackets_extensions)
         PUSH_EXISTING_HINT           = true,
         OVERWRITE_EXISTING_HINT      = false,
-        PRESERVE_FUNCTION_STACK      = true,
         hintContainerHTML            = require("text!ParameterHintTemplate.html"),
         KeyboardPrefs                = JSON.parse(require("text!keyboard.json"));
 
@@ -136,8 +134,7 @@ define(function (require, exports, module) {
      *  of the function call.
      */
     function formatHint(functionInfo) {
-        var hints = session.getParameterHint(functionInfo.functionCallPos),
-            pendingOptional = false;
+        var hints = session.getParameterHint(functionInfo.functionCallPos);
 
         $hintContent.empty();
         $hintContent.addClass("brackets-js-hints");

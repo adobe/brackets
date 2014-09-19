@@ -39,14 +39,6 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent");
 
     /**
-     * Returns editor holder width (not CodeMirror's width).
-     * @private
-     */
-    function _editorHolderWidth() {
-        return $("#editor-holder").width();
-    }
-
-    /**
      * Shows or hides the dirty indicator
      * @private
      */
@@ -300,10 +292,6 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      */
     InlineTextEditor.prototype._updateLineRange = function (editor) {
-        var oldStartLine    = this._startLine,
-            oldEndLine      = this._endLine,
-            oldLineCount    = this._lineCount;
-
         this._startLine = editor.getFirstVisibleLine();
         this._endLine = editor.getLastVisibleLine();
         this._lineCount = this._endLine - this._startLine;
