@@ -1080,6 +1080,18 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Resolve paneId to actual pane.
+     * @param {!string} paneId - id of the desired pane. May be symbolic or null (to indicate current pane)
+     * @return {string} id of the pane in which to open the document
+     */
+    function _resolvePaneId(paneId) {
+        if (!paneId || paneId === ACTIVE_PANE) {
+            return getActivePaneId();
+        }
+        return paneId;
+    }
+    
+    /**
      * Opens a file in the specified pane this can be used to open a file with a custom viewer
      * or a document for editing.  If it's a document for editing, edit is called on the document 
      * @param {!string} paneId - id of the pane in which to open the document
@@ -1097,6 +1109,22 @@ define(function (require, exports, module) {
         var currentPaneId = _getPaneIdForPath(file.fullPath);
 
         if (currentPaneId) {
+            // Warn user (only once) when file is already open in another view
+            if (!PreferencesManager.getViewState("splitview.multipane-info") &&
+                    currentPaneId !== _resolvePaneId(paneId)) {
+                PreferencesManager.setViewState("splitview.multipane-info", "true");
+                
+                // File tree also executes single-click code prior to executing double-click
+                // code, so delay showing modal dialog to prevent eating second click
+                window.setTimeout(function () {
+                    Dialogs.showModalDialog(
+                        DefaultDialogs.DIALOG_ID_INFO,
+                        Strings.SPLITVIEW_INFO_TITLE,
+                        Strings.SPLITVIEW_MULTIPANE_WARNING
+                    );
+                }, 500);
+            }
+
             // If the doc is open in another pane
             //  then switch to that pane and call open document
             //  which will really just show the view as it has always done
@@ -1529,31 +1557,6 @@ define(function (require, exports, module) {
         return result;
     }
 
-    /**
-     * Warn user when file is already open in another view
-     * @param {string} fullPath Full path to file.
-     */
-    function checkOtherPanesForFilepath(fullPath) {
-        // Only show dialog once
-        if (PreferencesManager.getViewState("splitview.multipane-info")) {
-            return;
-        }
-
-        var paneId = _getPaneIdForPath(fullPath);
-        if (paneId && paneId !== _activePaneId) {
-            // File tree also executes single-click code prior to executing double-click
-            // code, so delay showing modal dialog to prevent eating second click
-            window.setTimeout(function () {
-                PreferencesManager.setViewState("splitview.multipane-info", "true");
-                Dialogs.showModalDialog(
-                    DefaultDialogs.DIALOG_ID_INFO,
-                    Strings.SPLITVIEW_INFO_TITLE,
-                    Strings.SPLITVIEW_MULTIPANE_WARNING
-                );
-            }, 500);
-        }
-    }
-
     /** 
      * Setup a ready event to initialize ourself
      */
@@ -1624,7 +1627,6 @@ define(function (require, exports, module) {
     // Convenience
     exports.getCurrentlyViewedFile        = getCurrentlyViewedFile;
     exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;
-    exports.checkOtherPanesForFilepath    = checkOtherPanesForFilepath;
     
     // Constants
     exports.ALL_PANES                     = ALL_PANES;

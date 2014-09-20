@@ -150,12 +150,6 @@ define(function (require, exports, module) {
             return;
         }
 
-        // Temporary fix: currently not allowed to have a file open in multiple views, so when
-        // user clicks or double-clicks in project tree, display an info message (only once).
-        if (fileSelectionFocus === "ProjectManager") {
-            MainViewManager.checkOtherPanesForFilepath(fullPath);
-        }
-
         // Opening files are asynchronous and we want to know when this function caused a file
         // to open so that _fileSelectionFocus is set appropriatly. _curDocChangedDueToMe is set here
         // and checked in the currentFileChange handler
