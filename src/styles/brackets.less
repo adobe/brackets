@@ -488,7 +488,7 @@ a, img {
     }
     .pane-header {
         box-sizing: border-box;
-        border-bottom:  1px solid rgba(0, 0, 0, 0.03);
+        border-bottom:  1px solid rgba(0, 0, 0, 0.05);
         padding: 5px 10px;
         color: @bc-text-quiet;
         background-color: @background;
@@ -496,7 +496,7 @@ a, img {
         .dark & {
             color: @dark-bc-text-quiet;
             background-color: #1d1f21; // not using a variable on purpose.
-            border-bottom-color: rgba(255, 255, 255, 0.03);
+            border-bottom-color: rgba(255, 255, 255, 0.05);
         }
     }
     .active-pane {
@@ -512,16 +512,16 @@ a, img {
 
 // Split View Separator Styles
 .split-vertical #second-pane {
-    border-left: 1px solid @bc-panel-border;
+    border-left: 1px solid rgba(0, 0, 0, 0.17);
     .dark & {
-        border-left: 1px solid @dark-bc-highlight-hard;
+        border-left: 1px solid rgba(255, 255, 255, 0.3);
     }
 }
 
 .split-horizontal #second-pane {
-    border-top: 1px solid @bc-panel-border;
+    border-top: 1px solid rgba(0, 0, 0, 0.17);
     .dark & {
-        border-top: 1px solid @dark-bc-highlight-hard;
+        border-top: 1px solid rgba(255, 255, 255, 0.3);
     }
 }
 
@@ -732,9 +732,37 @@ a, img {
     top: 7px;
     padding: 4px 6px;
     .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons.svg");
-    background-position: center 5px;
-    z-index: 1;
+    background-origin: content-box;  // center image within the 13x13 area - ignore button's padding
     -webkit-filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
+    z-index: 1;
+}
+.splitview-icon-none {
+    background-position: center 1px;
+}
+.splitview-icon-vertical {
+    background-position: center -20px;
+}
+.splitview-icon-horizontal {
+    background-position: center -41px;
+}
+
+// Show splitview icons on the button's dropdown menu too
+#splitview-menu ul.dropdown-menu > li {
+    .menu-name::before {
+        display: inline-block;
+        .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons.svg");
+        margin: 0 5px 0 -1px;
+        vertical-align: -2px;
+    }
+    &:nth-child(1) .menu-name::before {
+        .splitview-icon-none();
+    }
+    &:nth-child(2) .menu-name::before {
+        .splitview-icon-vertical();
+    }
+    &:nth-child(3) .menu-name::before {
+        .splitview-icon-horizontal();
+    }
 }
 
 #sidebar {

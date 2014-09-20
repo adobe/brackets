@@ -73,6 +73,7 @@ define({
 	"ENTRY_WITH_SAME_NAME_EXISTS": "<span class='dialog-filename'>{0}</span> という名前のファイルまたはディレクトリは既に存在します。",
 	"ERROR_CREATING_FILE_TITLE": "{0} を作成する際にエラーが発生しました。",
 	"ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span> を作成する際にエラーが発生しました。{2}",
+	"ERROR_MIXED_DRAGDROP": "他のファイルを開いている間はフォルダーを開くことはできません。",
 
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "環境設定を読み込む際にエラーが発生しました。",

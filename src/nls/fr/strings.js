@@ -73,6 +73,7 @@ define({
 	"ENTRY_WITH_SAME_NAME_EXISTS": "Il existe déjà un fichier ou un répertoire portant le nom <span class='dialog-filename'>{0}</span>.",
 	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création de l’élément {0}",
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du {0} <span class='dialog-filename'>{1}</span>. {2}",
+	"ERROR_MIXED_DRAGDROP": "Impossible d’ouvrir un dossier en même temps que d’autres fichiers.",
 
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "Erreur lors de la lecture des préférences",
