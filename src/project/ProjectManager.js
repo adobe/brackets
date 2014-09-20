@@ -687,7 +687,10 @@ define(function (require, exports, module) {
                     }
                 }
             ).bind("mouseup.jstree", function (event) {
-                if (event.button !== 0) { // 0 = Left mouse button
+
+                // 0 = Left mouse button
+                // ctrlKey pressed indicates right click (context menu) requested instead
+                if (event.button !== 0 || event.ctrlKey) {
                     return;
                 }
 
