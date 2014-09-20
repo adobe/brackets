@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, brackets, beforeFirst, afterLast */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         EditorManager,      // loaded from brackets.test
         FileSyncManager,    // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
+        MainViewManager,    // loaded from brackets.test
         FileViewController, // loaded from brackets.test
         InlineWidget     = require("editor/InlineWidget").InlineWidget,
         Dialogs          = require("widgets/Dialogs"),
@@ -81,18 +82,18 @@ define(function (require, exports, module) {
          * @param {string} openFile  Project relative file path to open in a main editor.
          * @param {number} openOffset  The offset index location within openFile to open an inline editor.
          * @param {boolean=} expectInline  Use false to verify that an inline editor should not be opened. Omit otherwise.
-         * @param {Array<{string}>=} workingSet  Optional array of files to open in working set
+         * @param {Array<{string}>=} documentList  Optional array of files to open in working set
          */
-        function initInlineTest(openFile, openOffset, expectInline, workingSet) {
+        function initInlineTest(openFile, openOffset, expectInline, documentList) {
             var editor;
             
-            workingSet = workingSet || [];
+            documentList = documentList || [];
             
             expectInline = (expectInline !== undefined) ? expectInline : true;
             
             runs(function () {
-                workingSet.push(openFile);
-                waitsForDone(SpecRunnerUtils.openProjectFiles(workingSet), "FILE_OPEN timeout", 1000);
+                documentList.push(openFile);
+                waitsForDone(SpecRunnerUtils.openProjectFiles(documentList), "FILE_OPEN timeout", 1000);
             });
             
             runs(function () {
@@ -208,6 +209,7 @@ define(function (require, exports, module) {
                     EditorManager       = testWindow.brackets.test.EditorManager;
                     FileSyncManager     = testWindow.brackets.test.FileSyncManager;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
+                    MainViewManager     = testWindow.brackets.test.MainViewManager;
                     FileViewController  = testWindow.brackets.test.FileViewController;
                 });
             });
@@ -218,6 +220,7 @@ define(function (require, exports, module) {
                 EditorManager       = null;
                 FileSyncManager     = null;
                 DocumentManager     = null;
+                MainViewManager     = null;
                 FileViewController  = null;
                 SpecRunnerUtils.closeTestWindow();
 
@@ -483,8 +486,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var hostEditor = EditorManager.getCurrentFullEditor(),
-                        inlineWidget = hostEditor.getInlineWidgets()[0],
-                        inlinePos = inlineWidget.editor.getCursorPos();
+                        inlineWidget = hostEditor.getInlineWidgets()[0];
 
                     // verify inline widget
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
@@ -669,7 +671,7 @@ define(function (require, exports, module) {
             });
 
             it("should scroll cursor into view and position message popover inside right edge of window", function () {
-                var $popover, scrollPos, editor,
+                var $popover, editor,
                     openFile = "test1.html";
 
                 runs(function () {
@@ -772,8 +774,7 @@ define(function (require, exports, module) {
             it("should save changes in the inline editor", function () {
                 initInlineTest("test1.html", 1);
                 
-                var saved = false,
-                    err = false,
+                var err = false,
                     hostEditor,
                     inlineEditor,
                     newText = "\n/* jasmine was here */",
@@ -916,8 +917,7 @@ define(function (require, exports, module) {
                 
                 it("should close inline editor when file deleted on disk", function () {
                     // Create an expendable CSS file
-                    var fileToWrite,
-                        savedTempCSSFile = false;
+                    var fileToWrite;
 
                     runs(function () {
                         // Important: must create file using test window's FS so that it sees the new file right away
@@ -1024,7 +1024,7 @@ define(function (require, exports, module) {
                     initInlineTest("test1.html", 0);
                     
                     runs(function () {
-                        var i = DocumentManager.findInWorkingSet(infos["test1.css"].fileEntry.fullPath);
+                        var i = MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, infos["test1.css"].fileEntry.fullPath);
                         expect(i).toEqual(-1);
                     });
                 });
@@ -1047,7 +1047,7 @@ define(function (require, exports, module) {
                             inlineEditor.getCursorPos()
                         );
                         
-                        var i = DocumentManager.findInWorkingSet(infos["test1.css"].fileEntry.fullPath);
+                        var i = MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, infos["test1.css"].fileEntry.fullPath);
                         expect(i).toEqual(1);
 
                         inlineEditor = null;
@@ -1073,7 +1073,7 @@ define(function (require, exports, module) {
                         );
                         
                         // activate the full editor
-                        DocumentManager.setCurrentDocument(cssDoc);
+                        MainViewManager._edit(MainViewManager.ACTIVE_PANE, cssDoc);
                         fullEditor = EditorManager.getCurrentFullEditor();
                         
                         // sanity check
@@ -1123,7 +1123,7 @@ define(function (require, exports, module) {
                         inlineEditor = hostEditor.getInlineWidgets()[0].editor;
                         
                         // activate the full editor
-                        DocumentManager.setCurrentDocument(cssDoc);
+                        MainViewManager._edit(MainViewManager.ACTIVE_PANE, cssDoc);
                         fullEditor = EditorManager.getCurrentFullEditor();
                         
                         // alias offsets to nice names
@@ -1398,8 +1398,6 @@ define(function (require, exports, module) {
                 });
             
                 it("should close inline if the contents of the full editor are all deleted", function () {
-                    var newInlineText = "/* jasmine was inline */\n";
-                    
                     // verify inline is open
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
                     
@@ -1518,7 +1516,7 @@ define(function (require, exports, module) {
                         inlineEditor = hostEditor.getInlineWidgets()[0].editor;
                         
                         // activate the full editor
-                        DocumentManager.setCurrentDocument(cssDoc);
+                        MainViewManager._edit(MainViewManager.ACTIVE_PANE, cssDoc);
                         fullEditor = EditorManager.getCurrentFullEditor();
                     });
                 });
@@ -1557,7 +1555,9 @@ define(function (require, exports, module) {
         
         describe("InlineEditor provider prioritization", function () {
             var testWindow,
+                testDocumentManager,
                 testEditorManager,
+                testMainViewManager,
                 testDoc;
             
             function getPositiveProviderCallback(widget) {
@@ -1577,8 +1577,16 @@ define(function (require, exports, module) {
                     testWindow          = w;
                     Commands            = testWindow.brackets.test.Commands;
                     testEditorManager   = testWindow.brackets.test.EditorManager;
+                    testMainViewManager = testWindow.brackets.test.MainViewManager;
+                    testDocumentManager = testWindow.brackets.test.DocumentManager;
+                    
                     testDoc             = mock.doc;
-                    testEditorManager._doShow(testDoc);
+                    
+                    testDocumentManager.getOpenDocumentForPath = function (fullPath) {
+                        return testDoc;
+                    };
+                    
+                    testMainViewManager._edit(testMainViewManager.ACTIVE_PANE, testDoc);
                 });
             });
             
@@ -1589,6 +1597,8 @@ define(function (require, exports, module) {
                 Commands            = null;
                 testEditorManager   = null;
                 testDoc             = null;
+                testMainViewManager = null;
+                testDocumentManager = null;
             });
             
             

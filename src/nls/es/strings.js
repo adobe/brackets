@@ -75,18 +75,18 @@ define({
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Error leyendo las preferencias",
-    "ERROR_PREFS_CORRUPT"               : "El archivo de preferencias no tiene el formato JSON válido. El archivo se abrirá para que pueda corregir el formato. Luego deberá reiniciar {APP_NAME} para que los cambios surtan efecto.",
+    "ERROR_PREFS_CORRUPT"               : "El archivo de preferencias no tiene un formato JSON válido. El archivo se abrirá para que pueda corregir el formato. Luego deberá reiniciar {APP_NAME} para que los cambios surtan efecto.",
     
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Vaya... parece que {APP_NAME} todavía no funciona en navegadores.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} está desarrollado en HTML, pero por ahora funciona como una aplicación de escritorio para que puedas editar archivos en local. Por favor, utiliza la aplicación del repositorio <b>github.com/adobe/brackets-shell</b> para ejecutar {APP_NAME}.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} está desarrollado en HTML, pero por ahora funciona como una aplicación de escritorio para que puedas editar archivos localmente. Por favor, utiliza la aplicación del repositorio <b>github.com/adobe/brackets-shell</b> para ejecutar {APP_NAME}.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Error indexando archivos",
-    "ERROR_MAX_FILES"                   : "Este proyecto contiene más de 30.000 archivos. Funciones que operan sobre múltiples archivos pueden estar deshabilitadas o funcionar igual que si el proyecto estuviese vacío. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Leer más acerca de cómo trabajar con grandes proyectos</a>.",
+    "ERROR_MAX_FILES"                   : "Este proyecto contiene más de 30.000 archivos. Funciones que operan sobre múltiples archivos pueden estar deshabilitadas o funcionar igual que si el proyecto estuviese vacío. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Leer más acerca de cómo trabajar con proyectos grandes</a>.",
 
     // Live Preview error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error iniciando navegador",
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error iniciando el navegador",
     "ERROR_CANT_FIND_CHROME"            : "No se pudo encontrar el navegador Google Chrome. Por favor, asegúrate de que esté instalado correctamente.",
     "ERROR_LAUNCHING_BROWSER"           : "Ha ocurrido un error al iniciar el navegador. (error {0})",
     
@@ -185,7 +185,7 @@ define({
     "REPLACE_IN_FILES_ERRORS"           : "Los siguientes archivos no fueron modificados porque cambiaron después de realizar la búsqueda o no pueden ser escritos.",
     
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error obteniendo información sobre actualizaciones",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a internet y vuelve a intentarlo.",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a Internet y vuelve a intentarlo.",
     
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "Nuevo conjunto de filtros\u2026",
@@ -202,7 +202,7 @@ define({
     "FILTER_FILE_COUNT_ALL"             : "Permite todos los {0} archivos {1}",
     
     // Quick Edit
-    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "La Edición Rápida no esta disponible para la posición actual del cursor",
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "La Edición Rápida no está disponible para la posición actual del cursor",
     "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "Edición Rápida para CSS: ubique el cursor sobre el nombre de una clase",
     "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "Edición Rápida para CSS: atributo de clase incompleto",
     "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "Edición Rápida para CSS: atributo de identificación incompleto",
@@ -211,7 +211,7 @@ define({
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "Edición Rápida para JS: ubique el cursor sobre el nombre de una función",
     
     // Quick Docs
-    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "La Documentación Rápida no esta disponible para la posición actual del cursor",
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "La Documentación Rápida no está disponible para la posición actual del cursor",
     
     /**
      * ProjectManager
@@ -408,7 +408,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Hecho con \u2764 y JavaScript por:",
     "ABOUT_TEXT_LINE6"                     : "Mucha gente (pero ahora mismo estamos teniendo problemas para cargar esos datos).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "El contenido de Web Platform Docs y el logo de Web Platform están disponibles bajo una Licencia de Reconocimiento de Creative Commons, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "El contenido de Web Platform Docs y el logo de Web Platform están disponibles bajo Licencia de Reconocimiento de Creative Commons, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "¡Hay una nueva versión de {APP_NAME} disponible! Haz click aquí para más detalles.",
     "UPDATE_AVAILABLE_TITLE"               : "Actualización disponible",
     "UPDATE_MESSAGE"                       : "¡Hay una nueva versión de {APP_NAME} disponible! Éstas son algunas de las nuevas características:",

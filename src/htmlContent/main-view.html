@@ -41,15 +41,12 @@
     <!-- Main UI: horizontal set of sidebar, main content vertical stack, and vertical toolbar -->
     <div class="main-view">
         <div id="sidebar" class="sidebar panel quiet-scrollbars horz-resizable right-resizer collapsible" data-minsize="0" data-forceleft=".content">
-            <div id="working-set-header">{{WORKING_FILES}}
-                <div id="working-set-option-btn" class="btn-alt-quiet"></div>
+            <div class="working-set-splitview-btn btn-alt-quiet"></div>
+            <div class="working-set-option-btn btn-alt-quiet"></div>
+            
+            <div id="working-set-list-container">
+                
             </div>
-            <div id="open-files-container">
-                <!-- This will contain runtime-generated <li>'s for each file in the working set -->
-                <ul>
-                </ul>
-            </div>
-        
             <div id="project-files-header">
                 <span id="project-title" class="title"></span>
             </div>
@@ -63,8 +60,8 @@
                 (status bar is injected later - see StatusBar.init()).
             Note: all children must be in a vertical stack with heights explicitly set in a fixed
                 unit such as px (not percent/em/auto). If you change the height later, you must
-                call EditorManager.resizeEditor() each time. Otherwise editor-holder's height will
-                not get set correctly. Use PanelManager to have this managed for you automatically.
+                call WorkspaceManager.recomputeLayout() each time. Otherwise the layout will
+                not get set correctly. Use WorkspaceManager to have this managed for you automatically.
          -->
         <div class="content">
             <!-- Horizontal titlebar containing menus & filename when inBrowser -->
@@ -79,10 +76,8 @@
                 </div>
             </div>
             
-            <!-- Editors are programmatically created inside here -->
             <div id="editor-holder">
-                <div id="not-editor">
-                </div>
+                <!-- View Panes are programatically created here -->
             </div>
             
             <!-- Bottom panels and status bar are programmatically created here -->
@@ -112,3 +107,4 @@
     <div id="codehint-menu-bar">
         <ul data-dropdown="dropdown"></ul>
     </div>
+    <div id="hidden-editors"></div>

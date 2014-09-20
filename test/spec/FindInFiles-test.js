@@ -22,23 +22,22 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, window, jasmine, spyOn */
+/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
 
-    var Commands              = require("command/Commands"),
-        KeyEvent              = require("utils/KeyEvent"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
-        FileSystem            = require("filesystem/FileSystem"),
-        FileSystemError       = require("filesystem/FileSystemError"),
-        FileUtils             = require("file/FileUtils"),
-        FindUtils             = require("search/FindUtils"),
-        Async                 = require("utils/Async"),
-        LanguageManager       = require("language/LanguageManager"),
-        StringUtils           = require("utils/StringUtils"),
-        Strings               = require("strings"),
-        _                     = require("thirdparty/lodash");
+    var Commands        = require("command/Commands"),
+        KeyEvent        = require("utils/KeyEvent"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+        FileSystemError = require("filesystem/FileSystemError"),
+        FileUtils       = require("file/FileUtils"),
+        FindUtils       = require("search/FindUtils"),
+        Async           = require("utils/Async"),
+        LanguageManager = require("language/LanguageManager"),
+        StringUtils     = require("utils/StringUtils"),
+        Strings         = require("strings"),
+        _               = require("thirdparty/lodash");
 
     var promisify = Async.promisify; // for convenience
 
@@ -52,6 +51,7 @@ define(function (require, exports, module) {
             searchResults,
             CommandManager,
             DocumentManager,
+            MainViewManager,
             EditorManager,
             FileFilters,
             FileSystem,
@@ -79,6 +79,7 @@ define(function (require, exports, module) {
                 FindInFiles     = testWindow.brackets.test.FindInFiles;
                 FindInFilesUI   = testWindow.brackets.test.FindInFilesUI;
                 ProjectManager  = testWindow.brackets.test.ProjectManager;
+                MainViewManager = testWindow.brackets.test.MainViewManager;
                 $               = testWindow.$;
             });
         });
@@ -92,6 +93,7 @@ define(function (require, exports, module) {
             FindInFiles     = null;
             FindInFilesUI   = null;
             ProjectManager  = null;
+            MainViewManager = null;
             $               = null;
             testWindow      = null;
             SpecRunnerUtils.closeTestWindow();
@@ -496,7 +498,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Verify document is not yet in working set
-                    expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, filePath)).toBe(-1);
 
                     // Get list in panel
                     var $panelResults = $("#find-in-files-results table.bottom-panel-table tr");
@@ -508,7 +510,7 @@ define(function (require, exports, module) {
                     $firstHit.dblclick();
 
                     // Verify document is now in working set
-                    expect(DocumentManager.findInWorkingSet(filePath)).not.toBe(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, filePath)).not.toBe(-1);
                     waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
                 });
             });
@@ -524,7 +526,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Verify document is not yet in working set
-                    expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, filePath)).toBe(-1);
 
                     // Get list in panel
                     $panelResults = $("#find-in-files-results table.bottom-panel-table tr");
@@ -782,7 +784,7 @@ define(function (require, exports, module) {
             describe("when in-memory document changes", function () {
                 it("should update the results when a matching line is added, updating line numbers and adding the match", function () {
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fullTestPath("foo.html") }));
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: fullTestPath("foo.html") }));
                     });
                     runs(function () {
                         var doc = DocumentManager.getOpenDocumentForPath(fullTestPath("foo.html")),
@@ -823,7 +825,7 @@ define(function (require, exports, module) {
 
                 it("should update the results when a matching line is deleted, updating line numbers and removing the match", function () {
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fullTestPath("foo.html") }));
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: fullTestPath("foo.html") }));
                     });
                     runs(function () {
                         var doc = DocumentManager.getOpenDocumentForPath(fullTestPath("foo.html")),
@@ -860,7 +862,7 @@ define(function (require, exports, module) {
 
                 it("should replace matches in a portion of the document that was edited to include a new match", function () {
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fullTestPath("foo.html") }));
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: fullTestPath("foo.html") }));
                     });
                     runs(function () {
                         var doc = DocumentManager.getOpenDocumentForPath(fullTestPath("foo.html")),
@@ -901,11 +903,10 @@ define(function (require, exports, module) {
 
                 it("should completely remove the document from the results list if all matches in the document are deleted", function () {
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fullTestPath("foo.html") }));
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: fullTestPath("foo.html") }));
                     });
                     runs(function () {
-                        var doc = DocumentManager.getOpenDocumentForPath(fullTestPath("foo.html")),
-                            i;
+                        var doc = DocumentManager.getOpenDocumentForPath(fullTestPath("foo.html"));
                         expect(doc).toBeTruthy();
 
                         // Replace all matches and check that the entire file was removed from the results list.
@@ -1292,10 +1293,10 @@ define(function (require, exports, module) {
 
                     // Open two of the documents we want to replace in memory.
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/css/foo.css" }), "opening document");
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: testPath + "/css/foo.css" }), "opening document");
                     });
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.js" }), "opening document");
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: testPath + "/foo.js" }), "opening document");
                     });
 
                     // We can't use expectInMemoryFiles(), since this test requires everything to happen fully synchronously
@@ -1400,7 +1401,7 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/css/foo.css" }), "opening document");
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: testPath + "/css/foo.css" }), "opening document");
                     });
 
                     doTestWithErrors({
@@ -1427,7 +1428,7 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/css/foo.css"}), "add file to working set");
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/css/foo.css"}), "add file to working set");
                     });
 
                     doInMemoryTest({
@@ -1452,7 +1453,7 @@ define(function (require, exports, module) {
                     };
 
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/css/foo.css"}), "add file to working set");
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/css/foo.css"}), "add file to working set");
                     });
                     runs(function () {
                         var doc = DocumentManager.getOpenDocumentForPath(testPath + "/css/foo.css");
@@ -1488,7 +1489,7 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     runs(function () {
-                        DocumentManager.addToWorkingSet(FileSystem.getFileForPath(testPath + "/css/foo.css"));
+                        MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, FileSystem.getFileForPath(testPath + "/css/foo.css"));
                     });
 
                     doInMemoryTest({
@@ -1523,7 +1524,7 @@ define(function (require, exports, module) {
                     });
 
                     runs(function () {
-                        var workingSet = DocumentManager.getWorkingSet();
+                        var workingSet = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
                         expect(workingSet.some(function (file) { return file.fullPath === openFilePath; })).toBe(true);
                         doc.releaseRef();
                     });
@@ -1574,7 +1575,7 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/bar.txt"}), "open file");
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/bar.txt"}), "open file");
                     });
 
                     doInMemoryTest({
@@ -1614,7 +1615,7 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/css/foo.css"}), "open file");
+                        waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/css/foo.css"}), "open file");
                     });
 
                     doInMemoryTest({
@@ -1727,12 +1728,12 @@ define(function (require, exports, module) {
                         
                         openTestProjectCopy(defaultSourcePath);
                         runs(function () {
-                            waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.html" }), "open file");
+                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: testPath + "/foo.html" }), "open file");
                         });
                         runs(function () {
                             doc = DocumentManager.getOpenDocumentForPath(testPath + "/foo.html");
                             expect(doc).toBeTruthy();
-                            DocumentManager.setCurrentDocument(doc);
+                            MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                             editor = doc._masterEditor;
                             expect(editor).toBeTruthy();
                             editor.setSelection({line: 4, ch: 7}, {line: 4, ch: 10});
@@ -1750,12 +1751,12 @@ define(function (require, exports, module) {
                         
                         openTestProjectCopy(defaultSourcePath);
                         runs(function () {
-                            waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.html" }), "open file");
+                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: testPath + "/foo.html" }), "open file");
                         });
                         runs(function () {
                             doc = DocumentManager.getOpenDocumentForPath(testPath + "/foo.html");
                             expect(doc).toBeTruthy();
-                            DocumentManager.setCurrentDocument(doc);
+                            MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                             editor = doc._masterEditor;
                             expect(editor).toBeTruthy();
                             editor.setSelection({line: 4, ch: 7}, {line: 6, ch: 10});
@@ -1986,7 +1987,7 @@ define(function (require, exports, module) {
                     it("should do single-file Replace All in an open file in the project", function () {
                         openTestProjectCopy(defaultSourcePath);
                         runs(function () {
-                            waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.js" }), "open file");
+                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: testPath + "/foo.js" }), "open file");
                         });
                         runs(function () {
                             waitsForDone(CommandManager.execute(Commands.CMD_REPLACE), "open single-file replace bar");
@@ -2025,7 +2026,7 @@ define(function (require, exports, module) {
                         });
                         SpecRunnerUtils.loadProjectInTestWindow(blankProject);
                         runs(function () {
-                            waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: externalFilePath }), "open external file");
+                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: externalFilePath }), "open external file");
                         });
                         runs(function () {
                             waitsForDone(CommandManager.execute(Commands.CMD_REPLACE), "open single-file replace bar");
@@ -2160,7 +2161,7 @@ define(function (require, exports, module) {
                     it("should close the panel if a file is modified in memory", function () {
                         openTestProjectCopy(defaultSourcePath);
                         runs(function () {
-                            waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.html" }), "open file");
+                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: testPath + "/foo.html" }), "open file");
                         });
                         openSearchBar(null, true);
                         executeReplace("foo", "bar");
@@ -2183,7 +2184,7 @@ define(function (require, exports, module) {
                         
                         openTestProjectCopy(defaultSourcePath);
                         runs(function () {
-                            waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.html" }), "open file");
+                            waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: testPath + "/foo.html" }), "open file");
                         });
                         runs(function () {
                             doc = DocumentManager.getOpenDocumentForPath(testPath + "/foo.html");
