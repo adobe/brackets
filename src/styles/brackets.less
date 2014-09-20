@@ -753,6 +753,10 @@ a, img {
         .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons.svg");
         margin: 0 5px 0 -1px;
         vertical-align: -2px;
+        
+        .dark & {
+            .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons-dark.svg");
+        }
     }
     &:nth-child(1) .menu-name::before {
         .splitview-icon-none();
