@@ -406,9 +406,12 @@ define(function (require, exports, module) {
         //move the view,
         var view = this._views[file.fullPath];
         
-        // The view may not have been created
         if (view) {
             destination.addView(view, !destination.getCurrentlyViewedFile());
+        } else if (!destination.getCurrentlyViewedFile()) {
+            // The view has not have been created and the pane was 
+            //  not showing anything so open the file moved in to the pane
+            destination._execOpenFile(file.fullPath);
         }
     };
     
