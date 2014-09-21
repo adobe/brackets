@@ -97,7 +97,10 @@ define(function (require, exports, module) {
     
     
     /** 
-     * Suppresses redraw sorting for all views
+     * Turns on/off the flag which suppresses rebuilding of the working set 
+     * when the "workingSetSort" event is dispatched from MainViewManager
+     * Only used while dragging things around in the workingset to disable
+     * rebuilding the list while dragging.
      * @private
      * @param {boolean} suppress - true suppress, false to allow sort redrawing
      */
@@ -109,7 +112,8 @@ define(function (require, exports, module) {
     
     
     /** 
-     * caches the selection index for all views
+     * Caches each view's selected item index so it can later be determined
+     * if the selected item needs to be synced with the "selection" affordance
      * @private
      * @param {boolean} suppress - true suppress, false to allow sort redrawing
      */
@@ -124,8 +128,9 @@ define(function (require, exports, module) {
     }
     
     /** 
-     * updates the selection index for all views and fires a selection change
-     * event on the view if the selection index chnages from the previously cached value
+     * Updates the selection index for all views and fires a selection change
+     * event on the view if the selection index chnages from the previously 
+     * cached value. This synchromizes the "selection" affordance 
      * @private
      * @param {boolean} suppress - true suppress, false to allow sort redrawing
      */
@@ -173,7 +178,7 @@ define(function (require, exports, module) {
         
         //  We scroll the list while hovering over the first or last visible list element
         //  in the working set, so that positioning a working set item before or after one
-        //  that has been hidden can be performed.
+        //  that has been scrolled out of view can be performed.
         // 
         //  This function will call the drag interface repeatedly on an interval to allow
         //  the item to be dragged while scrolling the list until the mouse is moved off 
@@ -254,12 +259,17 @@ define(function (require, exports, module) {
                         return Boolean(currentContainerOffset);
                     }
                     
+                    // updates the state variables for 
+                    //  the current working set container
                     function updateCurrentContext() {
                         currentContainerOffset = $currentContainer.offset();
                         currentViewOffset = $currentView.offset();
                         _updateSelectionStateForAllViews();
                     }
 
+                    // Switches the context to the working 
+                    //  set container and view specfied by $container
+                    //  and updates the state variables for the container
                     function switchContext($container) {
                         if (hasValidContext()) {
                             updateCurrentContext();
@@ -453,13 +463,10 @@ define(function (require, exports, module) {
                             top: offset.top,
                             left: offset.left});
             
-            // don't show the close icon on the ghost
-            //$copy.removeClass("can-close");
-
             // this will give the element the appearence that it's ghosted if the user
             //  drags the element out of the view and goes off into no mans land
             $el.css("opacity", ".25");
-            $ghost.appendTo($("body"));//($("#working-set-list-container"));
+            $ghost.appendTo($("body"));
         });
     }
     
