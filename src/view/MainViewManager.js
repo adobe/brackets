@@ -1112,7 +1112,7 @@ define(function (require, exports, module) {
             // Warn user (only once) when file is already open in another view
             if (!PreferencesManager.getViewState("splitview.multipane-info") &&
                     currentPaneId !== _resolvePaneId(paneId)) {
-                PreferencesManager.setViewState("splitview.multipane-info", "true");
+                PreferencesManager.setViewState("splitview.multipane-info", true);
                 
                 // File tree also executes single-click code prior to executing double-click
                 // code, so delay showing modal dialog to prevent eating second click
