@@ -28,9 +28,6 @@ define(function (require, exports, module) {
     "use strict";
    
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        CodeHintManager = brackets.getModule("editor/CodeHintManager"),
-        DocumentManager = brackets.getModule("document/DocumentManager"),
-        FileUtils       = brackets.getModule("file/FileUtils"),
         testContentCSS  = require("text!unittest-files/regions.css"),
         testContentHTML = require("text!unittest-files/region-template.html"),
         CSSCodeHints    = require("main");
@@ -481,7 +478,7 @@ define(function (require, exports, module) {
                 var expectedString = "shape-inside:polygon()";
 
                 testEditor.setCursorPos({ line: 1, ch: 15 });    // after shape-inside
-                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                expectHints(CSSCodeHints.cssPropHintProvider);
                 selectHint(CSSCodeHints.cssPropHintProvider, "polygon()");
                 expect(testDocument.getLine(1).length).toBe(expectedString.length);
                 expect(testDocument.getLine(1)).toBe(expectedString);

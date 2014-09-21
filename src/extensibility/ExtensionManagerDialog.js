@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global brackets, define, $, Mustache, window */
+/*global brackets, define, $, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -40,6 +40,7 @@ define(function (require, exports, module) {
         InstallExtensionDialog      = require("extensibility/InstallExtensionDialog"),
         AppInit                     = require("utils/AppInit"),
         Async                       = require("utils/Async"),
+        KeyEvent                    = require("utils/KeyEvent"),
         ExtensionManager            = require("extensibility/ExtensionManager"),
         ExtensionManagerView        = require("extensibility/ExtensionManagerView").ExtensionManagerView,
         ExtensionManagerViewModel   = require("extensibility/ExtensionManagerViewModel");
@@ -304,16 +305,36 @@ define(function (require, exports, module) {
         $dlg = dialog.getElement();
         $search = $(".search", $dlg);
         $searchClear = $(".search-clear", $dlg);
-        
+
+        function setActiveTab($tab) {
+            models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
+            $tab.tab("show");
+            $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
+            $searchClear.click();
+        }
+
         // Dialog tabs
         $dlg.find(".nav-tabs a")
             .on("click", function (event) {
-                models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
-                $(this).tab("show");
-                $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
-                $searchClear.click();
+                setActiveTab($(this));
             });
-        
+
+        // navigate through tabs via Ctrl-(Shift)-Tab
+        $dlg.on("keyup", function (event) {
+            if (event.keyCode === KeyEvent.DOM_VK_TAB && event.ctrlKey) {
+                var $tabs = $(".nav-tabs a", $dlg),
+                    tabIndex = _activeTabIndex;
+
+                if (event.shiftKey) {
+                    tabIndex--;
+                } else {
+                    tabIndex++;
+                }
+                tabIndex %= $tabs.length;
+                setActiveTab($tabs.eq(tabIndex));
+            }
+        });
+
         // Update & hide/show the notification overlay on a tab's icon, based on its model's notifyCount
         function updateNotificationIcon(index) {
             var model = models[index],

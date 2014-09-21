@@ -22,7 +22,7 @@
  */
 
 
-/*global define, $, localStorage, brackets, console */
+/*global define, $ */
 
 /**
  * Generates the fully configured preferences systems used IN TESTING. This configuration does

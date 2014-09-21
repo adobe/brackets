@@ -110,18 +110,17 @@ define(function (require, exports, module) {
         popoverState = null;
     }
     
-    function positionPreview(xpos, ypos, ybot) {
+    function positionPreview(editor, xpos, ypos, ybot) {
         var previewWidth  = $previewContainer.outerWidth(),
             top           = ypos - $previewContainer.outerHeight() - POINTER_HEIGHT,
             left          = xpos - previewWidth / 2,
-            $editorHolder = $("#editor-holder"),
             elementRect = {
                 top:    top,
                 left:   left - POPOVER_HORZ_MARGIN,
                 height: $previewContainer.outerHeight() + POINTER_HEIGHT,
                 width:  previewWidth + 2 * POPOVER_HORZ_MARGIN
             },
-            clip = ViewUtils.getElementClipSize($editorHolder, elementRect);
+            clip = ViewUtils.getElementClipSize($(editor.getRootElement()), elementRect);
 
         // Prevent horizontal clipping
         if (clip.left > 0) {
@@ -489,7 +488,7 @@ define(function (require, exports, module) {
                                         "</div>"
                                     );
                             $previewContainer.show();
-                            positionPreview(popoverState.xpos, popoverState.ytop, popoverState.ybot);
+                            positionPreview(editor, popoverState.xpos, popoverState.ytop, popoverState.ybot);
                         });
                     };
                     
@@ -622,7 +621,7 @@ define(function (require, exports, module) {
             if (popoverState.onShow) {
                 popoverState.onShow();
             } else {
-                positionPreview(popoverState.xpos, popoverState.ytop, popoverState.ybot);
+                positionPreview(editor, popoverState.xpos, popoverState.ytop, popoverState.ybot);
             }
         }
     }

@@ -61,10 +61,9 @@
  *       Some WorkingSet APIs that have been identified as being used by 3rd party extensions will
  *       emit deprecation warnings and call the WorkingSet APIS to maintain backwards compatibility
  *
- *    - currentDocumentChange -- This is being deprecated and is currently only used as a shim to assist 
- *      the document open process so that the editor will actually open or close the desired document. 
- *      This will change accordingly once work begins to refactor EditorManager to be a view provider
- *      and open documents directly.
+ *    - currentDocumentChange -- Deprecated: use EditorManager activeEditorChange (which covers all editors,
+ *      not just full-sized editors) or MainViewManager currentFileChange (which covers full-sized views
+ *      only, but is also triggered for non-editor views e.g. image files).
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.  Generally, however, file objects have already been changed by the 
@@ -87,8 +86,7 @@ define(function (require, exports, module) {
         DocumentModule      = require("document/Document"),
         DeprecationWarning  = require("utils/DeprecationWarning"),
         MainViewManager     = require("view/MainViewManager"),
-        ProjectManager      = require("project/ProjectManager"),
-        EditorManager       = require("editor/EditorManager"),
+        MainViewFactory     = require("view/MainViewFactory"),
         FileSyncManager     = require("project/FileSyncManager"),
         FileSystem          = require("filesystem/FileSystem"),
         PreferencesManager  = require("preferences/PreferencesManager"),
@@ -96,7 +94,6 @@ define(function (require, exports, module) {
         InMemoryFile        = require("document/InMemoryFile"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
-        Async               = require("utils/Async"),
         PerfUtils           = require("utils/PerfUtils"),
         LanguageManager     = require("language/LanguageManager"),
         Strings             = require("strings");
@@ -162,10 +159,8 @@ define(function (require, exports, module) {
         DeprecationWarning.deprecationWarning("Use MainViewManager.getViews() instead of DocumentManager.getWorkingSet()", true);
         return MainViewManager.getWorkingSet(MainViewManager.ALL_PANES)
             .filter(function (file) {
-                // Document.file objects were added to Working Sets
-                //  so filter the result set from the new API
-                //  for those files who have document objects
-                return getOpenDocumentForPath(file.fullPath);
+                // Legacy didn't allow for files with custom viewers
+                return !MainViewFactory.findSuitableFactoryForPath(file.fullPath);
             });
     }
 
@@ -259,7 +254,7 @@ define(function (require, exports, module) {
      * @param {!Document} document  The Document to make current. 
      */
     function setCurrentDocument(doc) {
-        DeprecationWarning.deprecationWarning("Use CommandManager.doCommand(Commands.CMD_OPEN) instead of DocumentManager.setCurrentDocument()", true);
+        DeprecationWarning.deprecationWarning("Use CommandManager.execute(Commands.CMD_OPEN) instead of DocumentManager.setCurrentDocument()", true);
         CommandManager.execute(Commands.CMD_OPEN, {fullPath: doc.file.fullPath});
     }
 
@@ -663,12 +658,14 @@ define(function (require, exports, module) {
             $(oldDoc).off("languageChanged.DocumentManager");
         }
         
-        var count = DeprecationWarning.getEventHandlerCount(exports, "currentDocumentChange");
-        if (count > 0) {
-            DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChange' instead.", true);
+        if (newDoc !== oldDoc) {
+            var count = DeprecationWarning.getEventHandlerCount(exports, "currentDocumentChange");
+            if (count > 0) {
+                DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChange' instead.", true);
+            }
+
+            $(exports).triggerHandler("currentDocumentChange", [newDoc, oldDoc]);
         }
-        
-        $(exports).triggerHandler("currentDocumentChange", [newDoc, oldDoc]);
 
         if (newDoc) {
             $(newDoc).on("languageChanged.DocumentManager", function (data) {
@@ -687,6 +684,7 @@ define(function (require, exports, module) {
     exports.getCurrentDocument             = getCurrentDocument;
     exports.beginDocumentNavigation        = beginDocumentNavigation;
     exports.finalizeDocumentNavigation     = finalizeDocumentNavigation;
+    exports.getNextPrevFile                = getNextPrevFile;
     exports.setCurrentDocument             = setCurrentDocument;
     exports.closeFullEditor                = closeFullEditor;
     exports.closeAll                       = closeAll;
