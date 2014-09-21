@@ -165,6 +165,15 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Returns a list of providers
+     *
+     * @return {{languageId:string, Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):Object}>}} providers
+     */
+    function getProviders() {
+        return _providers;
+    }
+
+    /**
      * Runs a file inspection over passed file. Uses the given list of providers if specified, otherwise uses
      * the set of providers that are registered for the file's language.
      * This method doesn't update the Brackets UI, just provides inspection results.
@@ -469,6 +478,27 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Deregisters a provider, given a languageId and the provider.
+     * Allows code to remove providers which provide the same functionality
+     * as the code provides
+     *
+     * @param {string} languageId
+     * @param {{name:string, scanFileAsync:?function(string, string):!{$.Promise},
+     *         scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}} provider
+     *
+     * Returns false if no provider was removed.
+     */
+    function deregister(languageId, provider) {
+        if (_providers[languageId]) {
+            _.remove(_providers[languageId], function (registeredProvider) {
+                return registeredProvider.name === provider.name;
+            });
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Update DocumentManager listeners.
      */
     function updateListeners() {
@@ -643,9 +673,12 @@ define(function (require, exports, module) {
     exports._PREF_ASYNC_TIMEOUT     = PREF_ASYNC_TIMEOUT;
 
     // Public API
-    exports.register       = register;
-    exports.Type           = Type;
-    exports.toggleEnabled  = toggleEnabled;
-    exports.inspectFile    = inspectFile;
-    exports.requestRun     = run;
+    exports.register            = register;
+    exports.deregister          = deregister;
+    exports.Type                = Type;
+    exports.toggleEnabled       = toggleEnabled;
+    exports.inspectFile         = inspectFile;
+    exports.requestRun          = run;
+    exports.getProvidersForPath = getProvidersForPath;
+    exports.getProviders        = getProviders;
 });
