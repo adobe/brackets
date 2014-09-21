@@ -775,6 +775,15 @@ define(function (require, exports, module) {
         }
     }
     
+    function _moveView(sourcePaneId, destinationPaneId, file, destinationIndex) {
+        var sourcePane = _getPane(sourcePaneId),
+            destinationPane = _getPane(destinationPaneId);
+        
+        if (sourcePane.moveView(file, destinationPane, destinationIndex)) {
+            $(exports).triggerHandler("workingSetMove", [file, sourcePane.id, destinationPane.id]);
+        }
+    }
+    
     function _removeDeletedFileFromMRU(e, fullPath) {
         var index,
             compare = function (record) {
@@ -803,6 +812,14 @@ define(function (require, exports, module) {
             pane.sortViewList(compareFn);
             $(exports).triggerHandler("workingSetSort", [pane.id]);
         });
+    }
+    
+    function _moveWorkingSetItem(paneId, fromIndex, toIndex) {
+        var pane = _getPane(paneId);
+
+        pane.moveWorkingSetItem(fromIndex, toIndex);
+        $(exports).triggerHandler("workingSetSort", [pane.id]);
+        $(exports).triggerHandler("_workingSetDisableAutoSort", [pane.id]);
     }
 
     /**
@@ -1547,9 +1564,11 @@ define(function (require, exports, module) {
         
     // Private Helpers
     exports._removeView                   = _removeView;
+    exports._moveView                     = _moveView;
     
     // Private API
     exports._sortWorkingSet               = _sortWorkingSet;
+    exports._moveWorkingSetItem           = _moveWorkingSetItem;
     exports._swapWorkingSetListIndexes    = _swapWorkingSetListIndexes;
     exports._destroyEditorIfNotNeeded     = _destroyEditorIfNotNeeded;
     exports._edit                         = _edit;

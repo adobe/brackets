@@ -165,6 +165,10 @@ define(function (require, exports, module) {
         paneTemplate        = require("text!htmlContent/pane.html");
     
     
+    function _makeIndexRequestObject(requestIndex, index) {
+        return {indexRequested: requestIndex, index: index};
+    }
+    
     /**
      * @typedef {!$el: jQuery, getFile:function():!File, updateLayout:function(forceRefresh:boolean), destroy:function(),  getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number)=, getViewState:function():?*=, restoreViewState:function(viewState:!*)=, notifyContainerChange:function()=, notifyVisibilityChange:function(boolean)=} View
      */
@@ -373,6 +377,38 @@ define(function (require, exports, module) {
             this.showInterstitial(true);
             this._currentView = null;
             this._notifyCurrentViewChange(null, currentView);
+        }
+    };
+
+    Pane.prototype.moveView = function (file, destination, destinationIndex) {
+        if ((this.getCurrentlyViewedPath() === file.fullPath)) {
+            var nextFile = this.traverseViewListByMRU(1, file.fullPath),
+                self = this;
+            if (nextFile) {
+                this._execOpenFile(nextFile.fullPath)
+                    .fail(function () {
+                        // the FILE_OPEN failed
+                        self._hideCurrentView();
+                    });
+            } else {
+                this._hideCurrentView();
+            }
+        }
+        
+        // Remove file from all 3 view lists
+        this._viewList.splice(this.findInViewList(file.fullPath), 1);
+        this._viewListMRUOrder.splice(this.findInViewListMRUOrder(file.fullPath), 1);
+        this._viewListAddedOrder.splice(this.findInViewListAddedOrder(file.fullPath), 1);
+
+        // insert the view into the working set
+        destination._addToViewList(file,  _makeIndexRequestObject(true, destinationIndex));
+        
+        //move the view,
+        var view = this._views[file.fullPath];
+        
+        // The view may not have been created
+        if (view) {
+            destination.addView(view, !destination.getCurrentlyViewedFile());
         }
     };
     
@@ -595,7 +631,7 @@ define(function (require, exports, module) {
     Pane.prototype.addToViewList = function (file, index) {
         var indexRequested = (index !== undefined && index !== null && index >= 0 && index < this._viewList.length);
 
-        this._addToViewList(file, {indexRequested: indexRequested, index: index});
+        this._addToViewList(file, _makeIndexRequestObject(indexRequested, index));
         
         if (!indexRequested) {
             index = this._viewList.length - 1;
@@ -717,6 +753,11 @@ define(function (require, exports, module) {
         this._viewList.sort(_.partial(compareFn, this.id));
     };
 
+    
+    Pane.prototype.moveWorkingSetItem = function (fromIndex, toIndex) {
+        this._viewList.splice(toIndex, 0, this._viewList.splice(fromIndex, 1)[0]);
+    };
+    
     /**
      * Swaps two items in the file view list (used while dragging items in the working set view)
      * @param {number} index1 - the index of the first item to swap
@@ -1026,7 +1067,7 @@ define(function (require, exports, module) {
      * @return {jQuery.promise} promise that will resolve when the file is opened
      */
     Pane.prototype._execOpenFile = function (fullPath) {
-        return CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath, paneId: this.id});
+        return CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: fullPath, paneId: this.id});
     };
     
     /**
