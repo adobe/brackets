@@ -82,6 +82,29 @@ define(function (require, exports, module) {
         BELOWVIEW = "belowview",
         ABOVEVIEW = "aboveview";
     
+    
+    /**
+     * Refreshes all Pane View List Views
+     */
+    function refresh(rebuild) {
+        _.forEach(_views, function (view) {
+            if (rebuild) {
+                view._rebuildViewList();
+            } else {
+                view._redraw();
+            }
+        });
+    }
+    
+    /** 
+     * Synchronizes the selection indicator for all views
+     */
+    function syncSelectionIndicator() {
+        _.forEach(_views, function (view) {
+            view.$openFilesContainer.triggerHandler("scroll");
+        });
+    }
+    
     /**
      * Updates the appearance of the list element based on the parameters provided.
      * @private
@@ -132,7 +155,7 @@ define(function (require, exports, module) {
     function _cacheSelectionStateForAllViews(cache) {
         _.forEach(_views, function (view) {
             if (cache) {
-                view._selectedIndex = view.$el.find("li.selected").index(); 
+                view._selectedIndex = view.$el.find("li.selected").index();
             } else {
                 delete view._selectedIndex;
             }
@@ -144,17 +167,32 @@ define(function (require, exports, module) {
      * event on the view if the selection index chnages from the previously 
      * cached value. This synchromizes the "selection" affordance 
      * @private
-     * @param {boolean} suppress - true suppress, false to allow sort redrawing
+     * @param {jQuery} $el - the element that was moved
      */
-    function _updateSelectionStateForAllViews() {
+    function _updateSelectionStateForAllViews($el) {
         _.forEach(_views, function (view) {
+            
+            if ($el && view.$el.is(".active")) {
+                if ($el.hasClass("selected")) {
+                    view.$el.find("li.selected").removeClass("selected").addClass("reselect");
+                    $el.addClass("selected").removeClass("reselect");
+                }
+            
+            } else {
+                if (view.$el.find("li.selected").length === 0) {
+                    view.$el.find("li.reslect").removeClass("reselect").addClass("selected");
+                }
+            }
+            
             var index = view.$el.find("li.selected").index();
-            if ((view._selectedIndex !== undefined) && (index  !== view._selectedIndex)) {
+            if ((view._selectedIndex !== undefined) && (index !== view._selectedIndex)) {
                 view._fireSelectionChanged();
                 view._selectedIndex = index;
             }
         });
-    }    
+        // update the selection marker
+        syncSelectionIndicator();
+    }
     
     /** 
      * Finds the WorkingsetView object for the specified element
@@ -228,27 +266,38 @@ define(function (require, exports, module) {
                 startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sorceFile.fullPath),
                 currentView = sourceView;
 
+
+
+            // Switches the context to the working 
+            //  set container and view specfied by $container
+            //  and updates the state variables for the container
+            function updateContext(hit, $elem) {
+                // just set the container and update
+                currentView = _viewFromEl(hit.which);
+                _updateSelectionStateForAllViews($elem);
+            }
+            
             // Determines where the mouse hit was
             function hitTest(e) {
                 var result = {
-                        where: NOMANSLAND,
+                        where: NOMANSLAND
                     },
                     $hit,
                     onScroller = false;
 
                 // Turn off the ghost so elementFromPoint ignores it
-                $ghost.hide(); 
+                $ghost.hide();
 
                 $hit = $(document.elementFromPoint(e.pageX, e.pageY)).closest("#working-set-list-container li");
               
                 if (!$hit.length) {
                     $hit = $(document.elementFromPoint(e.pageX, e.pageY + itemHeight)).closest("#working-set-list-container li");
-                    onScroller = ($hit.length > 0); 
+                    onScroller = ($hit.length > 0);
                 }
 
                 if (!$hit.length) {
                     $hit = $(document.elementFromPoint(e.pageX, e.pageY - itemHeight)).closest("#working-set-list-container li");
-                    onScroller = ($hit.length > 0); 
+                    onScroller = ($hit.length > 0);
                 }
               
                 // helper to see if the mouse is above 
@@ -257,7 +306,7 @@ define(function (require, exports, module) {
                     var top = $elem.offset().top,
                         height = $elem.height();
                     
-                    return (e.pageY < (top+height / 2));
+                    return (e.pageY < (top + height / 2));
                 }
               
                 // We hit an item (li)
@@ -294,7 +343,7 @@ define(function (require, exports, module) {
                                 where: BELOWVIEW,
                                 which: $hit
                             };
-                        }                        
+                        }
                     }
                 }
 
@@ -303,7 +352,7 @@ define(function (require, exports, module) {
                 $ghost.show();
                 return result;
 
-            }            
+            }
    
             // mouse move handler -- this pretty much does
             //  the heavy lifting for dragging the item around
@@ -318,65 +367,51 @@ define(function (require, exports, module) {
                     // reset start so we don't drag again until the mouse 
                     //  is moved 3 pixels to help prevent jitter
                     startPageY = e.pageY;
-                    
-                    // Switches the context to the working 
-                    //  set container and view specfied by $container
-                    //  and updates the state variables for the container
-                    function updateContext() {
-                        // just set the container and update
-                        currentView = _viewFromEl(ht.which);
-                        _updateSelectionStateForAllViews();
-                    }
-                    
                     // Find out where to to drag it to
                     var ht = hitTest(e);
-
+                    
                     if (ht.where !== NOMANSLAND) {
                         switch (ht.where) {
                         case TOPSCROLL:
                         case ABOVEITEM:
-                                if (ht.where === TOPSCROLL) {
-                                    scrollDir = -1;
-                                }
-                                $el.insertBefore(ht.which);
-                                updateContext();
-                                break;
-                        case BOTSCROLL:                            
+                            if (ht.where === TOPSCROLL) {
+                                scrollDir = -1;
+                            }
+                            $el.insertBefore(ht.which);
+                            updateContext(ht, $el);
+                            break;
+                        case BOTSCROLL:
                         case BELOWITEM:
-                                if (ht.where === BOTSCROLL) {
-                                    scrollDir = 1;
-                                }
-                                $el.insertAfter(ht.which);
-                                updateContext();
-                                break;
+                            if (ht.where === BOTSCROLL) {
+                                scrollDir = 1;
+                            }
+                            $el.insertAfter(ht.which);
+                            updateContext(ht, $el);
+                            break;
                         case BELOWVIEW:
-                                $el.appendTo(ht.which.find("ul"));
-                                updateContext();
-                                break;
+                            $el.appendTo(ht.which.find("ul"));
+                            updateContext(ht, $el);
+                            break;
                         case ABOVEVIEW:
-                                $el.prependTo(ht.which.find("ul"));
-                                updateContext();
-                                break;
+                            $el.prependTo(ht.which.find("ul"));
+                            updateContext(ht, $el);
+                            break;
                         }
                     }
-                                
 
                     // move the drag affordance
-                    $ghost.css({top: e.pageY,
-                                left: offset.left});
+                    $ghost.css("top", e.pageY);
 
                     // we need to scroll
                     if (scrollDir) {
                         // we're in range to scroll
                         scroll(currentView.$openFilesContainer, scrollDir, function () {
-                            // as we scroll, recompute the element 
-                            //  to insert before/after and drag it 
-                            //  in to place
+                            // as we scroll, recompute the element and insert
+                            //  it before/after the item to drag it in to place
                             drag(e);
                         });
                     } else {
-                        // we've either moved away from the top/bottom "scrollMe" region
-                        //  or there isn't a valid container anymore so stop scrolling
+                        // we've moved away from the top/bottom "scrolling" region
                         endScroll();
                     }
                 }
@@ -389,6 +424,7 @@ define(function (require, exports, module) {
                 }
 
             });
+            
             // Close down the drag operation
             function cleanup() {
                 endScroll();
@@ -398,6 +434,8 @@ define(function (require, exports, module) {
                 $ghost.remove();
                 $el.css("opacity", "");
                 _cacheSelectionStateForAllViews(false);
+                // NOTE: truning redraw on sort back on is done after items are added
+                //          but the other cleanup stuff needs to be done before they are added
             }
             
             // Drop
@@ -408,24 +446,35 @@ define(function (require, exports, module) {
                     // if the item was dragged but not moved then don't open or close 
                     if (!dragged) {
                         // Click on close icon, or middle click anywhere - close the item without selecting it first
-                        if (tryClosing || exports.which === MIDDLE_BUTTON) {
-                            CommandManager.execute(Commands.FILE_CLOSE, {file: $el.data(_FILE_KEY),
+                        if (tryClosing || e.which === MIDDLE_BUTTON) {
+                            CommandManager.execute(Commands.FILE_CLOSE, {file: sorceFile,
                                                                          paneId: sourceView.paneId});
                         } else {
                             // Normal right and left click - select the item
-                            FileViewController.openAndSelectDocument($el.data(_FILE_KEY).fullPath,
+                            FileViewController.openAndSelectDocument(sorceFile.fullPath,
                                                                      FileViewController.WORKING_SET_VIEW,
-                                                                     sourceView.paneId);
+                                                                     currentView.paneId);
                         }
+                        _updateSelectionStateForAllViews();
                     }
                 } else if (sourceView.paneId === currentView.paneId) {
                     // item was reordered 
                     MainViewManager._moveWorkingSetItem(sourceView.paneId, startingIndex, $el.index());
                     currentView._rebuildViewList();
                 } else {
+                    var reopenDocument = ($el.hasClass("selected") && sourceView.paneId === MainViewManager.getActivePaneId());
                     // item was dragged to another working set
-                    MainViewManager._moveView(sourceView.paneId, currentView.paneId, $el.data(_FILE_KEY), $el.index());
-                    exports.refresh(true);
+                    MainViewManager._moveView(sourceView.paneId, currentView.paneId, sorceFile, $el.index());
+                    
+                    // if the current document was dragged to another workingset 
+                    //  then reopen it to make it the currently selected file
+                    if (reopenDocument) {
+                        FileViewController.openAndSelectDocument(sorceFile.fullPath,
+                                                                 FileViewController.WORKING_SET_VIEW,
+                                                                 currentView.paneId);
+                    }
+                    
+                    refresh(true);
                 }
                 _suppressSortRedrawForAllViews(false);
             }
@@ -440,7 +489,7 @@ define(function (require, exports, module) {
                 if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                     cleanup();
                     _suppressSortRedrawForAllViews(false);
-                    exports.refresh(true);
+                    refresh(true);
                     e.stopPropagation();
                 }
             });
@@ -452,9 +501,12 @@ define(function (require, exports, module) {
 
             // close all menus, and disable sorting 
             Menus.closeAll();
+            
             _suppressSortRedrawForAllViews(true);
             _cacheSelectionStateForAllViews(true);
-            // on Mac, end the drop in other cases
+            
+            // Dragging only happens with the left mouse button
+            //  or (on the Mac) when the ctrl key isn't pressed
             if (e.which !== LEFT_BUTTON || (e.ctrlKey && brackets.platform === "mac")) {
                 drop();
                 return;
@@ -855,21 +907,21 @@ define(function (require, exports, module) {
          */
         if (paneId === this.paneId) {
             if (!suppressRedraw) {
-            var $listItem = this._findListItemFromFile(file);
-            if ($listItem) {
-                // Make the next file in the list show the close icon, 
-                // without having to move the mouse, if there is a next file.
-                var $nextListItem = $listItem.next();
-                if ($nextListItem && $nextListItem.length > 0) {
-                    var canClose = ($listItem.find(".can-close").length === 1);
-                    var isDirty = _isOpenAndDirty($nextListItem.data(_FILE_KEY));
-                    this._updateFileStatusIcon($nextListItem, isDirty, canClose);
+                var $listItem = this._findListItemFromFile(file);
+                if ($listItem) {
+                    // Make the next file in the list show the close icon, 
+                    // without having to move the mouse, if there is a next file.
+                    var $nextListItem = $listItem.next();
+                    if ($nextListItem && $nextListItem.length > 0) {
+                        var canClose = ($listItem.find(".can-close").length === 1);
+                        var isDirty = _isOpenAndDirty($nextListItem.data(_FILE_KEY));
+                        this._updateFileStatusIcon($nextListItem, isDirty, canClose);
+                    }
+                    $listItem.remove();
                 }
-                $listItem.remove();
+
+                this._redraw();
             }
-            
-            this._redraw();
-        }
         } else {
             /*
              * When this event is handled by a pane that is not being updated then 
@@ -1008,7 +1060,7 @@ define(function (require, exports, module) {
             });
         }
     });
-    
+
     /**
      * Creates a new WorkingSetView object for the specified pane
      * @param {!jQuery} $container - the WorkingSetView's DOM parent node
@@ -1024,28 +1076,6 @@ define(function (require, exports, module) {
         if (index === -1) {
             _views.push(new WorkingSetView($container, paneId));
         }
-    }
-
-    /**
-     * Refreshes all Pane View List Views
-     */
-    function refresh(rebuild) {
-        _.forEach(_views, function (view) {
-            if (rebuild) {
-                view._rebuildViewList();
-            } else {
-                view._redraw();
-            }
-        });
-    }
-    
-    /** 
-     * Synchronizes the selection indicator for all views
-     */
-    function syncSelectionIndicator() {
-        _.forEach(_views, function (view) {
-            view.$openFilesContainer.triggerHandler("scroll");
-        });
     }
     
     

@@ -1070,7 +1070,7 @@ define(function (require, exports, module) {
      * @return {jQuery.promise} promise that will resolve when the file is opened
      */
     Pane.prototype._execOpenFile = function (fullPath) {
-        return CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: fullPath, paneId: this.id});
+        return CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: fullPath, paneId: this.id, options: {noPaneActivate: true}});
     };
     
     /**
