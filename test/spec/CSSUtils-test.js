@@ -398,10 +398,10 @@ define(function (require, exports, module) {
             
             // https://github.com/adobe/brackets/issues/9002
             it("should not hang when the cursor is after '{' or '}' inside comments", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 45, ch: 6});   // after {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 53, ch: 3});   // after {
                 expect(selector).toEqual("");
                 
-                selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 45, ch: 23}); // after }
+                selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 55, ch: 1}); // after }
                 expect(selector).toEqual("");
             });
 
