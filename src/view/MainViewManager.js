@@ -261,15 +261,25 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Resolve paneId to actual pane.
+     * @param {?string} paneId - id of the desired pane. May be symbolic or null (to indicate current pane)
+     * @return {string} id of the pane in which to open the document
+     */
+    function _resolvePaneId(paneId) {
+        if (!paneId || paneId === ACTIVE_PANE) {
+            return getActivePaneId();
+        }
+        return paneId;
+    }
+    
+    /**
      * Retrieves the Pane object for the given paneId
      * @param {!string} paneId - id of the pane to retrieve
      * @return {?Pane} the Pane object or null if a pane object doesn't exist for the pane
      * @private
      */
     function _getPane(paneId) {
-        if (!paneId || paneId === ACTIVE_PANE) {
-            paneId = getActivePaneId();
-        }
+        paneId = _resolvePaneId(paneId);
         
         if (_panes[paneId]) {
             return _panes[paneId];
@@ -1077,18 +1087,6 @@ define(function (require, exports, module) {
         // open document will show the editor if there is one already
         EditorManager.openDocument(doc, pane);
         _makeFileMostRecent(paneId, doc.file);
-    }
-    
-    /**
-     * Resolve paneId to actual pane.
-     * @param {!string} paneId - id of the desired pane. May be symbolic or null (to indicate current pane)
-     * @return {string} id of the pane in which to open the document
-     */
-    function _resolvePaneId(paneId) {
-        if (!paneId || paneId === ACTIVE_PANE) {
-            return getActivePaneId();
-        }
-        return paneId;
     }
     
     /**
