@@ -236,8 +236,8 @@ define({
     "SPLITVIEW_MENU_TOOLTIP"    : "Split the editor vertically or horizontally",
     "GEAR_MENU_TOOLTIP"         : "Configure Working Set",
 
-    "SPLITVIEW_INFO_TITLE"              : "Split View Information",
-    "SPLITVIEW_MULTIPANE_WARNING"       : "File is already open in another view and it's not yet possible to open a file in multiple views, so file will be displayed in other view.<br /><br />(You'll only see this message once.)",
+    "SPLITVIEW_INFO_TITLE"              : "Split View",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "File is already open in another view. Brackets will soon support opening the same file in more than one view. Until then, files already open will be activated in their current view.<br /><br />(You'll only see this message once.)",
 
     /**
      * Keyboard modifier names
