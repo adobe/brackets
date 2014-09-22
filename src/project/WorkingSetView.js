@@ -71,6 +71,18 @@ define(function (require, exports, module) {
     var _FILE_KEY = "file";
     
     /**
+     * Constants for hitTest.where 
+     * @enum {string}
+     */
+    var NOMANSLAND = "nomansland",
+        ABOVEITEM = "aboveitem",
+        BELOWITEM = "belowitem",
+        TOPSCROLL = "topscroll",
+        BOTSCROLL = "bottomscroll",
+        BELOWVIEW = "belowview",
+        ABOVEVIEW = "aboveview";
+    
+    /**
      * Updates the appearance of the list element based on the parameters provided.
      * @private
      * @param {!HTMLLIElement} listElement
@@ -201,7 +213,7 @@ define(function (require, exports, module) {
                 endScroll();
             }
         }
-
+        
         // The mouse down handler pretty much handles everything
         $el.mousedown(function (e) {
             var scrollDir = 0,
@@ -212,38 +224,90 @@ define(function (require, exports, module) {
                 offset = $el.offset(),
                 $copy = $el.clone(),
                 $ghost = $("<div class='open-files-container wsv-drag-ghost' style='overflow: hidden; display: inline-block;'>").append($("<ul>").append($copy).css("padding", "0")),
-                $elem = $(document.elementFromPoint(e.pageX, e.pageY)).closest("#working-set-list-container li"),
-                $sourceContainer = $elem.parents(".open-files-container"),
-                sourceContainerOffset = $sourceContainer.offset(),
-                $currentContainer = $sourceContainer,
-                currentContainerOffset = sourceContainerOffset,
-                $currentView = $currentContainer.parent(),
-                currentViewOffset = $currentView.offset(),
-                sourceView = _viewFromEl($currentContainer),
-                sourcePaneId = sourceView.paneId,
-                startingIndex = MainViewManager.findInWorkingSet(sourcePaneId, sorceFile.fullPath),
-                currentView = sourceView,
-                currentPaneId = sourcePaneId;
+                sourceView = _viewFromEl($el),
+                startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sorceFile.fullPath),
+                currentView = sourceView;
 
-            function findClosest(e, selector) {
-                var $result;
-                $ghost.hide(); // we don't want elementFromPoint picking up the ghost
-                $result = $(document.elementFromPoint(e.pageX, e.pageY)).closest(selector);
+            // Determines where the mouse hit was
+            function hitTest(e) {
+                var result = {
+                        where: NOMANSLAND,
+                    },
+                    $hit,
+                    onScroller = false;
+
+                // Turn off the ghost so elementFromPoint ignores it
+                $ghost.hide(); 
+
+                $hit = $(document.elementFromPoint(e.pageX, e.pageY)).closest("#working-set-list-container li");
+              
+                if (!$hit.length) {
+                    $hit = $(document.elementFromPoint(e.pageX, e.pageY + itemHeight)).closest("#working-set-list-container li");
+                    onScroller = ($hit.length > 0); 
+                }
+
+                if (!$hit.length) {
+                    $hit = $(document.elementFromPoint(e.pageX, e.pageY - itemHeight)).closest("#working-set-list-container li");
+                    onScroller = ($hit.length > 0); 
+                }
+              
+                // helper to see if the mouse is above 
+                //  or below the specified element
+                function mouseIsAbove($elem) {
+                    var top = $elem.offset().top,
+                        height = $elem.height();
+                    
+                    return (e.pageY < (top+height / 2));
+                }
+              
+                // We hit an item (li)
+                if ($hit.length) {
+                    if (mouseIsAbove($hit)) {
+                        result = {
+                            where: (onScroller) ? TOPSCROLL : ABOVEITEM,
+                            which: $hit
+                        };
+                    } else {
+                        result = {
+                            where: (onScroller) ? BOTSCROLL : BELOWITEM,
+                            which: $hit
+                        };
+                    }
+                } else {
+                    // we didn't hit an (li) so look for 
+                    //  where the mouse is relative to the view
+                    $hit = $(document.elementFromPoint(e.pageX, e.pageY));
+
+                    if ($hit.parent().is(".working-set-view")) {
+                        $hit = $hit.parent();
+                    }
+                    // if we hit a view then we're good to go
+                    //  otherwise we'll just return nomansland
+                    if ($hit.is(".working-set-view")) {
+                        if (mouseIsAbove($hit)) {
+                            result = {
+                                where: ABOVEVIEW,
+                                which: $hit
+                            };
+                        } else {
+                            result = {
+                                where: BELOWVIEW,
+                                which: $hit
+                            };
+                        }                        
+                    }
+                }
+
+                // turn the ghost back on
+                //  and bail with the result
                 $ghost.show();
-                return $result;
-            }
-            
-            function findCLosestWorkingSetItem(e) {
-                return findClosest(e, "#working-set-list-container li");
-            }
-            
-            function findCLosestWorkingSetView(e) {
-                return findClosest(e, ".working-set-view");
-            }
-            
+                return result;
+
+            }            
+   
+            // mouse move handler -- this pretty much does
+            //  the heavy lifting for dragging the item around
             $(window).on("mousemove.wsvdragging", function (e) {
-                // find a ListItem to insert next to
-                $elem = findCLosestWorkingSetItem(e);
 
                 function drag(e) {
                     // we've dragged the item so set
@@ -255,120 +319,59 @@ define(function (require, exports, module) {
                     //  is moved 3 pixels to help prevent jitter
                     startPageY = e.pageY;
                     
-                    function hasValidContext() {
-                        return Boolean(currentContainerOffset);
-                    }
-                    
-                    // updates the state variables for 
-                    //  the current working set container
-                    function updateCurrentContext() {
-                        currentContainerOffset = $currentContainer.offset();
-                        currentViewOffset = $currentView.offset();
-                        _updateSelectionStateForAllViews();
-                    }
-
                     // Switches the context to the working 
                     //  set container and view specfied by $container
                     //  and updates the state variables for the container
-                    function switchContext($container) {
-                        if (hasValidContext()) {
-                            updateCurrentContext();
-                        }
-                        
+                    function updateContext() {
                         // just set the container and update
-                        $currentContainer = $container;
-                        currentView = _viewFromEl($currentContainer);
-                        currentPaneId = currentView.paneId;
-                        $currentView = $currentContainer.parent();
-                        updateCurrentContext();
+                        currentView = _viewFromEl(ht.which);
+                        _updateSelectionStateForAllViews();
                     }
                     
-                    // there was a neighboring list item to insert before or after
-                    if ($elem.length) {
-                        if ($elem !== $el) {
-                            // setup the context to drop in the view 
-                            //  where the element lives 
-                            switchContext($elem.parents(".open-files-container"));
+                    // Find out where to to drag it to
+                    var ht = hitTest(e);
 
-                            // figure out if the drag was above or below the ListItem
-                            if (e.pageY < $elem.offset().top) {
-                                // insert before
-                                $el.insertBefore($elem);
-                            } else {
-                                // insert after
-                                $el.insertAfter($elem);
-                            }
-                            // anytime we change the size/placement of containers
-                            //  we need to update the context
-                            updateCurrentContext();
-                        }
-                    } else if (hasValidContext()) {
-                        // the mouse wasn't below a list item (closest only searches up)
-                        //  so look for the drop to occur in another view 
-                        var $candidateContainer = findCLosestWorkingSetView(e).find(".open-files-container"),
-                            $candidateList = $candidateContainer.find("ul"),
-                            candidateListOffset = $candidateList.offset();
-
-                        if (e.pageY < currentViewOffset.top || e.pageY > $currentView.height() + currentViewOffset.top) {
-                            // we've moved too far north or south of the 
-                            //  current view so  turn off the scroll 
-                            $currentContainer = currentContainerOffset = undefined;
-                        }
-
-                        if ($candidateContainer.length) {
-                            // we've found a new view to drop in to
-                            if (!hasValidContext() || $candidateContainer[0] !== $currentContainer[0]) {
-                                // setup the context to drop into the 
-                                //  container of the view we've mouse over
-                                switchContext($candidateContainer);
-                            } else {
-                                // it's the same view as before so figure out if we 
-                                //  need to drop at the top or bottom of the list
-                                //  based on if we are dragging up or down
-                                if (e.pageY >= candidateListOffset.top + $candidateList.height() - itemHeight) {
-                                    // insert to the bottom of the list dragging up
-                                    $candidateList.append($el);
-                                } else {
-                                    // insert at the top of the list dragging down
-                                    $candidateList.prepend($el);
+                    if (ht.where !== NOMANSLAND) {
+                        switch (ht.where) {
+                        case TOPSCROLL:
+                        case ABOVEITEM:
+                                if (ht.where === TOPSCROLL) {
+                                    scrollDir = -1;
                                 }
-                            }
-                            // anytime we change the size/placement of containers
-                            //  we need to update the context
-                            updateCurrentContext();
+                                $el.insertBefore(ht.which);
+                                updateContext();
+                                break;
+                        case BOTSCROLL:                            
+                        case BELOWITEM:
+                                if (ht.where === BOTSCROLL) {
+                                    scrollDir = 1;
+                                }
+                                $el.insertAfter(ht.which);
+                                updateContext();
+                                break;
+                        case BELOWVIEW:
+                                $el.appendTo(ht.which.find("ul"));
+                                updateContext();
+                                break;
+                        case ABOVEVIEW:
+                                $el.prependTo(ht.which.find("ul"));
+                                updateContext();
+                                break;
                         }
                     }
+                                
 
                     // move the drag affordance
                     $ghost.css({top: e.pageY,
                                 left: offset.left});
 
-                    // see if we're in range to scroll
-                    if ($currentContainer && $currentContainer.length) {
-                        var topDelta = e.pageY - currentContainerOffset.top,
-                            bottomDelta = e.pageY - ($currentContainer.height() + currentContainerOffset.top),
-                            // the delta need sto be within +/- the height of the item
-                            //  at the top or bottom of the container to indicate a scroll
-                            inScrollingRegion = function (val) {
-                                return (Math.abs(val) < itemHeight);
-                            };
-                        
-                        // see if we need to scroll
-                        if (inScrollingRegion(topDelta)) {
-                            scrollDir = -1;
-                        } else if (inScrollingRegion(bottomDelta)) {
-                            scrollDir = 1;
-                        }
-                    }
-                    
                     // we need to scroll
                     if (scrollDir) {
                         // we're in range to scroll
-                        scroll($currentContainer, scrollDir, function () {
+                        scroll(currentView.$openFilesContainer, scrollDir, function () {
                             // as we scroll, recompute the element 
                             //  to insert before/after and drag it 
                             //  in to place
-                            $elem = findCLosestWorkingSetItem(e);
                             drag(e);
                         });
                     } else {
@@ -384,8 +387,8 @@ define(function (require, exports, module) {
                 if (Math.abs(e.pageY - startPageY) > 3) {
                     drag(e);
                 }
-            });
 
+            });
             // Close down the drag operation
             function cleanup() {
                 endScroll();
@@ -401,27 +404,27 @@ define(function (require, exports, module) {
             function drop() {
                 cleanup();
                 // didn't change position or working set
-                if (sourcePaneId === currentPaneId && startingIndex === $el.index()) {
+                if (sourceView.paneId === currentView.paneId && startingIndex === $el.index()) {
                     // if the item was dragged but not moved then don't open or close 
                     if (!dragged) {
                         // Click on close icon, or middle click anywhere - close the item without selecting it first
                         if (tryClosing || exports.which === MIDDLE_BUTTON) {
                             CommandManager.execute(Commands.FILE_CLOSE, {file: $el.data(_FILE_KEY),
-                                                                         paneId: sourcePaneId});
+                                                                         paneId: sourceView.paneId});
                         } else {
                             // Normal right and left click - select the item
                             FileViewController.openAndSelectDocument($el.data(_FILE_KEY).fullPath,
                                                                      FileViewController.WORKING_SET_VIEW,
-                                                                     sourcePaneId);
+                                                                     sourceView.paneId);
                         }
                     }
-                } else if (sourcePaneId === currentPaneId) {
+                } else if (sourceView.paneId === currentView.paneId) {
                     // item was reordered 
-                    MainViewManager._moveWorkingSetItem(sourcePaneId, startingIndex, $el.index());
+                    MainViewManager._moveWorkingSetItem(sourceView.paneId, startingIndex, $el.index());
                     currentView._rebuildViewList();
                 } else {
                     // item was dragged to another working set
-                    MainViewManager._moveView(sourcePaneId, currentPaneId, $el.data(_FILE_KEY), $el.index());
+                    MainViewManager._moveView(sourceView.paneId, currentView.paneId, $el.data(_FILE_KEY), $el.index());
                     exports.refresh(true);
                 }
                 _suppressSortRedrawForAllViews(false);
