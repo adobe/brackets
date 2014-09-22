@@ -264,8 +264,8 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.FILE_RENAME);
                 
                 var $projectFileItems = $("#project-files-container > ul").children();
-    
-                expect($projectFileItems.find("a.jstree-clicked").eq(0).siblings("input").eq(0).val()).toBe(fileName);
+                
+                expect($projectFileItems.find("input").eq(0).val()).toBe(fileName);
             });
         });
 

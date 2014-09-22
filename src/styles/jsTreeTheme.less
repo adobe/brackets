@@ -25,6 +25,20 @@
 /* Styles for jsTree control */
 /* (these are based on jsTree's default theme .css file, so they are not very LESS-like) */
 
+.jstree ul, .jstree li { display:block; margin:0 0 0 0; padding:0 0 0 0; list-style-type:none; }
+.jstree li { display:block; min-height:18px; line-height:16px; white-space:nowrap; margin-left:18px; min-width:18px; }
+.jstree-rtl li { margin-left:0; margin-right:18px; }
+.jstree > ul > li { margin-left:0px; }
+.jstree-rtl > ul > li { margin-right:0px; }
+.jstree ins { display:inline-block; text-decoration:none; width:18px; height:18px; margin:0 0 0 0; padding:0; } + 
+.jstree a { display:inline-block; line-height:16px; height:16px; color:black; white-space:nowrap; text-decoration:none; padding:1px 2px; margin:0; }
+.jstree a:focus { outline: none; }
+.jstree a > ins { height:16px; width:16px; }
+.jstree a > .jstree-icon { margin-right:3px; }
+.jstree-rtl a > .jstree-icon { margin-left:3px; margin-right:0; }
+li.jstree-open > ul { display:block; }
+li.jstree-closed > ul { display:none; }
+
 .jstree-brackets li,
 .jstree-brackets ins { background-image:url("images/jsTreeSprites.svg"); background-repeat:no-repeat; background-color:transparent; }
 .jstree-brackets li { background-position:-90px 0; background-repeat:repeat-y; }
@@ -32,6 +46,10 @@
 .jstree-brackets .jstree-open > ins { background-position:-72px 0; }
 .jstree-brackets .jstree-closed > ins { background-position:-54px 0; }
 .jstree-brackets .jstree-leaf > ins { background-position:-36px 0; }
+
+.jstree-brackets li a:hover {
+    text-decoration: none;
+}
 
 @jstree-icon-backindent: 12px;
 
@@ -54,7 +72,6 @@
 }
 
 .jstree-brackets li {
-    line-height: 10px;
     vertical-align: baseline;
     a {
         color: @project-panel-text-1;
