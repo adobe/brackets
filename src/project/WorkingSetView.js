@@ -509,11 +509,12 @@ define(function (require, exports, module) {
             //  so we can put it wherever we want to while dragging
             $ghost.css({position: "absolute",
                             top: offset.top,
-                            left: offset.left});
+                            left: offset.left,
+                            opacity: ".25"});
             
             // this will give the element the appearence that it's ghosted if the user
             //  drags the element out of the view and goes off into no mans land
-            $el.css("opacity", ".25");
+            //$el.css("opacity", ".25");
             $ghost.appendTo($("body"));
         });
     }
