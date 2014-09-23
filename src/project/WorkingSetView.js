@@ -147,22 +147,6 @@ define(function (require, exports, module) {
     
     
     /** 
-     * Caches each view's selected item index so it can later be determined
-     * if the selected item needs to be synced with the "selection" affordance
-     * @private
-     * @param {boolean} suppress - true suppress, false to allow sort redrawing
-     */
-    function _cacheSelectionStateForAllViews(cache) {
-        _.forEach(_views, function (view) {
-            if (cache) {
-                view._selectedIndex = view.$el.find("li.selected").index();
-            } else {
-                delete view._selectedIndex;
-            }
-        });
-    }
-    
-    /** 
      * Updates the selection index for all views and fires a selection change
      * event on the view if the selection index chnages from the previously 
      * cached value. This synchromizes the "selection" affordance 
@@ -170,20 +154,29 @@ define(function (require, exports, module) {
      * @param {jQuery} $el - the element that was moved
      */
     function _updateSelectionStateForAllViews($el) {
+        var currentFile = MainViewManager.getCurrentlyViewedFile();
+
         _.forEach(_views, function (view) {
 
-            if ($el && view.$el.is(".active") && $el.is(".selected") && view.$el.find($el).length) {
+            if ($el && $el.data(_FILE_KEY) === currentFile && view.$el.find($el).length) {
+                view.$el.addClass("active");
+                view.$openFilesContainer.addClass("active");
                 view.$el.find("li.selected").removeClass("selected").addClass("reselect");
                 $el.addClass("selected").removeClass("reselect");
             } else {
-                view.$el.find("li.reselect").removeClass("reselect").addClass("selected");
+                if (view.paneId !== MainViewManager.getActivePaneId()) {
+                    view.$el.removeClass("active");
+                }
+                
+                var paneFile = MainViewManager.getCurrentlyViewedFile(view.paneId);
+                view.$el.find("li.selected").removeClass("selected").addClass("reselect");
+                var $selected = view._findListItemFromFile(paneFile);
+                if ($selected) {
+                    $selected.addClass("selected").removeClass("reselect");
+                }
             }
             
-            var index = view.$el.find("li.selected").index();
-            if ((view._selectedIndex !== undefined) && (index !== view._selectedIndex)) {
-                view._fireSelectionChanged();
-                view._selectedIndex = index;
-            }
+            view._fireSelectionChanged();
         });
         // update the selection marker
         syncSelectionIndicator();
@@ -271,6 +264,7 @@ define(function (require, exports, module) {
                 // just set the container and update
                 currentView = _viewFromEl(hit.which);
                 _updateSelectionStateForAllViews($elem);
+                $ghost.find("li").attr("class", $elem.attr("class"));
             }
             
             // Determines where the mouse hit was
@@ -429,7 +423,6 @@ define(function (require, exports, module) {
                 $(window).off(".wsvdragging");
                 $ghost.remove();
                 $el.css("opacity", "");
-                _cacheSelectionStateForAllViews(false);
                 // NOTE: truning redraw on sort back on is done after items are added
                 //          but the other cleanup stuff needs to be done before they are added
             }
@@ -501,7 +494,6 @@ define(function (require, exports, module) {
             Menus.closeAll();
             
             _suppressSortRedrawForAllViews(true);
-            _cacheSelectionStateForAllViews(true);
             
             // Dragging only happens with the left mouse button
             //  or (on the Mac) when the ctrl key isn't pressed
