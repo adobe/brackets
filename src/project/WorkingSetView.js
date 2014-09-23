@@ -426,7 +426,7 @@ define(function (require, exports, module) {
                 // if we have't started dragging yet then we wait until
                 //  the mouse has moved 3 pixels before we start dragging
                 //  to avoid the item moving when clicked or double clicked
-                if (Math.abs(e.pageY - startPageY) > 3) {
+                if (dragged || Math.abs(e.pageY - startPageY) > 3) {
                     drag(e);
                 }
 
