@@ -145,6 +145,19 @@ define(function (require, exports, module) {
         });
     }
     
+    function _deactivateAllViews(deactivate) {
+        _.forEach(_views, function (view) {
+            if (deactivate) {
+                if (view.$el.hasClass("active")) {
+                    view.$el.removeClass("active").addClass("reactivate");
+                }
+            } else {
+                if (view.$el.hasClass("reactivate")) {
+                    view.$el.removeClass("reactivate").addClass("active");
+                }
+            }
+        });
+    }
     
     /** 
      * Updates the selection index for all views and fires a selection change
@@ -159,14 +172,14 @@ define(function (require, exports, module) {
         _.forEach(_views, function (view) {
 
             if ($el && $el.data(_FILE_KEY) === currentFile && view.$el.find($el).length) {
-                view.$el.addClass("active");
-                view.$openFilesContainer.addClass("active");
+//                view.$el.addClass("active");
+//                view.$openFilesContainer.addClass("active");
                 view.$el.find("li.selected").removeClass("selected").addClass("reselect");
                 $el.addClass("selected").removeClass("reselect");
             } else {
-                if (view.paneId !== MainViewManager.getActivePaneId()) {
-                    view.$el.removeClass("active");
-                }
+//                if (view.paneId !== MainViewManager.getActivePaneId()) {
+//                    view.$el.removeClass("active");
+//                }
                 
                 var paneFile = MainViewManager.getCurrentlyViewedFile(view.paneId);
                 view.$el.find("li.selected").removeClass("selected").addClass("reselect");
@@ -349,6 +362,7 @@ define(function (require, exports, module) {
             $(window).on("mousemove.wsvdragging", function (e) {
 
                 function drag(e) {
+                    _deactivateAllViews(true);
                     // we've dragged the item so set
                     //  dragged to true so we don't try and open it
                     dragged = true;
@@ -418,6 +432,7 @@ define(function (require, exports, module) {
             // Close down the drag operation
             function preDropCleanup() {
                 endScroll();
+                _deactivateAllViews(false);
                 // turn scroll wheel back on
                 window.onmousewheel = window.document.onmousewheel = null;
                 $(window).off(".wsvdragging");
@@ -512,11 +527,14 @@ define(function (require, exports, module) {
                 top: offset.top,
                 left: offset.left,
                 width: sourceView.$el.width(),
-                opacity: ".0001"
+                "z-index": 99999,
+                "background-color": $el.is(".selected") ? "rgb(45, 46, 48)" : "rgb(187, 187, 187)",
+                //opacity: ".0001"
             });
             
             // this will give the element the appearence that it's ghosted if the user
             //  drags the element out of the view and goes off into no mans land
+            $el.css("opacity", ".0001");
             $ghost.appendTo($("body"));
         });
     }
