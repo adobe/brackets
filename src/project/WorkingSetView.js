@@ -467,6 +467,8 @@ define(function (require, exports, module) {
                                     .always(function () {
                                         postDropCleanup();
                                     });
+                            } else {
+                                postDropCleanup();
                             }
                         });
                 }
