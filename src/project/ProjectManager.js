@@ -94,7 +94,7 @@ define(function (require, exports, module) {
     var _fileSystemChange,
         _fileSystemRename,
         _showErrorDialog,
-        _savePreferences,
+        _saveTreeState,
         _renderTree;
 
     /**
@@ -233,7 +233,7 @@ define(function (require, exports, module) {
      * See `ProjectModel.setDirectoryOpen`
      */
     ActionCreator.prototype.setDirectoryOpen = function (path, open) {
-        this.model.setDirectoryOpen(path, open).then(_savePreferences);
+        this.model.setDirectoryOpen(path, open).then(_saveTreeState);
     };
 
     /**
@@ -483,18 +483,24 @@ define(function (require, exports, module) {
         });
         return d.promise();
     }
+    
+    /**
+     * @private
+     * 
+     * Saves the project path.
+     */
+    var _saveProjectPath = function () {
+        // save the current project
+        PreferencesManager.setViewState("projectPath", model.projectRoot.fullPath);
+    };
 
     /**
      * @private
-     * Save ProjectManager project path and tree state.
+     * Save tree state.
      */
-    _savePreferences = function () {
-        var context = _getProjectViewStateContext();
-
-        // save the current project
-        PreferencesManager.setViewState("projectPath", model.projectRoot.fullPath);
-
-        var openNodes = model.getOpenNodes();
+    _saveTreeState = function () {
+        var context = _getProjectViewStateContext(),
+            openNodes = model.getOpenNodes();
 
         // Store the open nodes by their full path and persist to storage
         PreferencesManager.setViewState("project.treeState", openNodes, context);
@@ -1173,7 +1179,7 @@ define(function (require, exports, module) {
     }, true, _checkPreferencePrefix);
 
     $(exports).on("projectOpen", _reloadProjectPreferencesScope);
-    $(exports).on("projectOpen", _savePreferences);
+    $(exports).on("projectOpen", _saveProjectPath);
 
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
