@@ -697,7 +697,10 @@ a, img {
 
 #working-set-list-container {
     background: @bc-sidebar-bg;
-    padding-bottom: 23px;
+    
+    > div:last-child ul { 
+        padding-bottom: 21px; // Adds working set bottom padding to the last UL.
+    }
 }
 
 .working-set-header {
@@ -753,6 +756,10 @@ a, img {
         .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons.svg");
         margin: 0 5px 0 -1px;
         vertical-align: -2px;
+        
+        .dark & {
+            .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons-dark.svg");
+        }
     }
     &:nth-child(1) .menu-name::before {
         .splitview-icon-none();
@@ -795,7 +802,7 @@ a, img {
 
     ul {
         list-style-type: none;
-        margin: 0;
+        margin: 0 0 2px; // 2px bottom margin required to stop scrollbar from appearing when the cursor is hovering over the last opened file.
     }
 
     li {
@@ -844,7 +851,7 @@ a, img {
 
 
 
-.sidebar-selection {
+.sidebar-selection, .filetree-selection {
     background: @bc-sidebar-selection;
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
@@ -864,7 +871,11 @@ a, img {
     z-index: @z-index-brackets-selection-extension; /* scroller-shadow appears above the extension */
 }
 
-
+.filetree-context {
+    border: 1px solid @bc-shadow;
+    position: absolute;
+    height: 22px;
+}
 
 //Initially start with the open files hidden, they will get show as files are added
 .open-files-container {
@@ -880,7 +891,7 @@ a, img {
 
     > ul {
         padding-bottom: 24px;
-    }
+    }    
 }
 
 .scroller-shadow {
@@ -2104,4 +2115,3 @@ label input {
     min-height: 300px;
     max-height: 300px;
 }
-
