@@ -115,14 +115,8 @@ define(function (require, exports, module) {
     exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";      // EditorOptionHandlers.js      _getToggler()
     exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";        // EditorOptionHandlers.js      _getToggler()
 
-    exports.CMD_ADD_TO_WORKINGSET_AND_OPEN  = "cmd.addToWorkingSetAndOpen";          // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()
     exports.CMD_OPEN                        = "cmd.open";
-    
     exports.CMD_ADD_TO_WORKINGSET_AND_OPEN  = "cmd.addToWorkingSetAndOpen";          // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()
-    exports.CMD_WORKINGSET_SORT_BY_ADDED    = "cmd.sortWorkingSetByAdded";           // WorkingSetSort.js          _handleSort()
-    exports.CMD_WORKINGSET_SORT_BY_NAME     = "cmd.sortWorkingSetByName";            // WorkingSetSort.js          _handleSort()
-    exports.CMD_WORKINGSET_SORT_BY_TYPE     = "cmd.sortWorkingSetByType";            // WorkingSetSort.js          _handleSort()
-    exports.CMD_WORKING_SORT_TOGGLE_AUTO    = "cmd.sortWorkingSetToggleAuto";        // WorkingSetSort.js          _handleToggleAutoSort()
     
     // NAVIGATE
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";           // DocumentCommandHandlers.js   handleGoNextDoc()
@@ -150,6 +144,17 @@ define(function (require, exports, module) {
     exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";  // HelpCommandHandlers.js       _handleShowExtensionsFolder()
     exports.HELP_HOMEPAGE               = "help.homepage";              // HelpCommandHandlers.js       _handleLinkMenuItem()
     exports.HELP_TWITTER                = "help.twitter";               // HelpCommandHandlers.js       _handleLinkMenuItem()
+    
+    // Working Set Configuration
+    exports.CMD_WORKINGSET_SORT_BY_ADDED  = "cmd.sortWorkingSetByAdded";     // WorkingSetSort.js       _handleSort()
+    exports.CMD_WORKINGSET_SORT_BY_NAME   = "cmd.sortWorkingSetByName";      // WorkingSetSort.js       _handleSort()
+    exports.CMD_WORKINGSET_SORT_BY_TYPE   = "cmd.sortWorkingSetByType";      // WorkingSetSort.js       _handleSort()
+    exports.CMD_WORKING_SORT_TOGGLE_AUTO  = "cmd.sortWorkingSetToggleAuto";  // WorkingSetSort.js       _handleToggleAutoSort()
+    
+    // Split View
+    exports.CMD_SPLITVIEW_NONE          = "cmd.splitViewNone";          // SidebarView.js               _handleSplitNone()
+    exports.CMD_SPLITVIEW_VERTICAL      = "cmd.splitViewVertical";      // SidebarView.js               _handleSplitVertical()
+    exports.CMD_SPLITVIEW_HORIZONTAL    = "cmd.splitViewHorizontal";    // SidebarView.js               _handleSplitHorizontal()
     
     // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
     exports.HELP_ABOUT                  = "help.about";                 // HelpCommandHandlers.js       _handleAboutDialog()

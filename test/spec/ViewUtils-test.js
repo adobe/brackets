@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, $: false, beforeEach: false, afterEach: false, it: false, expect: false, brackets: false */
+/*global define, describe, $, beforeEach, afterEach, it, expect */
 /*unittests: ViewUtils*/
 
 define(function (require, exports, module) {
