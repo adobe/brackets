@@ -848,7 +848,7 @@ a, img {
 
 
 
-.sidebar-selection {
+.sidebar-selection, .filetree-selection {
     background: @bc-sidebar-selection;
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
@@ -868,7 +868,11 @@ a, img {
     z-index: @z-index-brackets-selection-extension; /* scroller-shadow appears above the extension */
 }
 
-
+.filetree-context {
+    border: 1px dashed @bc-shadow;
+    position: absolute;
+    height: 22px;
+}
 
 //Initially start with the open files hidden, they will get show as files are added
 .open-files-container {
@@ -884,7 +888,7 @@ a, img {
 
     > ul {
         padding-bottom: 24px;
-    }
+    }    
 }
 
 .scroller-shadow {
@@ -2108,4 +2112,3 @@ label input {
     min-height: 300px;
     max-height: 300px;
 }
-
