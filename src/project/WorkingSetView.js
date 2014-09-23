@@ -507,14 +507,16 @@ define(function (require, exports, module) {
             
             // setup our ghost element as position absolute
             //  so we can put it wherever we want to while dragging
-            $ghost.css({position: "absolute",
-                            top: offset.top,
-                            left: offset.left,
-                            opacity: ".25"});
+            $ghost.css({
+                position: "absolute",
+                top: offset.top,
+                left: offset.left,
+                width: sourceView.$el.width(),
+                opacity: ".0001"
+            });
             
             // this will give the element the appearence that it's ghosted if the user
             //  drags the element out of the view and goes off into no mans land
-            //$el.css("opacity", ".25");
             $ghost.appendTo($("body"));
         });
     }
