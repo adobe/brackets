@@ -1173,6 +1173,7 @@ define(function (require, exports, module) {
     }, true, _checkPreferencePrefix);
 
     $(exports).on("projectOpen", _reloadProjectPreferencesScope);
+    $(exports).on("projectOpen", _savePreferences);
 
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
