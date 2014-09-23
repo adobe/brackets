@@ -172,15 +172,9 @@ define(function (require, exports, module) {
         _.forEach(_views, function (view) {
 
             if ($el && $el.data(_FILE_KEY) === currentFile && view.$el.find($el).length) {
-//                view.$el.addClass("active");
-//                view.$openFilesContainer.addClass("active");
                 view.$el.find("li.selected").removeClass("selected").addClass("reselect");
                 $el.addClass("selected").removeClass("reselect");
             } else {
-//                if (view.paneId !== MainViewManager.getActivePaneId()) {
-//                    view.$el.removeClass("active");
-//                }
-                
                 var paneFile = MainViewManager.getCurrentlyViewedFile(view.paneId);
                 view.$el.find("li.selected").removeClass("selected").addClass("reselect");
                 var $selected = view._findListItemFromFile(paneFile);
@@ -264,7 +258,7 @@ define(function (require, exports, module) {
                 $copy = $el.clone(),
                 $ghost = $("<div class='open-files-container wsv-drag-ghost' style='overflow: hidden; display: inline-block;'>").append($("<ul>").append($copy).css("padding", "0")),
                 sourceView = _viewFromEl($el),
-                isCurrentDocument = ($el.hasClass("selected") && sourceView.paneId === MainViewManager.getActivePaneId()),
+                isCurrentFile = ($el.hasClass("selected") && sourceView.paneId === MainViewManager.getActivePaneId()),
                 startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sorceFile.fullPath),
                 currentView = sourceView;
 
@@ -362,7 +356,7 @@ define(function (require, exports, module) {
             $(window).on("mousemove.wsvdragging", function (e) {
 
                 function drag(e) {
-                    _deactivateAllViews(true);
+                    _deactivateAllViews(isCurrentFile);
                     // we've dragged the item so set
                     //  dragged to true so we don't try and open it
                     dragged = true;
@@ -374,33 +368,42 @@ define(function (require, exports, module) {
                     // Find out where to to drag it to
                     var ht = hitTest(e);
                     
-                    if (ht.where !== NOMANSLAND) {
-                        switch (ht.where) {
-                        case TOPSCROLL:
-                        case ABOVEITEM:
-                            if (ht.where === TOPSCROLL) {
-                                scrollDir = -1;
-                            }
-                            $el.insertBefore(ht.which);
-                            updateContext(ht, $el);
-                            break;
-                        case BOTSCROLL:
-                        case BELOWITEM:
-                            if (ht.where === BOTSCROLL) {
-                                scrollDir = 1;
-                            }
-                            $el.insertAfter(ht.which);
-                            updateContext(ht, $el);
-                            break;
-                        case BELOWVIEW:
-                            $el.appendTo(ht.which.find("ul"));
-                            updateContext(ht, $el);
-                            break;
-                        case ABOVEVIEW:
-                            $el.prependTo(ht.which.find("ul"));
-                            updateContext(ht, $el);
-                            break;
+                    // if the drag goes into nomansland then
+                    //  drop the opacity on the drag affordance
+                    //  and show the inserted item at reduced opacity
+                    if (ht.where === NOMANSLAND) {
+                        $el.css("opacity", ".75");
+                        $ghost.css("opacity", ".25");
+                    } else {
+                        $el.css("opacity", ".0001");
+                        $ghost.css("opacity", "");
+                    }
+                    
+                    switch (ht.where) {
+                    case TOPSCROLL:
+                    case ABOVEITEM:
+                        if (ht.where === TOPSCROLL) {
+                            scrollDir = -1;
                         }
+                        $el.insertBefore(ht.which);
+                        updateContext(ht, $el);
+                        break;
+                    case BOTSCROLL:
+                    case BELOWITEM:
+                        if (ht.where === BOTSCROLL) {
+                            scrollDir = 1;
+                        }
+                        $el.insertAfter(ht.which);
+                        updateContext(ht, $el);
+                        break;
+                    case BELOWVIEW:
+                        $el.appendTo(ht.which.find("ul"));
+                        updateContext(ht, $el);
+                        break;
+                    case ABOVEVIEW:
+                        $el.prependTo(ht.which.find("ul"));
+                        updateContext(ht, $el);
+                        break;
                     }
 
                     // move the drag affordance
@@ -475,7 +478,7 @@ define(function (require, exports, module) {
                         .always(function () {
                             // if the current document was dragged to another workingset 
                             //  then reopen it to make it the currently selected file
-                            if (isCurrentDocument) {
+                            if (isCurrentFile) {
                                 CommandManager
                                     .execute(Commands.FILE_OPEN, {fullPath: sorceFile.fullPath,
                                                                    paneId: currentView.paneId})
@@ -526,9 +529,9 @@ define(function (require, exports, module) {
                 position: "absolute",
                 top: offset.top,
                 left: offset.left,
-                width: sourceView.$el.width(),
+                width: isCurrentFile ? sourceView.$el.width() : $el.width(),
                 "z-index": 99999,
-                "background-color": $el.is(".selected") ? "rgb(45, 46, 48)" : "rgb(187, 187, 187)",
+                "background-color": isCurrentFile ? "rgb(45, 46, 48)" : "rgb(60, 63, 65)",
                 //opacity: ".0001"
             });
             
