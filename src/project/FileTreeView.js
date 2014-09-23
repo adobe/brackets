@@ -565,7 +565,8 @@ define(function (require, exports, module) {
                     contents: children,
                     extensions: this.props.extensions,
                     actions: this.props.actions,
-                    forceRender: this.props.forceRender
+                    forceRender: this.props.forceRender,
+                    sortDirectoriesFirst: this.props.sortDirectoriesFirst
                 });
             } else {
                 nodeClass = "closed";

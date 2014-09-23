@@ -1191,6 +1191,8 @@ define(function (require, exports, module) {
         .on("change", function () {
             actionCreator.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
         });
+    
+    actionCreator.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
 
     /**
      * Gets the filesystem object for the current context in the file tree.
