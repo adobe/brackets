@@ -180,7 +180,9 @@ define(function (require, exports, module) {
             
             } else {
                 if (view.$el.find("li.selected").length === 0) {
-                    view.$el.find("li.reslect").removeClass("reselect").addClass("selected");
+                    view.$el.find("li.reselect").removeClass("reselect").addClass("selected");
+                } else {
+                    view.$el.find("li.reselect").removeClass("reselect");
                 }
             }
             
@@ -456,7 +458,6 @@ define(function (require, exports, module) {
                                                                      FileViewController.WORKING_SET_VIEW,
                                                                      currentView.paneId);
                         }
-                        _updateSelectionStateForAllViews();
                     }
                 } else if (sourceView.paneId === currentView.paneId) {
                     // item was reordered 
@@ -469,18 +470,22 @@ define(function (require, exports, module) {
                     // if the current document was dragged to another workingset 
                     //  then reopen it to make it the currently selected file
                     if (isCurrentDocument) {
-                        FileViewController
-                            .openAndSelectDocument(sorceFile.fullPath,
-                                                FileViewController.WORKING_SET_VIEW,
-                                                currentView.paneId)
+                        CommandManager
+                            .execute(Commands.FILE_OPEN, {fullPath: sorceFile.fullPath,
+                                                           paneId: currentView.paneId,
+                                                           options: { noPaneActivate: true
+                                                           }
+                                                         }
+                                    )
                             .always(function () {
                                 refresh(true);
+                                MainViewManager.setActivePaneId(currentView.paneId);
                             });
-                    } else {
-                        refresh(true);
                     }
                 }
                 _suppressSortRedrawForAllViews(false);
+                _updateSelectionStateForAllViews();
+                refresh(true);
             }
 
             // initialization
