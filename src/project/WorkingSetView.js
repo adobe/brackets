@@ -89,7 +89,7 @@ define(function (require, exports, module) {
     function refresh(rebuild) {
         _.forEach(_views, function (view) {
             if (rebuild) {
-                view._rebuildViewList();
+                view._rebuildViewList(true);
             } else {
                 view._redraw();
             }
@@ -263,6 +263,7 @@ define(function (require, exports, module) {
                 $copy = $el.clone(),
                 $ghost = $("<div class='open-files-container wsv-drag-ghost' style='overflow: hidden; display: inline-block;'>").append($("<ul>").append($copy).css("padding", "0")),
                 sourceView = _viewFromEl($el),
+                isCurrentDocument = ($el.hasClass("selected") && sourceView.paneId === MainViewManager.getActivePaneId()),
                 startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sorceFile.fullPath),
                 currentView = sourceView;
 
@@ -462,19 +463,22 @@ define(function (require, exports, module) {
                     MainViewManager._moveWorkingSetItem(sourceView.paneId, startingIndex, $el.index());
                     currentView._rebuildViewList();
                 } else {
-                    var reopenDocument = ($el.hasClass("selected") && sourceView.paneId === MainViewManager.getActivePaneId());
                     // item was dragged to another working set
                     MainViewManager._moveView(sourceView.paneId, currentView.paneId, sorceFile, $el.index());
                     
                     // if the current document was dragged to another workingset 
                     //  then reopen it to make it the currently selected file
-                    if (reopenDocument) {
-                        FileViewController.openAndSelectDocument(sorceFile.fullPath,
-                                                                 FileViewController.WORKING_SET_VIEW,
-                                                                 currentView.paneId);
+                    if (isCurrentDocument) {
+                        FileViewController
+                            .openAndSelectDocument(sorceFile.fullPath,
+                                                FileViewController.WORKING_SET_VIEW,
+                                                currentView.paneId)
+                            .always(function () {
+                                refresh(true);
+                            });
+                    } else {
+                        refresh(true);
                     }
-                    
-                    refresh(true);
                 }
                 _suppressSortRedrawForAllViews(false);
             }
