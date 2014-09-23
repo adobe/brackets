@@ -171,19 +171,12 @@ define(function (require, exports, module) {
      */
     function _updateSelectionStateForAllViews($el) {
         _.forEach(_views, function (view) {
-            
-            if ($el && view.$el.is(".active")) {
-                if ($el.hasClass("selected")) {
-                    view.$el.find("li.selected").removeClass("selected").addClass("reselect");
-                    $el.addClass("selected").removeClass("reselect");
-                }
-            
+
+            if ($el && view.$el.is(".active") && $el.is(".selected") && view.$el.find($el).length) {
+                view.$el.find("li.selected").removeClass("selected").addClass("reselect");
+                $el.addClass("selected").removeClass("reselect");
             } else {
-                if (view.$el.find("li.selected").length === 0) {
-                    view.$el.find("li.reselect").removeClass("reselect").addClass("selected");
-                } else {
-                    view.$el.find("li.reselect").removeClass("reselect");
-                }
+                view.$el.find("li.reselect").removeClass("reselect").addClass("selected");
             }
             
             var index = view.$el.find("li.selected").index();
@@ -473,10 +466,7 @@ define(function (require, exports, module) {
                         CommandManager
                             .execute(Commands.FILE_OPEN, {fullPath: sorceFile.fullPath,
                                                            paneId: currentView.paneId,
-                                                           options: { noPaneActivate: true
-                                                           }
-                                                         }
-                                    )
+                                                           options: { noPaneActivate: true}})
                             .always(function () {
                                 refresh(true);
                                 MainViewManager.setActivePaneId(currentView.paneId);
@@ -484,7 +474,6 @@ define(function (require, exports, module) {
                     }
                 }
                 _suppressSortRedrawForAllViews(false);
-                _updateSelectionStateForAllViews();
                 refresh(true);
             }
 
