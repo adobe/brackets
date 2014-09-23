@@ -776,12 +776,19 @@ define(function (require, exports, module) {
     }
     
     function _moveView(sourcePaneId, destinationPaneId, file, destinationIndex) {
-        var sourcePane = _getPane(sourcePaneId),
+        var result = new $.Deferred(),
+            sourcePane = _getPane(sourcePaneId),
             destinationPane = _getPane(destinationPaneId);
         
-        if (sourcePane.moveView(file, destinationPane, destinationIndex)) {
-            $(exports).triggerHandler("workingSetMove", [file, sourcePane.id, destinationPane.id]);
-        }
+        sourcePane.moveView(file, destinationPane, destinationIndex)
+            .done(function () {
+                $(exports).triggerHandler("workingSetMove", [file, sourcePane.id, destinationPane.id]);
+            })
+            .always(function () {
+                result.resolve();
+            });
+        
+        return result.promise();
     }
     
     function _removeDeletedFileFromMRU(e, fullPath) {

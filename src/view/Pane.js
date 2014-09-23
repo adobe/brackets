@@ -381,38 +381,56 @@ define(function (require, exports, module) {
     };
 
     Pane.prototype.moveView = function (file, destination, destinationIndex) {
+        var self = this,
+            openNextPromise = new $.Deferred(),
+            result = new $.Deferred();
+        
         if ((this.getCurrentlyViewedPath() === file.fullPath)) {
-            var nextFile = this.traverseViewListByMRU(1, file.fullPath),
-                self = this;
+            var nextFile = this.traverseViewListByMRU(1, file.fullPath);
             if (nextFile) {
                 this._execOpenFile(nextFile.fullPath)
                     .fail(function () {
                         // the FILE_OPEN failed
                         self._hideCurrentView();
+                    })
+                    .always(function () {
+                        openNextPromise.resolve();
                     });
             } else {
                 this._hideCurrentView();
+                openNextPromise.resolve();
             }
+        } else {
+            openNextPromise.resolve();
         }
         
-        // Remove file from all 3 view lists
-        this._viewList.splice(this.findInViewList(file.fullPath), 1);
-        this._viewListMRUOrder.splice(this.findInViewListMRUOrder(file.fullPath), 1);
-        this._viewListAddedOrder.splice(this.findInViewListAddedOrder(file.fullPath), 1);
+        
+        openNextPromise.always(function () {
+            // Remove file from all 3 view lists
+            self._viewList.splice(self.findInViewList(file.fullPath), 1);
+            self._viewListMRUOrder.splice(self.findInViewListMRUOrder(file.fullPath), 1);
+            self._viewListAddedOrder.splice(self.findInViewListAddedOrder(file.fullPath), 1);
 
-        // insert the view into the working set
-        destination._addToViewList(file,  _makeIndexRequestObject(true, destinationIndex));
-        
-        //move the view,
-        var view = this._views[file.fullPath];
-        
-        if (view) {
-            destination.addView(view, !destination.getCurrentlyViewedFile());
-        } else if (!destination.getCurrentlyViewedFile()) {
-            // The view has not have been created and the pane was 
-            //  not showing anything so open the file moved in to the pane
-            destination._execOpenFile(file.fullPath);
-        }
+            // insert the view into the working set
+            destination._addToViewList(file,  _makeIndexRequestObject(true, destinationIndex));
+
+            //move the view,
+            var view = self._views[file.fullPath];
+
+            if (view) {
+                destination.addView(view, !destination.getCurrentlyViewedFile());
+                result.resolve();
+            } else if (!destination.getCurrentlyViewedFile()) {
+                // The view has not have been created and the pane was 
+                //  not showing anything so open the file moved in to the pane
+                destination._execOpenFile(file.fullPath).always(function () {
+                    result.resolve();
+                });
+            } else {
+                result.resolve();
+            }
+        });
+        return result.promise();
     };
     
     /**

@@ -416,20 +416,24 @@ define(function (require, exports, module) {
             });
             
             // Close down the drag operation
-            function cleanup() {
+            function preDropCleanup() {
                 endScroll();
                 // turn scroll wheel back on
                 window.onmousewheel = window.document.onmousewheel = null;
                 $(window).off(".wsvdragging");
                 $ghost.remove();
                 $el.css("opacity", "");
-                // NOTE: truning redraw on sort back on is done after items are added
-                //          but the other cleanup stuff needs to be done before they are added
+            }
+            
+            function postDropCleanup() {
+                _suppressSortRedrawForAllViews(false);
+                refresh(true);
+                MainViewManager.focusActivePane();
             }
             
             // Drop
             function drop() {
-                cleanup();
+                preDropCleanup();
                 // didn't change position or working set
                 if (sourceView.paneId === currentView.paneId && startingIndex === $el.index()) {
                     // if the item was dragged but not moved then don't open or close 
@@ -445,29 +449,27 @@ define(function (require, exports, module) {
                                                                      currentView.paneId);
                         }
                     }
+                    postDropCleanup();
                 } else if (sourceView.paneId === currentView.paneId) {
                     // item was reordered 
                     MainViewManager._moveWorkingSetItem(sourceView.paneId, startingIndex, $el.index());
-                    currentView._rebuildViewList();
+                    postDropCleanup();
                 } else {
                     // item was dragged to another working set
-                    MainViewManager._moveView(sourceView.paneId, currentView.paneId, sorceFile, $el.index());
-                    
-                    // if the current document was dragged to another workingset 
-                    //  then reopen it to make it the currently selected file
-                    if (isCurrentDocument) {
-                        CommandManager
-                            .execute(Commands.FILE_OPEN, {fullPath: sorceFile.fullPath,
-                                                           paneId: currentView.paneId,
-                                                           options: { noPaneActivate: true}})
-                            .always(function () {
-                                refresh(true);
-                                MainViewManager.setActivePaneId(currentView.paneId);
-                            });
-                    }
+                    MainViewManager._moveView(sourceView.paneId, currentView.paneId, sorceFile, $el.index())
+                        .always(function () {
+                            // if the current document was dragged to another workingset 
+                            //  then reopen it to make it the currently selected file
+                            if (isCurrentDocument) {
+                                CommandManager
+                                    .execute(Commands.FILE_OPEN, {fullPath: sorceFile.fullPath,
+                                                                   paneId: currentView.paneId})
+                                    .always(function () {
+                                        postDropCleanup();
+                                    });
+                            }
+                        });
                 }
-                _suppressSortRedrawForAllViews(false);
-                refresh(true);
             }
 
             // initialization
@@ -478,9 +480,8 @@ define(function (require, exports, module) {
             // let escape cancel the drag
             $(window).on("keydown.wsvdragging", function (e) {
                 if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                    cleanup();
-                    _suppressSortRedrawForAllViews(false);
-                    refresh(true);
+                    preDropCleanup();
+                    postDropCleanup();
                     e.stopPropagation();
                 }
             });
@@ -834,9 +835,8 @@ define(function (require, exports, module) {
      */
     WorkingSetView.prototype._updateListSelection = function () {
         var file = MainViewManager.getCurrentlyViewedFile(this.paneId);
-            
-        this._updateViewState();
         
+        this._updateViewState();
         
         // Iterate through working set list and update the selection on each
         this.$openFilesContainer.find("ul").children().each(function () {
