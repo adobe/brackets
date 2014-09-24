@@ -458,16 +458,22 @@ define(function (require, exports, module) {
                     if (!dragged) {
                         // Click on close icon, or middle click anywhere - close the item without selecting it first
                         if (tryClosing || e.which === MIDDLE_BUTTON) {
-                            CommandManager.execute(Commands.FILE_CLOSE, {file: sorceFile,
-                                                                         paneId: sourceView.paneId});
+                            CommandManager
+                                .execute(Commands.FILE_CLOSE, {file: sorceFile,
+                                                               paneId: sourceView.paneId})
+                                .always(function () {
+                                    postDropCleanup();
+                                });
                         } else {
                             // Normal right and left click - select the item
-                            FileViewController.openAndSelectDocument(sorceFile.fullPath,
-                                                                     FileViewController.WORKING_SET_VIEW,
-                                                                     currentView.paneId);
+                            CommandManager
+                                .execute(Commands.FILE_OPEN, {fullPath: sorceFile.fullPath,
+                                                               paneId: currentView.paneId})
+                                .always(function () {
+                                    postDropCleanup();
+                                });
                         }
                     }
-                    postDropCleanup();
                 } else if (sourceView.paneId === currentView.paneId) {
                     // item was reordered 
                     MainViewManager._moveWorkingSetItem(sourceView.paneId, startingIndex, $el.index());
