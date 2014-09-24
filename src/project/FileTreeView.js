@@ -306,6 +306,11 @@ define(function (require, exports, module) {
          * with a bit of delay in between, we'll invoke the `startRename` action.
          */
         handleClick: function (e) {
+            // If we're renaming, allow the click to go through to the rename input.
+            if (this.props.entry.get("rename")) {
+                return true;
+            }
+            
             // If the user clicks twice within 500ms, that will be picked up by the double click handler
             // If they click on the node twice with a pause, we'll start a rename.
             if (this.props.entry.get("selected") && this.state.clickTime) {

@@ -1106,7 +1106,7 @@ define(function (require, exports, module) {
         model.setSelectionWidth($projectTreeContainer.width());
         
         $(".main-view").click(function (jqEvent) {
-            if (jqEvent.target.className !== "rename-input") {
+            if (jqEvent.target.className !== "jstree-rename-input") {
                 forceFinishRename();
                 actionCreator.setContext(null);
             }
