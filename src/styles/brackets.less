@@ -1195,6 +1195,15 @@ a, img {
             .dark & {
                 color: @dark-bc-text-emphasized;
             }
+            
+            &.section-header {
+                padding-left: 0;
+                padding-bottom: 0;
+                font-weight: @font-weight-semibold;
+                .disclosure-triangle {
+                    .expand-collapse-triangle();
+                }
+            }
 
             .related-file {
                 color: @bc-text-thin-quiet;
@@ -1324,6 +1333,9 @@ a, img {
 
 .search-results .disclosure-triangle,
 #problems-panel .disclosure-triangle {
+    .expand-collapse-triangle();
+}
+.expand-collapse-triangle() {
     .jstree-sprite;
     display: inline-block;
     &.expanded {
