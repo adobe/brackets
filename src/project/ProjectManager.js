@@ -1096,7 +1096,6 @@ define(function (require, exports, module) {
         model.setScrollerInfo($projectTreeContainer.scrollTop(), $projectTreeContainer.scrollLeft(), $projectTreeContainer.offset().top);
     }
     
-    
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
@@ -1123,6 +1122,13 @@ define(function (require, exports, module) {
 
         $projectTreeContainer.on("contextmenu", function () {
             forceFinishRename();
+        });
+        
+        // When a context menu item is selected, we need to clear the context
+        // because we don't get a beforeContextMenuClose event since Bootstrap
+        // handles this directly.
+        $("#project-context-menu").on("click.dropdown-menu", function () {
+            model.setContext(null, true);
         });
 
         $projectTreeContainer.on("scroll", function () {

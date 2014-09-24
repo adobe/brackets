@@ -708,8 +708,9 @@ define(function (require, exports, module) {
      * open/selected file.
      *
      * @param {string} path full path of file or directory to which the context should be setBaseUrl
+     * @param {boolean} _doNotRename True if this context change should not cause a rename operation to finish. This is a special case that goes with context menu handling.
      */
-    ProjectModel.prototype.setContext = function (path) {
+    ProjectModel.prototype.setContext = function (path, _doNotRename) {
         // This bit is not ideal: when the user right-clicks on an item in the file tree
         // and there is already a context menu up, the FileTreeView sends a signal to set the
         // context to the new element but the PopupManager follows that with a message that it's
@@ -722,7 +723,10 @@ define(function (require, exports, module) {
         }
 
         path = _getPathFromFSObject(path);
-        this.performRename();
+        
+        if (!_doNotRename) {
+            this.performRename();
+        }
         var currentContext = this._selections.context;
         this._selections.context = path;
         this._viewModel.moveMarker("context", this.makeProjectRelativeIfPossible(currentContext),

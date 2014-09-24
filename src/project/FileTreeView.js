@@ -772,7 +772,7 @@ define(function (require, exports, module) {
                     selectionViewInfo: this.props.selectionViewInfo,
                     className: "filetree-context",
                     visible: this.props.selectionViewInfo.get("hasContext"),
-                    widthAdjustment: 2,
+                    widthAdjustment: 0,
                     selectedClassName: ".context-node",
                     forceUpdate: true
                 });
