@@ -55,6 +55,8 @@ define(function (require, exports, module) {
      */
     var _views = [];
     
+    var _viewMap = {};
+    
     /**
      * Constants for event.which values
      * @enum {number}
@@ -167,14 +169,21 @@ define(function (require, exports, module) {
      * @param {jQuery} $el - the element that was moved
      */
     function _updateSelectionStateForAllViews($el) {
-        var currentFile = MainViewManager.getCurrentlyViewedFile();
+        var file = MainViewManager.getCurrentlyViewedFile();
+        if ($el.datat(_FILE_KEY) === file) {
+            var view = _viewMap[MainViewManager.getActivePaneId()],
+                $li = view._findListItemFromFile(file),
+                offset = $li.offset();
 
+            if (offset.top !== view._cachedSelectionOffset.top) {
+                view._fireSelectionChanged();
+                view.$openFilesContainer.triggerHandler("scroll");
+                view._cachedSelectionOffset = offset;
+            }
+        }
+        
         _.forEach(_views, function (view) {
-
-            if ($el && $el.data(_FILE_KEY) === currentFile && view.$el.find($el).length) {
-                view.$el.find("li.selected").removeClass("selected").addClass("reselect");
-                $el.addClass("selected").removeClass("reselect");
-            } else {
+            if (!$el || $el.data(_FILE_KEY) !== file || view.$el.find($el).length === 0) {
                 var paneFile = MainViewManager.getCurrentlyViewedFile(view.paneId);
                 view.$el.find("li.selected").removeClass("selected").addClass("reselect");
                 var $selected = view._findListItemFromFile(paneFile);
@@ -182,11 +191,7 @@ define(function (require, exports, module) {
                     $selected.addClass("selected").removeClass("reselect");
                 }
             }
-            
-            view._fireSelectionChanged();
         });
-        // update the selection marker
-        syncSelectionIndicator();
     }
     
     /** 
@@ -271,7 +276,7 @@ define(function (require, exports, module) {
                 // just set the container and update
                 currentView = _viewFromEl(hit.which);
                 _updateSelectionStateForAllViews($elem);
-                $ghost.find("li").attr("class", $elem.attr("class"));
+                //$ghost.find("li").attr("class", $elem.attr("class"));
             }
             
             // Determines where the mouse hit was
@@ -520,6 +525,8 @@ define(function (require, exports, module) {
             Menus.closeAll();
             
             _suppressSortRedrawForAllViews(true);
+            
+            _viewMap[MainViewManager.getActivePaneId()]._cachedSelectionOffset();
             
             // Dragging only happens with the left mouse button
             //  or (on the Mac) when the ctrl key isn't pressed
@@ -878,6 +885,15 @@ define(function (require, exports, module) {
         this._scrollSelectedFileIntoView();
         this._fireSelectionChanged();
     };
+    
+    WorkingSetView.prototype._cacheListSelectionOffset = function () {
+        var file = MainViewManager.getCurrentlyViewedFile(this.paneId),
+            $listItem = this._findListItemFromFile(file);
+        
+        this._cachedSelectionOffset = $listItem.offset();
+    };
+    
+    
 
     /**
      * workingSetAdd event handler
@@ -1077,6 +1093,7 @@ define(function (require, exports, module) {
         if (index >= 0) {
             var views = _views.splice(index, 1);
             _.forEach(views, function (view) {
+                delete _viewMap[view.paneId];
                 view.destroy();
             });
         }
@@ -1095,7 +1112,9 @@ define(function (require, exports, module) {
 
         // if there wasn't already a view for the pane then create a new one
         if (index === -1) {
-            _views.push(new WorkingSetView($container, paneId));
+            var view = new WorkingSetView($container, paneId);
+            _views.push(view);
+            _viewMap[view.paneId] = view;
         }
     }
     
