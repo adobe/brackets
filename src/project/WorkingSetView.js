@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, window, brackets, Mustache  */
 
 /**
@@ -174,9 +174,8 @@ define(function (require, exports, module) {
             $el = $el.parents(".working-set-view");
         }
 
-        return _.find(_views, function (view) {
-            return (view.$el[0] === $el[0]);
-        });
+        var id = $el.attr("id").match(/working\-set\-list\-(.*)/).pop();
+        return _viewMap[id];
     }
     
     /** 
@@ -233,58 +232,46 @@ define(function (require, exports, module) {
                 $copy = $el.clone(),
                 $ghost = $("<div class='open-files-container wsv-drag-ghost' style='overflow: hidden; display: inline-block;'>").append($("<ul>").append($copy).css("padding", "0")),
                 sourceView = _viewFromEl($el),
-                isCurrentFile = ($el.hasClass("selected") && sourceView.paneId === MainViewManager.getActivePaneId()),
+                currentFile = MainViewManager.getCurrentlyViewedFile(),
+                activePaneId = MainViewManager.getActivePaneId(),
+                isCurrentFile = ($el.hasClass("selected") && sourceView.paneId === activePaneId),
                 startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sorceFile.fullPath),
                 currentView = sourceView;
 
-
-
-            function resetSelectionStateForAllViews() {
-                _.forEach(_views, function (view) {
-//                    view.$el.find("li.reselect").addClass("selected").removeClass("reselect");
-                });
-            }
-            
-            function updateSelectionStateForAllViews($elem) {
-                var file = MainViewManager.getCurrentlyViewedFile();
-                if (!isCurrentFile && $elem.data(_FILE_KEY) === file) {
-                    var view = _viewMap[MainViewManager.getActivePaneId()],
-                        $li = view._findListItemFromFile(file),
+            // update the selection "bar" and triangle "extender"
+            function updateCurrentSelectionIndicator() {
+                // if we're dragging the current file, the ghost
+                //  whill serve as the selection indicator so we
+                //  don't need to update it
+                if (!isCurrentFile) {
+                    var view = _viewMap[activePaneId],
+                        $li = view._findListItemFromFile(currentFile),
                         offset = $li.offset();
 
+                    // optimize when it needs to be updated to 
+                    //  only redraw when the list item moves 
                     if (offset.top !== view._cachedSelectionOffset.top) {
                         view._fireSelectionChanged();
                         view.$openFilesContainer.triggerHandler("scroll");
                         view._cachedSelectionOffset = offset;
                     }
                 }
-
-//                if ($elem.is(".selected") || $elem.hasClass("reselect")) {
-//                    _.forEach(_views, function (view) {
-//                        var paneFile = MainViewManager.getCurrentlyViewedFile(view.paneId);
-//                        if ($elem.data(_FILE_KEY) !== paneFile || view.$el.find($elem).length === 0) {
-//                            view.$el.find("li.reselect").removeClass("reselect").addClass("selected");
-//                        } else {
-//                            view.$el.find("li.selected").removeClass("selected").addClass("reselect");
-//                        }
-//                    });
-//                }
             }
             
             
             // Switches the context to the working 
             //  set container and view specfied by $container
             //  and updates the state variables for the container
-            function updateContext(hit, $elem) {
+            function updateContext(hit) {
                 // just set the container and update
                 currentView = _viewFromEl(hit.which);
-                updateSelectionStateForAllViews($elem);
-//                $ghost.find("li").attr("class", $elem.attr("class"));
+                updateCurrentSelectionIndicator();
             }
             
             // Determines where the mouse hit was
             function hitTest(e) {
-                var result = {
+                var pageY = $ghost.offset().top,
+                    result = {
                         where: NOMANSLAND
                     },
                     $hit,
@@ -293,15 +280,15 @@ define(function (require, exports, module) {
                 // Turn off the ghost so elementFromPoint ignores it
                 $ghost.hide();
 
-                $hit = $(document.elementFromPoint(e.pageX, e.pageY)).closest("#working-set-list-container li");
+                $hit = $(document.elementFromPoint(e.pageX, pageY)).closest("#working-set-list-container li");
               
                 if (!$hit.length) {
-                    $hit = $(document.elementFromPoint(e.pageX, e.pageY + itemHeight)).closest("#working-set-list-container li");
+                    $hit = $(document.elementFromPoint(e.pageX, pageY + itemHeight)).closest("#working-set-list-container li");
                     onScroller = ($hit.length > 0);
                 }
 
                 if (!$hit.length) {
-                    $hit = $(document.elementFromPoint(e.pageX, e.pageY - itemHeight)).closest("#working-set-list-container li");
+                    $hit = $(document.elementFromPoint(e.pageX, pageY - itemHeight)).closest("#working-set-list-container li");
                     onScroller = ($hit.length > 0);
                 }
               
@@ -311,7 +298,7 @@ define(function (require, exports, module) {
                     var top = $elem.offset().top,
                         height = $elem.height();
                     
-                    return (e.pageY < (top + height / 2));
+                    return (pageY < (top + height / 2));
                 }
               
                 // We hit an item (li)
@@ -330,7 +317,7 @@ define(function (require, exports, module) {
                 } else {
                     // we didn't hit an (li) so look for 
                     //  where the mouse is relative to the view
-                    $hit = $(document.elementFromPoint(e.pageX, e.pageY));
+                    $hit = $(document.elementFromPoint(e.pageX, pageY));
 
                     if ($hit.parent().is(".working-set-view")) {
                         $hit = $hit.parent();
@@ -372,6 +359,10 @@ define(function (require, exports, module) {
                     }
                     // reset the scrolling direction to no-scroll
                     scrollDir = 0;
+                    
+                    // move the drag affordance
+                    $ghost.css("top", e.pageY);
+                    
                     // Find out where to to drag it to
                     var ht = hitTest(e);
                     
@@ -393,7 +384,7 @@ define(function (require, exports, module) {
                             scrollDir = -1;
                         }
                         $el.insertBefore(ht.which);
-                        updateContext(ht, $el);
+                        updateContext(ht);
                         break;
                     case BOTSCROLL:
                     case BELOWITEM:
@@ -401,20 +392,17 @@ define(function (require, exports, module) {
                             scrollDir = 1;
                         }
                         $el.insertAfter(ht.which);
-                        updateContext(ht, $el);
+                        updateContext(ht);
                         break;
                     case BELOWVIEW:
                         $el.appendTo(ht.which.find("ul"));
-                        updateContext(ht, $el);
+                        updateContext(ht);
                         break;
                     case ABOVEVIEW:
                         $el.prependTo(ht.which.find("ul"));
-                        updateContext(ht, $el);
+                        updateContext(ht);
                         break;
                     }
-
-                    // move the drag affordance
-                    $ghost.css("top", e.pageY);
 
                     // we need to scroll
                     if (scrollDir) {
@@ -442,7 +430,6 @@ define(function (require, exports, module) {
             // Close down the drag operation
             function preDropCleanup() {
                 endScroll();
-                resetSelectionStateForAllViews();
                 _deactivateAllViews(false);
                 // turn scroll wheel back on
                 window.onmousewheel = window.document.onmousewheel = null;
