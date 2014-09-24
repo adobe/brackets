@@ -1037,7 +1037,7 @@ define(function (require, exports, module) {
             pathWithoutSlash  = FileUtils.stripTrailingSlash(path),
             parentPath        = FileUtils.getDirectoryPath(pathWithoutSlash),
             name              = pathWithoutSlash.substr(parentPath.length),
-            targetPath  = [];
+            targetPath        = [];
         
         if (parentPath) {
             targetPath = _filePathToObjectPath(treeData, parentPath);
