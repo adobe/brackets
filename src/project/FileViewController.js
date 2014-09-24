@@ -185,7 +185,7 @@ define(function (require, exports, module) {
      * and selects it in the WorkingSetView
      * @param {!fullPath}
      * @param {string=} paneId - Pane in which to add the view.  If omitted, the command default is to use the ACTIVE_PANE 
-     * @return {!$.Promise}
+     * @return {!Promise}
      */
     function openFileAndAddToWorkingSet(fullPath, paneId) {
         return new Promise(function (resolve, reject) {
@@ -216,25 +216,26 @@ define(function (require, exports, module) {
      * and selects it in the WorkingSetView
      * @deprecated use FileViewController.openFileAndAddToWorkingSet() instead
      * @param {!fullPath}
-     * @return {!$.Promise}
+     * @return {!Promise}
      */
     function addToWorkingSetAndSelect(fullPath) {
         DeprecationWarning.deprecationWarning("Use FileViewController.openFileAndAddToWorkingSet() instead of FileViewController.addToWorkingSetAndSelect().", true);
-        var result = new $.Deferred();
-        openFileAndAddToWorkingSet(fullPath)
-            .then(function (file) {
-                var doc;
-                
-                if (file) {
-                    doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-                }
-                
-                result.resolve(doc);
-            })
-            .catch(function (err) {
-                result.reject(err);
-            });
-        return result.promise();
+
+        return new Promise(function (resolve, reject) {
+            openFileAndAddToWorkingSet(fullPath)
+                .then(function (file) {
+                    var doc;
+
+                    if (file) {
+                        doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                    }
+
+                    resolve(doc);
+                })
+                .catch(function (err) {
+                    reject(err);
+                });
+        });
     }
     
     

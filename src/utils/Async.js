@@ -324,7 +324,7 @@ define(function (require, exports, module) {
     
     /**
      * Allows waiting for all the promises to be either resolved or rejected.
-     * Unlike $.when(), it does not call .fail() or .always() handlers on first
+     * Unlike $.when(), it does not call .catch() or .then() handlers on first
      * reject. The caller should take all the precaution to make sure all the
      * promises passed to this function are completed to avoid blocking.
      * 
@@ -448,7 +448,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {Array.<function(): $.Promise>}
+     * @type {Array.<function(): Promise>}
      * The queue of operations to execute sequentially. Note that even if this array is empty, there might
      * still be an operation we need to wait on; that operation's promise is stored in _curPromise.
      */
@@ -478,7 +478,7 @@ define(function (require, exports, module) {
      * finished. The operation must return a promise that will be resolved or rejected when it's finished;
      * the queue will continue with the next operation regardless of whether the current operation's promise
      * is resolved or rejected.
-     * @param {function(): $.Promise} op The operation to add to the queue.
+     * @param {function(): Promise} op The operation to add to the queue.
      */
     PromiseQueue.prototype.add = function (op) {
         this._queue.push(op);

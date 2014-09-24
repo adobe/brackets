@@ -391,7 +391,7 @@ define(function (require, exports, module) {
      * intial active document is opened in an editor. This is essential to ensure that only
      * one Document exists for any File.
      * @private
-     * @type {Object.<string, $.Promise>}
+     * @type {Object.<string, Promise>}
      */
     getDocumentForPath._pendingDocumentPromises = {};
     

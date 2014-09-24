@@ -50,7 +50,7 @@ define(function (require, exports, module) {
      * Context Info on which files the filter will be applied to. 
      * It will be initialized when createFilterPicker is called and if specified, editing UI will 
      * indicate how many files are excluded by the filter. Label should be of the form "in ..."
-     * @type {?{label:string, promise:$.Promise}}
+     * @type {?{label:string, promise:Promise}}
      */
     var _context = null;
     
@@ -294,7 +294,7 @@ define(function (require, exports, module) {
      * @param {!{name: string, patterns: Array.<string>}} filter
      * @param {number} index The index of the filter set to be edited or created. The value is -1 if it is for a new one 
      *          to be created.
-     * @return {!$.Promise} Dialog box promise
+     * @return {!Promise} Dialog box promise
      */
     function editFilter(filter, index) {
         var lastFocus = window.document.activeElement;
@@ -454,7 +454,7 @@ define(function (require, exports, module) {
      * when the UI containing the filter picker is confirmed (which updates the MRU order) and then use the 
      * returned filter object as needed.
      * 
-     * @param {?{label:string, promise:$.Promise}} context Info on files that filter will apply to. 
+     * @param {?{label:string, promise:Promise}} context Info on files that filter will apply to. 
      *      This will be saved as _context for later use in creating a new filter or editing an
      *      existing filter in Edit Filter dialog.
      * @return {!jQueryObject} Picker UI. To retrieve the selected value, use commitPicker().

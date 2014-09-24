@@ -69,7 +69,7 @@ define(function (require, exports, module) {
      * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
      * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
      * @param {?string} replaceText If this is a replacement, the text to replace matches with.
-     * @param {?$.Promise} candidateFilesPromise If specified, a promise that should resolve with the same set of files that
+     * @param {?Promise} candidateFilesPromise If specified, a promise that should resolve with the same set of files that
      *      getCandidateFiles(scope) would return.
      * @return {Promise} A promise that's resolved with the search results or rejected when the find competes.
      */

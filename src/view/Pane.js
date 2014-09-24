@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, Mustache */
+/*global define, $, Mustache, Promise */
 
  /**
   * Pane objects host views of files, editors, etc... Clients cannot access
@@ -1023,7 +1023,7 @@ define(function (require, exports, module) {
     /**
      * Executes a FILE_OPEN command to open a file
      * @param  {!string} fullPath - path of the file to open
-     * @return {jQuery.promise} promise that will resolve when the file is opened
+     * @return {Promise} promise that will resolve when the file is opened
      */
     Pane.prototype._execOpenFile = function (fullPath) {
         return CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath, paneId: this.id});
@@ -1050,7 +1050,7 @@ define(function (require, exports, module) {
                 if (needOpenNextFile) {
                     // this will destroy the current view
                     this._execOpenFile(fullPath)
-                        .fail(function () {
+                        .catch(function () {
                             // the FILE_OPEN op failed so destroy the current view
                             self._doDestroyView(self._currentView);
                         });
@@ -1098,7 +1098,7 @@ define(function (require, exports, module) {
             if (needOpenNextFile) {
                 // A successful open will destroy the current view 
                 this._execOpenFile(fullPath)
-                    .fail(function () {
+                    .catch(function () {
                         // the FILE_OPEN op failed so destroy the current view
                         self._doDestroyView(self._currentView);
                     });
@@ -1145,7 +1145,7 @@ define(function (require, exports, module) {
     /**
      * serializes the pane state from JSON
      * @param {!Object} state - the state to load 
-     * @return {jQuery.Promise} A promise which resolves to 
+     * @return {Promise} A promise which resolves to 
      *              {fullPath:string, paneId:string} 
      *              which can be passed as command data to FILE_OPEN
      */
@@ -1180,7 +1180,7 @@ define(function (require, exports, module) {
             data = {paneId: self.id, fullPath: activeFile};
         }
         
-        return new $.Deferred().resolve(data);
+        return Promise.resolve(data);
     };
     
     /**

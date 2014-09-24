@@ -474,15 +474,15 @@ define(function (require, exports, module) {
      * Sets the project root to the given directory, resetting the ProjectModel and file tree in the process.
      *
      * @param {Directory} rootEntry directory object for the project root
-     * @return {$.Promise} resolved when the project is done setting up
+     * @return {Promise} resolved when the project is done setting up
      */
     function _setProjectRoot(rootEntry) {
-        var d = new $.Deferred();
-        model.setProjectRoot(rootEntry).then(function () {
-            d.resolve();
-            model.reopenNodes(PreferencesManager.getViewState("project.treeState", _getProjectViewStateContext()));
+        return new Promise(function (resolve, reject) {
+            model.setProjectRoot(rootEntry).then(function () {
+                resolve();
+                model.reopenNodes(PreferencesManager.getViewState("project.treeState", _getProjectViewStateContext()));
+            });
         });
-        return d.promise();
     }
     
     /**
@@ -687,27 +687,26 @@ define(function (require, exports, module) {
      *     there is no project root or if the unwatch fails.
      */
     function _unwatchProjectRoot() {
-        var result = new $.Deferred();
-        if (!model.projectRoot) {
-            result.reject();
-        } else {
-            FileSystem.off("change", _fileSystemChange);
-            FileSystem.off("rename", _fileSystemRename);
+        return new Promise(function (resolve, reject) {
+            if (!model.projectRoot) {
+                reject();
+            } else {
+                FileSystem.off("change", _fileSystemChange);
+                FileSystem.off("rename", _fileSystemRename);
 
-            FileSystem.unwatch(model.projectRoot, function (err) {
-                if (err) {
-                    console.error("Error unwatching project root: ", model.projectRoot.fullPath, err);
-                    result.reject(err);
-                } else {
-                    result.resolve();
-                }
-            });
+                FileSystem.unwatch(model.projectRoot, function (err) {
+                    if (err) {
+                        console.error("Error unwatching project root: ", model.projectRoot.fullPath, err);
+                        reject(err);
+                    } else {
+                        resolve();
+                    }
+                });
 
-            // Reset allFiles cache
-            model._resetCache();
-        }
-
-        return result.promise();
+                // Reset allFiles cache
+                model._resetCache();
+            }
+        });
     }
 
     /**
@@ -737,120 +736,125 @@ define(function (require, exports, module) {
      *  fails to load.
      */
     function _loadProject(rootPath, isUpdating) {
-        var result = new $.Deferred(),
-            startLoad = new $.Deferred();
+        
+        return new Promise(function (resultResolve, resultReject) {
+            
+            var startLoad = new Promise(function (startLoadResolve, startLoadReject) {
+                // Some legacy code calls this API with a non-canonical path
+                rootPath = ProjectModel._ensureTrailingSlash(rootPath);
 
-        // Some legacy code calls this API with a non-canonical path
-        rootPath = ProjectModel._ensureTrailingSlash(rootPath);
-
-        if (isUpdating) {
-            // We're just refreshing. Don't need to unwatch the project root, so we can start loading immediately.
-            startLoad.resolve();
-        } else {
-            if (model.projectRoot && model.projectRoot.fullPath === rootPath) {
-                return (new $.Deferred()).resolve().promise();
-            }
-
-            // About to close current project (if any)
-            if (model.projectRoot) {
-                $(exports).triggerHandler("beforeProjectClose", model.projectRoot);
-            }
-
-            // close all the old files
-            MainViewManager._closeAll(MainViewManager.ALL_PANES);
-
-            _unwatchProjectRoot().always(function () {
-                // Done closing old project (if any)
-                if (model.projectRoot) {
-                    LanguageManager._resetPathLanguageOverrides();
-                    PreferencesManager._reloadUserPrefs(model.projectRoot);
-                    $(exports).triggerHandler("projectClose", model.projectRoot);
-                }
-
-                startLoad.resolve();
-            });
-        }
-
-        startLoad.done(function () {
-            var context = { location : { scope: "user",
-                                         layer: "project" } };
-
-            // Clear project path map
-            if (!isUpdating) {
-                PreferencesManager._stateProjectLayer.setProjectPath(rootPath);
-            }
-
-            if (!isUpdating) {
-                PreferencesManager._stateProjectLayer.setProjectPath(rootPath);
-            }
-            // Point at a real folder structure on local disk
-            var rootEntry = FileSystem.getDirectoryForPath(rootPath);
-            rootEntry.exists(function (err, exists) {
-                if (exists) {
-                    var projectRootChanged = (!model.projectRoot || !rootEntry) ||
-                        model.projectRoot.fullPath !== rootEntry.fullPath;
-
-                    // Success!
-                    var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
-
-                    _projectWarnedForTooManyFiles = false;
-
-                    _setProjectRoot(rootEntry).always(function () {
-                        model.setBaseUrl(PreferencesManager.getViewState("project.baseUrl", context) || "");
-
-                        if (projectRootChanged) {
-                            _reloadProjectPreferencesScope();
-                            PreferencesManager._setCurrentEditingFile(rootPath);
-                        }
-
-                        // If this is the most current welcome project, record it. In future launches, we want
-                        // to substitute the latest welcome project from the current build instead of using an
-                        // outdated one (when loading recent projects or the last opened project).
-                        if (rootPath === _getWelcomeProjectPath()) {
-                            addWelcomeProjectPath(rootPath);
-                        }
-
-                        if (projectRootChanged) {
-                            // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
-                            var promises = [];
-                            $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [model.projectRoot]);
-                            $.when.apply($, promises).then(result.resolve, result.reject);
-                        } else {
-                            $(exports).triggerHandler("projectRefresh", model.projectRoot);
-                            result.resolve();
-                        }
-                        PerfUtils.addMeasurement(perfTimerName);
-                    });
+                if (isUpdating) {
+                    // We're just refreshing. Don't need to unwatch the project root, so we can start loading immediately.
+                    startLoadResolve();
                 } else {
-                    console.log("error loading project");
-                    _showErrorDialog(ERR_TYPE_LOADING_PROJECT_NATIVE, null, rootPath, err || FileSystemError.NOT_FOUND)
-                        .done(function () {
-                            // Reset _projectRoot to null so that the following _loadProject call won't
-                            // run the 'beforeProjectClose' event a second time on the original project,
-                            // which is now partially torn down (see #6574).
-                            model.projectRoot = null;
+                    if (model.projectRoot && model.projectRoot.fullPath === rootPath) {
+                        return Promise.resolve();
+                    }
 
-                            // The project folder stored in preference doesn't exist, so load the default
-                            // project directory.
-                            // TODO (issue #267): When Brackets supports having no project directory
-                            // defined this code will need to change
-                            _loadProject(_getWelcomeProjectPath()).always(function () {
-                                // Make sure not to reject the original deferred until the fallback
-                                // project is loaded, so we don't violate expectations that there is always
-                                // a current project before continuing after _loadProject().
-                                _loadProject(_getWelcomeProjectPath()).always(result.reject);
-                            });
-                        });
+                    // About to close current project (if any)
+                    if (model.projectRoot) {
+                        $(exports).triggerHandler("beforeProjectClose", model.projectRoot);
+                    }
+
+                    // close all the old files
+                    MainViewManager._closeAll(MainViewManager.ALL_PANES);
+
+                    var fnUnwatchProjectRootAlways = function () {
+                        // Done closing old project (if any)
+                        if (model.projectRoot) {
+                            LanguageManager._resetPathLanguageOverrides();
+                            PreferencesManager._reloadUserPrefs(model.projectRoot);
+                            $(exports).triggerHandler("projectClose", model.projectRoot);
+                        }
+
+                        startLoadResolve();
+                    };
+                    _unwatchProjectRoot().then(fnUnwatchProjectRootAlways, fnUnwatchProjectRootAlways);
                 }
+            });
+
+            startLoad.then(function () {
+                var context = { location : { scope: "user",
+                                             layer: "project" } };
+
+                // Clear project path map
+                if (!isUpdating) {
+                    PreferencesManager._stateProjectLayer.setProjectPath(rootPath);
+                }
+
+                if (!isUpdating) {
+                    PreferencesManager._stateProjectLayer.setProjectPath(rootPath);
+                }
+                // Point at a real folder structure on local disk
+                var rootEntry = FileSystem.getDirectoryForPath(rootPath);
+                rootEntry.exists(function (err, exists) {
+                    if (exists) {
+                        var projectRootChanged = (!model.projectRoot || !rootEntry) ||
+                            model.projectRoot.fullPath !== rootEntry.fullPath;
+
+                        // Success!
+                        var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
+
+                        _projectWarnedForTooManyFiles = false;
+
+                        var fnSetProjectRootAlways = function () {
+                            model.setBaseUrl(PreferencesManager.getViewState("project.baseUrl", context) || "");
+
+                            if (projectRootChanged) {
+                                _reloadProjectPreferencesScope();
+                                PreferencesManager._setCurrentEditingFile(rootPath);
+                            }
+
+                            // If this is the most current welcome project, record it. In future launches, we want
+                            // to substitute the latest welcome project from the current build instead of using an
+                            // outdated one (when loading recent projects or the last opened project).
+                            if (rootPath === _getWelcomeProjectPath()) {
+                                addWelcomeProjectPath(rootPath);
+                            }
+
+                            if (projectRootChanged) {
+                                // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
+                                var promises = [];
+                                $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [model.projectRoot]);
+                                $.when.apply($, promises).then(resultResolve, resultReject);
+                            } else {
+                                $(exports).triggerHandler("projectRefresh", model.projectRoot);
+                                resultResolve();
+                            }
+                            PerfUtils.addMeasurement(perfTimerName);
+                        };
+                        _setProjectRoot(rootEntry).then(fnSetProjectRootAlways, fnSetProjectRootAlways);
+
+                    } else {
+                        console.log("error loading project");
+                        _showErrorDialog(ERR_TYPE_LOADING_PROJECT_NATIVE, null, rootPath, err || FileSystemError.NOT_FOUND)
+                            .then(function () {
+                                // Reset _projectRoot to null so that the following _loadProject call won't
+                                // run the 'beforeProjectClose' event a second time on the original project,
+                                // which is now partially torn down (see #6574).
+                                model.projectRoot = null;
+
+                                // The project folder stored in preference doesn't exist, so load the default
+                                // project directory.
+                                // TODO (issue #267): When Brackets supports having no project directory
+                                // defined this code will need to change
+                                var fnLoadProjectAlways = function () {
+                                    // Make sure not to reject the original deferred until the fallback
+                                    // project is loaded, so we don't violate expectations that there is always
+                                    // a current project before continuing after _loadProject().
+                                    _loadProject(_getWelcomeProjectPath()).then(resultReject, resultReject);
+                                };
+                                _loadProject(_getWelcomeProjectPath()).then(fnLoadProjectAlways, fnLoadProjectAlways);
+                            });
+                    }
+                });
             });
         });
-
-        return result.promise();
     }
 
     /**
      * @private
-     * @type {?$.Promise} Resolves when the currently running instance of
+     * @type {?Promise} Resolves when the currently running instance of
      *      _refreshFileTreeInternal completes, or null if there is no currently
      *      running instance.
      */
@@ -873,26 +877,31 @@ define(function (require, exports, module) {
     /**
      * Refresh the project's file tree, maintaining the current selection.
      *
-     * @return {$.Promise} A promise object that will be resolved when the
+     * @return {Promise} A promise object that will be resolved when the
      *  project tree is reloaded, or rejected if the project path
      *  fails to reload. If the previous selected entry is not found,
      *  the promise is still resolved.
      */
     function refreshFileTree() {
         if (!_refreshFileTreePromise) {
-            var internalRefreshPromise  = model.refresh(),
-                deferred                = new $.Deferred();
+            var internalRefreshPromise  = model.refresh();
 
-            _refreshFileTreePromise = deferred.promise();
+            _refreshFileTreePromise = new Promise(function (resolve, reject) {
+                 // Wait at least one second before resolving the promise
+                window.setTimeout(function () {
+                    internalRefreshPromise.then(resolve, reject);
+                }, _refreshDelay);
+            });
 
-            _refreshFileTreePromise.always(function () {
+            var fnRefreshFileTreeAlways = function () {
                 _refreshFileTreePromise = null;
 
                 if (_refreshPending) {
                     _refreshPending = false;
                     refreshFileTree();
                 }
-            });
+            };
+            _refreshFileTreePromise.then(fnRefreshFileTreeAlways, fnRefreshFileTreeAlways);
         } else {
             _refreshPending = true;
         }
@@ -997,22 +1006,21 @@ define(function (require, exports, module) {
     /**
      * Delete file or directore from project
      * @param {!(File|Directory)} entry File or Directory to delete
+     * @return {Promise}
      */
     function deleteItem(entry) {
-        var result = new $.Deferred();
+        return new Promise(function (resolve, reject) {
+            entry.moveToTrash(function (err) {
+                if (!err) {
+                    DocumentManager.notifyPathDeleted(entry.fullPath);
+                    resolve();
+                } else {
+                    _showErrorDialog(ERR_TYPE_DELETE, entry.isDirectory, FileUtils.getFileErrorString(err), entry.fullPath);
 
-        entry.moveToTrash(function (err) {
-            if (!err) {
-                DocumentManager.notifyPathDeleted(entry.fullPath);
-                result.resolve();
-            } else {
-                _showErrorDialog(ERR_TYPE_DELETE, entry.isDirectory, FileUtils.getFileErrorString(err), entry.fullPath);
-
-                result.reject(err);
-            }
+                    reject(err);
+                }
+            });
         });
-
-        return result.promise();
     }
 
     /**
@@ -1204,7 +1212,7 @@ define(function (require, exports, module) {
      * The Promise returned is resolved with an object with a `newPath` property with the renamed path. If the user cancels the operation, the promise is resolved with the value RENAME_CANCELLED.
      *
      * @param {FileSystemEntry} entry file or directory filesystem object to rename
-     * @return {$.Promise} a promise resolved when the rename is done.
+     * @return {Promise} a promise resolved when the rename is done.
      */
     function renameItemInline(entry) {
         return actionCreator.startRename(entry);
@@ -1220,7 +1228,7 @@ define(function (require, exports, module) {
      * @param {boolean=} includeWorkingSet If true, include files in the working set
      *          that are not under the project root (*except* for untitled documents).
      *
-     * @return {$.Promise} Promise that is resolved with an Array of File objects.
+     * @return {Promise} Promise that is resolved with an Array of File objects.
      */
     function getAllFiles(filter, includeWorkingSet) {
         // The filter and includeWorkingSet params are both optional.
@@ -1236,7 +1244,7 @@ define(function (require, exports, module) {
             viewFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
         }
 
-        return model.getAllFiles(filter, viewFiles).fail(function (err) {
+        return model.getAllFiles(filter, viewFiles).catch(function (err) {
             if (err === FileSystemError.TOO_MANY_ENTRIES && !_projectWarnedForTooManyFiles) {
                 _showErrorDialog(ERR_TYPE_MAX_FILES);
                 _projectWarnedForTooManyFiles = true;

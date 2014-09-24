@@ -22,7 +22,7 @@
  */
 
 /* unittests: ProjectModel */
-/*global define, brackets, $ */
+/*global define, brackets, $, Promise */
 
 /**
  * Provides the data source for a project and manages the view model for the FileTreeView.
@@ -163,43 +163,42 @@ define(function (require, exports, module) {
      *
      * @param {string} path path to create
      * @param {boolean} isFolder true if the new entry is a folder
-     * @return {$.Promise} resolved when the file or directory has been created.
+     * @return {Promise} resolved when the file or directory has been created.
      */
     function doCreate(path, isFolder) {
-        var d = new $.Deferred();
-
-        var name = FileUtils.getBaseName(path);
-        if (!isValidFilename(name, _invalidChars)) {
-            return d.reject(ERROR_INVALID_FILENAME).promise();
-        }
-
-        FileSystem.resolve(path, function (err) {
-            if (!err) {
-                // Item already exists, fail with error
-                d.reject(FileSystemError.ALREADY_EXISTS);
-            } else {
-                if (isFolder) {
-                    var directory = FileSystem.getDirectoryForPath(path);
-
-                    directory.create(function (err) {
-                        if (err) {
-                            d.reject(err);
-                        } else {
-                            d.resolve(directory);
-                        }
-                    });
-                } else {
-                    // Create an empty file
-                    var file = FileSystem.getFileForPath(path);
-
-                    FileUtils.writeText(file, "").then(function () {
-                        d.resolve(file);
-                    }, d.reject);
-                }
+        return new Promise(function (resolve, reject) {
+            var name = FileUtils.getBaseName(path);
+            if (!isValidFilename(name, _invalidChars)) {
+                reject(ERROR_INVALID_FILENAME);
+                return;
             }
-        });
 
-        return d.promise();
+            FileSystem.resolve(path, function (err) {
+                if (!err) {
+                    // Item already exists, fail with error
+                    reject(FileSystemError.ALREADY_EXISTS);
+                } else {
+                    if (isFolder) {
+                        var directory = FileSystem.getDirectoryForPath(path);
+
+                        directory.create(function (err) {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(directory);
+                            }
+                        });
+                    } else {
+                        // Create an empty file
+                        var file = FileSystem.getFileForPath(path);
+
+                        FileUtils.writeText(file, "").then(function () {
+                            resolve(file);
+                        }, reject);
+                    }
+                }
+            });
+        });
     }
 
     /**
@@ -275,7 +274,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type {?$.Promise.<Array<File>>}
+     * @type {?Promise.<Array<File>>}
      * 
      * A promise that is resolved with an array of all project files. Used by
      * ProjectManager.getAllFiles().
@@ -375,12 +374,11 @@ define(function (require, exports, module) {
      * starting up. The cache is cleared on every filesystem change event, and
      * also on project load and unload.
      *
-     * @return {$.Promise.<Array.<File>>}
+     * @return {Promise.<Array.<File>>}
      */
     ProjectModel.prototype._getAllFilesCache = function _getAllFilesCache() {
         if (!this._allFilesCachePromise) {
-            var deferred = new $.Deferred(),
-                allFiles = [],
+            var allFiles = [],
                 allFilesVisitor = function (entry) {
                     if (shouldShow(entry)) {
                         if (entry.isFile) {
@@ -391,15 +389,15 @@ define(function (require, exports, module) {
                     return false;
                 };
 
-            this._allFilesCachePromise = deferred.promise();
-
-            this.projectRoot.visit(allFilesVisitor, function (err) {
-                if (err) {
-                    deferred.reject(err);
-                } else {
-                    deferred.resolve(allFiles);
-                }
-            }.bind(this));
+            this._allFilesCachePromise = new Promise(function (resolve, reject) {
+                this.projectRoot.visit(allFilesVisitor, function (err) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(allFiles);
+                    }
+                }.bind(this));
+            });
         }
 
         return this._allFilesCachePromise;
@@ -414,7 +412,7 @@ define(function (require, exports, module) {
      * @param {Array.<File>=} additionalFiles Additional files to include (for example, the WorkingSet)
      *          Only adds files that are *not* under the project root or untitled documents.
      *
-     * @return {$.Promise} Promise that is resolved with an Array of File objects.
+     * @return {Promise} Promise that is resolved with an Array of File objects.
      */
     ProjectModel.prototype.getAllFiles = function getAllFiles(filter, additionalFiles) {
         // The filter and includeWorkingSet params are both optional.
@@ -425,45 +423,43 @@ define(function (require, exports, module) {
             filter = null;
         }
 
-        var filteredFilesDeferred = new $.Deferred();
+        return new Promise(function (resolve, reject) {
+            // First gather all files in project proper
+            // Note that with proper promises we may be able to fix this so that we're not doing this
+            // anti-pattern of creating a separate deferred rather than just chaining off of the promise
+            // from _getAllFilesCache
+            this._getAllFilesCache().then(function (result) {
+                // Add working set entries, if requested
+                if (additionalFiles) {
+                    additionalFiles.forEach(function (file) {
+                        if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
+                            result.push(file);
+                        }
+                    });
+                }
 
-        // First gather all files in project proper
-        // Note that with proper promises we may be able to fix this so that we're not doing this
-        // anti-pattern of creating a separate deferred rather than just chaining off of the promise
-        // from _getAllFilesCache
-        this._getAllFilesCache().done(function (result) {
-            // Add working set entries, if requested
-            if (additionalFiles) {
-                additionalFiles.forEach(function (file) {
-                    if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
-                        result.push(file);
-                    }
-                });
-            }
+                // Filter list, if requested
+                if (filter) {
+                    result = result.filter(filter);
+                }
 
-            // Filter list, if requested
-            if (filter) {
-                result = result.filter(filter);
-            }
-
-            // If a done handler attached to the returned filtered files promise
-            // throws an exception that isn't handled here then it will leave
-            // _allFilesCachePromise in an inconsistent state such that no
-            // additional done handlers will ever be called!
-            try {
-                filteredFilesDeferred.resolve(result);
-            } catch (e) {
-                console.warn("Unhandled exception in getAllFiles handler: ", e);
-            }
-        }).fail(function (err) {
-            try {
-                filteredFilesDeferred.resolve([]);
-            } catch (e) {
-                console.warn("Unhandled exception in getAllFiles handler: ", e);
-            }
+                // If a done handler attached to the returned filtered files promise
+                // throws an exception that isn't handled here then it will leave
+                // _allFilesCachePromise in an inconsistent state such that no
+                // additional done handlers will ever be called!
+                try {
+                    resolve(result);
+                } catch (e) {
+                    console.warn("Unhandled exception in getAllFiles handler: ", e);
+                }
+            }).catch(function (err) {
+                try {
+                    resolve([]);
+                } catch (e) {
+                    console.warn("Unhandled exception in getAllFiles handler: ", e);
+                }
+            });
         });
-
-        return filteredFilesDeferred.promise();
     };
 
     /**
@@ -499,25 +495,25 @@ define(function (require, exports, module) {
      * Sets the project root (effectively resetting this ProjectModel).
      *
      * @param {Directory} projectRoot new project root
-     * @return {$.Promise} resolved when the project root has been updated
+     * @return {Promise} resolved when the project root has been updated
      */
     ProjectModel.prototype.setProjectRoot = function (projectRoot) {
         this.projectRoot = projectRoot;
         this._resetCache();
         this._viewModel._rootChanged();
 
-        var d = new $.Deferred(),
-            self = this;
+        var self = this;
 
-        projectRoot.getContents(function (err, contents) {
-            if (err) {
-                d.reject(err);
-            } else {
-                self._viewModel.setDirectoryContents("", contents);
-                d.resolve();
-            }
+        return new Promise(function (resolve, reject) {
+            projectRoot.getContents(function (err, contents) {
+                if (err) {
+                    reject(err);
+                } else {
+                    self._viewModel.setDirectoryContents("", contents);
+                    resolve();
+                }
+            });
         });
-        return d.promise();
     };
 
     /**
@@ -526,18 +522,18 @@ define(function (require, exports, module) {
      * Gets the contents of a directory at the given path.
      *
      * @param {string} path path to retrieve
-     * @return {$.Promise} Resolved with the directory contents.
+     * @return {Promise} Resolved with the directory contents.
      */
     ProjectModel.prototype._getDirectoryContents = function (path) {
-        var d = new $.Deferred();
-        FileSystem.getDirectoryForPath(path).getContents(function (err, contents) {
-            if (err) {
-                d.reject(err);
-            } else {
-                d.resolve(contents);
-            }
+        return new Promise(function (resolve, reject) {
+            FileSystem.getDirectoryForPath(path).getContents(function (err, contents) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(contents);
+                }
+            });
         });
-        return d.promise();
     };
 
     /**
@@ -545,60 +541,60 @@ define(function (require, exports, module) {
      *
      * @param {string} path Path to open
      * @param {boolean} open `true` to open the path
-     * @return {$.Promise} resolved when the path has been opened.
+     * @return {Promise} resolved when the path has been opened.
      */
     ProjectModel.prototype.setDirectoryOpen = function (path, open) {
         var projectRelative = this.makeProjectRelativeIfPossible(path),
             needsLoading    = !this._viewModel.isPathLoaded(projectRelative),
-            d               = new $.Deferred(),
             self            = this;
 
-        function onSuccess(contents) {
-            // Update the view model
-            if (contents) {
-                self._viewModel.setDirectoryContents(projectRelative, contents);
-            }
+        return new Promise(function (resolve, reject) {
 
-            if (open) {
-                self._viewModel.openPath(projectRelative);
-                if (self._focused) {
-                    var currentPathInProject = self.makeProjectRelativeIfPossible(self._currentPath);
-                    if (self._viewModel.isFilePathVisible(currentPathInProject)) {
-                        self.setSelected(self._currentPath, true);
-                    } else {
-                        self.setSelected(null);
+            function onSuccess(contents) {
+                // Update the view model
+                if (contents) {
+                    self._viewModel.setDirectoryContents(projectRelative, contents);
+                }
+
+                if (open) {
+                    self._viewModel.openPath(projectRelative);
+                    if (self._focused) {
+                        var currentPathInProject = self.makeProjectRelativeIfPossible(self._currentPath);
+                        if (self._viewModel.isFilePathVisible(currentPathInProject)) {
+                            self.setSelected(self._currentPath, true);
+                        } else {
+                            self.setSelected(null);
+                        }
+                    }
+                } else {
+                    self._viewModel.setDirectoryOpen(projectRelative, false);
+                    var selected = self._selections.selected;
+                    if (selected) {
+                        var relativeSelected = self.makeProjectRelativeIfPossible(selected);
+                        if (!self._viewModel.isFilePathVisible(relativeSelected)) {
+                            self.setSelected(null);
+                        }
                     }
                 }
-            } else {
-                self._viewModel.setDirectoryOpen(projectRelative, false);
-                var selected = self._selections.selected;
-                if (selected) {
-                    var relativeSelected = self.makeProjectRelativeIfPossible(selected);
-                    if (!self._viewModel.isFilePathVisible(relativeSelected)) {
-                        self.setSelected(null);
-                    }
-                }
+
+                resolve();
             }
 
-            d.resolve();
-        }
-
-        // If the view model doesn't have the data it needs, we load it now, otherwise we can just
-        // manage the selection and resovle the promise.
-        if (open && needsLoading) {
-            var parentDirectory = FileUtils.getDirectoryPath(FileUtils.stripTrailingSlash(path));
-            this.setDirectoryOpen(parentDirectory, true).then(function () {
-                self._getDirectoryContents(path).then(onSuccess).fail(function (err) {
-                    d.reject(err);
+            // If the view model doesn't have the data it needs, we load it now, otherwise we can just
+            // manage the selection and resovle the promise.
+            if (open && needsLoading) {
+                var parentDirectory = FileUtils.getDirectoryPath(FileUtils.stripTrailingSlash(path));
+                this.setDirectoryOpen(parentDirectory, true).then(function () {
+                    self._getDirectoryContents(path).then(onSuccess).catch(function (err) {
+                        reject(err);
+                    });
+                }, function (err) {
+                    reject(err);
                 });
-            }, function (err) {
-                d.reject(err);
-            });
-        } else {
-            onSuccess();
-        }
-
-        return d.promise();
+            } else {
+                onSuccess();
+            }
+        });
     };
 
     /**
@@ -606,30 +602,31 @@ define(function (require, exports, module) {
      * will be opened and a promise is returned to show when the entire operation is complete.
      *
      * @param {string|File|Directory} path full path to the file or directory
-     * @return {$.Promise} promise resolved when the path is shown
+     * @return {Promise} promise resolved when the path is shown
      */
     ProjectModel.prototype.showInTree = function (path) {
-        var d = new $.Deferred();
-        path = _getPathFromFSObject(path);
 
-        var projectRelative = this.makeProjectRelativeIfPossible(path);
+        return new Promise(function (resolve, reject) {
+            path = _getPathFromFSObject(path);
 
-        // Not in project?
-        if (projectRelative[0] === "/") {
-            d.resolve();
-        } else {
-            var parentDirectory = FileUtils.getDirectoryPath(path),
-                self = this;
-            this.setDirectoryOpen(parentDirectory, true).then(function () {
-                if (_pathIsFile(path)) {
-                    self.setSelected(path);
-                }
-                d.resolve();
-            }, function (err) {
-                d.reject(err);
-            });
-        }
-        return d.promise();
+            var projectRelative = this.makeProjectRelativeIfPossible(path);
+
+            // Not in project?
+            if (projectRelative[0] === "/") {
+                resolve();
+            } else {
+                var parentDirectory = FileUtils.getDirectoryPath(path),
+                    self = this;
+                this.setDirectoryOpen(parentDirectory, true).then(function () {
+                    if (_pathIsFile(path)) {
+                        self.setSelected(path);
+                    }
+                    resolve();
+                }, function (err) {
+                    reject(err);
+                });
+            }
+        });
     };
 
     /**
@@ -757,14 +754,14 @@ define(function (require, exports, module) {
      * The Promise returned is resolved with an object with a `newPath` property with the renamed path. If the user cancels the operation, the promise is resolved with the value RENAME_CANCELLED.
      *
      * @param {string=} path optional path to start renaming
-     * @return {$.Promise} resolved when the operation is complete.
+     * @return {Promise} resolved when the operation is complete.
      */
     ProjectModel.prototype.startRename = function (path) {
         path = _getPathFromFSObject(path);
         if (!path) {
             path = this._selections.context;
             if (!path) {
-                return new $.Deferred().resolve().promise();
+                return Promise.resolve();
             }
         }
 
@@ -780,14 +777,16 @@ define(function (require, exports, module) {
 
         this._viewModel.moveMarker("rename", null,
                                    this.makeProjectRelativeIfPossible(path));
-        var d = new $.Deferred();
-        this._selections.rename = {
-            deferred: d,
-            type: FILE_RENAMING,
-            path: path,
-            newName: FileUtils.getBaseName(path)
-        };
-        return d.promise();
+        var d = new Promise(function (resolve, reject) {
+            this._selections.rename = {
+                resolve: resolve,
+                reject: reject,
+                type: FILE_RENAMING,
+                path: path,
+                newName: FileUtils.getBaseName(path)
+            };
+        });
+        return d;
     };
 
     /**
@@ -820,7 +819,7 @@ define(function (require, exports, module) {
         }
 
         this._viewModel.moveMarker("rename", this.makeProjectRelativeIfPossible(renameInfo.path), null);
-        renameInfo.deferred.resolve(RENAME_CANCELLED);
+        renameInfo.resolve(RENAME_CANCELLED);
         delete this._selections.rename;
         this.setContext(null);
     };
@@ -832,28 +831,26 @@ define(function (require, exports, module) {
      * @param {string} oldName Old item name
      * @param {string} newName New item name
      * @param {boolean} isFolder True if item is a folder; False if it is a file.
-     * @return {$.Promise} A promise object that will be resolved or rejected when
+     * @return {Promise} A promise object that will be resolved or rejected when
      *   the rename is finished.
      */
     function _renameItem(oldName, newName, isFolder) {
-        var result = new $.Deferred();
-
-        if (oldName === newName) {
-            result.resolve();
-        } else if (!isValidFilename(FileUtils.getBaseName(newName), _invalidChars)) {
-            result.reject(ERROR_INVALID_FILENAME);
-        } else {
-            var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
-            entry.rename(newName, function (err) {
-                if (err) {
-                    result.reject(err);
-                } else {
-                    result.resolve();
-                }
-            });
-        }
-
-        return result.promise();
+        return new Promise(function (resolve, reject) {
+            if (oldName === newName) {
+                resolve();
+            } else if (!isValidFilename(FileUtils.getBaseName(newName), _invalidChars)) {
+                reject(ERROR_INVALID_FILENAME);
+            } else {
+                var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
+                entry.rename(newName, function (err) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve();
+                    }
+                });
+            }
+        });
     }
 
     /**
@@ -904,21 +901,21 @@ define(function (require, exports, module) {
         viewModel.moveMarker("creating", oldProjectPath, null);
 
         if (renameInfo.type === FILE_CREATING) {
-            this.createAtPath(newPath).done(function (entry) {
+            this.createAtPath(newPath).then(function (entry) {
                 viewModel.renameItem(oldProjectPath, newName);
-                renameInfo.deferred.resolve(entry);
-            }).fail(function (error) {
+                renameInfo.resolve(entry);
+            }).catch(function (error) {
                 self._cancelCreating();
-                renameInfo.deferred.reject(error);
+                renameInfo.reject(error);
             });
         } else {
             this._renameItem(oldPath, newPath).then(function () {
                 viewModel.renameItem(oldProjectPath, newName);
-                renameInfo.deferred.resolve({
+                renameInfo.resolve({
                     newPath: newPath
                 });
-            }).fail(function (error) {
-                renameInfo.deferred.reject(error);
+            }).catch(function (error) {
+                renameInfo.reject(error);
             });
         }
     };
@@ -929,18 +926,18 @@ define(function (require, exports, module) {
      * If an error comes up during creation, the ERROR_CREATION event is triggered.
      *
      * @param {string} path full path to file or folder to create
-     * @return {$.Promise} resolved when creation is complete
+     * @return {Promise} resolved when creation is complete
      */
     ProjectModel.prototype.createAtPath = function (path) {
         var isFolder  = !_pathIsFile(path),
             name      = FileUtils.getBaseName(path),
             self      = this;
 
-        return doCreate(path, isFolder).done(function (entry) {
+        return doCreate(path, isFolder).then(function (entry) {
             if (!isFolder) {
                 self.setSelected(entry.fullPath);
             }
-        }).fail(function (error) {
+        }).catch(function (error) {
             $(self).trigger(ERROR_CREATION, {
                 type: error,
                 name: name,
@@ -957,25 +954,25 @@ define(function (require, exports, module) {
      * @param {string} basedir directory that should contain the new entry
      * @param {string} newName initial name for the new entry (the user can rename it)
      * @param {boolean} isFolder `true` if the entry being created is a folder
-     * @return {$.Promise} resolved when the user is done creating the entry.
+     * @return {Promise} resolved when the user is done creating the entry.
      */
     ProjectModel.prototype.startCreating = function (basedir, newName, isFolder) {
         this.performRename();
-        var d = new $.Deferred(),
-            self = this;
+        var self = this;
 
-        this.setDirectoryOpen(basedir, true).then(function () {
-            self._viewModel.createPlaceholder(self.makeProjectRelativeIfPossible(basedir), newName, isFolder);
-            var promise = self.startRename(basedir + newName);
-            self._selections.rename.type = FILE_CREATING;
-            if (isFolder) {
-                self._selections.rename.isFolder = isFolder;
-            }
-            promise.then(d.resolve).fail(d.reject);
-        }).fail(function (err) {
-            d.reject(err);
+        return new Promise(function (resolve, reject) {
+            this.setDirectoryOpen(basedir, true).then(function () {
+                self._viewModel.createPlaceholder(self.makeProjectRelativeIfPossible(basedir), newName, isFolder);
+                var promise = self.startRename(basedir + newName);
+                self._selections.rename.type = FILE_CREATING;
+                if (isFolder) {
+                    self._selections.rename.isFolder = isFolder;
+                }
+                promise.then(resolve).catch(reject);
+            }).catch(function (err) {
+                reject(err);
+            });
         });
-        return d.promise();
     };
 
     /**
@@ -988,7 +985,7 @@ define(function (require, exports, module) {
             return;
         }
         this._viewModel.deleteAtPath(this.makeProjectRelativeIfPossible(renameInfo.path));
-        renameInfo.deferred.resolve(RENAME_CANCELLED);
+        renameInfo.resolve(RENAME_CANCELLED);
         delete this._selections.rename;
         this.setContext(null);
     };
@@ -1017,15 +1014,13 @@ define(function (require, exports, module) {
      * @param {Array.<Array.<string>>} nodesByDepth An array of arrays of node ids to reopen. The ids within
      *     each sub-array are reopened in parallel, and the sub-arrays are reopened in order, so they should
      *     be sorted by depth within the tree.
-     * @return {$.Deferred} A promise that will be resolved when all nodes have been fully
+     * @return {Promise} A promise that will be resolved when all nodes have been fully
      *     reopened.
      */
     ProjectModel.prototype.reopenNodes = function (nodesByDepth) {
-        var deferred = new $.Deferred();
-
         if (!nodesByDepth || nodesByDepth.length === 0) {
             // All paths are opened and fully rendered.
-            return deferred.resolve().promise();
+            return Promise.resolve();
         } else {
             var self = this;
             return Async.doSequentially(nodesByDepth, function (toOpenPaths) {
@@ -1047,35 +1042,34 @@ define(function (require, exports, module) {
     /**
      * Refreshes the contents of the tree.
      *
-     * @return {$.Promise} resolved when the tree has been refreshed
+     * @return {Promise} resolved when the tree has been refreshed
      */
     ProjectModel.prototype.refresh = function () {
         var projectRoot = this.projectRoot,
             openNodes   = this.getOpenNodes(),
             self        = this,
             selections  = this._selections,
-            viewModel   = this._viewModel,
-            deferred    = new $.Deferred();
+            viewModel   = this._viewModel;
+        
+        return new Promise(function (resolve, reject) {
+            this.setProjectRoot(projectRoot).then(function () {
+                self.reopenNodes(openNodes).then(function () {
+                    if (selections.selected) {
+                        viewModel.moveMarker("selected", null, self.makeProjectRelativeIfPossible(selections.selected));
+                    }
 
-        this.setProjectRoot(projectRoot).then(function () {
-            self.reopenNodes(openNodes).then(function () {
-                if (selections.selected) {
-                    viewModel.moveMarker("selected", null, self.makeProjectRelativeIfPossible(selections.selected));
-                }
+                    if (selections.context) {
+                        viewModel.moveMarker("context", null, self.makeProjectRelativeIfPossible(selections.context));
+                    }
 
-                if (selections.context) {
-                    viewModel.moveMarker("context", null, self.makeProjectRelativeIfPossible(selections.context));
-                }
+                    if (selections.rename) {
+                        viewModel.moveMarker("rename", null, self.makeProjectRelativeIfPossible(selections.rename));
+                    }
 
-                if (selections.rename) {
-                    viewModel.moveMarker("rename", null, self.makeProjectRelativeIfPossible(selections.rename));
-                }
-
-                deferred.resolve();
+                    resolve();
+                });
             });
         });
-
-        return deferred.promise();
     };
 
     /**
@@ -1140,26 +1134,25 @@ define(function (require, exports, module) {
      * Toggle the open state of subdirectories.
      * @param {!string}  path        parent directory
      * @param {boolean} openOrClose  true to open directory, false to close
-     * @return {$.Promise} promise resolved when the directories are open
+     * @return {Promise} promise resolved when the directories are open
      */
     ProjectModel.prototype.toggleSubdirectories = function (path, openOrClose) {
-        var self = this,
-            d = new $.Deferred();
+        var self = this;
 
-        this.setDirectoryOpen(path, true).then(function () {
-            var projectRelativePath = self.makeProjectRelativeIfPossible(path),
-                childNodes = self._viewModel.getChildDirectories(projectRelativePath);
-            
-            Async.doInParallel(childNodes, function (node) {
-                return self.setDirectoryOpen(path + node, openOrClose);
-            }, true).then(function () {
-                d.resolve();
-            }, function (err) {
-                d.reject(err);
+        return new Promise(function (resolve, reject) {
+            this.setDirectoryOpen(path, true).then(function () {
+                var projectRelativePath = self.makeProjectRelativeIfPossible(path),
+                    childNodes = self._viewModel.getChildDirectories(projectRelativePath);
+
+                Async.doInParallel(childNodes, function (node) {
+                    return self.setDirectoryOpen(path + node, openOrClose);
+                }, true).then(function () {
+                    resolve();
+                }, function (err) {
+                    reject(err);
+                });
             });
         });
-        
-        return d.promise();
     };
 
     /**

@@ -414,7 +414,7 @@ define(function (require, exports, module) {
      *   fullPath: File to open; 
      *   silent: optional flag to suppress error messages; 
      *   paneId: optional PaneId (defaults to active pane)
-     * @return {$.Promise} a jQuery promise that will be resolved with a file object
+     * @return {Promise} a jQuery promise that will be resolved with a file object
      */
     function handleFileOpen(commandData) {
         var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
@@ -462,7 +462,7 @@ define(function (require, exports, module) {
      *   fullPath: File to open; 
      *   silent: optional flag to suppress error messages; 
      *   paneId: optional PaneId (defaults to active pane)
-     * @return {$.Promise} a jQuery promise that will be resolved with @type {Document} 
+     * @return {Promise} a jQuery promise that will be resolved with @type {Document} 
      */
     function handleDocumentOpen(commandData) {
         return new Promise(function (resolve, reject) {
@@ -489,7 +489,7 @@ define(function (require, exports, module) {
      *   silent: optional flag to suppress error messages; 
      *   forceRedraw: flag to force the working set view redraw; 
      *   paneId: optional PaneId (defaults to active pane)
-     * @return {$.Promise} a jQuery promise that will be resolved with a @type {File} 
+     * @return {Promise} a jQuery promise that will be resolved with a @type {File} 
      */
     function handleFileAddToWorkingSetAndOpen(commandData) {
         return handleFileOpen(commandData).then(function (file) {
@@ -507,7 +507,7 @@ define(function (require, exports, module) {
      *   silent: optional flag to suppress error messages; 
      *   forceRedraw: flag to force the working set view redraw; 
      *   paneId: optional PaneId (defaults to active pane)
-     * @return {$.Promise} a jQuery promise that will be resolved with @type {File} 
+     * @return {Promise} a jQuery promise that will be resolved with @type {File} 
      */
     function handleFileAddToWorkingSet(commandData) {
         // This is a legacy deprecated command that 
@@ -993,7 +993,7 @@ define(function (require, exports, module) {
      * Promise is immediately rejected.
      *
      * @param {!Array.<File>} fileList
-     * @return {!$.Promise} Resolved with {!Array.<File>}, which may differ from 'fileList'
+     * @return {!Promise} Resolved with {!Array.<File>}, which may differ from 'fileList'
      *      if any of the files were Unsaved documents. Or rejected with {?FileSystemError}.
      */
     function _saveFileList(fileList) {
@@ -1321,7 +1321,7 @@ define(function (require, exports, module) {
      *          other user prompts that may be cancelable.
      *          If _forceClose is true, forces the files to close with no confirmation even if dirty. 
      *          Should only be used for unit test cleanup.
-     * @return {$.Promise} a promise that is resolved when all files are closed
+     * @return {Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseList(commandData) {
         return _closeList(commandData.fileList);
