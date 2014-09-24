@@ -175,8 +175,8 @@ define(function (require, exports, module) {
         handleMouseDown: function (e) {
             if (e.button === 2) {
                 this.props.actions.setContext(this.myPath());
+                return false;
             }
-            return false;
         }
     };
 
