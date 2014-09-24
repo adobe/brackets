@@ -63,9 +63,6 @@ define(function (require, exports, module) {
         _cmdSplitVertical,
         _cmdSplitHorizontal;
     
-    var SPRITE_BASE   =  5,
-        SPRITE_OFFSET = 21;
-    
     /**
      * @private
      * Update project title when the project root changes
@@ -116,11 +113,27 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Update state of splitview button icon and menu checkmarks
+     * Update state of working set
      * @private
      */
-    function _updateSplitViewButtonState() {
-        var ypos, spriteIndex,
+    function _updateWorkingSetState() {
+        if (MainViewManager.getPaneCount() === 1 &&
+                MainViewManager.getWorkingSetSize(MainViewManager.ACTIVE_PANE) === 0) {
+            $workingSetViewsContainer.hide();
+            $gearMenu.hide();
+        } else {
+            $workingSetViewsContainer.show();
+            $gearMenu.show();
+        }
+    }
+    
+    /**
+     * Update state of splitview and option elements
+     * @private
+     */
+    function _updateUIStates() {
+        var spriteIndex,
+            ICON_CLASSES = ["splitview-icon-none", "splitview-icon-vertical", "splitview-icon-horizontal"],
             layoutScheme = MainViewManager.getLayoutScheme();
 
         if (layoutScheme.columns > 1) {
@@ -131,14 +144,17 @@ define(function (require, exports, module) {
             spriteIndex = 0;
         }
         
-        // Icon
-        ypos  = SPRITE_BASE - (spriteIndex * SPRITE_OFFSET);
-        $splitViewMenu.css("background-position-y", ypos);
+        // SplitView Icon
+        $splitViewMenu.removeClass(ICON_CLASSES.join(" "))
+                      .addClass(ICON_CLASSES[spriteIndex]);
 
-        // Menu
+        // SplitView Menu
         _cmdSplitNone.setChecked(spriteIndex === 0);
         _cmdSplitVertical.setChecked(spriteIndex === 1);
         _cmdSplitHorizontal.setChecked(spriteIndex === 2);
+        
+        // Options icon
+        _updateWorkingSetState();
     }
     
     /**
@@ -190,6 +206,7 @@ define(function (require, exports, module) {
         
         $sidebar.on("panelResizeUpdate", function (evt, width) {
             $sidebar.find(".sidebar-selection").width(width);
+            ProjectManager._setFileTreeSelectionWidth(width);
         });
         
         $sidebar.on("panelResizeEnd", function (evt, width) {
@@ -226,7 +243,11 @@ define(function (require, exports, module) {
         });
         
         $(MainViewManager).on("paneLayoutChange", function () {
-            _updateSplitViewButtonState();
+            _updateUIStates();
+        });
+        
+        $(MainViewManager).on("workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList workingSetUpdate", function () {
+            _updateWorkingSetState();
         });
         
         // create WorkingSetViews for each pane already created
@@ -234,7 +255,7 @@ define(function (require, exports, module) {
             WorkingSetView.createWorkingSetViewForPane($workingSetViewsContainer, paneId);
         });
         
-        _updateSplitViewButtonState();
+        _updateUIStates();
         
         // Tooltips
         $gearMenu.attr("title", Strings.GEAR_MENU_TOOLTIP);

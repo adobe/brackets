@@ -84,6 +84,8 @@ define(function (require, exports, module) {
         MainViewFactory     = require("view/MainViewFactory"),
         ViewStateManager    = require("view/ViewStateManager"),
         Commands            = require("command/Commands"),
+        Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         EditorManager       = require("editor/EditorManager"),
         FileSystemError     = require("filesystem/FileSystemError"),
         DocumentManager     = require("document/DocumentManager"),
@@ -94,7 +96,7 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils"),
         Resizer             = require("utils/Resizer"),
         Pane                = require("view/Pane").Pane;
-
+        
     /** 
      * Preference setting name for the MainView Saved State
      * @const
@@ -259,15 +261,25 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Resolve paneId to actual pane.
+     * @param {?string} paneId - id of the desired pane. May be symbolic or null (to indicate current pane)
+     * @return {string} id of the pane in which to open the document
+     */
+    function _resolvePaneId(paneId) {
+        if (!paneId || paneId === ACTIVE_PANE) {
+            return getActivePaneId();
+        }
+        return paneId;
+    }
+    
+    /**
      * Retrieves the Pane object for the given paneId
      * @param {!string} paneId - id of the pane to retrieve
      * @return {?Pane} the Pane object or null if a pane object doesn't exist for the pane
      * @private
      */
     function _getPane(paneId) {
-        if (!paneId || paneId === ACTIVE_PANE) {
-            paneId = getActivePaneId();
-        }
+        paneId = _resolvePaneId(paneId);
         
         if (_panes[paneId]) {
             return _panes[paneId];
@@ -376,8 +388,8 @@ define(function (require, exports, module) {
     
     /**
      * Retrieves the currently viewed file of the specified paneId
-     * @param {string=} paneId - the id of the pane in which to retrieve the currently viewed file
-     * @return {?File} File object of the currently viewed file, null if there isn't one or undefined if there isn't a matching pane
+     * @param {?string} paneId - the id of the pane in which to retrieve the currently viewed file
+     * @return {?File} File object of the currently viewed file, or null if there isn't one or there's no such pane
      */
     function getCurrentlyViewedFile(paneId) {
         var pane = _getPane(paneId);
@@ -386,7 +398,7 @@ define(function (require, exports, module) {
  
     /**
      * Retrieves the currently viewed path of the pane specified by paneId
-     * @param {!string} paneId - the id of the pane in which to retrieve the currently viewed path
+     * @param {?string} paneId - the id of the pane in which to retrieve the currently viewed path
      * @return {?string} the path of the currently viewed file or null if there isn't one
      */
     function getCurrentlyViewedPath(paneId) {
@@ -950,6 +962,16 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Updates the header text for all panes
+     */
+    function _updatePaneHeaders() {
+        _forEachPaneOrPanes(ALL_PANES, function (pane) {
+            pane.updateHeaderText();
+        });
+        
+    }
+    
+    /**
      * Creates a pane for paneId if one doesn't already exist
      * @param {!string} paneId - id of the pane to create
      * @private
@@ -969,9 +991,11 @@ define(function (require, exports, module) {
             });
 
             $(pane).on("viewListChange.mainview", function () {
+                _updatePaneHeaders();
                 $(exports).triggerHandler("workingSetUpdate", [pane.id]);
             });
             $(pane).on("currentViewChange.mainview", function (e, newView, oldView) {
+                _updatePaneHeaders();
                 if (_activePaneId === pane.id) {
                     $(exports).triggerHandler("currentFileChange",
                                               [newView && newView.getFile(),
@@ -1011,6 +1035,11 @@ define(function (require, exports, module) {
         var firstPane = _panes[FIRST_PANE];
         Resizer.removeSizable(firstPane.$el);
 
+        if (_orientation) {
+            _$el.removeClass("split-" + _orientation.toLowerCase());
+        }
+        _$el.addClass("split-" + orientation.toLowerCase());
+        
         _orientation = orientation;
         _createPaneIfNecessary(SECOND_PANE);
         _makeFirstPaneResizable();
@@ -1078,6 +1107,22 @@ define(function (require, exports, module) {
         var currentPaneId = _getPaneIdForPath(file.fullPath);
 
         if (currentPaneId) {
+            // Warn user (only once) when file is already open in another view
+            if (!PreferencesManager.getViewState("splitview.multipane-info") &&
+                    currentPaneId !== _resolvePaneId(paneId)) {
+                PreferencesManager.setViewState("splitview.multipane-info", true);
+                
+                // File tree also executes single-click code prior to executing double-click
+                // code, so delay showing modal dialog to prevent eating second click
+                window.setTimeout(function () {
+                    Dialogs.showModalDialog(
+                        DefaultDialogs.DIALOG_ID_INFO,
+                        Strings.SPLITVIEW_INFO_TITLE,
+                        Strings.SPLITVIEW_MULTIPANE_WARNING
+                    );
+                }, 500);
+            }
+
             // If the doc is open in another pane
             //  then switch to that pane and call open document
             //  which will really just show the view as it has always done
@@ -1162,6 +1207,7 @@ define(function (require, exports, module) {
                 }
             });
             
+            _$el.removeClass("split-" + _orientation.toLowerCase());
             _orientation = null;
             // this will set the remaining pane to 100%
             _initialLayout();
@@ -1365,6 +1411,7 @@ define(function (require, exports, module) {
                 }
                 
                 if (_orientation) {
+                    _$el.addClass("split-" + _orientation.toLowerCase());
                     $(exports).triggerHandler("paneLayoutChange", _orientation);
                 }
 
@@ -1453,12 +1500,18 @@ define(function (require, exports, module) {
         if (_activePaneId) {
             throw new Error("MainViewManager has already been initialized");
         }
+
         _$el = $container;
         _createPaneIfNecessary(FIRST_PANE);
         _activePaneId = FIRST_PANE;
         // One-time init so the pane has the "active" appearance   
         _panes[FIRST_PANE]._handleActivePaneChange(undefined, _activePaneId);
         _initialLayout();
+
+        // This ensures that unit tests that use this function 
+        //  get an event handler for workspace events and we don't listen
+        //  to the event before we've been initialized
+        $(WorkspaceManager).on("workspaceUpdateLayout", _updateLayout);
     }
     
     /** 
@@ -1502,7 +1555,7 @@ define(function (require, exports, module) {
         return result;
     }
     
-    /**
+    /** 
      * Setup a ready event to initialize ourself
      */
     AppInit.htmlReady(function () {
@@ -1512,7 +1565,6 @@ define(function (require, exports, module) {
     // Event handlers
     $(ProjectManager).on("projectOpen",                       _loadViewState);
     $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
-    $(WorkspaceManager).on("workspaceUpdateLayout",           _updateLayout);
     $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
     $(DocumentManager).on("pathDeleted",                      _removeDeletedFileFromMRU);
     
@@ -1554,7 +1606,7 @@ define(function (require, exports, module) {
     // Traversal
     exports.beginTraversal                = beginTraversal;
     exports.endTraversal                  = endTraversal;
-    exports.traverseToNextViewByMRU            = traverseToNextViewByMRU;
+    exports.traverseToNextViewByMRU       = traverseToNextViewByMRU;
     
     // PaneView Attributes
     exports.getActivePaneId               = getActivePaneId;

@@ -73,6 +73,7 @@ define({
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "A file or directory with the name <span class='dialog-filename'>{0}</span> already exists.",
     "ERROR_CREATING_FILE_TITLE"         : "Error Creating {0}",
     "ERROR_CREATING_FILE"               : "An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}",
+    "ERROR_MIXED_DRAGDROP"              : "Cannot open a folder at the same time as opening other files.",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Error Reading Preferences",
@@ -234,6 +235,9 @@ define({
     "CMD_SPLITVIEW_HORIZONTAL"  : "Horizontal Split",
     "SPLITVIEW_MENU_TOOLTIP"    : "Split the editor vertically or horizontally",
     "GEAR_MENU_TOOLTIP"         : "Configure Working Set",
+
+    "SPLITVIEW_INFO_TITLE"              : "Already Open",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "The file is already open in another pane. {APP_NAME} will soon support opening the same file in more than one pane. Until then, the file will be shown in the pane it's already open in.<br /><br />(You'll only see this message once.)",
 
     /**
      * Keyboard modifier names
