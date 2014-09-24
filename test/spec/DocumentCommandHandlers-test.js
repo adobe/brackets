@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine, xit */
+/*global define, describe, beforeEach, afterEach, it, runs, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine, xit */
 
 define(function (require, exports, module) {
     'use strict';
@@ -40,8 +40,7 @@ define(function (require, exports, module) {
         EditorManager,          // loaded from brackets.test
         SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
         FileUtils                = require("file/FileUtils"),
-        StringUtils              = require("utils/StringUtils"),
-        Editor                   = require("editor/Editor");
+        FileSystemError          = require("filesystem/FileSystemError");
                     
     
     describe("DocumentCommandHandlers", function () {
@@ -117,6 +116,7 @@ define(function (require, exports, module) {
                 waitsForDone(promise, "Remove testfile " + fullPath, 5000);
             });
         }
+        
         
         describe("New Untitled File", function () {
             var filePath,
@@ -661,7 +661,70 @@ define(function (require, exports, module) {
                 });
             });
         });
-
+        
+        
+        describe("Close List", function () {
+            beforeEach(function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/test.js"});
+                    waitsForDone(promise, "CMD_ADD_TO_WORKINGSET_AND_OPEN");
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/test2.js"});
+                    waitsForDone(promise, "CMD_ADD_TO_WORKINGSET_AND_OPEN");
+                });
+            });
+            it("should not close the current view", function () {
+                var currentPath,
+                    docsToClose;
+                runs(function () {
+                    currentPath = MainViewManager.getCurrentlyViewedPath();
+                    docsToClose = DocumentManager.getAllOpenDocuments().filter(function (doc) {
+                        return (doc !== DocumentManager.getCurrentDocument());
+                    });
+                    promise = CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: docsToClose.map(function (doc) {
+                        return doc.file;
+                    })});
+                    waitsForDone(promise, "FILE_CLOSE_LIST");
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedPath()).toBe(currentPath);
+                });
+            });
+            it("should close all views", function () {
+                var docsToClose;
+                runs(function () {
+                    docsToClose = DocumentManager.getAllOpenDocuments();
+                    promise = CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: docsToClose.map(function (doc) {
+                        return doc.file;
+                    })});
+                    waitsForDone(promise, "FILE_CLOSE_LIST");
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedFile()).toBeFalsy();
+                });
+            });
+            it("should open the next view when the current view is closed", function () {
+                var currentPath,
+                    docsToClose;
+                runs(function () {
+                    currentPath = MainViewManager.getCurrentlyViewedPath();
+                    docsToClose = DocumentManager.getAllOpenDocuments().filter(function (doc) {
+                        return (doc === DocumentManager.getCurrentDocument());
+                    });
+                    promise = CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: docsToClose.map(function (doc) {
+                        return doc.file;
+                    })});
+                    waitsForDone(promise, "FILE_CLOSE_LIST");
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedPath()).not.toBe(currentPath);
+                    expect(MainViewManager.getCurrentlyViewedPath()).toBeTruthy();
+                });
+            });
+        });
+        
+        
         describe("Open File", function () {
             it("should open a file in the editor", function () {
                 var promise;
@@ -674,8 +737,28 @@ define(function (require, exports, module) {
                     expect(DocumentManager.getCurrentDocument().getText()).toBe(TEST_JS_CONTENT);
                 });
             });
+            
+            it("should resolve with FileSystemError when opening fails", function () {
+                runs(function () {
+                    // Dismiss expected error dialog instantly so promise completes & test can proceed
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
+                        return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
+                    });
+                    
+                    // Open nonexistent file to trigger error result
+                    var promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/doesNotExist.js"});
+                    waitsForFail(promise, "FILE_OPEN");
+                    promise.fail(function (err) {
+                        expect(err).toEqual(FileSystemError.NOT_FOUND);
+                    });
+                });
+                runs(function () {
+                    expect(DocumentManager.getCurrentDocument()).toBeFalsy();
+                });
+            });
         });
-
+        
+        
         describe("Save File", function () {
             it("should save changes", function () {
                 var filePath    = testPath + "/test.js",
@@ -695,7 +778,6 @@ define(function (require, exports, module) {
                 });
 
                 // confirm file contents
-                var actualContent = null, error = -1;
                 runs(function () {
                     promise = FileUtils.readAsText(FileSystem.getFileForPath(filePath))
                         .done(function (actualText) {
@@ -781,7 +863,8 @@ define(function (require, exports, module) {
                 });
             });
         });
-
+        
+        
         describe("Save As", function () {
             var filePath,
                 newFilename,
@@ -950,6 +1033,7 @@ define(function (require, exports, module) {
             });
         });
         
+        
         describe("Dirty File Handling", function () {
 
             beforeEach(function () {
@@ -1094,6 +1178,7 @@ define(function (require, exports, module) {
 
         });
         
+        
         describe("Decorated Path Parser", function () {
             it("should correctly parse decorated paths", function () {
                 var path = testPath + "/test.js";
@@ -1104,16 +1189,91 @@ define(function (require, exports, module) {
                 expect(DocumentCommandHandlers._parseDecoratedPath(path + ":123:456")).toEqual({path: path, line: 123, column: 456});
             });
         });
+        
+        
+        describe("Open image files", function () {
+            it("document & editor should be null after opening an image", function () {
+                var path = testPath + "/couz.png",
+                    promise;
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: path });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
 
-        // NOTE: Image tests moved to MainViewFactory-test.js
-
-        describe("Open a text file while a text file is open", function () {
-            it("should fire currentDocumentChange and activeEditorChange events", function () {
-
+                runs(function () {
+                    expect(EditorManager.getActiveEditor()).toBeFalsy();
+                    expect(EditorManager.getCurrentFullEditor()).toBeFalsy();
+                    expect(EditorManager.getFocusedEditor()).toBeFalsy();
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)).toEqual(path);
+                    var d = DocumentManager.getCurrentDocument();
+                    expect(d).toBeFalsy();
+                });
+            });
+            
+            it("opening image while text file open should fire currentDocumentChange and activeEditorChange events", function () {
                 var promise,
                     docChangeListener = jasmine.createSpy(),
                     activeEditorChangeListener = jasmine.createSpy();
 
+                runs(function () {
+                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    
+                    
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(1);
+                    expect(activeEditorChangeListener.callCount).toBe(1);
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/couz.png" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(2);
+                    expect(activeEditorChangeListener.callCount).toBe(2);
+                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                });
+            });
+            
+            it("opening image while nothing open should NOT fire currentDocumentChange and activeEditorChange events", function () {
+                var promise,
+                    docChangeListener = jasmine.createSpy(),
+                    activeEditorChangeListener = jasmine.createSpy();
+
+                runs(function () {
+                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/couz.png" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(0);
+                    expect(activeEditorChangeListener.callCount).toBe(0);
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/couz2.png" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(0);
+                    expect(activeEditorChangeListener.callCount).toBe(0);
+                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                });
+    
+            });
+            
+            it("opening text file while other text open should fire currentDocumentChange and activeEditorChange events", function () {
+                var promise,
+                    docChangeListener = jasmine.createSpy(),
+                    activeEditorChangeListener = jasmine.createSpy();
 
                 runs(function () {
                     _$(DocumentManager).on("currentDocumentChange", docChangeListener);
@@ -1139,7 +1299,30 @@ define(function (require, exports, module) {
                     _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
                 });
             });
+            
+            it("should return an editor after opening a text file", function () {
+                var path = testPath + "/test.js",
+                    promise;
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: path });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                
+                runs(function () {
+                    var e = EditorManager.getActiveEditor();
+                    expect(e.document.file.fullPath).toBe(path);
+                    
+                    e = EditorManager.getCurrentFullEditor();
+                    expect(e.document.file.fullPath).toBe(path);
+     
+                    e = EditorManager.getFocusedEditor();
+                    expect(e.document.file.fullPath).toBe(path);
+                    
+                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(path);
+                });
+            });
         });
+        
         
         describe("Scrolling", function () {
             it("should scroll when moving the cursor to the end of a really long line", function () {
@@ -1166,32 +1349,6 @@ define(function (require, exports, module) {
                 });
             });
         });
-
-        describe("Opens text file and validates EditorManager APIs", function () {
-            it("should return an editor after opening a text file", function () {
-                var path = testPath + "/test.js",
-                    promise;
-                runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: path });
-                    waitsForDone(promise, Commands.FILE_OPEN);
-                });
-                
-                runs(function () {
-                    var e = EditorManager.getActiveEditor();
-                    expect(e.document.file.fullPath).toBe(path);
-                    
-                    e = EditorManager.getCurrentFullEditor();
-                    expect(e.document.file.fullPath).toBe(path);
-     
-                    e = EditorManager.getFocusedEditor();
-                    expect(e.document.file.fullPath).toBe(path);
-                    
-                    e = EditorManager.getCurrentFullEditor();
-                    expect(e.document.file.fullPath).toBe(path);
-                });
-            });
-        });
-                
 
     });
 });

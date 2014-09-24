@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, brackets, window */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -62,7 +62,6 @@ define(function (require, exports, module) {
      */
     BaseServer.prototype._setDocInfo = function (liveDocument) {
         var parentUrl,
-            rootUrl,
             matches,
             doc = liveDocument.doc;
 
@@ -97,8 +96,7 @@ define(function (require, exports, module) {
      *  Returns null if the path is not a descendant of the project root.
      */
     BaseServer.prototype.pathToUrl = function (path) {
-        var url             = null,
-            baseUrl         = this.getBaseUrl(),
+        var baseUrl         = this.getBaseUrl(),
             relativePath    = this._pathResolver(path);
 
         // See if base url has been specified and path is within project

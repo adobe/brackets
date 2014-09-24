@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, beforeFirst, afterLast, waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, expect, beforeEach, afterEach, beforeFirst, afterLast, waitsFor, runs, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -41,7 +41,6 @@ define(function (require, exports, module) {
         var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
             testHtmlPath    = extensionPath + "/testfiles/test.html",
             testCssPath     = extensionPath + "/testfiles/subfolder/test.css",
-            testWindow,
             testDocument,
             testEditor,
             hintsObj;

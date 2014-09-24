@@ -42,10 +42,15 @@ define(function (require, exports, module) {
             var promise,
                 config = {
                     baseUrl: testPath + "/" + name
-                };
+                },
+                consoleErrors = [];
 
             runs(function () {
-                spyOn(console, "error").andCallThrough();
+                var originalConsoleErrorFn = console.error;
+                spyOn(console, "error").andCallFake(function () {
+                    originalConsoleErrorFn.apply(console, arguments);
+                    consoleErrors.push(Array.prototype.join.call(arguments));
+                });
                 promise = ExtensionLoader.loadExtension(name, config, "main");
 
                 if (error) {
@@ -64,6 +69,7 @@ define(function (require, exports, module) {
                     }
                 } else {
                     expect(console.error.callCount).toBe(0);
+                    expect(consoleErrors).toEqual([]);  // causes console errors to be logged in test failure message
                 }
                 
                 expect(promise.state()).toBe(promiseState);

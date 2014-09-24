@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, jasmine, define, require, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
+/*global define, describe, it, expect, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,10 +32,10 @@ define(function (require, exports, module) {
         CommandManager,     // Load from brackets.test
         FileSystem,         // Load from brackets.test
         Dialogs             = require("widgets/Dialogs"),
-        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Commands            = require("command/Commands"),
         FileSystemError     = require("filesystem/FileSystemError"),
-        SpecRunnerUtils     = require("spec/SpecRunnerUtils");
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
+        _                   = require("thirdparty/lodash");
 
 
     describe("ProjectManager", function () {
@@ -80,6 +80,14 @@ define(function (require, exports, module) {
         afterEach(function () {
             testWindow.closeAllFiles();
         });
+        
+        function waitForDialog() {
+            var $dlg;
+            waitsFor(function () {
+                $dlg = testWindow.$(".modal.instance");
+                return $dlg.length > 0;
+            }, 300, "dialog to appear");
+        }
 
         describe("createNewItem", function () {
             it("should create a new file with a given name", function () {
@@ -123,6 +131,7 @@ define(function (require, exports, module) {
                         .fail(function () { gotError = true; });
                 });
                 waitsFor(function () { return !didCreate && gotError; }, "ProjectManager.createNewItem() timeout", 5000);
+                waitForDialog();
 
                 runs(function () {
                     expect(gotError).toBeTruthy();
@@ -142,6 +151,7 @@ define(function (require, exports, module) {
                         .fail(function () { gotError = true; });
                 });
                 waitsFor(function () { return !didCreate && gotError; }, "ProjectManager.createNewItem() timeout", 5000);
+                waitForDialog();
 
                 runs(function () {
                     expect(gotError).toBeTruthy();
@@ -189,6 +199,8 @@ define(function (require, exports, module) {
 
                     runs(createFile);
                     waitsFor(waitForFileCreate, "ProjectManager.createNewItem() timeout", 5000);
+                    waitForDialog();
+
                     runs(assertFile);
                 }
             });
@@ -226,6 +238,8 @@ define(function (require, exports, module) {
 
                     runs(createFile);
                     waitsFor(waitForFileCreate, "ProjectManager.createNewItem() timeout", 5000);
+                    waitForDialog();
+
                     runs(assertFile);
                 }
             });
@@ -297,8 +311,7 @@ define(function (require, exports, module) {
                     rootFolderEntry = FileSystem.getDirectoryForPath(rootFolderName),
                     error,
                     stat,
-                    promise,
-                    entry;
+                    promise;
                 
                 // Delete the root folder and all files/folders in it.
                 runs(function () {
@@ -330,22 +343,35 @@ define(function (require, exports, module) {
         
         describe("Selection indicator", function () {
             
+            function getItemName(fullPath) {
+                if (fullPath === null) {
+                    return null;
+                }
+                
+                var isFolder      = _.last(fullPath) === "/",
+                    withoutSlash  = isFolder ? fullPath.substr(0, fullPath.length - 1) : fullPath;
+
+                return _.last(withoutSlash.split("/"));
+            }
+
             function expectSelected(fullPath) {
-                var $projectTreeItems = testWindow.$("#project-files-container > ul").children(),
+                var $projectTreeItems = testWindow.$("#project-files-container > div > ul").children(),
                     $selectedItem     = $projectTreeItems.find("a.jstree-clicked");
                 
-                if (!fullPath) {
+                var name = getItemName(fullPath);
+                
+                if (!name) {
                     expect($selectedItem.length).toBe(0);
                 } else {
                     expect($selectedItem.length).toBe(1);
-                    expect($selectedItem.parent().data("entry").fullPath).toBe(fullPath);
+                    expect($selectedItem.text().trim()).toBe(name);
                 }
             }
             
             it("should deselect after opening file not rendered in tree", function () {
                 var promise,
                     exposedFile   = tempDir + "/file.js",
-                    unexposedFile = tempDir + "/directory/file.js";
+                    unexposedFile = tempDir + "/directory/interiorfile.js";
                 
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: exposedFile });
@@ -366,10 +392,11 @@ define(function (require, exports, module) {
                 var $treeItems = testWindow.$("#project-files-container li"),
                     $result;
                 
+                var name = getItemName(fullPath);
+                
                 $treeItems.is(function () {
-                    var $treeNode = testWindow.$(this),
-                        entry = $treeNode.data("entry");
-                    if (entry && entry.fullPath === fullPath) {
+                    var $treeNode = testWindow.$(this);
+                    if ($treeNode.children("a").text().trim() === name) {
                         $result = $treeNode;
                         return true;
                     }
@@ -384,7 +411,7 @@ define(function (require, exports, module) {
                 var expectedClass = open ? "jstree-open" : "jstree-closed";
                 expect($treeNode.hasClass(expectedClass)).toBe(false);
                 
-                $treeNode.children("a").click();
+                $treeNode.children("a").children("span").click();
                 
                 // if a folder has never been expanded before, this will be async
                 waitsFor(function () {
@@ -396,7 +423,7 @@ define(function (require, exports, module) {
                 var promise,
                     initialFile  = tempDir + "/file.js",
                     folder       = tempDir + "/directory/",
-                    fileInFolder = tempDir + "/directory/file.js";
+                    fileInFolder = tempDir + "/directory/interiorfile.js";
                 
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: initialFile });
@@ -415,7 +442,6 @@ define(function (require, exports, module) {
                     toggleFolder(folder, false);    // close folder
                 });
                 runs(function () {
-                    expectSelected(folder);
                     toggleFolder(folder, true);     // open folder again
                 });
                 runs(function () {
@@ -428,7 +454,7 @@ define(function (require, exports, module) {
                 var promise,
                     initialFile  = tempDir + "/file.js",
                     folder       = tempDir + "/directory/",
-                    fileInFolder = tempDir + "/directory/file.js";
+                    fileInFolder = tempDir + "/directory/interiorfile.js";
                 
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: initialFile });

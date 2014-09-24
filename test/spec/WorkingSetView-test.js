@@ -266,8 +266,8 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.FILE_RENAME);
                 
                 var $projectFileItems = $("#project-files-container > ul").children();
-    
-                expect($projectFileItems.find("a.jstree-clicked").eq(0).siblings("input").eq(0).val()).toBe(fileName);
+                
+                expect($projectFileItems.find("input").eq(0).val()).toBe(fileName);
             });
         });
 
@@ -289,7 +289,6 @@ define(function (require, exports, module) {
 
                     // Now close last opened file to hide the directories again
                     DocumentManager.getCurrentDocument()._markClean(); // so we can close without a save dialog
-                    var didClose = false, gotError = false;
                     waitsForDone(CommandManager.execute(Commands.FILE_CLOSE), "timeout on FILE_CLOSE", 1000);
 
                     // there should be no more directories shown

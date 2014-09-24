@@ -28,7 +28,6 @@ define(function (require, exports, module) {
     "use strict";
 
     var FileSystemError     = require("filesystem/FileSystemError"),
-        FileSystemStats     = require("filesystem/FileSystemStats"),
         MockFileSystemModel = require("./MockFileSystemModel");
     
     // A sychronous model of a file system

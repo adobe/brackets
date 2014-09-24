@@ -30,7 +30,6 @@ define(function (require, exports, module) {
     var FileFilters        = require("search/FileFilters"),
         SpecRunnerUtils    = require("spec/SpecRunnerUtils"),
         Dialogs            = require("widgets/Dialogs"),
-        Commands           = require("command/Commands"),
         KeyEvent           = require("utils/KeyEvent"),
         PreferencesManager = require("preferences/PreferencesManager"),
         Strings            = require("strings"),

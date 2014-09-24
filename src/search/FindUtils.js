@@ -35,7 +35,6 @@ define(function (require, exports, module) {
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
         StringUtils     = require("utils/StringUtils"),
-        CodeMirror      = require("thirdparty/CodeMirror2/lib/codemirror"),
         _               = require("thirdparty/lodash");
     
     /**
@@ -271,10 +270,51 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Parses the given query into a regexp, and returns whether it was valid or not.
+     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo
+     * @return {{queryExpr: RegExp, valid: boolean, empty: boolean, error: string}}
+     *      queryExpr - the regexp representing the query
+     *      valid - set to true if query is a nonempty string or a valid regexp.
+     *      empty - set to true if query was empty.
+     *      error - set to an error string if valid is false and query is nonempty.
+     */
+    function parseQueryInfo(queryInfo) {
+        var queryExpr;
+
+        // TODO: only major difference between this one and the one in FindReplace is that
+        // this always returns a regexp even for simple strings. Reconcile.
+        if (!queryInfo || !queryInfo.query) {
+            return {empty: true};
+        }
+
+        // For now, treat all matches as multiline (i.e. ^/$ match on every line, not the whole
+        // document). This is consistent with how single-file find works. Eventually we should add
+        // an option for this.
+        var flags = "gm";
+        if (!queryInfo.isCaseSensitive) {
+            flags += "i";
+        }
+
+        // Is it a (non-blank) regex?
+        if (queryInfo.isRegexp) {
+            try {
+                queryExpr = new RegExp(queryInfo.query, flags);
+            } catch (e) {
+                return {valid: false, error: e.message};
+            }
+        } else {
+            // Query is a plain string. Turn it into a regexp
+            queryExpr = new RegExp(StringUtils.regexEscape(queryInfo.query), flags);
+        }
+        return {valid: true, queryExpr: queryExpr};
+    }
+
     exports.parseDollars                    = parseDollars;
     exports.getInitialQueryFromSelection    = getInitialQueryFromSelection;
     exports.hasCheckedMatches               = hasCheckedMatches;
     exports.performReplacements             = performReplacements;
     exports.labelForScope                   = labelForScope;
+    exports.parseQueryInfo                  = parseQueryInfo;
     exports.ERROR_FILE_CHANGED              = "fileChanged";
 });

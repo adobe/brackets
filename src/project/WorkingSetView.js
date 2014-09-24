@@ -39,7 +39,6 @@ define(function (require, exports, module) {
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
         Menus                 = require("command/Menus"),
-        DefaultMenus          = require("command/DefaultMenus"),
         FileViewController    = require("project/FileViewController"),
         ViewUtils             = require("utils/ViewUtils"),
         paneListTemplate      = require("text!htmlContent/working-set.html"),
@@ -54,7 +53,7 @@ define(function (require, exports, module) {
      * 
      */
     var _views = [];
-    
+
     /**
      * Icon Providers
      * @see {@link WorkingSetView#addIconProvider()}
@@ -68,23 +67,8 @@ define(function (require, exports, module) {
      * @private
      */
     var _classProviders = [];
-    
-    /**
-     * Context Menu
-     * @private
-     * @type {Menu}
-     * 
-     */
-    var _workingset_cmenu;
-    
-    /**
-     * Context Menu
-     * @private
-     * @type {Menu}
-     * 
-     */
-    var _workingset_configuration_menu;
-    
+        
+
     /**
      * Constants for event.which values
      * @enum {number}
@@ -100,26 +84,6 @@ define(function (require, exports, module) {
      */
     var _FILE_KEY = "file";
 
-    /* 
-     * Determines if context menus are registered
-     * @private
-     * @return {boolean} true if the menus are registered, false if not
-     */
-    function _areContextMenusRegistered() {
-        return _workingset_cmenu && _workingset_configuration_menu;
-    }
-    
-    /* 
-     * Registers context menus
-     * @private
-     */
-    function _registerContextMenus() {
-        if (!_areContextMenusRegistered()) {
-            _workingset_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
-            _workingset_configuration_menu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONFIG_MENU);
-        }
-    }
-    
     /** 
      * Updates the appearance of the list element based on the parameters provided.
      * @private
@@ -160,16 +124,22 @@ define(function (require, exports, module) {
         this.suppressSortRedraw = false;
         this.paneId = paneId;
         
-        this.updateOptionsButton();
         this.init();
     }
 
     /*
-     * updates the visibility state of the gear button
+     * Hides or shows the WorkingSetView
      */
-    WorkingSetView.prototype.updateOptionsButton = function () {
-        var visible = (MainViewManager.getActivePaneId() === this.paneId);
-        this.$el.find(".working-set-option-btn").toggle(visible);
+    WorkingSetView.prototype._updateVisibility = function () {
+        var fileList = MainViewManager.getWorkingSet(this.paneId);
+        if (MainViewManager.getPaneCount() === 1 && (!fileList || fileList.length === 0)) {
+            this.$openFilesContainer.hide();
+            this.$workingSetListViewHeader.hide();
+        } else {
+            this.$openFilesContainer.show();
+            this.$workingSetListViewHeader.show();
+            this._checkForDuplicatesInWorkingTree();
+        }
     };
     
     /*
@@ -180,12 +150,13 @@ define(function (require, exports, module) {
         var $titleEl = this.$el.find(".working-set-header-title"),
             title = Strings.WORKING_FILES;
         
+        this._updateVisibility();
+        
         if (MainViewManager.getPaneCount() > 1) {
             title = MainViewManager.getPaneTitle(this.paneId);
         }
         
         $titleEl.text(title);
-        this.updateOptionsButton();
     };
 
     /**
@@ -254,7 +225,7 @@ define(function (require, exports, module) {
             this.$openFilesList.trigger("selectionHide");
         }
         // in-lieu of resize events, manually trigger contentChanged to update scroll shadows
-        this.$openFilesContainer.triggerHandler("contentChanged");
+        this.$openFilesContainer.trigger("contentChanged");
     };
 
     /**
@@ -308,7 +279,7 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._checkForDuplicatesInWorkingTree = function () {
         var self = this,
             map = {},
-            fileList = MainViewManager.getWorkingSet(this.paneId);
+            fileList = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
 
         // We need to always clear current directories as files could be removed from working tree.
         this.$openFilesContainer.find("ul > li > a > span.directory").remove();
@@ -337,28 +308,11 @@ define(function (require, exports, module) {
      * @private
      */
     WorkingSetView.prototype._redraw = function () {
-        var fileList = MainViewManager.getWorkingSet(this.paneId),
-            paneId = MainViewManager.getActivePaneId();
-        
-        if (paneId === this.paneId) {
-            this.$el.addClass("active");
-        } else {
-            this.$el.removeClass("active");
-        }
-        
-        if (!fileList || fileList.length === 0) {
-            this.$openFilesContainer.hide();
-            this.$workingSetListViewHeader.hide();
-        } else {
-            this.$openFilesContainer.show();
-            this.$workingSetListViewHeader.show();
-            this._checkForDuplicatesInWorkingTree();
-        }
-
+        this._updateViewState();
+        this._updateVisibility();
         this._updateItemClasses();
         this._adjustForScrollbars();
         this._fireSelectionChanged();
-        this.updateOptionsButton();
     };
     
     /**
@@ -706,14 +660,33 @@ define(function (require, exports, module) {
     };
 
     /** 
+     * Updates the pane view's selection state 
+     * @private
+     */
+    WorkingSetView.prototype._updateViewState = function () {
+        var paneId = MainViewManager.getActivePaneId();
+        if ((FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW) &&
+                (paneId === this.paneId)) {
+            this.$el.addClass("active");
+            this.$openFilesContainer.addClass("active");
+        } else {
+            this.$el.removeClass("active");
+            this.$openFilesContainer.removeClass("active");
+        }
+    };
+    
+    /**
      * Updates the pane view's selection marker and scrolls the item into view
      * @private
      */
     WorkingSetView.prototype._updateListSelection = function () {
         var file = MainViewManager.getCurrentlyViewedFile(this.paneId);
             
+        this._updateViewState();
+        
+        
         // Iterate through working set list and update the selection on each
-        var items = this.$openFilesContainer.find("ul").children().each(function () {
+        this.$openFilesContainer.find("ul").children().each(function () {
             _updateListItemSelection(this, file);
         });
 
@@ -733,6 +706,8 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._handleFileAdded = function (e, fileAdded, index, paneId) {
         if (paneId === this.paneId) {
             this._rebuildViewList(true);
+        } else {
+            this._checkForDuplicatesInWorkingTree();
         }
     };
 
@@ -746,6 +721,8 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._handleFileListAdded = function (e, files, paneId) {
         if (paneId === this.paneId) {
             this._rebuildViewList(true);
+        } else {
+            this._checkForDuplicatesInWorkingTree();
         }
     };
 
@@ -758,7 +735,15 @@ define(function (require, exports, module) {
      * @param {!string} paneId - the id of the pane the item that was to
      */
     WorkingSetView.prototype._handleFileRemoved = function (e, file, suppressRedraw, paneId) {
-        if (paneId === this.paneId && !suppressRedraw) {
+        /* 
+         * The suppressRedraw flag is used in cases when we are replacing the working
+         * set entry with another one. There are only 2 use cases for this:
+         *
+         *      1) When an untitled document is being saved.
+         *      2) When a file is saved with a new name.
+         */
+        if (paneId === this.paneId) {
+            if (!suppressRedraw) {
             var $listItem = this._findListItemFromFile(file);
             if ($listItem) {
                 // Make the next file in the list show the close icon, 
@@ -773,6 +758,15 @@ define(function (require, exports, module) {
             }
             
             this._redraw();
+        }
+        } else {
+            /*
+             * When this event is handled by a pane that is not being updated then 
+             * the suppressRedraw flag does not need to be respected.  
+             * _checkForDuplicatesInWorkingTree() does not remove any entries so it's
+             * safe to call at any time.
+             */
+            this._checkForDuplicatesInWorkingTree();
         }
     };
 
@@ -794,6 +788,8 @@ define(function (require, exports, module) {
             });
 
             this._redraw();
+        } else {
+            this._checkForDuplicatesInWorkingTree();
         }
     };
     
@@ -832,6 +828,8 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._handleWorkingSetUpdate = function (e, paneId) {
         if (this.paneId === paneId) {
             this._rebuildViewList(true);
+        } else {
+            this._checkForDuplicatesInWorkingTree();
         }
     };
     
@@ -840,12 +838,8 @@ define(function (require, exports, module) {
      * Initializes the WorkingSetView object
      */
     WorkingSetView.prototype.init = function () {
-        // Init DOM element
-        var self = this;
-        
         this.$openFilesContainer = this.$el.find(".open-files-container");
         this.$workingSetListViewHeader = this.$el.find(".working-set-header");
-        this.$gearMenu = this.$el.find(".working-set-option-btn");
         
         this.$openFilesList = this.$el.find("ul");
         
@@ -870,50 +864,18 @@ define(function (require, exports, module) {
         // Disable horizontal scrolling until WebKit bug #99379 is fixed
         this.$openFilesContainer.css("overflow-x", "hidden");
 
-        this.installMenuHandlers();
+        this.$openFilesContainer.on("contextmenu.workingSetView", function (e) {
+            Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).open(e);
+        });
         
         this._redraw();
     };
 
-
-    /** 
-     * Installs the gear and context menu handlers
-     */
-    WorkingSetView.prototype.installMenuHandlers = function () {
-        var self = this;
-        
-        this.$openFilesContainer.on("contextmenu", function (e) {
-            _registerContextMenus();
-            _workingset_cmenu.open(e);
-        });
-
-        this.$gearMenu.on("click", function (e) {
-            var buttonOffset,
-                buttonHeight;
-
-            e.stopPropagation();
-
-            MainViewManager.setActivePaneId(self.paneId);
-            _registerContextMenus();
-            
-            if (_workingset_configuration_menu.isOpen()) {
-                _workingset_configuration_menu.close();
-            } else {
-                buttonOffset = $(this).offset();
-                buttonHeight = $(this).outerHeight();
-                _workingset_configuration_menu.open({
-                    pageX: buttonOffset.left,
-                    pageY: buttonOffset.top + buttonHeight
-                });
-            }
-        });
-            
-    };
-    
     /** 
      * Destroys the WorkingSetView DOM element and removes all event handlers
      */
     WorkingSetView.prototype.destroy = function () {
+        this.$openFilesContainer.off(".workingSetView");
         this.$el.remove();
         $(MainViewManager).off(this._makeEventName(""));
         $(DocumentManager).off(this._makeEventName(""));
@@ -953,7 +915,7 @@ define(function (require, exports, module) {
         }
     }
 
-    /** 
+  /** 
      * Refreshes all Pane View List Views
      * @param {boolean=} reconstruct - completely rebuilds the view list
      */
@@ -995,9 +957,19 @@ define(function (require, exports, module) {
         refresh(true);
     }
     
+    /** 
+     * Synchronizes the selection indicator for all views
+     */
+    function syncSelectionIndicator() {
+        _.forEach(_views, function (workingSetListView) {
+            workingSetListView.$openFilesContainer.triggerHandler("scroll");
+        });
+    }
+    
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
     exports.refresh                       = refresh;
     exports.addIconProvider               = addIconProvider;
     exports.addClassProvider              = addClassProvider;
+    exports.syncSelectionIndicator        = syncSelectionIndicator;
 });

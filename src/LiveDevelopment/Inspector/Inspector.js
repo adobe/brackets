@@ -24,7 +24,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, WebSocket, FileError, window, XMLHttpRequest */
+/*global define, $, WebSocket, FileError, XMLHttpRequest */
 
  /**
  * Inspector manages the connection to Chrome/Chromium's remote debugger.
@@ -395,7 +395,7 @@ define(function Inspector(require, exports, module) {
         var InspectorText = require("text!LiveDevelopment/Inspector/Inspector.json"),
             InspectorJSON = JSON.parse(InspectorText);
         
-        var i, j, domain, domainDef, command;
+        var i, j, domain, command;
         for (i in InspectorJSON.domains) {
             domain = InspectorJSON.domains[i];
             exports[domain.domain] = {};
