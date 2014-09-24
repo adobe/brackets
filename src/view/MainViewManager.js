@@ -975,7 +975,7 @@ define(function (require, exports, module) {
      * Creates a pane for paneId if one doesn't already exist
      * @param {!string} paneId - id of the pane to create
      * @private
-     * @return {Pane} - the pane object of the pane 
+     * @return {?Pane} - the pane object of the new pane, or undefined if no pane created
      */
     function _createPaneIfNecessary(paneId) {
         var pane;
@@ -1006,7 +1006,7 @@ define(function (require, exports, module) {
         }
 
         
-        return _panes[paneId];
+        return pane;
     }
     
     /**
@@ -1032,7 +1032,13 @@ define(function (require, exports, module) {
      * @param {!string} orientation (VERTICAL|HORIZONTAL)
      */
     function _doSplit(orientation) {
-        var firstPane = _panes[FIRST_PANE];
+        var firstPane, newPane;
+        
+        if (orientation === _orientation) {
+            return;
+        }
+        
+        firstPane = _panes[FIRST_PANE];
         Resizer.removeSizable(firstPane.$el);
 
         if (_orientation) {
@@ -1041,7 +1047,7 @@ define(function (require, exports, module) {
         _$el.addClass("split-" + orientation.toLowerCase());
         
         _orientation = orientation;
-        _createPaneIfNecessary(SECOND_PANE);
+        newPane = _createPaneIfNecessary(SECOND_PANE);
         _makeFirstPaneResizable();
         
         // reset the layout to 50/50 split
@@ -1050,6 +1056,11 @@ define(function (require, exports, module) {
         _initialLayout();
         
         $(exports).triggerHandler("paneLayoutChange", [_orientation]);
+        
+        // if new pane was created, make it the active pane
+        if (newPane) {
+            setActivePaneId(SECOND_PANE);
+        }
     }
     
     /**
@@ -1377,8 +1388,10 @@ define(function (require, exports, module) {
             _orientation = (panes.length > 1) ? state.orientation : null;
 
             _.forEach(state.panes, function (paneState, paneId) {
-                var pane = _createPaneIfNecessary(paneId),
-                    promise = pane.loadState(paneState);
+                var promise;
+                
+                _createPaneIfNecessary(paneId);
+                promise = _panes[paneId].loadState(paneState);
                 
                 promises.push(promise);
             });
