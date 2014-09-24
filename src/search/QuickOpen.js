@@ -509,7 +509,7 @@ define(function (require, exports, module) {
             // So we wait until after this call chain is complete before actually closing the dialog.
             var self = this;
             setTimeout(function () {
-                self.modalBar.close(!scrollPos).then(function () {
+                self.modalBar.close(!!scrollPos).then(function () {
                     closeResolve();
                 });
 

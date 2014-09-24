@@ -472,14 +472,15 @@ define(function (require, exports, module) {
     function compareFilenames(filename1, filename2, extFirst) {
         var ext1   = getFileExtension(filename1),
             ext2   = getFileExtension(filename2),
-            cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase(), undefined, {numeric: true}),
+            lang   = brackets.getLocale(),
+            cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase(), lang, {numeric: true}),
             cmpNames;
         
         if (brackets.platform === "win") {
             filename1 = getFilenameWithoutExtension(filename1);
             filename2 = getFilenameWithoutExtension(filename2);
         }
-        cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase(), undefined, {numeric: true});
+        cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase(), lang, {numeric: true});
         
         return extFirst ? (cmpExt || cmpNames) : (cmpNames || cmpExt);
     }

@@ -73,6 +73,7 @@ define({
 	"ENTRY_WITH_SAME_NAME_EXISTS": "Il existe déjà un fichier ou un répertoire portant le nom <span class='dialog-filename'>{0}</span>.",
 	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création de l’élément {0}",
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du {0} <span class='dialog-filename'>{1}</span>. {2}",
+	"ERROR_MIXED_DRAGDROP": "Impossible d’ouvrir un dossier en même temps que d’autres fichiers.",
 
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "Erreur lors de la lecture des préférences",
@@ -234,6 +235,9 @@ define({
 	"CMD_SPLITVIEW_HORIZONTAL": "Fractionnement horizontal",
 	"SPLITVIEW_MENU_TOOLTIP": "Fractionner l’éditeur horizontalement ou verticalement",
 	"GEAR_MENU_TOOLTIP": "Configurer l’ensemble de travail",
+
+	"SPLITVIEW_INFO_TITLE": "[7765195] !é=Already Open=!",
+	"SPLITVIEW_MULTIPANE_WARNING": "[7765196] !é=The file is already open in another pane. {APP_NAME} will soon support opening the same file in more than one pane. Until then, the file will be shown in the pane it's already open in.<br /><br />(You'll only see this message once.)=!",
 
     /**
      * Keyboard modifier names
