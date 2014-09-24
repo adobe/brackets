@@ -226,6 +226,7 @@ define(function (require, exports, module) {
             var scrollDir = 0,
                 dragged = false,
                 startPageY = e.pageY,
+                lastPageY = startPageY,
                 itemHeight = $el.height(),
                 tryClosing = $(document.elementFromPoint(e.pageX, e.pageY)).hasClass("can-close"),
                 offset = $el.offset(),
@@ -271,6 +272,7 @@ define(function (require, exports, module) {
             // Determines where the mouse hit was
             function hitTest(e) {
                 var pageY = $ghost.offset().top,
+                    direction = e.pageY - lastPageY,
                     result = {
                         where: NOMANSLAND
                     },
@@ -281,6 +283,10 @@ define(function (require, exports, module) {
                 $ghost.hide();
 
                 $hit = $(document.elementFromPoint(e.pageX, pageY)).closest("#working-set-list-container li");
+                
+                if ($hit[0] === $el[0]) {
+                    $hit = $hit.next();
+                }
               
                 if (!$hit.length) {
                     $hit = $(document.elementFromPoint(e.pageX, pageY + itemHeight)).closest("#working-set-list-container li");
@@ -292,23 +298,52 @@ define(function (require, exports, module) {
                     onScroller = ($hit.length > 0);
                 }
               
+                // turn the ghost back on
+                $ghost.show();
+                
                 // helper to see if the mouse is above 
                 //  or below the specified element
                 function mouseIsAbove($elem) {
                     var top = $elem.offset().top,
                         height = $elem.height();
                     
-                    return (pageY < (top + height / 2));
+                    return (pageY < top + (height / 2));
                 }
-              
+
+                function ghostIsAbove($elem) {
+                    var top = $elem.offset().top,
+                        height = $elem.height(),
+                        gTop = $ghost.offset().top,
+                        gHeight = $ghost.height();
+                    
+                    if (direction > 0) {
+                        gTop += gHeight;
+                    }
+                    
+                    return (gTop <  (top + (itemHeight / 2)));
+                }
+                
+                function ghostIsBelow($elem) {
+                    var top = $elem.offset().top,
+                        height = $elem.height(),
+                        gTop = $ghost.offset().top,
+                        gHeight = $ghost.height();
+                    
+                    if (direction > 0) {
+                        gTop += gHeight;
+                    }
+                    
+                    return (gTop > (top + (height / 2)));
+                }
+                
                 // We hit an item (li)
                 if ($hit.length) {
-                    if (mouseIsAbove($hit)) {
+                    if (ghostIsAbove($hit)) {
                         result = {
                             where: (onScroller) ? TOPSCROLL : ABOVEITEM,
                             which: $hit
                         };
-                    } else {
+                    } else if (ghostIsBelow($hit)) {
                         result = {
                             where: (onScroller) ? BOTSCROLL : BELOWITEM,
                             which: $hit
@@ -339,11 +374,7 @@ define(function (require, exports, module) {
                     }
                 }
 
-                // turn the ghost back on
-                //  and bail with the result
-                $ghost.show();
                 return result;
-
             }
    
             // mouse move handler -- this pretty much does
@@ -424,6 +455,8 @@ define(function (require, exports, module) {
                 if (dragged || Math.abs(e.pageY - startPageY) > 3) {
                     drag(e);
                 }
+                
+                lastPageY = e.pageY;
 
             });
             
