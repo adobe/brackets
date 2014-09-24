@@ -356,15 +356,14 @@ define(function (require, exports, module) {
             $(window).on("mousemove.wsvdragging", function (e) {
 
                 function drag(e) {
-                    _deactivateAllViews(isCurrentFile);
-                    // we've dragged the item so set
-                    //  dragged to true so we don't try and open it
-                    dragged = true;
+                    if (!dragged) {
+                        _deactivateAllViews(isCurrentFile);
+                        // we've dragged the item so set
+                        //  dragged to true so we don't try and open it
+                        dragged = true;
+                    }
                     // reset the scrolling direction to no-scroll
                     scrollDir = 0;
-                    // reset start so we don't drag again until the mouse 
-                    //  is moved 3 pixels to help prevent jitter
-                    startPageY = e.pageY;
                     // Find out where to to drag it to
                     var ht = hitTest(e);
                     
