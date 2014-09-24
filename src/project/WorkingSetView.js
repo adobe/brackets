@@ -147,6 +147,17 @@ define(function (require, exports, module) {
         });
     }
     
+    
+    function _lockContainerHeightOnAllViews(lock) {
+        _.forEach(_views, function (view) {
+            view.$openFilesContainer.css({
+                "min-height": lock ? view.$openFilesContainer.height() : "",
+                "max-height": lock ? view.$openFilesContainer.height() : ""
+            });
+        });
+    }
+    
+    
     function _deactivateAllViews(deactivate) {
         _.forEach(_views, function (view) {
             if (deactivate) {
@@ -350,6 +361,7 @@ define(function (require, exports, module) {
                         };
                     }
                 } else {
+                    $ghost.hide();
                     // we didn't hit an (li) so look for 
                     //  where the mouse is relative to the view
                     $hit = $(document.elementFromPoint(e.pageX, pageY));
@@ -357,6 +369,9 @@ define(function (require, exports, module) {
                     if ($hit.parent().is(".working-set-view")) {
                         $hit = $hit.parent();
                     }
+                    
+                    $ghost.show();
+
                     // if we hit a view then we're good to go
                     //  otherwise we'll just return nomansland
                     if ($hit.is(".working-set-view")) {
@@ -473,6 +488,7 @@ define(function (require, exports, module) {
             
             function postDropCleanup() {
                 _suppressSortRedrawForAllViews(false);
+                _lockContainerHeightOnAllViews(false);
                 refresh(true);
                 MainViewManager.focusActivePane();
             }
@@ -549,6 +565,7 @@ define(function (require, exports, module) {
             Menus.closeAll();
             
             _suppressSortRedrawForAllViews(true);
+            _lockContainerHeightOnAllViews(true);
             
             _viewMap[MainViewManager.getActivePaneId()]._cacheSelectionOffset();
             
