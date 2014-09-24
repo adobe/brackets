@@ -182,9 +182,9 @@ define(function (require, exports, module) {
                 expect(FileUtils.getSmartFileExtension("foo.bar.php.scss.erb")).toBe("php.scss.erb");
             });
         });
-        
+
         describe("compareFilenames", function () {
-            
+
             it("should compare filenames using German rules", function () {
                 spyOn(brackets, "getLocale").andReturn("de-DE");
                 // Should be like this: Äckerman, Adler, Rossi, Xavier
@@ -192,6 +192,7 @@ define(function (require, exports, module) {
                 expect(FileUtils.compareFilenames("Adler", "Rossi", false)).toBeLessThan(0);
                 expect(FileUtils.compareFilenames("Rossi", "Xavier", false)).toBeLessThan(0);
             });
+
             it("should compare filenames using Swedish rules", function () {
                 spyOn(brackets, "getLocale").andReturn("sv");
                 // Should be like this: Adler, Rossie, Xavier, Äckerman
