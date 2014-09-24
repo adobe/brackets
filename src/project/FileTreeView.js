@@ -369,11 +369,11 @@ define(function (require, exports, module) {
 
             var fileClasses = "";
             if (this.props.entry.get("selected")) {
-                fileClasses += "jstree-clicked selected-node";
+                fileClasses += " jstree-clicked selected-node";
             }
             
             if (this.props.entry.get("context")) {
-                fileClasses += "context-node";
+                fileClasses += " context-node";
             }
 
             var nameDisplay;
