@@ -211,7 +211,6 @@ define(function (require, exports, module) {
      * @param {$.Event} e The event object
      * @param {string} path The local path of the loaded extension's folder.
      * @param {Package.OperationTypes} operationType Tells if the package is being installed or updated
-     * @param {boolean} newInstall Flag to tell if the entension being loaded is a new install
      */
     function _handleExtensionLoad(e, path, operationType) {
         function setData(id, metadata) {
