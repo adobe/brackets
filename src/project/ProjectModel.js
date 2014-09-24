@@ -1104,6 +1104,12 @@ define(function (require, exports, module) {
             changes.changed = [
                 this.makeProjectRelativeIfPossible(entry.fullPath)
             ];
+        } else {
+            // Special case: a directory passed in without added and removed values
+            // appears to be new.
+            if (!added && !removed) {
+                this._viewModel.ensureDirectoryExists(this.makeProjectRelativeIfPossible(entry.fullPath));
+            }
         }
 
         if (added) {

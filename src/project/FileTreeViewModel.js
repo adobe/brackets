@@ -170,7 +170,7 @@ define(function (require, exports, module) {
         // Step through the parts of the path and the treeData object simultaneously
         while (part) {
             // We hit the end of the tree without finding our object, so return null
-            if (treeData === null) {
+            if (!treeData) {
                 return null;
             }
 
@@ -867,7 +867,7 @@ define(function (require, exports, module) {
         if (parentPath.length > 0) {
             var childrenPath = _.clone(parentPath);
             childrenPath.push("children");
-
+            
             treeData = treeData.updateIn(childrenPath, function (children) {
                 return children.set(name, newFile);
             });
@@ -976,6 +976,13 @@ define(function (require, exports, module) {
                 basename = FileUtils.getBaseName(filePath);
 
             if (parentObjectPath) {
+                // Verify that the children are loaded
+                var childrenPath = _.clone(parentObjectPath);
+                childrenPath.push("children");
+                if (treeData.getIn(childrenPath) === null) {
+                    return;
+                }
+                
                 treeData = _createPlaceholder(treeData, parentPath, basename, isFolder, {
                     notInCreateMode: true,
                     doNotOpen: true
@@ -1013,6 +1020,46 @@ define(function (require, exports, module) {
             });
         }
 
+        this._commitTreeData(treeData);
+    };
+    
+    /**
+     * Makes sure that the directory exists. This will create a directory object (unloaded)
+     * if the directory does not already exist. A change message is also fired in that case.
+     * 
+     * This is useful for file system events which can refer to a directory that we don't
+     * know about already.
+     * 
+     * @param {string} path Project-relative path to the directory
+     */
+    FileTreeViewModel.prototype.ensureDirectoryExists = function (path) {
+        var treeData          = this._treeData,
+            pathWithoutSlash  = FileUtils.stripTrailingSlash(path),
+            parentPath        = FileUtils.getDirectoryPath(pathWithoutSlash),
+            name              = pathWithoutSlash.substr(parentPath.length),
+            targetPath        = [];
+        
+        if (parentPath) {
+            targetPath = _filePathToObjectPath(treeData, parentPath);
+            if (!targetPath) {
+                return;
+            }
+            targetPath.push("children");
+            if (!treeData.getIn(targetPath)) {
+                return;
+            }
+        }
+        
+        targetPath.push(name);
+        
+        if (treeData.getIn(targetPath)) {
+            return;
+        }
+        
+        treeData = _setIn(treeData, targetPath, Immutable.Map({
+            children: null
+        }));
+        
         this._commitTreeData(treeData);
     };
 
@@ -1083,6 +1130,7 @@ define(function (require, exports, module) {
     exports.EVENT_CHANGE          = EVENT_CHANGE;
     exports._filePathToObjectPath = _filePathToObjectPath;
     exports._isFilePathVisible    = _isFilePathVisible;
+    exports._createPlaceholder    = _createPlaceholder;
 
     // Public API
     exports.isFile            = isFile;
