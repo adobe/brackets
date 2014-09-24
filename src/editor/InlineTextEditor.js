@@ -141,7 +141,7 @@ define(function (require, exports, module) {
     /**
      * Update the inline editor's height when the number of lines change. The
      * base implementation of this method does nothing.
-     * @param {boolean} force the editor to resize
+     * @param {boolean} force the editor to resize (ignored)
      */
     InlineTextEditor.prototype.sizeInlineWidgetToContents = function (force) {
         // brackets_codemirror_overrides.css adds height:auto to CodeMirror

@@ -90,9 +90,9 @@ define(function (require, exports, module) {
      * @constructor
      * @param {Array.<{name:String,document:Document,lineStart:number,lineEnd:number}>} ranges The text ranges to display.
      * @param {function(): $.Promise} messageCB An optional callback that returns a promise that will be resolved with a message to show
-     *      when no matches are available.
+     *      when no matches are available. The message should be already-escaped HTML.
      * @param {function(range): string} labelCB An optional callback that returns an updated label string for the given range. Called
-     *      when we detect that the content of one of the ranges has changed.
+     *      when we detect that the content of one of the ranges has changed. The label is plain text, not HTML.
      * @extends {InlineTextEditor}
      */
     function MultiRangeInlineEditor(ranges, messageCB, labelCB) {
@@ -145,7 +145,7 @@ define(function (require, exports, module) {
     
     
     function getPrefsContext() {
-        return { location : { scope: "user", layer: "project" } };
+        return { location : { scope: "user", layer: "project", layerID: ProjectManager.getProjectRoot().fullPath } };
     }
     
     /**
@@ -180,7 +180,7 @@ define(function (require, exports, module) {
         var $disclosureIcon = $headerItem.find(".disclosure-triangle");
         var isCollapsing = $disclosureIcon.hasClass("expanded");
         $disclosureIcon.toggleClass("expanded").toggleClass("collapsed");
-        $headerItem.nextUntil(".section-header").toggle();
+        $headerItem.nextUntil(".section-header").toggle(!isCollapsing);  // must pass explicit visibility arg, since during load() jQ doesn't think nodes are visible
 
         // Update instance-specific state AND persist as per-project view state
         this._collapsedFiles[fullPath] = isCollapsing;
@@ -198,7 +198,7 @@ define(function (require, exports, module) {
         this._updateSelectedMarker(false);
         
         // Changing height of rule list may change ht of overall editor
-        this._updateEditorMinHeight();
+        this._ruleListHeightChanged();
     };
     
     MultiRangeInlineEditor.prototype._createHeaderItem = function (doc) {
@@ -215,15 +215,19 @@ define(function (require, exports, module) {
     
     MultiRangeInlineEditor.prototype._renderList = function () {
         this.$rangeList.empty();
+        this._$headers = {};
         
         var lastSectionDoc,
-            headers = {},
+            self = this,
             nHeaders = 0,
             nFilesInSection = 0;
         
         function finalizeSection() {
             if (lastSectionDoc) {
-                headers[lastSectionDoc.file.fullPath].append(" (" + nFilesInSection + ")");
+                self._$headers[lastSectionDoc.file.fullPath].append(" (" + nFilesInSection + ")");
+                if (self._collapsedFiles[lastSectionDoc.file.fullPath]) {
+                    self._toggleSection(lastSectionDoc.file.fullPath, true);
+                }
             }
         }
         
@@ -238,8 +242,8 @@ define(function (require, exports, module) {
                 
                 // Create filename header for new section
                 nHeaders++;
-                var header = this._createHeaderItem(lastSectionDoc);
-                headers[lastSectionDoc.file.fullPath] = header;
+                var $header = this._createHeaderItem(lastSectionDoc);
+                this._$headers[lastSectionDoc.file.fullPath] = $header;
             }
             nFilesInSection++;
             this._createListItem(resultItem, index + nHeaders);
@@ -247,10 +251,6 @@ define(function (require, exports, module) {
         
         // Finalize last section
         finalizeSection();
-        
-        this._$headers = headers;
-        
-        // FIXME: calling this again later doesn't restore collapsed sections
     };
     
     
@@ -291,7 +291,7 @@ define(function (require, exports, module) {
             this._collapsedFiles[fullPath] = true;
         }.bind(this));
         
-        // create range list & add listeners for range textrange changes
+        // Render list & section headers (matching collapsed state set above)
         this._renderList();
         
         if (this._ranges.length > 1) {      // attach to main container
@@ -324,7 +324,6 @@ define(function (require, exports, module) {
             this.setSelectedIndex(indexToSelect);
         } else {
             // force the message div to show
-            // FIXME: wrong message - display a message indicating all results are collapsed
             this.setSelectedIndex(-1);
         }
         
@@ -354,28 +353,14 @@ define(function (require, exports, module) {
      * @override
      */
     MultiRangeInlineEditor.prototype.onAdded = function () {
-        // Before setting the inline widget height, force a height on the
-        // floating related-container in order for CodeMirror to layout and
-        // compute scrollbars
-        this.$relatedContainer.height(this.$related.height());
-
         // Set the initial position of the selected marker now that we're laid out.
         this._updateSelectedMarker(false);
 
         // Call super
         MultiRangeInlineEditor.prototype.parentClass.onAdded.apply(this, arguments);
 
-        // Update initial section collapsed state (can't do this in load() above since jQuery.hide() won't work reliably
-        // before we're in the DOM)
-        Object.keys(this._collapsedFiles).forEach(function (fullPath) {
-            this._toggleSection(fullPath, true);
-        }.bind(this));
-        
-        // Editor must be at least as tall as the related list
-        this._updateEditorMinHeight();
-        
-        // Set the initial inline widget height
-        this.sizeInlineWidgetToContents(true, false);
+        // Initially size the inline widget (calls sizeInlineWidgetToContents())
+        this._ruleListHeightChanged();
         
         this._updateCommands();
     };
@@ -412,15 +397,18 @@ define(function (require, exports, module) {
         if (newIndex === -1) {
             // show the message div
             this.setInlineContent(null);
-            if (this._messageCB) {
-                this._messageCB().done(function (msg) {
+            var hasHiddenMatches = this._ranges.length > 0;
+            if (hasHiddenMatches) {
+                this.$messageDiv.text(Strings.INLINE_EDITOR_HIDDEN_MATCHES);
+            } else if (this._messageCB) {
+                this._messageCB(hasHiddenMatches).done(function (msg) {
                     self.$messageDiv.html(msg);
                 });
             } else {
                 this.$messageDiv.text(Strings.INLINE_EDITOR_NO_MATCHES);
             }
             this.$htmlContent.append(this.$messageDiv);
-            this.sizeInlineWidgetToContents(true, false);
+            this.sizeInlineWidgetToContents();
         } else {
             this.$messageDiv.remove();
             
@@ -438,7 +426,7 @@ define(function (require, exports, module) {
             $(this.editor).on("cursorActivity.MultiRangeInlineEditor", this._ensureCursorVisible.bind(this));
             
             // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
-            this.sizeInlineWidgetToContents(true, false);
+            this.sizeInlineWidgetToContents();
     
             this._updateSelectedMarker(true);
         }
@@ -472,6 +460,15 @@ define(function (require, exports, module) {
         //   respect it (height: 100% doesn't seem to work properly with min-height on the parent)
         $(this.editor.getScrollerElement())
             .css("min-height", (ruleListNaturalHeight - headerHeight) + "px");
+    };
+    
+    /** Update inline widget height to reflect changed rule-list height */
+    MultiRangeInlineEditor.prototype._ruleListHeightChanged = function () {
+        // Editor's min height depends on rule list height
+        this._updateEditorMinHeight();
+        
+        // Overall widget height may have changed too
+        this.sizeInlineWidgetToContents();
     };
 
     MultiRangeInlineEditor.prototype._removeRange = function (range) {
@@ -552,15 +549,15 @@ define(function (require, exports, module) {
         }
         this._ranges.splice(i, 0, newRange);
         
-        // Add the new range to the UI and select it (showing the associated range in the editor)
+        // Update list with new range & ensure that the rule list becomes visible if needed
         this._renderList();
-        this.setSelectedIndex(i, true);  // force, since i might be same as before
-
-        // Ensure that the rule list becomes visible if it wasn't already and we have
-        // more than one rule.
+        
         if (this._ranges.length > 1 && !this.$relatedContainer.parent().length) {
             this.$wrapper.before(this.$relatedContainer);
         }
+        
+        // Select new range, showing it in the editor
+        this.setSelectedIndex(i, true);  // force, since i might be same as before
 
         this._updateCommands();
     };
@@ -724,13 +721,12 @@ define(function (require, exports, module) {
     /**
      * Sizes the inline widget height to be the maximum between the range list height and the editor height
      * @override 
-     * @param {boolean} force the editor to resize
-     * @param {boolean} ensureVisibility makes the parent editor scroll to display the inline editor. Default true.
+     * @param {?boolean} force the editor to resize (ignored)
      */
-    MultiRangeInlineEditor.prototype.sizeInlineWidgetToContents = function (force, ensureVisibility) {
+    MultiRangeInlineEditor.prototype.sizeInlineWidgetToContents = function (force) {
         // Size the code mirror editors height to the editor content
         // We use "call" rather than "apply" here since ensureVisibility was an argument added just for this override.
-        MultiRangeInlineEditor.prototype.parentClass.sizeInlineWidgetToContents.call(this, force);
+        MultiRangeInlineEditor.prototype.parentClass.sizeInlineWidgetToContents.call(this, true);
         
         // Size the widget height to the max between the editor/message content and the related ranges list
         var widgetHeight = Math.max(this.$related.height(),
@@ -738,7 +734,7 @@ define(function (require, exports, module) {
                                         (this._selectedRangeIndex === -1 ? this.$messageDiv.outerHeight() : this.$editorHolder.height()));
 
         if (widgetHeight) {
-            this.hostEditor.setInlineWidgetHeight(this, widgetHeight, ensureVisibility);
+            this.hostEditor.setInlineWidgetHeight(this, widgetHeight, false);
         }
     };
     
@@ -757,7 +753,7 @@ define(function (require, exports, module) {
      */
     MultiRangeInlineEditor.prototype.refresh = function () {
         MultiRangeInlineEditor.prototype.parentClass.refresh.apply(this, arguments);
-        this.sizeInlineWidgetToContents(true);
+        this.sizeInlineWidgetToContents();
         if (this.editor) {
             this.editor.refresh();
         }
