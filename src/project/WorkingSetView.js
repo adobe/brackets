@@ -299,11 +299,11 @@ define(function (require, exports, module) {
                  
                     containerOffset = $container.offset();
 
-                    scrollerTopArea = { top: containerOffset.top,
+                    scrollerTopArea = { top: containerOffset.top - 7,
                                         bottom: containerOffset.top + itemHeight };
 
                     scrollerBottomArea = { top: containerOffset.top + $container.height() - itemHeight,
-                                           bottom: containerOffset.top + $container.height() };
+                                           bottom: containerOffset.top + $container.height() + 7};
                 }
                 
                 if ($item[0] === $el[0]) {
