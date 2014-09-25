@@ -38,6 +38,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Sinulla ei ole oikeuksia tehdä muutoksia.",
     "CONTENTS_MODIFIED_ERR"             : "Tiedostoa on muokattu {APP_NAME}in ulkopuolella.",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} tukee tällä hetkellä vain UTF-8-koodattuja tekstitiedostoja.",
+    "UNSUPPORTED_FILE_TYPE_ERR"         : "Tiedosto ei ole tuettua tiedostotyyppiä.",
     "FILE_EXISTS_ERR"                   : "Tiedosto tai hakemisto on jo olemassa.",
     "FILE"                              : "tiedosto",
     "FILE_TITLE"                        : "tiedosto",
@@ -92,13 +93,13 @@ define({
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Esikatselun virhe",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Yhdistetään selaimeen",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Jotta esikatselu voi yhdistää, Chromen on käynnistyttävä uudelleen etävirheenjäljitys käytössä.<br /><br />Haluatko käynnistää Chromen uudelleen ja aktivoida etävirheenjäljityksen?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Ei kyetty lataamaan esikatselun sivua",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Jotta esikatselu voi muodostaa yhteyden, on Chromen käynnistyttävä uudelleen etävirheenjäljitys käytössä.<br /><br />Haluatko käynnistää Chromen uudelleen ja aktivoida etävirheenjäljityksen?<br /><br />",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Esikatselun sivua ei kyetty lataamaan.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Avaa HTML-tiedosto tai varmista, että projektissasi on index.html-tiedosto käynnistääksesi esikatselun.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Käynnistääksesi esikatselun palvelimella sijaitsevalla tiedostolla on tämän projektin URL-osoite määritettävä.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Virhe käynnistettäessä HTTP-palvelinta esikatselun tiedostoille. Yritäthän uudelleen.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Tervetuloa esikatseluun!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Esikatselu yhdistää {APP_NAME}in selaimeesi. Se avaa HTML-tiedostosi esikatselun selaimessa ja päivittyy sitten välittömästi muokatessasi koodia.<br /><br />Tässä varhaisessa {APP_NAME}-versiossa esikatselu toimii vain <strong>Google Chrome</strong>-selaimella ja päivittyy reaaliaikaisesti muokatessasi <strong>CSS- tai HTML-tiedostoja</strong>. Muutokset JavaScript-tiedostoihin päivittyvät tallentaessasi ne.<br /><br />(Näet tämän viestin vain kerran.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Esikatselu yhdistää {APP_NAME}in selaimeesi. Se avaa selaimessa HTML-tiedoston esikatselun, joka päivittyy välittömästi muokatessasi koodia.<br /><br />Tässä varhaisessa {APP_NAME}-versiossa esikatselu toimii vain <strong>Google Chrome</strong>-selaimella ja päivittyy reaaliaikaisesti muokatessasi <strong>CSS- tai HTML-tiedostoja</strong>. Muutokset JavaScript-tiedostoihin päivittyvät tallentaessasi ne.<br /><br />(Näet tämän viestin vain kerran.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Saadaksesi lisätietoja katso <a href='{0}' title='{0}'>Troubleshooting Live Preview connection errors</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Esikatselu",
@@ -221,6 +222,20 @@ define({
     "WORKING_FILES"     : "Työtiedostot",
 
     /**
+      * MainViewManager
+      */
+    "TOP"               : "Ylä",
+    "BOTTOM"            : "Ala",
+    "LEFT"              : "Vasen",
+    "RIGHT"             : "Oikea",
+
+    "CMD_SPLITVIEW_NONE"        : "Ei jakoa",
+    "CMD_SPLITVIEW_VERTICAL"    : "Pystysuora jako",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Vaakasuora jako",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Jaa muokkain pysty- tai vaakasuuntaisesti",
+    "GEAR_MENU_TOOLTIP"         : "Määritä työlista",
+
+    /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
@@ -247,7 +262,7 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Laajennukset poistettu käytöstä",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
-    "STATUSBAR_INSOVR_TOOLTIP"              : "Vaihda kohdistimen sijoitus- (INS) ja korvaus (OVR) -tilojen välillä napsauttamalla",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Vaihda kohdistimen sijoitus- (INS) ja korvaus (OVR) \u2011tilojen välillä napsauttamalla",
     "STATUSBAR_LANG_TOOLTIP"                : "Vaihda tiedostotyyppiä napsauttamalla",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Näytä tai piilota raporttipaneeli napsauttamalla.",
     "STATUSBAR_DEFAULT_LANG"                : "(oletus)",
@@ -276,7 +291,7 @@ define({
     "CMD_FILE_NEW"                        : "Uusi tiedosto",
     "CMD_FILE_NEW_FOLDER"                 : "Uusi kansio",
     "CMD_FILE_OPEN"                       : "Avaa\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Lisää työtilaan",
+    "CMD_ADD_TO_WORKING_SET"              : "Avaa työlistassa",
     "CMD_OPEN_DROPPED_FILES"              : "Avaa pudotetut tiedostot",
     "CMD_OPEN_FOLDER"                     : "Avaa kansio\u2026",
     "CMD_FILE_CLOSE"                      : "Sulje",
@@ -355,10 +370,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Tekstin rivitys",
     "CMD_LIVE_HIGHLIGHT"                  : "Esikatselun korostus",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Tarkista tiedostot tallennettaessa",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Järjestä lisäysajan mukaan",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Järjestä nimen mukaan",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Järjestä tyypin mukaan",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automaattinen järjestys",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Järjestä lisäysajan mukaan",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Järjestä nimen mukaan",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Järjestä tyypin mukaan",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automaattinen järjestys",
     "CMD_THEMES"                          : "Teemat\u2026",
 
     // Navigate menu Commands
@@ -397,12 +412,12 @@ define({
     "EXPERIMENTAL_BUILD"                   : "kokeellinen koontiversio",
     "DEVELOPMENT_BUILD"                    : "kehityskoontiversio",
     "RELOAD_FROM_DISK"                     : "Lataa uudelleen levyltä",
-    "KEEP_CHANGES_IN_EDITOR"               : "Pidä muutokset editorissa",
+    "KEEP_CHANGES_IN_EDITOR"               : "Pidä muutokset muokkaimessa",
     "CLOSE_DONT_SAVE"                      : "Sulje (Älä tallenna)",
     "RELAUNCH_CHROME"                      : "Käynnistä Chrome uudelleen",
     "ABOUT"                                : "Tietoja",
     "CLOSE"                                : "Sulje",
-    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "Julkaisu {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_BUILD_TIMESTAMP"           : "koontiversion aikaleima: ",
     "ABOUT_TEXT_LINE3"                     : "Kolmannen osapuolen ohjelmistoihin liittyvät ilmoitukset ja ehdot sijaitsevat osoitteessa <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> ja yhdistetään viitteisiin tässä.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentaatio ja lähdekoodi osoitteessa <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
@@ -421,13 +436,14 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei voi sisältää ristikkomerkkejä, kuten ”{0}”.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Erikoismerkkkien, kuten ’{0}’, täytyy olla %-koodattu.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Tuntematon virhe URL-osoitteen jäsentämisessä",
+    "EMPTY_VIEW_HEADER"                    : "<em>Valitse tiedosto tämän näkymän ollessa aktiivinen</em>",
 
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Nykyinen teema",
     "USE_THEME_SCROLLBARS"                 : "Käytä teeman vierityspalkkeja",
     "FONT_SIZE"                            : "Kirjasimen koko",
     "FONT_FAMILY"                          : "Kirjasinperhe",
-    "THEMES_SETTINGS"                      : "Teemojen asetukset",
+    "THEMES_SETTINGS"                      : "Teema-asetukset",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Uusi sääntö",
@@ -469,7 +485,7 @@ define({
     "DOWNLOAD_ID_IN_USE"                   : "Sisäinen virhe: Lataustunnus on jo käytössä.",
     "NO_SERVER_RESPONSE"                   : "Palvelimeen ei voida yhdistää.",
     "BAD_HTTP_STATUS"                      : "Tiedostoa ei löydy palvelimelta (HTTP {0}).",
-    "CANNOT_WRITE_TEMP"                    : "Latausta ei kyetty tallentamaan väliaistiedostoon.",
+    "CANNOT_WRITE_TEMP"                    : "Latausta ei kyetty tallentamaan tilapäistiedostoon.",
     "ERROR_LOADING"                        : "Laajennus kohtasi virheen käynnistyessä.",
     "MALFORMED_URL"                        : "URL-osoite on virheellinen. Tarkista, että annoit sen oikein.",
     "UNSUPPORTED_PROTOCOL"                 : "URL-osoitteen on oltava http- tai https-URL.",
@@ -594,4 +610,4 @@ define({
     "DOCS_MORE_LINK"                            : "Lue lisää"
 });
 
-/* Last translated for 8712385a6bf12277e6d0788d408e630a40c95a14 */
+/* Last translated for 69130cde282c13d7fd94759ce756bf8eb654ba1e */

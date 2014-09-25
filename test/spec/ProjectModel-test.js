@@ -1263,6 +1263,17 @@ define(function (require, exports, module) {
                 });
                 expect(vm.processChanges).not.toHaveBeenCalled();
             });
+            
+            it("should see events with a directory but no added or removed as an add", function () {
+                model.handleFSEvent({
+                    isFile: false,
+                    name: "newdir",
+                    fullPath: "/foo/newdir/"
+                });
+                expect(vm._treeData.get("newdir").toJS()).toEqual({
+                    children: null
+                });
+            });
         });
     });
 });

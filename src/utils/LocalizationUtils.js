@@ -26,7 +26,6 @@
 
 /**
  *  Utilities functions related to localization/i18n
- *
  */
 define(function (require, exports, module) {
     "use strict";
@@ -37,7 +36,7 @@ define(function (require, exports, module) {
      * Converts a language code to its written name, if possible.
      * If not possible, the language code is simply returned.
      *
-     * @param {string} locale   The two-char language code
+     * @param {string} locale The two-char language code
      * @return {string} The language's name or the given language code
      */
     function getLocalizedLabel(locale) {

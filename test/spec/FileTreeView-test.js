@@ -388,6 +388,26 @@ define(function (require, exports, module) {
                 expect(aTags[1].props.children[1]).toBe("afile");
             });
             
+            it("should sort directory contents according to the flag", function () {
+                var directory = Immutable.fromJS({
+                    children: {
+                        "afile.js": {},
+                        "subdir": {
+                            children: {}
+                        }
+                    },
+                    open: true
+                });
+                
+                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
+                    name: "hasDirs",
+                    entry: directory,
+                    sortDirectoriesFirst: true
+                }));
+                var html = rendered.getDOMNode().outerHTML;
+                expect(html.indexOf("subdir")).toBeLessThan(html.indexOf("afile"));
+            });
+            
             it("should rerender contents as needed", function () {
                 var props = {
                     parentPath          : "/foo/",
