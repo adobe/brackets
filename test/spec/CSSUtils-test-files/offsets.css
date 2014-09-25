@@ -49,3 +49,9 @@ div {
     /* nested comment */
     /* border: none */
 }
+/* another rule inside a comment to test https://github.com/adobe/brackets/issues/9002 */
+/*
+p {
+    color: "black";
+}
+*/
