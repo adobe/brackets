@@ -767,7 +767,22 @@ define(function (require, exports, module) {
                     expect(model._selections.rename).toBeUndefined();
                 });
 
-                it("should do nothing if there is no creation in progress when _doneCreating is called", function () {
+                it("can create an item with the default filename", function () {
+                    spyOn(model, "createAtPath").andReturn(new $.Deferred().resolve().promise());
+                    model.startCreating("/foo/subdir1/", "Untitled");
+                    expect(model._selections.rename.path).toBe("/foo/subdir1/Untitled");
+                    expect(model._selections.rename.newName).toBe("Untitled");
+                    changesFired = 0;
+                    model.performRename();
+                    expect(changesFired).toBeGreaterThan(0);
+                    expect(model.createAtPath).toHaveBeenCalledWith("/foo/subdir1/Untitled");
+                    expect(vm._treeData.getIn(["subdir1", "children", "Untitled"])).toBeDefined();
+                    expect(vm._treeData.getIn(["subdir1", "children", "Untitled", "creating"])).toBeUndefined();
+                    expect(vm._treeData.getIn(["subdir1", "children", "Untitled", "rename"])).toBeUndefined();
+                    expect(model._selections.rename).toBeUndefined();
+                });
+
+                it("should do nothing if there is no creation in progress when performRename is called", function () {
                     var treeData = vm._treeData;
                     model.performRename();
                     expect(changesFired).toBe(0);
@@ -838,6 +853,7 @@ define(function (require, exports, module) {
                                 isFolder: false
                             }
                         ]);
+                        expect(vm._treeData.get("Untitled")).toBeUndefined();
                     });
                 });
             });

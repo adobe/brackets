@@ -888,7 +888,7 @@ define(function (require, exports, module) {
             viewModel       = this._viewModel,
             self            = this;
 
-        if (oldName === newName) {
+        if (renameInfo.type !== FILE_CREATING && oldName === newName) {
             this.cancelRename();
             return;
         }
@@ -896,7 +896,7 @@ define(function (require, exports, module) {
         if (isFolder) {
             newPath += "/";
         }
-
+        
         delete this._selections.rename;
         delete this._selections.context;
         viewModel.moveMarker("rename", oldProjectPath, null);
@@ -908,7 +908,7 @@ define(function (require, exports, module) {
                 viewModel.renameItem(oldProjectPath, newName);
                 renameInfo.deferred.resolve(entry);
             }).fail(function (error) {
-                self._cancelCreating();
+                self._viewModel.deleteAtPath(self.makeProjectRelativeIfPossible(renameInfo.path));
                 renameInfo.deferred.reject(error);
             });
         } else {
