@@ -236,8 +236,8 @@ define({
 	"SPLITVIEW_MENU_TOOLTIP": "エディターを垂直方向 / 水平方向に分割",
 	"GEAR_MENU_TOOLTIP": "ワーキングセットを構成",
 
-	"SPLITVIEW_INFO_TITLE": "!能=[7765195] Already Open_=!",
-	"SPLITVIEW_MULTIPANE_WARNING": "!能=[7765196] The file is already open in another pane. {APP_NAME} will soon support opening the same file in more than one pane. Until then, the file will be shown in the pane it's already open in.<br /><br />(You'll only see this message once.)_=!",
+	"SPLITVIEW_INFO_TITLE": "既に開かれています",
+	"SPLITVIEW_MULTIPANE_WARNING": "ファイルは他のペインで既に開かれています。{APP_NAME} ではまもなく複数のペインで同じファイルを開くことが可能になる予定です。それまでは、ファイルは既に開かれているペインで表示されます。<br /><br />(このメッセージは一度しか表示されません。)",
 
     /**
      * Keyboard modifier names

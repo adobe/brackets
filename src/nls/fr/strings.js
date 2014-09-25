@@ -236,8 +236,8 @@ define({
 	"SPLITVIEW_MENU_TOOLTIP": "Fractionner l’éditeur horizontalement ou verticalement",
 	"GEAR_MENU_TOOLTIP": "Configurer l’ensemble de travail",
 
-	"SPLITVIEW_INFO_TITLE": "[7765195] !é=Already Open=!",
-	"SPLITVIEW_MULTIPANE_WARNING": "[7765196] !é=The file is already open in another pane. {APP_NAME} will soon support opening the same file in more than one pane. Until then, the file will be shown in the pane it's already open in.<br /><br />(You'll only see this message once.)=!",
+	"SPLITVIEW_INFO_TITLE": "Déjà ouvert",
+	"SPLITVIEW_MULTIPANE_WARNING": "Ce fichier est déjà ouvert dans un autre volet. Il sera bientôt possible d’ouvrir un même fichier dans plusieurs volets de l’application {APP_NAME}, mais en attendant, vous ne pouvez consulter le fichier que dans le volet dans lequel il est déjà ouvert.<br /><br />(Ce message ne s’affichera qu’une fois.)",
 
     /**
      * Keyboard modifier names
