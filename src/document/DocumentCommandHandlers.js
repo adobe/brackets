@@ -315,7 +315,7 @@ define(function (require, exports, module) {
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @param {boolean=} silent - If true, don't show error message
      * @param {string=}  paneId - the pane in which to open the file. Can be undefined, a valid pane id or ACTIVE_PANE
-     * @param {{*}} options - options to pass to MainViewManager._open
+     * @param {{*}=} options - options to pass to MainViewManager._open
      * @return {$.Promise} a jQuery promise resolved with a Document object or 
      *                      rejected with an err 
      */
