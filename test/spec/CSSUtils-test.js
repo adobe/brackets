@@ -482,6 +482,15 @@ define(function (require, exports, module) {
                 expect(selector).toEqual("");
             });
             
+            // https://github.com/adobe/brackets/issues/9002
+            it("should not hang when the cursor is after '{' or '}' inside comments", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 53, ch: 3});   // after {
+                expect(selector).toEqual("");
+                
+                selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 55, ch: 1}); // after }
+                expect(selector).toEqual("");
+            });
+
             it("should find rules adjacent to comments", function () {
                 var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 47, ch: 4});
                 expect(selector).toEqual("div");
