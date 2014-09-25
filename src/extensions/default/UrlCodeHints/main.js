@@ -60,6 +60,7 @@ define(function (require, exports, module) {
         var directory,
             doc,
             docDir,
+            editor,
             queryDir = "",
             queryUrl,
             result = [],
@@ -67,8 +68,13 @@ define(function (require, exports, module) {
             targetDir,
             unfiltered = [];
 
-        // get path to current document
-        doc = DocumentManager.getCurrentDocument();
+        // get path to document in focused editor
+        editor = EditorManager.getFocusedEditor();
+        if (!editor) {
+            return result;
+        }
+
+        doc = editor.document;
         if (!doc || !doc.file) {
             return result;
         }
@@ -352,17 +358,20 @@ define(function (require, exports, module) {
                     query = "";
                 }
                 
-                var hintsAndSortFunc = this._getUrlHints({queryStr: query});
-                var hints = hintsAndSortFunc.hints;
+                var hintsAndSortFunc = this._getUrlHints({queryStr: query}),
+                    hints = hintsAndSortFunc.hints;
+
                 if (hints instanceof Array) {
                     // If we got synchronous hints, check if we have something we'll actually use
                     var i, foundPrefix = false;
+                    query = query.toLowerCase();
                     for (i = 0; i < hints.length; i++) {
-                        if (hints[i].indexOf(query) === 0) {
+                        if (hints[i].toLowerCase().indexOf(query) === 0) {
                             foundPrefix = true;
                             break;
                         }
                     }
+
                     if (!foundPrefix) {
                         query = null;
                     }
@@ -473,9 +482,10 @@ define(function (require, exports, module) {
 
         if (hints instanceof Array && hints.length) {
             // Array was returned
+            var lowerCaseFilter = filter.toLowerCase();
             console.assert(!result.length);
             result = $.map(hints, function (item) {
-                if (item.indexOf(filter) === 0) {
+                if (item.toLowerCase().indexOf(lowerCaseFilter) === 0) {
                     return item;
                 }
             }).sort(sortFunc);
@@ -491,8 +501,9 @@ define(function (require, exports, module) {
             // Deferred hints were returned
             var deferred = $.Deferred();
             hints.done(function (asyncHints) {
+                var lowerCaseFilter = filter.toLowerCase();
                 result = $.map(asyncHints, function (item) {
-                    if (item.indexOf(filter) === 0) {
+                    if (item.toLowerCase().indexOf(lowerCaseFilter) === 0) {
                         return item;
                     }
                 }).sort(sortFunc);
@@ -650,9 +661,19 @@ define(function (require, exports, module) {
             hasClosingParen = (closingPos.index !== -1);
         }
 
-        // Adjust insert char positions to replace existing value, if there is a closing paren
-        if (closingPos.index !== -1) {
-            end.ch += this.getCharOffset(this.info.values, this.info, closingPos);
+        // Insert folder names, but replace file names, so if a file is selected
+        // (i.e. closeOnSelect === true), then adjust insert char positions to
+        // replace existing value, if there is a closing paren
+        if (this.closeOnSelect) {
+            if (closingPos.index !== -1) {
+                end.ch += this.getCharOffset(this.info.values, this.info, closingPos);
+            }
+        } else {
+            // If next char is "/", then overwrite it since we're inserting a "/"
+            var nextSlash = this.findNextPosInArray(this.info.values, "/", this.info);
+            if (nextSlash.index === this.info.index && nextSlash.offset === this.info.offset) {
+                end.ch += 1;
+            }
         }
         if (this.info.filter.length > 0) {
             start.ch -= this.info.filter.length;
@@ -715,15 +736,16 @@ define(function (require, exports, module) {
             charCount = 0,
             replaceExistingOne = tagInfo.attr.valueAssigned,
             endQuote = "",
-            shouldReplace = true;
+            shouldReplace = false;
 
         if (tokenType === HTMLUtils.ATTR_VALUE) {
-            charCount = tagInfo.attr.value.length;
-            
             // Special handling for URL hinting -- if the completion is a file name
             // and not a folder, then close the code hint list.
             if (!this.closeOnSelect && completion.match(/\/$/) === null) {
                 this.closeOnSelect = true;
+
+                // Insert folder names, but replace file names
+                shouldReplace = true;
             }
             
             if (!tagInfo.attr.hasEndQuote) {
@@ -736,19 +758,26 @@ define(function (require, exports, module) {
             } else if (completion === tagInfo.attr.value) {
                 shouldReplace = false;
             }
+
+            if (shouldReplace) {
+                // Replace entire value
+                charCount = tagInfo.attr.value.length;
+            } else {
+                // Replace filter (to insert new selection)
+                charCount = this.info.filter.length;
+
+                // If next char is "/", then overwrite it since we're inserting a "/"
+                if (this.info.attr.value.length > charCount && this.info.attr.value[charCount] === "/") {
+                    charCount += 1;
+                }
+            }
         }
 
         end.line = start.line = cursor.line;
         start.ch = cursor.ch - tagInfo.position.offset;
         end.ch = start.ch + charCount;
 
-        if (shouldReplace) {
-            if (start.ch !== end.ch) {
-                this.editor.document.replaceRange(completion, start, end);
-            } else {
-                this.editor.document.replaceRange(completion, start);
-            }
-        }
+        this.editor.document.replaceRange(completion, start, end);
 
         if (!this.closeOnSelect) {
             // If we append the missing quote, then we need to adjust the cursor postion

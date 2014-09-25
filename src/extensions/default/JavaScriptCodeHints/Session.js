@@ -200,7 +200,7 @@ define(function (require, exports, module) {
                 break;
             }
             prev = this.getToken(cursor);
-        } while (prev.string.trim() === "");
+        } while (!/\S/.test(prev.string));
         
         return prev;
     };
@@ -232,7 +232,7 @@ define(function (require, exports, module) {
                 break;
             }
             next = this.getToken(cursor);
-        } while (skipWhitespace && next.string.trim() === "");
+        } while (skipWhitespace && !/\S/.test(next.string));
         
         return next;
     };
@@ -549,7 +549,7 @@ define(function (require, exports, module) {
          *
          * @param {Array} hints - array of hints
          * @param {StringMatcher} matcher
-         * @returns {Array} - array of matching hints.
+         * @return {Array} - array of matching hints.
          */
         function filterWithQueryAndMatcher(hints, matcher) {
             var matchResults = $.map(hints, function (hint) {

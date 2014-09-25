@@ -31,8 +31,9 @@ define(function (require, exports, module) {
         CommandManager          = brackets.getModule("command/CommandManager"),
         Commands                = brackets.getModule("command/Commands"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
+        MainViewManager         = brackets.getModule("view/MainViewManager"),
         Strings                 = brackets.getModule("strings"),
-        workingSetCmenu         = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU),
+        workingSetListCmenu       = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU),
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager");
 
     // Constants
@@ -41,110 +42,147 @@ define(function (require, exports, module) {
         closeBelow              = "file.close_below";
 
     // Global vars and preferences
-    var commandsRegistered  = false,
-        menuEntriesShown    = {},
-        prefs               = PreferencesManager.getExtensionPrefs("closeOthers");
-    prefs.definePreference("below", "boolean", true);
+    var prefs                   = PreferencesManager.getExtensionPrefs("closeOthers"),
+        menuEntriesShown        = {};
+    
+    prefs.definePreference("below",  "boolean", true);
     prefs.definePreference("others", "boolean", true);
-    prefs.definePreference("above", "boolean", true);
-
+    prefs.definePreference("above",  "boolean", true);
+    
+    
+    /**
+     * Handle the different Close Other commands
+     * @param {string} mode
+     */
     function handleClose(mode) {
-
-        var targetIndex = DocumentManager.findInWorkingSet(DocumentManager.getCurrentDocument().file.fullPath),
-            workingSet  = DocumentManager.getWorkingSet().slice(0),
-            start       = (mode === closeBelow) ? (targetIndex + 1) : 0,
-            end         = (mode === closeAbove) ? (targetIndex) : (workingSet.length),
-            files       = [],
+        var targetIndex  = MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)),
+            workingSetList = MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE),
+            start        = (mode === closeBelow) ? (targetIndex + 1) : 0,
+            end          = (mode === closeAbove) ? (targetIndex) : (workingSetList.length),
+            files        = [],
             i;
-        
-        if (mode === closeOthers) {
-            end--;
-            workingSet.splice(targetIndex, 1);
-        }
-        
+
         for (i = start; i < end; i++) {
-            files.push(workingSet[i]);
+            if ((mode === closeOthers && i !== targetIndex) || (mode !== closeOthers)) {
+                files.push(workingSetList[i]);
+            }
         }
         
         CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: files});
     }
-
-    function _contextMenuOpenHandler() {
-        var doc = DocumentManager.getCurrentDocument();
+    
+    /**
+     * Enable/Disable the menu items depending on which document is selected in the working set
+     */
+    function contextMenuOpenHandler() {
+        var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
         
-        if (doc) {
-            var docIndex   = DocumentManager.findInWorkingSet(doc.file.fullPath),
-                workingSet = DocumentManager.getWorkingSet().slice(0);
+        if (file) {
+            var targetIndex  = MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, file.fullPath),
+                workingSetListSize = MainViewManager.getWorkingSetSize(MainViewManager.ACTIVE_PANE);
             
-            if (docIndex === workingSet.length - 1) { // hide "Close Others Below" if the last file in Working Files is selected
+            if (targetIndex === workingSetListSize - 1) { // hide "Close Others Below" if the last file in Working Files is selected
                 CommandManager.get(closeBelow).setEnabled(false);
             } else {
                 CommandManager.get(closeBelow).setEnabled(true);
             }
             
-            if (workingSet.length === 1) { // hide "Close Others" if there is only one file in Working Files
+            if (workingSetListSize === 1) { // hide "Close Others" if there is only one file in Working Files
                 CommandManager.get(closeOthers).setEnabled(false);
             } else {
                 CommandManager.get(closeOthers).setEnabled(true);
             }
             
-            if (docIndex === 0) { // hide "Close Others Above" if the first file in Working Files is selected
+            if (targetIndex === 0) { // hide "Close Others Above" if the first file in Working Files is selected
                 CommandManager.get(closeAbove).setEnabled(false);
             } else {
                 CommandManager.get(closeAbove).setEnabled(true);
             }
         }
     }
-
-    function prefChangeHandler() {
-        // it's senseless to look prefs up for the current file, instead look them up for
+    
+    
+    /**
+     * Returns the preferences used to add/remove the menu items
+     * @return {{closeBelow: boolean, closeOthers: boolean, closeAbove: boolean}}
+     */
+    function getPreferences() {
+        // It's senseless to look prefs up for the current file, instead look them up for
         // the current project (or globally)
-        var prefCloseBelow  = prefs.get("below", PreferencesManager.CURRENT_PROJECT),
-            prefCloseOthers = prefs.get("others", PreferencesManager.CURRENT_PROJECT),
-            prefCloseAbove  = prefs.get("above", PreferencesManager.CURRENT_PROJECT);
+        return {
+            closeBelow  : prefs.get("below",  PreferencesManager.CURRENT_PROJECT),
+            closeOthers : prefs.get("others", PreferencesManager.CURRENT_PROJECT),
+            closeAbove  : prefs.get("above",  PreferencesManager.CURRENT_PROJECT)
+        };
+    }
+    
+    /**
+     * When the preferences changed, add/remove the required menu items
+     */
+    function prefChangeHandler() {
+        var prefs = getPreferences();
         
-        if (!commandsRegistered && (prefCloseBelow || prefCloseOthers || prefCloseAbove)) {
-            CommandManager.register(Strings.CMD_FILE_CLOSE_BELOW, closeBelow, function () {
-                handleClose(closeBelow);
-            });
-            CommandManager.register(Strings.CMD_FILE_CLOSE_OTHERS, closeOthers, function () {
-                handleClose(closeOthers);
-            });
-            CommandManager.register(Strings.CMD_FILE_CLOSE_ABOVE, closeAbove, function () {
-                handleClose(closeAbove);
-            });
-            commandsRegistered = true;
+        if (prefs.closeBelow !== menuEntriesShown.closeBelow) {
+            if (prefs.closeBelow) {
+                workingSetListCmenu.addMenuItem(closeBelow, "", Menus.AFTER, Commands.FILE_CLOSE);
+            } else {
+                workingSetListCmenu.removeMenuItem(closeBelow);
+            }
         }
         
-        if (prefCloseBelow !== menuEntriesShown.closeBelow) {
-            if (prefCloseBelow) {
-                workingSetCmenu.addMenuItem(closeBelow, "", Menus.AFTER, Commands.FILE_CLOSE);
+        if (prefs.closeOthers !== menuEntriesShown.closeOthers) {
+            if (prefs.closeOthers) {
+                workingSetListCmenu.addMenuItem(closeOthers, "", Menus.AFTER, Commands.FILE_CLOSE);
             } else {
-                workingSetCmenu.removeMenuItem(closeBelow);
+                workingSetListCmenu.removeMenuItem(closeOthers);
             }
         }
-        if (prefCloseOthers !== menuEntriesShown.closeOthers) {
-            if (prefCloseOthers) {
-                workingSetCmenu.addMenuItem(closeOthers, "", Menus.AFTER, Commands.FILE_CLOSE);
+        
+        if (prefs.closeAbove !== menuEntriesShown.closeAbove) {
+            if (prefs.closeAbove) {
+                workingSetListCmenu.addMenuItem(closeAbove, "", Menus.AFTER, Commands.FILE_CLOSE);
             } else {
-                workingSetCmenu.removeMenuItem(closeOthers);
+                workingSetListCmenu.removeMenuItem(closeAbove);
             }
         }
-        if (prefCloseAbove !== menuEntriesShown.closeAbove) {
-            if (prefCloseAbove) {
-                workingSetCmenu.addMenuItem(closeAbove, "", Menus.AFTER, Commands.FILE_CLOSE);
-            } else {
-                workingSetCmenu.removeMenuItem(closeAbove);
-            }
+        
+        menuEntriesShown = prefs;
+    }
+    
+    /**
+     * Register the Commands and add the Menu Items, if required
+     */
+    function initializeCommands() {
+        var prefs = getPreferences();
+        
+        CommandManager.register(Strings.CMD_FILE_CLOSE_BELOW, closeBelow, function () {
+            handleClose(closeBelow);
+        });
+        CommandManager.register(Strings.CMD_FILE_CLOSE_OTHERS, closeOthers, function () {
+            handleClose(closeOthers);
+        });
+        CommandManager.register(Strings.CMD_FILE_CLOSE_ABOVE, closeAbove, function () {
+            handleClose(closeAbove);
+        });
+        
+        if (prefs.closeBelow) {
+            workingSetListCmenu.addMenuItem(closeBelow, "", Menus.AFTER, Commands.FILE_CLOSE);
         }
-        menuEntriesShown = {"closeBelow": prefCloseBelow, "closeOthers": prefCloseOthers, "closeAbove": prefCloseAbove};
+        if (prefs.closeOthers) {
+            workingSetListCmenu.addMenuItem(closeOthers, "", Menus.AFTER, Commands.FILE_CLOSE);
+        }
+        if (prefs.closeAbove) {
+            workingSetListCmenu.addMenuItem(closeAbove, "", Menus.AFTER, Commands.FILE_CLOSE);
+        }
+        menuEntriesShown = prefs;
     }
 
+    
     // Initialize using the prefs
-    prefChangeHandler();
+    initializeCommands();
 
     // Add a context menu open handler
-    $(workingSetCmenu).on("beforeContextMenuOpen", _contextMenuOpenHandler);
+    $(workingSetListCmenu).on("beforeContextMenuOpen", contextMenuOpenHandler);
 
     prefs.on("change", prefChangeHandler);
 });

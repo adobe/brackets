@@ -111,8 +111,7 @@ define(function (require, exports, module) {
                     waitsForFail(promise, "loadStyleSheet: " + path);
                 });
             });
-            
-            // putting everything LESS related in 1 test so it runs faster
+
             it("should attach LESS style sheets", function () {
                 var promise, result;
                 
@@ -133,6 +132,35 @@ define(function (require, exports, module) {
                     // confirm style sheet contents
                     expect(windowText).toBe(lessText);
                     
+                    // confirm style is attached to document
+                    expect(testWindow.$.contains(testWindow.document, result)).toBeTruthy();
+                });
+            });
+
+            it("should attach LESS style sheets using absolute url", function () {
+                var promise, result;
+
+                runs(function () {
+                    var indexLocation = testWindow.location.origin + testWindow.location.pathname,
+                        bracketsLocation = indexLocation.substring(0, indexLocation.length - "src/index.html".length),
+                        basicLessLocation = bracketsLocation + "test/spec/ExtensionUtils-test-files/basic.less";
+
+                    promise = loadStyleSheet(testWindow.document, basicLessLocation);
+                    promise.done(function (style) {
+                        result = style;
+                    });
+
+                    waitsForDone(promise);
+                });
+
+                runs(function () {
+                    // convert all line endings to platform default
+                    var windowText = FileUtils.translateLineEndings(testWindow.$(result).text()),
+                        lessText   = FileUtils.translateLineEndings(LESS_RESULT);
+
+                    // confirm style sheet contents
+                    expect(windowText).toBe(lessText);
+
                     // confirm style is attached to document
                     expect(testWindow.$.contains(testWindow.document, result)).toBeTruthy();
                 });

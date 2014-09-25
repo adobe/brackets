@@ -116,12 +116,12 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @constructor
-     *
      * A SimpleNode represents one node in a SimpleDOM tree. Each node can have
      * any set of properties on it, though there are a couple of assumptions made.
      * Elements will have `children` and `attributes` properties. Text nodes will have a `content`
      * property. All Elements will have a `tagID` and text nodes *can* have one.
+     *
+     * @constructor
      *
      * @param {Object} properties the properties provided will be set on the new object.
      */
@@ -227,12 +227,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @constructor
-     *
      * A Builder creates a SimpleDOM tree of SimpleNode objects representing the
      * "important" contents of an HTML document. It does not include things like comments.
      * The nodes include information about their position in the text provided.
      * 
+     * @constructor
+     *
      * @param {string} text The text to parse
      * @param {?int} startOffset starting offset in the text
      * @param {?{line: int, ch: int}} startOffsetPos line/ch position in the text

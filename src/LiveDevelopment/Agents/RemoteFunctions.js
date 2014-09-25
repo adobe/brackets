@@ -254,27 +254,26 @@ function RemoteFunctions(experimental) {
                 "border-bottom-right-radius": styles.borderBottomRightRadius,
                 "border-style": "solid",
                 "border-width": "1px",
-                "border-color": "rgb(94,167,255)",
+                "border-color": "#00a2ff",
+                "box-shadow": "0 0 1px #fff",
                 "box-sizing": "border-box"
             };
             
             var animateStartValues = {
-                "opacity": 0,
-                "background": "rgba(94,167,255, 0.5)",
-                "box-shadow": "0 0 6px 1px rgba(94,167,255, 0.6), inset 0 0 4px 1px rgba(255,255,255,1)"
+                "background-color": "rgba(0, 162, 255, 0.5)",
+                "opacity": 0
             };
             
             var animateEndValues = {
-                "opacity": 1,
-                "background": "rgba(94,167,255, 0.1)",
-                "box-shadow": "0 0 1px 0 rgba(94,167,255, 0), inset 0 0 4px 1px rgba(255,255,255,0.8)"
+                "background-color": "rgba(0, 162, 255, 0)",
+                "opacity": 1
             };
             
             var transitionValues = {
-                "-webkit-transition-property": "opacity, box-shadow, background",
-                "-webkit-transition-duration": "0.3s, 0.4s, 0.4s",
-                "transition-property": "opacity, box-shadow, background",
-                "transition-duration": "0.3s, 0.4s, 0.4s"
+                "-webkit-transition-property": "opacity, background-color",
+                "-webkit-transition-duration": "300ms, 2.3s",
+                "transition-property": "opacity, background-color",
+                "transition-duration": "300ms, 2.3s"
             };
             
             function _setStyleValues(styleValues, obj) {

@@ -29,7 +29,6 @@ define(function (require, exports, module) {
     "use strict";
     
     /*
-     * @constructor
      * Represents file or directory structure watched by the FileSystem. If the
      * entry is a directory, all children (that pass the supplied filter function)
      * are also watched. A WatchedRoot object begins and ends its life in the
@@ -39,6 +38,7 @@ define(function (require, exports, module) {
      *
      * See the FileSystem class for more details.
      *
+     * @constructor
      * @param {File|Directory} entry 
      * @param {function(string, string):boolean} filter 
      */

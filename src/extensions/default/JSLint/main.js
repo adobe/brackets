@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var CodeInspection     = brackets.getModule("language/CodeInspection"),
+        Editor             = brackets.getModule("editor/Editor").Editor,
         PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
         Strings            = brackets.getModule("strings"),
         _                  = brackets.getModule("thirdparty/lodash");
@@ -49,7 +50,7 @@ define(function (require, exports, module) {
      */
     var _lastRunOptions;
     
-    prefs.definePreference("options", "object")
+    prefs.definePreference("options", "object", undefined)
         .on("change", function (e, data) {
             var options = prefs.get("options");
             if (!_.isEqual(options, _lastRunOptions)) {
@@ -60,21 +61,18 @@ define(function (require, exports, module) {
     // Predefined environments understood by JSLint.
     var ENVIRONMENTS = ["browser", "node", "couch", "rhino"];
     
+    // gets indentation size depending whether the tabs or spaces are used
+    function _getIndentSize(fullPath) {
+        return Editor.getUseTabChar(fullPath) ? Editor.getTabSize(fullPath) : Editor.getSpaceUnits(fullPath);
+    }
+
     /**
      * Run JSLint on the current document. Reports results to the main UI. Displays
      * a gold star when no errors are found.
      */
     function lintOneFile(text, fullPath) {
-        // If a line contains only whitespace, remove the whitespace
-        // This should be doable with a regexp: text.replace(/\r[\x20|\t]+\r/g, "\r\r");,
-        // but that doesn't work.
-        var i, arr = text.split("\n");
-        for (i = 0; i < arr.length; i++) {
-            if (!arr[i].match(/\S/)) {
-                arr[i] = "";
-            }
-        }
-        text = arr.join("\n");
+        // If a line contains only whitespace (here spaces or tabs), remove the whitespace
+        text = text.replace(/^[ \t]+$/gm, "");
         
         var options = prefs.get("options");
 
@@ -88,7 +86,7 @@ define(function (require, exports, module) {
         
         if (!options.indent) {
             // default to using the same indentation value that the editor is using
-            options.indent = PreferencesManager.get("spaceUnits");
+            options.indent = _getIndentSize(fullPath);
         }
         
         // If the user has not defined the environment, we use browser by default.

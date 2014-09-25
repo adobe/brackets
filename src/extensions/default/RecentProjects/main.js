@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
         Menus                   = brackets.getModule("command/Menus"),
         EditorManager           = brackets.getModule("editor/EditorManager"),
+        MainViewManager         = brackets.getModule("view/MainViewManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         FileSystem              = brackets.getModule("filesystem/FileSystem"),
         AppInit                 = brackets.getModule("utils/AppInit"),
@@ -114,7 +115,7 @@ define(function (require, exports, module) {
      * Create the "delete" button that shows up when you hover over a project.
      */
     function renderDelete() {
-        return $("<div id='recent-folder-delete' class='trash-icon'></div>")
+        return $("<div id='recent-folder-delete' class='trash-icon'>&times;</div>")
             .mouseup(function (e) {
                 // Don't let the click bubble upward.
                 e.stopPropagation();
@@ -268,7 +269,8 @@ define(function (require, exports, module) {
         $("#titlebar .nav").off("click", closeDropdown);
         $dropdown = null;
 
-        EditorManager.focusEditor();
+        MainViewManager.focusActivePane();
+
         $(window).off("keydown", keydownHook);
     }
 
@@ -450,7 +452,7 @@ define(function (require, exports, module) {
 
     // Initialize extension
     AppInit.appReady(function () {
-        ExtensionUtils.loadStyleSheet(module, "styles/styles.css");
+        ExtensionUtils.loadStyleSheet(module, "styles/styles.less");
 
         $(ProjectManager).on("projectOpen", add);
         $(ProjectManager).on("beforeProjectClose", add);
@@ -458,7 +460,7 @@ define(function (require, exports, module) {
 
     AppInit.htmlReady(function () {
         $("#project-title")
-            .wrap("<div id='project-dropdown-toggle'></div>")
+            .wrap("<div id='project-dropdown-toggle' class='btn-alt-quiet'></div>")
             .after("<span class='dropdown-arrow'></span>");
 
         var cmenuAdapter = {

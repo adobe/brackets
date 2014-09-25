@@ -505,7 +505,7 @@ define(function (require, exports, module) {
 
     /**
      * Returns a copy of the keymap
-     * @returns {!Object.<string, {commandID: string, key: string, displayKey: string}>}
+     * @return {!Object.<string, {commandID: string, key: string, displayKey: string}>}
      */
     function getKeymap() {
         return $.extend({}, _keyMap);
@@ -556,12 +556,12 @@ define(function (require, exports, module) {
      * Add one or more key bindings to a particular Command.
      *
      * @param {!string | Command} command - A command ID or command object
-     * @param {?({key: string, displayKey: string} | Array.<{key: string, displayKey: string, platform: string}>)} keyBindings
-     *     a single key binding or an array of keybindings. Example:
+     * @param {?({key: string, displayKey: string}|Array.<{key: string, displayKey: string, platform: string}>)} keyBindings
+     *     A single key binding or an array of keybindings. Example:
      *     "Shift-Cmd-F". Mac and Win key equivalents are automatically
      *     mapped to each other. Use displayKey property to display a different
      *     string (e.g. "CMD+" instead of "CMD=").
-     * @param {?string} platform - the target OS of the keyBindings either
+     * @param {?string} platform The target OS of the keyBindings either
      *     "mac", "win" or "linux". If undefined, all platforms not explicitly
      *     defined will use the key binding.
      * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>}

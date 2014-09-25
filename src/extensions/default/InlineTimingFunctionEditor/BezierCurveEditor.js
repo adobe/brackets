@@ -160,11 +160,11 @@ define(function (require, exports, module) {
                 setting;
 
             var defaultSettings = {
-                handleTimingFunction: "#1461FC",
+                handleTimingFunction: "#2893ef",
                 handleThickness: 0.008,
                 vBorderThickness: 0.02,
                 hBorderThickness: 0.01,
-                bezierTimingFunction: "#1461FC",
+                bezierTimingFunction: "#2893ef",
                 bezierThickness: 0.03
             };
 
@@ -305,7 +305,7 @@ define(function (require, exports, module) {
             bezierEditor._commitTimingFunction();
 
             bezierEditor._updateCanvas();
-            animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
+            animationRequest = window.requestAnimationFrame(mouseMoveRedraw);
         }
 
         // This is a dragging state, but left button is no longer down, so mouse
@@ -336,7 +336,7 @@ define(function (require, exports, module) {
             .concat(bezierEditor.bezierCanvas.offsetsToCoordinates(bezierEditor.P2));
 
         if (!animationRequest) {
-            animationRequest = window.webkitRequestAnimationFrame(mouseMoveRedraw);
+            animationRequest = window.requestAnimationFrame(mouseMoveRedraw);
         }
     }
 
@@ -530,13 +530,14 @@ define(function (require, exports, module) {
         // current cubic-bezier() function params
         this._cubicBezierCoords = this._getCubicBezierCoords(bezierCurve);
 
-        this.hint = $(".hint", this.$element);
+        this.hint = {};
+        this.hint.elem = $(".hint", this.$element);
         // If function was auto-corrected, then originalString holds the original function,
         // and an informational message needs to be shown
         if (bezierCurve.originalString) {
-            TimingFunctionUtils.showHideHint(this, true, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")");
+            TimingFunctionUtils.showHideHint(this.hint, true, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")");
         } else {
-            TimingFunctionUtils.showHideHint(this, false);
+            TimingFunctionUtils.showHideHint(this.hint, false);
         }
 
         this.P1 = this.$element.find(".P1")[0];
@@ -611,7 +612,7 @@ define(function (require, exports, module) {
             this._cubicBezierCoords[2] + ", " +
             this._cubicBezierCoords[3] + ")";
         this._callback(bezierCurveVal);
-        TimingFunctionUtils.showHideHint(this, false);
+        TimingFunctionUtils.showHideHint(this.hint, false);
     };
 
     /**
@@ -697,9 +698,9 @@ define(function (require, exports, module) {
         // If function was auto-corrected, then originalString holds the original function,
         // and an informational message needs to be shown
         if (bezierCurve.originalString) {
-            TimingFunctionUtils.showHideHint(this, true, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")");
+            TimingFunctionUtils.showHideHint(this.hint, true, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")");
         } else {
-            TimingFunctionUtils.showHideHint(this, false);
+            TimingFunctionUtils.showHideHint(this.hint, false);
         }
     };
 

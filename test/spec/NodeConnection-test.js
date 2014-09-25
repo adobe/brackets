@@ -46,6 +46,8 @@ define(function (require, exports, module) {
     
     describe("Node Connection", function () {
 
+        this.category = "livepreview";
+
         var _connectionsToAutoDisconnect = null;
         
         function createConnection() {

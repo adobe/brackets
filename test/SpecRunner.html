@@ -38,7 +38,7 @@
   <script src="../src/thirdparty/jquery-2.1.0.min.js"></script>
   <script src="../src/thirdparty/mustache/mustache.js"></script>
   <script src="../src/thirdparty/path-utils/path-utils.js"></script>
-  <script src="../src/thirdparty/less-1.4.2.min.js"></script>
+  <script src="../src/thirdparty/less-1.7.0.min.js"></script>
   <script src="thirdparty/bootstrap2/js/bootstrap.min.js"></script>
     
   <!-- All other scripts are loaded through require. -->
@@ -47,7 +47,6 @@
 </head>
 
 <body>
-
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
@@ -62,15 +61,17 @@
               <li><a id="all" href="?suite=all">All</a></li>
               <li><a id="unit" href="?suite=unit">Unit</a></li>
               <li><a id="integration" href="?suite=integration">Integration</a></li>
+              <li><a id="livepreview" href="?suite=livepreview">Live&nbsp;Preview</a></li>
+              <li><a id="mainview"    href="?suite=mainview">Main&nbsp;View</a></li>
               <li><a id="performance" href="?suite=performance">Performance</a></li>
               <li><a id="extension" href="?suite=extension">Extensions</a></li>
               <li><a id="reload" href="#">Reload</a></li>
-              <li><a id="show-dev-tools" href="#">Show Developer Tools</a></li>
+              <li><a id="show-dev-tools" href="#">Show&nbsp;Developer&nbsp;Tools</a></li>
             </ul>
           </div>
         </div>
       </div>
     </div>
-    
+    <div id="mock-main-view" style="position:absolute; height:1000px; width:1000px; left:-10000px; top:-10000px;"></div>
 </body>
 </html>

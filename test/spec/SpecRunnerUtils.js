@@ -33,9 +33,10 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
+        MainViewManager     = require("view/MainViewManager"),
         FileSystemError     = require("filesystem/FileSystemError"),
         FileSystem          = require("filesystem/FileSystem"),
-        PanelManager        = require("view/PanelManager"),
+        WorkspaceManager    = require("view/WorkspaceManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams,
         LanguageManager     = require("language/LanguageManager"),
@@ -53,6 +54,8 @@ define(function (require, exports, module) {
         _doLoadExtensions,
         _rootSuite              = { id: "__brackets__" },
         _unitTestReporter;
+    
+    MainViewManager._initialize($("#mock-main-view"));
     
     function _getFileSystem() {
         return _testWindow ? _testWindow.brackets.test.FileSystem : FileSystem;
@@ -170,7 +173,7 @@ define(function (require, exports, module) {
         timeout = timeout || 1000;
         expect(promise).toBeTruthy();
         promise.fail(function (err) {
-            expect("[" + operationName + "] promise rejected with: " + err).toBe(null);
+            expect("[" + operationName + "] promise rejected with: " + err).toBe("(expected resolved instead)");
         });
         waitsFor(function () {
             return promise.state() === "resolved";
@@ -187,6 +190,9 @@ define(function (require, exports, module) {
     window.waitsForFail = function (promise, operationName, timeout) {
         timeout = timeout || 1000;
         expect(promise).toBeTruthy();
+        promise.done(function (result) {
+            expect("[" + operationName + "] promise resolved with: " + result).toBe("(expected rejected instead)");
+        });
         waitsFor(function () {
             return promise.state() === "rejected";
         }, "failure " + operationName, timeout);
@@ -324,14 +330,13 @@ define(function (require, exports, module) {
         var dummyFile = _getFileSystem().getFileForPath(filename);
         var docToShim = new DocumentManager.Document(dummyFile, new Date(), content);
         
-        // Prevent adding doc to working set
+        // Prevent adding doc to working set by not dispatching "dirtyFlagChange".
+        // TODO: Other functionality here needs to be kept in sync with Document._handleEditorChange(). In the
+        // future, we should fix things so that we either don't need mock documents or that this
+        // is factored so it will just run in both.
         docToShim._handleEditorChange = function (event, editor, changeList) {
             this.isDirty = !editor._codeMirror.isClean();
-                    
-            // TODO: This needs to be kept in sync with Document._handleEditorChange(). In the
-            // future, we should fix things so that we either don't need mock documents or that this
-            // is factored so it will just run in both.
-            $(this).triggerHandler("change", [this, changeList]);
+            this._notifyDocumentChange(changeList);
         };
         docToShim.notifySaved = function () {
             throw new Error("Cannot notifySaved() a unit-test dummy Document");
@@ -384,6 +389,16 @@ define(function (require, exports, module) {
             .appendTo($("body"));
     }
 
+    function createEditorInstance(doc, $editorHolder, visibleRange) {
+        var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
+        
+        Editor.setUseTabChar(EDITOR_USE_TABS);
+        Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
+        EditorManager._notifyActiveEditorChanged(editor);
+        
+        return editor;
+    }
+    
     /**
      * Returns an Editor tied to the given Document, but suitable for use in isolation
      * (without being placed inside the surrounding Brackets UI). The Editor *will* be
@@ -396,19 +411,13 @@ define(function (require, exports, module) {
      * @return {!Editor}
      */
     function createMockEditorForDocument(doc, visibleRange) {
-        // Initialize EditorManager/PanelManager and position the editor-holder offscreen
+        // Initialize EditorManager/WorkspaceManager and position the editor-holder offscreen
         // (".content" may not exist, but that's ok for headless tests where editor height doesn't matter)
-        var $editorHolder = createMockElement().css("width", "1000px").attr("id", "mock-editor-holder");
-        PanelManager._setMockDOM($(".content"), $editorHolder);
-        EditorManager.setEditorHolder($editorHolder);
+        var $editorHolder = createMockElement().css("width", "1000px").attr("id", "hidden-editors");
+        WorkspaceManager._setMockDOM($(".content"), $editorHolder);
         
         // create Editor instance
-        var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
-        Editor.setUseTabChar(EDITOR_USE_TABS);
-        Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
-        EditorManager._notifyActiveEditorChanged(editor);
-        
-        return editor;
+        return createEditorInstance(doc, $editorHolder, visibleRange);
     }
     
     /**
@@ -430,17 +439,34 @@ define(function (require, exports, module) {
         return { doc: doc, editor: createMockEditorForDocument(doc, visibleRange) };
     }
     
+    function createMockPane($el) {
+        createMockElement()
+            .attr("class", "pane-header")
+            .appendTo($el);
+        var $fakeContent = createMockElement()
+            .attr("class", "pane-content")
+            .appendTo($el);
+        
+        return {
+            $el: $el,
+            $content: $fakeContent,
+            addView: function (path, editor) {
+            },
+            showView: function (editor) {
+            }
+        };
+    }
+    
     /**
      * Destroy the Editor instance for a given mock Document.
      * @param {!Document} doc  Document whose master editor to destroy
      */
     function destroyMockEditor(doc) {
         EditorManager._notifyActiveEditorChanged(null);
-        EditorManager._destroyEditorIfUnneeded(doc);
+        MainViewManager._destroyEditorIfNotNeeded(doc);
 
         // Clear editor holder so EditorManager doesn't try to resize destroyed object
-        EditorManager.setEditorHolder(null);
-        $("#mock-editor-holder").remove();
+        $("#hidden-editors").remove();
     }
     
     /**
@@ -449,8 +475,9 @@ define(function (require, exports, module) {
      * outcome. Also, in cases where asynchronous tasks are performed after the dialog closes,
      * clients must also wait for any additional promises.
      * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
+     * @param {boolean=} enableFirst  If true, then enable the button before clicking.
      */
-    function clickDialogButton(buttonId) {
+    function clickDialogButton(buttonId, enableFirst) {
         // Make sure there's one and only one dialog open
         var $dlg = _testWindow.$(".modal.instance"),
             promise = $dlg.data("promise");
@@ -458,11 +485,16 @@ define(function (require, exports, module) {
         expect($dlg.length).toBe(1);
         
         // Make sure desired button exists
-        var dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
-        expect(dismissButton.length).toBe(1);
+        var $dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
+        expect($dismissButton.length).toBe(1);
+        
+        if (enableFirst) {
+            // Remove the disabled prop.
+            $dismissButton.prop("disabled", false);
+        }
         
         // Click the button
-        dismissButton.click();
+        $dismissButton.click();
 
         // Dialog should resolve/reject the promise
         waitsForDone(promise, "dismiss dialog");
@@ -494,6 +526,9 @@ define(function (require, exports, module) {
             // disable initial dialog for live development
             params.put("skipLiveDevelopmentInfo", true);
             
+            // signals that main.js should configure RequireJS for tests
+            params.put("testEnvironment", true);
+            
             // option to launch test window with either native or HTML menus
             if (options && options.hasOwnProperty("hasNativeMenus")) {
                 params.put("hasNativeMenus", (options.hasNativeMenus ? "true" : "false"));
@@ -503,7 +538,7 @@ define(function (require, exports, module) {
             
             // Displays the primary console messages from the test window in the the
             // test runner's console as well.
-            ["log", "info", "warn", "error"].forEach(function (method) {
+            ["debug", "log", "info", "warn", "error"].forEach(function (method) {
                 var originalMethod = _testWindow.console[method];
                 _testWindow.console[method] = function () {
                     var log = ["[testWindow] "].concat(Array.prototype.slice.call(arguments, 0));
@@ -542,21 +577,6 @@ define(function (require, exports, module) {
         );
 
         runs(function () {
-            // Reconfigure the preferences manager so that the "user" scoped
-            // preferences are empty and the tests will not reconfigure
-            // the preferences of the user running the tests.
-            var pm = _testWindow.brackets.test.PreferencesManager._manager,
-                sm = _testWindow.brackets.test.PreferencesManager.stateManager;
-            pm.removeScope("user");
-            pm.addScope("user", new PreferencesBase.MemoryStorage(), {
-                before: "default"
-            });
-            
-            sm.removeScope("user");
-            sm.addScope("user", new PreferencesBase.MemoryStorage(), {
-                before: "default"
-            });
-            
             // callback allows specs to query the testWindow before they run
             callback.call(spec, _testWindow);
         });
@@ -735,13 +755,14 @@ define(function (require, exports, module) {
             fullpaths = makeArray(makeAbsolute(paths)),
             keys = makeArray(makeRelative(paths)),
             docs = {},
-            FileViewController = _testWindow.brackets.test.FileViewController;
+            FileViewController = _testWindow.brackets.test.FileViewController,
+            DocumentManager = _testWindow.brackets.test.DocumentManager;
         
         Async.doSequentially(fullpaths, function (path, i) {
             var one = new $.Deferred();
             
-            FileViewController.addToWorkingSetAndSelect(path).done(function (doc) {
-                docs[keys[i]] = doc;
+            FileViewController.openFileAndAddToWorkingSet(path).done(function (file) {
+                docs[keys[i]] = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 one.resolve();
             }).fail(function (err) {
                 one.reject(err);
@@ -1024,7 +1045,45 @@ define(function (require, exports, module) {
     function setLoadExtensionsInTestWindow(doLoadExtensions) {
         _doLoadExtensions = doLoadExtensions;
     }
-    
+
+    /**
+     * Change the size of an editor. The window size is not affected by this function.
+     * CodeMirror will change it's size withing Brackets.
+     *
+     * @param {!Editor} editor - instance of Editor
+     * @param {?number} width - the new width of the editor in pixel
+     * @param {?number} height - the new height of the editor in pixel
+     */
+    function resizeEditor(editor, width, height) {
+        var oldSize = {};
+
+        if (editor) {
+            var jquery = editor.getRootElement().ownerDocument.defaultView.$,
+                $editorHolder = jquery('#editor-holder'),
+                $content = jquery('.content');
+
+            // preserve old size
+            oldSize.width = $editorHolder.width();
+            oldSize.height = $editorHolder.height();
+
+            if (width) {
+                $content.width(width);
+                $editorHolder.width(width);
+                editor.setSize(width, null); // Update CM size
+            }
+
+            if (height) {
+                $content.height(height);
+                $editorHolder.height(height);
+                editor.setSize(null, height); // Update CM size
+            }
+
+            editor.refreshAll(true); // update CM
+        }
+
+        return oldSize;
+    }
+
     /**
      * Extracts the jasmine.log() and/or jasmine.expect() messages from the given result,
      * including stack traces if available.
@@ -1283,11 +1342,13 @@ define(function (require, exports, module) {
     exports.getBracketsSourceRoot           = getBracketsSourceRoot;
     exports.makeAbsolute                    = makeAbsolute;
     exports.resolveNativeFileSystemPath     = resolveNativeFileSystemPath;
+    exports.createEditorInstance            = createEditorInstance;
     exports.createMockDocument              = createMockDocument;
     exports.createMockActiveDocument        = createMockActiveDocument;
     exports.createMockElement               = createMockElement;
     exports.createMockEditorForDocument     = createMockEditorForDocument;
     exports.createMockEditor                = createMockEditor;
+    exports.createMockPane                  = createMockPane;
     exports.createTestWindowAndRun          = createTestWindowAndRun;
     exports.closeTestWindow                 = closeTestWindow;
     exports.clickDialogButton               = clickDialogButton;
@@ -1311,4 +1372,5 @@ define(function (require, exports, module) {
     exports.runAfterLast                    = runAfterLast;
     exports.removeTempDirectory             = removeTempDirectory;
     exports.setUnitTestReporter             = setUnitTestReporter;
+    exports.resizeEditor                    = resizeEditor;
 });

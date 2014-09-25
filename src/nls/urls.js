@@ -35,11 +35,13 @@ define(function (require, exports, module) {
     module.exports = {
         root: true,
         "cs": true,
+        "da": true,
         "de": true,
         "es": true,
 		"fa-ir": true,
         "fi": true,
         "fr": true,
+        "hr": true,
         "id": true,
         "it": true,
         "ja": true,

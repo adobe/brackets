@@ -293,10 +293,12 @@ define(function (require, exports, module) {
             });
             it("should have a parentPath property if it is not a root directory", function () {
                 var file = fileSystem.getFileForPath("/subdir/file3.txt"),
-                    directory = fileSystem.getDirectoryForPath("/subdir/foo/");
+                    directory = fileSystem.getDirectoryForPath("/subdir/foo/"),
+                    inRoot = fileSystem.getDirectoryForPath("/inRoot.txt");
                 
                 expect(file.parentPath).toBe("/subdir/");
                 expect(directory.parentPath).toBe("/subdir/");
+                expect(inRoot.parentPath).toBe("/");
             });
             it("should not have a parentPath property if it is a root directory", function () {
                 var unixRootDir = fileSystem.getDirectoryForPath("/"),
@@ -304,6 +306,8 @@ define(function (require, exports, module) {
                 
                 expect(unixRootDir.parentPath).toBeNull();
                 expect(winRootDir.parentPath).toBeNull();
+                expect(unixRootDir.name).toBe("");
+                expect(winRootDir.name).toBe("B:");
             });
         });
         
@@ -352,6 +356,7 @@ define(function (require, exports, module) {
                     }
                     if (expectedType) {
                         expect(cb.entry instanceof expectedType).toBeTruthy();
+                        expect(cb.entry.fullPath).toBe(path);
                     }
                 });
             }
@@ -361,6 +366,9 @@ define(function (require, exports, module) {
             });
             it("should resolve a Directory", function () {
                 testResolve("/subdir/", null, Directory);
+            });
+            it("should resolve the root", function () {
+                testResolve("/", null, Directory);
             });
             it("should return an error if the File/Directory is not found", function () {
                 testResolve("/doesnt-exist.txt", FileSystemError.NOT_FOUND);

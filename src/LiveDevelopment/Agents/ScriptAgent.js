@@ -129,8 +129,10 @@ define(function ScriptAgent(require, exports, module) {
      * @param {frame: Frame} res
      */
     function _onFrameNavigated(event, res) {
-        // Clear maps when navigating to a new page
-        _reset();
+        // Clear maps when navigating to a new page, but not if an iframe was loaded
+        if (!res.frame.parentId) {
+            _reset();
+        }
     }
 
     /** Initialize the agent */

@@ -36,22 +36,21 @@
  * 
  *      $("#sidebar").on("panelCollapsed", ...);
  *      $("#sidebar").on("panelExpanded", ...);
- * 
  */
-
 define(function (require, exports, module) {
     "use strict";
     
     var AppInit             = require("utils/AppInit"),
         ProjectManager      = require("project/ProjectManager"),
-        WorkingSetView      = require("project/WorkingSetView"),
+        WorkingSetView    = require("project/WorkingSetView"),
+        MainViewManager     = require("view/MainViewManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
         EditorManager       = require("editor/EditorManager"),
         Global              = require("utils/Global"),
         Resizer             = require("utils/Resizer"),
-        _                   = require("thirdparty/lodash");        
+        _                   = require("thirdparty/lodash");
 
     // These vars are initialized by the htmlReady handler
     // below since they refer to DOM elements
@@ -59,7 +58,8 @@ define(function (require, exports, module) {
         $sidebarMenuText,
         $openFilesContainer,
         $projectTitle,
-        $projectFilesContainer;
+        $projectFilesContainer,
+        $workingSetViewsContainer;
     
     /**
      * @private
@@ -117,6 +117,7 @@ define(function (require, exports, module) {
         $openFilesContainer     = $("#open-files-container");
         $projectTitle           = $("#project-title");
         $projectFilesContainer  = $("#project-files-container");
+        $workingSetViewsContainer  = $("#working-set-list-container");
     
         function _resizeSidebarSelection() {
             var $element;
@@ -127,8 +128,6 @@ define(function (require, exports, module) {
         }
 
         // init
-        WorkingSetView.create($openFilesContainer);
-        
         $sidebar.on("panelResizeStart", function (evt, width) {
             $sidebar.find(".sidebar-selection-triangle").css("display", "none");
             $sidebar.find(".scroller-shadow").css("display", "none");
@@ -165,10 +164,21 @@ define(function (require, exports, module) {
         if (!$sidebar.is(":visible")) {
             $sidebar.trigger("panelCollapsed");
         }
+        
+        // wire up an event handler to monitor when panes are created
+        $(MainViewManager).on("paneCreate", function (evt, paneId) {
+            WorkingSetView.createWorkingSetViewForPane($workingSetViewsContainer, paneId);
+        });
+        
+        // create WorkingSetViews for each pane already created
+        _.forEach(MainViewManager.getPaneIdList(), function (paneId) {
+            WorkingSetView.createWorkingSetViewForPane($workingSetViewsContainer, paneId);
+        });
     });
     
     $(ProjectManager).on("projectOpen", _updateProjectTitle);
     CommandManager.register(Strings.CMD_HIDE_SIDEBAR, Commands.VIEW_HIDE_SIDEBAR, toggle);
+    
     
     // Define public API
     exports.toggle      = toggle;

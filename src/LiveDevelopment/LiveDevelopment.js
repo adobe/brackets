@@ -27,31 +27,31 @@
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
  *
- * # STARTING
+ * __STARTING__
  *
  * To start a session call `open`. This will read the currentDocument from brackets,
  * launch the LiveBrowser (currently Chrome) with the remote debugger port open,
  * establish the Inspector connection to the remote debugger, and finally load all
  * agents.
  *
- * # STOPPING
+ * __STOPPING__
  *
  * To stop a session call `close`. This will close the active browser window,
  * disconnect the Inspector, unload all agents, and clean up.
  *
- * # STATUS
+ * __STATUS__
  *
  * Status updates are dispatched as `statusChange` jQuery events. The status
  * is passed as the first parameter and the reason for the change as the second
  * parameter. Currently only the "Inactive" status supports the reason parameter.
  * The status codes are:
  *
- * -1: Error
- *  0: Inactive
- *  1: Connecting to the remote debugger
- *  2: Loading agents
- *  3: Active
- *  4: Out of sync
+ *     -1: Error
+ *      0: Inactive
+ *      1: Connecting to the remote debugger
+ *      2: Loading agents
+ *      3: Active
+ *      4: Out of sync
  *
  * The reason codes are:
  * - null (Unknown reason)
@@ -85,6 +85,7 @@ define(function LiveDevelopment(require, exports, module) {
         FileSystemError      = require("filesystem/FileSystemError"),
         FileUtils            = require("file/FileUtils"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
+        MainViewManager      = require("view/MainViewManager"),
         NativeApp            = require("utils/NativeApp"),
         PreferencesDialogs   = require("preferences/PreferencesDialogs"),
         ProjectManager       = require("project/ProjectManager"),
@@ -97,6 +98,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     // Documents
     var CSSDocument     = require("LiveDevelopment/Documents/CSSDocument"),
+        CSSPreprocessorDocument = require("LiveDevelopment/Documents/CSSPreprocessorDocument"),
         HTMLDocument    = require("LiveDevelopment/Documents/HTMLDocument"),
         JSDocument      = require("LiveDevelopment/Documents/JSDocument");
     
@@ -146,13 +148,22 @@ define(function LiveDevelopment(require, exports, module) {
         "highlight" : true
     };
 
-    // store the names (matching property names in the 'agent' object) of agents that we've loaded
+    /**
+     * Store the names (matching property names in the 'agent' object) of agents that we've loaded
+     * @type {string}
+     */
     var _loadedAgentNames = [];
 
-    /** @type {HTMLDocument} */
+    /**
+     * Live Preview current Document info
+     * @type {HTMLDocument}
+     */
     var _liveDocument;
     
-    /** @type {Object.<string: {HTMLDocument|CSSDocument}>} */
+    /**
+     * Related Live Documents
+     * @type {Object.<string: (HTMLDocument|CSSDocument)>}
+     */
     var _relatedDocuments = {};
     
     /**
@@ -197,6 +208,9 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function _classForDocument(doc) {
         switch (doc.getLanguage().getId()) {
+        case "less":
+        case "scss":
+            return CSSPreprocessorDocument;
         case "css":
             return CSSDocument;
         case "javascript":
@@ -273,7 +287,7 @@ define(function LiveDevelopment(require, exports, module) {
      * given file is no longer associated with the HTML document that is live (e.g.
      * if the related file has been deleted on disk).
      */
-    function _handleRelatedDocumentDeleted(event, liveDoc) {
+    function _closeRelatedDocument(liveDoc) {
         if (_relatedDocuments[liveDoc.doc.url]) {
             delete _relatedDocuments[liveDoc.doc.url];
         }
@@ -284,7 +298,7 @@ define(function LiveDevelopment(require, exports, module) {
         
         _closeDocument(liveDoc);
     }
-
+    
     /**
      * Update the status. Triggers a statusChange event.
      * @param {number} status new status
@@ -367,8 +381,8 @@ define(function LiveDevelopment(require, exports, module) {
     /**
      * @private
      * Create a live version of a Brackets document
-     * @param {Document} doc
-     * @param {Editor} editor
+     * @param {Document} doc Current document
+     * @param {Editor} editor Current editor
      * @return {?(HTMLDocument|CSSDocument)}
      */
     function _createDocument(doc, editor) {
@@ -386,6 +400,18 @@ define(function LiveDevelopment(require, exports, module) {
         return liveDocument;
     }
 
+    /**
+     * @private
+     * Initialize `_liveDocument`.
+     * @param {Document} doc Current document
+     */
+    function _createLiveDocumentForFrame(doc) {
+        // create live document
+        doc._ensureMasterEditor();
+        _liveDocument = _createDocument(doc, doc._masterEditor);
+        _server.add(_liveDocument);
+    }
+    
     /** Enable an agent. Takes effect next time a connection is made. Does not affect
      *  current live development sessions.
      *
@@ -462,14 +488,19 @@ define(function LiveDevelopment(require, exports, module) {
         var docPromise = DocumentManager.getDocumentForPath(path);
 
         docPromise.done(function (doc) {
-            if ((_classForDocument(doc) === CSSDocument) &&
+            if ((_classForDocument(doc) === CSSDocument ||
+                    _classForDocument(doc) === CSSPreprocessorDocument) &&
                     (!_liveDocument || (doc !== _liveDocument.doc))) {
-                var liveDoc = _createDocument(doc);
+                // The doc may already have an editor (e.g. starting live preview from an css file),
+                // so pass the editor if any
+                var liveDoc = _createDocument(doc, doc._masterEditor);
                 if (liveDoc) {
                     _server.add(liveDoc);
                     _relatedDocuments[doc.url] = liveDoc;
 
-                    $(liveDoc).on("deleted.livedev", _handleRelatedDocumentDeleted);
+                    $(liveDoc).on("deleted.livedev", function (event, liveDoc) {
+                        _closeRelatedDocument(liveDoc);
+                    });
                 }
             }
         });
@@ -548,7 +579,7 @@ define(function LiveDevelopment(require, exports, module) {
             promises = [],
             enableAgentsPromise,
             allAgentsPromise;
-
+        
         _loadAgentsPromise = result.promise();
 
         _setStatus(STATUS_LOADING_AGENTS);
@@ -727,6 +758,34 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /**
+     * If the current editor is for a CSS preprocessor file, then add it to the style sheet 
+     * so that we can track cursor positions in the editor to show live preview highlighting.
+     * For normal CSS we only do highlighting from files we know for sure are referenced by the 
+     * current live preview document, but for preprocessors we just assume that any preprocessor 
+     * file you edit is probably related to the live preview.
+     *
+     * @param {Event} event (unused)
+     * @param {Editor} current Current editor
+     * @param {Editor} previous Previous editor
+     *
+     */
+    function onActiveEditorChange(event, current, previous) {
+        if (previous && previous.document &&
+                FileUtils.isCSSPreprocessorFile(previous.document.file.fullPath)) {
+            var prevDocUrl = _server && _server.pathToUrl(previous.document.file.fullPath);
+            
+            if (_relatedDocuments && _relatedDocuments[prevDocUrl]) {
+                _closeRelatedDocument(_relatedDocuments[prevDocUrl]);
+            }
+        }
+        if (current && current.document &&
+                FileUtils.isCSSPreprocessorFile(current.document.file.fullPath)) {
+            var docUrl = _server && _server.pathToUrl(current.document.file.fullPath);
+            _styleSheetAdded(null, docUrl);
+        }
+    }
+    
+    /**
      * @private
      * While still connected to the Inspector, do cleanup for agents,
      * documents and server.
@@ -738,6 +797,8 @@ define(function LiveDevelopment(require, exports, module) {
             deferred    = new $.Deferred(),
             connected   = Inspector.connected();
 
+        $(EditorManager).off("activeEditorChange", onActiveEditorChange);
+        
         $(Inspector.Page).off(".livedev");
         $(Inspector).off(".livedev");
 
@@ -898,7 +959,29 @@ define(function LiveDevelopment(require, exports, module) {
         }
 
         unloadAgents();
+        
+        // Clear any existing related documents before we reload the agents.
+        // We need to recreate them for the reloaded document due to some
+        // desirable side-effects (see #7606). Eventually, we should simplify
+        // the way we get that behavior.
+        _.forOwn(_relatedDocuments, function (relatedDoc) {
+            _closeRelatedDocument(relatedDoc);
+        });
+
         return loadAgents();
+    }
+
+    /** reload the live preview */
+    function reload() {
+        // Unload and reload agents before reloading the page
+        // Some agents (e.g. DOMAgent and RemoteAgent) require us to
+        // navigate to the page first before loading can complete.
+        // To accomodate this, we load all agents (in reconnect())
+        // and navigate in parallel.
+        reconnect();
+
+        // Reload HTML page
+        Inspector.Page.reload();
     }
 
     /**
@@ -955,6 +1038,11 @@ define(function LiveDevelopment(require, exports, module) {
      * interstitial page has finished loading.
      */
     function _onInterstitialPageLoad() {
+
+        Inspector.Runtime.evaluate("window.navigator.userAgent", function (uaResponse) {
+            Inspector.setUserAgent(uaResponse.result.value);
+        });
+
         // Domains for some agents must be enabled first before loading
         var enablePromise = Inspector.Page.enable().then(_enableAgents);
         
@@ -968,7 +1056,11 @@ define(function LiveDevelopment(require, exports, module) {
             loadAgents().then(_openDeferred.resolve, _openDeferred.reject);
 
             _getInitialDocFromCurrent().done(function (doc) {
-                if (doc && _liveDocument && doc === _liveDocument.doc) {
+                if (doc && _liveDocument) {
+                    if (doc !== _liveDocument.doc) {
+                        _createLiveDocumentForFrame(doc);
+                    }
+
                     // Navigate from interstitial to the document
                     // Fires a frameNavigated event
                     if (_server) {
@@ -1133,13 +1225,6 @@ define(function LiveDevelopment(require, exports, module) {
         });
     }
 
-    function _createLiveDocumentForFrame(doc) {
-        // create live document
-        doc._ensureMasterEditor();
-        _liveDocument = _createDocument(doc, doc._masterEditor);
-        _server.add(_liveDocument);
-    }
-    
     // helper function that actually does the launch once we are sure we have
     // a doc and the server for that doc is up and running.
     function _doLaunchAfterServerReady(initialDoc) {
@@ -1155,6 +1240,18 @@ define(function LiveDevelopment(require, exports, module) {
         
         // open browser to the interstitial page to prepare for loading agents
         _openInterstitialPage();
+        
+        // Once all agents loaded (see _onInterstitialPageLoad()), begin Live Highlighting for preprocessor documents
+        _openDeferred.done(function () {
+            // Setup activeEditorChange event listener so that we can track cursor positions in
+            // CSS preprocessor files and perform live preview highlighting on all elements with
+            // the current selector in the preprocessor file.
+            $(EditorManager).on("activeEditorChange", onActiveEditorChange);
+
+            // Explicitly trigger onActiveEditorChange so that live preview highlighting
+            // can be set up for the preprocessor files.
+            onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
+        });
     }
     
     function _prepareServer(doc) {
@@ -1225,18 +1322,18 @@ define(function LiveDevelopment(require, exports, module) {
             }
         }
         
-        // TODO: need to run _onDocumentChange() after load if doc != currentDocument here? Maybe not, since activeEditorChange
+        // TODO: need to run _onFileChanged() after load if doc != currentDocument here? Maybe not, since activeEditorChange
         // doesn't trigger it, while inline editors can still cause edits in doc other than currentDoc...
         _getInitialDocFromCurrent().done(function (doc) {
             var prepareServerPromise = (doc && _prepareServer(doc)) || new $.Deferred().reject(),
                 otherDocumentsInWorkingFiles;
 
             if (doc && !doc._masterEditor) {
-                otherDocumentsInWorkingFiles = DocumentManager.getWorkingSet().length;
-                DocumentManager.addToWorkingSet(doc.file);
+                otherDocumentsInWorkingFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).length;
+                MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, doc.file);
 
                 if (!otherDocumentsInWorkingFiles) {
-                    DocumentManager.setCurrentDocument(doc);
+                    MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                 }
             }
 
@@ -1278,9 +1375,9 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * @private
-     * DocumentManager currentDocumentChange event handler. 
+     * MainViewManager.currentFileChange event handler. 
      */
-    function _onDocumentChange() {
+    function _onFileChanged() {
         var doc = _getCurrentDocument();
         
         if (!doc || !Inspector.connected()) {
@@ -1339,15 +1436,7 @@ define(function LiveDevelopment(require, exports, module) {
             wasRequested    = agents.network && agents.network.wasURLRequested(documentUrl);
         
         if (wasRequested) {
-            // Unload and reload agents before reloading the page
-            // Some agents (e.g. DOMAgent and RemoteAgent) require us to
-            // navigate to the page first before loading can complete.
-            // To accomodate this, we load all agents (in reconnect())
-            // and navigate in parallel.
-            reconnect();
-
-            // Reload HTML page
-            Inspector.Page.reload();
+            reload();
         }
     }
 
@@ -1387,10 +1476,13 @@ define(function LiveDevelopment(require, exports, module) {
         // We may get interim added/removed events when pushing incremental updates
         $(CSSAgent).on("styleSheetAdded.livedev", _styleSheetAdded);
         
-        $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
+        $(MainViewManager)
+            .on("currentFileChange", _onFileChanged);
+        $(DocumentManager)
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
-        $(ProjectManager).on("beforeProjectClose beforeAppClose", close);
+        $(ProjectManager)
+            .on("beforeProjectClose beforeAppClose", close);
         
         // Register user defined server provider
         LiveDevServerManager.registerServer({ create: _createUserServer }, 99);
@@ -1408,6 +1500,8 @@ define(function LiveDevelopment(require, exports, module) {
         return _server && _server.getBaseUrl();
     }
 
+
+
     // For unit testing
     exports.launcherUrl               = launcherUrl;
     exports._getServer                = _getServer;
@@ -1418,6 +1512,7 @@ define(function LiveDevelopment(require, exports, module) {
     exports.open                = open;
     exports.close               = close;
     exports.reconnect           = reconnect;
+    exports.reload              = reload;
     exports.enableAgent         = enableAgent;
     exports.disableAgent        = disableAgent;
     exports.getLiveDocForPath   = getLiveDocForPath;

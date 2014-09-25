@@ -24,6 +24,9 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, evil:true */
 /*global window, document:true, CollectionUtils:true */
 
+/**
+ * Check for missing dependencies
+ */
 window.setTimeout(function () {
     "use strict";
     var deps = { "Mustache": window.Mustache, "jQuery": window.$, "RequireJS": window.require };

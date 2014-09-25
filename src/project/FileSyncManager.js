@@ -29,9 +29,12 @@
  * FileSyncManager is a set of utilities to help track external modifications to the files and folders
  * in the currently open project.
  *
- * Currently, we look for external changes purely by checking file timestamps against the last-sync
- * timestamp recorded on Document. Later, we will use actual native directory-watching callbacks
- * instead.
+ * Currently, we detect external changes purely by checking file timestamps against the last-sync
+ * timestamp recorded on Document. Brackets triggers this check whenever an external change was detected
+ * by our native file watchers, and on window focus. We recheck all open Documents, but with file caching
+ * the timestamp check is a fast no-op for everything other than files where a watcher change was just
+ * notified. If watchers/caching are disabled, we'll essentially check only on window focus, and we'll hit
+ * the disk to check every open Document's timestamp every time.
  *
  * FUTURE: Whenever we have a 'project file tree model,' we should manipulate that instead of notifying
  * DocumentManager directly. DocumentManager, the tree UI, etc. then all listen to that model for changes.
@@ -42,6 +45,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
         EditorManager       = require("editor/EditorManager"),
         Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
@@ -67,13 +71,24 @@ define(function (require, exports, module) {
      */
     var _restartPending = false;
     
-    /** @type {Array.<Document>} */
+    /**
+     * @type {Array.<Document>}
+     */
     var toReload;
-    /** @type {Array.<Document>} */
+
+    /**
+     * @type {Array.<Document>}
+     */
     var toClose;
-    /** @type {Array.<{doc: Document, fileTime: number}>} */
+
+    /**
+     * @type {Array.<{doc: Document, fileTime: number}>}
+     */
     var editConflicts;
-    /** @type {Array.<{doc: Document, fileTime: number}>} */
+
+    /**
+     * @type {Array.<{doc: Document, fileTime: number}>}
+     */
     var deleteConflicts;
     
     
@@ -167,7 +182,7 @@ define(function (require, exports, module) {
      */
     function syncUnopenWorkingSet() {
         // We only care about working set entries that have never been open (have no Document).
-        var unopenWorkingSetFiles = DocumentManager.getWorkingSet().filter(function (wsFile) {
+        var unopenWorkingSetFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).filter(function (wsFile) {
             return !DocumentManager.getOpenDocumentForPath(wsFile.fullPath);
         });
         
@@ -457,7 +472,7 @@ define(function (require, exports, module) {
                                             
                                             // If we showed a dialog, restore focus to editor
                                             if (editConflicts.length > 0 || deleteConflicts.length > 0) {
-                                                EditorManager.focusEditor();
+                                                MainViewManager.focusActivePane();
                                             }
                                             
                                             // (Any errors that ocurred during presentConflicts() have already

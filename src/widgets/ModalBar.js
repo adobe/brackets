@@ -32,21 +32,23 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager  = require("editor/EditorManager"),
-        KeyEvent       = require("utils/KeyEvent"),
-        AnimationUtils = require("utils/AnimationUtils");
+    var EditorManager    = require("editor/EditorManager"),
+        MainViewManager  = require("view/MainViewManager"),
+        KeyEvent         = require("utils/KeyEvent"),
+        AnimationUtils   = require("utils/AnimationUtils"),
+        WorkspaceManager = require("view/WorkspaceManager");
 
     /**
-     * @constructor
-     *
      * Creates a modal bar whose contents are the given template.
      * 
      * Dispatches one event:
-     *  close - When the bar is closed, either via close() or via autoClose. After this event, the
-     *          bar may remain visible and in the DOM while its closing animation is playing. However,
-     *          by the time "close" is fired, the bar has been "popped out" of the layout and the
-     *          editor scroll position has already been restored.
+     * - close - When the bar is closed, either via close() or via autoClose. After this event, the
+     *     bar may remain visible and in the DOM while its closing animation is playing. However,
+     *     by the time "close" is fired, the bar has been "popped out" of the layout and the
+     *     editor scroll position has already been restored.
      * 
+     * @constructor
+     *
      * @param {string} template The HTML contents of the modal bar.
      * @param {boolean} autoClose If true, then close the dialog if the user hits Esc
      *      or if the bar loses focus.
@@ -77,9 +79,7 @@ define(function (require, exports, module) {
         // to the editor here, before opening up the new modal bar. This ensures that the old
         // focused item has time to react and close before the new modal bar is opened.
         // See bugs #4287 and #3424
-        if (!EditorManager.getFocusedEditor()) {
-            EditorManager.focusEditor();
-        }
+        MainViewManager.focusActivePane();
         
         if (autoClose) {
             this._autoClose = true;
@@ -98,15 +98,9 @@ define(function (require, exports, module) {
         
         // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
         // height of the modal bar so the code doesn't appear to shift if possible.
-        var fullEditor = EditorManager.getCurrentFullEditor(),
-            scrollPos;
-        if (fullEditor) {
-            scrollPos = fullEditor.getScrollPos();
-        }
-        EditorManager.resizeEditor();
-        if (fullEditor) {
-            fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + this.height());
-        }
+        MainViewManager.cacheScrollState(MainViewManager.ALL_PANES);
+        WorkspaceManager.recomputeLayout();  // changes available ht for editor area
+        MainViewManager.restoreAdjustedScrollState(MainViewManager.ALL_PANES, this.height());
     }
     
     /**
@@ -153,18 +147,23 @@ define(function (require, exports, module) {
         
         this._$root.addClass("popout");
         
-        // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
-        // height of the modal bar so the code doesn't appear to shift if possible.
-        var fullEditor = EditorManager.getCurrentFullEditor(),
-            barHeight,
-            scrollPos;
-        if (restoreScrollPos && fullEditor) {
-            barHeight = this.height();
-            scrollPos = fullEditor.getScrollPos();
+        // Since the modal bar has now an absolute position relative to the editor holder,
+        // when there are html menus we need to adjust the top position
+        if (!brackets.nativeMenus) {
+            var top = $("#titlebar").outerHeight();
+            this._$root.css("top", top + "px");
         }
-        EditorManager.resizeEditor();
-        if (restoreScrollPos && fullEditor) {
-            fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y - barHeight);
+        
+        // Preserve scroll position of all visible views
+        //  adjusting for the height of the modal bar so the code doesn't appear to shift if possible.
+        var barHeight = this.height();
+        if (restoreScrollPos) {
+            MainViewManager.cacheScrollState(MainViewManager.ALL_PANES);
+        }
+        WorkspaceManager.recomputeLayout();  // changes available ht for editor area
+        // restore scroll position of all vies
+        if (restoreScrollPos) {
+            MainViewManager.restoreAdjustedScrollState(MainViewManager.ALL_PANES, -barHeight);
         }
     };
     
@@ -216,7 +215,7 @@ define(function (require, exports, module) {
             doRemove();
         }
         
-        EditorManager.focusEditor();
+        MainViewManager.focusActivePane();
 
         return result.promise();
     };

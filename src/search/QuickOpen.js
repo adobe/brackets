@@ -42,6 +42,8 @@ define(function (require, exports, module) {
     
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        MainViewManager     = require("view/MainViewManager"),
+        MainViewFactory     = require("view/MainViewFactory"),
         CommandManager      = require("command/CommandManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
@@ -54,23 +56,39 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils");
     
     
-    /** @const {RegExp} The regular expression to check the cursor position */
+    /**
+     * The regular expression to check the cursor position
+     * @const {RegExp}
+     */
     var CURSOR_POS_EXP = new RegExp(":([^,]+)?(,(.+)?)?");
     
-    /** @type Array.<QuickOpenPlugin> */
+    /**
+     * List of plugins
+     * @type {Array.<QuickOpenPlugin>}
+     */
     var plugins = [];
 
-    /** @type {QuickOpenPlugin} */
+    /**
+     * Current plugin
+     * @type {QuickOpenPlugin}
+     */
     var currentPlugin = null;
 
-    /** @type Array.<FileInfo>*/
+    /**
+     * List of files
+     * @type {Array.<FileInfo>}
+     */
     var fileList;
     
-    /** @type $.Promise */
+    /**
+     * File list promise
+     * @type {$.Promise}
+     */
     var fileListPromise;
 
     /**
      * The currently open quick open dialog.
+     * @type {Dialog}
      */
     var _curDialog;
 
@@ -339,7 +357,7 @@ define(function (require, exports, module) {
                 // So we call `prepareClose()` first, and finish the close later.
                 doClose = false;
                 this.modalBar.prepareClose();
-                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
+                CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath})
                     .done(function () {
                         if (cursorPos) {
                             var editor = EditorManager.getCurrentFullEditor();
@@ -356,7 +374,7 @@ define(function (require, exports, module) {
 
         if (doClose) {
             this.close();
-            EditorManager.focusEditor();
+            MainViewManager.focusActivePane();
         }
     };
 
@@ -857,10 +875,17 @@ define(function (require, exports, module) {
         });
 
         this.setSearchFieldValue(prefix, initialString);
+
+        // Return files that are non-binary, or binary files that have a custom viewer
+        function _filter(file) {
+            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() ||
+                MainViewFactory.findSuitableFactoryForPath(file.fullPath);
+        }
         
-        // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
-        // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
-        fileListPromise = ProjectManager.getAllFiles(true)
+        // Start fetching the file list, which will be needed the first time the user enters
+        // an un-prefixed query. If file index caches are out of date, this list might take
+        // some time to asynchronously build. See searchFileList() for how this is handled.
+        fileListPromise = ProjectManager.getAllFiles(_filter, true)
             .done(function (files) {
                 fileList = files;
                 fileListPromise = null;

@@ -39,3 +39,15 @@ pre {
 .testframework-link {
     opacity: 0.45;
 }
+
+/* Add some space between the menu and the list of tests.  */
+.container-fluid {
+    margin-top: 1.5em;
+}
+
+@media (min-width: 728px) and (max-width: 1199px) {
+    .navbar-fixed-top .container,
+    .navbar-fixed-bottom .container {
+        width: 800px;
+    }
+}

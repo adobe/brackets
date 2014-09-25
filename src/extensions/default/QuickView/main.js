@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         Menus               = brackets.getModule("command/Menus"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings"),
-        ViewUtils           = brackets.getModule("utils/ViewUtils");
+        ViewUtils           = brackets.getModule("utils/ViewUtils"),
+        TokenUtils          = brackets.getModule("utils/TokenUtils");
    
     var previewContainerHTML       = require("text!QuickViewTemplate.html");
     
@@ -45,7 +46,8 @@ define(function (require, exports, module) {
         prefs                      = null,   // Preferences
         $previewContainer,                   // Preview container
         $previewContent,                     // Preview content holder
-        lastPos;                             // Last line/ch pos processed by handleMouseMove
+        lastMousePos,                        // Last mouse position
+        animationRequest;                    // Request for animation frame
     
     // Constants
     var CMD_ENABLE_QUICK_VIEW       = "view.enableQuickView",
@@ -53,6 +55,8 @@ define(function (require, exports, module) {
         POINTER_HEIGHT              = 15,   // Pointer height, used to shift popover above pointer (plus a little bit of space)
         POPOVER_HORZ_MARGIN         =  5;   // Horizontal margin
     
+    var styleLanguages = ["css", "text/x-less", "sass", "text/x-scss"];
+
     prefs = PreferencesManager.getExtensionPrefs("quickview");
     prefs.definePreference("enabled", "boolean", true);
 
@@ -106,18 +110,17 @@ define(function (require, exports, module) {
         popoverState = null;
     }
     
-    function positionPreview(xpos, ypos, ybot) {
+    function positionPreview(editor, xpos, ypos, ybot) {
         var previewWidth  = $previewContainer.outerWidth(),
             top           = ypos - $previewContainer.outerHeight() - POINTER_HEIGHT,
             left          = xpos - previewWidth / 2,
-            $editorHolder = $("#editor-holder"),
             elementRect = {
                 top:    top,
                 left:   left - POPOVER_HORZ_MARGIN,
                 height: $previewContainer.outerHeight() + POINTER_HEIGHT,
                 width:  previewWidth + 2 * POPOVER_HORZ_MARGIN
             },
-            clip = ViewUtils.getElementClipSize($editorHolder, elementRect);
+            clip = ViewUtils.getElementClipSize($(editor.getRootElement()), elementRect);
 
         // Prevent horizontal clipping
         if (clip.left > 0) {
@@ -146,13 +149,13 @@ define(function (require, exports, module) {
             .addClass("active");
     }
     
-    function divContainsMouse($div, event) {
+    function divContainsMouse($div, mousePos) {
         var offset = $div.offset();
         
-        return (event.clientX >= offset.left &&
-                event.clientX <= offset.left + $div.width() &&
-                event.clientY >= offset.top &&
-                event.clientY <= offset.top + $div.height());
+        return (mousePos.clientX >= offset.left &&
+                mousePos.clientX <= offset.left + $div.width() &&
+                mousePos.clientY >= offset.top &&
+                mousePos.clientY <= offset.top + $div.height());
     }
     
     
@@ -162,7 +165,7 @@ define(function (require, exports, module) {
 
         // Check for gradient. -webkit-gradient() can have parens in parameters
         // nested 2 levels. Other gradients can only nest 1 level.
-        var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|\s)((repeating-)?linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-|\s)((repeating-)?radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
+        var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
             colorRegEx = new RegExp(ColorUtils.COLOR_REGEX);
 
         function areParensBalanced(str) {
@@ -232,8 +235,9 @@ define(function (require, exports, module) {
             };
         }
 
-        function execColorMatch(line) {
-            var colorMatch;
+        function execColorMatch(editor, line, pos) {
+            var colorMatch,
+                ignoreNamedColors;
 
             function hyphenOnMatchBoundary(match, line) {
                 var beforeIndex, afterIndex;
@@ -251,11 +255,24 @@ define(function (require, exports, module) {
                 
                 return false;
             }
+            function isNamedColor(match) {
+                if (match && match[0] && /^[a-z]+$/i.test(match[0])) { // only for color names, not for hex-/rgb-values
+                    return true;
+                }
+            }
 
             // Hyphens do not count as a regex word boundary (\b), so check for those here
             do {
                 colorMatch = colorRegEx.exec(line);
-            } while (colorMatch && hyphenOnMatchBoundary(colorMatch, line));
+                if (!colorMatch) {
+                    break;
+                }
+                if (ignoreNamedColors === undefined) {
+                    var mode = TokenUtils.getModeAt(editor._codeMirror, pos).name;
+                    ignoreNamedColors = styleLanguages.indexOf(mode) === -1;
+                }
+            } while (hyphenOnMatchBoundary(colorMatch, line) ||
+                    (ignoreNamedColors && isNamedColor(colorMatch)));
 
             return colorMatch;
         }
@@ -305,7 +322,6 @@ define(function (require, exports, module) {
                     thisSize,
                     i;
 
-
                 // find lower bound                
                 for (i = 0; i < params.length; i++) {
                     args = params[i].split(" ");
@@ -334,7 +350,11 @@ define(function (require, exports, module) {
                 for (i = 0; i < params.length; i++) {
                     args = params[i].split(" ");
                     if (isGradientColorStop(args) && hasLengthInPixels(args)) {
-                        thisSize = ((parseFloat(args[1]) + lowerBound) / upperBound) * 100;
+                        if (upperBound === 0) {
+                            thisSize = 0;
+                        } else {
+                            thisSize = ((parseFloat(args[1]) + lowerBound) / upperBound) * 100;
+                        }
                         args[1] = thisSize + "%";
                     }
                     params[i] = args.join(" ");
@@ -347,7 +367,7 @@ define(function (require, exports, module) {
         }
 
         var gradientMatch = execGradientMatch(line),
-            match = gradientMatch.match || execColorMatch(line),
+            match = gradientMatch.match || execColorMatch(editor, line, pos),
             cm = editor._codeMirror;
 
         while (match) {
@@ -393,7 +413,7 @@ define(function (require, exports, module) {
             if (gradientMatch.match) {
                 gradientMatch = execGradientMatch(line);
             }
-            match = gradientMatch.match || execColorMatch(line);
+            match = gradientMatch.match || execColorMatch(editor, line, pos);
         }
         
         return null;
@@ -427,9 +447,8 @@ define(function (require, exports, module) {
         }
         
         if (tokenString) {
-            // Strip quotes, if present
-            var quotesRegEx = /(\'|\")?([^(\'|\")]*)(\'|\")?/;
-            tokenString = tokenString.replace(quotesRegEx, "$2");
+            // Strip leading/trailing quotes, if present
+            tokenString = tokenString.replace(/(^['"])|(['"]$)/g, "");
             
             if (/^(data\:image)|(\.gif|\.png|\.jpg|\.jpeg|\.svg)$/i.test(tokenString)) {
                 var sPos, ePos;
@@ -469,7 +488,7 @@ define(function (require, exports, module) {
                                         "</div>"
                                     );
                             $previewContainer.show();
-                            positionPreview(popoverState.xpos, popoverState.ytop, popoverState.ybot);
+                            positionPreview(editor, popoverState.xpos, popoverState.ytop, popoverState.ybot);
                         });
                     };
                     
@@ -516,20 +535,75 @@ define(function (require, exports, module) {
         return null;
     }
     
+    function getHoveredEditor(mousePos) {
+        // Figure out which editor we are over
+        var fullEditor = EditorManager.getCurrentFullEditor();
+        
+        if (!fullEditor || !mousePos) {
+            return;
+        }
+        
+        // Check for inline Editor instances first
+        var inlines = fullEditor.getInlineWidgets(),
+            i,
+            editor;
+        
+        for (i = 0; i < inlines.length; i++) {
+            var $inlineEditorRoot = inlines[i].editor && $(inlines[i].editor.getRootElement()), // see MultiRangeInlineEditor
+                $otherDiv = inlines[i].$htmlContent;
+            
+            if ($inlineEditorRoot && divContainsMouse($inlineEditorRoot, mousePos)) {
+                editor = inlines[i].editor;
+                break;
+            } else if ($otherDiv && divContainsMouse($otherDiv, mousePos)) {
+                // Mouse inside unsupported inline editor like Quick Docs or Color Editor
+                return;
+            }
+        }
+        
+        // Check main editor
+        if (!editor) {
+            if (divContainsMouse($(fullEditor.getRootElement()), mousePos)) {
+                editor = fullEditor;
+            }
+        }
+        
+        return editor;
+    }
+    
     /**
      * Changes the current hidden popoverState to visible, showing it in the UI and highlighting
      * its matching text in the editor.
      */
     function showPreview(editor, popover) {
-        var token,
-            cm = editor._codeMirror;
+        var token, cm;
+
+        // Figure out which editor we are over
+        if (!editor) {
+            editor = getHoveredEditor(lastMousePos);
+        }
+
+        if (!editor || !editor._codeMirror) {
+            hidePreview();
+            return;
+        }
+
+        cm = editor._codeMirror;
+
+        // Find char mouse is over
+        var pos = cm.coordsChar({left: lastMousePos.clientX, top: lastMousePos.clientY});
+
+        // No preview if mouse is past last char on line
+        if (pos.ch >= editor.document.getLine(pos.line).length) {
+            return;
+        }
 
         if (popover) {
             popoverState = popover;
         } else {
             // Query providers and append to popoverState
-            token = cm.getTokenAt(lastPos, true);
-            popoverState = $.extend({}, popoverState, queryPreviewProviders(editor, lastPos, token));
+            token = cm.getTokenAt(pos, true);
+            popoverState = $.extend({}, popoverState, queryPreviewProviders(editor, pos, token));
         }
         
         if (popoverState && popoverState.start && popoverState.end) {
@@ -547,104 +621,82 @@ define(function (require, exports, module) {
             if (popoverState.onShow) {
                 popoverState.onShow();
             } else {
-                positionPreview(popoverState.xpos, popoverState.ytop, popoverState.ybot);
+                positionPreview(editor, popoverState.xpos, popoverState.ytop, popoverState.ybot);
             }
         }
     }
+
+    function processMouseMove() {
+        animationRequest = null;
+        
+        if (!lastMousePos) {
+            return;         // should never get here, but safety first!
+        }
+
+        var showImmediately = false,
+            editor = null;
+
+        if (popoverState && popoverState.visible) {
+            // Only figure out which editor we are over when there is already a popover
+            // showing (otherwise wait until after delay to minimize processing)
+            editor = getHoveredEditor(lastMousePos);
+            if (editor && editor._codeMirror) {
+                // Find char mouse is over
+                var cm = editor._codeMirror,
+                    pos = cm.coordsChar({left: lastMousePos.clientX, top: lastMousePos.clientY});
+
+                if (popoverState.start && popoverState.end &&
+                        editor.posWithinRange(pos, popoverState.start, popoverState.end, true) &&
+                        (pos.ch < editor.document.getLine(pos.line).length)) {
+
+                    // That one's still relevant - nothing more to do
+                    // Note: posWithinRange() includes mouse past end of line, so need to check for that case
+                    return;
+                }
+            }
+
+            // That one doesn't cover this pos - hide it and start anew
+            showImmediately = true;
+        }
+
+        // Initialize popoverState
+        hidePreview();
+        popoverState = {};
+
+        // Set timer to scan and show. This will get cancelled (in hidePreview())
+        // if mouse movement rendered this popover inapplicable before timer fires.
+        // When showing "immediately", still use setTimeout() to make this async
+        // so we return from this mousemove event handler ASAP.
+        popoverState.hoverTimer = window.setTimeout(function () {
+            showPreview(editor);
+        }, showImmediately ? 0 : HOVER_DELAY);
+    }
     
     function handleMouseMove(event) {
+        lastMousePos = null;
+
         if (!enabled) {
             return;
         }
-        
+
         if (event.which) {
             // Button is down - don't show popovers while dragging
             hidePreview();
             return;
         }
-        
-        // Figure out which editor we are over
-        var fullEditor = EditorManager.getCurrentFullEditor();
-        
-        if (!fullEditor) {
-            hidePreview();
-            return;
-        }
-        
-        // Check for inline Editor instances first
-        var inlines = fullEditor.getInlineWidgets(),
-            i,
-            editor;
-        
-        for (i = 0; i < inlines.length; i++) {
-            var $inlineEditorRoot = inlines[i].editor && $(inlines[i].editor.getRootElement()),  // see MultiRangeInlineEditor
-                $otherDiv = inlines[i].$htmlContent;
-            
-            if ($inlineEditorRoot && divContainsMouse($inlineEditorRoot, event)) {
-                editor = inlines[i].editor;
-                break;
-            } else if ($otherDiv && divContainsMouse($otherDiv, event)) {
-                // Mouse inside unsupported inline editor like Quick Docs or Color Editor
-                hidePreview();
-                return;
-            }
-        }
-        
-        // Check main editor
-        if (!editor) {
-            if (divContainsMouse($(fullEditor.getRootElement()), event)) {
-                editor = fullEditor;
-            }
-        }
-        
-        if (editor && editor._codeMirror) {
-            // Find char mouse is over
-            var cm = editor._codeMirror,
-                pos = cm.coordsChar({left: event.clientX, top: event.clientY}),
-                showImmediately = false;
-            
-            // Bail if mouse is on same char as last event
-            if (lastPos && lastPos.line === pos.line && lastPos.ch === pos.ch) {
-                return;
-            }
-            lastPos = pos;
-            
-            // No preview if mouse is past last char on line
-            if (pos.ch >= editor.document.getLine(pos.line).length) {
-                hidePreview();
-                return;
-            }
-            
-            // Is there already a popover provider and range?
-            if (popoverState) {
-                if (popoverState.start && popoverState.end &&
-                        editor.posWithinRange(pos, popoverState.start, popoverState.end, 1)) {
-                    // That one's still relevant - nothing more to do
-                    return;
-                } else {
-                    // That one doesn't cover this pos - hide it and start anew
-                    showImmediately = popoverState.visible;
-                    hidePreview();
-                }
-            }
-            
-            // Initialize popoverState
-            popoverState = {};
-            
-            // Set timer to scan and show. This will get cancelled (in hidePreview())
-            // if mouse movement rendered this popover inapplicable before timer fires.
-            // When showing "immediately", still use setTimeout() to make this async
-            // so we return from this mousemove event handler ASAP.
-            popoverState.hoverTimer = window.setTimeout(function () {
-                showPreview(editor, null);
-            }, showImmediately ? 0 : HOVER_DELAY);
-                
-        } else {
-            // Mouse not over any Editor - immediately hide popover
-            hidePreview();
+
+        // Keep track of last mouse position
+        lastMousePos = {
+            clientX: event.clientX,
+            clientY: event.clientY
+        };
+
+        // Prevent duplicate animation frame requests
+        if (!animationRequest) {
+            animationRequest = window.requestAnimationFrame(processMouseMove);
         }
     }
-    
+
     function onActiveEditorChange(event, current, previous) {
         // Hide preview when editor changes
         hidePreview();
@@ -701,13 +753,22 @@ define(function (require, exports, module) {
     function toggleEnableQuickView() {
         setEnabled(!enabled);
     }
-        
+    
+    function _forceShow(popover) {
+        hidePreview();
+        lastMousePos = {
+            clientX: popover.xpos,
+            clientY: Math.floor((popover.ybot + popover.ytop) / 2)
+        };
+        showPreview(popover.editor, popover);
+    }
+    
     // Create the preview container
     $previewContainer = $(previewContainerHTML).appendTo($("body"));
     $previewContent = $previewContainer.find(".preview-content");
     
     // Load our stylesheet
-    ExtensionUtils.loadStyleSheet(module, "QuickView.css");
+    ExtensionUtils.loadStyleSheet(module, "QuickView.less");
     
     // Register command
     CommandManager.register(Strings.CMD_ENABLE_QUICK_VIEW, CMD_ENABLE_QUICK_VIEW, toggleEnableQuickView);
@@ -727,8 +788,5 @@ define(function (require, exports, module) {
     
     // For unit testing
     exports._queryPreviewProviders  = queryPreviewProviders;
-    exports._forceShow              = function (popover) {
-        hidePreview();
-        showPreview(popover.editor, popover);
-    };
+    exports._forceShow              = _forceShow;
 });

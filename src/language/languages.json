@@ -57,7 +57,7 @@
     "javascript": {
         "name": "JavaScript",
         "mode": "javascript",
-        "fileExtensions": ["js", "jsx", "js.erb", "jsm"],
+        "fileExtensions": ["js", "jsx", "js.erb", "jsm", "_js"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -79,20 +79,23 @@
     "json": {
         "name": "JSON",
         "mode": ["javascript", "application/json"],
-        "fileExtensions": ["json"]
+        "fileExtensions": ["json"],
+        "fileNames": [".jshintrc", ".bowerrc"]
     },
 
     "xml": {
         "name": "XML",
         "mode": "xml",
-        "fileExtensions": ["svg", "xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xul", "xbl", "mathml", "config", "plist"],
+        "fileExtensions": ["xml", "svg", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xsl", "xul", "xbl", "mathml", "config", "plist", "xaml"],
         "blockComment": ["<!--", "-->"]
     },
 
     "php": {
         "name": "PHP",
         "mode": "php",
-        "fileExtensions": ["php", "php3", "php4", "php5", "phtm", "phtml", "ctp"]
+        "fileExtensions": ["php", "php3", "php4", "php5", "phtm", "phtml", "ctp"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//", "#"]
     },
 
     "c": {
@@ -106,7 +109,7 @@
     "cpp": {
         "name": "C++",
         "mode": ["clike", "text/x-c++src"],
-        "fileExtensions": ["cc", "cp", "cpp", "c++", "cxx", "hh", "hpp", "hxx", "h++", "ii"],
+        "fileExtensions": ["cc", "cp", "cpp", "c++", "cxx", "hh", "hpp", "hxx", "h++", "ii", "ino"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -117,13 +120,6 @@
         "fileExtensions": ["cs", "asax", "ashx"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
-    },
-
-    "clike": {
-        "name": "clike",
-        "mode": "clike",
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//", "#"]
     },
 
     "java": {
@@ -137,20 +133,24 @@
     "scala": {
         "name": "Scala",
         "mode": ["clike", "text/x-scala"],
-        "fileExtensions": ["scala", "sbt"]
+        "fileExtensions": ["scala", "sbt"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
     },
 
     "coffeescript": {
         "name": "CoffeeScript",
         "mode": "coffeescript",
-        "fileExtensions": ["coffee", "cf", "cson"],
-        "fileNames": ["Cakefile"]
+        "fileExtensions": ["coffee", "cf", "cson", "_coffee"],
+        "fileNames": ["Cakefile"],
+        "blockComment": ["###", "###"],
+        "lineComment": ["#"]
     },
 
     "clojure": {
         "name": "Clojure",
         "mode": "clojure",
-        "fileExtensions": ["clj"],
+        "fileExtensions": ["clj", "cljs", "cljx"],
         "lineComment": [";", ";;"]
     },
 
@@ -165,7 +165,7 @@
         "name": "Ruby",
         "mode": "ruby",
         "fileExtensions": ["rb", "ru", "gemspec", "rake"],
-        "fileNames": ["Gemfile", "Rakefile"],
+        "fileNames": ["Gemfile", "Rakefile", "Guardfile"],
         "lineComment": ["#"]
     },
 
@@ -187,7 +187,9 @@
     "lua": {
         "name": "Lua",
         "mode": "lua",
-        "fileExtensions": ["lua"]
+        "fileExtensions": ["lua"],
+        "blockComment": ["--[[", "]]"],
+        "lineComment": ["--"]
     },
 
     "sql": {
@@ -227,19 +229,33 @@
     "bash": {
         "name": "Bash",
         "mode": ["shell", "text/x-sh"],
-        "fileExtensions": ["sh"],
+        "fileExtensions": ["sh", "command", "bash"],
         "lineComment": ["#"]
     },
   
     "image": {
         "name": "Image",
-        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg"],
+        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico", "bmp"],
         "isBinary": true
     },
     
     "audio": {
         "name": "Audio",
         "fileExtensions": ["mp3", "wav", "aif", "aiff", "ogg"],
+        "isBinary": true
+    },
+    
+    "binary": {
+        "name": "Other Binary",
+        "fileExtensions": [
+            "a", "ai", "avi", "bin", "cab", "com", "db", "dll", "dmg",
+            "doc", "docx", "dot", "dotx", "dsym", "dylib", "egg", "epub", "eot",
+            "exe", "flv", "gz", "gzip", "htmz", "htmlz", "ipch", "iso", "jar",
+            "jsz", "lib", "mpeg", "mpg", "mp4", "msi", "node", "o", "obj", "odc",
+            "odb", "odf", "odg", "odp", "ods", "odt", "otf", "pak", "pdb", "pdf",
+            "pdi", "ppt", "pptx", "psd", "rar", "sdf", "so", "sqlite", "suo", "svgz",
+            "swf", "tar", "tif", "tiff", "ttf", "woff", "xls", "xlsx", "zip"
+        ],
         "isBinary": true
     }
 }

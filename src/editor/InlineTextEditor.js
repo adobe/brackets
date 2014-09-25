@@ -39,14 +39,6 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent");
 
     /**
-     * Returns editor holder width (not CodeMirror's width).
-     * @private
-     */
-    function _editorHolderWidth() {
-        return $("#editor-holder").width();
-    }
-
-    /**
      * Shows or hides the dirty indicator
      * @private
      */
@@ -80,7 +72,6 @@ define(function (require, exports, module) {
     function InlineTextEditor() {
         InlineWidget.call(this);
 
-        /* @type {Editor}*/
         this.editor = null;
         
         // We need to set this as a capture handler so CodeMirror doesn't handle Esc before we see it.
@@ -92,6 +83,7 @@ define(function (require, exports, module) {
     InlineTextEditor.prototype.parentClass = InlineWidget.prototype;
     
     InlineTextEditor.prototype.$wrapper = null;
+    /** @type {Editor} */
     InlineTextEditor.prototype.editor = null;
     InlineTextEditor.prototype.$editorHolder = null;
     InlineTextEditor.prototype.$header = null;
@@ -244,6 +236,7 @@ define(function (require, exports, module) {
         // dirty indicator, with file path stored on it
         var $dirtyIndicatorDiv = $("<div/>")
             .addClass("dirty-indicator")
+            .html("&bull;")
             .width(0); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         

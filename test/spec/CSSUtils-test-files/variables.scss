@@ -1,0 +1,32 @@
+$family: unquote("Droid+Sans");
+@import url("http://fonts.googleapis.com/css?family=#{$family}");
+
+$name: foo;
+$attr: border;
+.#{$name} a {
+  #{$attr}-color: blue;
+}
+
+.after-variable-interpolated-selector {
+    color: green;
+}
+
+$property: color;
+div {
+  // test case for https://github.com/adobe/brackets/issues/9029
+  background-#{$property}: blue
+}
+
+p {
+  $font-size: 12px;
+  $line-height: 30px;
+  font: #{$font-size}/#{$line-height};
+}
+
+.after-variable-interpolated-property {
+      background-image: url(if($bootstrap-sass-asset-helper, twbs-image-path("#{$file-1x}"), "#{$file-1x}"));
+}
+
+.after-variable-interpolated-url {
+    color: green;
+}

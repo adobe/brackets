@@ -113,7 +113,7 @@ define(function (require, exports, module) {
         if (!moveFxn(ctx)) {
             return false;
         }
-        while (!ctx.token.type && ctx.token.string.trim().length === 0) {
+        while (!ctx.token.type && !/\S/.test(ctx.token.string)) {
             if (!moveFxn(ctx)) {
                 return false;
             }

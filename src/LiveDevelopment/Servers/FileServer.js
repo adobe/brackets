@@ -36,14 +36,16 @@ define(function (require, exports, module) {
     var PREFIX = (brackets.platform === "win") ? "file:///" : "file://";
 
     /**
-     * @constructor
-     * @extends {BaseServer}
      * Server for file: URLs
+     *
+     * Configuration parameters for this server:
+     * - baseUrl      - Optional base URL (populated by the current project)
+     * - pathResolver - Function to covert absolute native paths to project relative paths
+     * - root         - Native path to the project root (and base URL)
+     *
+     * @constructor
      * @param {!{baseUrl: string, root: string, pathResolver: function(string): string}} config
-     *    Configuration parameters for this server:
-     *        baseUrl       - Optional base URL (populated by the current project)
-     *        pathResolver  - Function to covert absolute native paths to project relative paths
-     *        root          - Native path to the project root (and base URL)
+     * @extends {BaseServer}
      */
     function FileServer(config) {
         BaseServer.call(this, config);
