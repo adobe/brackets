@@ -150,10 +150,10 @@ define(function (require, exports, module) {
     
     function _lockContainerHeightOnAllViews(lock) {
         _.forEach(_views, function (view) {
-            view.$openFilesContainer.css({
+/*            view.$openFilesContainer.css({
                 "min-height": lock ? view.$openFilesContainer.height() : "",
                 "max-height": lock ? view.$openFilesContainer.height() : ""
-            });
+            });*/
         });
     }
     
@@ -273,6 +273,7 @@ define(function (require, exports, module) {
                     onBottomScroller = false,
                     $container,
                     $item,
+                    $view,
                     gTop,
                     gHeight,
                     gBottom,
@@ -285,12 +286,14 @@ define(function (require, exports, module) {
                 $ghost.hide();
 
                 $hit = $(document.elementFromPoint(e.pageX, pageY));
+                
+                $view = $(document.elementFromPoint(e.pageX, pageY)).closest(".working-set-view");
             
                 $ghost.show();
 
                 $item = $hit.closest("#working-set-list-container li");
                 
-                $container = $hit.closest(".working-set-view").children(".open-files-container");
+                $container = $view.children(".open-files-container");
                 
                 if ($container.length) {
                  
@@ -319,9 +322,7 @@ define(function (require, exports, module) {
                 onBottomScroller = scrollerBottomArea && ((gTop >= scrollerBottomArea.top && gTop <= scrollerBottomArea.bottom) ||
                                                          (gBottom >= scrollerBottomArea.top && gBottom <= scrollerBottomArea.bottom));
                 
-                if (onTopScroller) {
-                    $item = $(document.elementFromPoint(e.pageX, scrollerTopArea.bottom)).closest("#working-set-list-container li");
-                }
+
                 
                 // helper to see if the mouse is above 
                 //  or below the specified element
@@ -421,16 +422,21 @@ define(function (require, exports, module) {
                     // Find out where to to drag it to
                     var ht = hitTest(e);
                     
-                    
+                    //$ghost.text(ht.where);
                     // if the drag goes into nomansland then
                     //  drop the opacity on the drag affordance
                     //  and show the inserted item at reduced opacity
-                    if (ht.where === NOMANSLAND) {
+                    switch (ht.where) {
+                    case NOMANSLAND:
+                    case BELOWVIEW:
+                    case ABOVEVIEW:
                         $el.css({opacity: ".75"});
                         $ghost.css("opacity", ".25");
-                    } else {
+                        break;
+                    default:
                         $el.css({opacity: ".0001"});
                         $ghost.css("opacity", "");
+                        break;
                     }
                     
                     
