@@ -77,12 +77,12 @@ define(function (require, exports, module) {
      * @enum {string}
      */
     var NOMANSLAND = "nomansland",
-        ABOVEITEM = "aboveitem",
-        BELOWITEM = "belowitem",
-        TOPSCROLL = "topscroll",
-        BOTSCROLL = "bottomscroll",
-        BELOWVIEW = "belowview",
-        ABOVEVIEW = "aboveview";
+        ABOVEITEM  = "aboveitem",
+        BELOWITEM  = "belowitem",
+        TOPSCROLL  = "topscroll",
+        BOTSCROLL  = "bottomscroll",
+        BELOWVIEW  = "belowview",
+        ABOVEVIEW  = "aboveview";
     
     
     /**
@@ -149,7 +149,11 @@ define(function (require, exports, module) {
         });
     }
     
-    
+    /** 
+     * locks the height on all containers so they don't resize while dragging
+     * @private
+     * @param {Boolean} lock - true to lock, false to unlock
+     */
     function _lockContainerHeightOnAllViews(lock) {
         _.forEach(_views, function (view) {
             view.$openFilesContainer.css({
@@ -160,6 +164,11 @@ define(function (require, exports, module) {
     }
     
     
+    /** 
+     * Deactivates all views so the selection marker does not show
+     * @private
+     * @param {Boolean} deactivate - true to deactivate, false to reactivate
+     */
     function _deactivateAllViews(deactivate) {
         _.forEach(_views, function (view) {
             if (deactivate) {
@@ -182,6 +191,7 @@ define(function (require, exports, module) {
      * Finds the WorkingsetView object for the specified element
      * @private
      * @param {jQuery} $el - the element to find the view for
+     * @return {View} view object
      */
     function _viewFromEl($el) {
         if (!$el.hasClass("working-set-view")) {
@@ -299,15 +309,14 @@ define(function (require, exports, module) {
 
                     $container = $view.children(".open-files-container");
 
-
                     if ($container.length) {
 
                         containerOffset = $container.offset();
 
-                        scrollerTopArea = { top: containerOffset.top - itemHeight,
+                        scrollerTopArea = { top: containerOffset.top - (itemHeight + 7),
                                             bottom: containerOffset.top + itemHeight };
 
-                        scrollerBottomArea = { top: containerOffset.top + $container.height() - itemHeight,
+                        scrollerBottomArea = { top: containerOffset.top + $container.height() - (itemHeight + 7),
                                                bottom: containerOffset.top + $container.height() + itemHeight};
                     }
 
@@ -324,7 +333,6 @@ define(function (require, exports, module) {
                     
                 } while (!$item.length);
               
-                
                 gTop = $ghost.offset().top;
                 gHeight = $ghost.height();
                 gBottom = gTop + gHeight;
@@ -333,9 +341,7 @@ define(function (require, exports, module) {
                                                     (gBottom >= scrollerTopArea.top && gBottom <= scrollerTopArea.bottom));
                 onBottomScroller = scrollerBottomArea && ((gTop >= scrollerBottomArea.top && gTop <= scrollerBottomArea.bottom) ||
                                                          (gBottom >= scrollerBottomArea.top && gBottom <= scrollerBottomArea.bottom));
-                
 
-                
                 // helper to see if the mouse is above 
                 //  or below the specified element
                 function mouseIsAbove($elem) {
@@ -430,6 +436,7 @@ define(function (require, exports, module) {
                 function drag(e) {
                     if (!dragged) {
                         _deactivateAllViews(true);
+                        $("#working-set-list-container").addClass("dragging");
                         // we've dragged the item so set
                         //  dragged to true so we don't try and open it
                         dragged = true;
@@ -509,13 +516,12 @@ define(function (require, exports, module) {
                     drag(e);
                 }
                 
-                
                 lastPageY = e.pageY;
-
             });
             
             // Close down the drag operation
             function preDropCleanup() {
+                $("#working-set-list-container").removeClass("dragging");
                 endScroll($el);
                 _deactivateAllViews(false);
                 // turn scroll wheel back on
@@ -535,7 +541,6 @@ define(function (require, exports, module) {
             // Drop
             function drop() {
                 preDropCleanup();
-                // didn't change position or working set
                 if (sourceView.paneId === currentView.paneId && startingIndex === $el.index()) {
                     // if the item was dragged but not moved then don't open or close 
                     if (!dragged) {
@@ -633,7 +638,6 @@ define(function (require, exports, module) {
             $ghost.appendTo($("body"));
         });
     }
-    
     
     /* 
      * WorkingSetView constructor
@@ -901,7 +905,7 @@ define(function (require, exports, module) {
 
         this.$openFilesContainer.find("ul").append($newItem);
         
-        // Update the listItem's apperance
+        // Update the listItem's appearance
         this._updateFileStatusIcon($newItem, _isOpenAndDirty(file), false);
         _updateListItemSelection($newItem, selectedFile);
         _makeDraggable($newItem);
@@ -976,8 +980,6 @@ define(function (require, exports, module) {
         
         this._cachedSelectionOffset = $listItem.offset();
     };
-    
-    
 
     /**
      * workingSetAdd event handler
@@ -1201,8 +1203,7 @@ define(function (require, exports, module) {
             _viewMap[view.paneId] = view;
         }
     }
-    
-    
+
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
     exports.refresh                       = refresh;

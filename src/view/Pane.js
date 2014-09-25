@@ -380,6 +380,13 @@ define(function (require, exports, module) {
         }
     };
 
+    /**
+     * moves a view from one pane to another
+     * @param {!File} file - the File to move
+     * @param {Pane} destination - the destination pane 
+     * @param {Number} destinationIndex - the working set index of the file in the destination pane
+     * @private
+     */
     Pane.prototype.moveView = function (file, destination, destinationIndex) {
         var self = this,
             openNextPromise = new $.Deferred(),
@@ -775,6 +782,13 @@ define(function (require, exports, module) {
     };
 
     
+    /**
+     * moves a working set item from one index to another shifting the items
+     * after in the working set up and reinserting it at the desired location
+     * @param {!number} fromIndex - the index of the item to move
+     * @param {!number} toIndex - the index to move to
+     * @privaate
+     */
     Pane.prototype.moveWorkingSetItem = function (fromIndex, toIndex) {
         this._viewList.splice(toIndex, 0, this._viewList.splice(fromIndex, 1)[0]);
     };

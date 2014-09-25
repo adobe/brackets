@@ -61,6 +61,8 @@
  *          (e, fileRemoved:File, suppressRedraw:boolean, paneId:string)
  *    - workingSetRemoveList -- When multiple files are removed from the working set 
  *          (e, filesRemoved:Array.<File>, paneId:string)
+ *    - workingSetMove - When an File has moved to a new working set
+ *          (e, File:FILE, sourcePaneId:string, destinationPaneId:string)
  *    - workingSetSort -- When a pane's view array is reordered without additions or removals.
  *          (e, paneId:string)
  *    - workingSetUpdate -- When changes happen due to system events such as a file being deleted.
@@ -775,6 +777,14 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * moves a view from one pane to another
+     * @param {!string} sourcePaneId - id of the source pane
+     * @param {!string} destinationPaneId - id of the destination pane
+     * @param {!File} file - the File to move
+     * @param {Number} destinationIndex - the working set index of the file in the destination pane
+     * @private
+     */
     function _moveView(sourcePaneId, destinationPaneId, file, destinationIndex) {
         var result = new $.Deferred(),
             sourcePane = _getPane(sourcePaneId),
@@ -791,6 +801,13 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * DocumentManager.pathDeleted Event handler to remove a file
+     * from the MRU list
+     * @param {!jQuery.event} e - 
+     * @param {!string} fullPath - path of the file to remove
+     * @private
+     */
     function _removeDeletedFileFromMRU(e, fullPath) {
         var index,
             compare = function (record) {
@@ -812,7 +829,7 @@ define(function (require, exports, module) {
      * @param {sortFunctionCallback} compareFn - callback to determine sort order (called on each item)
      * @see {@link Pane.sortViewList()} for more information
      * @see {@link https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort|Sort Array - MDN}
-     * @privaate
+     * @private
      */
     function _sortWorkingSet(paneId, compareFn) {
         _forEachPaneOrPanes(paneId, function (pane) {
@@ -821,6 +838,15 @@ define(function (require, exports, module) {
         });
     }
     
+    
+    /**
+     * moves a working set item from one index to another shifting the items
+     * after in the working set up and reinserting it at the desired location
+     * @param {!string} paneId - id of the pane to sort
+     * @param {!number} fromIndex - the index of the item to move
+     * @param {!number} toIndex - the index to move to
+     * @privaate
+     */
     function _moveWorkingSetItem(paneId, fromIndex, toIndex) {
         var pane = _getPane(paneId);
 
@@ -1120,7 +1146,7 @@ define(function (require, exports, module) {
             options = optionsIn || {};
         
         if (!file || !_getPane(paneId)) {
-            return result.reject("bad argument");
+            return result.reject("bad argument").promise();
         }
 
         var currentPaneId = _getPaneIdForPath(file.fullPath);
