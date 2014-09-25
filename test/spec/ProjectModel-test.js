@@ -22,7 +22,7 @@
  */
 
 /* unittests: ProjectModel */
-/*global $, define, describe, it, xit, expect, beforeEach, waitsForDone, waitsForFail, runs, spyOn, jasmine */
+/*global $, define, describe, it, expect, beforeEach, waitsForDone, waitsForFail, runs, spyOn, jasmine */
 
 define(function (require, exports, module) {
     "use strict";
@@ -158,10 +158,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            // Turned off because these promises are resolved synchronously right now
-            // which causes this test to fail. The real running system would hit the error condition
-            // asynchronously.
-            xit("rejects the promise when there's an error", function () {
+            it("rejects the promise when there's an error", function () {
                 var pm = getPM(null, "Got An Error");
                 pm.getAllFiles().then(function (allFiles) {
                     expect("should not have gotten here").toBe("because there should be an error");
