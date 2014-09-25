@@ -277,6 +277,14 @@ define(function (require, exports, module) {
         mixins: [contextSettable, pathComputer, extendable],
 
         /**
+         * Ensures that we always have a state object.
+         */
+        getInitialState: function () {
+            return {
+            };
+        },
+
+        /**
          * Thanks to immutable objects, we can just do a start object identity check to know
          * whether or not we need to re-render.
          */
