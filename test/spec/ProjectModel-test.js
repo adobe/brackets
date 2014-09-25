@@ -785,7 +785,7 @@ define(function (require, exports, module) {
                     expect(model._selections.rename).toBeUndefined();
                 });
 
-                it("should do nothing if there is no creation in progress when _doneCreating is called", function () {
+                it("should do nothing if there is no creation in progress when performRename is called", function () {
                     var treeData = vm._treeData;
                     model.performRename();
                     expect(changesFired).toBe(0);
@@ -856,6 +856,7 @@ define(function (require, exports, module) {
                                 isFolder: false
                             }
                         ]);
+                        expect(vm._treeData.get("Untitled")).toBeUndefined();
                     });
                 });
             });
