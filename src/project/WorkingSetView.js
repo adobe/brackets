@@ -294,7 +294,6 @@ define(function (require, exports, module) {
                     scrollerTopArea,
                     scrollerBottomArea;
                     
-
                 do {
                     // Turn off the ghost so elementFromPoint ignores it
                     $ghost.hide();
@@ -330,7 +329,6 @@ define(function (require, exports, module) {
                     if (!$item.length) {
                         pageY += itemHeight;
                     }
-                    
                 } while (!$item.length);
               
                 gTop = $ghost.offset().top;
@@ -432,7 +430,7 @@ define(function (require, exports, module) {
             // mouse move handler -- this pretty much does
             //  the heavy lifting for dragging the item around
             $(window).on("mousemove.wsvdragging", function (e) {
-
+                // The drag function
                 function drag(e) {
                     if (!dragged) {
                         _deactivateAllViews(true);
@@ -531,6 +529,7 @@ define(function (require, exports, module) {
                 $el.css("opacity", "");
             }
             
+            // Final Cleanup
             function postDropCleanup() {
                 _suppressSortRedrawForAllViews(false);
                 _lockContainerHeightOnAllViews(false);
@@ -610,8 +609,6 @@ define(function (require, exports, module) {
             
             _suppressSortRedrawForAllViews(true);
             _lockContainerHeightOnAllViews(true);
-            
-            _viewMap[MainViewManager.getActivePaneId()]._cacheSelectionOffset();
             
             // Dragging only happens with the left mouse button
             //  or (on the Mac) when the ctrl key isn't pressed
@@ -974,13 +971,6 @@ define(function (require, exports, module) {
         this._fireSelectionChanged();
     };
     
-    WorkingSetView.prototype._cacheSelectionOffset = function () {
-        var file = MainViewManager.getCurrentlyViewedFile(this.paneId),
-            $listItem = this._findListItemFromFile(file);
-        
-        this._cachedSelectionOffset = $listItem.offset();
-    };
-
     /**
      * workingSetAdd event handler
      * @private
