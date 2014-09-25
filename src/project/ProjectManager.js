@@ -255,6 +255,9 @@ define(function (require, exports, module) {
      */
     ActionCreator.prototype.setContext = function (path) {
         this.model.setContext(path);
+        if (path !== null && !_hasFileSelectionFocus()) {
+            $projectTreeContainer.trigger("scroll");
+        }
     };
 
     /**
