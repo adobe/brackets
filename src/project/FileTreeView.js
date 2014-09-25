@@ -45,7 +45,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * @type {Immutable.Map}
-     * 
+     *
      * Stores the file tree extensions for adding classes and icons. The keys of the map
      * are the "categories" of the extensions and values are vectors of the callback functions.
      */
@@ -113,12 +113,12 @@ define(function (require, exports, module) {
             this.props.actions.setRenameValue(this.refs.name.getDOMNode().value.trim());
         }
     };
-    
+
     /**
      * @private
-     * 
+     *
      * Gets an appropriate width given the text provided.
-     * 
+     *
      * @param {string} text Text to measure
      * @return {int} Width to use
      */
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
 
         render: function () {
             var width = _measureText(this.props.name);
-            
+
             return DOM.input({
                 className: "jstree-rename-input " + this.props.fileClasses,
                 type: "text",
@@ -272,7 +272,7 @@ define(function (require, exports, module) {
             return classes;
         }
     };
-    
+
     /**
      * @private
      *
@@ -375,16 +375,13 @@ define(function (require, exports, module) {
                 }, "." + extension);
             }
 
-            var fileClasses = "";
-            if (this.props.entry.get("selected")) {
-                fileClasses += " jstree-clicked selected-node";
-            }
-            
-            if (this.props.entry.get("context")) {
-                fileClasses += " context-node";
-            }
+            var nameDisplay,
+                cx = React.addons.classSet;
 
-            var nameDisplay;
+            var fileClasses = cx({
+                'jstree-clicked selected-node': this.props.entry.get("selected"),
+                'context-node': this.props.entry.get("context")
+            });
 
             if (this.props.entry.get("rename")) {
                 nameDisplay = fileRenameInput({
@@ -480,7 +477,7 @@ define(function (require, exports, module) {
 
         render: function () {
             var width = _measureText(this.props.name);
-            
+
             return DOM.input({
                 className: "jstree-rename-input",
                 type: "text",
@@ -531,7 +528,7 @@ define(function (require, exports, module) {
         handleClick: function (event) {
             var isOpen = this.props.entry.get("open"),
                 setOpen = isOpen ? false : true;
-            
+
             if (event.metaKey || event.ctrlKey) {
                 // ctrl-alt-click toggles this directory and its children
                 if (event.altKey) {
@@ -698,14 +695,14 @@ define(function (require, exports, module) {
      * Displays the absolutely positioned box for the selection or context in the
      * file tree. Its position is determined by passed-in info about the scroller in which
      * the tree resides and the top of the selected node (as reported by the node itself).
-     * 
+     *
      * Props:
      * * selectionViewInfo: Immutable.Map with width, scrollTop, scrollLeft and offsetTop for the tree container
      * * visible: should this be visible now
      * * widthAdjustment: if this box should not fill the entire width, pass in a positive number here which is subtracted from the width in selectionViewInfo
      */
     var fileSelectionBox = React.createClass({
-        
+
         /**
          * Sets up initial state.
          */
@@ -714,7 +711,7 @@ define(function (require, exports, module) {
                 initialScroll: 0
             };
         },
-        
+
         /**
          * When the component has updated in the DOM, reposition it to where the currently
          * selected node is located now.
@@ -723,7 +720,7 @@ define(function (require, exports, module) {
             if (!this.props.visible) {
                 return;
             }
-            
+
             var node = this.getDOMNode(),
                 selectedNode = $(node.parentNode).find(this.props.selectedClassName),
                 selectionViewInfo = this.props.selectionViewInfo;
@@ -731,13 +728,13 @@ define(function (require, exports, module) {
             if (selectedNode.length === 0) {
                 return;
             }
-            
+
             node.style.top = selectedNode.offset().top - selectionViewInfo.get("offsetTop") + selectionViewInfo.get("scrollTop") + "px";
         },
-        
+
         render: function () {
             var selectionViewInfo = this.props.selectionViewInfo;
-            
+
             return DOM.div({
                 style: {
                     overflow: "auto",
@@ -775,7 +772,7 @@ define(function (require, exports, module) {
                 this.props.extensions !== nextProps.extensions ||
                 this.props.selectionViewInfo !== nextProps.selectionViewInfo;
         },
-        
+
         render: function () {
             var selectionBackground = fileSelectionBox({
                 ref: "selectionBackground",
@@ -795,7 +792,7 @@ define(function (require, exports, module) {
                     selectedClassName: ".context-node",
                     forceUpdate: true
                 });
-            
+
             return DOM.div(
                 null,
                 selectionBackground,
