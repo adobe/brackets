@@ -199,11 +199,12 @@ define(function (require, exports, module) {
             sorceFile = $el.data(_FILE_KEY);
 
         // turn off the "hover-scroll" 
-        function endScroll() {
+        function endScroll($el) {
             if (interval) {
                 window.clearInterval(interval);
                 interval = undefined;
             }
+            $el.css("display", "");
         }
         
         //  We scroll the list while hovering over the first or last visible list element
@@ -213,22 +214,23 @@ define(function (require, exports, module) {
         //  This function will call the drag interface repeatedly on an interval to allow
         //  the item to be dragged while scrolling the list until the mouse is moved off 
         //  the first or last item and end scroll is called
-        function scroll($el, dir, callback) {
-            var el = $el[0],
-                maxScroll = el.scrollHeight - el.clientHeight;
+        function scroll($container, $el, dir, callback) {
+            var container = $container[0],
+                maxScroll = container.scrollHeight - container.clientHeight;
             if (maxScroll && dir && !interval) {
                 // Scroll view if the mouse is over the first or last pixels of the container
                 interval = window.setInterval(function () {
-                    var scrollTop = $el.scrollTop();
+                    var scrollTop = $container.scrollTop();
                     if ((dir === -1 && scrollTop <= 0) || (dir === 1 && scrollTop >= maxScroll)) {
-                        endScroll();
+                        endScroll($el);
                     } else {
-                        $el.scrollTop(scrollTop + 7 * dir);
-                        callback();
+                        $el.css("display", "none");
+                        $container.scrollTop(scrollTop + 7 * dir);
+                        callback($el);
                     }
                 }, 100);
             } else if (!dir && interval) {
-                endScroll();
+                endScroll($el);
             }
         }
         
@@ -268,29 +270,58 @@ define(function (require, exports, module) {
                     },
                     $hit,
                     onTopScroller = false,
-                    onBottomScroller = false;
+                    onBottomScroller = false,
+                    $container,
+                    $item,
+                    gTop,
+                    gHeight,
+                    gBottom,
+                    containerOffset,
+                    scrollerTopArea,
+                    scrollerBottomArea;
+                    
 
                 // Turn off the ghost so elementFromPoint ignores it
                 $ghost.hide();
 
-                $hit = $(document.elementFromPoint(e.pageX, pageY)).closest("#working-set-list-container li");
-                
-                if ($hit[0] === $el[0]) {
-                    $hit = $hit.next();
-                }
-              
-                if (!$hit.length) {
-                    $hit = $(document.elementFromPoint(e.pageX, pageY + itemHeight)).closest("#working-set-list-container li");
-                    onTopScroller = ($hit.length > 0);
-                }  
+                $hit = $(document.elementFromPoint(e.pageX, pageY));
+            
+                $ghost.show();
 
-                if (!$hit.length) {
-                    $hit = $(document.elementFromPoint(e.pageX, pageY - itemHeight)).closest("#working-set-list-container li");
-                    onBottomScroller = ($hit.length > 0);
+                $item = $hit.closest("#working-set-list-container li");
+                
+                $container = $hit.closest(".working-set-view").children(".open-files-container");
+                
+                if ($container.length) {
+                 
+                    containerOffset = $container.offset();
+
+                    scrollerTopArea = { top: containerOffset.top,
+                                        bottom: containerOffset.top + itemHeight };
+
+                    scrollerBottomArea = { top: containerOffset.top + $container.height() - itemHeight,
+                                           bottom: containerOffset.top + $container.height() };
+                }
+                
+                if ($item[0] === $el[0]) {
+                    $item = $item.next();
                 }
               
                 // turn the ghost back on
                 $ghost.show();
+                
+                gTop = $ghost.offset().top;
+                gHeight = $ghost.height();
+                gBottom = gTop + gHeight;
+                
+                onTopScroller = scrollerTopArea && ((gTop >= scrollerTopArea.top && gTop <= scrollerTopArea.bottom)  ||
+                                                    (gBottom >= scrollerTopArea.top && gBottom <= scrollerTopArea.bottom));
+                onBottomScroller = scrollerBottomArea && ((gTop >= scrollerBottomArea.top && gTop <= scrollerBottomArea.bottom) ||
+                                                         (gBottom >= scrollerBottomArea.top && gBottom <= scrollerBottomArea.bottom));
+                
+                if (onTopScroller) {
+                    $item = $(document.elementFromPoint(e.pageX, scrollerTopArea.bottom)).closest("#working-set-list-container li");
+                }
                 
                 // helper to see if the mouse is above 
                 //  or below the specified element
@@ -303,9 +334,7 @@ define(function (require, exports, module) {
 
                 function ghostIsAbove($elem) {
                     var top = $elem.offset().top,
-                        height = $elem.height(),
-                        gTop = $ghost.offset().top,
-                        gHeight = $ghost.height();
+                        height = $elem.height();
                     
                     if (direction > 0) {
                         gTop += gHeight;
@@ -316,9 +345,7 @@ define(function (require, exports, module) {
                 
                 function ghostIsBelow($elem) {
                     var top = $elem.offset().top,
-                        height = $elem.height(),
-                        gTop = $ghost.offset().top,
-                        gHeight = $ghost.height();
+                        height = $elem.height();
                     
                     if (direction > 0) {
                         gTop += gHeight;
@@ -328,29 +355,34 @@ define(function (require, exports, module) {
                 }
                 
                 // We hit an item (li)
-                if ($hit.length) {
-                    if (ghostIsAbove($hit)) {
+                if ($item.length) {
+                    if (onTopScroller) {
                         result = {
-                            where: (onTopScroller) ? TOPSCROLL : ABOVEITEM,
-                            which: $hit
+                            where: TOPSCROLL,
+                            which: $item
                         };
-                    } else if (ghostIsBelow($hit)) {
+                    } else if (onBottomScroller) {
                         result = {
-                            where: (onBottomScroller) ? BOTSCROLL : BELOWITEM,
-                            which: $hit
+                            where: BOTSCROLL,
+                            which: $item
+                        };
+                    } else if (ghostIsAbove($item)) {
+                        result = {
+                            where: ABOVEITEM,
+                            which: $item
+                        };
+                    } else if (ghostIsBelow($item)) {
+                        result = {
+                            where: BELOWITEM,
+                            which: $item
                         };
                     }
                 } else {
-                    $ghost.hide();
-                    // we didn't hit an (li) so look for 
-                    //  where the mouse is relative to the view
-                    $hit = $(document.elementFromPoint(e.pageX, pageY));
 
                     if ($hit.parent().is(".working-set-view")) {
                         $hit = $hit.parent();
                     }
                     
-                    $ghost.show();
 
                     // if we hit a view then we're good to go
                     //  otherwise we'll just return nomansland
@@ -386,22 +418,21 @@ define(function (require, exports, module) {
                     // reset the scrolling direction to no-scroll
                     scrollDir = 0;
                     
-                    // move the drag affordance
-                    $ghost.css("top", e.pageY);
-                    
                     // Find out where to to drag it to
                     var ht = hitTest(e);
+                    
                     
                     // if the drag goes into nomansland then
                     //  drop the opacity on the drag affordance
                     //  and show the inserted item at reduced opacity
                     if (ht.where === NOMANSLAND) {
-                        $el.css("opacity", ".75");
+                        $el.css({opacity: ".75"});
                         $ghost.css("opacity", ".25");
                     } else {
-                        $el.css("opacity", ".0001");
+                        $el.css({opacity: ".0001"});
                         $ghost.css("opacity", "");
                     }
+                    
                     
                     switch (ht.where) {
                     case TOPSCROLL:
@@ -433,16 +464,19 @@ define(function (require, exports, module) {
                     // we need to scroll
                     if (scrollDir) {
                         // we're in range to scroll
-                        scroll(currentView.$openFilesContainer, scrollDir, function () {
+                        scroll(currentView.$openFilesContainer, $el, scrollDir, function () {
                             // as we scroll, recompute the element and insert
                             //  it before/after the item to drag it in to place
                             drag(e);
                         });
                     } else {
                         // we've moved away from the top/bottom "scrolling" region
-                        endScroll();
+                        endScroll($el);
                     }
                 }
+
+                // move the drag affordance
+                $ghost.css("top", e.pageY);
                 
                 // if we have't started dragging yet then we wait until
                 //  the mouse has moved 3 pixels before we start dragging
@@ -451,13 +485,14 @@ define(function (require, exports, module) {
                     drag(e);
                 }
                 
+                
                 lastPageY = e.pageY;
 
             });
             
             // Close down the drag operation
             function preDropCleanup() {
-                endScroll();
+                endScroll($el);
                 _deactivateAllViews(false);
                 // turn scroll wheel back on
                 window.onmousewheel = window.document.onmousewheel = null;
@@ -500,8 +535,10 @@ define(function (require, exports, module) {
                     }
                 } else if (sourceView.paneId === currentView.paneId) {
                     // item was reordered 
+                    var oldTop = sourceView.$openFilesContainer.scrollTop();
                     MainViewManager._moveWorkingSetItem(sourceView.paneId, startingIndex, $el.index());
                     postDropCleanup();
+                    sourceView.$openFilesContainer.scrollTop(oldTop);
                 } else {
                     // item was dragged to another working set
                     MainViewManager._moveView(sourceView.paneId, currentView.paneId, sorceFile, $el.index())
