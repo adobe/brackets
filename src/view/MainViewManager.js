@@ -978,35 +978,34 @@ define(function (require, exports, module) {
      * @return {?Pane} - the pane object of the new pane, or undefined if no pane created
      */
     function _createPaneIfNecessary(paneId) {
-        var pane;
+        var newPane;
         
         if (!_panes.hasOwnProperty(paneId)) {
-            pane = new Pane(paneId, _$el);
-            _panes[paneId] = pane;
+            newPane = new Pane(paneId, _$el);
+            _panes[paneId] = newPane;
             
-            $(exports).triggerHandler("paneCreate", [pane.id]);
+            $(exports).triggerHandler("paneCreate", [newPane.id]);
             
-            pane.$el.on("click.mainview dragover.mainview", function () {
-                setActivePaneId(pane.id);
+            newPane.$el.on("click.mainview dragover.mainview", function () {
+                setActivePaneId(newPane.id);
             });
 
-            $(pane).on("viewListChange.mainview", function () {
+            $(newPane).on("viewListChange.mainview", function () {
                 _updatePaneHeaders();
-                $(exports).triggerHandler("workingSetUpdate", [pane.id]);
+                $(exports).triggerHandler("workingSetUpdate", [newPane.id]);
             });
-            $(pane).on("currentViewChange.mainview", function (e, newView, oldView) {
+            $(newPane).on("currentViewChange.mainview", function (e, newView, oldView) {
                 _updatePaneHeaders();
-                if (_activePaneId === pane.id) {
+                if (_activePaneId === newPane.id) {
                     $(exports).triggerHandler("currentFileChange",
                                               [newView && newView.getFile(),
-                                               pane.id, oldView && oldView.getFile(),
-                                               pane.id]);
+                                               newPane.id, oldView && oldView.getFile(),
+                                               newPane.id]);
                 }
             });
         }
-
         
-        return pane;
+        return newPane;
     }
     
     /**
@@ -1059,7 +1058,7 @@ define(function (require, exports, module) {
         
         // if new pane was created, make it the active pane
         if (newPane) {
-            setActivePaneId(SECOND_PANE);
+            setActivePaneId(newPane.id);
         }
     }
     
@@ -1388,12 +1387,8 @@ define(function (require, exports, module) {
             _orientation = (panes.length > 1) ? state.orientation : null;
 
             _.forEach(state.panes, function (paneState, paneId) {
-                var promise;
-                
                 _createPaneIfNecessary(paneId);
-                promise = _panes[paneId].loadState(paneState);
-                
-                promises.push(promise);
+                promises.push(_panes[paneId].loadState(paneState));
             });
 
             AsyncUtils.waitForAll(promises).then(function (opensList) {
