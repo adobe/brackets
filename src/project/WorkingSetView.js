@@ -250,26 +250,6 @@ define(function (require, exports, module) {
                 startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sorceFile.fullPath),
                 currentView = sourceView;
 
-            // update the selection "bar" and triangle "extender"
-            function updateCurrentSelectionIndicator() {
-                // if we're dragging the current file, the ghost
-                //  whill serve as the selection indicator so we
-                //  don't need to update it
-                if (!isCurrentFile) {
-                    var view = _viewMap[activePaneId],
-                        $li = view._findListItemFromFile(currentFile),
-                        offset = $li.offset();
-
-                    // optimize when it needs to be updated to 
-                    //  only redraw when the list item moves 
-                    if (offset.top !== view._cachedSelectionOffset.top) {
-                        view._fireSelectionChanged();
-                        view.$openFilesContainer.triggerHandler("scroll");
-                        view._cachedSelectionOffset = offset;
-                    }
-                }
-            }
-            
             
             // Switches the context to the working 
             //  set container and view specfied by $container
@@ -277,7 +257,6 @@ define(function (require, exports, module) {
             function updateContext(hit) {
                 // just set the container and update
                 currentView = _viewFromEl(hit.which);
-                updateCurrentSelectionIndicator();
             }
             
             // Determines where the mouse hit was
@@ -288,7 +267,8 @@ define(function (require, exports, module) {
                         where: NOMANSLAND
                     },
                     $hit,
-                    onScroller = false;
+                    onTopScroller = false,
+                    onBottomScroller = false;
 
                 // Turn off the ghost so elementFromPoint ignores it
                 $ghost.hide();
@@ -301,12 +281,12 @@ define(function (require, exports, module) {
               
                 if (!$hit.length) {
                     $hit = $(document.elementFromPoint(e.pageX, pageY + itemHeight)).closest("#working-set-list-container li");
-                    onScroller = ($hit.length > 0);
-                }
+                    onTopScroller = ($hit.length > 0);
+                }  
 
                 if (!$hit.length) {
                     $hit = $(document.elementFromPoint(e.pageX, pageY - itemHeight)).closest("#working-set-list-container li");
-                    onScroller = ($hit.length > 0);
+                    onBottomScroller = ($hit.length > 0);
                 }
               
                 // turn the ghost back on
@@ -351,12 +331,12 @@ define(function (require, exports, module) {
                 if ($hit.length) {
                     if (ghostIsAbove($hit)) {
                         result = {
-                            where: (onScroller) ? TOPSCROLL : ABOVEITEM,
+                            where: (onTopScroller) ? TOPSCROLL : ABOVEITEM,
                             which: $hit
                         };
                     } else if (ghostIsBelow($hit)) {
                         result = {
-                            where: (onScroller) ? BOTSCROLL : BELOWITEM,
+                            where: (onBottomScroller) ? BOTSCROLL : BELOWITEM,
                             which: $hit
                         };
                     }
@@ -398,7 +378,7 @@ define(function (require, exports, module) {
 
                 function drag(e) {
                     if (!dragged) {
-                        _deactivateAllViews(isCurrentFile);
+                        _deactivateAllViews(true);
                         // we've dragged the item so set
                         //  dragged to true so we don't try and open it
                         dragged = true;
@@ -449,7 +429,7 @@ define(function (require, exports, module) {
                         updateContext(ht);
                         break;
                     }
-
+                    
                     // we need to scroll
                     if (scrollDir) {
                         // we're in range to scroll
