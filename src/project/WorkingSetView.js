@@ -90,11 +90,13 @@ define(function (require, exports, module) {
      */
     function refresh(rebuild) {
         _.forEach(_views, function (view) {
+            var top = view.$openFilesContainer.scrollTop();
             if (rebuild) {
                 view._rebuildViewList(true);
             } else {
                 view._redraw();
             }
+            view.$openFilesContainer.scrollTop(top);
         });
     }
     
@@ -150,10 +152,10 @@ define(function (require, exports, module) {
     
     function _lockContainerHeightOnAllViews(lock) {
         _.forEach(_views, function (view) {
-/*            view.$openFilesContainer.css({
+            view.$openFilesContainer.css({
                 "min-height": lock ? view.$openFilesContainer.height() : "",
                 "max-height": lock ? view.$openFilesContainer.height() : ""
-            });*/
+            });
         });
     }
     
@@ -169,7 +171,8 @@ define(function (require, exports, module) {
                 if (view.$el.hasClass("reactivate")) {
                     view.$el.removeClass("reactivate").addClass("active");
                 }
-                view._fireSelectionChanged();
+                // don't update the scroll pos
+                view._fireSelectionChanged(false);
             }
         });
     }
@@ -282,36 +285,45 @@ define(function (require, exports, module) {
                     scrollerBottomArea;
                     
 
-                // Turn off the ghost so elementFromPoint ignores it
-                $ghost.hide();
+                do {
+                    // Turn off the ghost so elementFromPoint ignores it
+                    $ghost.hide();
 
-                $hit = $(document.elementFromPoint(e.pageX, pageY));
-                
-                $view = $(document.elementFromPoint(e.pageX, pageY)).closest(".working-set-view");
-            
-                $ghost.show();
+                    $hit = $(document.elementFromPoint(e.pageX, pageY));
 
-                $item = $hit.closest("#working-set-list-container li");
-                
-                $container = $view.children(".open-files-container");
-                
-                if ($container.length) {
-                 
-                    containerOffset = $container.offset();
+                    $view = $(document.elementFromPoint(e.pageX, pageY)).closest(".working-set-view");
 
-                    scrollerTopArea = { top: containerOffset.top - 7,
-                                        bottom: containerOffset.top + itemHeight };
+                    $item = $hit.closest("#working-set-list-container li");
 
-                    scrollerBottomArea = { top: containerOffset.top + $container.height() - itemHeight,
-                                           bottom: containerOffset.top + $container.height() + 7};
-                }
-                
-                if ($item[0] === $el[0]) {
-                    $item = $item.next();
-                }
+                    $ghost.show();
+
+                    $container = $view.children(".open-files-container");
+
+
+                    if ($container.length) {
+
+                        containerOffset = $container.offset();
+
+                        scrollerTopArea = { top: containerOffset.top - itemHeight,
+                                            bottom: containerOffset.top + itemHeight };
+
+                        scrollerBottomArea = { top: containerOffset.top + $container.height() - itemHeight,
+                                               bottom: containerOffset.top + $container.height() + itemHeight};
+                    }
+
+                    if ($item[0] === $el[0]) {
+                        $item = $item.next();
+                    }
+                    
+                    if (pageY !== e.pageY) {
+                        break;
+                    }
+                    if (!$item.length) {
+                        pageY += itemHeight;
+                    }
+                    
+                } while (!$item.length);
               
-                // turn the ghost back on
-                $ghost.show();
                 
                 gTop = $ghost.offset().top;
                 gHeight = $ghost.height();
@@ -378,25 +390,31 @@ define(function (require, exports, module) {
                             which: $item
                         };
                     }
-                } else {
-
-                    if ($hit.parent().is(".working-set-view")) {
-                        $hit = $hit.parent();
-                    }
-                    
-
-                    // if we hit a view then we're good to go
-                    //  otherwise we'll just return nomansland
-                    if ($hit.is(".working-set-view")) {
-                        if (mouseIsAbove($hit)) {
+                } else if ($view.length) {
+                    if (mouseIsAbove($view)) {
+                        var $prev = $view.prev();
+                        if ($prev.length) {
+                            result = {
+                                where: BELOWVIEW,
+                                which: $view.prev()
+                            };
+                        } else {
                             result = {
                                 where: ABOVEVIEW,
-                                which: $hit
+                                which: $view
+                            };
+                        }
+                    } else {
+                        var $next = $view.next();
+                        if ($next.length) {
+                            result = {
+                                where: ABOVEVIEW,
+                                which: $next
                             };
                         } else {
                             result = {
                                 where: BELOWVIEW,
-                                which: $hit
+                                which: $view
                             };
                         }
                     }
@@ -541,10 +559,8 @@ define(function (require, exports, module) {
                     }
                 } else if (sourceView.paneId === currentView.paneId) {
                     // item was reordered 
-                    var oldTop = sourceView.$openFilesContainer.scrollTop();
                     MainViewManager._moveWorkingSetItem(sourceView.paneId, startingIndex, $el.index());
                     postDropCleanup();
-                    sourceView.$openFilesContainer.scrollTop(oldTop);
                 } else {
                     // item was dragged to another working set
                     MainViewManager._moveView(sourceView.paneId, currentView.paneId, sorceFile, $el.index())
@@ -727,11 +743,15 @@ define(function (require, exports, module) {
      * Redraw selection when list size changes or DocumentManager currentDocument changes.
      * @private
      */
-    WorkingSetView.prototype._fireSelectionChanged = function () {
-        this._scrollSelectedFileIntoView();
+    WorkingSetView.prototype._fireSelectionChanged = function (scrollIntoView) {
+        var reveal = (scrollIntoView === undefined || scrollIntoView === true);
+        
+        if (reveal) {
+            this._scrollSelectedFileIntoView();
+        }
 
         if (FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW && this.$el.hasClass("active")) {
-            this.$openFilesList.trigger("selectionChanged");
+            this.$openFilesList.trigger("selectionChanged", reveal);
         } else {
             this.$openFilesList.trigger("selectionHide");
         }
