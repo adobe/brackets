@@ -917,7 +917,9 @@ define(function (require, exports, module) {
      * @return {$.Promise} Resolved when done; or rejected if not found
      */
     function showInTree(entry) {
-        return model.showInTree(entry);
+        return model.showInTree(entry).then(function () {
+            _saveTreeState();
+        });
     }
 
 
