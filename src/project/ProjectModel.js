@@ -888,7 +888,7 @@ define(function (require, exports, module) {
             viewModel       = this._viewModel,
             self            = this;
 
-        if (oldName === newName) {
+        if (renameInfo.type !== FILE_CREATING && oldName === newName) {
             this.cancelRename();
             return;
         }
