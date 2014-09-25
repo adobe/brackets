@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         Menus                 = require("command/Menus"),
         FileViewController    = require("project/FileViewController"),
         ViewUtils             = require("utils/ViewUtils"),
+        KeyEvent              = require("utils/KeyEvent"),
         paneListTemplate      = require("text!htmlContent/working-set.html"),
         Strings               = require("strings"),
         _                     = require("thirdparty/lodash");
@@ -70,6 +71,41 @@ define(function (require, exports, module) {
     var _FILE_KEY = "file";
     
     /**
+     * Constants for hitTest.where 
+     * @enum {string}
+     */
+    var NOMANSLAND = "nomansland",
+        ABOVEITEM = "aboveitem",
+        BELOWITEM = "belowitem",
+        TOPSCROLL = "topscroll",
+        BOTSCROLL = "bottomscroll",
+        BELOWVIEW = "belowview",
+        ABOVEVIEW = "aboveview";
+    
+    
+    /**
+     * Refreshes all Pane View List Views
+     */
+    function refresh(rebuild) {
+        _.forEach(_views, function (view) {
+            if (rebuild) {
+                view._rebuildViewList(true);
+            } else {
+                view._redraw();
+            }
+        });
+    }
+    
+    /** 
+     * Synchronizes the selection indicator for all views
+     */
+    function syncSelectionIndicator() {
+        _.forEach(_views, function (view) {
+            view.$openFilesContainer.triggerHandler("scroll");
+        });
+    }
+    
+    /**
      * Updates the appearance of the list element based on the parameters provided.
      * @private
      * @param {!HTMLLIElement} listElement
@@ -80,6 +116,7 @@ define(function (require, exports, module) {
         
         ViewUtils.toggleClass($(listItem), "selected", shouldBeSelected);
     }
+
 
     /**
      * Determines if a file is dirty
@@ -92,6 +129,398 @@ define(function (require, exports, module) {
         var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
         return (docIfOpen && docIfOpen.isDirty);
     }
+    
+    
+    /** 
+     * Turns on/off the flag which suppresses rebuilding of the working set 
+     * when the "workingSetSort" event is dispatched from MainViewManager
+     * Only used while dragging things around in the workingset to disable
+     * rebuilding the list while dragging.
+     * @private
+     * @param {boolean} suppress - true suppress, false to allow sort redrawing
+     */
+    function _suppressSortRedrawForAllViews(suppress) {
+        _.forEach(_views, function (view) {
+            view.suppressSortRedraw = suppress;
+        });
+    }
+    
+    
+    /** 
+     * Updates the selection index for all views and fires a selection change
+     * event on the view if the selection index chnages from the previously 
+     * cached value. This synchromizes the "selection" affordance 
+     * @private
+     * @param {jQuery} $el - the element that was moved
+     */
+    function _updateSelectionStateForAllViews($el) {
+        var currentFile = MainViewManager.getCurrentlyViewedFile();
+
+        _.forEach(_views, function (view) {
+
+            if ($el && $el.data(_FILE_KEY) === currentFile && view.$el.find($el).length) {
+                view.$el.addClass("active");
+                view.$openFilesContainer.addClass("active");
+                view.$el.find("li.selected").removeClass("selected").addClass("reselect");
+                $el.addClass("selected").removeClass("reselect");
+            } else {
+                if (view.paneId !== MainViewManager.getActivePaneId()) {
+                    view.$el.removeClass("active");
+                }
+                
+                var paneFile = MainViewManager.getCurrentlyViewedFile(view.paneId);
+                view.$el.find("li.selected").removeClass("selected").addClass("reselect");
+                var $selected = view._findListItemFromFile(paneFile);
+                if ($selected) {
+                    $selected.addClass("selected").removeClass("reselect");
+                }
+            }
+            
+            view._fireSelectionChanged();
+        });
+        // update the selection marker
+        syncSelectionIndicator();
+    }
+    
+    /** 
+     * Finds the WorkingsetView object for the specified element
+     * @private
+     * @param {jQuery} $el - the element to find the view for
+     */
+    function _viewFromEl($el) {
+        if (!$el.hasClass("working-set-view")) {
+            $el = $el.parents(".working-set-view");
+        }
+
+        return _.find(_views, function (view) {
+            return (view.$el[0] === $el[0]);
+        });
+    }
+    
+    /** 
+     * Makes the specified element draggable
+     * @private
+     * @param {jQuery} $el - the element to make draggable
+     */
+    function _makeDraggable($el) {
+        var interval,
+            sorceFile = $el.data(_FILE_KEY);
+
+        // turn off the "hover-scroll" 
+        function endScroll() {
+            if (interval) {
+                window.clearInterval(interval);
+                interval = undefined;
+            }
+        }
+        
+        //  We scroll the list while hovering over the first or last visible list element
+        //  in the working set, so that positioning a working set item before or after one
+        //  that has been scrolled out of view can be performed.
+        // 
+        //  This function will call the drag interface repeatedly on an interval to allow
+        //  the item to be dragged while scrolling the list until the mouse is moved off 
+        //  the first or last item and end scroll is called
+        function scroll($el, dir, callback) {
+            var el = $el[0],
+                maxScroll = el.scrollHeight - el.clientHeight;
+            if (maxScroll && dir && !interval) {
+                // Scroll view if the mouse is over the first or last pixels of the container
+                interval = window.setInterval(function () {
+                    var scrollTop = $el.scrollTop();
+                    if ((dir === -1 && scrollTop <= 0) || (dir === 1 && scrollTop >= maxScroll)) {
+                        endScroll();
+                    } else {
+                        $el.scrollTop(scrollTop + 7 * dir);
+                        callback();
+                    }
+                }, 100);
+            } else if (!dir && interval) {
+                endScroll();
+            }
+        }
+        
+        // The mouse down handler pretty much handles everything
+        $el.mousedown(function (e) {
+            var scrollDir = 0,
+                dragged = false,
+                startPageY = e.pageY,
+                itemHeight = $el.height(),
+                tryClosing = $(document.elementFromPoint(e.pageX, e.pageY)).hasClass("can-close"),
+                offset = $el.offset(),
+                $copy = $el.clone(),
+                $ghost = $("<div class='open-files-container wsv-drag-ghost' style='overflow: hidden; display: inline-block;'>").append($("<ul>").append($copy).css("padding", "0")),
+                sourceView = _viewFromEl($el),
+                isCurrentDocument = ($el.hasClass("selected") && sourceView.paneId === MainViewManager.getActivePaneId()),
+                startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sorceFile.fullPath),
+                currentView = sourceView;
+
+
+
+            // Switches the context to the working 
+            //  set container and view specfied by $container
+            //  and updates the state variables for the container
+            function updateContext(hit, $elem) {
+                // just set the container and update
+                currentView = _viewFromEl(hit.which);
+                _updateSelectionStateForAllViews($elem);
+                $ghost.find("li").attr("class", $elem.attr("class"));
+            }
+            
+            // Determines where the mouse hit was
+            function hitTest(e) {
+                var result = {
+                        where: NOMANSLAND
+                    },
+                    $hit,
+                    onScroller = false;
+
+                // Turn off the ghost so elementFromPoint ignores it
+                $ghost.hide();
+
+                $hit = $(document.elementFromPoint(e.pageX, e.pageY)).closest("#working-set-list-container li");
+              
+                if (!$hit.length) {
+                    $hit = $(document.elementFromPoint(e.pageX, e.pageY + itemHeight)).closest("#working-set-list-container li");
+                    onScroller = ($hit.length > 0);
+                }
+
+                if (!$hit.length) {
+                    $hit = $(document.elementFromPoint(e.pageX, e.pageY - itemHeight)).closest("#working-set-list-container li");
+                    onScroller = ($hit.length > 0);
+                }
+              
+                // helper to see if the mouse is above 
+                //  or below the specified element
+                function mouseIsAbove($elem) {
+                    var top = $elem.offset().top,
+                        height = $elem.height();
+                    
+                    return (e.pageY < (top + height / 2));
+                }
+              
+                // We hit an item (li)
+                if ($hit.length) {
+                    if (mouseIsAbove($hit)) {
+                        result = {
+                            where: (onScroller) ? TOPSCROLL : ABOVEITEM,
+                            which: $hit
+                        };
+                    } else {
+                        result = {
+                            where: (onScroller) ? BOTSCROLL : BELOWITEM,
+                            which: $hit
+                        };
+                    }
+                } else {
+                    // we didn't hit an (li) so look for 
+                    //  where the mouse is relative to the view
+                    $hit = $(document.elementFromPoint(e.pageX, e.pageY));
+
+                    if ($hit.parent().is(".working-set-view")) {
+                        $hit = $hit.parent();
+                    }
+                    // if we hit a view then we're good to go
+                    //  otherwise we'll just return nomansland
+                    if ($hit.is(".working-set-view")) {
+                        if (mouseIsAbove($hit)) {
+                            result = {
+                                where: ABOVEVIEW,
+                                which: $hit
+                            };
+                        } else {
+                            result = {
+                                where: BELOWVIEW,
+                                which: $hit
+                            };
+                        }
+                    }
+                }
+
+                // turn the ghost back on
+                //  and bail with the result
+                $ghost.show();
+                return result;
+
+            }
+   
+            // mouse move handler -- this pretty much does
+            //  the heavy lifting for dragging the item around
+            $(window).on("mousemove.wsvdragging", function (e) {
+
+                function drag(e) {
+                    // we've dragged the item so set
+                    //  dragged to true so we don't try and open it
+                    dragged = true;
+                    // reset the scrolling direction to no-scroll
+                    scrollDir = 0;
+                    // reset start so we don't drag again until the mouse 
+                    //  is moved 3 pixels to help prevent jitter
+                    startPageY = e.pageY;
+                    // Find out where to to drag it to
+                    var ht = hitTest(e);
+                    
+                    if (ht.where !== NOMANSLAND) {
+                        switch (ht.where) {
+                        case TOPSCROLL:
+                        case ABOVEITEM:
+                            if (ht.where === TOPSCROLL) {
+                                scrollDir = -1;
+                            }
+                            $el.insertBefore(ht.which);
+                            updateContext(ht, $el);
+                            break;
+                        case BOTSCROLL:
+                        case BELOWITEM:
+                            if (ht.where === BOTSCROLL) {
+                                scrollDir = 1;
+                            }
+                            $el.insertAfter(ht.which);
+                            updateContext(ht, $el);
+                            break;
+                        case BELOWVIEW:
+                            $el.appendTo(ht.which.find("ul"));
+                            updateContext(ht, $el);
+                            break;
+                        case ABOVEVIEW:
+                            $el.prependTo(ht.which.find("ul"));
+                            updateContext(ht, $el);
+                            break;
+                        }
+                    }
+
+                    // move the drag affordance
+                    $ghost.css("top", e.pageY);
+
+                    // we need to scroll
+                    if (scrollDir) {
+                        // we're in range to scroll
+                        scroll(currentView.$openFilesContainer, scrollDir, function () {
+                            // as we scroll, recompute the element and insert
+                            //  it before/after the item to drag it in to place
+                            drag(e);
+                        });
+                    } else {
+                        // we've moved away from the top/bottom "scrolling" region
+                        endScroll();
+                    }
+                }
+                
+                // if we have't started dragging yet then we wait until
+                //  the mouse has moved 3 pixels before we start dragging
+                //  to avoid the item moving when clicked or double clicked
+                if (Math.abs(e.pageY - startPageY) > 3) {
+                    drag(e);
+                }
+
+            });
+            
+            // Close down the drag operation
+            function preDropCleanup() {
+                endScroll();
+                // turn scroll wheel back on
+                window.onmousewheel = window.document.onmousewheel = null;
+                $(window).off(".wsvdragging");
+                $ghost.remove();
+                $el.css("opacity", "");
+            }
+            
+            function postDropCleanup() {
+                _suppressSortRedrawForAllViews(false);
+                refresh(true);
+                MainViewManager.focusActivePane();
+            }
+            
+            // Drop
+            function drop() {
+                preDropCleanup();
+                // didn't change position or working set
+                if (sourceView.paneId === currentView.paneId && startingIndex === $el.index()) {
+                    // if the item was dragged but not moved then don't open or close 
+                    if (!dragged) {
+                        // Click on close icon, or middle click anywhere - close the item without selecting it first
+                        if (tryClosing || e.which === MIDDLE_BUTTON) {
+                            CommandManager.execute(Commands.FILE_CLOSE, {file: sorceFile,
+                                                                         paneId: sourceView.paneId});
+                        } else {
+                            // Normal right and left click - select the item
+                            FileViewController.openAndSelectDocument(sorceFile.fullPath,
+                                                                     FileViewController.WORKING_SET_VIEW,
+                                                                     currentView.paneId);
+                        }
+                    }
+                    postDropCleanup();
+                } else if (sourceView.paneId === currentView.paneId) {
+                    // item was reordered 
+                    MainViewManager._moveWorkingSetItem(sourceView.paneId, startingIndex, $el.index());
+                    postDropCleanup();
+                } else {
+                    // item was dragged to another working set
+                    MainViewManager._moveView(sourceView.paneId, currentView.paneId, sorceFile, $el.index())
+                        .always(function () {
+                            // if the current document was dragged to another workingset 
+                            //  then reopen it to make it the currently selected file
+                            if (isCurrentDocument) {
+                                CommandManager
+                                    .execute(Commands.FILE_OPEN, {fullPath: sorceFile.fullPath,
+                                                                   paneId: currentView.paneId})
+                                    .always(function () {
+                                        postDropCleanup();
+                                    });
+                            } else {
+                                postDropCleanup();
+                            }
+                        });
+                }
+            }
+
+            // initialization
+            $(window).on("mouseup.wsvdragging", function (e) {
+                drop();
+            });
+            
+            // let escape cancel the drag
+            $(window).on("keydown.wsvdragging", function (e) {
+                if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+                    preDropCleanup();
+                    postDropCleanup();
+                    e.stopPropagation();
+                }
+            });
+            
+            // turn off scroll wheel
+            window.onmousewheel = window.document.onmousewheel = function (e) {
+                e.preventDefault();
+            };
+
+            // close all menus, and disable sorting 
+            Menus.closeAll();
+            
+            _suppressSortRedrawForAllViews(true);
+            
+            // Dragging only happens with the left mouse button
+            //  or (on the Mac) when the ctrl key isn't pressed
+            if (e.which !== LEFT_BUTTON || (e.ctrlKey && brackets.platform === "mac")) {
+                drop();
+                return;
+            }
+            
+            // setup our ghost element as position absolute
+            //  so we can put it wherever we want to while dragging
+            $ghost.css({
+                position: "absolute",
+                top: offset.top,
+                left: offset.left,
+                width: sourceView.$el.width(),
+                opacity: ".0001"
+            });
+            
+            // this will give the element the appearence that it's ghosted if the user
+            //  drags the element out of the view and goes off into no mans land
+            $ghost.appendTo($("body"));
+        });
+    }
+    
     
     /* 
      * WorkingSetView constructor
@@ -308,209 +737,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Starts the drag and drop working set view reorder.
-     * @private
-     * @param {!Event} event - jQuery event
-     * @param {!HTMLLIElement} $listItem - jQuery element
-     * @param {?bool} fromClose - true if reorder was called from the close icon
-     */
-    WorkingSetView.prototype._reorderListItem = function (event, $listItem, fromClose) {
-        var self            = this,
-            $prevListItem   = $listItem.prev(),
-            $nextListItem   = $listItem.next(),
-            selected        = $listItem.hasClass("selected"),
-            prevSelected    = $prevListItem.hasClass("selected"),
-            nextSelected    = $nextListItem.hasClass("selected"),
-            index           = MainViewManager.findInWorkingSet(self.paneId, $listItem.data(_FILE_KEY).fullPath),
-            height          = $listItem.height(),
-            startPageY      = event.pageY,
-            listItemTop     = startPageY - $listItem.offset().top,
-            listItemBottom  = $listItem.offset().top + height - startPageY,
-            offsetTop       = this.$openFilesContainer.offset().top,
-            scrollElement   = this.$openFilesContainer.get(0),
-            containerHeight = scrollElement.clientHeight,
-            maxScroll       = scrollElement.scrollHeight - containerHeight,
-            hasScroll       = scrollElement.scrollHeight > containerHeight,
-            hasBottomShadow = scrollElement.scrollHeight > scrollElement.scrollTop + containerHeight,
-            addBottomShadow = false,
-            interval        = false,
-            moved           = false;
-        
-        // Don't redraw the working set for the next events
-        self.suppressSortRedraw = true;
-        
-        function drag(e) {
-            var top = e.pageY - startPageY;
-            
-            // Drag if the item is not the first and moving it up or
-            // if the item is not the last and moving down
-            if (($prevListItem.length && top < 0) || ($nextListItem.length && top > 0)) {
-                // Reorder the list once the item is halfway to the new position
-                if (Math.abs(top) > height / 2) {
-                    // If moving up, place the previows item after the moving item
-                    if (top < 0) {
-                        $prevListItem.insertAfter($listItem);
-                        startPageY -= height;
-                        top = top + height;
-                        MainViewManager._swapWorkingSetListIndexes(self.paneId, index, --index);
-                    // If moving down, place the next item before the moving item
-                    } else {
-                        $nextListItem.insertBefore($listItem);
-                        startPageY += height;
-                        top = top - height;
-                        MainViewManager._swapWorkingSetListIndexes(self.paneId, index, ++index);
-                    }
-                    
-                    // Update the selection when the previows or next element were selected
-                    if (!selected && ((top > 0 && prevSelected) || (top < 0 && nextSelected))) {
-                        self._fireSelectionChanged();
-                    }
-                    
-                    // Update the previows and next items
-                    $prevListItem = $listItem.prev();
-                    $nextListItem = $listItem.next();
-                    prevSelected  = $prevListItem.hasClass("selected");
-                    nextSelected  = $nextListItem.hasClass("selected");
-
-                    // If the last item of the list was selected and the previows was moved to its location, then
-                    // the it will show a bottom shadow even if it shouldnt because of the way the scrollHeight is 
-                    // handle with relative position. This will remove that shadow and add it on drop. 
-                    if (!addBottomShadow && !hasBottomShadow && !$nextListItem.length && prevSelected) {
-                        ViewUtils.removeScrollerShadow(self.$openFilesContainer[0], null);
-                        ViewUtils.addScrollerShadow(self.$openFilesContainer[0], null, false);
-                        addBottomShadow = true;
-                    }
-                }
-            // Set the top to 0 as the event probably didnt fired at the exact start/end of the list 
-            } else {
-                top = 0;
-            }
-            
-            // Move the item
-            $listItem.css("top", top + "px");
-            
-            // Update the selection position
-            if (selected) {
-                self._fireSelectionChanged();
-            }
-            
-            // Once the movement is greater than 3 pixels, it is assumed that the user wantes to reorder files and not open
-            if (!moved && Math.abs(top) > 3) {
-                Menus.closeAll();
-                moved = true;
-                
-                // Don't redraw the working set for the next events
-                self.suppressSortRedraw = true;
-            }
-        }
-        
-        function endScroll() {
-            window.clearInterval(interval);
-            interval = false;
-        }
-        
-        function scroll(e) {
-            var dir = 0;
-            // Mouse over the first visible pixels and moving up
-            if (e.pageY - listItemTop < offsetTop + 7) {
-                dir = -1;
-            // Mouse over the last visible pixels and moving down
-            } else if (e.pageY + listItemBottom > offsetTop + containerHeight - 7) {
-                dir = 1;
-            }
-            
-            if (dir && !interval) {
-                // Scroll view if the mouse is over the first or last pixels of the container
-                interval = window.setInterval(function () {
-                    var scrollTop = self.$openFilesContainer.scrollTop();
-                    // End scroll if there isn't more to scroll
-                    if ((dir === -1 && scrollTop <= 0) || (dir === 1 && scrollTop >= maxScroll)) {
-                        endScroll();
-                    // Scroll and drag list item
-                    } else {
-                        self.$openFilesContainer.scrollTop(scrollTop + 7 * dir);
-                        startPageY -= 7 * dir;
-                        drag(e);
-                    }
-                }, 100);
-            } else if (!dir && interval) {
-                endScroll();
-            }
-        }
-        
-        function drop() {
-            // Enable Mousewheel
-            window.onmousewheel = window.document.onmousewheel = null;
-            
-            // Removes the styles, placing the item in the chosen place
-            $listItem.removeAttr("style");
-            
-            // End the scrolling if needed
-            if (interval) {
-                window.clearInterval(interval);
-            }
-            
-            // If item wasn't dragged, treat as a click
-            if (!moved) {
-                // Click on close icon, or middle click anywhere - close the item without selecting it first
-                if (fromClose || event.which === MIDDLE_BUTTON) {
-                    CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY),
-                                                                 paneId: self.paneId});
-                } else {
-                    // Normal right and left click - select the item
-                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath,
-                                                             FileViewController.WORKING_SET_VIEW,
-                                                             self.paneId);
-                }
-            
-            } else {
-                // Update the file selection
-                if (selected) {
-                    self._fireSelectionChanged();
-                    ViewUtils.scrollElementIntoView(self.$openFilesContainer, $listItem, false);
-                }
-                
-                // Restore the shadow
-                if (addBottomShadow) {
-                    ViewUtils.addScrollerShadow(self.$openFilesContainer[0], null, true);
-                }
-            }
-            // The drag is done, so set back to the default
-            self.suppressSortRedraw = false;
-        }
-        
-        
-        // Only drag with the left mouse button, and control key is not down
-        // on Mac, end the drop in other cases
-        if (event.which !== LEFT_BUTTON || (event.ctrlKey && brackets.platform === "mac")) {
-            drop();
-            return;
-        }
-        
-        // Disable Mousewheel while dragging
-        window.onmousewheel = window.document.onmousewheel = function (e) {
-            e.preventDefault();
-        };
-        
-        // Style the element
-        $listItem.css("position", "relative").css("z-index", 1);
-        
-        var $holder = $(window);
-        
-        // Event Handlers
-        $holder.on(self._makeEventName("mousemove"), function (e) {
-            if (hasScroll) {
-                scroll(e);
-            }
-            drag(e);
-        });
-        $holder.on(self._makeEventName("mouseup"), function (e) {
-            $holder.off(self._makeEventName(""));
-            drop();
-        });
-    };
-    
-    /**
      * Updates the appearance of the list element based on the parameters provided
      * @private
      * @param {!HTMLLIElement} listElement
@@ -518,8 +744,7 @@ define(function (require, exports, module) {
      * @param {bool} canClose
      */
     WorkingSetView.prototype._updateFileStatusIcon = function (listElement, isDirty, canClose) {
-        var self = this,
-            $fileStatusIcon = listElement.find(".file-status-icon"),
+        var $fileStatusIcon = listElement.find(".file-status-icon"),
             showIcon = isDirty || canClose;
 
         // remove icon if its not needed
@@ -531,17 +756,7 @@ define(function (require, exports, module) {
         } else if (showIcon && $fileStatusIcon.length === 0) {
             
             $fileStatusIcon = $("<div class='file-status-icon'></div>")
-                .prependTo(listElement)
-                .mousedown(function (e) {
-                    // Try to drag if that is what is wanted if not it will be the equivalent to File > Close;
-                    // it doesn't merely remove a file from the working set
-                    self._reorderListItem(e, $(this).parent(), true);
-                    
-                    // stopPropagation of mousedown for fileStatusIcon so the parent <LI> item, which
-                    // selects documents on mousedown, doesn't select the document in the case 
-                    // when the click is on fileStatusIcon
-                    e.stopPropagation();
-                });
+                .prependTo(listElement);
         }
 
         // Set icon's class
@@ -572,11 +787,7 @@ define(function (require, exports, module) {
         // Update the listItem's apperance
         this._updateFileStatusIcon($newItem, _isOpenAndDirty(file), false);
         _updateListItemSelection($newItem, selectedFile);
-
-        $newItem.mousedown(function (e) {
-            self._reorderListItem(e, $(this));
-            e.preventDefault();
-        });
+        _makeDraggable($newItem);
         
         $newItem.hover(
             function () {
@@ -631,7 +842,6 @@ define(function (require, exports, module) {
         var file = MainViewManager.getCurrentlyViewedFile(this.paneId);
         
         this._updateViewState();
-        
         
         // Iterate through working set list and update the selection on each
         this.$openFilesContainer.find("ul").children().each(function () {
@@ -845,7 +1055,7 @@ define(function (require, exports, module) {
             });
         }
     });
-    
+
     /**
      * Creates a new WorkingSetView object for the specified pane
      * @param {!jQuery} $container - the WorkingSetView's DOM parent node
@@ -861,24 +1071,6 @@ define(function (require, exports, module) {
         if (index === -1) {
             _views.push(new WorkingSetView($container, paneId));
         }
-    }
-
-    /**
-     * Refreshes all Pane View List Views
-     */
-    function refresh() {
-        _.forEach(_views, function (workingSetListView) {
-            workingSetListView._redraw();
-        });
-    }
-    
-    /** 
-     * Synchronizes the selection indicator for all views
-     */
-    function syncSelectionIndicator() {
-        _.forEach(_views, function (workingSetListView) {
-            workingSetListView.$openFilesContainer.triggerHandler("scroll");
-        });
     }
     
     

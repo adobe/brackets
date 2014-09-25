@@ -787,6 +787,22 @@ define(function (require, exports, module) {
         }
     }
     
+    function _moveView(sourcePaneId, destinationPaneId, file, destinationIndex) {
+        var result = new $.Deferred(),
+            sourcePane = _getPane(sourcePaneId),
+            destinationPane = _getPane(destinationPaneId);
+        
+        sourcePane.moveView(file, destinationPane, destinationIndex)
+            .done(function () {
+                $(exports).triggerHandler("workingSetMove", [file, sourcePane.id, destinationPane.id]);
+            })
+            .always(function () {
+                result.resolve();
+            });
+        
+        return result.promise();
+    }
+    
     function _removeDeletedFileFromMRU(e, fullPath) {
         var index,
             compare = function (record) {
@@ -815,6 +831,14 @@ define(function (require, exports, module) {
             pane.sortViewList(compareFn);
             $(exports).triggerHandler("workingSetSort", [pane.id]);
         });
+    }
+    
+    function _moveWorkingSetItem(paneId, fromIndex, toIndex) {
+        var pane = _getPane(paneId);
+
+        pane.moveWorkingSetItem(fromIndex, toIndex);
+        $(exports).triggerHandler("workingSetSort", [pane.id]);
+        $(exports).triggerHandler("_workingSetDisableAutoSort", [pane.id]);
     }
 
     /**
@@ -1071,10 +1095,13 @@ define(function (require, exports, module) {
      * Do not use this API unless you have a document object without a file object
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Document} doc - document to edit
+     * @param {{noPaneActivate:boolean}=} optionsIn - options
      * @private
      */
-    function _edit(paneId, doc) {
-        var currentPaneId = _getPaneIdForPath(doc.file.fullPath);
+    function _edit(paneId, doc, optionsIn) {
+        var currentPaneId = _getPaneIdForPath(doc.file.fullPath),
+            options = optionsIn || {};
+
             
         if (currentPaneId) {
             // If the doc is open in another pane
@@ -1083,7 +1110,9 @@ define(function (require, exports, module) {
             //  we could just do pane.showView(doc._masterEditor) in that
             //  case but Editor Manager may do some state syncing 
             paneId = currentPaneId;
-            setActivePaneId(paneId);
+            if (!options.noPaneActivate) {
+                setActivePaneId(paneId);
+            }
         }
         
         var pane = _getPane(paneId);
@@ -1104,14 +1133,16 @@ define(function (require, exports, module) {
      * or a document for editing.  If it's a document for editing, edit is called on the document 
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!File} file - file to open
+     * @param {{noPaneActivate:boolean}=} optionsIn - options
      * @return {jQuery.Promise}  promise that resolves to a File object or 
      *                           rejects with a File error or string
      */
-    function _open(paneId, file) {
-        var result = new $.Deferred();
+    function _open(paneId, file, optionsIn) {
+        var result = new $.Deferred(),
+            options = optionsIn || {};
         
         if (!file || !_getPane(paneId)) {
-            throw new Error("bad argument");
+            return result.reject("bad argument");
         }
 
         var currentPaneId = _getPaneIdForPath(file.fullPath);
@@ -1139,7 +1170,9 @@ define(function (require, exports, module) {
             //  we could just do pane.showView(doc._masterEditor) in that
             //  case but Editor Manager may do some state syncing             
             paneId = currentPaneId;
-            setActivePaneId(paneId);
+            if (!options.noPaneActivate) {
+                setActivePaneId(paneId);
+            }
         }
         
         // See if there is already a view for the file
@@ -1173,7 +1206,7 @@ define(function (require, exports, module) {
         } else {
             DocumentManager.getDocumentForPath(file.fullPath)
                 .done(function (doc) {
-                    _edit(paneId, doc);
+                    _edit(paneId, doc, options);
                     result.resolve(doc.file);
                 })
                 .fail(function (fileError) {
@@ -1583,9 +1616,11 @@ define(function (require, exports, module) {
         
     // Private Helpers
     exports._removeView                   = _removeView;
+    exports._moveView                     = _moveView;
     
     // Private API
     exports._sortWorkingSet               = _sortWorkingSet;
+    exports._moveWorkingSetItem           = _moveWorkingSetItem;
     exports._swapWorkingSetListIndexes    = _swapWorkingSetListIndexes;
     exports._destroyEditorIfNotNeeded     = _destroyEditorIfNotNeeded;
     exports._edit                         = _edit;
