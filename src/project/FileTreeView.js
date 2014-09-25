@@ -54,7 +54,8 @@ define(function (require, exports, module) {
     // Constants
 
     // Time range from first click to second click to invoke renaming.
-    var CLICK_RENAME_MINIMUM = 500;
+    var CLICK_RENAME_MINIMUM = 500,
+        MIDDLE_MOUSE_BUTTON = 2;
 
     /**
      * @private
@@ -173,7 +174,7 @@ define(function (require, exports, module) {
          * Send middle click to the action creator as a setContext action.
          */
         handleMouseDown: function (e) {
-            if (e.button === 2) {
+            if (e.button === MIDDLE_MOUSE_BUTTON) {
                 this.props.actions.setContext(this.myPath());
                 return false;
             }
