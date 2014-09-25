@@ -94,7 +94,7 @@ define(function (require, exports, module) {
     var _fileSystemChange,
         _fileSystemRename,
         _showErrorDialog,
-        _savePreferences,
+        _saveTreeState,
         _renderTree;
 
     /**
@@ -233,7 +233,7 @@ define(function (require, exports, module) {
      * See `ProjectModel.setDirectoryOpen`
      */
     ActionCreator.prototype.setDirectoryOpen = function (path, open) {
-        this.model.setDirectoryOpen(path, open).then(_savePreferences);
+        this.model.setDirectoryOpen(path, open).then(_saveTreeState);
     };
 
     /**
@@ -391,6 +391,7 @@ define(function (require, exports, module) {
      */
     function _fileViewControllerChange() {
         actionCreator.setFocused(_hasFileSelectionFocus());
+        $projectTreeContainer.trigger("scroll");
     }
 
     /**
@@ -483,18 +484,24 @@ define(function (require, exports, module) {
         });
         return d.promise();
     }
+    
+    /**
+     * @private
+     * 
+     * Saves the project path.
+     */
+    var _saveProjectPath = function () {
+        // save the current project
+        PreferencesManager.setViewState("projectPath", model.projectRoot.fullPath);
+    };
 
     /**
      * @private
-     * Save ProjectManager project path and tree state.
+     * Save tree state.
      */
-    _savePreferences = function () {
-        var context = _getProjectViewStateContext();
-
-        // save the current project
-        PreferencesManager.setViewState("projectPath", model.projectRoot.fullPath);
-
-        var openNodes = model.getOpenNodes();
+    _saveTreeState = function () {
+        var context = _getProjectViewStateContext(),
+            openNodes = model.getOpenNodes();
 
         // Store the open nodes by their full path and persist to storage
         PreferencesManager.setViewState("project.treeState", openNodes, context);
@@ -1173,7 +1180,7 @@ define(function (require, exports, module) {
     }, true, _checkPreferencePrefix);
 
     $(exports).on("projectOpen", _reloadProjectPreferencesScope);
-    $(exports).on("projectOpen", _savePreferences);
+    $(exports).on("projectOpen", _saveProjectPath);
 
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
@@ -1191,6 +1198,8 @@ define(function (require, exports, module) {
         .on("change", function () {
             actionCreator.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
         });
+    
+    actionCreator.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
 
     /**
      * Gets the filesystem object for the current context in the file tree.
@@ -1208,7 +1217,31 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise resolved when the rename is done.
      */
     function renameItemInline(entry) {
-        return actionCreator.startRename(entry);
+        var d = new $.Deferred(),
+            isFolder = entry.isDirectory;
+        
+        actionCreator.startRename(entry)
+            .done(function () {
+                d.resolve();
+            })
+            .fail(function (err) {
+                // Need to do display the error message on the next event loop turn
+                // because some errors can come up synchronously and then the dialog
+                // is not displayed.
+                window.setTimeout(function () {
+                    if (err === ProjectModel.ERROR_INVALID_FILENAME) {
+                        _showErrorDialog(ERR_TYPE_INVALID_FILENAME, isFolder, ProjectModel._invalidChars);
+                    } else {
+                        var errString = err === FileSystemError.ALREADY_EXISTS ?
+                                Strings.FILE_EXISTS_ERR :
+                                FileUtils.getFileErrorString(err);
+
+                        _showErrorDialog(ERR_TYPE_RENAME, isFolder, errString, entry.fullPath);
+                    }
+                }, 10);
+                d.reject(err);
+            });
+        return d.promise();
     }
 
     /**
@@ -1224,6 +1257,8 @@ define(function (require, exports, module) {
      * @return {$.Promise} Promise that is resolved with an Array of File objects.
      */
     function getAllFiles(filter, includeWorkingSet) {
+        var viewFiles, deferred;
+
         // The filter and includeWorkingSet params are both optional.
         // Handle the case where filter is omitted but includeWorkingSet is
         // specified.
@@ -1232,18 +1267,24 @@ define(function (require, exports, module) {
             filter = null;
         }
 
-        var viewFiles;
         if (includeWorkingSet) {
             viewFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
         }
 
-        return model.getAllFiles(filter, viewFiles).fail(function (err) {
-            if (err === FileSystemError.TOO_MANY_ENTRIES && !_projectWarnedForTooManyFiles) {
-                _showErrorDialog(ERR_TYPE_MAX_FILES);
-                _projectWarnedForTooManyFiles = true;
-            }
-            return err;
-        });
+        deferred = new $.Deferred();
+        model.getAllFiles(filter, viewFiles)
+            .done(function (fileList) {
+                deferred.resolve(fileList);
+            })
+            .fail(function (err) {
+                if (err === FileSystemError.TOO_MANY_ENTRIES && !_projectWarnedForTooManyFiles) {
+                    _showErrorDialog(ERR_TYPE_MAX_FILES);
+                    _projectWarnedForTooManyFiles = true;
+                }
+                // resolve with empty list
+                deferred.resolve([]);
+            });
+        return deferred.promise();
     }
 
     /**

@@ -263,9 +263,7 @@ define(function (require, exports, module) {
                 // In that case, waitsFor will be needed before continuing with the rest of the test.
                 CommandManager.execute(Commands.FILE_RENAME);
                 
-                var $projectFileItems = $("#project-files-container > ul").children();
-                
-                expect($projectFileItems.find("input").eq(0).val()).toBe(fileName);
+                expect($("#project-files-container ul input").val()).toBe(fileName);
             });
         });
 
