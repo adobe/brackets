@@ -76,6 +76,11 @@ define(function (require, exports, module) {
         return true;
     }
     
+    /** Returns true if movePrevToken() would return false without changing pos */
+    function isAtStart(ctx) {
+        return (ctx.pos.ch <= 0 || ctx.token.start <= 0) && (ctx.pos.line <= 0);
+    }
+    
     /**
      * Moves the given context forward by one token.
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
@@ -101,6 +106,12 @@ define(function (require, exports, module) {
         }
         ctx.token = ctx.editor.getTokenAt(ctx.pos, precise);
         return true;
+    }
+    
+    /** Returns true if moveNextToken() would return false without changing pos */
+    function isAtEnd(ctx) {
+        var eol = ctx.editor.getLine(ctx.pos.line).length;
+        return (ctx.pos.ch >= eol || ctx.token.end >= eol) && (ctx.pos.line >= ctx.editor.lineCount() - 1);
     }
     
    /**
@@ -153,6 +164,8 @@ define(function (require, exports, module) {
 
     exports.movePrevToken           = movePrevToken;
     exports.moveNextToken           = moveNextToken;
+    exports.isAtStart               = isAtStart;
+    exports.isAtEnd                 = isAtEnd;
     exports.moveSkippingWhitespace  = moveSkippingWhitespace;
     exports.getInitialContext       = getInitialContext;
     exports.offsetInToken           = offsetInToken;
