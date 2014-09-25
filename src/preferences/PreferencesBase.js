@@ -496,6 +496,32 @@ define(function (require, exports, module) {
         },
         
         /**
+         * Determines if there are likely to be any changes based on the current
+         * language.
+         * 
+         * @param {string} languageID New language id
+         * @param {string} oldLanguageID Old language id
+         * @return {Array.<string>} List of changed IDs
+         */
+        languageChanged: function (languageID, oldLanguageID) {
+            var changes = [],
+                data    = this.data;
+            
+            _.each(this._layers, function (layer) {
+                if (layer.languageChanged && data[layer.key]) {
+                    var changesInLayer = layer.languageChanged(data[layer.key],
+                                                              languageID,
+                                                              oldLanguageID);
+                    if (changesInLayer) {
+                        changes.push(changesInLayer);
+                    }
+                }
+            });
+            
+            return _.union.apply(null, changes);
+        },
+        
+        /**
          * Determines if there are likely to be any changes based on a change
          * to the default filename used in lookups.
          * 
@@ -658,6 +684,152 @@ define(function (require, exports, module) {
          */
         setProjectPath: function (projectPath) {
             this.projectPath = projectPath;
+        }
+    };
+    
+    /**
+     * @constructor
+     * 
+     * Create a language layer object. Language Layer is completely stateless, it
+     * only knows how look up and process prefs set in the language layer. Desired
+     * language id should be specified in the "language" field of the context. 
+     */
+    function LanguageLayer() {
+    }
+   
+    LanguageLayer.prototype = {
+        key: "language",
+        
+        /**
+         * Retrieve the current value based on the specified context. If the context
+         * does contain language field, undefined is returned.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @param {{language: string}} context Context to operate with
+         * @return {*|undefined} property value
+         */
+        get: function (data, id, context) {
+            if (!data || !context.language) {
+                return;
+            }
+
+            if (data[context.language] && data[context.language][id]) {
+                return data[context.language][id];
+            }
+            return;
+        },
+        
+        /**
+         * Gets the location in which the given pref was set, if it was set within
+         * this language layer for the current language.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @param {{language: string}} context Context to operate with
+         * @return {string|undefined} the Layer ID, in this case the current language
+         */
+        getPreferenceLocation: function (data, id, context) {
+            if (!data || !context.language) {
+                return;
+            }
+
+            if (data[context.language] && data[context.language][id]) {
+                return context.language;
+            }
+
+            return;
+        },
+        /**
+         * Retrieves the keys provided by this layer object. If the context is
+         * empty, it will return all the keys provided in all the layerIDs
+         * (languages).
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {{language: string}} context Context to operate with
+         * @return {Array<{string}>|undefined} An array of pref ids
+         */
+        getKeys: function (data, context) {
+            if (!data) {
+                return;
+            }
+            
+            // do not upset other layers if context for the this one is not specified
+            if (!_.isEmpty(context)) {
+                if (data[context.language]) {
+                    return _.keys(data[context.language]);
+                } else {
+                    return [];
+                }
+            } else {
+                return _.union.apply(null, _.map(_.values(data), _.keys));
+            }
+        },
+
+        /**
+         * Sets the preference value in the given data structure for the layerID
+         * provided. If no layerID is provided, then it will be determined using
+         * getPreferenceLocation. If a layerID is located, but it does not
+         * exist, it will be created.
+         * 
+         * This function returns whether or not a value was set.
+         * 
+         * @param {Object} data The preference data from the Scope
+         * @param {string} id Preference ID to look up
+         * @param {Object} value New value to assign to the preference
+         * @param {{language: string}} context Context to operate with
+         * @param {string=} layerID Language to be used for setting value
+         * @return {boolean} True if the value was set
+         */
+        set: function (data, id, value, context, layerID) {
+            if (!layerID) {
+                layerID = this.getPreferenceLocation(data, id, context);
+            }
+
+            if (!layerID) {
+                return false;
+            }
+
+            var section = data[layerID];
+            if (!section) {
+                data[layerID] = section = {};
+            }
+            if (!_.isEqual(section[id], value)) {
+                if (value === undefined) {
+                    delete section[id];
+                    if (_.isEmpty(section)) {
+                        delete data[layerID];
+                    }
+                } else {
+                    section[id] = _.cloneDeep(value);
+                }
+                return true;
+            }
+            return false;
+        },
+        
+        /**
+         * Determines if there are preference IDs that could change as a result of
+         * the language change.
+         * 
+         * @param {Object} data Data in the Scope
+         * @param {string} languageID New language id
+         * @param {string} oldLanguageID Old language id
+         * @return {Array.<string>|undefined} list of preference IDs that could have changed
+         */
+        languageChanged: function (data, languageID, oldLanguageID) {
+            
+            if (languageID === oldLanguageID) {
+                return;
+            }
+            if (languageID === undefined) {
+                return _.keys(data[oldLanguageID]);
+            }
+            if (oldLanguageID === undefined) {
+                return _.keys(data[languageID]);
+            }
+            
+            return _.union(_.keys(data[languageID]), _.keys(data[languageID]));
         }
     };
     
@@ -1604,6 +1776,40 @@ define(function (require, exports, module) {
         },
         
         /**
+         * Sets the current language used for computing preferences when there are
+         * LanguageLayers. This should be the language of the file being edited.
+         * 
+         * Calling this function will cause all the listeners to get notified if there're
+         * potential changes in the preferences due to the language change
+         * 
+         * @param {string} languageID New language id used to look up preferences
+         */
+        setLanguage: function (languageID) {
+            var oldLanguageID = this._defaultContext.language;
+            if (oldLanguageID === languageID) {
+                return;
+            }
+            
+            var changes = [];
+            
+            _.each(this._scopes, function (scope) {
+                var changesInScope = scope.languageChanged(languageID, oldLanguageID);
+                if (changesInScope) {
+                    changes.push(changesInScope);
+                }
+            });
+            
+            this._defaultContext.language = languageID;
+            
+            changes = _.union.apply(null, changes);
+            if (changes.length > 0) {
+                this._triggerChange({
+                    ids: changes
+                });
+            }
+        },
+        
+        /**
          * Sets the default filename used for computing preferences when there are PathLayers.
          * This should be the filename of the file being edited.
          * 
@@ -1788,10 +1994,11 @@ define(function (require, exports, module) {
     });
     
     // Public interface
-    exports.PreferencesSystem  = PreferencesSystem;
-    exports.Scope              = Scope;
-    exports.MemoryStorage      = MemoryStorage;
-    exports.PathLayer          = PathLayer;
-    exports.ProjectLayer       = ProjectLayer;
-    exports.FileStorage        = FileStorage;
+    exports.PreferencesSystem   = PreferencesSystem;
+    exports.Scope               = Scope;
+    exports.MemoryStorage       = MemoryStorage;
+    exports.PathLayer           = PathLayer;
+    exports.ProjectLayer        = ProjectLayer;
+    exports.LanguageLayer       = LanguageLayer;
+    exports.FileStorage         = FileStorage;
 });

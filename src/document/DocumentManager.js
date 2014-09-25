@@ -662,6 +662,7 @@ define(function (require, exports, module) {
             $(oldDoc).off("languageChanged.DocumentManager");
         }
         
+        PreferencesManager._manager.setLanguage(newDoc ? newDoc.getLanguage().getId() : undefined);
         var count = DeprecationWarning.getEventHandlerCount(exports, "currentDocumentChange");
         if (count > 0) {
             DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChange' instead.", true);
@@ -670,8 +671,9 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("currentDocumentChange", [newDoc, oldDoc]);
 
         if (newDoc) {
-            $(newDoc).on("languageChanged.DocumentManager", function (data) {
-                $(exports).trigger("currentDocumentLanguageChanged", data);
+            $(newDoc).on("languageChanged.DocumentManager", function (e, oldLang, newLang) {
+                PreferencesManager._manager.setLanguage(newLang.getId());
+                $(exports).trigger("currentDocumentLanguageChanged", [oldLang, newLang]);
             });
         }
     
