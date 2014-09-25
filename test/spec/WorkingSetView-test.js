@@ -356,11 +356,9 @@ define(function (require, exports, module) {
             
         it("should callback for class", function () {
             runs(function () {
-
                 var master = ["one", "two"],
                     classes = master.slice(0);
-                    
-                
+
                 function classProvider(file) {
                     return classes.pop();
                 }
@@ -380,7 +378,6 @@ define(function (require, exports, module) {
 
         it("should allow refresh to be used to update the class list", function () {
             runs(function () {
-
                 function classProvider(file) {
                     return "one";
                 }
@@ -402,6 +399,5 @@ define(function (require, exports, module) {
                 });
             });
         });
-    
     });
 });

@@ -62,7 +62,7 @@ define(function (require, exports, module) {
     var _iconProviders = [];
     
     /**
-     * Icon Providers
+     * Class Providers
      * @see {@link WorkingSetView#addClassProvider()}
      * @private
      */
@@ -577,9 +577,8 @@ define(function (require, exports, module) {
                 var $li = $(this),
                     file = $li.data(_FILE_KEY),
                     data = {fullPath: file.fullPath,
-                        name: file.name,
-                        isFile: file.isFile};
-
+                            name: file.name,
+                            isFile: file.isFile};
                 $li.removeAttr("class");
                 _classProviders.forEach(function (provider) {
                     $li.addClass(provider(data));
@@ -744,21 +743,20 @@ define(function (require, exports, module) {
          */
         if (paneId === this.paneId) {
             if (!suppressRedraw) {
-            var $listItem = this._findListItemFromFile(file);
-            if ($listItem) {
-                // Make the next file in the list show the close icon, 
-                // without having to move the mouse, if there is a next file.
-                var $nextListItem = $listItem.next();
-                if ($nextListItem && $nextListItem.length > 0) {
-                    var canClose = ($listItem.find(".can-close").length === 1);
-                    var isDirty = _isOpenAndDirty($nextListItem.data(_FILE_KEY));
-                    this._updateFileStatusIcon($nextListItem, isDirty, canClose);
+                var $listItem = this._findListItemFromFile(file);
+                if ($listItem) {
+                    // Make the next file in the list show the close icon, 
+                    // without having to move the mouse, if there is a next file.
+                    var $nextListItem = $listItem.next();
+                    if ($nextListItem && $nextListItem.length > 0) {
+                        var canClose = ($listItem.find(".can-close").length === 1);
+                        var isDirty = _isOpenAndDirty($nextListItem.data(_FILE_KEY));
+                        this._updateFileStatusIcon($nextListItem, isDirty, canClose);
+                    }
+                    $listItem.remove();
                 }
-                $listItem.remove();
+                this._redraw();
             }
-            
-            this._redraw();
-        }
         } else {
             /*
              * When this event is handled by a pane that is not being updated then 
@@ -938,6 +936,9 @@ define(function (require, exports, module) {
      * if a falsy value is returned then nothing is prepended to the list item
      */
     function addIconProvider(callback) {
+        if (!callback) {
+            return;
+        }
         _iconProviders.push(callback);
         // build all views so the provider has a chance to add icons
         //    to all items that have already been created
@@ -951,6 +952,9 @@ define(function (require, exports, module) {
      * The callback can return a string that contains the class (or classes) to add to the list item
      */
     function addClassProvider(callback) {
+        if (!callback) {
+            return;
+        }
         _classProviders.push(callback);
         // build all views so the provider has a chance to style
         //    all items that have already been created
