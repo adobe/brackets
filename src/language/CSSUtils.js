@@ -1599,7 +1599,7 @@ define(function (require, exports, module) {
             } else {
                 TokenUtils.movePrevToken(ctx);
             }
-        } while (!(ctx.pos.line === 0 && ctx.pos.ch === 0));
+        } while (!TokenUtils.isAtStart(ctx));
         
         selector = _stripAtRules(selector);
         
