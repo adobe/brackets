@@ -142,7 +142,7 @@ ins.jstree-icon {
 .jstree-brackets a.jstree-search { color:aqua; }
 .jstree-brackets .jstree-locked a { color:silver; cursor:default; }
 
-.jstree-brackets .jstree-rename-input {
+#project-files-container .jstree-brackets .jstree-rename-input {
     background: #000;
     border: 1px solid #000;
     border-radius: 2px;
@@ -150,14 +150,17 @@ ins.jstree-icon {
     color: #fff;
     font-style: normal;
     font-weight: 400;
+    font-size: 13px;
     left: 3px !important;
     padding: 0;
     position: absolute;
     top: 2px;
     width: 150px;
+    height: 16px;
+    line-height: 16px;
 }
 
-.jstree-brackets .jstree-rename-input:focus {
+#project-files-container .jstree-brackets .jstree-rename-input:focus {
     border: 1px solid @bc-btn-border-focused;
     box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
     outline: none;

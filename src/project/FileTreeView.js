@@ -113,6 +113,22 @@ define(function (require, exports, module) {
             this.props.actions.setRenameValue(this.refs.name.getDOMNode().value.trim());
         }
     };
+    
+    /**
+     * @private
+     * 
+     * Gets an appropriate width given the text provided.
+     * 
+     * @param {string} text Text to measure
+     * @return {int} Width to use
+     */
+    function _measureText(text) {
+        var measuringElement = $("<div />", { css : { "position" : "absolute", "top" : "-200px", "left" : ("-1000px"), "visibility" : "hidden" } }).appendTo("body");
+        measuringElement.text("pW" + text);
+        var width = measuringElement.width();
+        measuringElement.remove();
+        return width;
+    }
 
     /**
      * @private
@@ -141,11 +157,8 @@ define(function (require, exports, module) {
         },
 
         render: function () {
-            var measuringElement = $("<div />", { css : { "position" : "absolute", "top" : "-200px", "left" : ("-1000px"), "visibility" : "hidden" } }).appendTo("body");
-            measuringElement.text("pW" + this.props.name);
-            var width = measuringElement.width();
-            measuringElement.remove();
-
+            var width = _measureText(this.props.name);
+            
             return DOM.input({
                 className: "jstree-rename-input",
                 type: "text",
@@ -465,14 +478,19 @@ define(function (require, exports, module) {
         mixins: [renameBehavior],
 
         render: function () {
+            var width = _measureText(this.props.name);
+            
             return DOM.input({
-                className: "rename-input",
+                className: "jstree-rename-input",
                 type: "text",
                 defaultValue: this.props.name,
                 autoFocus: true,
                 onKeyDown: this.handleKeyDown,
                 onKeyUp: this.handleKeyUp,
-                ref: "name"
+                ref: "name",
+                style: {
+                    width: width
+                }
             });
         }
     });
@@ -640,7 +658,7 @@ define(function (require, exports, module) {
             var extensions = this.props.extensions,
                 iconClass = extensions && extensions.get("icons") ? "jstree-icons" : "jstree-no-icons",
                 ulProps = this.props.isRoot ? {
-                    className: "jstree-no-dots " + iconClass
+                    className: "jstree-brackets jstree-no-dots " + iconClass
                 } : null;
 
             var contents = this.props.contents,
