@@ -160,7 +160,7 @@ define(function (require, exports, module) {
             var width = _measureText(this.props.name);
             
             return DOM.input({
-                className: "jstree-rename-input",
+                className: "jstree-rename-input " + this.props.fileClasses,
                 type: "text",
                 defaultValue: this.props.name,
                 autoFocus: true,
@@ -377,11 +377,11 @@ define(function (require, exports, module) {
 
             var fileClasses = "";
             if (this.props.entry.get("selected")) {
-                fileClasses += "jstree-clicked selected-node";
+                fileClasses += " jstree-clicked selected-node";
             }
             
             if (this.props.entry.get("context")) {
-                fileClasses += "context-node";
+                fileClasses += " context-node";
             }
 
             var nameDisplay;
@@ -391,7 +391,8 @@ define(function (require, exports, module) {
                     actions: this.props.actions,
                     entry: this.props.entry,
                     name: this.props.name,
-                    parentPath: this.props.parentPath
+                    parentPath: this.props.parentPath,
+                    fileClasses: fileClasses
                 });
             } else {
                 // Need to flatten the argument list because getIcons returns an array
