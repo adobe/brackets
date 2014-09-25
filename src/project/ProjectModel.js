@@ -457,7 +457,7 @@ define(function (require, exports, module) {
             }
         }).fail(function (err) {
             try {
-                filteredFilesDeferred.resolve([]);
+                filteredFilesDeferred.reject(err);
             } catch (e) {
                 console.warn("Unhandled exception in getAllFiles handler: ", e);
             }

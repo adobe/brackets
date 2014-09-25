@@ -1233,6 +1233,8 @@ define(function (require, exports, module) {
      * @return {$.Promise} Promise that is resolved with an Array of File objects.
      */
     function getAllFiles(filter, includeWorkingSet) {
+        var viewFiles, deferred;
+
         // The filter and includeWorkingSet params are both optional.
         // Handle the case where filter is omitted but includeWorkingSet is
         // specified.
@@ -1241,18 +1243,24 @@ define(function (require, exports, module) {
             filter = null;
         }
 
-        var viewFiles;
         if (includeWorkingSet) {
             viewFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
         }
 
-        return model.getAllFiles(filter, viewFiles).fail(function (err) {
-            if (err === FileSystemError.TOO_MANY_ENTRIES && !_projectWarnedForTooManyFiles) {
-                _showErrorDialog(ERR_TYPE_MAX_FILES);
-                _projectWarnedForTooManyFiles = true;
-            }
-            return err;
-        });
+        deferred = new $.Deferred();
+        model.getAllFiles(filter, viewFiles)
+            .done(function (fileList) {
+                deferred.resolve(fileList);
+            })
+            .fail(function (err) {
+                if (err === FileSystemError.TOO_MANY_ENTRIES && !_projectWarnedForTooManyFiles) {
+                    _showErrorDialog(ERR_TYPE_MAX_FILES);
+                    _projectWarnedForTooManyFiles = true;
+                }
+                // resolve with empty list
+                deferred.resolve([]);
+            });
+        return deferred.promise();
     }
 
     /**
