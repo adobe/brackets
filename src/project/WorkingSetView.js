@@ -261,6 +261,7 @@ define(function (require, exports, module) {
                 sourceView = _viewFromEl($el),
                 currentFile = MainViewManager.getCurrentlyViewedFile(),
                 activePaneId = MainViewManager.getActivePaneId(),
+                activeView = _viewMap[activePaneId],
                 draggingCurrentFile = ($el.hasClass("selected") && sourceView.paneId === activePaneId),
                 startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sorceFile.fullPath),
                 currentView = sourceView;
@@ -435,7 +436,7 @@ define(function (require, exports, module) {
                         _deactivateAllViews(true);
                         $("#working-set-list-container").addClass("dragging");
                         if (!draggingCurrentFile) {
-                            $(currentView._findListItemFromFile(currentFile)).addClass("drag-show-as-selected");
+                            $(activeView._findListItemFromFile(currentFile)).addClass("drag-show-as-selected");
                         }
                         // we've dragged the item so set
                         //  dragged to true so we don't try and open it
