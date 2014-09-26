@@ -1057,7 +1057,7 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("paneLayoutChange", [_orientation]);
         
         // if new pane was created, and original pane is not empty, make new pane the active pane
-        if (newPane && getWorkingSetSize(firstPane.id) > 0) {
+        if (newPane && getCurrentlyViewedFile(firstPane.id)) {
             setActivePaneId(newPane.id);
         }
     }
