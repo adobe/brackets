@@ -8,6 +8,13 @@
         "es5": true
     },
     "defaultExtension": "js",
+    "language": {
+        "javascript": {
+            "linting.prefer": "JSLint, JSHint",
+            "linting.preferredOnly": true,
+            "linting.firstOnly" false
+        }
+    },
     "path": {
         "src/thirdparty/CodeMirror2/**/*.js": {
             "spaceUnits": 2,
