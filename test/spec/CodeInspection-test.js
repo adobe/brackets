@@ -45,7 +45,7 @@ define(function (require, exports, module) {
             Commands  = require("command/Commands"),
             EditorManager,
             DocumentManager,
-            PreferencesManager;
+            PreferencesManager,
             prefs;
 
         var toggleJSLintResults = function (visible) {
@@ -301,60 +301,52 @@ define(function (require, exports, module) {
                 CodeInspection.register("html", codeInspector3);
                 CodeInspection.register("html", codeInspector4);
                 CodeInspection.register("html", codeInspector5);
+                function setAtLocation(name, value) {
+                    pm.set(name, value, {location: {layer: "language", layerID: "html", scope: "user"}});
+                }
                 
                 runs(function () {
                     var providers;
                     
-                    pref = {
-                        prefer: "html3, html4"
-                    };
-                    pm.set("providers.html", pref);
+                    setAtLocation("prefer", "html3, html4");
                     providers = CodeInspection._getProvidersForPath("my/index.html");
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, "name")).toEqual(["html3", "html4", "html1", "html2", "html5"]);
 
-                    pref = {
-                        prefer: "html5,       html6"
-                    };
-                    pm.set("providers.html", pref);
+                    setAtLocation("prefer", "html5,       html6");
                     providers = CodeInspection._getProvidersForPath("index.html");
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, "name")).toEqual(["html5", "html1", "html2", "html3", "html4"]);
 
-                    pref.firstOnly = true;
-                    pm.set("providers.html", pref);
+                    setAtLocation("firstOnly", true);
                     providers = CodeInspection._getProvidersForPath("index.html");
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, "name")).toEqual(["html5"]);
 
-                    pref.prefer = " html19, html100  ";
-                    pref.firstOnly = true;
-                    pm.set("providers.html", pref);
+                    setAtLocation("prefer", " html19, html100  ");
+                    setAtLocation("firstOnly", true);
                     providers = CodeInspection._getProvidersForPath("index.html");
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, "name")).toEqual(["html1"]);
                     
-                    pref.preferredOnly = true;
-                    pm.set("providers.html", pref);
+                    setAtLocation("preferredOnly", true);
                     providers = CodeInspection._getProvidersForPath("test.html");
                     expect(providers).toEqual([]);
 
-                    pref.prefer = "html2,    html1";
-                    pref.preferredOnly = true;
-                    pref.firstOnly = false;
-                    pm.set("providers.html", pref);
+                    setAtLocation("prefer", "html2,    html1");
+                    setAtLocation("preferredOnly", true);
+                    setAtLocation("firstOnly", false);
                     providers = CodeInspection._getProvidersForPath("c:/temp/another.html");
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, "name")).toEqual(["html2", "html1"]);
                     
-                    delete pref.prefer;
-                    pref.preferredOnly = false;
-                    pref.firstOnly = true;
-                    pm.set("providers.html", pref);
+                    setAtLocation("prefer", undefined);
+                    setAtLocation("preferredOnly", undefined);
+                    setAtLocation("firstOnly", true);
                     providers = CodeInspection._getProvidersForPath("test/index.html");
                     expect(_.pluck(providers, "name")).toEqual(["html1"]);
                     
-                    pm.set("providers.html", undefined);
+                    setAtLocation("firstOnly", undefined);
                     providers = CodeInspection._getProvidersForPath("index.html");
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, "name")).toEqual(["html1", "html2", "html3", "html4", "html5"]);
