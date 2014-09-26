@@ -237,7 +237,6 @@ define(function (require, exports, module) {
                     if ((dir === -1 && scrollTop <= 0) || (dir === 1 && scrollTop >= maxScroll)) {
                         endScroll($el);
                     } else {
-                        $el.css("display", "none");
                         $container.scrollTop(scrollTop + 7 * dir);
                         callback($el);
                     }
@@ -245,6 +244,7 @@ define(function (require, exports, module) {
             } else if (!dir && interval) {
                 endScroll($el);
             }
+            return 0;
         }
         
         // The mouse down handler pretty much handles everything
@@ -344,12 +344,18 @@ define(function (require, exports, module) {
                 // helper to see if the mouse is above 
                 //  or below the specified element
                 function mouseIsAbove($elem) {
+                    var top = $elem.offset().top;
+                    
+                    return (pageY < top);
+                }
+
+                function mouseIsBelow($elem) {
                     var top = $elem.offset().top,
                         height = $elem.height();
                     
-                    return (pageY < top + (height / 2));
+                    return (pageY > top + height);
                 }
-
+                
                 function ghostIsAbove($elem) {
                     var top = $elem.offset().top;
                     
@@ -408,7 +414,7 @@ define(function (require, exports, module) {
                                 which: $view
                             };
                         }
-                    } else {
+                    } else if (mouseIsBelow($view)) {
                         var $next = $view.next();
                         if ($next.length) {
                             result = {
@@ -532,13 +538,28 @@ define(function (require, exports, module) {
                 $ghost.remove();
                 $el.css("opacity", "");
             }
+
+            function scrollCurrentViewToBottom() {
+                var container = currentView.$openFilesContainer[0],
+                    maxScroll = container.scrollHeight - container.clientHeight;
+
+                currentView.$openFilesContainer.scrollTop(maxScroll);
+            }
             
             // Final Cleanup
             function postDropCleanup() {
+                var needsScrollBottom = ($el.next().length === 0);
+                
                 _suppressSortRedrawForAllViews(false);
                 _lockContainerHeightOnAllViews(false);
                 refresh(true);
                 MainViewManager.focusActivePane();
+                
+                if (needsScrollBottom) {
+                    // if we dropped at the bottom of the list
+                    //  scroll it into view
+                    scrollCurrentViewToBottom();
+                }
             }
             
             // Drop
@@ -630,12 +651,12 @@ define(function (require, exports, module) {
             $ghost.css({
                 top: offset.top,
                 left: offset.left,
-                width: sourceView.$el.width()
+                width: $el.width()
             });
             
             // this will give the element the appearence that it's ghosted if the user
             //  drags the element out of the view and goes off into no mans land
-            $el.css("opacity", ".0001");
+            //$el.css("opacity", ".0001");
             $ghost.appendTo($("body"));
         });
     }
