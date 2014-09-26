@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, window, brackets, Mustache  */
+/*global define, $, window, brackets, Mustache, document  */
 
 /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
@@ -350,8 +350,7 @@ define(function (require, exports, module) {
                 }
 
                 function ghostIsAbove($elem) {
-                    var top = $elem.offset().top,
-                        height = $elem.height();
+                    var top = $elem.offset().top;
                     
                     if (direction > 0) {
                         gTop += gHeight;
@@ -590,7 +589,7 @@ define(function (require, exports, module) {
             }
 
             // initialization
-            $(window).on("mouseup.wsvdragging", function (e) {
+            $(window).on("mouseup.wsvdragging", function () {
                 drop();
             });
             
