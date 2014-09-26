@@ -165,21 +165,11 @@ define(function (require, exports, module) {
     }
     
     /** 
-     * locks the height on all containers so they don't resize while dragging
+     * turns off the scroll shadow on view containers so they don't interfere with dragging
      * @private
-     * @param {Boolean} lock - true to lock, false to unlock
+     * @param {Boolean} disable - true to disable, false to enable
      */
-    function _lockContainerHeightOnAllViews(lock) {
-        _.forEach(_views, function (view) {
-            view.$openFilesContainer.css({
-//                "min-height": lock ? 32 : "",
-//                "max-height": lock ? view.$openFilesContainer.height() || 32 : ""
-            });
-        });
-    }
-    
-    
-    function _turnOffScrollShadowsOnAllViews(disable) {
+    function _disableScrollShadowsOnAllViews(disable) {
         _.forEach(_views, function (view) {
             if (disable) {
                 ViewUtils.removeScrollerShadow(view.$openFilesContainer[0], null);
@@ -251,7 +241,7 @@ define(function (require, exports, module) {
         // 
         //  This function will call the drag interface repeatedly on an interval to allow
         //  the item to be dragged while scrolling the list until the mouse is moved off 
-        //  the first or last item and end scroll is called
+        //  the first or last item or endScroll is called
         function scroll($container, $el, dir, callback) {
             var container = $container[0],
                 maxScroll = container.scrollHeight - container.clientHeight;
@@ -291,9 +281,7 @@ define(function (require, exports, module) {
                 currentView = sourceView;
 
             
-            // Switches the context to the working 
-            //  set container and view specfied by $container
-            //  and updates the state variables for the container
+            // Switches the view context to match the hit context
             function updateContext(hit) {
                 // just set the container and update
                 currentView = _viewFromEl(hit.which);
@@ -329,6 +317,7 @@ define(function (require, exports, module) {
 
                     $item = $hit.closest("#working-set-list-container li");
 
+                    // Show the ghost again
                     $ghost.show();
 
                     $container = $view.children(".open-files-container");
@@ -348,6 +337,10 @@ define(function (require, exports, module) {
                         $item = $item.next();
                     }
                     
+                    // We effectively iterate this loop only twice
+                    //  at most. If we didn't hit anything on the first
+                    //  iteration, we back up and try again the other direction
+                    // This breaks us out of the loop on the second pass
                     if (pageY !== e.pageY) {
                         break;
                     }
@@ -356,16 +349,20 @@ define(function (require, exports, module) {
                     }
                 } while (!$item.length);
               
+                // compute ghost location, we compute the insertion point based
+                //  on where the ghost is, not where the  mouse is
                 gTop = $ghost.offset().top;
                 gHeight = $ghost.height();
                 gBottom = gTop + gHeight;
                 
+                // data to help determine if the ghost is in either of the scrollMe regions
                 onTopScroller = scrollerTopArea && ((gTop >= scrollerTopArea.top && gTop <= scrollerTopArea.bottom)  ||
                                                     (gBottom >= scrollerTopArea.top && gBottom <= scrollerTopArea.bottom));
                 onBottomScroller = scrollerBottomArea && ((gTop >= scrollerBottomArea.top && gTop <= scrollerBottomArea.bottom) ||
                                                          (gBottom >= scrollerBottomArea.top && gBottom <= scrollerBottomArea.bottom));
 
-
+                
+                // helpers 
                 function mouseIsInTopHalf($elem) {
                     var top = $elem.offset().top,
                         height = $elem.height();
@@ -394,8 +391,8 @@ define(function (require, exports, module) {
                     return (gTop > (top + (height / 2)));
                 }
                 
-                // We hit an item (li)
                 if ($item.length) {
+                    // We hit an item (li)
                     if (onTopScroller) {
                         result = {
                             where: TOPSCROLL,
@@ -418,12 +415,19 @@ define(function (require, exports, module) {
                         };
                     }
                 } else { 
+                    // Didn't hit an li, figure out 
+                    //  where to go from here
                     $view = $el.parents(".working-set-view");
                     
+                    // Data to determine to help determine if we should
+                    //  append to the previous or prepend to the next
                     var $prev = $view.prev(),
                         $next = $view.next();
                     
                     if (direction < 0) {
+                        // moving up, if there is a view above
+                        //  then we want to append to the view above
+                        // otherwise we're in nomandsland
                         if ($prev.length) {
                             result = {
                                 where: BELOWVIEW,
@@ -431,6 +435,9 @@ define(function (require, exports, module) {
                             };
                         }
                     } else if (direction > 0){
+                        // moving down, if there is a view below
+                        // then we want to append to the view below
+                        //  otherwise we're in nomandsland
                         if ($next.length) {
                             result = {
                                 where: ABOVEVIEW,
@@ -438,11 +445,15 @@ define(function (require, exports, module) {
                             };
                         }
                     } else if (mouseIsInTopHalf($view)) {
+                        // we're inside the top half of
+                        //  a view so prepend to the view we hit
                         result = {
                             where: ABOVEVIEW,
                             which: $view
                         };
                     } else {
+                        // we're inside the bottom half of 
+                        //  a view so append to the view we hit
                         result = {
                             where: BELOWVIEW,
                             which: $view
@@ -459,8 +470,19 @@ define(function (require, exports, module) {
                 // The drag function
                 function drag(e) {
                     if (!dragged) {
+                        // sort redraw and scroll shadows
+                        //  cause problems during drag so disable them
+                        _suppressSortRedrawForAllViews(true);
+                        _disableScrollShadowsOnAllViews(true);                        
+                        // remove the "active" class to remove the 
+                        //  selection indicator so we don't have to 
+                        //  keep it in sync while we're dragging
                         _deactivateAllViews(true);
+                        // add a "dragging" class to the outer container
                         $("#working-set-list-container").addClass("dragging");
+                        // add a class to the element we're dragging if 
+                        //  its the currently selected file so that we 
+                        //  can show it as selected while dragging it
                         if (!draggingCurrentFile) {
                             $(activeView._findListItemFromFile(currentFile)).addClass("drag-show-as-selected");
                         }
@@ -490,7 +512,7 @@ define(function (require, exports, module) {
                         break;
                     }
                     
-                    
+                    // now do the insertion
                     switch (ht.where) {
                     case TOPSCROLL:
                     case ABOVEITEM:
@@ -548,6 +570,7 @@ define(function (require, exports, module) {
                 $("#working-set-list-container").removeClass("dragging");
                 $("#working-set-list-container .drag-show-as-selected").removeClass("drag-show-as-selected");
                 endScroll($el);
+                // re-activate the views (adds the "active" class to the view that was previously active)
                 _deactivateAllViews(false);
                 // turn scroll wheel back on
                 window.onmousewheel = window.document.onmousewheel = null;
@@ -556,28 +579,16 @@ define(function (require, exports, module) {
                 $el.css("opacity", "");
             }
 
-            function scrollCurrentViewToBottom() {
-                var container = currentView.$openFilesContainer[0],
-                    maxScroll = container.scrollHeight - container.clientHeight;
-
-                currentView.$openFilesContainer.scrollTop(maxScroll);
-            }
-            
+        
             // Final Cleanup
             function postDropCleanup() {
-                var needsScrollBottom = ($el.next().length === 0);
-                
+                // re-enable stuff we turned off
                 _suppressSortRedrawForAllViews(false);
-                _lockContainerHeightOnAllViews(false);
-                _turnOffScrollShadowsOnAllViews(false);
+                _disableScrollShadowsOnAllViews(false);
+                // rebuild the view
                 refresh(true);
+                // focus the editor
                 MainViewManager.focusActivePane();
-                
-                if (needsScrollBottom) {
-                    // if we dropped at the bottom of the list
-                    //  scroll it into view
-                    scrollCurrentViewToBottom();
-                }
             }
             
             // Drop
@@ -649,10 +660,6 @@ define(function (require, exports, module) {
 
             // close all menus, and disable sorting 
             Menus.closeAll();
-            
-            _suppressSortRedrawForAllViews(true);
-            _lockContainerHeightOnAllViews(true);
-            _turnOffScrollShadowsOnAllViews(true);
             
             // Dragging only happens with the left mouse button
             //  or (on the Mac) when the ctrl key isn't pressed
