@@ -740,21 +740,15 @@ define(function (require, exports, module) {
         },
 
         render: function () {
-            var selectionViewInfo = this.props.selectionViewInfo,
-                style = {
+            var selectionViewInfo = this.props.selectionViewInfo;
+            
+            return DOM.div({
+                style: {
                     overflow: "auto",
                     left: selectionViewInfo.get("scrollLeft"),
                     width: selectionViewInfo.get("width") - this.props.widthAdjustment,
-                    visibility: this.props.visible ? "visible" : "hidden"
-                };
-
-            if (!this.props.visible) {
-                style.width = 0;
-                style.top = 0;
-            }
-
-            return DOM.div({
-                style: style,
+                    display: this.props.visible ? "block" : "none"
+                },
                 className: this.props.className
             });
         }
