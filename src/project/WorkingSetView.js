@@ -670,7 +670,7 @@ define(function (require, exports, module) {
             $ghost.css({
                 top: offset.top,
                 left: offset.left,
-                width: $el.width()
+                width: $el.width() + 8
             });
             
             // this will give the element the appearence that it's ghosted if the user
