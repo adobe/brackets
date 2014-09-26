@@ -262,7 +262,6 @@ define(function (require, exports, module) {
             var scrollDir = 0,
                 dragged = false,
                 startPageY = e.pageY,
-                lastPageY = startPageY,
                 itemHeight = $el.height(),
                 tryClosing = $(document.elementFromPoint(e.pageX, e.pageY)).hasClass("can-close"),
                 offset = $el.offset(),
@@ -536,8 +535,6 @@ define(function (require, exports, module) {
                 if (dragged || Math.abs(e.pageY - startPageY) > 3) {
                     drag(e);
                 }
-                
-                lastPageY = e.pageY;
             });
             
             // Close down the drag operation
