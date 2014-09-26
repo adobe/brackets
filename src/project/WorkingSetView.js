@@ -58,6 +58,21 @@ define(function (require, exports, module) {
     var _viewMap = {};
     
     /**
+     * Icon Providers
+     * @see {@link WorkingSetView#addIconProvider()}
+     * @private
+     */
+    var _iconProviders = [];
+    
+    /**
+     * Class Providers
+     * @see {@link WorkingSetView#addClassProvider()}
+     * @private
+     */
+    var _classProviders = [];
+        
+
+    /**
      * Constants for event.which values
      * @enum {number}
      */
@@ -777,7 +792,7 @@ define(function (require, exports, module) {
         var reveal = (scrollIntoView === undefined || scrollIntoView === true);
         
         if (reveal) {
-            this._scrollSelectedFileIntoView();
+        this._scrollSelectedFileIntoView();
         }
 
         if (FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW && this.$el.hasClass("active")) {
@@ -871,6 +886,7 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._redraw = function () {
         this._updateViewState();
         this._updateVisibility();
+        this._updateItemClasses();
         this._adjustForScrollbars();
         this._fireSelectionChanged();
     };
@@ -914,6 +930,26 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Updates the working set item class list
+     * @private
+     */
+    WorkingSetView.prototype._updateItemClasses = function () {
+        if (_classProviders.length > 0) {
+            this.$openFilesContainer.find("ul > li").each(function () {
+                var $li = $(this),
+                    file = $li.data(_FILE_KEY),
+                    data = {fullPath: file.fullPath,
+                            name: file.name,
+                            isFile: file.isFile};
+                $li.removeAttr("class");
+                _classProviders.forEach(function (provider) {
+                    $li.addClass(provider(data));
+                });
+            });
+        }
+    };
+    
+    /** 
      * Builds the UI for a new list item and inserts in into the end of the list
      * @private
      * @param {File} file
@@ -921,17 +957,32 @@ define(function (require, exports, module) {
      */
     WorkingSetView.prototype._createNewListItem = function (file) {
         var self = this,
-            selectedFile = MainViewManager.getCurrentlyViewedFile(this.paneId);
+            selectedFile = MainViewManager.getCurrentlyViewedFile(this.paneId),
+            data = {fullPath: file.fullPath,
+                    name: file.name,
+                    isFile: file.isFile};
 
         // Create new list item with a link
         var $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(file));
+           
+        _iconProviders.forEach(function (provider) {
+            var icon = provider(data);
+            if (icon) {
+                $link.prepend($(icon));
+            }
+        });
+        
         var $newItem = $("<li></li>")
             .append($link)
             .data(_FILE_KEY, file);
 
         this.$openFilesContainer.find("ul").append($newItem);
         
-        // Update the listItem's appearance
+        _classProviders.forEach(function (provider) {
+            $newItem.addClass(provider(data));
+        });
+        
+        // Update the listItem's apperance
         this._updateFileStatusIcon($newItem, _isOpenAndDirty(file), false);
         _updateListItemSelection($newItem, selectedFile);
         _makeDraggable($newItem);
@@ -999,7 +1050,7 @@ define(function (require, exports, module) {
         this._scrollSelectedFileIntoView();
         this._fireSelectionChanged();
     };
-    
+
     /**
      * workingSetAdd event handler
      * @private
@@ -1061,7 +1112,6 @@ define(function (require, exports, module) {
                     }
                     $listItem.remove();
                 }
-
                 this._redraw();
             }
         } else {
@@ -1203,7 +1253,7 @@ define(function (require, exports, module) {
             });
         }
     });
-
+    
     /**
      * Creates a new WorkingSetView object for the specified pane
      * @param {!jQuery} $container - the WorkingSetView's DOM parent node
@@ -1223,8 +1273,54 @@ define(function (require, exports, module) {
         }
     }
 
+    
+    /** 
+     * adds an icon provider to the view.  
+     * Icon providers are called when a working set item is created
+     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string|jQuery} callback - the function to call for each item
+     * The callback must return the html to place before the link of each WSV item. 
+     *  The return value can be a string representing the HTML, a jQuery object or undefined.
+     * if a falsy value is returned then nothing is prepended to the list item
+     */
+    function addIconProvider(callback) {
+        if (!callback) {
+            return;
+        }
+        _iconProviders.push(callback);
+        // build all views so the provider has a chance to add icons
+        //    to all items that have already been created
+        refresh(true);
+    }
+    
+    /** 
+     * adds a list item class provider to the view.  
+     * Class providers are called when a working set item is created
+     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string} callback - the function to call for each item
+     * The callback can return a string that contains the class (or classes) to add to the list item
+     */
+    function addClassProvider(callback) {
+        if (!callback) {
+            return;
+        }
+        _classProviders.push(callback);
+        // build all views so the provider has a chance to style
+        //    all items that have already been created
+        refresh(true);
+    }
+    
+    /** 
+     * Synchronizes the selection indicator for all views
+     */
+    function syncSelectionIndicator() {
+        _.forEach(_views, function (workingSetListView) {
+            workingSetListView.$openFilesContainer.triggerHandler("scroll");
+        });
+    }
+    
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
     exports.refresh                       = refresh;
+    exports.addIconProvider               = addIconProvider;
+    exports.addClassProvider              = addClassProvider;
     exports.syncSelectionIndicator        = syncSelectionIndicator;
 });
