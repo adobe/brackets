@@ -306,8 +306,8 @@ define(function (require, exports, module) {
                         nodeList = openNodes[depth] = [];
                     }
                     nodeList.push(directoryPath);
+                    addNodesAtDepth(value.get("children"), directoryPath, depth + 1);
                 }
-                addNodesAtDepth(value.get("children"), directoryPath, depth + 1);
             });
         }
 
