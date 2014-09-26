@@ -95,6 +95,7 @@ define(function (require, exports, module) {
         _fileSystemRename,
         _showErrorDialog,
         _saveTreeState,
+        renameItemInline,
         _renderTree;
 
     /**
@@ -271,7 +272,11 @@ define(function (require, exports, module) {
      * See `ProjectModel.startRename`
      */
     ActionCreator.prototype.startRename = function (path) {
-        return this.model.startRename(path);
+        // This is very not Flux-like, which is a sign that Flux may not be the
+        // right choice here *or* that this architecture needs to evolve subtly
+        // in how errors are reported (more like the create case).
+        // See #9284.
+        renameItemInline(path);
     };
 
     /**
@@ -1226,33 +1231,32 @@ define(function (require, exports, module) {
      * @param {FileSystemEntry} entry file or directory filesystem object to rename
      * @return {$.Promise} a promise resolved when the rename is done.
      */
-    function renameItemInline(entry) {
-        var d = new $.Deferred(),
-            isFolder = entry.isDirectory;
+    renameItemInline = function (entry) {
+        var d = new $.Deferred();
         
-        actionCreator.startRename(entry)
+        model.startRename(entry)
             .done(function () {
                 d.resolve();
             })
-            .fail(function (err) {
+            .fail(function (errorInfo) {
                 // Need to do display the error message on the next event loop turn
                 // because some errors can come up synchronously and then the dialog
                 // is not displayed.
                 window.setTimeout(function () {
-                    if (err === ProjectModel.ERROR_INVALID_FILENAME) {
-                        _showErrorDialog(ERR_TYPE_INVALID_FILENAME, isFolder, ProjectModel._invalidChars);
+                    if (errorInfo.type === ProjectModel.ERROR_INVALID_FILENAME) {
+                        _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
                     } else {
-                        var errString = err === FileSystemError.ALREADY_EXISTS ?
+                        var errString = errorInfo.type === FileSystemError.ALREADY_EXISTS ?
                                 Strings.FILE_EXISTS_ERR :
-                                FileUtils.getFileErrorString(err);
+                                FileUtils.getFileErrorString(errorInfo.type);
 
-                        _showErrorDialog(ERR_TYPE_RENAME, isFolder, errString, entry.fullPath);
+                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, errString, errorInfo.fullPath);
                     }
                 }, 10);
-                d.reject(err);
+                d.reject(errorInfo);
             });
         return d.promise();
-    }
+    };
 
     /**
      * Returns an Array of all files for this project, optionally including

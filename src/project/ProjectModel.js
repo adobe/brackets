@@ -921,8 +921,13 @@ define(function (require, exports, module) {
                 renameInfo.deferred.resolve({
                     newPath: newPath
                 });
-            }).fail(function (error) {
-                renameInfo.deferred.reject(error);
+            }).fail(function (errorType) {
+                var errorInfo = {
+                    type: errorType,
+                    isFolder: isFolder,
+                    fullPath: oldPath
+                };
+                renameInfo.deferred.reject(errorInfo);
             });
         }
     };
