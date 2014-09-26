@@ -95,6 +95,7 @@ define(function (require, exports, module) {
         _fileSystemRename,
         _showErrorDialog,
         _saveTreeState,
+        renameItemInline,
         _renderTree;
 
     /**
@@ -268,7 +269,11 @@ define(function (require, exports, module) {
      * See `ProjectModel.startRename`
      */
     ActionCreator.prototype.startRename = function (path) {
-        return this.model.startRename(path);
+        // This is very not Flux-like, which is a sign that Flux may not be the
+        // right choice here *or* that this architecture needs to evolve subtly
+        // in how errors are reported (more like the create case).
+        // See #9284.
+        renameItemInline(path);
     };
 
     /**
@@ -1216,11 +1221,11 @@ define(function (require, exports, module) {
      * @param {FileSystemEntry} entry file or directory filesystem object to rename
      * @return {$.Promise} a promise resolved when the rename is done.
      */
-    function renameItemInline(entry) {
+    renameItemInline = function (entry) {
         var d = new $.Deferred(),
             isFolder = entry.isDirectory;
         
-        actionCreator.startRename(entry)
+        model.startRename(entry)
             .done(function () {
                 d.resolve();
             })
@@ -1242,7 +1247,7 @@ define(function (require, exports, module) {
                 d.reject(err);
             });
         return d.promise();
-    }
+    };
 
     /**
      * Returns an Array of all files for this project, optionally including
