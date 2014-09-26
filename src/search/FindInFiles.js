@@ -385,7 +385,7 @@ define(function (require, exports, module) {
         searchModel.filter = filter;
         
         var queryResult = searchModel.setQueryInfo(queryInfo);
-        if (!queryResult.valid) {
+        if (!queryResult) {
             return null;
         }
         

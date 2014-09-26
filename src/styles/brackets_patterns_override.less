@@ -54,8 +54,7 @@ a:focus {
 
     .dark & {
         color: @dark-bc-text-link;
-        border: 1px solid @dark-bc-btn-border-focused;
-        box-shadow: none;
+        box-shadow: 0 0 0 1px @dark-bc-btn-border-focused;
     }
 }
 
@@ -886,13 +885,13 @@ a:focus {
 
 .dialog-list > li:before {
     content: "•  ";
-    color: @bc-btn-border;
+    color: @bc-text-quiet;
     font-size: 1.5em;
     position: relative;
-    top: 1px;
+    top: 2px;
 
     .dark & {
-        color: @dark-bc-btn-border;
+        color: @dark-bc-text-quiet;
     }
 }
 
@@ -1844,12 +1843,20 @@ select {
     &:active {
         background-color: @bc-btn-bg-down;
         box-shadow: inset 0 1px 0 @bc-shadow-small;
-    }
-
-    > option { // This works on windows.
+        
         .dark & {
-            background: @dark-bc-menu-bg !important;
-            color: @dark-bc-menu-text !important;
+            background-color: @dark-bc-btn-bg-down;
+            box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+        }
+    }
+    
+    > option { // Windows (but not Mac) lets you style the dropdown items
+        background-color: @bc-menu-bg;
+        color: @bc-menu-text;
+
+        .dark & {
+            background: @dark-bc-menu-bg;
+            color: @dark-bc-menu-text;
         }
     }
 

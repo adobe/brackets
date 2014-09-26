@@ -268,6 +268,9 @@ define(function (require, exports, module) {
             context.translated = true;
             context.translatedLangs =
                 info.metadata.i18n.map(function (value) {
+                    if (value === "root") {
+                        value = "en";
+                    }
                     return { name: LocalizationUtils.getLocalizedLabel(value), locale: value };
                 })
                 .sort(function (lang1, lang2) {

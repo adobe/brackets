@@ -84,6 +84,8 @@ define(function (require, exports, module) {
         MainViewFactory     = require("view/MainViewFactory"),
         ViewStateManager    = require("view/ViewStateManager"),
         Commands            = require("command/Commands"),
+        Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         EditorManager       = require("editor/EditorManager"),
         FileSystemError     = require("filesystem/FileSystemError"),
         DocumentManager     = require("document/DocumentManager"),
@@ -259,15 +261,25 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Resolve paneId to actual pane.
+     * @param {?string} paneId - id of the desired pane. May be symbolic or null (to indicate current pane)
+     * @return {string} id of the pane in which to open the document
+     */
+    function _resolvePaneId(paneId) {
+        if (!paneId || paneId === ACTIVE_PANE) {
+            return getActivePaneId();
+        }
+        return paneId;
+    }
+    
+    /**
      * Retrieves the Pane object for the given paneId
      * @param {!string} paneId - id of the pane to retrieve
      * @return {?Pane} the Pane object or null if a pane object doesn't exist for the pane
      * @private
      */
     function _getPane(paneId) {
-        if (!paneId || paneId === ACTIVE_PANE) {
-            paneId = getActivePaneId();
-        }
+        paneId = _resolvePaneId(paneId);
         
         if (_panes[paneId]) {
             return _panes[paneId];
@@ -963,38 +975,37 @@ define(function (require, exports, module) {
      * Creates a pane for paneId if one doesn't already exist
      * @param {!string} paneId - id of the pane to create
      * @private
-     * @return {Pane} - the pane object of the pane 
+     * @return {?Pane} - the pane object of the new pane, or undefined if no pane created
      */
     function _createPaneIfNecessary(paneId) {
-        var pane;
+        var newPane;
         
         if (!_panes.hasOwnProperty(paneId)) {
-            pane = new Pane(paneId, _$el);
-            _panes[paneId] = pane;
+            newPane = new Pane(paneId, _$el);
+            _panes[paneId] = newPane;
             
-            $(exports).triggerHandler("paneCreate", [pane.id]);
+            $(exports).triggerHandler("paneCreate", [newPane.id]);
             
-            pane.$el.on("click.mainview dragover.mainview", function () {
-                setActivePaneId(pane.id);
+            newPane.$el.on("click.mainview dragover.mainview", function () {
+                setActivePaneId(newPane.id);
             });
 
-            $(pane).on("viewListChange.mainview", function () {
+            $(newPane).on("viewListChange.mainview", function () {
                 _updatePaneHeaders();
-                $(exports).triggerHandler("workingSetUpdate", [pane.id]);
+                $(exports).triggerHandler("workingSetUpdate", [newPane.id]);
             });
-            $(pane).on("currentViewChange.mainview", function (e, newView, oldView) {
+            $(newPane).on("currentViewChange.mainview", function (e, newView, oldView) {
                 _updatePaneHeaders();
-                if (_activePaneId === pane.id) {
+                if (_activePaneId === newPane.id) {
                     $(exports).triggerHandler("currentFileChange",
                                               [newView && newView.getFile(),
-                                               pane.id, oldView && oldView.getFile(),
-                                               pane.id]);
+                                               newPane.id, oldView && oldView.getFile(),
+                                               newPane.id]);
                 }
             });
         }
-
         
-        return _panes[paneId];
+        return newPane;
     }
     
     /**
@@ -1020,7 +1031,13 @@ define(function (require, exports, module) {
      * @param {!string} orientation (VERTICAL|HORIZONTAL)
      */
     function _doSplit(orientation) {
-        var firstPane = _panes[FIRST_PANE];
+        var firstPane, newPane;
+        
+        if (orientation === _orientation) {
+            return;
+        }
+        
+        firstPane = _panes[FIRST_PANE];
         Resizer.removeSizable(firstPane.$el);
 
         if (_orientation) {
@@ -1029,7 +1046,7 @@ define(function (require, exports, module) {
         _$el.addClass("split-" + orientation.toLowerCase());
         
         _orientation = orientation;
-        _createPaneIfNecessary(SECOND_PANE);
+        newPane = _createPaneIfNecessary(SECOND_PANE);
         _makeFirstPaneResizable();
         
         // reset the layout to 50/50 split
@@ -1038,6 +1055,11 @@ define(function (require, exports, module) {
         _initialLayout();
         
         $(exports).triggerHandler("paneLayoutChange", [_orientation]);
+        
+        // if new pane was created, make it the active pane
+        if (newPane) {
+            setActivePaneId(newPane.id);
+        }
     }
     
     /**
@@ -1095,6 +1117,22 @@ define(function (require, exports, module) {
         var currentPaneId = _getPaneIdForPath(file.fullPath);
 
         if (currentPaneId) {
+            // Warn user (only once) when file is already open in another view
+            if (!PreferencesManager.getViewState("splitview.multipane-info") &&
+                    currentPaneId !== _resolvePaneId(paneId)) {
+                PreferencesManager.setViewState("splitview.multipane-info", true);
+                
+                // File tree also executes single-click code prior to executing double-click
+                // code, so delay showing modal dialog to prevent eating second click
+                window.setTimeout(function () {
+                    Dialogs.showModalDialog(
+                        DefaultDialogs.DIALOG_ID_INFO,
+                        Strings.SPLITVIEW_INFO_TITLE,
+                        Strings.SPLITVIEW_MULTIPANE_WARNING
+                    );
+                }, 500);
+            }
+
             // If the doc is open in another pane
             //  then switch to that pane and call open document
             //  which will really just show the view as it has always done
@@ -1349,10 +1387,8 @@ define(function (require, exports, module) {
             _orientation = (panes.length > 1) ? state.orientation : null;
 
             _.forEach(state.panes, function (paneState, paneId) {
-                var pane = _createPaneIfNecessary(paneId),
-                    promise = pane.loadState(paneState);
-                
-                promises.push(promise);
+                _createPaneIfNecessary(paneId);
+                promises.push(_panes[paneId].loadState(paneState));
             });
 
             AsyncUtils.waitForAll(promises).then(function (opensList) {
@@ -1578,7 +1614,7 @@ define(function (require, exports, module) {
     // Traversal
     exports.beginTraversal                = beginTraversal;
     exports.endTraversal                  = endTraversal;
-    exports.traverseToNextViewByMRU            = traverseToNextViewByMRU;
+    exports.traverseToNextViewByMRU       = traverseToNextViewByMRU;
     
     // PaneView Attributes
     exports.getActivePaneId               = getActivePaneId;
