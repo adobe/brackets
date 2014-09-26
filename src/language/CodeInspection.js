@@ -163,39 +163,41 @@ define(function (require, exports, module) {
     function _getProvidersForPath(filePath) {
         
         var language = LanguageManager.getLanguageForPath(filePath).getId(),
-            langPref,
+            prefPreferredProviders,
+            prefPreferredOnly,
+            prefFirstOnly,
             preferredProviderNames,
+            preferredProviders,
             installedProviders = _providers[language],
-            providers;
+            providers,
+            context = PreferencesManager._buildContext(filePath, language);
+      
+        prefPreferredProviders  = prefs.get("prefer", context);
+        prefPreferredOnly       = prefs.get("preferredOnly", context);
+        prefFirstOnly           = prefs.get("firstOnly", context);
 
-        langPref = prefs.get("providers." + language);
-        if (langPref && installedProviders) {
-            if (langPref.prefer) {
-                var preferredProviders;
-                preferredProviderNames = langPref.prefer.split(/\s*,\s*/);
-                preferredProviders = _.reduce(preferredProviderNames, function (result, key) {
-                    var idx = -1;
-                    idx = _.findIndex(installedProviders, function (elem) { return elem.name === key; });
-                    if (idx > -1) {
-                        result.push(installedProviders[idx]);
-                    }
-                    return result;
-                }, []);
-                if (langPref.preferredOnly) {
-                    providers = preferredProviders;
-                } else {
-                    providers = _.union(preferredProviders, installedProviders);
+        if (prefPreferredProviders) {
+            preferredProviderNames = prefPreferredProviders.split(/\s*,\s*/);
+            preferredProviders = _.reduce(preferredProviderNames, function (result, key) {
+                var idx = -1;
+                idx = _.findIndex(installedProviders, function (elem) { return elem.name === key; });
+                if (idx > -1) {
+                    result.push(installedProviders[idx]);
                 }
+                return result;
+            }, []);
+            if (prefPreferredOnly) {
+                providers = preferredProviders;
             } else {
-                providers = installedProviders;
+                providers = _.union(preferredProviders, installedProviders);
             }
-            if (langPref.firstOnly === true) { // implies suppressing others
-                return providers.slice(0, 1);
-            }
-            return providers;
         } else {
-            return installedProviders;
+            providers = installedProviders;
         }
+        if (prefFirstOnly === true) { // implies suppressing others
+            return providers.slice(0, 1);
+        }
+        return providers;
     }
 
     /**
