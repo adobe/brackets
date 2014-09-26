@@ -162,8 +162,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
 
         if (this._instrumentationEnabled) {
-            // Update instrumentation for new editor
-            HTMLInstrumentation.scanDocument(this.doc);
+            // Resync instrumentation with editor
             HTMLInstrumentation._markText(this.editor);
         }
     };
