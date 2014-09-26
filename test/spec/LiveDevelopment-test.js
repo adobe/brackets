@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global brackets, $, define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, spyOn, jasmine, beforeFirst, afterLast */
+/*global brackets, $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waitsForFail, runs, spyOn, jasmine, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -44,7 +44,6 @@ define(function (require, exports, module) {
         Dialogs,
         NativeApp,
         LiveDevelopment,
-        LiveDevServerManager,
         Inspector,
         DOMAgent,
         DocumentManager,
@@ -913,7 +912,6 @@ define(function (require, exports, module) {
                     browserCssText,
                     origHtmlText,
                     updatedHtmlText,
-                    browserHtmlText,
                     htmlDoc,
                     loadEventPromise;
                 
@@ -1038,9 +1036,7 @@ define(function (require, exports, module) {
             }
 
             xit("should report STATUS_SYNC_ERROR when HTML syntax is invalid", function () {
-                var doc,
-                    originalText,
-                    text;
+                var doc;
 
                 _openSimpleHTML();
 

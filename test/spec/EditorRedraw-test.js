@@ -23,13 +23,12 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, spyOn, expect, beforeEach, afterEach, waitsFor, runs, $ */
+/*global define, describe, it, spyOn, expect, beforeEach, afterEach, $ */
 
 define(function (require, exports, module) {
     'use strict';
     
-    var EditorManager    = require("editor/EditorManager"),
-        WorkspaceManager = require("view/WorkspaceManager"),
+    var WorkspaceManager = require("view/WorkspaceManager"),
         MainViewManager  = require("view/MainViewManager"),
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 

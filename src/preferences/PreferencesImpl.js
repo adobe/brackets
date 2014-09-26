@@ -22,7 +22,7 @@
  */
 
 
-/*global define, $, localStorage, brackets, console */
+/*global define, $, brackets */
 
 /**
  * Generates the fully configured preferences systems used throughout Brackets. This is intended

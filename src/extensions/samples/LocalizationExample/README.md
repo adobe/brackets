@@ -48,7 +48,7 @@ Move this plugin to the extensions\user\ folder to run the plugin. It will add a
 
 * main.js – loads the Strings module for the plugin and uses mustache to localize html content
 
-* package.json - add the translation languages as in the example: `"i18n: ["en", "fr" ]`
+* package.json - add the translation languages as in the example: `"i18n: ["en", "fr" ]`.  Also, add any localized metadata for displayed metadata in the Extension Manager, as in the example: `"fr": { "title": "localized title" }`.
 
 * strings.js – uses i18n to load a strings.js file in the nls folder
 

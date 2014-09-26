@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, jasmine, define, require, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
+/*global define, describe, it, expect, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,7 +32,6 @@ define(function (require, exports, module) {
         CommandManager,     // Load from brackets.test
         FileSystem,         // Load from brackets.test
         Dialogs             = require("widgets/Dialogs"),
-        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Commands            = require("command/Commands"),
         FileSystemError     = require("filesystem/FileSystemError"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
@@ -297,8 +296,7 @@ define(function (require, exports, module) {
                     rootFolderEntry = FileSystem.getDirectoryForPath(rootFolderName),
                     error,
                     stat,
-                    promise,
-                    entry;
+                    promise;
                 
                 // Delete the root folder and all files/folders in it.
                 runs(function () {

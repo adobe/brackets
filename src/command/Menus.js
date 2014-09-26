@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, MouseEvent */
+/*global define, $, brackets, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -31,14 +31,16 @@ define(function (require, exports, module) {
     var _ = require("thirdparty/lodash");
 
     // Load dependent modules
-    var Global              = require("utils/Global"),
-        Commands            = require("command/Commands"),
+    var Commands            = require("command/Commands"),
         KeyBindingManager   = require("command/KeyBindingManager"),
         StringUtils         = require("utils/StringUtils"),
         CommandManager      = require("command/CommandManager"),
         PopUpManager        = require("widgets/PopUpManager"),
         ViewUtils           = require("utils/ViewUtils"),
         DeprecationWarning  = require("utils/DeprecationWarning");
+
+    // make sure the global brackets variable is loaded
+    require("utils/Global");
 
     /**
      * Brackets Application Menu Constants
@@ -62,7 +64,8 @@ define(function (require, exports, module) {
         INLINE_EDITOR_MENU:             "inline-editor-context-menu",
         PROJECT_MENU:                   "project-context-menu",
         WORKING_SET_CONTEXT_MENU:       "workingset-context-menu",
-        WORKING_SET_CONFIG_MENU:        "workingset-configuration-menu"
+        WORKING_SET_CONFIG_MENU:        "workingset-configuration-menu",
+        SPLITVIEW_MENU:                 "splitview-menu"
     };
 
     /**
@@ -551,7 +554,6 @@ define(function (require, exports, module) {
         var menuID = this.id,
             id,
             $menuItem,
-            $link,
             menuItem,
             name,
             commandID;

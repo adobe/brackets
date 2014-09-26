@@ -91,9 +91,7 @@ module.exports = function (grunt) {
     // task: build-num
     grunt.registerTask("build-prop", "Write build.prop properties file for Jenkins", function () {
         var done        = this.async(),
-            json        = {},
             out         = "",
-            opts        = { cwd: process.cwd(), maxBuffer: 1024 * 1024 },
             version     = grunt.config("pkg").version,
             www_repo    = process.cwd(),
             shell_repo  = path.resolve(www_repo, grunt.config("shell.repo")),

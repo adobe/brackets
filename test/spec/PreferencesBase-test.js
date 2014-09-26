@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast, spyOn, brackets */
+/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst */
 /*unittests: Preferences Base*/
 
 define(function (require, exports, module) {
@@ -62,7 +62,6 @@ define(function (require, exports, module) {
         });
         
         describe("Path Layer", function () {
-            
             it("handles a variety of glob patterns", function () {
                 var data = {
                     "**.html": {
@@ -82,27 +81,27 @@ define(function (require, exports, module) {
                 var layer = new PreferencesBase.PathLayer("/.brackets.json");
                 
                 expect(layer.get(data, "spaceUnits", {
-                    filename: "/public/index.html"
+                    path: "/public/index.html"
                 })).toBe(2);
                 
                 expect(layer.get(data, "spaceUnits", {
-                    filename: "/lib/script.js"
+                    path: "/lib/script.js"
                 })).toBe(3);
                 
                 expect(layer.get(data, "spaceUnits", {
-                    filename: "/lib/foo/script.js"
+                    path: "/lib/foo/script.js"
                 })).toBeUndefined();
                 
                 expect(layer.get(data, "spaceUnits", {
-                    filename: "/lib/foo/styles.css"
+                    path: "/lib/foo/styles.css"
                 })).toBe(4);
                 
                 expect(layer.get(data, "spaceUnits", {
-                    filename: "/README.md"
+                    path: "/README.md"
                 })).toBe(5);
                 
                 expect(layer.get(data, "spaceUnits", {
-                    filename: "foo.js"
+                    path: "foo.js"
                 })).toBeUndefined();
             });
             
@@ -118,15 +117,15 @@ define(function (require, exports, module) {
                 
                 var layer = new PreferencesBase.PathLayer("/.brackets.json");
                 expect(layer.getPreferenceLocation(data, "spaceUnits", {
-                    filename: "/foo.txt"
+                    path: "/foo.txt"
                 })).toBeUndefined();
                 
                 expect(layer.getPreferenceLocation(data, "spaceUnits", {
-                    filename: "/index.html"
+                    path: "/index.html"
                 })).toEqual("**.html");
                 
                 expect(layer.getPreferenceLocation(data, "spaceUnits", {
-                    filename: "/lib/brackets.js"
+                    path: "/lib/brackets.js"
                 })).toEqual("lib/*.js");
             });
             
@@ -144,13 +143,13 @@ define(function (require, exports, module) {
                 
                 var layer = new PreferencesBase.PathLayer("/.brackets.json");
                 expect(layer.set(data, "spaceUnits", 10, {
-                    filename: "/foo.txt"
+                    path: "/foo.txt"
                 })).toBe(false);
                 
                 expect(data).toEqual(originalData);
                 
                 expect(layer.set(data, "spaceUnits", 11, {
-                    filename: "/index.html"
+                    path: "/index.html"
                 })).toBe(true);
                 expect(data).toEqual({
                     "**.html": {
@@ -162,7 +161,7 @@ define(function (require, exports, module) {
                 });
                 
                 expect(layer.set(data, "spaceUnits", 12, {
-                    filename: "/index.html"
+                    path: "/index.html"
                 }, "lib/*.js")).toBe(true);
                 
                 expect(data).toEqual({
@@ -186,18 +185,16 @@ define(function (require, exports, module) {
                         spaceUnits: 3
                     }
                 };
-                
-                var originalData = _.clone(data, true);
-                
+
                 var layer = new PreferencesBase.PathLayer("/.brackets.json");
                 
                 expect(layer.set(data, "spaceUnits", 11, {
-                    filename: "/index.html"
+                    path: "/index.html"
                 })).toBe(true);
 
                 // Try to set the same value again.
                 expect(layer.set(data, "spaceUnits", 11, {
-                    filename: "/index.html"
+                    path: "/index.html"
                 })).toBe(false);
 
                 expect(data).toEqual({
@@ -325,8 +322,6 @@ define(function (require, exports, module) {
                         spaceUnits: 4
                     }
                 };
-                
-                var originalData = _.clone(data, true);
                 
                 var layer = new PreferencesBase.LanguageLayer();
                 
@@ -477,11 +472,11 @@ define(function (require, exports, module) {
                 expect(scope.get("spaceUnits")).toBe(4);
                 
                 expect(scope.get("spaceUnits", {
-                    filename: "/src/foo.js"
+                    path: "/src/foo.js"
                 })).toBe(2);
                 
                 expect(scope.get("spaceUnits", {
-                    filename: "/top.js"
+                    path: "/top.js"
                 })).toBe(4);
             });
             
@@ -536,14 +531,14 @@ define(function (require, exports, module) {
                 expect(scope.getPreferenceLocation("spaceUnits")).toEqual({});
                 
                 expect(scope.getPreferenceLocation("spaceUnits", {
-                    filename: "/src/brackets.js"
+                    path: "/src/brackets.js"
                 })).toEqual({
                     layer: "path",
                     layerID: "src/*js"
                 });
                 
                 expect(scope.getPreferenceLocation("spaceUnits", {
-                    filename: "/index.md"
+                    path: "/index.md"
                 })).toEqual({});
                 
                 expect(scope.getPreferenceLocation("spaceUnits", {language: "cobol"})).toEqual({
@@ -587,7 +582,7 @@ define(function (require, exports, module) {
                 scope._dirty = false;
                 
                 expect(scope.set("spaceUnits", 6, {
-                    filename: "/src/brackets.js"
+                    path: "/src/brackets.js"
                 })).toBe(true);
                 expect(data.spaceUnits).toBe(5);
                 expect(data.path["src/*js"].spaceUnits).toBe(6);
@@ -595,7 +590,7 @@ define(function (require, exports, module) {
                 scope._dirty = false;
                 
                 expect(scope.set("spaceUnits", 7, {
-                    filename: "/foo.md"
+                    path: "/foo.md"
                 }, {
                     layer: "path"
                 })).toBe(false);
@@ -614,7 +609,7 @@ define(function (require, exports, module) {
                 
                 scope._dirty = false;
                 expect(scope.set("spaceUnits", 9, {
-                    filename: "index.html"
+                    path: "index.html"
                 }, { })).toBe(true);
                 expect(data.spaceUnits).toBe(9);
                 expect(data.path["*.html"].spaceUnits).toBe(1);
@@ -681,19 +676,19 @@ define(function (require, exports, module) {
                 expect(keys.sort()).toEqual(expected.sort());
                 
                 keys = scope.getKeys({
-                    filename: "/coffeescript.ts"
+                    path: "/coffeescript.ts"
                 });
                 expected = ["spaceUnits", "useEmojiForTabs"];
                 expect(keys.sort()).toEqual(expected.sort());
                 
                 keys = scope.getKeys({
-                    filename: "/README.md"
+                    path: "/README.md"
                 });
                 expected = ["spaceUnits", "useEmojiForTabs", "markdown"];
                 expect(keys.sort()).toEqual(expected.sort());
                 
                 keys = scope.getKeys({
-                    filename: "/test.js",
+                    path: "/test.js",
                     language: "html"
                 });
                 expected = ["spaceUnits", "useEmojiForTabs", "showNonWhitespace", "niceHTMLOption"];
@@ -915,7 +910,7 @@ define(function (require, exports, module) {
                     elephants: "charging"
                 }));
                 
-                expect(pm._defaultContext.scopeOrder).toEqual(["user", "default"]);
+                expect(pm._defaults.scopeOrder).toEqual(["user", "default"]);
                 
                 expect(eventData).toEqual([{
                     ids: ["spaceUnits", "elephants"]
@@ -929,7 +924,7 @@ define(function (require, exports, module) {
                 scopeEvents = [];
                 eventData = [];
                 pm.removeScope("user");
-                expect(pm._defaultContext.scopeOrder).toEqual(["default"]);
+                expect(pm._defaults.scopeOrder).toEqual(["default"]);
                 expect(eventData).toEqual([{
                     ids: ["spaceUnits", "elephants"]
                 }]);
@@ -970,33 +965,32 @@ define(function (require, exports, module) {
                 
                 // Extra verification that layer keys works correctly
                 var keys = scope._layers[0].getKeys(scope.data.path, {
-                    filename: "/bar.md"
+                    path: "/bar.md"
                 });
                 
                 expect(keys).toEqual([]);
                 keys = scope._layers[0].getKeys(scope.data.path, {
-                    filename: "/foo.txt"
+                    path: "/foo.txt"
                 });
                 expect(keys.sort()).toEqual(["spaceUnits", "alpha"].sort());
                 
                 expect(pm.get("spaceUnits")).toBe(4);
+                expect(pm.get("spaceUnits", {path: "/foo.txt"})).toBe(2);
+                
                 eventData = [];
-                pm.setDefaultFilename("/foo.txt");
-                expect(pm.get("spaceUnits")).toBe(2);
+                pm.signalContextChanged({path: "/README.md"}, {path: "/README.txt"});
                 expect(eventData).toEqual([{
                     ids: ["spaceUnits", "alpha"]
                 }]);
                 
                 eventData = [];
-                pm.setDefaultFilename("/README.txt");
+                pm.signalContextChanged({path: "/foo.txt"}, {path: "/README.txt"});
                 expect(eventData).toEqual([]);
                 
                 // Test to make sure there are no exceptions when there is no path data
                 delete data.path;
                 scope.load();
                 expect(scope.data).toEqual(data);
-                pm.setDefaultFilename("/foo.txt");
-                pm.setDefaultFilename("/bar.md");
             });
             
             it("can notify changes for single preference objects", function () {
@@ -1079,14 +1073,14 @@ define(function (require, exports, module) {
                 }));
                 pm.addScope("session", new PreferencesBase.MemoryStorage());
                 expect(pm.get("spaceUnits")).toBe(2);
-                expect(pm._defaultContext.scopeOrder).toEqual(["session", "project", "user", "default"]);
+                expect(pm._defaults.scopeOrder).toEqual(["session", "project", "user", "default"]);
                 
                 var eventData = [];
                 pm.on("change", function (e, data) {
                     eventData.push(data);
                 });
                 pm.removeFromScopeOrder("project");
-                expect(pm._defaultContext.scopeOrder).toEqual(["session", "user", "default"]);
+                expect(pm._defaults.scopeOrder).toEqual(["session", "user", "default"]);
                 expect(eventData).toEqual([{
                     ids: ["spaceUnits"]
                 }]);
@@ -1098,7 +1092,7 @@ define(function (require, exports, module) {
                 
                 eventData = [];
                 pm.addToScopeOrder("project", "user");
-                expect(pm._defaultContext.scopeOrder).toEqual(["session", "project", "user", "default"]);
+                expect(pm._defaults.scopeOrder).toEqual(["session", "project", "user", "default"]);
                 expect(eventData).toEqual([{
                     ids: ["spaceUnits"]
                 }]);
@@ -1180,14 +1174,14 @@ define(function (require, exports, module) {
                 expect(pm.get("spaceUnits")).toBe(7);
                 expect(Object.keys(session.data)).toEqual([]);
                 
-                pm.setDefaultFilename("/index.html");
+                pm.signalContextChanged({}, {path: "/index.html"});
                 expect(changes).toBe(6);
-                expect(pm.get("spaceUnits")).toBe(2);
-                expect(pm.set("spaceUnits", 10).stored).toBe(true);
+                expect(pm.get("spaceUnits", {path: "/index.html"})).toBe(2);
+                expect(pm.set("spaceUnits", 10, {context: {path: "/index.html"}}).stored).toBe(true);
                 expect(changes).toBe(7);
                 expect(project.data.path["**.html"].spaceUnits).toBe(10);
                 
-                pm.setDefaultFilename("/foo.txt");
+                pm.signalContextChanged({path: "/index.html"}, {path: "/foo.txt"});
                 expect(pm.getPreferenceLocation("spaceUnits")).toEqual({
                     scope: "user"
                 });
@@ -1213,15 +1207,16 @@ define(function (require, exports, module) {
                     scope: "project"
                 });
                 
-                var context = pm.buildContext({
-                    filename: "/Gruntfile.js"
-                });
-                expect(pm.getPreferenceLocation("spaceUnits", context)).toEqual({
+                expect(pm.getPreferenceLocation("spaceUnits", {
+                    path: "/Gruntfile.js"
+                })).toEqual({
                     scope: "project",
                     layer: "path",
                     layerID: "**.js"
                 });
-                expect(pm.get("spaceUnits", context)).toBe(13);
+                expect(pm.get("spaceUnits", {
+                    path: "/Gruntfile.js"
+                })).toBe(13);
             });
             
             it("supports removal of scopes", function () {
@@ -1422,7 +1417,7 @@ define(function (require, exports, module) {
                     
                     expect(pm.get("spaceUnits", {
                         scopeOrder: ["project"],
-                        filename: "/foo.go"
+                        path: "/foo.go"
                     })).toBe(7);
                 });
             });

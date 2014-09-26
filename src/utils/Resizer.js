@@ -281,8 +281,7 @@ define(function (require, exports, module) {
         $element.data("show", function () {
             var elementOffset   = $element.offset(),
                 elementSize     = elementSizeFunction.apply($element) || elementPrefs.size,
-                contentSize     = contentSizeFunction.apply($resizableElement) || elementPrefs.contentSize,
-                resizerSize     = elementSizeFunction.apply($resizer);
+                contentSize     = contentSizeFunction.apply($resizableElement) || elementPrefs.contentSize;
             
             // Resize the element before showing it again. If the panel was collapsed by dragging
             // the resizer, the size of the element should be 0, so we restore size in preferences

@@ -24,8 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
 indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, xit, expect, beforeEach, afterEach,
-waitsFor, runs, $, brackets, waitsForDone, spyOn, jasmine */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone, spyOn, jasmine */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -58,7 +57,8 @@ define(function (require, exports, module) {
         mockRegistry;
     
     describe("ExtensionManager", function () {
-        var mockId, mockSettings, origRegistryURL, origExtensionUrl, removedPath;
+        var mockId, mockSettings, origRegistryURL, origExtensionUrl, removedPath,
+            view, model, fakeLoadDeferred, modelDisposed;
         
         beforeEach(function () {
             // Use fake URLs for the registry (useful if the registry isn't actually currently
@@ -156,6 +156,53 @@ define(function (require, exports, module) {
                 owner: "github:someuser",
                 versions: versions
             };
+        }
+        
+        function setupExtensionManagerViewTests(context) {
+            context.addMatchers({
+                toHaveText: function (expected) {
+                    var notText = this.isNot ? " not" : "";
+                    this.message = function () {
+                        return "Expected view" + notText + " to contain text " + expected;
+                    };
+                    return SpecRunnerUtils.findDOMText(this.actual.$el, expected);
+                },
+                toHaveLink: function (expected) {
+                    var notText = this.isNot ? " not" : "";
+                    this.message = function () {
+                        return "Expected view" + notText + " to contain link " + expected;
+                    };
+                    return SpecRunnerUtils.findDOMText(this.actual.$el, expected, true);
+                }
+            });
+            spyOn(InstallExtensionDialog, "installUsingDialog").andCallFake(function (url) {
+                var id = url.match(/fake-repository\.com\/([^\/]+)/)[1];
+                mockLoadExtensions(["user/" + id]);
+            });
+        }
+
+        function cleanupExtensionManagerViewTests() {
+            if (view) {
+                view.$el.remove();
+                view = null;
+            }
+            if (model) {
+                model.dispose();
+            }
+        }
+            
+        // Sets up the view using the normal (mock) ExtensionManager data.
+        function setupViewWithMockData(ModelClass) {
+            runs(function () {
+                view = new ExtensionManagerView();
+                model = new ModelClass();
+                modelDisposed = false;
+                waitsForDone(view.initialize(model), "view initializing");
+                view.$el.appendTo(document.body);
+            });
+            runs(function () {
+                spyOn(view.model, "dispose").andCallThrough();
+            });
         }
         
         describe("ExtensionManager", function () {
@@ -757,8 +804,7 @@ define(function (require, exports, module) {
             });
 
             it("should set flag to keep local files for new installs", function () {
-                var id = "mock-extension",
-                    filename = "/path/to/downloaded/file.zip",
+                var filename = "/path/to/downloaded/file.zip",
                     file = FileSystem.getFileForPath(filename),
                     result;
 
@@ -791,7 +837,6 @@ define(function (require, exports, module) {
                     file = FileSystem.getFileForPath(filename),
                     result,
                     dialogDeferred = new $.Deferred(),
-                    updatePromise,
                     $mockDlg,
                     didClose;
 
@@ -862,55 +907,15 @@ define(function (require, exports, module) {
         });
         
         describe("ExtensionManagerView", function () {
-            var view, model, fakeLoadDeferred, modelDisposed;
-            
-            // Sets up the view using the normal (mock) ExtensionManager data.
-            function setupViewWithMockData(ModelClass) {
-                runs(function () {
-                    view = new ExtensionManagerView();
-                    model = new ModelClass();
-                    modelDisposed = false;
-                    waitsForDone(view.initialize(model), "view initializing");
-                    view.$el.appendTo(document.body);
-                });
-                runs(function () {
-                    spyOn(view.model, "dispose").andCallThrough();
-                });
-            }
-            
+
             beforeEach(function () {
-                this.addMatchers({
-                    toHaveText: function (expected) {
-                        var notText = this.isNot ? " not" : "";
-                        this.message = function () {
-                            return "Expected view" + notText + " to contain text " + expected;
-                        };
-                        return SpecRunnerUtils.findDOMText(this.actual.$el, expected);
-                    },
-                    toHaveLink: function (expected) {
-                        var notText = this.isNot ? " not" : "";
-                        this.message = function () {
-                            return "Expected view" + notText + " to contain link " + expected;
-                        };
-                        return SpecRunnerUtils.findDOMText(this.actual.$el, expected, true);
-                    }
-                });
-                spyOn(InstallExtensionDialog, "installUsingDialog").andCallFake(function (url) {
-                    var id = url.match(/fake-repository\.com\/([^\/]+)/)[1];
-                    mockLoadExtensions(["user/" + id]);
-                });
+                setupExtensionManagerViewTests(this);
                 spyOn(brackets, "getLocale").andReturn("en");
             });
                 
             
             afterEach(function () {
-                if (view) {
-                    view.$el.remove();
-                    view = null;
-                }
-                if (model) {
-                    model.dispose();
-                }
+                cleanupExtensionManagerViewTests();
             });
             
             describe("when showing registry entries", function () {
@@ -1791,6 +1796,33 @@ define(function (require, exports, module) {
                             fakeLoadDeferred.resolve();
                             expect($(".registry", $dlg).length).toBe(1);
                         });
+                    });
+                });
+            });
+        });
+                
+        describe("ExtensionManagerView-i18n", function () {
+            
+            beforeEach(function () {
+                setupExtensionManagerViewTests(this);
+                spyOn(brackets, "getLocale").andReturn("fr");
+            });
+                
+            afterEach(function () {
+                cleanupExtensionManagerViewTests();
+            });
+            
+            it("should display localized description", function () {
+                setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                runs(function () {
+                    _.forEach(mockRegistry, function (item) {
+                        if (item.metadata["package-i18n"] &&
+                                item.metadata["package-i18n"].hasOwnProperty("fr") &&
+                                item.metadata["package-i18n"].fr.hasOwnProperty("description")) {
+                            expect(view).toHaveText(item.metadata["package-i18n"].fr.description);
+                            expect(view).toHaveText(item.metadata["package-i18n"].fr.title);
+                            expect(view).not.toHaveText(item.metadata["package-i18n"].fr.warnings);
+                        }
                     });
                 });
             });

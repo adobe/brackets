@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets */
+/*global define, window, $ */
 
 /**
 * Manages layout of panels surrounding the editor area, and size of the editor area (but not its contents).
@@ -99,7 +99,7 @@ define(function (require, exports, module) {
      * Calculates a new size for editor-holder and resizes it accordingly, then and dispatches the "workspaceUpdateLayout"
      * event. (The editors within are resized by EditorManager, in response to that event).
      * 
-     * @param {string=} refreshHint  One of "skip", "force", or undefined. See EditorManager docs.
+     * @param {boolean=} refreshHint  true to force a complete refresh
      */
     function triggerUpdateLayout(refreshHint) {
         // Find how much space is left for the editor
@@ -120,10 +120,6 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Immediately adjust editor's height, but skip the refresh since CodeMirror will call refresh()
-        // itself when it sees the window resize event
-        // triggerUpdateLayout("skip");
-
         // FIXME (issue #4564) Workaround https://github.com/marijnh/CodeMirror/issues/1787
         triggerUpdateLayout();
         
