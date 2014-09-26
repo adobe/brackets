@@ -685,6 +685,13 @@ define(function (require, exports, module) {
                     model.cancelRename();
                     expect(vm._treeData.getIn(["afile.js", "context"])).toBeUndefined();
                 });
+                
+                it("doesn't finish the rename when context is cleared", function () {
+                    model.startRename("/foo/afile.js");
+                    model.setContext(null, true);
+                    expect(vm._treeData.getIn(["afile.js", "rename"])).toBe(true);
+                    expect(model._selections.rename).toBeDefined();
+                });
 
                 it("does nothing if setRenameValue is called when there's no rename in progress", function () {
                     model.setRenameValue("/foo/bar/baz");
