@@ -288,8 +288,7 @@ define(function (require, exports, module) {
             });
             
             it("should use preferences for providers lookup", function () {
-                var pref,
-                    pm = PreferencesManager.getExtensionPrefs("linting"),
+                var pm = PreferencesManager.getExtensionPrefs("linting"),
                     codeInspector1 = createCodeInspector("html1", failLintResult),
                     codeInspector2 = createCodeInspector("html2", successfulLintResult),
                     codeInspector3 = createCodeInspector("html3", successfulLintResult),
@@ -1122,20 +1121,6 @@ define(function (require, exports, module) {
         describe("Code Inspector Registration", function () {
             beforeEach(function () {
                 CodeInspection._unregisterAll();
-            });
-
-            it("should unregister JSLint linter if a new javascript linter is registered", function () {
-                var codeInspector1 = createCodeInspector("JSLint", successfulLintResult());
-                CodeInspection.register("javascript", codeInspector1);
-                var codeInspector2 = createCodeInspector("javascript inspector", successfulLintResult());
-                CodeInspection.register("javascript", codeInspector2, true);
-
-                waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file", 5000);
-
-                runs(function () {
-                    expect(codeInspector1.scanFile).not.toHaveBeenCalled();
-                    expect(codeInspector2.scanFile).toHaveBeenCalled();
-                });
             });
 
             it("should call inspector 1 and inspector 2", function () {

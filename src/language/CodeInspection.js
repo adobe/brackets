@@ -491,14 +491,6 @@ define(function (require, exports, module) {
             _providers[languageId] = [];
         }
         
-        if (languageId === "javascript") {
-            // This is a special case to enable extension provider to replace the JSLint provider
-            // in favor of their own implementation
-            _.remove(_providers[languageId], function (registeredProvider) {
-                return registeredProvider.name === "JSLint";
-            });
-        }
-        
         _providers[languageId].push(provider);
         
         run();  // in case a file of this type is open currently
