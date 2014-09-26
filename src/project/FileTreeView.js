@@ -45,7 +45,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * @type {Immutable.Map}
-     * 
+     *
      * Stores the file tree extensions for adding classes and icons. The keys of the map
      * are the "categories" of the extensions and values are vectors of the callback functions.
      */
@@ -55,6 +55,7 @@ define(function (require, exports, module) {
 
     // Time range from first click to second click to invoke renaming.
     var CLICK_RENAME_MINIMUM = 500,
+        MIDDLE_MOUSE_BUTTON = 2,
         LEFT_MOUSE_BUTTON = 0;
 
     /**
@@ -174,10 +175,10 @@ define(function (require, exports, module) {
          * Send middle click to the action creator as a setContext action.
          */
         handleMouseDown: function (e) {
-            if (e.button === 2) {
+            if (e.button === MIDDLE_MOUSE_BUTTON) {
                 this.props.actions.setContext(this.myPath());
+                return false;
             }
-            return false;
         }
     };
 
@@ -260,7 +261,7 @@ define(function (require, exports, module) {
             return classes;
         }
     };
-    
+
     /**
      * @private
      *
@@ -315,10 +316,15 @@ define(function (require, exports, module) {
          * with a bit of delay in between, we'll invoke the `startRename` action.
          */
         handleClick: function (e) {
+            // If we're renaming, allow the click to go through to the rename input.
+            if (this.props.entry.get("rename")) {
+                return true;
+            }
+
             if (e.button !== LEFT_MOUSE_BUTTON) {
                 return;
             }
-            
+
             // If the user clicks twice within 500ms, that will be picked up by the double click handler
             // If they click on the node twice with a pause, we'll start a rename.
             if (this.props.entry.get("selected") && this.state.clickTime) {
@@ -377,11 +383,11 @@ define(function (require, exports, module) {
 
             var fileClasses = "";
             if (this.props.entry.get("selected")) {
-                fileClasses += "jstree-clicked selected-node";
+                fileClasses += " jstree-clicked selected-node";
             }
-            
+
             if (this.props.entry.get("context")) {
-                fileClasses += "context-node";
+                fileClasses += " context-node";
             }
 
             var nameDisplay;
@@ -526,10 +532,10 @@ define(function (require, exports, module) {
             if (event.button !== LEFT_MOUSE_BUTTON) {
                 return;
             }
-            
+
             var isOpen = this.props.entry.get("open"),
                 setOpen = isOpen ? false : true;
-            
+
             if (event.metaKey || event.ctrlKey) {
                 // ctrl-alt-click toggles this directory and its children
                 if (event.altKey) {
@@ -696,14 +702,14 @@ define(function (require, exports, module) {
      * Displays the absolutely positioned box for the selection or context in the
      * file tree. Its position is determined by passed-in info about the scroller in which
      * the tree resides and the top of the selected node (as reported by the node itself).
-     * 
+     *
      * Props:
      * * selectionViewInfo: Immutable.Map with width, scrollTop, scrollLeft and offsetTop for the tree container
      * * visible: should this be visible now
      * * widthAdjustment: if this box should not fill the entire width, pass in a positive number here which is subtracted from the width in selectionViewInfo
      */
     var fileSelectionBox = React.createClass({
-        
+
         /**
          * Sets up initial state.
          */
@@ -712,7 +718,7 @@ define(function (require, exports, module) {
                 initialScroll: 0
             };
         },
-        
+
         /**
          * When the component has updated in the DOM, reposition it to where the currently
          * selected node is located now.
@@ -721,7 +727,7 @@ define(function (require, exports, module) {
             if (!this.props.visible) {
                 return;
             }
-            
+
             var node = this.getDOMNode(),
                 selectedNode = $(node.parentNode).find(this.props.selectedClassName),
                 selectionViewInfo = this.props.selectionViewInfo;
@@ -729,10 +735,10 @@ define(function (require, exports, module) {
             if (selectedNode.length === 0) {
                 return;
             }
-            
+
             node.style.top = selectedNode.offset().top - selectionViewInfo.get("offsetTop") + selectionViewInfo.get("scrollTop") + "px";
         },
-        
+
         render: function () {
             var selectionViewInfo = this.props.selectionViewInfo;
             
@@ -773,7 +779,7 @@ define(function (require, exports, module) {
                 this.props.extensions !== nextProps.extensions ||
                 this.props.selectionViewInfo !== nextProps.selectionViewInfo;
         },
-        
+
         render: function () {
             var selectionBackground = fileSelectionBox({
                 ref: "selectionBackground",
@@ -789,11 +795,11 @@ define(function (require, exports, module) {
                     selectionViewInfo: this.props.selectionViewInfo,
                     className: "filetree-context",
                     visible: this.props.selectionViewInfo.get("hasContext"),
-                    widthAdjustment: 2,
+                    widthAdjustment: 0,
                     selectedClassName: ".context-node",
                     forceUpdate: true
                 });
-            
+
             return DOM.div(
                 null,
                 selectionBackground,
