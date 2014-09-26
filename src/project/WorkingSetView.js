@@ -288,7 +288,7 @@ define(function (require, exports, module) {
             // Determines where the mouse hit was
             function hitTest(e) {
                 var pageY = $ghost.offset().top,
-                    direction = e.pageY - lastPageY,
+                    direction = e.pageY - startPageY,
                     result = {
                         where: NOMANSLAND
                     },
