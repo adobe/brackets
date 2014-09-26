@@ -433,13 +433,8 @@ define(function (require, exports, module) {
     }
 
     function _getContext(context) {
-        if (!context) {
-            _buildContext(currentFilename, currentLanguageId);
-        } else {
-            context.path = currentFilename;
-            context.language = currentLanguageId;
-        }
-        return context;
+        context = context || {};
+        return _buildContext(context.path, context.language);
     }
 
     /**
