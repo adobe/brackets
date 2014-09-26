@@ -71,7 +71,8 @@ define(function (require, exports, module) {
         Urls                = require("i18n!nls/urls"),
         FileSyncManager     = require("project/FileSyncManager"),
         ProjectModel        = require("project/ProjectModel"),
-        FileTreeView        = require("project/FileTreeView");
+        FileTreeView        = require("project/FileTreeView"),
+        ViewUtils           = require("utils/ViewUtils");
 
     /**
      * @private
@@ -120,6 +121,15 @@ define(function (require, exports, module) {
      * @type {jQueryObject}
      */
     var $projectTreeContainer;
+    
+    /**
+     * @private
+     * 
+     * Reference to the container of the React component. Everything in this
+     * node is managed by React.
+     * @type {Element}
+     */
+    var fileTreeViewContainer;
 
     /**
      * @private
@@ -597,7 +607,7 @@ define(function (require, exports, module) {
         if (!projectRoot) {
             return;
         }
-        FileTreeView.render($projectTreeContainer[0], model._viewModel, projectRoot, actionCreator, forceRender);
+        FileTreeView.render(fileTreeViewContainer, model._viewModel, projectRoot, actionCreator, forceRender);
     };
 
     /**
@@ -1105,6 +1115,8 @@ define(function (require, exports, module) {
         $projectTreeContainer.css("overflow", "auto");
         $projectTreeContainer.css("position", "relative");
         
+        fileTreeViewContainer = $("<div>").appendTo($projectTreeContainer)[0];
+        
         model.setSelectionWidth($projectTreeContainer.width());
         
         $(".main-view").click(function (jqEvent) {
@@ -1136,6 +1148,8 @@ define(function (require, exports, module) {
         });
         
         _renderTree();
+        
+        ViewUtils.addScrollerShadow($projectTreeContainer[0]);
     });
 
     /**
