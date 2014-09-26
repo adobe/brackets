@@ -255,6 +255,9 @@ define(function (require, exports, module) {
      */
     ActionCreator.prototype.setContext = function (path) {
         this.model.setContext(path);
+        if (path !== null && !_hasFileSelectionFocus()) {
+            $projectTreeContainer.trigger("scroll");
+        }
     };
 
     /**
@@ -324,7 +327,7 @@ define(function (require, exports, module) {
      * See `ProjectModel.toggleSubdirectories`
      */
     ActionCreator.prototype.toggleSubdirectories = function (path, openOrClose) {
-        this.model.toggleSubdirectories(path, openOrClose);
+        this.model.toggleSubdirectories(path, openOrClose).then(_saveTreeState);
     };
 
     /**
@@ -332,6 +335,7 @@ define(function (require, exports, module) {
      */
     ActionCreator.prototype.closeSubtree = function (path) {
         this.model.closeSubtree(path);
+        _saveTreeState();
     };
 
     /**
@@ -916,7 +920,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} Resolved when done; or rejected if not found
      */
     function showInTree(entry) {
-        return model.showInTree(entry);
+        return model.showInTree(entry).then(_saveTreeState);
     }
 
 
@@ -1097,7 +1101,6 @@ define(function (require, exports, module) {
         model.setScrollerInfo($projectTreeContainer.scrollTop(), $projectTreeContainer.scrollLeft(), $projectTreeContainer.offset().top);
     }
     
-    
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
@@ -1108,7 +1111,7 @@ define(function (require, exports, module) {
         model.setSelectionWidth($projectTreeContainer.width());
         
         $(".main-view").click(function (jqEvent) {
-            if (jqEvent.target.className !== "rename-input") {
+            if (jqEvent.target.className !== "jstree-rename-input") {
                 forceFinishRename();
                 actionCreator.setContext(null);
             }
@@ -1124,6 +1127,13 @@ define(function (require, exports, module) {
 
         $projectTreeContainer.on("contextmenu", function () {
             forceFinishRename();
+        });
+        
+        // When a context menu item is selected, we need to clear the context
+        // because we don't get a beforeContextMenuClose event since Bootstrap
+        // handles this directly.
+        $("#project-context-menu").on("click.dropdown-menu", function () {
+            model.setContext(null, true);
         });
 
         $projectTreeContainer.on("scroll", function () {
