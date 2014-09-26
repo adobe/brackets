@@ -261,7 +261,7 @@ define(function (require, exports, module) {
                 sourceView = _viewFromEl($el),
                 currentFile = MainViewManager.getCurrentlyViewedFile(),
                 activePaneId = MainViewManager.getActivePaneId(),
-                isCurrentFile = ($el.hasClass("selected") && sourceView.paneId === activePaneId),
+                draggingCurrentFile = ($el.hasClass("selected") && sourceView.paneId === activePaneId),
                 startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sorceFile.fullPath),
                 currentView = sourceView;
 
@@ -435,6 +435,9 @@ define(function (require, exports, module) {
                     if (!dragged) {
                         _deactivateAllViews(true);
                         $("#working-set-list-container").addClass("dragging");
+                        if (!draggingCurrentFile) {
+                            $(currentView._findListItemFromFile(currentFile)).addClass("drag-show-as-selected");
+                        }
                         // we've dragged the item so set
                         //  dragged to true so we don't try and open it
                         dragged = true;
@@ -520,6 +523,7 @@ define(function (require, exports, module) {
             // Close down the drag operation
             function preDropCleanup() {
                 $("#working-set-list-container").removeClass("dragging");
+                $("#working-set-list-container .drag-show-as-selected").removeClass("drag-show-as-selected");
                 endScroll($el);
                 _deactivateAllViews(false);
                 // turn scroll wheel back on
@@ -571,7 +575,7 @@ define(function (require, exports, module) {
                         .always(function () {
                             // if the current document was dragged to another workingset 
                             //  then reopen it to make it the currently selected file
-                            if (isCurrentFile) {
+                            if (draggingCurrentFile) {
                                 CommandManager
                                     .execute(Commands.FILE_OPEN, {fullPath: sorceFile.fullPath,
                                                                    paneId: currentView.paneId})
@@ -619,14 +623,14 @@ define(function (require, exports, module) {
             
             // setup our ghost element as position absolute
             //  so we can put it wherever we want to while dragging
+            if (draggingCurrentFile) {
+                $ghost.addClass("dragging-current-file");
+            }
+
             $ghost.css({
-                position: "absolute",
                 top: offset.top,
                 left: offset.left,
-                width: isCurrentFile ? sourceView.$el.width() : $el.width(),
-                "z-index": 99999,
-                "background-color": isCurrentFile ? "rgb(45, 46, 48)" : "rgb(60, 63, 65)",
-                //opacity: ".0001"
+                width: sourceView.$el.width()
             });
             
             // this will give the element the appearence that it's ghosted if the user
