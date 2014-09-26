@@ -186,16 +186,19 @@ define(function HTMLDocumentModule(require, exports, module) {
     HTMLDocument.prototype.updateHighlight = function () {
         var editor = this.editor,
             ids = [];
+        
         if (Inspector.config.highlight) {
-            _.each(this.editor.getSelections(), function (sel) {
-                var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(
-                    editor,
-                    sel.reversed ? sel.end : sel.start
-                );
-                if (tagID !== -1) {
-                    ids.push(tagID);
-                }
-            });
+            if (editor) {
+                _.each(editor.getSelections(), function (sel) {
+                    var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(
+                        editor,
+                        sel.reversed ? sel.end : sel.start
+                    );
+                    if (tagID !== -1) {
+                        ids.push(tagID);
+                    }
+                });
+            }
             
             if (!ids.length) {
                 HighlightAgent.hide();
