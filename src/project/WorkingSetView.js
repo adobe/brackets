@@ -157,12 +157,22 @@ define(function (require, exports, module) {
     function _lockContainerHeightOnAllViews(lock) {
         _.forEach(_views, function (view) {
             view.$openFilesContainer.css({
-                "min-height": lock ? view.$openFilesContainer.height() : "",
-                "max-height": lock ? view.$openFilesContainer.height() : ""
+                "min-height": lock ? 32 : "",
+                "max-height": lock ? view.$openFilesContainer.height() || 32 : ""
             });
         });
     }
     
+    
+    function _turnOffScrollShadowsOnAllViews(disable) {
+        _.forEach(_views, function (view) {
+            if (disable) {
+                ViewUtils.removeScrollerShadow(view.$openFilesContainer[0], null);
+            } else if (view.$openFilesContainer[0].scrollHeight > view.$openFilesContainer[0].clientHeight) {
+                ViewUtils.addScrollerShadow(view.$openFilesContainer[0], null, true);
+            }
+        });
+    }
     
     /** 
      * Deactivates all views so the selection marker does not show
@@ -341,20 +351,13 @@ define(function (require, exports, module) {
                 onBottomScroller = scrollerBottomArea && ((gTop >= scrollerBottomArea.top && gTop <= scrollerBottomArea.bottom) ||
                                                          (gBottom >= scrollerBottomArea.top && gBottom <= scrollerBottomArea.bottom));
 
-                // helper to see if the mouse is above 
-                //  or below the specified element
-                function mouseIsAbove($elem) {
-                    var top = $elem.offset().top;
-                    
-                    return (pageY < top);
-                }
 
-                function mouseIsBelow($elem) {
+                function mouseIsInTopHalf($elem) {
                     var top = $elem.offset().top,
                         height = $elem.height();
                     
-                    return (pageY > top + height);
-                }
+                    return (pageY < top + (height / 2));
+                }                
                 
                 function ghostIsAbove($elem) {
                     var top = $elem.offset().top;
@@ -400,33 +403,45 @@ define(function (require, exports, module) {
                             which: $item
                         };
                     }
-                } else if ($view.length) {
-                    if (mouseIsAbove($view)) {
-                        var $prev = $view.prev();
+                } else { 
+                    $view = $el.parents(".working-set-view");
+                        
+                    
+                    var $prev = $view.prev(),
+                        $next = $view.next(),
+                        onHeader = $hit.is(".working-set-header") && ($view.find($hit).length > 0);
+                    
+                    if (direction < 0) {
                         if ($prev.length) {
-                            result = {
-                                where: BELOWVIEW,
-                                which: $view.prev()
-                            };
-                        } else {
-                            result = {
-                                where: ABOVEVIEW,
-                                which: $view
-                            };
+                            if (onHeader) {
+                                result = {
+                                    where: ABOVEVIEW,
+                                    which: $view
+                                };
+                            } else {
+                                result = {
+                                    where: BELOWVIEW,
+                                    which: $prev
+                                };
+                            }
                         }
-                    } else if (mouseIsBelow($view)) {
-                        var $next = $view.next();
+                    } else if (direction > 0){
                         if ($next.length) {
                             result = {
                                 where: ABOVEVIEW,
                                 which: $next
                             };
-                        } else {
-                            result = {
-                                where: BELOWVIEW,
-                                which: $view
-                            };
                         }
+                    } else if (mouseIsInTopHalf($view)) {
+                        result = {
+                            where: ABOVEVIEW,
+                            which: $view
+                        };
+                    } else {
+                        result = {
+                            where: BELOWVIEW,
+                            which: $view
+                        };
                     }
                 }
 
@@ -454,7 +469,6 @@ define(function (require, exports, module) {
                     // Find out where to to drag it to
                     var ht = hitTest(e);
                     
-                    //$ghost.text(ht.where);
                     // if the drag goes into nomansland then
                     //  drop the opacity on the drag affordance
                     //  and show the inserted item at reduced opacity
@@ -552,6 +566,7 @@ define(function (require, exports, module) {
                 
                 _suppressSortRedrawForAllViews(false);
                 _lockContainerHeightOnAllViews(false);
+                _turnOffScrollShadowsOnAllViews(false);
                 refresh(true);
                 MainViewManager.focusActivePane();
                 
@@ -634,6 +649,7 @@ define(function (require, exports, module) {
             
             _suppressSortRedrawForAllViews(true);
             _lockContainerHeightOnAllViews(true);
+            _turnOffScrollShadowsOnAllViews(true);
             
             // Dragging only happens with the left mouse button
             //  or (on the Mac) when the ctrl key isn't pressed
