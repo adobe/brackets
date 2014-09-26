@@ -1222,29 +1222,28 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise resolved when the rename is done.
      */
     renameItemInline = function (entry) {
-        var d = new $.Deferred(),
-            isFolder = entry.isDirectory;
+        var d = new $.Deferred();
         
         model.startRename(entry)
             .done(function () {
                 d.resolve();
             })
-            .fail(function (err) {
+            .fail(function (errorInfo) {
                 // Need to do display the error message on the next event loop turn
                 // because some errors can come up synchronously and then the dialog
                 // is not displayed.
                 window.setTimeout(function () {
-                    if (err === ProjectModel.ERROR_INVALID_FILENAME) {
-                        _showErrorDialog(ERR_TYPE_INVALID_FILENAME, isFolder, ProjectModel._invalidChars);
+                    if (errorInfo.type === ProjectModel.ERROR_INVALID_FILENAME) {
+                        _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
                     } else {
-                        var errString = err === FileSystemError.ALREADY_EXISTS ?
+                        var errString = errorInfo.type === FileSystemError.ALREADY_EXISTS ?
                                 Strings.FILE_EXISTS_ERR :
-                                FileUtils.getFileErrorString(err);
+                                FileUtils.getFileErrorString(errorInfo.type);
 
-                        _showErrorDialog(ERR_TYPE_RENAME, isFolder, errString, entry.fullPath);
+                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, errString, errorInfo.fullPath);
                     }
                 }, 10);
-                d.reject(err);
+                d.reject(errorInfo);
             });
         return d.promise();
     };

@@ -718,8 +718,10 @@ define(function (require, exports, module) {
                     model.performRename();
                     waitsForFail(promise);
                     runs(function () {
-                        promise.fail(function (err) {
-                            expect(err).toBe(ProjectModel.ERROR_INVALID_FILENAME);
+                        promise.fail(function (errorInfo) {
+                            expect(errorInfo.type).toBe(ProjectModel.ERROR_INVALID_FILENAME);
+                            expect(errorInfo.isFolder).toBe(false);
+                            expect(errorInfo.fullPath).toBe("/foo/afile.js");
                         });
                     });
                 });
