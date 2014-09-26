@@ -157,8 +157,8 @@ define(function (require, exports, module) {
     function _lockContainerHeightOnAllViews(lock) {
         _.forEach(_views, function (view) {
             view.$openFilesContainer.css({
-                "min-height": lock ? 32 : "",
-                "max-height": lock ? view.$openFilesContainer.height() || 32 : ""
+//                "min-height": lock ? 32 : "",
+//                "max-height": lock ? view.$openFilesContainer.height() || 32 : ""
             });
         });
     }
@@ -404,25 +404,16 @@ define(function (require, exports, module) {
                     }
                 } else { 
                     $view = $el.parents(".working-set-view");
-                        
                     
                     var $prev = $view.prev(),
-                        $next = $view.next(),
-                        onHeader = $hit.is(".working-set-header") && ($view.find($hit).length > 0);
+                        $next = $view.next();
                     
                     if (direction < 0) {
                         if ($prev.length) {
-                            if (onHeader) {
-                                result = {
-                                    where: ABOVEVIEW,
-                                    which: $view
-                                };
-                            } else {
-                                result = {
-                                    where: BELOWVIEW,
-                                    which: $prev
-                                };
-                            }
+                            result = {
+                                where: BELOWVIEW,
+                                which: $prev
+                            };
                         }
                     } else if (direction > 0){
                         if ($next.length) {
