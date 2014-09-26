@@ -799,7 +799,7 @@ define(function (require, exports, module) {
         var reveal = (scrollIntoView === undefined || scrollIntoView === true);
         
         if (reveal) {
-        this._scrollSelectedFileIntoView();
+            this._scrollSelectedFileIntoView();
         }
 
         if (FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW && this.$el.hasClass("active")) {
@@ -1313,15 +1313,6 @@ define(function (require, exports, module) {
         // build all views so the provider has a chance to style
         //    all items that have already been created
         refresh(true);
-    }
-    
-    /** 
-     * Synchronizes the selection indicator for all views
-     */
-    function syncSelectionIndicator() {
-        _.forEach(_views, function (workingSetListView) {
-            workingSetListView.$openFilesContainer.triggerHandler("scroll");
-        });
     }
     
     // Public API
