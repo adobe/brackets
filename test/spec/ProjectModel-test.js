@@ -1286,6 +1286,48 @@ define(function (require, exports, module) {
                 expect(vm.processChanges).not.toHaveBeenCalled();
             });
             
+            it("should unselect a file if it's deleted", function () {
+                model.setSelected("/foo/topfile.js");
+                model.handleFSEvent({
+                    isFile: false,
+                    name: "foo",
+                    fullPath: "/foo/"
+                }, null, [{
+                    name: "topfile.js",
+                    fullPath: "/foo/topfile.js",
+                    isFile: true
+                }]);
+                expect(model._selections.selected).toBeNull();
+            });
+            
+            it("should cancel renaming a deleted file", function () {
+                model.startRename("/foo/topfile.js");
+                model.handleFSEvent({
+                    isFile: false,
+                    name: "foo",
+                    fullPath: "/foo/"
+                }, null, [{
+                    name: "topfile.js",
+                    fullPath: "/foo/topfile.js",
+                    isFile: true
+                }]);
+                expect(model._selections.rename).toBeUndefined();
+            });
+
+            it("should remove context from a deleted file", function () {
+                model.setContext("/foo/topfile.js");
+                model.handleFSEvent({
+                    isFile: false,
+                    name: "foo",
+                    fullPath: "/foo/"
+                }, null, [{
+                    name: "topfile.js",
+                    fullPath: "/foo/topfile.js",
+                    isFile: true
+                }]);
+                expect(model._selections.context).toBeNull();
+            });
+            
             it("should see events with a directory but no added or removed as an add", function () {
                 model.handleFSEvent({
                     isFile: false,

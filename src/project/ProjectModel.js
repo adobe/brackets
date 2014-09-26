@@ -1128,6 +1128,20 @@ define(function (require, exports, module) {
         }
 
         if (removed) {
+            if (this._selections.selected &&
+                    _.find(removed, { fullPath: this._selections.selected })) {
+                this.setSelected(null);
+            }
+            
+            if (this._selections.rename &&
+                    _.find(removed, { fullPath: this._selections.rename.path })) {
+                this.cancelRename();
+            }
+            
+            if (this._selections.context &&
+                    _.find(removed, { fullPath: this._selections.context })) {
+                this.setContext(null);
+            }
             changes.removed = removed.map(function (entry) {
                 return self.makeProjectRelativeIfPossible(entry.fullPath);
             });
