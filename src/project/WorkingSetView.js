@@ -53,7 +53,22 @@ define(function (require, exports, module) {
      * 
      */
     var _views = [];
+
+    /**
+     * Icon Providers
+     * @see {@link WorkingSetView#addIconProvider()}
+     * @private
+     */
+    var _iconProviders = [];
     
+    /**
+     * Class Providers
+     * @see {@link WorkingSetView#addClassProvider()}
+     * @private
+     */
+    var _classProviders = [];
+        
+
     /**
      * Constants for event.which values
      * @enum {number}
@@ -61,15 +76,15 @@ define(function (require, exports, module) {
     var LEFT_BUTTON = 1,
         MIDDLE_BUTTON = 2;
     
-    /**
+    /** 
      * Each list item in the working set stores a references to the related document in the list item's data.  
      *  Use `listItem.data(_FILE_KEY)` to get the document reference
      * @type {string}
      * @private
      */
     var _FILE_KEY = "file";
-    
-    /**
+
+    /** 
      * Updates the appearance of the list element based on the parameters provided.
      * @private
      * @param {!HTMLLIElement} listElement
@@ -81,7 +96,7 @@ define(function (require, exports, module) {
         ViewUtils.toggleClass($(listItem), "selected", shouldBeSelected);
     }
 
-    /**
+    /** 
      * Determines if a file is dirty
      * @private
      * @param {!File} file - file to test
@@ -295,6 +310,7 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._redraw = function () {
         this._updateViewState();
         this._updateVisibility();
+        this._updateItemClasses();
         this._adjustForScrollbars();
         this._fireSelectionChanged();
     };
@@ -510,7 +526,7 @@ define(function (require, exports, module) {
         });
     };
     
-    /**
+    /** 
      * Updates the appearance of the list element based on the parameters provided
      * @private
      * @param {!HTMLLIElement} listElement
@@ -551,7 +567,27 @@ define(function (require, exports, module) {
         }
     };
     
-    /**
+    /** 
+     * Updates the working set item class list
+     * @private
+     */
+    WorkingSetView.prototype._updateItemClasses = function () {
+        if (_classProviders.length > 0) {
+            this.$openFilesContainer.find("ul > li").each(function () {
+                var $li = $(this),
+                    file = $li.data(_FILE_KEY),
+                    data = {fullPath: file.fullPath,
+                            name: file.name,
+                            isFile: file.isFile};
+                $li.removeAttr("class");
+                _classProviders.forEach(function (provider) {
+                    $li.addClass(provider(data));
+                });
+            });
+        }
+    };
+    
+    /** 
      * Builds the UI for a new list item and inserts in into the end of the list
      * @private
      * @param {File} file
@@ -559,15 +595,30 @@ define(function (require, exports, module) {
      */
     WorkingSetView.prototype._createNewListItem = function (file) {
         var self = this,
-            selectedFile = MainViewManager.getCurrentlyViewedFile(this.paneId);
+            selectedFile = MainViewManager.getCurrentlyViewedFile(this.paneId),
+            data = {fullPath: file.fullPath,
+                    name: file.name,
+                    isFile: file.isFile};
 
         // Create new list item with a link
         var $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(file));
+           
+        _iconProviders.forEach(function (provider) {
+            var icon = provider(data);
+            if (icon) {
+                $link.prepend($(icon));
+            }
+        });
+        
         var $newItem = $("<li></li>")
             .append($link)
             .data(_FILE_KEY, file);
 
         this.$openFilesContainer.find("ul").append($newItem);
+        
+        _classProviders.forEach(function (provider) {
+            $newItem.addClass(provider(data));
+        });
         
         // Update the listItem's apperance
         this._updateFileStatusIcon($newItem, _isOpenAndDirty(file), false);
@@ -588,7 +639,7 @@ define(function (require, exports, module) {
         );
     };
     
-    /**
+    /** 
      * Deletes all the list items in the view and rebuilds them from the working set model
      * @private
      */
@@ -607,7 +658,7 @@ define(function (require, exports, module) {
         }
     };
 
-    /**
+    /** 
      * Updates the pane view's selection state 
      * @private
      */
@@ -629,7 +680,7 @@ define(function (require, exports, module) {
      */
     WorkingSetView.prototype._updateListSelection = function () {
         var file = MainViewManager.getCurrentlyViewedFile(this.paneId);
-        
+            
         this._updateViewState();
         
         
@@ -643,7 +694,7 @@ define(function (require, exports, module) {
         this._fireSelectionChanged();
     };
 
-    /**
+    /** 
      * workingSetAdd event handler
      * @private
      * @param {jQuery.Event} e - event object
@@ -674,7 +725,7 @@ define(function (require, exports, module) {
         }
     };
 
-    /**
+    /** 
      * workingSetRemove event handler
      * @private 
      * @param {jQuery.Event} e - event object
@@ -704,7 +755,6 @@ define(function (require, exports, module) {
                     }
                     $listItem.remove();
                 }
-
                 this._redraw();
             }
         } else {
@@ -718,7 +768,7 @@ define(function (require, exports, module) {
         }
     };
 
-    /**
+    /** 
      * workingSetRemoveList event handler
      * @private
      * @param {jQuery.Event} e - event object
@@ -753,7 +803,7 @@ define(function (require, exports, module) {
         }
     };
 
-    /**
+    /** 
      * dirtyFlagChange event handler
      * @private
      * @param {jQuery.Event} e - event object
@@ -782,7 +832,7 @@ define(function (require, exports, module) {
     };
     
 
-    /**
+    /** 
      * Initializes the WorkingSetView object
      */
     WorkingSetView.prototype.init = function () {
@@ -811,15 +861,15 @@ define(function (require, exports, module) {
         
         // Disable horizontal scrolling until WebKit bug #99379 is fixed
         this.$openFilesContainer.css("overflow-x", "hidden");
-        
+
         this.$openFilesContainer.on("contextmenu.workingSetView", function (e) {
             Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).open(e);
         });
-
+        
         this._redraw();
     };
 
-    /**
+    /** 
      * Destroys the WorkingSetView DOM element and removes all event handlers
      */
     WorkingSetView.prototype.destroy = function () {
@@ -846,7 +896,7 @@ define(function (require, exports, module) {
         }
     });
     
-    /**
+    /** 
      * Creates a new WorkingSetView object for the specified pane
      * @param {!jQuery} $container - the WorkingSetView's DOM parent node
      * @param {!string} paneId - the id of the pane the view is being created for
@@ -863,13 +913,52 @@ define(function (require, exports, module) {
         }
     }
 
-    /**
+  /** 
      * Refreshes all Pane View List Views
+     * @param {boolean=} reconstruct - completely rebuilds the view list
      */
-    function refresh() {
-        _.forEach(_views, function (workingSetListView) {
-            workingSetListView._redraw();
+    function refresh(reconstruct) {
+        _.forEach(_views, function (view) {
+            if (reconstruct) {
+                view._rebuildViewList();
+            } else {
+                view._redraw();
+            }
         });
+    }
+    
+    /** 
+     * adds an icon provider to the view.  
+     * Icon providers are called when a working set item is created
+     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string|jQuery} callback - the function to call for each item
+     * The callback must return the html to place before the link of each WSV item. 
+     *  The return value can be a string representing the HTML, a jQuery object or undefined.
+     * if a falsy value is returned then nothing is prepended to the list item
+     */
+    function addIconProvider(callback) {
+        if (!callback) {
+            return;
+        }
+        _iconProviders.push(callback);
+        // build all views so the provider has a chance to add icons
+        //    to all items that have already been created
+        refresh(true);
+    }
+    
+    /** 
+     * adds a list item class provider to the view.  
+     * Class providers are called when a working set item is created
+     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string} callback - the function to call for each item
+     * The callback can return a string that contains the class (or classes) to add to the list item
+     */
+    function addClassProvider(callback) {
+        if (!callback) {
+            return;
+        }
+        _classProviders.push(callback);
+        // build all views so the provider has a chance to style
+        //    all items that have already been created
+        refresh(true);
     }
     
     /** 
@@ -881,9 +970,10 @@ define(function (require, exports, module) {
         });
     }
     
-    
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
     exports.refresh                       = refresh;
+    exports.addIconProvider               = addIconProvider;
+    exports.addClassProvider              = addClassProvider;
     exports.syncSelectionIndicator        = syncSelectionIndicator;
 });

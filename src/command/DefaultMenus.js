@@ -122,6 +122,10 @@ define(function (require, exports, module) {
         menu = Menus.addMenu(Strings.VIEW_MENU, Menus.AppMenuBar.VIEW_MENU);
         menu.addMenuItem(Commands.CMD_THEMES_OPEN_SETTINGS);
         menu.addMenuDivider();
+        menu.addMenuItem(Commands.CMD_SPLITVIEW_NONE);
+        menu.addMenuItem(Commands.CMD_SPLITVIEW_VERTICAL);
+        menu.addMenuItem(Commands.CMD_SPLITVIEW_HORIZONTAL);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.VIEW_HIDE_SIDEBAR);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE);

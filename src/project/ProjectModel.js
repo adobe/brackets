@@ -457,7 +457,7 @@ define(function (require, exports, module) {
             }
         }).fail(function (err) {
             try {
-                filteredFilesDeferred.resolve([]);
+                filteredFilesDeferred.reject(err);
             } catch (e) {
                 console.warn("Unhandled exception in getAllFiles handler: ", e);
             }
@@ -892,7 +892,7 @@ define(function (require, exports, module) {
             viewModel       = this._viewModel,
             self            = this;
 
-        if (oldName === newName) {
+        if (renameInfo.type !== FILE_CREATING && oldName === newName) {
             this.cancelRename();
             return;
         }
@@ -900,7 +900,7 @@ define(function (require, exports, module) {
         if (isFolder) {
             newPath += "/";
         }
-
+        
         delete this._selections.rename;
         delete this._selections.context;
         viewModel.moveMarker("rename", oldProjectPath, null);
@@ -912,7 +912,7 @@ define(function (require, exports, module) {
                 viewModel.renameItem(oldProjectPath, newName);
                 renameInfo.deferred.resolve(entry);
             }).fail(function (error) {
-                self._cancelCreating();
+                self._viewModel.deleteAtPath(self.makeProjectRelativeIfPossible(renameInfo.path));
                 renameInfo.deferred.reject(error);
             });
         } else {
@@ -1108,6 +1108,12 @@ define(function (require, exports, module) {
             changes.changed = [
                 this.makeProjectRelativeIfPossible(entry.fullPath)
             ];
+        } else {
+            // Special case: a directory passed in without added and removed values
+            // appears to be new.
+            if (!added && !removed) {
+                this._viewModel.ensureDirectoryExists(this.makeProjectRelativeIfPossible(entry.fullPath));
+            }
         }
 
         if (added) {
