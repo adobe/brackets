@@ -164,7 +164,14 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         paneTemplate        = require("text!htmlContent/pane.html");
     
-    
+    /**
+     * Make an index request object
+     * @param {boolean} requestIndex - true to request an index, false if not
+     * @param {number} index - the index to request
+     * @return {indexRequested:boolean, index:number} an object that can be pased to 
+     * Pane._addToViewList to insert the item at a specific index
+     * @see {Pane._addToViewList}
+     */
     function _makeIndexRequestObject(requestIndex, index) {
         return {indexRequested: requestIndex, index: index};
     }
@@ -385,6 +392,8 @@ define(function (require, exports, module) {
      * @param {!File} file - the File to move
      * @param {Pane} destination - the destination pane 
      * @param {Number} destinationIndex - the working set index of the file in the destination pane
+     * @return {jQuery.Promise} a promise object which resolves after the view has been moved and its
+     * replacement document has been opened
      * @private
      */
     Pane.prototype.moveView = function (file, destination, destinationIndex) {

@@ -51,10 +51,15 @@ define(function (require, exports, module) {
      * Currently open views
      * @private
      * @type {Array.WorkingSetView}
-     * 
      */
     var _views = [];
     
+    /**
+     * Open view dictionary
+     * Maps PaneId to WorkingSetView for fast lookup while dragging
+     * @private
+     * @type {Object.<string, WorkingSetView>}
+     */
     var _viewMap = {};
     
     /**
@@ -232,7 +237,6 @@ define(function (require, exports, module) {
                 window.clearInterval(interval);
                 interval = undefined;
             }
-            $el.css("display", "");
         }
         
         //  We scroll the list while hovering over the first or last visible list element
@@ -279,7 +283,6 @@ define(function (require, exports, module) {
                 draggingCurrentFile = ($el.hasClass("selected") && sourceView.paneId === activePaneId),
                 startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sorceFile.fullPath),
                 currentView = sourceView;
-
             
             // Switches the view context to match the hit context
             function updateContext(hit) {
@@ -578,7 +581,6 @@ define(function (require, exports, module) {
                 $ghost.remove();
                 $el.css("opacity", "");
             }
-
         
             // Final Cleanup
             function postDropCleanup() {
