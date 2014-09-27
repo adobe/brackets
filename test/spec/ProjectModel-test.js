@@ -685,6 +685,13 @@ define(function (require, exports, module) {
                     model.cancelRename();
                     expect(vm._treeData.getIn(["afile.js", "context"])).toBeUndefined();
                 });
+                
+                it("doesn't finish the rename when context is cleared", function () {
+                    model.startRename("/foo/afile.js");
+                    model.setContext(null, true);
+                    expect(vm._treeData.getIn(["afile.js", "rename"])).toBe(true);
+                    expect(model._selections.rename).toBeDefined();
+                });
 
                 it("does nothing if setRenameValue is called when there's no rename in progress", function () {
                     model.setRenameValue("/foo/bar/baz");
@@ -718,8 +725,10 @@ define(function (require, exports, module) {
                     model.performRename();
                     waitsForFail(promise);
                     runs(function () {
-                        promise.fail(function (err) {
-                            expect(err).toBe(ProjectModel.ERROR_INVALID_FILENAME);
+                        promise.fail(function (errorInfo) {
+                            expect(errorInfo.type).toBe(ProjectModel.ERROR_INVALID_FILENAME);
+                            expect(errorInfo.isFolder).toBe(false);
+                            expect(errorInfo.fullPath).toBe("/foo/afile.js");
                         });
                     });
                 });
@@ -1275,6 +1284,48 @@ define(function (require, exports, module) {
                     name: "baz.js"
                 });
                 expect(vm.processChanges).not.toHaveBeenCalled();
+            });
+            
+            it("should unselect a file if it's deleted", function () {
+                model.setSelected("/foo/topfile.js");
+                model.handleFSEvent({
+                    isFile: false,
+                    name: "foo",
+                    fullPath: "/foo/"
+                }, null, [{
+                    name: "topfile.js",
+                    fullPath: "/foo/topfile.js",
+                    isFile: true
+                }]);
+                expect(model._selections.selected).toBeNull();
+            });
+            
+            it("should cancel renaming a deleted file", function () {
+                model.startRename("/foo/topfile.js");
+                model.handleFSEvent({
+                    isFile: false,
+                    name: "foo",
+                    fullPath: "/foo/"
+                }, null, [{
+                    name: "topfile.js",
+                    fullPath: "/foo/topfile.js",
+                    isFile: true
+                }]);
+                expect(model._selections.rename).toBeUndefined();
+            });
+
+            it("should remove context from a deleted file", function () {
+                model.setContext("/foo/topfile.js");
+                model.handleFSEvent({
+                    isFile: false,
+                    name: "foo",
+                    fullPath: "/foo/"
+                }, null, [{
+                    name: "topfile.js",
+                    fullPath: "/foo/topfile.js",
+                    isFile: true
+                }]);
+                expect(model._selections.context).toBeNull();
             });
             
             it("should see events with a directory but no added or removed as an add", function () {
