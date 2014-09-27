@@ -266,21 +266,21 @@ define(function (require, exports, module) {
     Pane.prototype.$container = null;
     
     /**
-     * the wrapped DOM node of this pane
+     * The wrapped DOM node of this pane
      * @readonly
      * @type {JQuery}
      */
     Pane.prototype.$el = null;
   
     /**
-     * the wrapped DOM node that contains name of current view, or informational string if there is no view
+     * The wrapped DOM node that contains name of current view, or informational string if there is no view
      * @readonly
      * @type {JQuery}
      */
     Pane.prototype.$header = null;
   
     /**
-     * the wrapped DOM node that contains views
+     * The wrapped DOM node that contains views
      * @readonly
      * @type {JQuery}
      */
@@ -381,7 +381,7 @@ define(function (require, exports, module) {
      * @param {!Pane} Other - Pane from which to copy 
      */
     Pane.prototype.mergeFrom = function (other) {
-        // save this because we're setting it to null and we
+        // Save this because we're setting it to null and we
         //  may need to destroy it if it's a temporary view
         var otherCurrentView = other._currentView;
         
@@ -402,7 +402,7 @@ define(function (require, exports, module) {
             var file = view.getFile(),
                 fullPath = file && file.fullPath;
             if (fullPath && other.findInViewList(fullPath) !== -1) {
-                // switch the container to this Pane
+                // Switch the container to this Pane
                 self._reparent(view);
             } else {
                 // We don't copy temporary views so destroy them
@@ -710,7 +710,7 @@ define(function (require, exports, module) {
      */
     
     /**
-     * invokes Array.sort method on the internal view list. 
+     * Invokes Array.sort method on the internal view list. 
      * @param {sortFunctionCallback} compareFn - the function to call to determine if the 
      */
     Pane.prototype.sortViewList = function (compareFn) {
@@ -787,7 +787,7 @@ define(function (require, exports, module) {
         // if we need to dispatch the event which may look funny
         var dispatchEvent = (this.findInViewList(newname) >= 0);
         
-        // rename the view 
+        // Rename the view 
         if (this._views.hasOwnProperty(oldname)) {
             var view = this._views[oldname];
 
@@ -797,7 +797,7 @@ define(function (require, exports, module) {
         
         this.updateHeaderText();
         
-        // dispatch the change event
+        // Dispatch the change event
         if (dispatchEvent) {
             $(this).triggerHandler("viewListChange");
         }
@@ -826,7 +826,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * retrieves the view object for the given path
+     * Retrieves the view object for the given path
      * @param {!string}  path - the fullPath of the view to retrieve
      * @return {boolean} show - show or hide the interstitial page
      */
@@ -1143,7 +1143,7 @@ define(function (require, exports, module) {
     
     
     /**
-     * serializes the pane state from JSON
+     * Serializes the pane state from JSON
      * @param {!Object} state - the state to load 
      * @return {jQuery.Promise} A promise which resolves to 
      *              {fullPath:string, paneId:string} 
@@ -1217,7 +1217,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * gets the current view's scroll state data
+     * Gets the current view's scroll state data
      * @return {Object=} scroll state - the current scroll state
      */
     Pane.prototype.getScrollState = function () {
@@ -1227,7 +1227,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * tells the current view to restore its scroll state from cached data and apply a height delta
+     * Tells the current view to restore its scroll state from cached data and apply a height delta
      * @param {Object=} state - the current scroll state
      * @param {number=} heightDelta - the amount to add or subtract from the state
      */

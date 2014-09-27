@@ -38,7 +38,7 @@ define(function (require, exports, module) {
             .on("specStart", this._handleSpecStart.bind(this))
             .on("specEnd", this._handleSpecEnd.bind(this));
 
-        // build DOM immediately
+        // Build DOM immediately
         var container = $(
             '<div class="container-fluid">' +
                 '<div class="row-fluid">' +
@@ -87,7 +87,7 @@ define(function (require, exports, module) {
             }
         });
         
-        // add an "all" top-level suite
+        // Add an "all" top-level suite
         this.$suiteList.prepend(this._createSuiteListItem("All", totalSpecCount));
     };
     
@@ -103,10 +103,10 @@ define(function (require, exports, module) {
     BootstrapReporterView.prototype._handleRunnerStart = function (event, reporter) {
         var topLevelData;
         
-        // create top level suite list navigation
+        // Create top level suite list navigation
         this._createSuiteList(reporter.suites, reporter.sortedNames, reporter.totalSpecCount);
         
-        // highlight the current suite
+        // Highlight the current suite
         topLevelData = reporter.activeSuite ? this._topLevelSuiteMap[reporter.activeSuite] : null;
         
         if (topLevelData) {
@@ -116,7 +116,7 @@ define(function (require, exports, module) {
         if (reporter.activeSpecCount) {
             this._showProgressBar();
         
-            // display current running test
+            // Display current running test
             this.$info = $('<div class="alert alert-info"/>');
             this.$resultsContainer.append(this.$info);
             this.$resultsContainer.append($('<hr/>'));
@@ -153,7 +153,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        // update status badges
+        // Update status badges
         if (passedCount) {
             data.$badgePassed.show().text(passedCount);
         } else {
@@ -220,18 +220,18 @@ define(function (require, exports, module) {
         this.$progress.css("width", Math.round((reporter.activeSpecCompleteCount / reporter.activeSpecCount) * 100) + "%");
         
         if (!specData.passed) {
-            // print suite name if not present
+            // Print suite name if not present
             var $suiteHeader = $("#suite-results-" + suiteData.id);
             
             if ($suiteHeader.length === 0) {
                 this.$resultsContainer.append($('<div id="suite-results-' + suiteData.id + '" class="alert alert-info"/>').text(suiteData.name));
             }
             
-            // print spec name
+            // Print spec name
             $specLink = $('<a href="?spec=' + encodeURIComponent(specData.name) + '"/>').text(specData.description);
             $resultDisplay = $('<div class="alert alert-error"/>').append($specLink);
             
-            // print failure details
+            // Print failure details
             if (specData.messages) {
                 specData.messages.forEach(function (message) {
                     // Render with clickable links if parent Brackets window available; plain text otherwise
@@ -250,11 +250,11 @@ define(function (require, exports, module) {
         }
         
         if (specData.passed && specData.perf) {
-            // add spec name
+            // Add spec name
             $specLink = $('<a href="?spec=' + encodeURIComponent(specData.name) + '"/>').text(specData.name);
             this.$resultsContainer.append($('<div class="alert alert-info"/>').append($specLink));
             
-            // add table
+            // Add table
             var $table = $('<table class="table table-striped table-bordered table-condensed"><thead><tr><th>Measurement</th><th>Value</th></tr></thead></table>'),
                 $tbody = $table.append($('<tbody/>')),
                 rows,

@@ -1094,7 +1094,7 @@ define(function (require, exports, module) {
             addToWorkingSet(paneId, doc.file);
         }
         
-        // open document will show the editor if there is one already
+        // Open document will show the editor if there is one already
         EditorManager.openDocument(doc, pane);
         _makeFileMostRecent(paneId, doc.file);
     }
@@ -1322,10 +1322,10 @@ define(function (require, exports, module) {
             var pane = _findPaneForDocument(document);
             
             if (pane) {
-                // let the pane deceide if it wants to destroy the view if it's no needed
+                // Let the pane deceide if it wants to destroy the view if it's no needed
                 pane.destroyViewIfNotNeeded(document._masterEditor);
             } else {
-                // in this case, the document isn't referenced at all so just destroy it
+                // In this case, the document isn't referenced at all so just destroy it
                 document._masterEditor.destroy();
             }
         }
@@ -1337,7 +1337,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _loadViewState(e) {
-        // file root is appended for each project
+        // File root is appended for each project
         var panes,
             promises = [],
             context = { location : { scope: "user",
@@ -1350,7 +1350,7 @@ define(function (require, exports, module) {
                 files = PreferencesManager.getViewState(OLD_PREFS_NAME, context);
 
             if (!files) {
-                // nothing to convert
+                // Nothing to convert
                 return;
             }
 
@@ -1372,11 +1372,11 @@ define(function (require, exports, module) {
         }
         
         if (!state) {
-            // not converted yet
+            // Not converted yet
             state = convertViewState();
         }
 
-        // reset
+        // Reset
         _mergePanes();
         _mruList = [];
         ViewStateManager.reset();
@@ -1393,7 +1393,7 @@ define(function (require, exports, module) {
 
             AsyncUtils.waitForAll(promises).then(function (opensList) {
 
-                // this will set the default layout of 50/50 or 100 
+                // This will set the default layout of 50/50 or 100 
                 //  based on the number of panes
                 _initialLayout();
                 
@@ -1440,7 +1440,7 @@ define(function (require, exports, module) {
                     }
                 });
                 
-                // finally set the active pane
+                // Finally set the active pane
                 AsyncUtils.waitForAll(promises).then(function () {
                     setActivePaneId(state.activePaneId);
                 });
@@ -1458,7 +1458,7 @@ define(function (require, exports, module) {
                 used;
 
             if (getPaneCount() === 1) {
-                // just short-circuit here and
+                // Just short-circuit here and
                 //  return 100% to avoid any rounding issues
                 return 1;
             } else {

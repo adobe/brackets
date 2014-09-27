@@ -39,7 +39,7 @@ define(function (require, exports, module) {
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         BuildInfoUtils = require("utils/BuildInfoUtils");
 
-    // make sure the global brackets variable is loaded
+    // Make sure the global brackets variable is loaded.
     require("utils/Global");
 
     var activeReporter;
@@ -96,7 +96,7 @@ define(function (require, exports, module) {
             self.runInfo.sha = sha;
         });
         
-        // _topLevelFilter is applied first - selects Performance vs. Unit test suites
+        // _topLevelFilter is applied first - selects Performance vs. Unit test suites.
         this._topLevelFilter = filter;
         
         // Jasmine's runner uses the specFilter to choose which tests to run.
