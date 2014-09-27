@@ -302,6 +302,7 @@ define(function (require, exports, module) {
                     hasScroller = false,
                     onTopScroller = false,
                     onBottomScroller = false,
+                    $workingFiles =  $("#working-set-list-container"),
                     $container,
                     $hit,
                     $actual,
@@ -316,7 +317,7 @@ define(function (require, exports, module) {
                     scrollerBottomArea;
                     
                 
-                if (e.pageX < 0 || e.pageX > $("#working-set-list-container").width()) {
+                if (e.pageX < 0 || e.pageX > $workingFiles.width()) {
                     return result;
                 }
                 
@@ -414,23 +415,9 @@ define(function (require, exports, module) {
                     if (direction > 0) {
                         checkVal += gHeight;
                     }
-
-//                    if ($item.length) {
-//                        console.log ("ghost " + gTop + " hit  " + $elem[0].tagName + " " + $elem.text() + " at " + top + " for " + (itemHeight / 2));
-//                    }
                     
                     return (checkVal <=  (top + (itemHeight / 2)));
                 }
-                
-                function ghostIsClearAbove($elem) {
-                    var top = $elem.offset().top;
-                    return (gTop + itemHeight <=  top);
-                }                
-
-                function ghostIsClearBelow($elem) {
-                    var top = $elem.offset().top;
-                    return (gTop > top + itemHeight);
-                }                
                 
                 
                 function ghostIsBelow($elem) {
@@ -442,6 +429,23 @@ define(function (require, exports, module) {
                     }
                     
                     return (checkVal >= (top + (itemHeight / 2)));
+                }
+                
+                function elIsClearBelow($a, $b) {
+                    var aTop = $a.offset().top,
+                        bTop = $b.offset().top;
+                    
+                    return (aTop >= bTop + $b.height());
+                }     
+                
+                function draggingBelowWorkingSet() {
+                    return($actual.length === 0 || elIsClearBelow($actual, $workingFiles));
+                }
+                
+                function targetIsContainer() {
+                    return ($actual.is(".working-set-view") ||
+                            $actual.is(".open-files-container") ||
+                            ($actual.is("ul") && $actual.parent().is(".open-files-container")));
                 }
                 
                 if ($item.length) {
@@ -472,7 +476,6 @@ define(function (require, exports, module) {
                     //  where to go from here
                     $view = $el.parents(".working-set-view");
                     
-                
                     if ($actual.is(".working-set-header")) {
                         if (direction < 0) {
                             if (ghostIsBelow($actual)) {
@@ -481,7 +484,27 @@ define(function (require, exports, module) {
                         } else {
                             return result;
                         }
-                    }                     
+                    }                    
+
+                    if (draggingBelowWorkingSet()) {
+                        return result;
+                    }
+                    
+                    if (targetIsContainer()) {
+                        if (mouseIsInTopHalf($actual)) {
+                            result = {
+                                where: ABOVEVIEW,
+                                which: $actual
+                            };
+                        } else {
+                            result = {
+                                where: BELOWVIEW,
+                                which: $actual
+                            };
+                        }
+                    }
+                    
+                    console.log($actual.attr("class"));
                     
                     // Data to determine to help determine if we should
                     //  append to the previous or prepend to the next
