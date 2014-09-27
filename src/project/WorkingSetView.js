@@ -97,6 +97,7 @@ define(function (require, exports, module) {
      * @enum {string}
      */
     var NOMANSLAND = "nomansland",
+        INDETERMINATE = "indeterminate",
         ABOVEITEM  = "aboveitem",
         BELOWITEM  = "belowitem",
         TOPSCROLL  = "topscroll",
@@ -271,6 +272,7 @@ define(function (require, exports, module) {
             var scrollDir = 0,
                 dragged = false,
                 startPageY = e.pageY,
+                lastPageY = startPageY,
                 itemHeight = $el.height(),
                 tryClosing = $(document.elementFromPoint(e.pageX, e.pageY)).hasClass("can-close"),
                 offset = $el.offset(),
@@ -293,30 +295,43 @@ define(function (require, exports, module) {
             // Determines where the mouse hit was
             function hitTest(e) {
                 var pageY = $ghost.offset().top,
-                    direction = e.pageY - startPageY,
+                    direction =  e.pageY - lastPageY,
                     result = {
                         where: NOMANSLAND
                     },
-                    $hit,
                     hasScroller = false,
                     onTopScroller = false,
                     onBottomScroller = false,
                     $container,
+                    $hit,
+                    $actual,
                     $item,
                     $view,
                     gTop,
                     gHeight,
                     gBottom,
+                    deltaY,
                     containerOffset,
                     scrollerTopArea,
                     scrollerBottomArea;
                     
+                
+                if (e.pageX < 0 || e.pageX > $("#working-set-list-container").width()) {
+                    return result;
+                }
+                
+                if (direction === 0) {
+                    return { where: INDETERMINATE };
+                }
+                
                 do {
                     // Turn off the ghost so elementFromPoint ignores it
                     $ghost.hide();
 
+                    $actual = $(document.elementFromPoint(e.pageX, e.pageY));
+                    
                     $hit = $(document.elementFromPoint(e.pageX, pageY));
-
+                    
                     $view = $(document.elementFromPoint(e.pageX, pageY)).closest(".working-set-view");
 
                     $item = $hit.closest("#working-set-list-container li");
@@ -338,7 +353,17 @@ define(function (require, exports, module) {
                     }
 
                     if ($item[0] === $el[0]) {
-                        $item = $item.next();
+                        if (direction > 0) {
+                            $item = $item.next();
+                            if ($item.length) {
+                                pageY += itemHeight;
+                            }
+                        } else {
+                            $item = $item.prev();
+                            if ($item.length) {
+                                pageY -= itemHeight;
+                            }
+                        }
                     }
                     
                     // We effectively iterate this loop only twice
@@ -353,12 +378,14 @@ define(function (require, exports, module) {
                     }
                 } while (!$item.length);
               
-                
+//                console.log("actual: " + $actual.attr("class"));
+
                 // compute ghost location, we compute the insertion point based
                 //  on where the ghost is, not where the  mouse is
                 gTop = $ghost.offset().top;
                 gHeight = $ghost.height();
                 gBottom = gTop + gHeight;
+                deltaY = pageY - e.pageY;
                 
                 hasScroller = $item.length && $container[0].scrollHeight > $container[0].clientHeight;
                 
@@ -369,6 +396,9 @@ define(function (require, exports, module) {
                                                          (gBottom >= scrollerBottomArea.top && gBottom <= scrollerBottomArea.bottom));
 
                 
+                
+//                console.log("lastY: " + lastPageY + " currentY " + e.pageY + " direction:" + (direction > 0 ? " down " : " up "));
+                
                 // helpers 
                 function mouseIsInTopHalf($elem) {
                     var top = $elem.offset().top,
@@ -378,34 +408,50 @@ define(function (require, exports, module) {
                 }                
                 
                 function ghostIsAbove($elem) {
-                    var top = $elem.offset().top;
+                    var top = $elem.offset().top,
+                        checkVal = gTop;
                     
                     if (direction > 0) {
-                        gTop += gHeight;
+                        checkVal += gHeight;
                     }
+
+//                    if ($item.length) {
+//                        console.log ("ghost " + gTop + " hit  " + $elem[0].tagName + " " + $elem.text() + " at " + top + " for " + (itemHeight / 2));
+//                    }
                     
-                    return (gTop <  (top + (itemHeight / 2)));
+                    return (checkVal <=  (top + (itemHeight / 2)));
                 }
+                
+                function ghostIsClearAbove($elem) {
+                    var top = $elem.offset().top;
+                    return (gTop + itemHeight <=  top);
+                }                
+
+                function ghostIsClearBelow($elem) {
+                    var top = $elem.offset().top;
+                    return (gTop > top + itemHeight);
+                }                
+                
                 
                 function ghostIsBelow($elem) {
                     var top = $elem.offset().top,
-                        height = $elem.height();
+                        checkVal = gTop;
                     
                     if (direction > 0) {
-                        gTop += gHeight;
+                        checkVal += gHeight;
                     }
                     
-                    return (gTop > (top + (height / 2)));
+                    return (checkVal >= (top + (itemHeight / 2)));
                 }
                 
                 if ($item.length) {
                     // We hit an item (li)
-                    if (onTopScroller) {
+                    if (onTopScroller && direction < 0) {
                         result = {
                             where: TOPSCROLL,
                             which: $item
                         };
-                    } else if (onBottomScroller) {
+                    } else if (onBottomScroller && direction > 0) {
                         result = {
                             where: BOTSCROLL,
                             which: $item
@@ -421,10 +467,21 @@ define(function (require, exports, module) {
                             which: $item
                         };
                     }
-                } else { 
+                } else if ($el.parent()[0] !== $hit[0]) {
                     // Didn't hit an li, figure out 
                     //  where to go from here
                     $view = $el.parents(".working-set-view");
+                    
+                
+                    if ($actual.is(".working-set-header")) {
+                        if (direction < 0) {
+                            if (ghostIsBelow($actual)) {
+                                return result;
+                            }
+                        } else {
+                            return result;
+                        }
+                    }                     
                     
                     // Data to determine to help determine if we should
                     //  append to the previous or prepend to the next
@@ -466,14 +523,22 @@ define(function (require, exports, module) {
                             which: $view
                         };
                     }
+                } else {
+                    result = {
+                        where: INDETERMINATE,
+                        which: $hit
+                    };
                 }
 
+             //   console.log(result.where + " " + (result.which ? result.which.text() : ""));
                 return result;
             }
    
             // mouse move handler -- this pretty much does
             //  the heavy lifting for dragging the item around
             $(window).on("mousemove.wsvdragging", function (e) {
+                e.pageY = e.pageY;
+                //console.log("e.pageY " + e.pageY + " e.pageX " + e.pageX);
                 // The drag function
                 function drag(e) {
                     if (!dragged) {
@@ -563,13 +628,15 @@ define(function (require, exports, module) {
 
                 // move the drag affordance
                 $ghost.css("top", e.pageY);
-                
+
                 // if we have't started dragging yet then we wait until
                 //  the mouse has moved 3 pixels before we start dragging
                 //  to avoid the item moving when clicked or double clicked
                 if (dragged || Math.abs(e.pageY - startPageY) > 3) {
                     drag(e);
                 }
+
+                lastPageY = e.pageY;
             });
             
 
