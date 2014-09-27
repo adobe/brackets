@@ -237,6 +237,7 @@ define(function (require, exports, module) {
             if (interval) {
                 window.clearInterval(interval);
                 interval = undefined;
+                console.log("end-scroll");
             }
         }
         
@@ -255,16 +256,14 @@ define(function (require, exports, module) {
                 interval = window.setInterval(function () {
                     var scrollTop = $container.scrollTop();
                     if ((dir === -1 && scrollTop <= 0) || (dir === 1 && scrollTop >= maxScroll)) {
+                        console.log("hit end of scroll range");
                         endScroll($el);
                     } else {
                         $container.scrollTop(scrollTop + 7 * dir);
                         callback($el);
                     }
                 }, 100);
-            } else if (!dir && interval) {
-                endScroll($el);
             }
-            return 0;
         }
         
         // The mouse down handler pretty much handles everything
@@ -284,7 +283,10 @@ define(function (require, exports, module) {
                 activeView = _viewMap[activePaneId],
                 draggingCurrentFile = ($el.hasClass("selected") && sourceView.paneId === activePaneId),
                 startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sorceFile.fullPath),
-                currentView = sourceView;
+                currentView = sourceView,
+                lastHit  = {
+                        where: NOMANSLAND
+                };
             
             // Switches the view context to match the hit context
             function updateContext(hit) {
@@ -299,6 +301,7 @@ define(function (require, exports, module) {
                     result = {
                         where: NOMANSLAND
                     },
+                    previousHit = lastHit,
                     hasScroller = false,
                     onTopScroller = false,
                     onBottomScroller = false,
@@ -316,6 +319,7 @@ define(function (require, exports, module) {
                     scrollerTopArea,
                     scrollerBottomArea;
                     
+                lastHit = result;
                 
                 if (e.pageX < 0 || e.pageX > $workingFiles.width()) {
                     return result;
@@ -342,11 +346,11 @@ define(function (require, exports, module) {
 
                         containerOffset = $container.offset();
 
-                        scrollerTopArea = { top: containerOffset.top - (itemHeight + 7),
-                                            bottom: containerOffset.top + itemHeight };
+                        scrollerTopArea = { top: containerOffset.top - 7,
+                                            bottom: containerOffset.top + 7}; 
 
-                        scrollerBottomArea = { top: containerOffset.top + $container.height() - (itemHeight + 7),
-                                               bottom: containerOffset.top + $container.height() + itemHeight};
+                        scrollerBottomArea = { top: containerOffset.top + $container.height() - 7,
+                                               bottom: containerOffset.top + $container.height() + 7};
                     }
 
                     if ($item[0] === $el[0]) {
@@ -446,12 +450,12 @@ define(function (require, exports, module) {
                 
                 if ($item.length) {
                     // We hit an item (li)
-                    if (onTopScroller && direction <= 0) {
+                    if (onTopScroller && (direction <= 0 || previousHit.where === TOPSCROLL)) {
                         result = {
                             where: TOPSCROLL,
                             which: $item
                         };
-                    } else if (onBottomScroller && direction >= 0) {
+                    } else if (onBottomScroller && (direction >= 0 || previousHit.where === BOTSCROLL)) {
                         result = {
                             where: BOTSCROLL,
                             which: $item
@@ -498,9 +502,11 @@ define(function (require, exports, module) {
                                 which: $actual
                             };
                         }
+                        lastHit = result;
+                        return result;
                     }
                     
-                    console.log($actual.attr("class"));
+                    // console.log($actual.attr("class"));
                     
                     // Data to determine to help determine if we should
                     //  append to the previous or prepend to the next
@@ -549,7 +555,8 @@ define(function (require, exports, module) {
                     };
                 }
 
-             //   console.log(result.where + " " + (result.which ? result.which.text() : ""));
+                console.log(e.pageY + " " + result.where + " " + (result.which ? result.which.text() : ""));
+                lastHit = result;
                 return result;
             }
    
