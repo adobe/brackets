@@ -428,7 +428,7 @@ define(function (require, exports, module) {
                         // moving up, if there is a view above
                         //  then we want to append to the view above
                         // otherwise we're in nomandsland
-                        if ($prev.length) {
+                        if ($prev.length && $el.index() === 0) {
                             result = {
                                 where: BELOWVIEW,
                                 which: $prev
