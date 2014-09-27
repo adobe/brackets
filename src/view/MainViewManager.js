@@ -795,6 +795,7 @@ define(function (require, exports, module) {
      * @param {!string} destinationPaneId - id of the destination pane
      * @param {!File} file - the File to move
      * @param {Number} destinationIndex - the working set index of the file in the destination pane
+     * @return {jQuery.Promise} a promise that resolves when the move has completed.
      * @private
      */
     function _moveView(sourcePaneId, destinationPaneId, file, destinationIndex) {
