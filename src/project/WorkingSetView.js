@@ -321,10 +321,6 @@ define(function (require, exports, module) {
                     return result;
                 }
                 
-                if (direction === 0) {
-                    return { where: INDETERMINATE };
-                }
-                
                 do {
                     // Turn off the ghost so elementFromPoint ignores it
                     $ghost.hide();
@@ -450,12 +446,12 @@ define(function (require, exports, module) {
                 
                 if ($item.length) {
                     // We hit an item (li)
-                    if (onTopScroller && direction < 0) {
+                    if (onTopScroller && direction <= 0) {
                         result = {
                             where: TOPSCROLL,
                             which: $item
                         };
-                    } else if (onBottomScroller && direction > 0) {
+                    } else if (onBottomScroller && direction >= 0) {
                         result = {
                             where: BOTSCROLL,
                             which: $item
