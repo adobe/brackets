@@ -295,6 +295,7 @@ define(function (require, exports, module) {
                         where: NOMANSLAND
                     },
                     $hit,
+                    hasScroller = false,
                     onTopScroller = false,
                     onBottomScroller = false,
                     $container,
@@ -349,16 +350,19 @@ define(function (require, exports, module) {
                     }
                 } while (!$item.length);
               
+                
                 // compute ghost location, we compute the insertion point based
                 //  on where the ghost is, not where the  mouse is
                 gTop = $ghost.offset().top;
                 gHeight = $ghost.height();
                 gBottom = gTop + gHeight;
                 
+                hasScroller = $item.length && $container[0].scrollHeight > $container[0].clientHeight;
+                
                 // data to help determine if the ghost is in either of the scrollMe regions
-                onTopScroller = scrollerTopArea && ((gTop >= scrollerTopArea.top && gTop <= scrollerTopArea.bottom)  ||
+                onTopScroller = hasScroller && scrollerTopArea && ((gTop >= scrollerTopArea.top && gTop <= scrollerTopArea.bottom)  ||
                                                     (gBottom >= scrollerTopArea.top && gBottom <= scrollerTopArea.bottom));
-                onBottomScroller = scrollerBottomArea && ((gTop >= scrollerBottomArea.top && gTop <= scrollerBottomArea.bottom) ||
+                onBottomScroller = hasScroller && scrollerBottomArea && ((gTop >= scrollerBottomArea.top && gTop <= scrollerBottomArea.bottom) ||
                                                          (gBottom >= scrollerBottomArea.top && gBottom <= scrollerBottomArea.bottom));
 
                 
@@ -428,7 +432,7 @@ define(function (require, exports, module) {
                         // moving up, if there is a view above
                         //  then we want to append to the view above
                         // otherwise we're in nomandsland
-                        if ($prev.length && $el.index() === 0) {
+                        if ($prev.length) {
                             result = {
                                 where: BELOWVIEW,
                                 which: $prev
@@ -565,6 +569,17 @@ define(function (require, exports, module) {
                 }
             });
             
+
+            function scrollCurrentViewToBottom() {
+                var $container = currentView.$openFilesContainer,
+                    container = $container[0],
+                    maxScroll = container.scrollHeight - container.clientHeight;
+                
+                if (maxScroll) {
+                    $container.scrollTop(maxScroll);
+                }
+            }
+            
             // Close down the drag operation
             function preDropCleanup() {
                 $("#working-set-list-container").removeClass("dragging");
@@ -577,6 +592,10 @@ define(function (require, exports, module) {
                 $(window).off(".wsvdragging");
                 $ghost.remove();
                 $el.css("opacity", "");
+                
+                if (dragged && $el.next().length === 0) {
+                    scrollCurrentViewToBottom();
+                }
             }
 
         
