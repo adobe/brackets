@@ -471,7 +471,7 @@ define(function (require, exports, module) {
                     //  where to go from here
                     $view = $el.parents(".working-set-view");
                     
-                    if ($actual.is(".working-set-header") || $actual.is(".scroller-shadow")) {
+                    if ($actual.is(".working-set-header") || $actual.is(".scroller-shadow") || $hit.is(".scroller-shadow")) {
                         if (direction < 0) {
                             if (ghostIsBelow($actual)) {
                                 return result;
