@@ -341,7 +341,7 @@ define(function (require, exports, module) {
 
                         containerOffset = $container.offset();
 
-                        scrollerTopArea = { top: containerOffset.top - 7,
+                        scrollerTopArea = { top: containerOffset.top - 14,
                                             bottom: containerOffset.top + 7};
 
                         scrollerBottomArea = { top: containerOffset.top + $container.height() - 7,
