@@ -54,9 +54,9 @@ define(function (require, exports, module) {
     // Constants
 
     // Time range from first click to second click to invoke renaming.
-    var CLICK_RENAME_MINIMUM = 500,
-        MIDDLE_MOUSE_BUTTON = 2,
-        LEFT_MOUSE_BUTTON = 0;
+    var CLICK_RENAME_MINIMUM  = 500,
+        RIGHT_MOUSE_BUTTON    = 2,
+        LEFT_MOUSE_BUTTON     = 0;
 
     /**
      * @private
@@ -188,7 +188,8 @@ define(function (require, exports, module) {
          * Send middle click to the action creator as a setContext action.
          */
         handleMouseDown: function (e) {
-            if (e.button === MIDDLE_MOUSE_BUTTON) {
+            if (e.button === RIGHT_MOUSE_BUTTON ||
+                    (this.props.platform === "mac" && e.button === LEFT_MOUSE_BUTTON && e.ctrlKey)) {
                 this.props.actions.setContext(this.myPath());
                 return false;
             }
@@ -621,6 +622,7 @@ define(function (require, exports, module) {
                     extensions: this.props.extensions,
                     actions: this.props.actions,
                     forceRender: this.props.forceRender,
+                    platform: this.props.platform,
                     sortDirectoriesFirst: this.props.sortDirectoriesFirst
                 });
             } else {
@@ -712,6 +714,7 @@ define(function (require, exports, module) {
                         actions: this.props.actions,
                         extensions: this.props.extensions,
                         forceRender: this.props.forceRender,
+                        platform: this.props.platform,
                         key: name
                     });
                 } else {
@@ -723,6 +726,7 @@ define(function (require, exports, module) {
                         extensions: this.props.extensions,
                         sortDirectoriesFirst: this.props.sortDirectoriesFirst,
                         forceRender: this.props.forceRender,
+                        platform: this.props.platform,
                         key: name
                     });
                 }
@@ -843,7 +847,8 @@ define(function (require, exports, module) {
                     contents: this.props.treeData,
                     extensions: this.props.extensions,
                     actions: this.props.actions,
-                    forceRender: this.props.forceRender
+                    forceRender: this.props.forceRender,
+                    platform: this.props.platform
                 })
             );
         }
@@ -857,8 +862,9 @@ define(function (require, exports, module) {
      * @param {Directory} projectRoot Directory object from which the fullPath of the project root is extracted
      * @param {ActionCreator} actions object with methods used to communicate events that originate from the user
      * @param {boolean} forceRender Run render on the entire tree (useful if an extension has new data that it needs rendered)
+     * @param {string} platform mac, win, linux
      */
-    function render(element, viewModel, projectRoot, actions, forceRender) {
+    function render(element, viewModel, projectRoot, actions, forceRender, platform) {
         if (!projectRoot) {
             return;
         }
@@ -870,6 +876,7 @@ define(function (require, exports, module) {
             parentPath: projectRoot.fullPath,
             actions: actions,
             extensions: _extensions,
+            platform: platform,
             forceRender: forceRender
         }),
               element);
