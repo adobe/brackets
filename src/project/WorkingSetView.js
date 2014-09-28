@@ -302,7 +302,7 @@ define(function (require, exports, module) {
                     hasScroller = false,
                     onTopScroller = false,
                     onBottomScroller = false,
-                    $workingFiles =  $("#working-set-list-container"),
+                    $workingFilesContainer =  $("#working-set-list-container"),
                     $container,
                     $hit,
                     $actual,
@@ -316,7 +316,7 @@ define(function (require, exports, module) {
                     scrollerTopArea,
                     scrollerBottomArea;
                     
-                if (e.pageX < 0 || e.pageX > $workingFiles.width()) {
+                if (e.pageX < 0 || e.pageX > $workingFilesContainer.width()) {
                     return result;
                 }
                 
@@ -434,7 +434,7 @@ define(function (require, exports, module) {
                 }     
                 
                 function draggingBelowWorkingSet() {
-                    return($actual.length === 0 || elIsClearBelow($actual, $workingFiles));
+                    return($actual.length === 0 || elIsClearBelow($actual, $workingFilesContainer));
                 }
                 
                 function targetIsContainer() {
