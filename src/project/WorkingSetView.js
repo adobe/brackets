@@ -237,7 +237,7 @@ define(function (require, exports, module) {
             if (interval) {
                 window.clearInterval(interval);
                 interval = undefined;
-                console.log("end-scroll");
+                //console.log("end-scroll");
             }
         }
         
@@ -256,7 +256,7 @@ define(function (require, exports, module) {
                 interval = window.setInterval(function () {
                     var scrollTop = $container.scrollTop();
                     if ((dir === -1 && scrollTop <= 0) || (dir === 1 && scrollTop >= maxScroll)) {
-                        console.log("hit end of scroll range");
+                        //console.log("hit end of scroll range");
                         endScroll($el);
                     } else {
                         $container.scrollTop(scrollTop + 7 * dir);
@@ -284,9 +284,7 @@ define(function (require, exports, module) {
                 draggingCurrentFile = ($el.hasClass("selected") && sourceView.paneId === activePaneId),
                 startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sorceFile.fullPath),
                 currentView = sourceView,
-                lastHit  = {
-                        where: NOMANSLAND
-                };
+                lastHit  = { where: NOMANSLAND };
             
             // Switches the view context to match the hit context
             function updateContext(hit) {
@@ -301,7 +299,6 @@ define(function (require, exports, module) {
                     result = {
                         where: NOMANSLAND
                     },
-                    previousHit = lastHit,
                     hasScroller = false,
                     onTopScroller = false,
                     onBottomScroller = false,
@@ -319,8 +316,6 @@ define(function (require, exports, module) {
                     scrollerTopArea,
                     scrollerBottomArea;
                     
-                lastHit = result;
-                
                 if (e.pageX < 0 || e.pageX > $workingFiles.width()) {
                     return result;
                 }
@@ -450,12 +445,12 @@ define(function (require, exports, module) {
                 
                 if ($item.length) {
                     // We hit an item (li)
-                    if (onTopScroller && (direction <= 0 || previousHit.where === TOPSCROLL)) {
+                    if (onTopScroller && (direction <= 0 || lastHit.where === TOPSCROLL)) {
                         result = {
                             where: TOPSCROLL,
                             which: $item
                         };
-                    } else if (onBottomScroller && (direction >= 0 || previousHit.where === BOTSCROLL)) {
+                    } else if (onBottomScroller && (direction >= 0 || lastHit.where === BOTSCROLL)) {
                         result = {
                             where: BOTSCROLL,
                             which: $item
@@ -555,8 +550,7 @@ define(function (require, exports, module) {
                     };
                 }
 
-                console.log(e.pageY + " " + result.where + " " + (result.which ? result.which.text() : ""));
-                lastHit = result;
+                //console.log(e.pageY + " " + result.where + " " + (result.which ? result.which.text() : ""));
                 return result;
             }
    
@@ -592,12 +586,12 @@ define(function (require, exports, module) {
                     scrollDir = 0;
                     
                     // Find out where to to drag it to
-                    var ht = hitTest(e);
-                    
+                    lastHit = hitTest(e);
+
                     // if the drag goes into nomansland then
                     //  drop the opacity on the drag affordance
                     //  and show the inserted item at reduced opacity
-                    switch (ht.where) {
+                    switch (lastHit.where) {
                     case NOMANSLAND:
                     case BELOWVIEW:
                     case ABOVEVIEW:
@@ -611,30 +605,30 @@ define(function (require, exports, module) {
                     }
                     
                     // now do the insertion
-                    switch (ht.where) {
+                    switch (lastHit.where) {
                     case TOPSCROLL:
                     case ABOVEITEM:
-                        if (ht.where === TOPSCROLL) {
+                        if (lastHit.where === TOPSCROLL) {
                             scrollDir = -1;
                         }
-                        $el.insertBefore(ht.which);
-                        updateContext(ht);
+                        $el.insertBefore(lastHit.which);
+                        updateContext(lastHit);
                         break;
                     case BOTSCROLL:
                     case BELOWITEM:
-                        if (ht.where === BOTSCROLL) {
+                        if (lastHit.where === BOTSCROLL) {
                             scrollDir = 1;
                         }
-                        $el.insertAfter(ht.which);
-                        updateContext(ht);
+                        $el.insertAfter(lastHit.which);
+                        updateContext(lastHit);
                         break;
                     case BELOWVIEW:
-                        $el.appendTo(ht.which.find("ul"));
-                        updateContext(ht);
+                        $el.appendTo(lastHit.which.find("ul"));
+                        updateContext(lastHit);
                         break;
                     case ABOVEVIEW:
-                        $el.prependTo(ht.which.find("ul"));
-                        updateContext(ht);
+                        $el.prependTo(lastHit.which.find("ul"));
+                        updateContext(lastHit);
                         break;
                     }
                     
