@@ -390,27 +390,26 @@ define(function (require, exports, module) {
     /**
      * @private
      *
+     * Handler for changes in the focus between working set and file tree view.
+     */
+    function _fileViewControllerChange() {
+        actionCreator.setFocused(_hasFileSelectionFocus());
+        $projectTreeContainer.trigger("scroll");
+    }
+
+    /**
+     * @private
+     *
      * Handler for changes in document selection.
      */
     function _documentSelectionFocusChange() {
         var curFullPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE);
         if (curFullPath && _hasFileSelectionFocus()) {
             actionCreator.setSelected(curFullPath, true);
-            actionCreator.setFocused(true);
         } else {
             actionCreator.setSelected(null);
-            actionCreator.setFocused(false);
         }
-    }
-
-    /**
-     * @private
-     *
-     * Handler for changes in the focus between working set and file tree view.
-     */
-    function _fileViewControllerChange() {
-        actionCreator.setFocused(_hasFileSelectionFocus());
-        $projectTreeContainer.trigger("scroll");
+        _fileViewControllerChange();
     }
 
     /**
