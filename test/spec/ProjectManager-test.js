@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -27,7 +27,7 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var ProjectManager,     // Load from brackets.test
         CommandManager,     // Load from brackets.test
         FileSystem,         // Load from brackets.test
@@ -39,7 +39,7 @@ define(function (require, exports, module) {
 
 
     describe("ProjectManager", function () {
-        
+
         this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/ProjectManager-test-files"),
@@ -54,16 +54,16 @@ define(function (require, exports, module) {
             runs(function () {
                 waitsForDone(SpecRunnerUtils.copy(testPath, tempDir), "copy temp files");
             });
-            
+
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
-                
+
                 // Load module instances from brackets.test
                 brackets       = testWindow.brackets;
                 ProjectManager = testWindow.brackets.test.ProjectManager;
                 CommandManager = testWindow.brackets.test.CommandManager;
                 FileSystem     = testWindow.brackets.test.FileSystem;
-                
+
                 SpecRunnerUtils.loadProjectInTestWindow(tempDir);
             });
         });
@@ -76,11 +76,11 @@ define(function (require, exports, module) {
             SpecRunnerUtils.closeTestWindow();
             SpecRunnerUtils.removeTempDirectory();
         });
-        
+
         afterEach(function () {
             testWindow.closeAllFiles();
         });
-        
+
         function waitForDialog() {
             var $dlg;
             waitsFor(function () {
@@ -104,7 +104,7 @@ define(function (require, exports, module) {
                 var error, stat, complete = false;
                 var filePath = tempDir + "/Untitled.js";
                 var file = FileSystem.getFileForPath(filePath);
-                
+
                 runs(function () {
                     file.stat(function (err, _stat) {
                         error = err;
@@ -136,7 +136,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(gotError).toBeTruthy();
                     expect(didCreate).toBeFalsy();
-                    
+
                     SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
                 });
             });
@@ -156,7 +156,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(gotError).toBeTruthy();
                     expect(didCreate).toBeFalsy();
-                    
+
                     SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
                 });
             });
@@ -173,25 +173,25 @@ define(function (require, exports, module) {
                     chars = "?*|/";
                 }
                 len = chars.length;
-                
+
                 function createFile() {
                     // skip rename
                     ProjectManager.createNewItem(tempDir, "file" + charAt + ".js", true)
                         .done(function () { didCreate = true; })
                         .fail(function () { gotError = true; });
                 }
-                
+
                 function waitForFileCreate() {
                     return !didCreate && gotError;
                 }
-                
+
                 function assertFile() {
                     expect(gotError).toBeTruthy();
                     expect(didCreate).toBeFalsy();
-                    
+
                     SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
                 }
-                
+
                 for (i = 0; i < len; i++) {
                     didCreate = false;
                     gotError = false;
@@ -219,18 +219,18 @@ define(function (require, exports, module) {
                         .done(function () { didCreate = true; })
                         .fail(function () { gotError = true; });
                 }
-                
+
                 function waitForFileCreate() {
                     return didCreate || gotError;
                 }
-                
+
                 function assertFile() {
                     expect(gotError).toBeTruthy();
                     expect(didCreate).toBeFalsy();
-                    
+
                     SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
                 }
-                
+
                 for (i = 0; i < len; i++) {
                     didCreate = false;
                     gotError = false;
@@ -244,7 +244,7 @@ define(function (require, exports, module) {
                 }
             });
         });
-        
+
         describe("deleteItem", function () {
             it("should delete the selected file in the project tree", function () {
                 var complete    = false,
@@ -284,7 +284,7 @@ define(function (require, exports, module) {
                     var promise = ProjectManager.deleteItem(selectedFile);
                     waitsForDone(promise, "ProjectManager.deleteItem() timeout", 5000);
                 });
-                
+
                 // Verify that file no longer exists.
                 runs(function () {
                     complete = false;
@@ -295,7 +295,7 @@ define(function (require, exports, module) {
                     });
                 });
                 waitsFor(function () { return complete; }, 1000);
-                
+
                 runs(function () {
                     expect(error).toBe(FileSystemError.NOT_FOUND);
 
@@ -312,7 +312,7 @@ define(function (require, exports, module) {
                     error,
                     stat,
                     promise;
-                
+
                 // Delete the root folder and all files/folders in it.
                 runs(function () {
                     promise = ProjectManager.deleteItem(rootFolderEntry);
@@ -330,7 +330,7 @@ define(function (require, exports, module) {
                     });
                 });
                 waitsFor(function () { return complete; }, 1000);
-                
+
                 runs(function () {
                     expect(error).toBe(FileSystemError.NOT_FOUND);
 
@@ -340,14 +340,14 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("Selection indicator", function () {
-            
+
             function getItemName(fullPath) {
                 if (fullPath === null) {
                     return null;
                 }
-                
+
                 var isFolder      = _.last(fullPath) === "/",
                     withoutSlash  = isFolder ? fullPath.substr(0, fullPath.length - 1) : fullPath;
 
@@ -355,11 +355,11 @@ define(function (require, exports, module) {
             }
 
             function expectSelected(fullPath) {
-                var $projectTreeItems = testWindow.$("#project-files-container > div > ul").children(),
+                var $projectTreeItems = testWindow.$("#project-files-container > div > div > ul").children(),
                     $selectedItem     = $projectTreeItems.find("a.jstree-clicked");
-                
+
                 var name = getItemName(fullPath);
-                
+
                 if (!name) {
                     expect($selectedItem.length).toBe(0);
                 } else {
@@ -367,19 +367,19 @@ define(function (require, exports, module) {
                     expect($selectedItem.text().trim()).toBe(name);
                 }
             }
-            
+
             it("should deselect after opening file not rendered in tree", function () {
                 var promise,
                     exposedFile   = tempDir + "/file.js",
                     unexposedFile = tempDir + "/directory/interiorfile.js";
-                
+
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: exposedFile });
                     waitsForDone(promise);
                 });
                 runs(function () {
                     expectSelected(exposedFile);
-                    
+
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: unexposedFile });
                     waitsForDone(promise);
                 });
@@ -387,13 +387,13 @@ define(function (require, exports, module) {
                     expectSelected(null);
                 });
             });
-            
+
             function findExtantNode(fullPath) {
                 var $treeItems = testWindow.$("#project-files-container li"),
                     $result;
-                
+
                 var name = getItemName(fullPath);
-                
+
                 $treeItems.is(function () {
                     var $treeNode = testWindow.$(this);
                     if ($treeNode.children("a").text().trim() === name) {
@@ -404,27 +404,27 @@ define(function (require, exports, module) {
                 });
                 return $result;
             }
-            
+
             function toggleFolder(fullPath, open) {
                 var $treeNode = findExtantNode(fullPath);
-                
+
                 var expectedClass = open ? "jstree-open" : "jstree-closed";
                 expect($treeNode.hasClass(expectedClass)).toBe(false);
-                
+
                 $treeNode.children("a").children("span").click();
-                
+
                 // if a folder has never been expanded before, this will be async
                 waitsFor(function () {
                     return $treeNode.hasClass(expectedClass);
                 }, (open ? "Open" : "Close") + " tree node", 1000);
             }
-            
+
             it("should reselect previously selected file when made visible again", function () {
                 var promise,
                     initialFile  = tempDir + "/file.js",
                     folder       = tempDir + "/directory/",
                     fileInFolder = tempDir + "/directory/interiorfile.js";
-                
+
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: initialFile });
                     waitsForDone(promise);
@@ -449,13 +449,13 @@ define(function (require, exports, module) {
                     toggleFolder(folder, false);    // close folder
                 });
             });
-            
+
             it("should deselect after opening file hidden in tree, but select when made visible again", function () {
                 var promise,
                     initialFile  = tempDir + "/file.js",
                     folder       = tempDir + "/directory/",
                     fileInFolder = tempDir + "/directory/interiorfile.js";
-                
+
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: initialFile });
                     waitsForDone(promise);
@@ -481,14 +481,14 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("File Display", function () {
             it("should not show useless directory entries", function () {
                 var shouldShow = ProjectManager.shouldShow;
                 var makeEntry = function (name) {
                     return { name: name };
                 };
-                
+
                 expect(shouldShow(makeEntry(".git"))).toBe(false);
                 expect(shouldShow(makeEntry(".svn"))).toBe(false);
                 expect(shouldShow(makeEntry(".DS_Store"))).toBe(false);
@@ -504,7 +504,7 @@ define(function (require, exports, module) {
                 expect(shouldShow(makeEntry(".cvsignore"))).toBe(true);
                 expect(shouldShow(makeEntry(".hgignore"))).toBe(true);
                 expect(shouldShow(makeEntry(".hgtags"))).toBe(false);
-                
+
             });
         });
 

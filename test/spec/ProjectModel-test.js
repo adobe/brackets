@@ -22,7 +22,7 @@
  */
 
 /* unittests: ProjectModel */
-/*global $, define, describe, it, xit, expect, beforeEach, waitsForDone, waitsForFail, runs, spyOn, jasmine */
+/*global $, define, describe, it, expect, beforeEach, waitsForDone, waitsForFail, runs, spyOn, jasmine */
 
 define(function (require, exports, module) {
     "use strict";
@@ -158,10 +158,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            // Turned off because these promises are resolved synchronously right now
-            // which causes this test to fail. The real running system would hit the error condition
-            // asynchronously.
-            xit("rejects the promise when there's an error", function () {
+            it("rejects the promise when there's an error", function () {
                 var pm = getPM(null, "Got An Error");
                 pm.getAllFiles().then(function (allFiles) {
                     expect("should not have gotten here").toBe("because there should be an error");
@@ -688,6 +685,13 @@ define(function (require, exports, module) {
                     model.cancelRename();
                     expect(vm._treeData.getIn(["afile.js", "context"])).toBeUndefined();
                 });
+                
+                it("doesn't finish the rename when context is cleared", function () {
+                    model.startRename("/foo/afile.js");
+                    model.setContext(null, true);
+                    expect(vm._treeData.getIn(["afile.js", "rename"])).toBe(true);
+                    expect(model._selections.rename).toBeDefined();
+                });
 
                 it("does nothing if setRenameValue is called when there's no rename in progress", function () {
                     model.setRenameValue("/foo/bar/baz");
@@ -721,8 +725,10 @@ define(function (require, exports, module) {
                     model.performRename();
                     waitsForFail(promise);
                     runs(function () {
-                        promise.fail(function (err) {
-                            expect(err).toBe(ProjectModel.ERROR_INVALID_FILENAME);
+                        promise.fail(function (errorInfo) {
+                            expect(errorInfo.type).toBe(ProjectModel.ERROR_INVALID_FILENAME);
+                            expect(errorInfo.isFolder).toBe(false);
+                            expect(errorInfo.fullPath).toBe("/foo/afile.js");
                         });
                     });
                 });
@@ -770,7 +776,22 @@ define(function (require, exports, module) {
                     expect(model._selections.rename).toBeUndefined();
                 });
 
-                it("should do nothing if there is no creation in progress when _doneCreating is called", function () {
+                it("can create an item with the default filename", function () {
+                    spyOn(model, "createAtPath").andReturn(new $.Deferred().resolve().promise());
+                    model.startCreating("/foo/subdir1/", "Untitled");
+                    expect(model._selections.rename.path).toBe("/foo/subdir1/Untitled");
+                    expect(model._selections.rename.newName).toBe("Untitled");
+                    changesFired = 0;
+                    model.performRename();
+                    expect(changesFired).toBeGreaterThan(0);
+                    expect(model.createAtPath).toHaveBeenCalledWith("/foo/subdir1/Untitled");
+                    expect(vm._treeData.getIn(["subdir1", "children", "Untitled"])).toBeDefined();
+                    expect(vm._treeData.getIn(["subdir1", "children", "Untitled", "creating"])).toBeUndefined();
+                    expect(vm._treeData.getIn(["subdir1", "children", "Untitled", "rename"])).toBeUndefined();
+                    expect(model._selections.rename).toBeUndefined();
+                });
+
+                it("should do nothing if there is no creation in progress when performRename is called", function () {
                     var treeData = vm._treeData;
                     model.performRename();
                     expect(changesFired).toBe(0);
@@ -841,6 +862,7 @@ define(function (require, exports, module) {
                                 isFolder: false
                             }
                         ]);
+                        expect(vm._treeData.get("Untitled")).toBeUndefined();
                     });
                 });
             });
@@ -1262,6 +1284,48 @@ define(function (require, exports, module) {
                     name: "baz.js"
                 });
                 expect(vm.processChanges).not.toHaveBeenCalled();
+            });
+            
+            it("should unselect a file if it's deleted", function () {
+                model.setSelected("/foo/topfile.js");
+                model.handleFSEvent({
+                    isFile: false,
+                    name: "foo",
+                    fullPath: "/foo/"
+                }, null, [{
+                    name: "topfile.js",
+                    fullPath: "/foo/topfile.js",
+                    isFile: true
+                }]);
+                expect(model._selections.selected).toBeNull();
+            });
+            
+            it("should cancel renaming a deleted file", function () {
+                model.startRename("/foo/topfile.js");
+                model.handleFSEvent({
+                    isFile: false,
+                    name: "foo",
+                    fullPath: "/foo/"
+                }, null, [{
+                    name: "topfile.js",
+                    fullPath: "/foo/topfile.js",
+                    isFile: true
+                }]);
+                expect(model._selections.rename).toBeUndefined();
+            });
+
+            it("should remove context from a deleted file", function () {
+                model.setContext("/foo/topfile.js");
+                model.handleFSEvent({
+                    isFile: false,
+                    name: "foo",
+                    fullPath: "/foo/"
+                }, null, [{
+                    name: "topfile.js",
+                    fullPath: "/foo/topfile.js",
+                    isFile: true
+                }]);
+                expect(model._selections.context).toBeNull();
             });
             
             it("should see events with a directory but no added or removed as an add", function () {

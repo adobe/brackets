@@ -488,6 +488,20 @@ define(function (require, exports, module) {
                     ]
                 ]);
             });
+            
+            it("should not return an open child node of a closed parent", function () {
+                vm._treeData = Immutable.fromJS({
+                    subdir1: {
+                        children: {
+                            subsubdir: {
+                                children: {},
+                                open: true
+                            }
+                        }
+                    }
+                });
+                expect(vm.getOpenNodes("/foo/bar/")).toEqual([]);
+            });
         });
 
 

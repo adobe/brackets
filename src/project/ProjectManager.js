@@ -71,7 +71,8 @@ define(function (require, exports, module) {
         Urls                = require("i18n!nls/urls"),
         FileSyncManager     = require("project/FileSyncManager"),
         ProjectModel        = require("project/ProjectModel"),
-        FileTreeView        = require("project/FileTreeView");
+        FileTreeView        = require("project/FileTreeView"),
+        ViewUtils           = require("utils/ViewUtils");
 
     /**
      * @private
@@ -95,6 +96,7 @@ define(function (require, exports, module) {
         _fileSystemRename,
         _showErrorDialog,
         _saveTreeState,
+        renameItemInline,
         _renderTree;
 
     /**
@@ -120,6 +122,15 @@ define(function (require, exports, module) {
      * @type {jQueryObject}
      */
     var $projectTreeContainer;
+    
+    /**
+     * @private
+     * 
+     * Reference to the container of the React component. Everything in this
+     * node is managed by React.
+     * @type {Element}
+     */
+    var fileTreeViewContainer;
 
     /**
      * @private
@@ -255,6 +266,9 @@ define(function (require, exports, module) {
      */
     ActionCreator.prototype.setContext = function (path) {
         this.model.setContext(path);
+        if (path !== null && !_hasFileSelectionFocus()) {
+            $projectTreeContainer.trigger("scroll");
+        }
     };
 
     /**
@@ -268,7 +282,11 @@ define(function (require, exports, module) {
      * See `ProjectModel.startRename`
      */
     ActionCreator.prototype.startRename = function (path) {
-        return this.model.startRename(path);
+        // This is very not Flux-like, which is a sign that Flux may not be the
+        // right choice here *or* that this architecture needs to evolve subtly
+        // in how errors are reported (more like the create case).
+        // See #9284.
+        renameItemInline(path);
     };
 
     /**
@@ -324,7 +342,7 @@ define(function (require, exports, module) {
      * See `ProjectModel.toggleSubdirectories`
      */
     ActionCreator.prototype.toggleSubdirectories = function (path, openOrClose) {
-        this.model.toggleSubdirectories(path, openOrClose);
+        this.model.toggleSubdirectories(path, openOrClose).then(_saveTreeState);
     };
 
     /**
@@ -332,6 +350,7 @@ define(function (require, exports, module) {
      */
     ActionCreator.prototype.closeSubtree = function (path) {
         this.model.closeSubtree(path);
+        _saveTreeState();
     };
 
     /**
@@ -597,7 +616,7 @@ define(function (require, exports, module) {
         if (!projectRoot) {
             return;
         }
-        FileTreeView.render($projectTreeContainer[0], model._viewModel, projectRoot, actionCreator, forceRender);
+        FileTreeView.render(fileTreeViewContainer, model._viewModel, projectRoot, actionCreator, forceRender);
     };
 
     /**
@@ -916,7 +935,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} Resolved when done; or rejected if not found
      */
     function showInTree(entry) {
-        return model.showInTree(entry);
+        return model.showInTree(entry).then(_saveTreeState);
     }
 
 
@@ -1097,7 +1116,6 @@ define(function (require, exports, module) {
         model.setScrollerInfo($projectTreeContainer.scrollTop(), $projectTreeContainer.scrollLeft(), $projectTreeContainer.offset().top);
     }
     
-    
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
@@ -1105,10 +1123,12 @@ define(function (require, exports, module) {
         $projectTreeContainer.css("overflow", "auto");
         $projectTreeContainer.css("position", "relative");
         
+        fileTreeViewContainer = $("<div>").appendTo($projectTreeContainer)[0];
+        
         model.setSelectionWidth($projectTreeContainer.width());
         
         $(".main-view").click(function (jqEvent) {
-            if (jqEvent.target.className !== "rename-input") {
+            if (jqEvent.target.className !== "jstree-rename-input") {
                 forceFinishRename();
                 actionCreator.setContext(null);
             }
@@ -1125,6 +1145,13 @@ define(function (require, exports, module) {
         $projectTreeContainer.on("contextmenu", function () {
             forceFinishRename();
         });
+        
+        // When a context menu item is selected, we need to clear the context
+        // because we don't get a beforeContextMenuClose event since Bootstrap
+        // handles this directly.
+        $("#project-context-menu").on("click.dropdown-menu", function () {
+            model.setContext(null, true);
+        });
 
         $projectTreeContainer.on("scroll", function () {
             // Close open menus on scroll and clear the context, but only if there's a menu open.
@@ -1136,6 +1163,8 @@ define(function (require, exports, module) {
         });
         
         _renderTree();
+        
+        ViewUtils.addScrollerShadow($projectTreeContainer[0]);
     });
 
     /**
@@ -1216,9 +1245,32 @@ define(function (require, exports, module) {
      * @param {FileSystemEntry} entry file or directory filesystem object to rename
      * @return {$.Promise} a promise resolved when the rename is done.
      */
-    function renameItemInline(entry) {
-        return actionCreator.startRename(entry);
-    }
+    renameItemInline = function (entry) {
+        var d = new $.Deferred();
+        
+        model.startRename(entry)
+            .done(function () {
+                d.resolve();
+            })
+            .fail(function (errorInfo) {
+                // Need to do display the error message on the next event loop turn
+                // because some errors can come up synchronously and then the dialog
+                // is not displayed.
+                window.setTimeout(function () {
+                    if (errorInfo.type === ProjectModel.ERROR_INVALID_FILENAME) {
+                        _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
+                    } else {
+                        var errString = errorInfo.type === FileSystemError.ALREADY_EXISTS ?
+                                Strings.FILE_EXISTS_ERR :
+                                FileUtils.getFileErrorString(errorInfo.type);
+
+                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, errString, errorInfo.fullPath);
+                    }
+                }, 10);
+                d.reject(errorInfo);
+            });
+        return d.promise();
+    };
 
     /**
      * Returns an Array of all files for this project, optionally including
@@ -1233,6 +1285,8 @@ define(function (require, exports, module) {
      * @return {$.Promise} Promise that is resolved with an Array of File objects.
      */
     function getAllFiles(filter, includeWorkingSet) {
+        var viewFiles, deferred;
+
         // The filter and includeWorkingSet params are both optional.
         // Handle the case where filter is omitted but includeWorkingSet is
         // specified.
@@ -1241,18 +1295,24 @@ define(function (require, exports, module) {
             filter = null;
         }
 
-        var viewFiles;
         if (includeWorkingSet) {
             viewFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
         }
 
-        return model.getAllFiles(filter, viewFiles).fail(function (err) {
-            if (err === FileSystemError.TOO_MANY_ENTRIES && !_projectWarnedForTooManyFiles) {
-                _showErrorDialog(ERR_TYPE_MAX_FILES);
-                _projectWarnedForTooManyFiles = true;
-            }
-            return err;
-        });
+        deferred = new $.Deferred();
+        model.getAllFiles(filter, viewFiles)
+            .done(function (fileList) {
+                deferred.resolve(fileList);
+            })
+            .fail(function (err) {
+                if (err === FileSystemError.TOO_MANY_ENTRIES && !_projectWarnedForTooManyFiles) {
+                    _showErrorDialog(ERR_TYPE_MAX_FILES);
+                    _projectWarnedForTooManyFiles = true;
+                }
+                // resolve with empty list
+                deferred.resolve([]);
+            });
+        return deferred.promise();
     }
 
     /**

@@ -54,7 +54,9 @@ define(function (require, exports, module) {
     // Constants
 
     // Time range from first click to second click to invoke renaming.
-    var CLICK_RENAME_MINIMUM = 500;
+    var CLICK_RENAME_MINIMUM = 500,
+        MIDDLE_MOUSE_BUTTON = 2,
+        LEFT_MOUSE_BUTTON = 0;
 
     /**
      * @private
@@ -186,10 +188,10 @@ define(function (require, exports, module) {
          * Send middle click to the action creator as a setContext action.
          */
         handleMouseDown: function (e) {
-            if (e.button === 2) {
+            if (e.button === MIDDLE_MOUSE_BUTTON) {
                 this.props.actions.setContext(this.myPath());
+                return false;
             }
-            return false;
         }
     };
 
@@ -290,6 +292,15 @@ define(function (require, exports, module) {
         mixins: [contextSettable, pathComputer, extendable],
 
         /**
+         * Ensures that we always have a state object.
+         */
+        getInitialState: function () {
+            return {
+                clickTimer: null
+            };
+        },
+
+        /**
          * Thanks to immutable objects, we can just do a start object identity check to know
          * whether or not we need to re-render.
          */
@@ -304,14 +315,35 @@ define(function (require, exports, module) {
          * context boxes as appropriate.
          */
         componentDidUpdate: function (prevProps, prevState) {
-            if (this.props.entry.get("selected") && !prevProps.entry.get("selected")) {
+            var wasSelected = prevProps.entry.get("selected"),
+                isSelected  = this.props.entry.get("selected");
+            
+            if (isSelected && !wasSelected) {
                 // TODO: This shouldn't really know about project-files-container
                 // directly. It is probably the case that our React tree should actually
                 // start with project-files-container instead of just the interior of
                 // project-files-container and then the file tree will be one self-contained
                 // functional unit.
                 ViewUtils.scrollElementIntoView($("#project-files-container"), $(this.getDOMNode()), true);
+            } else if (!isSelected && wasSelected && this.state.clickTimer !== null) {
+                this.clearTimer();
             }
+        },
+        
+        clearTimer: function () {
+            if (this.state.clickTimer !== null) {
+                window.clearTimeout(this.state.clickTimer);
+                this.setState({
+                    clickTimer: null
+                });
+            }
+        },
+        
+        startRename: function () {
+            if (!this.props.entry.get("rename")) {
+                this.props.actions.startRename(this.myPath());
+            }
+            this.clearTimer();
         },
 
         /**
@@ -319,21 +351,24 @@ define(function (require, exports, module) {
          * with a bit of delay in between, we'll invoke the `startRename` action.
          */
         handleClick: function (e) {
-            // If the user clicks twice within 500ms, that will be picked up by the double click handler
-            // If they click on the node twice with a pause, we'll start a rename.
-            if (this.props.entry.get("selected") && this.state.clickTime) {
-                var timeSincePreviousClick = new Date().getTime() - this.state.clickTime;
-                if (!this.props.entry.get("rename") && (timeSincePreviousClick > CLICK_RENAME_MINIMUM)) {
-                    this.props.actions.startRename(this.myPath());
+            // If we're renaming, allow the click to go through to the rename input.
+            if (this.props.entry.get("rename")) {
+                return true;
+            }
+
+            if (e.button !== LEFT_MOUSE_BUTTON) {
+                return;
+            }
+            
+            if (this.props.entry.get("selected")) {
+                if (this.state.clickTimer === null && !this.props.entry.get("rename")) {
+                    var timer = window.setTimeout(this.startRename, CLICK_RENAME_MINIMUM);
                     this.setState({
-                        clickTime: 0
+                        clickTimer: timer
                     });
                 }
             } else {
                 this.props.actions.setSelected(this.myPath());
-                this.setState({
-                    clickTime: new Date().getTime()
-                });
             }
             return false;
         },
@@ -344,10 +379,10 @@ define(function (require, exports, module) {
          */
         handleDoubleClick: function () {
             if (!this.props.entry.get("rename")) {
+                if (this.state.clickTimer !== null) {
+                    this.clearTimer();
+                }
                 this.props.actions.selectInWorkingSet(this.myPath());
-                this.setState({
-                    clickTime: 0
-                });
             }
         },
 
@@ -526,6 +561,10 @@ define(function (require, exports, module) {
          * If you click on a directory, it will toggle between open and closed.
          */
         handleClick: function (event) {
+            if (event.button !== LEFT_MOUSE_BUTTON) {
+                return;
+            }
+
             var isOpen = this.props.entry.get("open"),
                 setOpen = isOpen ? false : true;
 
@@ -740,7 +779,7 @@ define(function (require, exports, module) {
                     overflow: "auto",
                     left: selectionViewInfo.get("scrollLeft"),
                     width: selectionViewInfo.get("width") - this.props.widthAdjustment,
-                    visibility: this.props.visible ? "visible" : "hidden"
+                    display: this.props.visible ? "block" : "none"
                 },
                 className: this.props.className
             });
@@ -788,7 +827,7 @@ define(function (require, exports, module) {
                     selectionViewInfo: this.props.selectionViewInfo,
                     className: "filetree-context",
                     visible: this.props.selectionViewInfo.get("hasContext"),
-                    widthAdjustment: 2,
+                    widthAdjustment: 0,
                     selectedClassName: ".context-node",
                     forceUpdate: true
                 });
