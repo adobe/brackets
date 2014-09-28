@@ -342,7 +342,7 @@ define(function (require, exports, module) {
                         containerOffset = $container.offset();
 
                         scrollerTopArea = { top: containerOffset.top - 7,
-                                            bottom: containerOffset.top + 7}; 
+                                            bottom: containerOffset.top + 7};
 
                         scrollerBottomArea = { top: containerOffset.top + $container.height() - 7,
                                                bottom: containerOffset.top + $container.height() + 7};
@@ -401,7 +401,7 @@ define(function (require, exports, module) {
                         height = $elem.height();
                     
                     return (pageY < top + (height / 2));
-                }                
+                }
                 
                 function ghostIsAbove($elem) {
                     var top = $elem.offset().top,
@@ -431,10 +431,10 @@ define(function (require, exports, module) {
                         bTop = $b.offset().top;
                     
                     return (aTop >= bTop + $b.height());
-                }     
+                }
                 
                 function draggingBelowWorkingSet() {
-                    return($actual.length === 0 || elIsClearBelow($actual, $workingFilesContainer));
+                    return ($actual.length === 0 || elIsClearBelow($actual, $workingFilesContainer));
                 }
                 
                 function targetIsContainer() {
@@ -479,7 +479,7 @@ define(function (require, exports, module) {
                         } else {
                             return result;
                         }
-                    }                    
+                    }
 
                     if (draggingBelowWorkingSet()) {
                         return result;
@@ -518,7 +518,7 @@ define(function (require, exports, module) {
                                 which: $prev
                             };
                         }
-                    } else if (direction > 0){
+                    } else if (direction > 0) {
                         // moving down, if there is a view below
                         // then we want to append to the view below
                         //  otherwise we're in nomandsland
@@ -557,7 +557,6 @@ define(function (require, exports, module) {
             // mouse move handler -- this pretty much does
             //  the heavy lifting for dragging the item around
             $(window).on("mousemove.wsvdragging", function (e) {
-                e.pageY = e.pageY;
                 //console.log("e.pageY " + e.pageY + " e.pageX " + e.pageX);
                 // The drag function
                 function drag(e) {
@@ -565,7 +564,7 @@ define(function (require, exports, module) {
                         // sort redraw and scroll shadows
                         //  cause problems during drag so disable them
                         _suppressSortRedrawForAllViews(true);
-                        _disableScrollShadowsOnAllViews(true);                        
+                        _disableScrollShadowsOnAllViews(true);
                         // remove the "active" class to remove the 
                         //  selection indicator so we don't have to 
                         //  keep it in sync while we're dragging
