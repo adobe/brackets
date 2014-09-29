@@ -299,6 +299,7 @@ define(function (require, exports, module) {
                     result = {
                         where: NOMANSLAND
                     },
+                    lookCount = 0,
                     hasScroller = false,
                     onTopScroller = false,
                     onBottomScroller = false,
@@ -362,19 +363,18 @@ define(function (require, exports, module) {
                         }
                     }
                     
-                    // We effectively iterate this loop only twice
-                    //  at most. If we didn't hit anything on the first
-                    //  iteration, we back up and try again the other direction
-                    // This breaks us out of the loop on the second pass
-                    if (pageY !== e.pageY) {
-                        break;
-                    }
                     if (!$item.length) {
                         pageY += itemHeight;
                     }
-                } while (!$item.length);
+                } while (!$item.length && ++lookCount < 2);
+                
+                if ($hit.is("a") || $hit.is("span")) {
+                    $hit = $hit.parents("li");
+                    $item = $hit;
+                }
               
-//                console.log("actual: " + $actual.attr("class"));
+//                console.log("actual: " + $actual[0].tagName + " " + $actual.attr("class"));
+//                console.log("hit: " + $hit[0].tagName + " " + $hit.attr("class"));
 
                 // compute ghost location, we compute the insertion point based
                 //  on where the ghost is, not where the  mouse is
@@ -383,7 +383,7 @@ define(function (require, exports, module) {
                 gBottom = gTop + gHeight;
                 deltaY = pageY - e.pageY;
                 
-                hasScroller = $item.length && $container[0].scrollHeight > $container[0].clientHeight;
+                hasScroller = $item.length && $container.length && $container[0].scrollHeight > $container[0].clientHeight;
                 
                 // data to help determine if the ghost is in either of the scrollMe regions
                 onTopScroller = hasScroller && scrollerTopArea && ((gTop >= scrollerTopArea.top && gTop <= scrollerTopArea.bottom)  ||
@@ -392,8 +392,9 @@ define(function (require, exports, module) {
                                                          (gBottom >= scrollerBottomArea.top && gBottom <= scrollerBottomArea.bottom));
 
                 
-                
 //                console.log("lastY: " + lastPageY + " currentY " + e.pageY + " direction:" + (direction > 0 ? " down " : " up "));
+                
+//                console.log($item.length ? $item.text() : "no-hit-item");
                 
                 // helpers 
                 function mouseIsInTopHalf($elem) {
@@ -413,7 +414,6 @@ define(function (require, exports, module) {
                     
                     return (checkVal <=  (top + (itemHeight / 2)));
                 }
-                
                 
                 function ghostIsBelow($elem) {
                     var top = $elem.offset().top,
@@ -646,7 +646,7 @@ define(function (require, exports, module) {
                 }
 
                 // move the drag affordance
-                $ghost.css("top", e.pageY);
+                $ghost.css("top", $ghost.offset().top + (e.pageY - lastPageY));
 
                 // if we have't started dragging yet then we wait until
                 //  the mouse has moved 3 pixels before we start dragging
@@ -656,6 +656,7 @@ define(function (require, exports, module) {
                 }
 
                 lastPageY = e.pageY;
+                e.stopPropagation();
             });
             
 
@@ -790,6 +791,8 @@ define(function (require, exports, module) {
             // this will give the element the appearence that it's ghosted if the user
             //  drags the element out of the view and goes off into no mans land
             $ghost.appendTo($("body"));
+            
+            e.stopPropagation();
         });
     }
     
