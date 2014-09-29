@@ -97,7 +97,7 @@ define(function (require, exports, module) {
      * @enum {string}
      */
     var NOMANSLAND = "nomansland",
-        INDETERMINATE = "indeterminate",
+        NOMOVEITEM = "nomoveitem",
         ABOVEITEM  = "aboveitem",
         BELOWITEM  = "belowitem",
         TOPSCROLL  = "topscroll",
@@ -284,7 +284,7 @@ define(function (require, exports, module) {
                 draggingCurrentFile = ($el.hasClass("selected") && sourceView.paneId === activePaneId),
                 startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sorceFile.fullPath),
                 currentView = sourceView,
-                lastHit  = { where: NOMANSLAND };
+                lastHit = { where: NOMANSLAND };
             
             // Switches the view context to match the hit context
             function updateContext(hit) {
@@ -497,7 +497,6 @@ define(function (require, exports, module) {
                                 which: $actual
                             };
                         }
-                        lastHit = result;
                         return result;
                     }
                     
@@ -544,8 +543,9 @@ define(function (require, exports, module) {
                         };
                     }
                 } else {
+                    // The item doesn't need updating
                     result = {
-                        where: INDETERMINATE,
+                        where: NOMOVEITEM,
                         which: $hit
                     };
                 }
