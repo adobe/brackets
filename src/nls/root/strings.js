@@ -598,7 +598,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
     "NO_ARGUMENTS"                              : "<no parameters>",
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To reenable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a Brackets bug. If you can provide a copy of this file, please <a href='http://github.com/adobe/brackets/issues'>file a bug</a> with a link to the file named here.",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To reenable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a Brackets bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
