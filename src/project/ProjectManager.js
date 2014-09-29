@@ -616,7 +616,7 @@ define(function (require, exports, module) {
         if (!projectRoot) {
             return;
         }
-        FileTreeView.render(fileTreeViewContainer, model._viewModel, projectRoot, actionCreator, forceRender);
+        FileTreeView.render(fileTreeViewContainer, model._viewModel, projectRoot, actionCreator, forceRender, brackets.platform);
     };
 
     /**
