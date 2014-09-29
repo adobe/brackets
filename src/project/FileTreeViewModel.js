@@ -1104,7 +1104,6 @@ define(function (require, exports, module) {
             this._selectionViewInfo = this._selectionViewInfo.set("offsetTop", offsetTop);
         }
         
-        $(this).trigger(EVENT_CHANGE);
     };
     
     /**
