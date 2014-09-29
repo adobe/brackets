@@ -369,8 +369,7 @@ define(function (require, exports, module) {
                 } while (!$item.length && ++lookCount < 2);
                 
                 if ($hit.is("a") || $hit.is("span")) {
-                    $hit = $hit.parents("li");
-                    $item = $hit;
+                    $item = $hit.parents("#working-set-list-container li");
                 }
               
 //                console.log("actual: " + $actual[0].tagName + " " + $actual.attr("class"));
