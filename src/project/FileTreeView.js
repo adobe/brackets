@@ -179,8 +179,8 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * This mixin handles middle click action to make a file the "context" object for performing
-     * operations like rename.
+     * This mixin handles right click (or control click on Mac) action to make a file 
+     * the "context" object for performing operations like rename.
      */
     var contextSettable = {
 
