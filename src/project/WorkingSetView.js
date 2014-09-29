@@ -167,7 +167,7 @@ define(function (require, exports, module) {
      * @private
      * @param {Boolean} disable - true to disable, false to enable
      */
-    function _supporessScrollShadowsOnAllViews(disable) {
+    function _suppressScrollShadowsOnAllViews(disable) {
         _.forEach(_views, function (view) {
             if (disable) {
                 ViewUtils.removeScrollerShadow(view.$openFilesContainer[0], null);
@@ -563,7 +563,7 @@ define(function (require, exports, module) {
                         // sort redraw and scroll shadows
                         //  cause problems during drag so disable them
                         _suppressSortRedrawForAllViews(true);
-                        _supporessScrollShadowsOnAllViews(true);
+                        _suppressScrollShadowsOnAllViews(true);
                         
                         // remove the "active" class to remove the 
                         //  selection indicator so we don't have to 
@@ -696,7 +696,7 @@ define(function (require, exports, module) {
             function postDropCleanup(noRefresh) {
                 // re-enable stuff we turned off
                 _suppressSortRedrawForAllViews(false);
-                _supporessScrollShadowsOnAllViews(false);
+                _suppressScrollShadowsOnAllViews(false);
                 
                 // we don't need to refresh if the
                 //  item was not dragged or opened
