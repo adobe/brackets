@@ -1133,6 +1133,10 @@ define(function (require, exports, module) {
                 actionCreator.setContext(null);
             }
         });
+        
+        $("#working-set-list-container").on("contentChanged", function () {
+            $projectTreeContainer.trigger("contentChanged");
+        });
 
         $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuOpen", function () {
             actionCreator.restoreContext();
