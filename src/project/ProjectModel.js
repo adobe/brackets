@@ -659,19 +659,23 @@ define(function (require, exports, module) {
             this._viewModel.moveMarker("context", this.makeProjectRelativeIfPossible(this._selections.context), null);
             delete this._selections.context;
         }
+        
+        var previousSelection = this._selections.selected;
         this._selections.selected = path;
 
         if (path) {
-            $(this).trigger(EVENT_SHOULD_FOCUS);
-
             if (!doNotOpen) {
                 $(this).trigger(EVENT_SHOULD_SELECT, {
-                    path: path
+                    path: path,
+                    previousPath: previousSelection,
+                    hadFocus: this._focused
                 });
             }
+            
+            $(this).trigger(EVENT_SHOULD_FOCUS);
         }
     };
-
+    
     /**
      * Gets the currently selected file or directory.
      *
