@@ -789,7 +789,6 @@ define(function (require, exports, module) {
             
             // this will give the element the appearence that it's ghosted if the user
             //  drags the element out of the view and goes off into no mans land
-            //$el.css("opacity", ".0001");
             $ghost.appendTo($("body"));
         });
     }
