@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, window, brackets, Mustache, document  */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, window, brackets, Mustache  */
 
 /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
@@ -55,7 +55,7 @@ define(function (require, exports, module) {
     var _views = [];
     
     /**
-     * Open view dictionary
+     * Open view dictionary  
      * Maps PaneId to WorkingSetView for fast lookup while dragging
      * @private
      * @type {Object.<string, WorkingSetView>}
@@ -158,8 +158,8 @@ define(function (require, exports, module) {
     
     /** 
      * Turns on/off the flag which suppresses rebuilding of the working set 
-     * when the "workingSetSort" event is dispatched from MainViewManager
-     * Only used while dragging things around in the workingset to disable
+     * when the "workingSetSort" event is dispatched from MainViewManager.
+     * Only used while dragging things around in the working set to disable
      * rebuilding the list while dragging.
      * @private
      * @param {boolean} suppress - true suppress, false to allow sort redrawing
@@ -209,7 +209,7 @@ define(function (require, exports, module) {
     
    
     /** 
-     * Finds the WorkingsetView object for the specified element
+     * Finds the WorkingSetView object for the specified element
      * @private
      * @param {jQuery} $el - the element to find the view for
      * @return {View} view object
@@ -219,7 +219,7 @@ define(function (require, exports, module) {
             $el = $el.parents(".working-set-view");
         }
 
-        var id = $el.attr("id").match(/working\-set\-list\-(.*)/).pop();
+        var id = $el.attr("id").match(/working\-set\-list\-([\w]+[\w\d\-\.\:\_]*)/).pop();
         return _viewMap[id];
     }
     
@@ -230,7 +230,7 @@ define(function (require, exports, module) {
      */
     function _makeDraggable($el) {
         var interval,
-            sorceFile = $el.data(_FILE_KEY);
+            sourceFile = $el.data(_FILE_KEY);
 
         // turn off the "hover-scroll" 
         function endScroll($el) {
@@ -262,7 +262,7 @@ define(function (require, exports, module) {
                         $container.scrollTop(scrollTop + 7 * dir);
                         callback($el);
                     }
-                }, 100);
+                }, 50);
             }
         }
         
@@ -273,7 +273,7 @@ define(function (require, exports, module) {
                 startPageY = e.pageY,
                 lastPageY = startPageY,
                 itemHeight = $el.height(),
-                tryClosing = $(document.elementFromPoint(e.pageX, e.pageY)).hasClass("can-close"),
+                tryClosing = $(window.document.elementFromPoint(e.pageX, e.pageY)).hasClass("can-close"),
                 offset = $el.offset(),
                 $copy = $el.clone(),
                 $ghost = $("<div class='open-files-container wsv-drag-ghost' style='overflow: hidden; display: inline-block;'>").append($("<ul>").append($copy).css("padding", "0")),
@@ -282,7 +282,7 @@ define(function (require, exports, module) {
                 activePaneId = MainViewManager.getActivePaneId(),
                 activeView = _viewMap[activePaneId],
                 draggingCurrentFile = ($el.hasClass("selected") && sourceView.paneId === activePaneId),
-                startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sorceFile.fullPath),
+                startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sourceFile.fullPath),
                 currentView = sourceView,
                 lastHit = { where: NOMANSLAND };
             
@@ -306,7 +306,6 @@ define(function (require, exports, module) {
                     $workingFilesContainer =  $("#working-set-list-container"),
                     $container,
                     $hit,
-                    $actual,
                     $item,
                     $view,
                     gTop,
@@ -316,7 +315,10 @@ define(function (require, exports, module) {
                     containerOffset,
                     scrollerTopArea,
                     scrollerBottomArea;
-                    
+                
+                // if the mouse is outside of the view then
+                //  return nomansland -- this prevents some UI glitches
+                //  that appear when dragging onto a second monitor
                 if (e.pageX < 0 || e.pageX > $workingFilesContainer.width()) {
                     return result;
                 }
@@ -325,11 +327,9 @@ define(function (require, exports, module) {
                     // Turn off the ghost so elementFromPoint ignores it
                     $ghost.hide();
 
-                    $actual = $(document.elementFromPoint(e.pageX, pageY));
+                    $hit = $(window.document.elementFromPoint(e.pageX, pageY));
                     
-                    $hit = $(document.elementFromPoint(e.pageX, pageY));
-                    
-                    $view = $(document.elementFromPoint(e.pageX, pageY)).closest(".working-set-view");
+                    $view = $hit.closest(".working-set-view");
 
                     $item = $hit.closest("#working-set-list-container li");
 
@@ -372,7 +372,7 @@ define(function (require, exports, module) {
                     $item = $hit.parents("#working-set-list-container li");
                 }
               
-                //console.log("actual: " + $actual[0].tagName + " " + $actual.attr("class"));
+                //console.log("actual: " + $hit[0].tagName + " " + $hit.attr("class"));
                 //console.log("hit: " + $hit[0].tagName + " " + $hit.attr("class"));
 
                 // compute ghost location, we compute the insertion point based
@@ -432,13 +432,13 @@ define(function (require, exports, module) {
                 }
                 
                 function draggingBelowWorkingSet() {
-                    return ($actual.length === 0 || elIsClearBelow($actual, $workingFilesContainer));
+                    return ($hit.length === 0 || elIsClearBelow($hit, $workingFilesContainer));
                 }
                 
                 function targetIsContainer() {
-                    return ($actual.is(".working-set-view") ||
-                            $actual.is(".open-files-container") ||
-                            ($actual.is("ul") && $actual.parent().is(".open-files-container")));
+                    return ($hit.is(".working-set-view") ||
+                            $hit.is(".open-files-container") ||
+                            ($hit.is("ul") && $hit.parent().is(".open-files-container")));
                 }
                 
                 if ($item.length) {
@@ -469,9 +469,9 @@ define(function (require, exports, module) {
                     //  where to go from here
                     $view = $el.parents(".working-set-view");
                     
-                    if ($actual.is(".working-set-header") || $actual.is(".scroller-shadow") || $hit.is(".scroller-shadow")) {
+                    if ($hit.is(".working-set-header") || $hit.is(".scroller-shadow") || $hit.is(".scroller-shadow")) {
                         if (direction < 0) {
-                            if (ghostIsBelow($actual)) {
+                            if (ghostIsBelow($hit)) {
                                 return result;
                             }
                         } else {
@@ -484,21 +484,21 @@ define(function (require, exports, module) {
                     }
                     
                     if (targetIsContainer()) {
-                        if (mouseIsInTopHalf($actual)) {
+                        if (mouseIsInTopHalf($hit)) {
                             result = {
                                 where: ABOVEVIEW,
-                                which: $actual
+                                which: $hit
                             };
                         } else {
                             result = {
                                 where: BELOWVIEW,
-                                which: $actual
+                                which: $hit
                             };
                         }
                         return result;
                     }
                     
-                    // console.log($actual.attr("class"));
+                    // console.log($hit.attr("class"));
                     
                     // Data to determine to help determine if we should
                     //  append to the previous or prepend to the next
@@ -706,7 +706,7 @@ define(function (require, exports, module) {
                         // Click on close icon, or middle click anywhere - close the item without selecting it first
                         if (tryClosing || e.which === MIDDLE_BUTTON) {
                             CommandManager
-                                .execute(Commands.FILE_CLOSE, {file: sorceFile,
+                                .execute(Commands.FILE_CLOSE, {file: sourceFile,
                                                                paneId: sourceView.paneId})
                                 .always(function () {
                                     postDropCleanup();
@@ -714,7 +714,7 @@ define(function (require, exports, module) {
                         } else {
                             // Normal right and left click - select the item
                             CommandManager
-                                .execute(Commands.FILE_OPEN, {fullPath: sorceFile.fullPath,
+                                .execute(Commands.FILE_OPEN, {fullPath: sourceFile.fullPath,
                                                                paneId: currentView.paneId})
                                 .always(function () {
                                     postDropCleanup();
@@ -727,13 +727,13 @@ define(function (require, exports, module) {
                     postDropCleanup();
                 } else {
                     // item was dragged to another working set
-                    MainViewManager._moveView(sourceView.paneId, currentView.paneId, sorceFile, $el.index())
+                    MainViewManager._moveView(sourceView.paneId, currentView.paneId, sourceFile, $el.index())
                         .always(function () {
-                            // if the current document was dragged to another workingset 
+                            // if the current document was dragged to another working set 
                             //  then reopen it to make it the currently selected file
                             if (draggingCurrentFile) {
                                 CommandManager
-                                    .execute(Commands.FILE_OPEN, {fullPath: sorceFile.fullPath,
+                                    .execute(Commands.FILE_OPEN, {fullPath: sourceFile.fullPath,
                                                                    paneId: currentView.paneId})
                                     .always(function () {
                                         postDropCleanup();
