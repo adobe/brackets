@@ -693,12 +693,17 @@ define(function (require, exports, module) {
             }
         
             // Final Cleanup
-            function postDropCleanup() {
+            function postDropCleanup(noRefresh) {
                 // re-enable stuff we turned off
                 _suppressSortRedrawForAllViews(false);
                 _supporessScrollShadowsOnAllViews(false);
-                // rebuild the view
-                refresh(true);
+                
+                // we don't need to refresh if the
+                //  item was not dragged or opened
+                if (!noRefresh) {
+                    // rebuild the view
+                    refresh(true);
+                }
                 // focus the editor
                 MainViewManager.focusActivePane();
             }
@@ -726,6 +731,9 @@ define(function (require, exports, module) {
                                     postDropCleanup();
                                 });
                         }
+                    } else {
+                        // no need to refresh
+                        postDropCleanup(true);
                     }
                 } else if (sourceView.paneId === currentView.paneId) {
                     // item was reordered 
