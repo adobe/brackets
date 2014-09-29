@@ -68,7 +68,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Error eliminando el {0}",
     "ERROR_DELETING_FILE"               : "Ha ocurrido un error al intentar eliminar el {2} <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "{0} inválido",
-    "INVALID_FILENAME_MESSAGE"          : "Los {0} no puede utilizar ninguna palabra reservada por el sistema, terminar con puntos (.) o utilizar cualquiera de los siguientes caracteres: <code class='emphasized'>{1}</code>",
+    "INVALID_FILENAME_MESSAGE"          : "Los {0} no pueden utilizar ninguna palabra reservada por el sistema, terminar con puntos (.) o utilizar cualquiera de los siguientes caracteres: <code class='emphasized'>{1}</code>",
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "Ya existe un archivo o directorio con el nombre <span class='dialog-filename'>{0}</span>.",
     "ERROR_CREATING_FILE_TITLE"         : "Error creando {0}",
     "ERROR_CREATING_FILE"               : "Ha ocurrido un error al intentar crear el {0} <span class='dialog-filename'>{1}</span>. {2}",
@@ -87,7 +87,7 @@ define({
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error iniciando el navegador",
-    "ERROR_CANT_FIND_CHROME"            : "No se pudo encontrar el navegador Google Chrome. Por favor, asegúrate de que esté instalado correctamente.",
+    "ERROR_CANT_FIND_CHROME"            : "No se pudo encontrar el navegador Google Chrome. Por favor, asegúrate que esté instalado correctamente.",
     "ERROR_LAUNCHING_BROWSER"           : "Ha ocurrido un error al iniciar el navegador. (error {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Error en la Vista previa en vivo",
@@ -98,7 +98,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Necesitas especificar una URL base en este proyecto para poder iniciar Vista previa en vivo con archivos de servidor.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para Vista previa en vivo. Vuelve a intentarlo, por favor.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a la Vista previa en vivo!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista previa en vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarrollo en Vivo sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br /><br />(No volverás a ver este mensaje.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista previa en vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y actualízalo a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarrollo en Vivo sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br /><br />(No volverás a ver este mensaje.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Para más información, consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Vista previa en vivo</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Vista previa en vivo",
@@ -110,7 +110,7 @@ define({
     
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Vista previa en vivo se ha detenido porque se han abierto las herramientas de desarrollo",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Vista previa en vivo se ha detenido porque se ha cerrado la página en el navegador",
-    "LIVE_DEV_NAVIGATED_AWAY"                  : "Vista previa en vivo se ha detenido porque se ha accedido a una página que no es parte del proyecto actual",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "Vista previa en vivo se ha detenido porque se ha accedido a una página que no es parte del actual proyecto",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Vista previa en vivo se ha detenido por motivos desconocidos ({0})",
     
     "SAVE_CLOSE_TITLE"                  : "Guardar cambios",
@@ -185,7 +185,7 @@ define({
     "REPLACE_IN_FILES_ERRORS"           : "Los siguientes archivos no fueron modificados porque cambiaron después de realizar la búsqueda o no pueden ser escritos.",
     
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error obteniendo información sobre actualizaciones",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a Internet y vuelve a intentarlo.",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a internet y vuelve a intentarlo.",
     
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "Nuevo conjunto de filtros\u2026",
@@ -259,7 +259,7 @@ define({
     "MULTIPLE_ERRORS"                       : "{1} problemas de {0}",
     "NO_ERRORS"                             : "No se encontraron problemas de {0} - ¡Buen trabajo!",
     "NO_ERRORS_MULTIPLE_PROVIDER"           : "No se encontraron problemas - ¡Buen trabajo!",
-    "LINT_DISABLED"                         : "La inspección de código esta deshabilitado",
+    "LINT_DISABLED"                         : "La inspección de código está deshabilitada",
     "NO_LINT_AVAILABLE"                     : "No hay inspección de código disponible para {0}",
     "NOTHING_TO_LINT"                       : "No hay nada para inspeccionar",
     "LINTER_TIMED_OUT"                      : "{0} ha agotado el tiempo después de esperar {1} ms",
@@ -376,7 +376,7 @@ define({
     "CMD_PREV_DOC"                        : "Documento anterior",
     "CMD_SHOW_IN_TREE"                    : "Mostrar en el árbol de directorios",
     "CMD_SHOW_IN_EXPLORER"                : "Mostrar en el Explorador",
-    "CMD_SHOW_IN_FINDER"                  : "Mostrar en Finder",
+    "CMD_SHOW_IN_FINDER"                  : "Mostrar en el Finder",
     "CMD_SHOW_IN_OS"                      : "Mostrar en el Sistema Operativo",
     
     // Help menu commands
@@ -517,7 +517,7 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "No se pudo eliminar la extensión {{0}} porque no se encuentra instalada.",
     "NO_EXTENSIONS"                        : "Todavía no hay ninguna extensión instalada.<br />Haz click en la pestaña Disponibles para empezar.",
     "NO_EXTENSION_MATCHES"                 : "No hay extensiones que coincidan con tu búsqueda.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "NOTA: Estas extensiones puedem provenir de diferentes autores a {APP_NAME}. Las extensiones no son revisadas y tiene todos los privilegios locales. Tenga cuidado cuando instale extensiones de una fuente desconocida.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "NOTA: Estas extensiones pueden provenir de diferentes autores a {APP_NAME}. Las extensiones no son revisadas y tiene todos los privilegios locales. Tenga cuidado cuando instale extensiones de una fuente desconocida.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Instaladas",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Disponibles",
     "EXTENSIONS_THEMES_TITLE"              : "Temas",
@@ -561,7 +561,7 @@ define({
     "INLINE_TIMING_EDITOR_TIME"                 : "Tiempo",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progresión",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Mueven el punto seleccionado<br><kbd class='text'>Shift</kbd> Mueve de a diez unidades<br><kbd class='text'>Tab</kbd> Cambia el punto seleccionado",
-    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Incrementa o decrementa los pasos<br><kbd>←</kbd><kbd>→</kbd> 'Start' o 'End'",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Incrementa o disminuya los pasos<br><kbd>←</kbd><kbd>→</kbd> 'Start' o 'End'",
     "INLINE_TIMING_EDITOR_INVALID"              : "El valor viejo <code>{0}</code> no es válido, por lo tanto, fue modificado a <code>{1}</code>. El documento será actualizado luego de la primer edición.",
     
     // extensions/default/InlineColorEditor
