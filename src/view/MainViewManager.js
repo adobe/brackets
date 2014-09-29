@@ -804,10 +804,17 @@ define(function (require, exports, module) {
             destinationPane = _getPane(destinationPaneId);
         
         sourcePane.moveView(file, destinationPane, destinationIndex)
-            .done(function () {
-                $(exports).triggerHandler("workingSetMove", [file, sourcePane.id, destinationPane.id]);
-            })
             .always(function () {
+                // update the mru list
+                _mruList.every(function (record) {
+                    if (record.file === file && record.paneId === sourcePane.id) {
+                        record.paneId = destinationPane.id;
+                        return false;
+                    }
+                    return true;
+                });
+            
+                $(exports).triggerHandler("workingSetMove", [file, sourcePane.id, destinationPane.id]);
                 result.resolve();
             });
         
