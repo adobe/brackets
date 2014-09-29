@@ -46,21 +46,13 @@ define(function (require, exports, module) {
         Strings               = require("strings"),
         _                     = require("thirdparty/lodash");
     
-    
-    /**
-     * Currently open views
-     * @private
-     * @type {Array.WorkingSetView}
-     */
-    var _views = [];
-    
     /**
      * Open view dictionary  
-     * Maps PaneId to WorkingSetView for fast lookup while dragging
+     * Maps PaneId to WorkingSetView
      * @private
      * @type {Object.<string, WorkingSetView>}
      */
-    var _viewMap = {};
+    var _views = {};
     
     /**
      * Icon Providers
@@ -175,7 +167,7 @@ define(function (require, exports, module) {
      * @private
      * @param {Boolean} disable - true to disable, false to enable
      */
-    function _disableScrollShadowsOnAllViews(disable) {
+    function _supporessScrollShadowsOnAllViews(disable) {
         _.forEach(_views, function (view) {
             if (disable) {
                 ViewUtils.removeScrollerShadow(view.$openFilesContainer[0], null);
@@ -207,7 +199,6 @@ define(function (require, exports, module) {
         });
     }
     
-   
     /** 
      * Finds the WorkingSetView object for the specified element
      * @private
@@ -220,7 +211,7 @@ define(function (require, exports, module) {
         }
 
         var id = $el.attr("id").match(/working\-set\-list\-([\w]+[\w\d\-\.\:\_]*)/).pop();
-        return _viewMap[id];
+        return _views[id];
     }
     
     /** 
@@ -280,7 +271,7 @@ define(function (require, exports, module) {
                 sourceView = _viewFromEl($el),
                 currentFile = MainViewManager.getCurrentlyViewedFile(),
                 activePaneId = MainViewManager.getActivePaneId(),
-                activeView = _viewMap[activePaneId],
+                activeView = _views[activePaneId],
                 draggingCurrentFile = ($el.hasClass("selected") && sourceView.paneId === activePaneId),
                 startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sourceFile.fullPath),
                 currentView = sourceView,
@@ -328,9 +319,7 @@ define(function (require, exports, module) {
                     $ghost.hide();
 
                     $hit = $(window.document.elementFromPoint(e.pageX, pageY));
-                    
                     $view = $hit.closest(".working-set-view");
-
                     $item = $hit.closest("#working-set-list-container li");
 
                     // Show the ghost again
@@ -339,9 +328,9 @@ define(function (require, exports, module) {
                     $container = $view.children(".open-files-container");
 
                     if ($container.length) {
-
                         containerOffset = $container.offset();
 
+                        // Compute "scrollMe" regions
                         scrollerTopArea = { top: containerOffset.top - 14,
                                             bottom: containerOffset.top + 7};
 
@@ -349,6 +338,8 @@ define(function (require, exports, module) {
                                                bottom: containerOffset.top + $container.height() + 14};
                     }
 
+                    // If we hit ourself then look for another 
+                    //  element to insert before/after
                     if ($item[0] === $el[0]) {
                         if (direction > 0) {
                             $item = $item.next();
@@ -363,11 +354,19 @@ define(function (require, exports, module) {
                         }
                     }
                     
+                    // If we didn't hit anything then
+                    //  back up and try again in the other direction
                     if (!$item.length) {
                         pageY += itemHeight;
                     }
+                    
+                    // we're going to do this twice 
                 } while (!$item.length && ++lookCount < 2);
                 
+                // if we hit a span or an anchor tag and didn't
+                //  find an item then force the selection hit to
+                //  the item so we can bail out on the scrollMe 
+                //  region at the top and bottom of the list
                 if ($item.length === 0 && ($hit.is("a") || $hit.is("span"))) {
                     $item = $hit.parents("#working-set-list-container li");
                 }
@@ -382,6 +381,7 @@ define(function (require, exports, module) {
                 gBottom = gTop + gHeight;
                 deltaY = pageY - e.pageY;
                 
+                // data to help us determine if we have a scroller
                 hasScroller = $item.length && $container.length && $container[0].scrollHeight > $container[0].clientHeight;
                 
                 // data to help determine if the ghost is in either of the scrollMe regions
@@ -559,26 +559,32 @@ define(function (require, exports, module) {
                 // The drag function
                 function drag(e) {
                     if (!dragged) {
+                        
                         // sort redraw and scroll shadows
                         //  cause problems during drag so disable them
                         _suppressSortRedrawForAllViews(true);
-                        _disableScrollShadowsOnAllViews(true);
+                        _supporessScrollShadowsOnAllViews(true);
+                        
                         // remove the "active" class to remove the 
                         //  selection indicator so we don't have to 
                         //  keep it in sync while we're dragging
                         _deactivateAllViews(true);
+                        
                         // add a "dragging" class to the outer container
                         $("#working-set-list-container").addClass("dragging");
+                        
                         // add a class to the element we're dragging if 
                         //  its the currently selected file so that we 
                         //  can show it as selected while dragging it
                         if (!draggingCurrentFile) {
                             $(activeView._findListItemFromFile(currentFile)).addClass("drag-show-as-selected");
                         }
+                        
                         // we've dragged the item so set
                         //  dragged to true so we don't try and open it
                         dragged = true;
                     }
+                    
                     // reset the scrolling direction to no-scroll
                     scrollDir = 0;
                     
@@ -690,7 +696,7 @@ define(function (require, exports, module) {
             function postDropCleanup() {
                 // re-enable stuff we turned off
                 _suppressSortRedrawForAllViews(false);
-                _disableScrollShadowsOnAllViews(false);
+                _supporessScrollShadowsOnAllViews(false);
                 // rebuild the view
                 refresh(true);
                 // focus the editor
@@ -1333,7 +1339,7 @@ define(function (require, exports, module) {
         
         // Disable horizontal scrolling until WebKit bug #99379 is fixed
         this.$openFilesContainer.css("overflow-x", "hidden");
-        
+
         this.$openFilesContainer.on("contextmenu.workingSetView", function (e) {
             Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).open(e);
         });
@@ -1356,17 +1362,9 @@ define(function (require, exports, module) {
      * paneDestroy event handler
      */
     $(MainViewManager).on("paneDestroy", function (e, paneId) {
-        var index = _.findIndex(_views, function (workingSetListView) {
-            return workingSetListView.paneId === paneId;
-        });
-        
-        if (index >= 0) {
-            var views = _views.splice(index, 1);
-            _.forEach(views, function (view) {
-                delete _viewMap[view.paneId];
-                view.destroy();
-            });
-        }
+        var view = _views[paneId];
+        delete _views[view.paneId];
+        view.destroy();
     });
     
     /**
@@ -1375,16 +1373,10 @@ define(function (require, exports, module) {
      * @param {!string} paneId - the id of the pane the view is being created for
      */
     function createWorkingSetViewForPane($container, paneId) {
-        // make sure the pane doesn't already have a view
-        var index = _.findIndex(_views, function (workingSetListView) {
-            return workingSetListView.paneId === paneId;
-        });
-
-        // if there wasn't already a view for the pane then create a new one
-        if (index === -1) {
-            var view = new WorkingSetView($container, paneId);
-            _views.push(view);
-            _viewMap[view.paneId] = view;
+        var view = _views[paneId];
+        if (!view) {
+            view = new WorkingSetView($container, paneId);
+            _views[view.paneId] = view;
         }
     }
 

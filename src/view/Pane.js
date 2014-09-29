@@ -390,13 +390,13 @@ define(function (require, exports, module) {
     /**
      * moves a view from one pane to another
      * @param {!File} file - the File to move
-     * @param {Pane} destination - the destination pane 
+     * @param {Pane} destinationPane - the destination pane 
      * @param {Number} destinationIndex - the working set index of the file in the destination pane
      * @return {jQuery.Promise} a promise object which resolves after the view has been moved and its
      * replacement document has been opened
      * @private
      */
-    Pane.prototype.moveView = function (file, destination, destinationIndex) {
+    Pane.prototype.moveView = function (file, destinationPane, destinationIndex) {
         var self = this,
             openNextPromise = new $.Deferred(),
             result = new $.Deferred();
@@ -428,18 +428,18 @@ define(function (require, exports, module) {
             self._viewListAddedOrder.splice(self.findInViewListAddedOrder(file.fullPath), 1);
 
             // insert the view into the working set
-            destination._addToViewList(file,  _makeIndexRequestObject(true, destinationIndex));
+            destinationPane._addToViewList(file,  _makeIndexRequestObject(true, destinationIndex));
 
             //move the view,
             var view = self._views[file.fullPath];
 
             if (view) {
-                destination.addView(view, !destination.getCurrentlyViewedFile());
+                destinationPane.addView(view, !destinationPane.getCurrentlyViewedFile());
                 result.resolve();
-            } else if (!destination.getCurrentlyViewedFile()) {
+            } else if (!destinationPane.getCurrentlyViewedFile()) {
                 // The view has not have been created and the pane was 
                 //  not showing anything so open the file moved in to the pane
-                destination._execOpenFile(file.fullPath).always(function () {
+                destinationPane._execOpenFile(file.fullPath).always(function () {
                     result.resolve();
                 });
             } else {
