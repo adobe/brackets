@@ -57,12 +57,12 @@
  *          (e, fileAdded:File, index:number, paneId:string)
  *    - workingSetAddList -- When multiple files are added to the working set 
  *          (e, fileAdded:Array.<File>, paneId:string)
+ *    - workingSetMove - When a File has moved to a different working set
+ *          (e, File:FILE, sourcePaneId:string, destinationPaneId:string)
  *    - workingSetRemove -- When a file is removed from the working set 
  *          (e, fileRemoved:File, suppressRedraw:boolean, paneId:string)
  *    - workingSetRemoveList -- When multiple files are removed from the working set 
  *          (e, filesRemoved:Array.<File>, paneId:string)
- *    - workingSetMove - When an File has moved to a new working set
- *          (e, File:FILE, sourcePaneId:string, destinationPaneId:string)
  *    - workingSetSort -- When a pane's view array is reordered without additions or removals.
  *          (e, paneId:string)
  *    - workingSetUpdate -- When changes happen due to system events such as a file being deleted.

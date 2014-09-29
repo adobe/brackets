@@ -899,6 +899,7 @@ define(function (require, exports, module) {
 
     /**
      * Redraw selection when list size changes or DocumentManager currentDocument changes.
+     * @param {boolean=} scrollIntoView = Scrolls the selected item into view (the default behavior)
      * @private
      */
     WorkingSetView.prototype._fireSelectionChanged = function (scrollIntoView) {
