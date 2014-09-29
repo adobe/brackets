@@ -1,5 +1,5 @@
-<div class="extension-manager-dialog modal">
-    <div class="modal-header" tabindex="-1">
+<div class="extension-manager-dialog modal no-focus">
+    <div class="modal-header">
         <ul class="nav nav-tabs">
             {{#showRegistry}}
                 <li><a href="#registry" class="registry" data-toggle="tab"><img src="styles/images/extension-manager-registry.svg"/><br/>{{Strings.EXTENSIONS_AVAILABLE_TITLE}}</a></li>
@@ -13,7 +13,7 @@
             <input class="search" type="text" placeholder="{{EXTENSION_SEARCH_PLACEHOLDER}}">
         </div>
     </div>
-    <div class="modal-body no-padding table-striped tab-content no-focus" tabindex="-1">
+    <div class="modal-body no-padding table-striped tab-content">
         <div class='spinner large spin'/>
     </div>
     <div class="modal-footer">
