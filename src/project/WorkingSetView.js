@@ -325,7 +325,7 @@ define(function (require, exports, module) {
                     // Turn off the ghost so elementFromPoint ignores it
                     $ghost.hide();
 
-                    $actual = $(document.elementFromPoint(e.pageX, e.pageY));
+                    $actual = $(document.elementFromPoint(e.pageX, pageY));
                     
                     $hit = $(document.elementFromPoint(e.pageX, pageY));
                     
@@ -346,7 +346,7 @@ define(function (require, exports, module) {
                                             bottom: containerOffset.top + 7};
 
                         scrollerBottomArea = { top: containerOffset.top + $container.height() - 7,
-                                               bottom: containerOffset.top + $container.height() + 7};
+                                               bottom: containerOffset.top + $container.height() + 14};
                     }
 
                     if ($item[0] === $el[0]) {
@@ -368,12 +368,12 @@ define(function (require, exports, module) {
                     }
                 } while (!$item.length && ++lookCount < 2);
                 
-                if ($hit.is("a") || $hit.is("span")) {
+                if ($item.length === 0 && ($hit.is("a") || $hit.is("span"))) {
                     $item = $hit.parents("#working-set-list-container li");
                 }
               
-//                console.log("actual: " + $actual[0].tagName + " " + $actual.attr("class"));
-//                console.log("hit: " + $hit[0].tagName + " " + $hit.attr("class"));
+                //console.log("actual: " + $actual[0].tagName + " " + $actual.attr("class"));
+                //console.log("hit: " + $hit[0].tagName + " " + $hit.attr("class"));
 
                 // compute ghost location, we compute the insertion point based
                 //  on where the ghost is, not where the  mouse is
@@ -391,9 +391,8 @@ define(function (require, exports, module) {
                                                          (gBottom >= scrollerBottomArea.top && gBottom <= scrollerBottomArea.bottom));
 
                 
-//                console.log("lastY: " + lastPageY + " currentY " + e.pageY + " direction:" + (direction > 0 ? " down " : " up "));
-                
-//                console.log($item.length ? $item.text() : "no-hit-item");
+                //console.log("lastY: " + lastPageY + " currentY " + e.pageY + " direction:" + (direction > 0 ? " down " : " up "));
+                //console.log($item.length ? $item.text() : "no-hit-item");
                 
                 // helpers 
                 function mouseIsInTopHalf($elem) {
