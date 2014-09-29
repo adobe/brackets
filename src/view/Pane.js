@@ -421,7 +421,7 @@ define(function (require, exports, module) {
         }
         
         
-        openNextPromise.always(function () {
+        openNextPromise.done(function () {
             // Remove file from all 3 view lists
             self._viewList.splice(self.findInViewList(file.fullPath), 1);
             self._viewListMRUOrder.splice(self.findInViewListMRUOrder(file.fullPath), 1);
@@ -434,6 +434,7 @@ define(function (require, exports, module) {
             var view = self._views[file.fullPath];
 
             if (view) {
+                delete self._views[file.fullPath];
                 destinationPane.addView(view, !destinationPane.getCurrentlyViewedFile());
                 result.resolve();
             } else if (!destinationPane.getCurrentlyViewedFile()) {

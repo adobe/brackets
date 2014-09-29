@@ -804,7 +804,7 @@ define(function (require, exports, module) {
             destinationPane = _getPane(destinationPaneId);
         
         sourcePane.moveView(file, destinationPane, destinationIndex)
-            .always(function () {
+            .done(function () {
                 // update the mru list
                 _mruList.every(function (record) {
                     if (record.file === file && record.paneId === sourcePane.id) {
@@ -813,7 +813,8 @@ define(function (require, exports, module) {
                     }
                     return true;
                 });
-            
+            })
+            .always(function () {
                 $(exports).triggerHandler("workingSetMove", [file, sourcePane.id, destinationPane.id]);
                 result.resolve();
             });
