@@ -903,6 +903,10 @@ define(function (require, exports, module) {
         
         delete this._selections.rename;
         delete this._selections.context;
+        if (this._selections.selected === oldPath) {
+            this._selections.selected = newPath;
+        }
+        
         viewModel.moveMarker("rename", oldProjectPath, null);
         viewModel.moveMarker("context", oldProjectPath, null);
         viewModel.moveMarker("creating", oldProjectPath, null);
@@ -910,6 +914,7 @@ define(function (require, exports, module) {
         if (renameInfo.type === FILE_CREATING) {
             this.createAtPath(newPath).done(function (entry) {
                 viewModel.renameItem(oldProjectPath, newName);
+                self.selectInWorkingSet(newPath);
                 renameInfo.deferred.resolve(entry);
             }).fail(function (error) {
                 self._viewModel.deleteAtPath(self.makeProjectRelativeIfPossible(renameInfo.path));

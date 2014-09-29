@@ -692,6 +692,14 @@ define(function (require, exports, module) {
                     expect(vm._treeData.getIn(["afile.js", "rename"])).toBe(true);
                     expect(model._selections.rename).toBeDefined();
                 });
+                
+                it("adjusts the selection if the renamed file was selected", function () {
+                    model.setSelected("/foo/afile.js");
+                    model.startRename("/foo/afile.js");
+                    model.setRenameValue("something.js");
+                    model.performRename();
+                    expect(model._selections.selected).toBe("/foo/something.js");
+                });
 
                 it("does nothing if setRenameValue is called when there's no rename in progress", function () {
                     model.setRenameValue("/foo/bar/baz");
@@ -759,7 +767,7 @@ define(function (require, exports, module) {
                     expect(changesFired).toBeGreaterThan(0);
                 });
 
-                it("should save the item when done creating", function () {
+                it("should save the item and open it in working set when done creating", function () {
                     spyOn(model, "createAtPath").andReturn(new $.Deferred().resolve().promise());
                     model.startCreating("/foo/subdir1/", "Untitled");
                     expect(model._selections.rename.path).toBe("/foo/subdir1/Untitled");
@@ -774,6 +782,10 @@ define(function (require, exports, module) {
                     expect(vm._treeData.getIn(["subdir1", "children", "newfile.js", "creating"])).toBeUndefined();
                     expect(vm._treeData.getIn(["subdir1", "children", "newfile.js", "rename"])).toBeUndefined();
                     expect(model._selections.rename).toBeUndefined();
+                    expect(selectionEvents).toEqual([{
+                        path: "/foo/subdir1/newfile.js",
+                        add: true
+                    }]);
                 });
 
                 it("can create an item with the default filename", function () {
