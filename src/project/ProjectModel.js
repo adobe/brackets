@@ -649,10 +649,14 @@ define(function (require, exports, module) {
             return;
         }
 
-        this.performRename();
-
         var oldProjectPath = this.makeProjectRelativeIfPossible(this._selections.selected),
             pathInProject = this.makeProjectRelativeIfPossible(path);
+
+        if (path && !this._viewModel.isFilePathVisible(pathInProject)) {
+            return;
+        }
+        
+        this.performRename();
 
         this._viewModel.moveMarker("selected", oldProjectPath, pathInProject);
         if (this._selections.context) {

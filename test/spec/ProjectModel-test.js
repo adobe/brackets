@@ -467,17 +467,17 @@ define(function (require, exports, module) {
                     expect(changesFired).toBe(1);
                 });
 
-                it("can select a file that is not visible", function () {
+                it("won't select a file that is not visible", function () {
                     model.setSelected("/foo/subdir2/bar.js");
                     expect(changesFired).toBe(0);
-                    expect(model._selections.selected).toBe("/foo/subdir2/bar.js");
+                    expect(model._selections.selected).toBeUndefined();
                 });
 
-                it("will unselect the previously selected file when selecting one that's not visible", function () {
+                it("will maintain the previously selected file when selecting one that's not visible", function () {
                     model.setSelected("/foo/subdir1/afile.js");
                     model.setSelected("/foo/subdir2/bar.js");
-                    expect(vm._treeData.getIn(["subdir1", "children", "afile.js", "selected"])).toBeUndefined();
-                    expect(model._selections.selected).toBe("/foo/subdir2/bar.js");
+                    expect(vm._treeData.getIn(["subdir1", "children", "afile.js", "selected"])).toBe(true);
+                    expect(model._selections.selected).toBe("/foo/subdir1/afile.js");
                 });
                 
                 it("can accept a filesystem object", function () {
