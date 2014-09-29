@@ -709,17 +709,22 @@ define(function (require, exports, module) {
      *
      * @param {string} path full path of file or directory to which the context should be setBaseUrl
      * @param {boolean} _doNotRename True if this context change should not cause a rename operation to finish. This is a special case that goes with context menu handling.
+     * @param {boolean} _saveContext True if the current context should be saved (see comment below)
      */
-    ProjectModel.prototype.setContext = function (path, _doNotRename) {
+    ProjectModel.prototype.setContext = function (path, _doNotRename, _saveContext) {
         // This bit is not ideal: when the user right-clicks on an item in the file tree
         // and there is already a context menu up, the FileTreeView sends a signal to set the
         // context to the new element but the PopupManager follows that with a message that it's
         // closing the context menu (because it closes the previous one and then opens the new
         // one.) This timing means that we need to provide some special case handling here.
-        if (!path) {
-            this._selections.previousContext = this._selections.context;
+        if (_saveContext) {
+            if (!path) {
+                this._selections.previousContext = this._selections.context;
+            } else {
+                this._selections.previousContext = path;
+            }
         } else {
-            this._selections.previousContext = path;
+            delete this._selections.previousContext;
         }
 
         path = _getPathFromFSObject(path);

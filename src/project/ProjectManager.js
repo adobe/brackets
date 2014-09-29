@@ -1127,7 +1127,7 @@ define(function (require, exports, module) {
         });
 
         $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuClose", function () {
-            actionCreator.setContext(null);
+            model.setContext(null, false, true);
         });
 
         $projectTreeContainer.on("contextmenu", function () {

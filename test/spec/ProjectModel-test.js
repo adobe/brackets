@@ -453,7 +453,7 @@ define(function (require, exports, module) {
                 
                 it("should be able to restore the context to handle the context menu events", function () {
                     model.setContext("/foo/afile.js");
-                    model.setContext(null);
+                    model.setContext(null, false, true);
                     model.restoreContext();
                     expect(model._selections.context).toBe("/foo/afile.js");
                 });
@@ -617,7 +617,6 @@ define(function (require, exports, module) {
                     expect(vm._treeData.getIn(["afile.js", "context"])).toBe(true);
                     expect(model._selections).toEqual({
                         context: "/foo/afile.js",
-                        previousContext: "/foo/afile.js",
                         rename: {
                             deferred: jasmine.any(Object),
                             path: "/foo/afile.js",
