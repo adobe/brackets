@@ -185,7 +185,7 @@ define(function (require, exports, module) {
     var contextSettable = {
 
         /**
-         * Send middle click to the action creator as a setContext action.
+         * Send matching mouseDown events to the action creator as a setContext action.
          */
         handleMouseDown: function (e) {
             if (e.button === RIGHT_MOUSE_BUTTON ||
