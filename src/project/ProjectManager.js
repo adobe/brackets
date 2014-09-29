@@ -391,6 +391,7 @@ define(function (require, exports, module) {
      */
     function _fileViewControllerChange() {
         actionCreator.setFocused(_hasFileSelectionFocus());
+        _renderTree();
     }
 
     /**
