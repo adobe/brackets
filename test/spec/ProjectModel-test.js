@@ -786,6 +786,16 @@ define(function (require, exports, module) {
                         add: true
                     }]);
                 });
+                
+                it("should create a directory but not open it", function () {
+                    spyOn(model, "createAtPath").andReturn(new $.Deferred().resolve().promise());
+                    model.startCreating("/foo/", "Untitled", true);
+                    model.setRenameValue("newdir");
+                    model.performRename();
+                    expect(model.createAtPath).toHaveBeenCalledWith("/foo/newdir/");
+                    expect(vm._treeData.getIn(["newdir", "children"]).toJS()).toEqual({});
+                    expect(selectionEvents).toEqual([]);
+                });
 
                 it("can create an item with the default filename", function () {
                     spyOn(model, "createAtPath").andReturn(new $.Deferred().resolve().promise());

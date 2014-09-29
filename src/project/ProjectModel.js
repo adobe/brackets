@@ -919,7 +919,11 @@ define(function (require, exports, module) {
         if (renameInfo.type === FILE_CREATING) {
             this.createAtPath(newPath).done(function (entry) {
                 viewModel.renameItem(oldProjectPath, newName);
-                self.selectInWorkingSet(newPath);
+                
+                if (!isFolder) {
+                    self.selectInWorkingSet(newPath);
+                }
+                
                 renameInfo.deferred.resolve(entry);
             }).fail(function (error) {
                 self._viewModel.deleteAtPath(self.makeProjectRelativeIfPossible(renameInfo.path));
