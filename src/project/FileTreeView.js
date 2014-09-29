@@ -119,6 +119,22 @@ define(function (require, exports, module) {
     /**
      * @private
      *
+     * Gets an appropriate width given the text provided.
+     *
+     * @param {string} text Text to measure
+     * @return {int} Width to use
+     */
+    function _measureText(text) {
+        var measuringElement = $("<div />", { css : { "position" : "absolute", "top" : "-200px", "left" : ("-1000px"), "visibility" : "hidden" } }).appendTo("body");
+        measuringElement.text("pW" + text);
+        var width = measuringElement.width();
+        measuringElement.remove();
+        return width;
+    }
+
+    /**
+     * @private
+     *
      * This component presents an input field to the user for renaming a file.
      *
      * Props:
@@ -143,13 +159,10 @@ define(function (require, exports, module) {
         },
 
         render: function () {
-            var measuringElement = $("<div />", { css : { "position" : "absolute", "top" : "-200px", "left" : ("-1000px"), "visibility" : "hidden" } }).appendTo("body");
-            measuringElement.text("pW" + this.props.name);
-            var width = measuringElement.width();
-            measuringElement.remove();
+            var width = _measureText(this.props.name);
 
             return DOM.input({
-                className: "jstree-rename-input",
+                className: "jstree-rename-input " + this.props.fileClasses,
                 type: "text",
                 defaultValue: this.props.name,
                 autoFocus: true,
@@ -397,23 +410,21 @@ define(function (require, exports, module) {
                 }, "." + extension);
             }
 
-            var fileClasses = "";
-            if (this.props.entry.get("selected")) {
-                fileClasses += " jstree-clicked selected-node";
-            }
+            var nameDisplay,
+                cx = React.addons.classSet;
 
-            if (this.props.entry.get("context")) {
-                fileClasses += " context-node";
-            }
-
-            var nameDisplay;
+            var fileClasses = cx({
+                'jstree-clicked selected-node': this.props.entry.get("selected"),
+                'context-node': this.props.entry.get("context")
+            });
 
             if (this.props.entry.get("rename")) {
                 nameDisplay = fileRenameInput({
                     actions: this.props.actions,
                     entry: this.props.entry,
                     name: this.props.name,
-                    parentPath: this.props.parentPath
+                    parentPath: this.props.parentPath,
+                    fileClasses: fileClasses
                 });
             } else {
                 // Need to flatten the argument list because getIcons returns an array
@@ -500,14 +511,19 @@ define(function (require, exports, module) {
         mixins: [renameBehavior],
 
         render: function () {
+            var width = _measureText(this.props.name);
+
             return DOM.input({
-                className: "rename-input",
+                className: "jstree-rename-input",
                 type: "text",
                 defaultValue: this.props.name,
                 autoFocus: true,
                 onKeyDown: this.handleKeyDown,
                 onKeyUp: this.handleKeyUp,
-                ref: "name"
+                ref: "name",
+                style: {
+                    width: width
+                }
             });
         }
     });
@@ -679,7 +695,7 @@ define(function (require, exports, module) {
             var extensions = this.props.extensions,
                 iconClass = extensions && extensions.get("icons") ? "jstree-icons" : "jstree-no-icons",
                 ulProps = this.props.isRoot ? {
-                    className: "jstree-no-dots " + iconClass
+                    className: "jstree-brackets jstree-no-dots " + iconClass
                 } : null;
 
             var contents = this.props.contents,
@@ -757,7 +773,7 @@ define(function (require, exports, module) {
 
         render: function () {
             var selectionViewInfo = this.props.selectionViewInfo;
-            
+
             return DOM.div({
                 style: {
                     overflow: "auto",
