@@ -490,7 +490,7 @@ a, img {
         box-sizing: border-box;
         border-bottom:  1px solid rgba(0, 0, 0, 0.05);
         padding: 5px 10px;
-        color: @bc-text-quiet;
+        color: @bc-text-thin-quiet;
         background-color: @background;
         
         .dark & {
@@ -855,7 +855,8 @@ a, img {
     background: @bc-sidebar-selection;
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
-    height: 22px;
+    box-sizing: border-box;
+    height: 23px;
     position: absolute;
 }
 
@@ -863,18 +864,19 @@ a, img {
     background: @bc-sidebar-selection;
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
-    height: 22px;
+    box-sizing: border-box;
+    height: 23px;
     width: 9px; /* quiet scrollbar width */
-    height: 22px;
     position: fixed;
 
     z-index: @z-index-brackets-selection-extension; /* scroller-shadow appears above the extension */
 }
 
 .filetree-context {
-    background: @bc-highlight;
+    background: rgba(255, 255, 255, 0.06);
+    box-sizing: border-box;
     position: absolute;
-    height: 22px;
+    height: 23px;
 }
 
 //Initially start with the open files hidden, they will get show as files are added
