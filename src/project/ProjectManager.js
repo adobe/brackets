@@ -493,7 +493,11 @@ define(function (require, exports, module) {
             selectedEntry = model.getSelected();
         }
         if (!selectedEntry) {
-            selectedEntry = getProjectRoot();
+            if (_hasFileSelectionFocus()) {
+                selectedEntry = getProjectRoot();
+            } else {
+                selectedEntry = MainViewManager.getCurrentlyViewedFile();
+            }
         }
         return selectedEntry;
     }
@@ -1143,6 +1147,7 @@ define(function (require, exports, module) {
 
         $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuOpen", function () {
             actionCreator.restoreContext();
+            FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
         });
 
         $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuClose", function () {
