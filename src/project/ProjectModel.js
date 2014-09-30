@@ -649,29 +649,38 @@ define(function (require, exports, module) {
             return;
         }
 
-        this.performRename();
-
         var oldProjectPath = this.makeProjectRelativeIfPossible(this._selections.selected),
             pathInProject = this.makeProjectRelativeIfPossible(path);
+
+        if (path && !this._viewModel.isFilePathVisible(pathInProject)) {
+            path = null;
+            pathInProject = null;
+        }
+        
+        this.performRename();
 
         this._viewModel.moveMarker("selected", oldProjectPath, pathInProject);
         if (this._selections.context) {
             this._viewModel.moveMarker("context", this.makeProjectRelativeIfPossible(this._selections.context), null);
             delete this._selections.context;
         }
+        
+        var previousSelection = this._selections.selected;
         this._selections.selected = path;
 
         if (path) {
-            $(this).trigger(EVENT_SHOULD_FOCUS);
-
             if (!doNotOpen) {
                 $(this).trigger(EVENT_SHOULD_SELECT, {
-                    path: path
+                    path: path,
+                    previousPath: previousSelection,
+                    hadFocus: this._focused
                 });
             }
+            
+            $(this).trigger(EVENT_SHOULD_FOCUS);
         }
     };
-
+    
     /**
      * Gets the currently selected file or directory.
      *
@@ -709,17 +718,22 @@ define(function (require, exports, module) {
      *
      * @param {string} path full path of file or directory to which the context should be setBaseUrl
      * @param {boolean} _doNotRename True if this context change should not cause a rename operation to finish. This is a special case that goes with context menu handling.
+     * @param {boolean} _saveContext True if the current context should be saved (see comment below)
      */
-    ProjectModel.prototype.setContext = function (path, _doNotRename) {
+    ProjectModel.prototype.setContext = function (path, _doNotRename, _saveContext) {
         // This bit is not ideal: when the user right-clicks on an item in the file tree
         // and there is already a context menu up, the FileTreeView sends a signal to set the
         // context to the new element but the PopupManager follows that with a message that it's
         // closing the context menu (because it closes the previous one and then opens the new
         // one.) This timing means that we need to provide some special case handling here.
-        if (!path) {
-            this._selections.previousContext = this._selections.context;
+        if (_saveContext) {
+            if (!path) {
+                this._selections.previousContext = this._selections.context;
+            } else {
+                this._selections.previousContext = path;
+            }
         } else {
-            this._selections.previousContext = path;
+            delete this._selections.previousContext;
         }
 
         path = _getPathFromFSObject(path);
@@ -903,6 +917,10 @@ define(function (require, exports, module) {
         
         delete this._selections.rename;
         delete this._selections.context;
+        if (this._selections.selected === oldPath) {
+            this._selections.selected = newPath;
+        }
+        
         viewModel.moveMarker("rename", oldProjectPath, null);
         viewModel.moveMarker("context", oldProjectPath, null);
         viewModel.moveMarker("creating", oldProjectPath, null);
@@ -910,6 +928,7 @@ define(function (require, exports, module) {
         if (renameInfo.type === FILE_CREATING) {
             this.createAtPath(newPath).done(function (entry) {
                 viewModel.renameItem(oldProjectPath, newName);
+                
                 renameInfo.deferred.resolve(entry);
             }).fail(function (error) {
                 self._viewModel.deleteAtPath(self.makeProjectRelativeIfPossible(renameInfo.path));
@@ -947,7 +966,7 @@ define(function (require, exports, module) {
 
         return doCreate(path, isFolder).done(function (entry) {
             if (!isFolder) {
-                self.setSelected(entry.fullPath);
+                self.selectInWorkingSet(entry.fullPath);
             }
         }).fail(function (error) {
             $(self).trigger(ERROR_CREATION, {

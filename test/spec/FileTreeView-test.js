@@ -21,7 +21,7 @@
  *
  */
 
-/*global $, define, describe, it, expect */
+/*global $, define, describe, it, expect, jasmine */
 /*unittests: FileTreeView*/
 
 define(function (require, exports, module) {
@@ -103,6 +103,55 @@ define(function (require, exports, module) {
                 expect($ins.text()).toBe("ICON");
             });
             
+            it("should set context on a node by right click", function () {
+                var actions = jasmine.createSpyObj("actions", ["setContext"]);
+                var rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                    name: "afile.js",
+                    entry: Immutable.Map(),
+                    actions: actions,
+                    parentPath: "/foo/"
+                }));
+                var node = rendered.getDOMNode();
+                React.addons.TestUtils.Simulate.mouseDown(node, {
+                    button: 2
+                });
+                expect(actions.setContext).toHaveBeenCalledWith("/foo/afile.js");
+            });
+            
+            it("should set context on a node by control click on Mac", function () {
+                var actions = jasmine.createSpyObj("actions", ["setContext"]);
+                var rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                    name: "afile.js",
+                    entry: Immutable.Map(),
+                    actions: actions,
+                    parentPath: "/foo/",
+                    platform: "mac"
+                }));
+                var node = rendered.getDOMNode();
+                React.addons.TestUtils.Simulate.mouseDown(node, {
+                    button: 0,
+                    ctrlKey: true
+                });
+                expect(actions.setContext).toHaveBeenCalledWith("/foo/afile.js");
+            });
+
+            it("should not set context on a node by control click on Windows", function () {
+                var actions = jasmine.createSpyObj("actions", ["setContext"]);
+                var rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                    name: "afile.js",
+                    entry: Immutable.Map(),
+                    actions: actions,
+                    parentPath: "/foo/",
+                    platform: "win"
+                }));
+                var node = rendered.getDOMNode();
+                React.addons.TestUtils.Simulate.mouseDown(node, {
+                    button: 0,
+                    ctrlKey: true
+                });
+                expect(actions.setContext).not.toHaveBeenCalled();
+            });
+
             it("should allow icon extensions to return a jQuery object for the icon", function () {
                 var extensionCalls = 0,
                     rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
