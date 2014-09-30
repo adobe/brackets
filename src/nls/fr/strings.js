@@ -439,7 +439,7 @@ define({
 	"BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",
 	"BASEURL_ERROR_INVALID_CHAR": "Les caractères spéciaux tels que '{0}' doivent être codés en %.",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
-	"EMPTY_VIEW_HEADER": "[7760705] !é=<em>Open a file while this pane has focus</em>=!",
+	"EMPTY_VIEW_HEADER": "<em>Ouvrir un fichier quand ce panneau est actif</em>",
     
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "Thème actuel ",
@@ -598,7 +598,7 @@ define({
 	"CMD_SHOW_PARAMETER_HINT": "Afficher l’indicateur de paramètre",
 	"NO_ARGUMENTS": "<aucun paramètre>",
 	"DETECTED_EXCLUSION_TITLE": "Problème d’inférence de fichier Javascript",
-	"DETECTED_EXCLUSION_INFO": "[7629443] !é=Brackets ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To reenable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a Brackets bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.=!",
+	"DETECTED_EXCLUSION_INFO": "Brackets a rencontré des problèmes lors du traitement du fichier <span class='dialog-filename'>{0}</span>.<br><br>La fonction d’accès aux définitions, les indicateurs de code et la fonction Edition rapide de ce fichier ne seront plus traités. Pour réactiver ce fichier, ouvrez <code>.brackets.json</code> dans votre projet et éditez la section <code>jscodehints.detectedExclusions</code>.<br><br>Il s’agit vraisemblablement d’un bug au niveau de l’application Brackets. Si vous pouvez nous transmettre une copie de ce fichier, merci de <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>consigner un bug</a> en fournissant un lien vers le fichier en question.",
     
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
