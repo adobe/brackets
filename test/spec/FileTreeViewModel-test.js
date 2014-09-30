@@ -488,6 +488,20 @@ define(function (require, exports, module) {
                     ]
                 ]);
             });
+            
+            it("should not return an open child node of a closed parent", function () {
+                vm._treeData = Immutable.fromJS({
+                    subdir1: {
+                        children: {
+                            subsubdir: {
+                                children: {},
+                                open: true
+                            }
+                        }
+                    }
+                });
+                expect(vm.getOpenNodes("/foo/bar/")).toEqual([]);
+            });
         });
 
 
@@ -617,6 +631,15 @@ define(function (require, exports, module) {
                 expect(vm._selectionViewInfo.get("hasContext")).toBe(true);
                 vm.moveMarker("context", "subdir1/afile.js", null);
                 expect(vm._selectionViewInfo.get("hasContext")).toBe(false);
+            });
+            
+            it("should signal a change when just selectionViewInfo changes", function () {
+                vm.moveMarker("context", null, "subdir1/afile.js");
+                vm.deleteAtPath("subdir1/afile.js");
+                changesFired = 0;
+                vm.moveMarker("context", "subdir1/afile.js", null);
+                expect(vm._selectionViewInfo.get("hasContext")).toBe(false);
+                expect(changesFired).toBe(1);
             });
         });
 

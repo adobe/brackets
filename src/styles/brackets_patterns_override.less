@@ -75,6 +75,28 @@ a:focus {
     }
 }
 
+/* working set drag ghost styles */
+
+.wsv-drag-ghost {
+    letter-spacing: .01em;
+    position: absolute;
+    z-index: @z-index-brackets-drag-ghost;
+    background-color: transparent;
+
+    text-shadow: 0px 1px 2px @bc-shadow-large;
+    
+    .dark & {
+        text-shadow: 0px 1px 2px @dark-bc-shadow-large;
+    }
+}
+
+.wsv-drag-ghost.dragging-current-file {
+    background-color: @bc-sidebar-selection;
+}
+
+#working-set-list-container .drag-show-as-selected {
+    background-color: @bc-sidebar-selection;
+}
 
 /* Toolbar-related styles */
 

@@ -244,12 +244,13 @@ define(function (require, exports, module) {
      * @param {!string} fullPath
      * @param {boolean=} silent If true, don't show error message
      * @param {string=} paneId, the id oi the pane in which to open the file. Can be undefined, a valid pane id or ACTIVE_PANE. 
-     * @return {Promise} a promise that will either
+     * @param {{*}=} options, command options
+     * @return {Promise} a Promise that will either
      * - be resolved with a file for the specified file path or
      * - be rejected with FileSystemError if the file can not be read.
      * If paneId is undefined, the ACTIVE_PANE constant
      */
-    function _doOpen(fullPath, silent, paneId) {
+    function _doOpen(fullPath, silent, paneId, options) {
         var perfTimerName, result;
         
         result = new Promise(function (resolve, reject) {
@@ -266,7 +267,7 @@ define(function (require, exports, module) {
                 if (silent) {
                     _cleanup(fileError, fullFilePath);
                 } else {
-                    FileUtils.showFileOpenError(fileError, fullFilePath).done(function () {
+                    FileUtils.showFileOpenError(fileError, fullFilePath).then(function () {
                         _cleanup(fileError, fullFilePath);
                     });
                 }
@@ -284,7 +285,7 @@ define(function (require, exports, module) {
             } else {
                 perfTimerName = PerfUtils.markStart("Open File:\t" + fullPath);
                 var file = FileSystem.getFileForPath(fullPath);
-                MainViewManager._open(paneId, file)
+                MainViewManager._open(paneId, file, options)
                     .then(function () {
                         resolve(file);
                     })
@@ -318,16 +319,16 @@ define(function (require, exports, module) {
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @param {boolean=} silent - If true, don't show error message
      * @param {string=}  paneId - the pane in which to open the file. Can be undefined, a valid pane id or ACTIVE_PANE
-     * @return {Promise} a promise resolved with a Document object or 
+     * @param {{*}=} options - options to pass to MainViewManager._open
+     * @return {Promise} a Promise resolved with a Document object or 
      *                      rejected with an err 
      */
-    function _doOpenWithOptionalPath(fullPath, silent, paneId) {
+    function _doOpenWithOptionalPath(fullPath, silent, paneId, options) {
         var result;
         paneId = paneId || MainViewManager.ACTIVE_PANE;
         if (!fullPath) {
-            // Create placeholder promise
+            // Create placeholder deferred
             result = new Promise(function (resolve, reject) {
-
                 //first time through, default to the current project path
                 if (!_defaultOpenDialogFullPath) {
                     _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
@@ -336,7 +337,7 @@ define(function (require, exports, module) {
                 FileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null, function (err, paths) {
                     if (!err) {
                         if (paths.length > 0) {
-                            // Add all files to the working set without verifying that
+                            // Add all files to the workingset without verifying that
                             // they still exist on disk (for faster opening)
                             var filesToOpen = [];
 
@@ -345,27 +346,24 @@ define(function (require, exports, module) {
                             });
                             MainViewManager.addListToWorkingSet(paneId, filesToOpen);
 
-                            _doOpen(paths[paths.length - 1], silent)
+                            _doOpen(paths[paths.length - 1], silent, paneId, options)
                                 .then(function (file) {
                                     _defaultOpenDialogFullPath =
                                         FileUtils.getDirectoryPath(
                                             MainViewManager.getCurrentlyViewedPath(paneId)
                                         );
-                                    
-                                    resolve(file);
                                 })
-                                .catch(reject);
+                                // Send the resulting document that was opened
+                                .then(result.resolve, result.reject);
                         } else {
-                            reject();
+                            // Reject if the user canceled the dialog
+                            reject(err);
                         }
-                    } else {
-                        // Reject if the user canceled the dialog
-                        reject(err);
                     }
                 });
             });
         } else {
-            result = _doOpen(fullPath, silent, paneId);
+            result = _doOpen(fullPath, silent, paneId, options);
         }
         
         return result;
@@ -423,9 +421,11 @@ define(function (require, exports, module) {
         
         return new Promise(function (resolve, reject) {
 
-            _doOpenWithOptionalPath(fileInfo.path, silent, paneId)
+            _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
                 .then(function (file) {
-                    MainViewManager.setActivePaneId(paneId);
+                    if (!commandData || !commandData.options || !commandData.options.noPaneActivate) {
+                        MainViewManager.setActivePaneId(paneId);
+                    }
 
                     // If a line and column number were given, position the editor accordingly.
                     if (fileInfo.line !== null) {

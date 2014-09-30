@@ -1562,7 +1562,7 @@ define(function (require, exports, module) {
         }
         
         // scan backwards to see if the cursor is in a rule
-        while (true) {
+        do {
             if (ctx.token.type !== "comment") {
                 if (ctx.token.string === "}") {
                     if (isPreprocessorDoc) {
@@ -1591,13 +1591,12 @@ define(function (require, exports, module) {
                     if (!isPreprocessorDoc && _hasNonWhitespace(ctx.token.string)) {
                         foundChars = true;
                     }
+                    TokenUtils.movePrevToken(ctx);
                 }
+            } else {
+                TokenUtils.movePrevToken(ctx);
             }
-            
-            if (ctx.token.string !== "{" && ctx.token.string !== "}" && !TokenUtils.movePrevToken(ctx)) {
-                break;
-            }
-        }
+        } while (!TokenUtils.isAtStart(ctx));
         
         selector = _stripAtRules(selector);
         
@@ -1619,7 +1618,7 @@ define(function (require, exports, module) {
         // At this point if we haven't found a selector, but have seen chars when
         // scanning, assume we are in the middle of a selector. For a preprocessor 
         // document we also need to collect the current selector if the cursor is 
-        // is within the selector or whitespaces immediately before or after it.
+        // within the selector or whitespaces immediately before or after it.
         if ((!selector || isPreprocessorDoc) && foundChars) {
             // scan forward to see if the cursor is in a selector
             while (true) {
