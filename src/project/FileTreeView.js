@@ -688,9 +688,9 @@ define(function (require, exports, module) {
                 DOM.ins({
                     className: "jstree-icon"
                 }, " "),
+                renameInput,
                 nameDisplay,
-                childNodes,
-                renameInput);
+                childNodes);
         }
     });
 
