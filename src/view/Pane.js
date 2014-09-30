@@ -809,7 +809,7 @@ define(function (require, exports, module) {
      * after in the working set up and reinserting it at the desired location
      * @param {!number} fromIndex - the index of the item to move
      * @param {!number} toIndex - the index to move to
-     * @privaate
+     * @private
      */
     Pane.prototype.moveWorkingSetItem = function (fromIndex, toIndex) {
         this._viewList.splice(toIndex, 0, this._viewList.splice(fromIndex, 1)[0]);

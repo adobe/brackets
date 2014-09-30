@@ -864,7 +864,7 @@ define(function (require, exports, module) {
      * @param {!string} paneId - id of the pane to sort
      * @param {!number} fromIndex - the index of the item to move
      * @param {!number} toIndex - the index to move to
-     * @privaate
+     * @private
      */
     function _moveWorkingSetItem(paneId, fromIndex, toIndex) {
         var pane = _getPane(paneId);
