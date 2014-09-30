@@ -682,6 +682,18 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Get previous project from MRU list, or Getting Started folder if no previous projects.
+     * @return {string}
+     */
+    function _getPreviousProjectPath() {
+        var recentProjects = PreferencesManager.getViewState("recentProjects");
+        if (recentProjects && recentProjects.length > 0) {
+            return recentProjects[0];
+        }
+        return _getWelcomeProjectPath();
+    }
+
+    /**
      * Initial project path is stored in prefs, which defaults to the welcome project on
      * first launch.
      */
@@ -870,11 +882,19 @@ define(function (require, exports, module) {
                                 // project directory.
                                 // TODO (issue #267): When Brackets supports having no project directory
                                 // defined this code will need to change
-                                _loadProject(_getWelcomeProjectPath()).always(function () {
-                                    // Make sure not to reject the original deferred until the fallback
-                                    // project is loaded, so we don't violate expectations that there is always
-                                    // a current project before continuing after _loadProject().
-                                    result.reject();
+                                var fallbackPath = _getPreviousProjectPath();
+                                rootEntry = FileSystem.getDirectoryForPath(fallbackPath);
+                                rootEntry.exists(function (err, exists) {
+                                    if (!exists) {
+                                        // In case user has deleted Getting Started folder
+                                        fallbackPath = FileUtils.getNativeBracketsDirectoryPath();
+                                    }
+                                    _loadProject(fallbackPath).always(function () {
+                                        // Make sure not to reject the original deferred until the fallback
+                                        // project is loaded, so we don't violate expectations that there is always
+                                        // a current project before continuing after _loadProject().
+                                        result.reject();
+                                    });
                                 });
                             });
                     }
