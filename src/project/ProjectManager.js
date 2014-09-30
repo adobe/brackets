@@ -859,7 +859,7 @@ define(function (require, exports, module) {
                         });
                     } else {
                         console.log("error loading project");
-                        _showErrorDialog(ERR_TYPE_LOADING_PROJECT_NATIVE, null, rootPath, err || FileSystemError.NOT_FOUND)
+                        _showErrorDialog(ERR_TYPE_LOADING_PROJECT_NATIVE, true, err || FileSystemError.NOT_FOUND, rootPath)
                             .done(function () {
                                 // Reset _projectRoot to null so that the following _loadProject call won't
                                 // run the 'beforeProjectClose' event a second time on the original project,
