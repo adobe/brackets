@@ -57,6 +57,8 @@
  *          (e, fileAdded:File, index:number, paneId:string)
  *    - workingSetAddList -- When multiple files are added to the working set 
  *          (e, fileAdded:Array.<File>, paneId:string)
+ *    - workingSetMove - When a File has moved to a different working set
+ *          (e, File:FILE, sourcePaneId:string, destinationPaneId:string)
  *    - workingSetRemove -- When a file is removed from the working set 
  *          (e, fileRemoved:File, suppressRedraw:boolean, paneId:string)
  *    - workingSetRemoveList -- When multiple files are removed from the working set 
@@ -787,6 +789,45 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * moves a view from one pane to another
+     * @param {!string} sourcePaneId - id of the source pane
+     * @param {!string} destinationPaneId - id of the destination pane
+     * @param {!File} file - the File to move
+     * @param {Number} destinationIndex - the working set index of the file in the destination pane
+     * @return {jQuery.Promise} a promise that resolves when the move has completed.
+     * @private
+     */
+    function _moveView(sourcePaneId, destinationPaneId, file, destinationIndex) {
+        var result = new $.Deferred(),
+            sourcePane = _getPane(sourcePaneId),
+            destinationPane = _getPane(destinationPaneId);
+        
+        sourcePane.moveView(file, destinationPane, destinationIndex)
+            .done(function () {
+                // update the mru list
+                _mruList.every(function (record) {
+                    if (record.file === file && record.paneId === sourcePane.id) {
+                        record.paneId = destinationPane.id;
+                        return false;
+                    }
+                    return true;
+                });
+            
+                $(exports).triggerHandler("workingSetMove", [file, sourcePane.id, destinationPane.id]);
+                result.resolve();
+            });
+        
+        return result.promise();
+    }
+    
+    /**
+     * DocumentManager.pathDeleted Event handler to remove a file
+     * from the MRU list
+     * @param {!jQuery.event} e - 
+     * @param {!string} fullPath - path of the file to remove
+     * @private
+     */
     function _removeDeletedFileFromMRU(e, fullPath) {
         var index,
             compare = function (record) {
@@ -808,13 +849,29 @@ define(function (require, exports, module) {
      * @param {sortFunctionCallback} compareFn - callback to determine sort order (called on each item)
      * @see {@link Pane.sortViewList()} for more information
      * @see {@link https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort|Sort Array - MDN}
-     * @privaate
+     * @private
      */
     function _sortWorkingSet(paneId, compareFn) {
         _forEachPaneOrPanes(paneId, function (pane) {
             pane.sortViewList(compareFn);
             $(exports).triggerHandler("workingSetSort", [pane.id]);
         });
+    }
+    
+    /**
+     * moves a working set item from one index to another shifting the items
+     * after in the working set up and reinserting it at the desired location
+     * @param {!string} paneId - id of the pane to sort
+     * @param {!number} fromIndex - the index of the item to move
+     * @param {!number} toIndex - the index to move to
+     * @private
+     */
+    function _moveWorkingSetItem(paneId, fromIndex, toIndex) {
+        var pane = _getPane(paneId);
+
+        pane.moveWorkingSetItem(fromIndex, toIndex);
+        $(exports).triggerHandler("workingSetSort", [pane.id]);
+        $(exports).triggerHandler("_workingSetDisableAutoSort", [pane.id]);
     }
 
     /**
@@ -1071,10 +1128,13 @@ define(function (require, exports, module) {
      * Do not use this API unless you have a document object without a file object
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Document} doc - document to edit
+     * @param {{noPaneActivate:boolean}=} optionsIn - options
      * @private
      */
-    function _edit(paneId, doc) {
-        var currentPaneId = _getPaneIdForPath(doc.file.fullPath);
+    function _edit(paneId, doc, optionsIn) {
+        var currentPaneId = _getPaneIdForPath(doc.file.fullPath),
+            options = optionsIn || {};
+
             
         if (currentPaneId) {
             // If the doc is open in another pane
@@ -1083,7 +1143,9 @@ define(function (require, exports, module) {
             //  we could just do pane.showView(doc._masterEditor) in that
             //  case but Editor Manager may do some state syncing 
             paneId = currentPaneId;
-            setActivePaneId(paneId);
+            if (!options.noPaneActivate) {
+                setActivePaneId(paneId);
+            }
         }
         
         var pane = _getPane(paneId);
@@ -1104,14 +1166,16 @@ define(function (require, exports, module) {
      * or a document for editing.  If it's a document for editing, edit is called on the document 
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!File} file - file to open
+     * @param {{noPaneActivate:boolean}=} optionsIn - options
      * @return {jQuery.Promise}  promise that resolves to a File object or 
      *                           rejects with a File error or string
      */
-    function _open(paneId, file) {
-        var result = new $.Deferred();
+    function _open(paneId, file, optionsIn) {
+        var result = new $.Deferred(),
+            options = optionsIn || {};
         
         if (!file || !_getPane(paneId)) {
-            throw new Error("bad argument");
+            return result.reject("bad argument").promise();
         }
 
         var currentPaneId = _getPaneIdForPath(file.fullPath);
@@ -1139,7 +1203,9 @@ define(function (require, exports, module) {
             //  we could just do pane.showView(doc._masterEditor) in that
             //  case but Editor Manager may do some state syncing             
             paneId = currentPaneId;
-            setActivePaneId(paneId);
+            if (!options.noPaneActivate) {
+                setActivePaneId(paneId);
+            }
         }
         
         // See if there is already a view for the file
@@ -1173,7 +1239,7 @@ define(function (require, exports, module) {
         } else {
             DocumentManager.getDocumentForPath(file.fullPath)
                 .done(function (doc) {
-                    _edit(paneId, doc);
+                    _edit(paneId, doc, options);
                     result.resolve(doc.file);
                 })
                 .fail(function (fileError) {
@@ -1583,9 +1649,11 @@ define(function (require, exports, module) {
         
     // Private Helpers
     exports._removeView                   = _removeView;
+    exports._moveView                     = _moveView;
     
     // Private API
     exports._sortWorkingSet               = _sortWorkingSet;
+    exports._moveWorkingSetItem           = _moveWorkingSetItem;
     exports._swapWorkingSetListIndexes    = _swapWorkingSetListIndexes;
     exports._destroyEditorIfNotNeeded     = _destroyEditorIfNotNeeded;
     exports._edit                         = _edit;
