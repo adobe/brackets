@@ -179,7 +179,7 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * This mixin handles right click (or control click on Mac) action to make a file 
+     * This mixin handles right click (or control click on Mac) action to make a file
      * the "context" object for performing operations like rename.
      */
     var contextSettable = {
@@ -318,7 +318,7 @@ define(function (require, exports, module) {
         componentDidUpdate: function (prevProps, prevState) {
             var wasSelected = prevProps.entry.get("selected"),
                 isSelected  = this.props.entry.get("selected");
-            
+
             if (isSelected && !wasSelected) {
                 // TODO: This shouldn't really know about project-files-container
                 // directly. It is probably the case that our React tree should actually
@@ -330,7 +330,7 @@ define(function (require, exports, module) {
                 this.clearTimer();
             }
         },
-        
+
         clearTimer: function () {
             if (this.state.clickTimer !== null) {
                 window.clearTimeout(this.state.clickTimer);
@@ -339,7 +339,7 @@ define(function (require, exports, module) {
                 });
             }
         },
-        
+
         startRename: function () {
             if (!this.props.entry.get("rename")) {
                 this.props.actions.startRename(this.myPath());
@@ -360,7 +360,7 @@ define(function (require, exports, module) {
             if (e.button !== LEFT_MOUSE_BUTTON) {
                 return;
             }
-            
+
             if (this.props.entry.get("selected")) {
                 if (this.state.clickTimer === null && !this.props.entry.get("rename")) {
                     var timer = window.setTimeout(this.startRename, CLICK_RENAME_MINIMUM);
@@ -772,7 +772,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            node.style.top = selectedNode.offset().top - selectionViewInfo.get("offsetTop") + selectionViewInfo.get("scrollTop") + "px";
+            node.style.top = selectedNode.offset().top - selectionViewInfo.get("offsetTop") + selectionViewInfo.get("scrollTop") - selectedNode.position().top + "px";
         },
 
         render: function () {
