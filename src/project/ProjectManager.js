@@ -281,9 +281,6 @@ define(function (require, exports, module) {
      */
     ActionCreator.prototype.setContext = function (path) {
         this.model.setContext(path);
-        if (path !== null && !_hasFileSelectionFocus()) {
-            $projectTreeContainer.trigger("scroll");
-        }
     };
 
     /**
@@ -405,27 +402,26 @@ define(function (require, exports, module) {
     /**
      * @private
      *
+     * Handler for changes in the focus between working set and file tree view.
+     */
+    function _fileViewControllerChange() {
+        actionCreator.setFocused(_hasFileSelectionFocus());
+        _renderTree();
+    }
+
+    /**
+     * @private
+     *
      * Handler for changes in document selection.
      */
     function _documentSelectionFocusChange() {
         var curFullPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE);
         if (curFullPath && _hasFileSelectionFocus()) {
             actionCreator.setSelected(curFullPath, true);
-            actionCreator.setFocused(true);
         } else {
             actionCreator.setSelected(null);
-            actionCreator.setFocused(false);
         }
-    }
-
-    /**
-     * @private
-     *
-     * Handler for changes in the focus between working set and file tree view.
-     */
-    function _fileViewControllerChange() {
-        actionCreator.setFocused(_hasFileSelectionFocus());
-        $projectTreeContainer.trigger("scroll");
+        _fileViewControllerChange();
     }
 
     /**
@@ -631,6 +627,7 @@ define(function (require, exports, module) {
         if (!projectRoot) {
             return;
         }
+        model.setScrollerInfo($projectTreeContainer.scrollTop(), $projectTreeContainer.scrollLeft(), $projectTreeContainer.offset().top);
         FileTreeView.render(fileTreeViewContainer, model._viewModel, projectRoot, actionCreator, forceRender, brackets.platform);
     };
 
@@ -1122,15 +1119,6 @@ define(function (require, exports, module) {
         _renderTree();
     }
     
-    /**
-     * @private
-     * 
-     * Updates the scroller positioning on scroll or sidebar changes.
-     */
-    function _updateScrollerInfo() {
-        model.setScrollerInfo($projectTreeContainer.scrollTop(), $projectTreeContainer.scrollLeft(), $projectTreeContainer.offset().top);
-    }
-    
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
@@ -1158,7 +1146,7 @@ define(function (require, exports, module) {
         });
 
         $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuClose", function () {
-            actionCreator.setContext(null);
+            model.setContext(null, false, true);
         });
 
         $projectTreeContainer.on("contextmenu", function () {
@@ -1178,7 +1166,7 @@ define(function (require, exports, module) {
                 Menus.closeAll();
                 actionCreator.setContext(null);
             }
-            _updateScrollerInfo();
+            _renderTree();
         });
         
         _renderTree();
