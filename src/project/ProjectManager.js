@@ -381,25 +381,6 @@ define(function (require, exports, module) {
     var actionCreator = new ActionCreator(model);
 
     /**
-     * Returns the File or Directory corresponding to the item selected in the sidebar panel, whether in
-     * the file tree OR in the working set; or null if no item is selected anywhere in the sidebar.
-     * May NOT be identical to the current Document - a folder may be selected in the sidebar, or the sidebar may not
-     * have the current document visible in the tree & working set.
-     * @return {?(File|Directory)}
-     */
-    function getSelectedItem() {
-        // Prefer file tree context, then selection, else use working set
-        var selectedEntry = model.getContext();
-        if (!selectedEntry) {
-            selectedEntry = model.getSelected();
-        }
-        if (!selectedEntry) {
-            selectedEntry = MainViewManager.getCurrentlyViewedFile();
-        }
-        return selectedEntry;
-    }
-
-    /**
      * @private
      *
      * Handler for changes in the focus between working set and file tree view.
@@ -496,6 +477,25 @@ define(function (require, exports, module) {
      */
     function getProjectRoot() {
         return model.projectRoot;
+    }
+
+    /**
+     * Returns the File or Directory corresponding to the item selected in the sidebar panel, whether in
+     * the file tree OR in the working set; or null if no item is selected anywhere in the sidebar.
+     * May NOT be identical to the current Document - a folder may be selected in the sidebar, or the sidebar may not
+     * have the current document visible in the tree & working set.
+     * @return {?(File|Directory)}
+     */
+    function getSelectedItem() {
+        // Prefer file tree context, then selection, else use working set
+        var selectedEntry = model.getContext();
+        if (!selectedEntry) {
+            selectedEntry = model.getSelected();
+        }
+        if (!selectedEntry) {
+            selectedEntry = getProjectRoot();
+        }
+        return selectedEntry;
     }
 
     /**
