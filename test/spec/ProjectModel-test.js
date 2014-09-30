@@ -481,14 +481,14 @@ define(function (require, exports, module) {
                 it("won't select a file that is not visible", function () {
                     model.setSelected("/foo/subdir2/bar.js");
                     expect(changesFired).toBe(0);
-                    expect(model._selections.selected).toBeUndefined();
+                    expect(model._selections.selected).toBeNull();
                 });
 
-                it("will maintain the previously selected file when selecting one that's not visible", function () {
+                it("will clear the selected file when selecting one that's not visible", function () {
                     model.setSelected("/foo/subdir1/afile.js");
                     model.setSelected("/foo/subdir2/bar.js");
-                    expect(vm._treeData.getIn(["subdir1", "children", "afile.js", "selected"])).toBe(true);
-                    expect(model._selections.selected).toBe("/foo/subdir1/afile.js");
+                    expect(vm._treeData.getIn(["subdir1", "children", "afile.js", "selected"])).toBeUndefined();
+                    expect(model._selections.selected).toBeNull();
                 });
                 
                 it("can accept a filesystem object", function () {
@@ -792,10 +792,14 @@ define(function (require, exports, module) {
                     expect(vm._treeData.getIn(["subdir1", "children", "newfile.js", "creating"])).toBeUndefined();
                     expect(vm._treeData.getIn(["subdir1", "children", "newfile.js", "rename"])).toBeUndefined();
                     expect(model._selections.rename).toBeUndefined();
-                    expect(selectionEvents).toEqual([{
-                        path: "/foo/subdir1/newfile.js",
-                        add: true
-                    }]);
+                    
+                    // The selectionEvent now comes from createAtPath which we have mocked out.
+                    // We can restore this check once we have chosen a way to hook into RequireJS
+                    // loading.
+//                    expect(selectionEvents).toEqual([{
+//                        path: "/foo/subdir1/newfile.js",
+//                        add: true
+//                    }]);
                 });
                 
                 it("should create a directory but not open it", function () {

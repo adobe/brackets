@@ -653,7 +653,8 @@ define(function (require, exports, module) {
             pathInProject = this.makeProjectRelativeIfPossible(path);
 
         if (path && !this._viewModel.isFilePathVisible(pathInProject)) {
-            return;
+            path = null;
+            pathInProject = null;
         }
         
         this.performRename();
@@ -928,10 +929,6 @@ define(function (require, exports, module) {
             this.createAtPath(newPath).done(function (entry) {
                 viewModel.renameItem(oldProjectPath, newName);
                 
-                if (!isFolder) {
-                    self.selectInWorkingSet(newPath);
-                }
-                
                 renameInfo.deferred.resolve(entry);
             }).fail(function (error) {
                 self._viewModel.deleteAtPath(self.makeProjectRelativeIfPossible(renameInfo.path));
@@ -969,7 +966,7 @@ define(function (require, exports, module) {
 
         return doCreate(path, isFolder).done(function (entry) {
             if (!isFolder) {
-                self.setSelected(entry.fullPath);
+                self.selectInWorkingSet(entry.fullPath);
             }
         }).fail(function (error) {
             $(self).trigger(ERROR_CREATION, {
