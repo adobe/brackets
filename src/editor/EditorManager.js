@@ -554,8 +554,10 @@ define(function (require, exports, module) {
         // show the view
         pane.showView(document._masterEditor);
 
-        // give it focus
-        document._masterEditor.focus();
+        if (MainViewManager.getActivePaneId() === pane.id) {
+            // give it focus
+            document._masterEditor.focus();
+        }
 
         if (createdNewEditor) {
             _restoreEditorViewState(document._masterEditor);

@@ -55,6 +55,7 @@
         background-color: transparent;
     }
 
+    .dragging ::-webkit-scrollbar-thumb,
     :hover::-webkit-scrollbar-thumb,
     :focus::-webkit-scrollbar-thumb {
         border-radius: 999px;
@@ -62,11 +63,13 @@
         border: 2px solid transparent;
     }
 
+    .dragging ::-webkit-scrollbar-thumb,
     :hover::-webkit-scrollbar-thumb:vertical,
     :focus::-webkit-scrollbar-thumb:vertical {
         min-height: 20px;
     }
 
+    .dragging :-webkit-scrollbar-thumb,
     :hover::-webkit-scrollbar-thumb:horizontal,
     :focus::-webkit-scrollbar-thumb:horizontal {
         min-width: 20px;
@@ -116,6 +119,8 @@
     ::-webkit-scrollbar-thumb {
         box-shadow: 0 0 0 12px @win-scrollbar-thumb inset;
     }
+
+    .dragging ::-webkit-scrollbar-thumb,
     ::-webkit-scrollbar-thumb:hover,
     ::-webkit-scrollbar-thumb:focus {
         box-shadow: 0 0 0 12px @win-scrollbar-thumb-hover inset;
