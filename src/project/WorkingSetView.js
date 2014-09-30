@@ -441,6 +441,13 @@ define(function (require, exports, module) {
                             ($hit.is("ul") && $hit.parent().is(".open-files-container")));
                 }
                 
+                function findViewFor($elem) {
+                    if ($elem.is(".working-set-view")) {
+                        return $elem;
+                    }
+                    return $elem.parents(".working-set-view");
+                }
+                
                 if ($item.length) {
                     // We hit an item (li)
                     if (onTopScroller && (direction <= 0 || lastHit.where === TOPSCROLL)) {
@@ -487,12 +494,12 @@ define(function (require, exports, module) {
                         if (mouseIsInTopHalf($hit)) {
                             result = {
                                 where: ABOVEVIEW,
-                                which: $hit
+                                which: findViewFor($hit)
                             };
                         } else {
                             result = {
                                 where: BELOWVIEW,
-                                which: $hit
+                                which: findViewFor($hit)
                             };
                         }
                         return result;
