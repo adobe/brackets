@@ -691,9 +691,9 @@ define(function (require, exports, module) {
             deferred = new $.Deferred();
 
         // Build ordered fallback path array
-        if (recentProjects && recentProjects.length > 0) {
-            // Start with MRU project
-            fallbackPaths.push(recentProjects[0]);
+        if (recentProjects && recentProjects.length > 1) {
+            // *Most* recent project is the one that just failed to load, so use second most recent
+            fallbackPaths.push(recentProjects[1]);
         }
 
         // Next is Getting Started project
