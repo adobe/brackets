@@ -53,7 +53,7 @@ define(function (require, exports, module) {
      * @type {Object.<string, WorkingSetView>}
      */
     var _views = {};
-    
+
     /**
      * Icon Providers
      * @see {@link WorkingSetView#addIconProvider()}
@@ -97,7 +97,6 @@ define(function (require, exports, module) {
         BELOWVIEW  = "belowview",
         ABOVEVIEW  = "aboveview";
     
-    
     /**
      * Refreshes all Pane View List Views
      */
@@ -133,7 +132,6 @@ define(function (require, exports, module) {
         
         ViewUtils.toggleClass($(listItem), "selected", shouldBeSelected);
     }
-
 
     /**
      * Determines if a file is dirty
@@ -228,7 +226,6 @@ define(function (require, exports, module) {
             if (interval) {
                 window.clearInterval(interval);
                 interval = undefined;
-                //console.log("end-scroll");
             }
         }
         
@@ -247,7 +244,6 @@ define(function (require, exports, module) {
                 interval = window.setInterval(function () {
                     var scrollTop = $container.scrollTop();
                     if ((dir === -1 && scrollTop <= 0) || (dir === 1 && scrollTop >= maxScroll)) {
-                        //console.log("hit end of scroll range");
                         endScroll($el);
                     } else {
                         $container.scrollTop(scrollTop + 7 * dir);
@@ -360,7 +356,8 @@ define(function (require, exports, module) {
                         pageY += itemHeight;
                     }
                     
-                    // we're going to do this twice 
+                    // look one more time below the mouse
+                    //  if we didn't get a hit
                 } while (!$item.length && ++lookCount < 2);
                 
                 // if we hit a span or an anchor tag and didn't
@@ -371,9 +368,6 @@ define(function (require, exports, module) {
                     $item = $hit.parents("#working-set-list-container li");
                 }
               
-                //console.log("actual: " + $hit[0].tagName + " " + $hit.attr("class"));
-                //console.log("hit: " + $hit[0].tagName + " " + $hit.attr("class"));
-
                 // compute ghost location, we compute the insertion point based
                 //  on where the ghost is, not where the  mouse is
                 gTop = $ghost.offset().top;
@@ -390,9 +384,6 @@ define(function (require, exports, module) {
                 onBottomScroller = hasScroller && scrollerBottomArea && ((gTop >= scrollerBottomArea.top && gTop <= scrollerBottomArea.bottom) ||
                                                          (gBottom >= scrollerBottomArea.top && gBottom <= scrollerBottomArea.bottom));
 
-                
-                //console.log("lastY: " + lastPageY + " currentY " + e.pageY + " direction:" + (direction > 0 ? " down " : " up "));
-                //console.log($item.length ? $item.text() : "no-hit-item");
                 
                 // helpers 
                 function mouseIsInTopHalf($elem) {
@@ -441,6 +432,12 @@ define(function (require, exports, module) {
                             ($hit.is("ul") && $hit.parent().is(".open-files-container")));
                 }
                 
+                function targetIsNoDrop() {
+                    return $hit.is(".working-set-header") ||
+                           $hit.is(".scroller-shadow") ||
+                           $hit.is(".scroller-shadow");
+                }
+                
                 function findViewFor($elem) {
                     if ($elem.is(".working-set-view")) {
                         return $elem;
@@ -476,7 +473,7 @@ define(function (require, exports, module) {
                     //  where to go from here
                     $view = $el.parents(".working-set-view");
                     
-                    if ($hit.is(".working-set-header") || $hit.is(".scroller-shadow") || $hit.is(".scroller-shadow")) {
+                    if (targetIsNoDrop()) {
                         if (direction < 0) {
                             if (ghostIsBelow($hit)) {
                                 return result;
@@ -504,8 +501,6 @@ define(function (require, exports, module) {
                         }
                         return result;
                     }
-                    
-                    // console.log($hit.attr("class"));
                     
                     // Data to determine to help determine if we should
                     //  append to the previous or prepend to the next
@@ -555,14 +550,12 @@ define(function (require, exports, module) {
                     };
                 }
 
-                //console.log(e.pageY + " " + result.where + " " + (result.which ? result.which.text() : ""));
                 return result;
             }
    
             // mouse move handler -- this pretty much does
             //  the heavy lifting for dragging the item around
             $(window).on("mousemove.wsvdragging", function (e) {
-                //console.log("e.pageY " + e.pageY + " e.pageX " + e.pageX);
                 // The drag function
                 function drag(e) {
                     if (!dragged) {

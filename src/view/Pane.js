@@ -401,6 +401,9 @@ define(function (require, exports, module) {
             openNextPromise = new $.Deferred(),
             result = new $.Deferred();
         
+        // if we're moving the currently viewed file we 
+        //  need to open another file so wait for that operation
+        //  to finish before we move the view
         if ((this.getCurrentlyViewedPath() === file.fullPath)) {
             var nextFile = this.traverseViewListByMRU(1, file.fullPath);
             if (nextFile) {
@@ -420,7 +423,9 @@ define(function (require, exports, module) {
             openNextPromise.resolve();
         }
         
-        
+        // Once the next file has opened, we can
+        //  move the item in the working set and 
+        //  open it in the destination pane
         openNextPromise.done(function () {
             // Remove file from all 3 view lists
             self._viewList.splice(self.findInViewList(file.fullPath), 1);
@@ -433,17 +438,25 @@ define(function (require, exports, module) {
             //move the view,
             var view = self._views[file.fullPath];
 
+            // if we had a view, it had previously been opened
+            //  otherwise, the file was in the working set unopened
             if (view) {
+                // delete it from the source pane's view map and add it to the destination pane's view map
                 delete self._views[file.fullPath];
                 destinationPane.addView(view, !destinationPane.getCurrentlyViewedFile());
+                // we're done
                 result.resolve();
             } else if (!destinationPane.getCurrentlyViewedFile()) {
                 // The view has not have been created and the pane was 
                 //  not showing anything so open the file moved in to the pane
                 destinationPane._execOpenFile(file.fullPath).always(function () {
+                    // wait until the file has been opened before
+                    //  we resolve the promise so the working set 
+                    //  view can sync appropriately
                     result.resolve();
                 });
             } else {
+                // nothing to do, we're done
                 result.resolve();
             }
         });
@@ -790,7 +803,6 @@ define(function (require, exports, module) {
     Pane.prototype.sortViewList = function (compareFn) {
         this._viewList.sort(_.partial(compareFn, this.id));
     };
-
     
     /**
      * moves a working set item from one index to another shifting the items

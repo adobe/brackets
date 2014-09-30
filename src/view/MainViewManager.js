@@ -813,8 +813,7 @@ define(function (require, exports, module) {
                     }
                     return true;
                 });
-            })
-            .always(function () {
+            
                 $(exports).triggerHandler("workingSetMove", [file, sourcePane.id, destinationPane.id]);
                 result.resolve();
             });
@@ -858,7 +857,6 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("workingSetSort", [pane.id]);
         });
     }
-    
     
     /**
      * moves a working set item from one index to another shifting the items
