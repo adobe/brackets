@@ -425,15 +425,26 @@ define(function (require, exports, module) {
                     expect(vm._treeData.getIn(["afile.js", "selected"])).toBe(true);
                     expect(model._selections.selected).toBe("/foo/afile.js");
                     expect(changesFired).toBe(1);
+                    expect(selectionEvents).toEqual([{
+                        path: "/foo/afile.js",
+                        previousPath: undefined,
+                        hadFocus: true
+                    }]);
                 });
 
                 it("should change the selection from the old to the new", function () {
                     model.setSelected("/foo/afile.js");
                     changesFired = 0;
+                    selectionEvents = [];
                     model.setSelected("/foo/subdir1/afile.js");
                     expect(vm._treeData.getIn(["afile.js", "selected"])).toBe(undefined);
                     expect(vm._treeData.getIn(["subdir1", "children", "afile.js", "selected"])).toBe(true);
                     expect(changesFired).toBe(1);
+                    expect(selectionEvents).toEqual([{
+                        path: "/foo/subdir1/afile.js",
+                        previousPath: "/foo/afile.js",
+                        hadFocus: true
+                    }]);
                 });
 
                 it("shouldn't fire a changed message if there was no change in selection", function () {
@@ -1121,9 +1132,7 @@ define(function (require, exports, module) {
                     expect(vm._treeData.getIn(["subdir1", "open"])).toBe(true);
                     expect(vm._treeData.getIn(["subdir1", "children", "subsubdir", "open"])).toBe(true);
                     expect(vm._treeData.getIn(["subdir1", "children", "subsubdir", "children", "interior.txt", "selected"])).toBe(true);
-                    expect(data.shouldSelectEvents).toEqual([{
-                        path: "/foo/subdir1/subsubdir/interior.txt"
-                    }]);
+                    expect(data.shouldSelectEvents[0].path).toEqual("/foo/subdir1/subsubdir/interior.txt");
                 });
             });
         });
