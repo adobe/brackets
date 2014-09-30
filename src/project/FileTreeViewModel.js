@@ -134,7 +134,8 @@ define(function (require, exports, module) {
      * state moves atomically from one value to the next. This method stores the next version
      * of the state, if it has changed, and triggers a change event so that the UI can update.
      *
-     * @param {Immutable.Map} treeData new treeData state
+     * @param {?Immutable.Map} treeData new treeData state
+     * @param {?Immutable.Map} selectionViewInfo updated information for the selection/context bars
      */
     FileTreeViewModel.prototype._commit = function (treeData, selectionViewInfo) {
         var changed = false;
