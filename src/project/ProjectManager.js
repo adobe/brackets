@@ -187,6 +187,21 @@ define(function (require, exports, module) {
             }
         }, 10);
     }
+    
+    /**
+     * @private
+     * 
+     * Reverts to the previous selection (useful if there's an error).
+     * 
+     * @param {string|File} previousPath The previously selected path.
+     * @param {boolean} switchToWorkingSet True if we need to switch focus to the Working Set
+     */
+    function _revertSelection(previousPath, switchToWorkingSet) {
+        model.setSelected(previousPath);
+        if (switchToWorkingSet) {
+            FileViewController.setFileViewFocus(FileViewController.WORKING_SET_VIEW);
+        }
+    }
 
     /**
      * @constructor
@@ -225,9 +240,9 @@ define(function (require, exports, module) {
         // activity.
         this.model.on(ProjectModel.EVENT_SHOULD_SELECT, function (e, data) {
             if (data.add) {
-                FileViewController.openFileAndAddToWorkingSet(data.path);
+                FileViewController.openFileAndAddToWorkingSet(data.path).fail(_.partial(_revertSelection, data.previousPath, !data.hadFocus));
             } else {
-                FileViewController.openAndSelectDocument(data.path, FileViewController.PROJECT_MANAGER);
+                FileViewController.openAndSelectDocument(data.path, FileViewController.PROJECT_MANAGER).fail(_.partial(_revertSelection, data.previousPath, !data.hadFocus));
             }
         });
 
@@ -616,7 +631,7 @@ define(function (require, exports, module) {
         if (!projectRoot) {
             return;
         }
-        FileTreeView.render(fileTreeViewContainer, model._viewModel, projectRoot, actionCreator, forceRender);
+        FileTreeView.render(fileTreeViewContainer, model._viewModel, projectRoot, actionCreator, forceRender, brackets.platform);
     };
 
     /**
@@ -1132,6 +1147,10 @@ define(function (require, exports, module) {
                 forceFinishRename();
                 actionCreator.setContext(null);
             }
+        });
+        
+        $("#working-set-list-container").on("contentChanged", function () {
+            $projectTreeContainer.trigger("contentChanged");
         });
 
         $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuOpen", function () {

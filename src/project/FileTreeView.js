@@ -54,9 +54,9 @@ define(function (require, exports, module) {
     // Constants
 
     // Time range from first click to second click to invoke renaming.
-    var CLICK_RENAME_MINIMUM = 500,
-        MIDDLE_MOUSE_BUTTON = 2,
-        LEFT_MOUSE_BUTTON = 0;
+    var CLICK_RENAME_MINIMUM  = 500,
+        RIGHT_MOUSE_BUTTON    = 2,
+        LEFT_MOUSE_BUTTON     = 0;
 
     /**
      * @private
@@ -119,6 +119,22 @@ define(function (require, exports, module) {
     /**
      * @private
      *
+     * Gets an appropriate width given the text provided.
+     *
+     * @param {string} text Text to measure
+     * @return {int} Width to use
+     */
+    function _measureText(text) {
+        var measuringElement = $("<div />", { css : { "position" : "absolute", "top" : "-200px", "left" : ("-1000px"), "visibility" : "hidden" } }).appendTo("body");
+        measuringElement.text("pW" + text);
+        var width = measuringElement.width();
+        measuringElement.remove();
+        return width;
+    }
+
+    /**
+     * @private
+     *
      * This component presents an input field to the user for renaming a file.
      *
      * Props:
@@ -143,13 +159,10 @@ define(function (require, exports, module) {
         },
 
         render: function () {
-            var measuringElement = $("<div />", { css : { "position" : "absolute", "top" : "-200px", "left" : ("-1000px"), "visibility" : "hidden" } }).appendTo("body");
-            measuringElement.text("pW" + this.props.name);
-            var width = measuringElement.width();
-            measuringElement.remove();
+            var width = _measureText(this.props.name);
 
             return DOM.input({
-                className: "jstree-rename-input",
+                className: "jstree-rename-input " + this.props.fileClasses,
                 type: "text",
                 defaultValue: this.props.name,
                 autoFocus: true,
@@ -166,16 +179,17 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * This mixin handles middle click action to make a file the "context" object for performing
-     * operations like rename.
+     * This mixin handles right click (or control click on Mac) action to make a file 
+     * the "context" object for performing operations like rename.
      */
     var contextSettable = {
 
         /**
-         * Send middle click to the action creator as a setContext action.
+         * Send matching mouseDown events to the action creator as a setContext action.
          */
         handleMouseDown: function (e) {
-            if (e.button === MIDDLE_MOUSE_BUTTON) {
+            if (e.button === RIGHT_MOUSE_BUTTON ||
+                    (this.props.platform === "mac" && e.button === LEFT_MOUSE_BUTTON && e.ctrlKey)) {
                 this.props.actions.setContext(this.myPath());
                 return false;
             }
@@ -283,6 +297,7 @@ define(function (require, exports, module) {
          */
         getInitialState: function () {
             return {
+                clickTimer: null
             };
         },
 
@@ -301,14 +316,35 @@ define(function (require, exports, module) {
          * context boxes as appropriate.
          */
         componentDidUpdate: function (prevProps, prevState) {
-            if (this.props.entry.get("selected") && !prevProps.entry.get("selected")) {
+            var wasSelected = prevProps.entry.get("selected"),
+                isSelected  = this.props.entry.get("selected");
+            
+            if (isSelected && !wasSelected) {
                 // TODO: This shouldn't really know about project-files-container
                 // directly. It is probably the case that our React tree should actually
                 // start with project-files-container instead of just the interior of
                 // project-files-container and then the file tree will be one self-contained
                 // functional unit.
                 ViewUtils.scrollElementIntoView($("#project-files-container"), $(this.getDOMNode()), true);
+            } else if (!isSelected && wasSelected && this.state.clickTimer !== null) {
+                this.clearTimer();
             }
+        },
+        
+        clearTimer: function () {
+            if (this.state.clickTimer !== null) {
+                window.clearTimeout(this.state.clickTimer);
+                this.setState({
+                    clickTimer: null
+                });
+            }
+        },
+        
+        startRename: function () {
+            if (!this.props.entry.get("rename")) {
+                this.props.actions.startRename(this.myPath());
+            }
+            this.clearTimer();
         },
 
         /**
@@ -324,22 +360,16 @@ define(function (require, exports, module) {
             if (e.button !== LEFT_MOUSE_BUTTON) {
                 return;
             }
-
-            // If the user clicks twice within 500ms, that will be picked up by the double click handler
-            // If they click on the node twice with a pause, we'll start a rename.
-            if (this.props.entry.get("selected") && this.state.clickTime) {
-                var timeSincePreviousClick = new Date().getTime() - this.state.clickTime;
-                if (!this.props.entry.get("rename") && (timeSincePreviousClick > CLICK_RENAME_MINIMUM)) {
-                    this.props.actions.startRename(this.myPath());
+            
+            if (this.props.entry.get("selected")) {
+                if (this.state.clickTimer === null && !this.props.entry.get("rename")) {
+                    var timer = window.setTimeout(this.startRename, CLICK_RENAME_MINIMUM);
                     this.setState({
-                        clickTime: 0
+                        clickTimer: timer
                     });
                 }
             } else {
                 this.props.actions.setSelected(this.myPath());
-                this.setState({
-                    clickTime: new Date().getTime()
-                });
             }
             return false;
         },
@@ -350,10 +380,10 @@ define(function (require, exports, module) {
          */
         handleDoubleClick: function () {
             if (!this.props.entry.get("rename")) {
+                if (this.state.clickTimer !== null) {
+                    this.clearTimer();
+                }
                 this.props.actions.selectInWorkingSet(this.myPath());
-                this.setState({
-                    clickTime: 0
-                });
             }
         },
 
@@ -381,23 +411,21 @@ define(function (require, exports, module) {
                 }, "." + extension);
             }
 
-            var fileClasses = "";
-            if (this.props.entry.get("selected")) {
-                fileClasses += " jstree-clicked selected-node";
-            }
+            var nameDisplay,
+                cx = React.addons.classSet;
 
-            if (this.props.entry.get("context")) {
-                fileClasses += " context-node";
-            }
-
-            var nameDisplay;
+            var fileClasses = cx({
+                'jstree-clicked selected-node': this.props.entry.get("selected"),
+                'context-node': this.props.entry.get("context")
+            });
 
             if (this.props.entry.get("rename")) {
                 nameDisplay = fileRenameInput({
                     actions: this.props.actions,
                     entry: this.props.entry,
                     name: this.props.name,
-                    parentPath: this.props.parentPath
+                    parentPath: this.props.parentPath,
+                    fileClasses: fileClasses
                 });
             } else {
                 // Need to flatten the argument list because getIcons returns an array
@@ -484,14 +512,19 @@ define(function (require, exports, module) {
         mixins: [renameBehavior],
 
         render: function () {
+            var width = _measureText(this.props.name);
+
             return DOM.input({
-                className: "rename-input",
+                className: "jstree-rename-input",
                 type: "text",
                 defaultValue: this.props.name,
                 autoFocus: true,
                 onKeyDown: this.handleKeyDown,
                 onKeyUp: this.handleKeyUp,
-                ref: "name"
+                ref: "name",
+                style: {
+                    width: width
+                }
             });
         }
     });
@@ -589,6 +622,7 @@ define(function (require, exports, module) {
                     extensions: this.props.extensions,
                     actions: this.props.actions,
                     forceRender: this.props.forceRender,
+                    platform: this.props.platform,
                     sortDirectoriesFirst: this.props.sortDirectoriesFirst
                 });
             } else {
@@ -663,7 +697,7 @@ define(function (require, exports, module) {
             var extensions = this.props.extensions,
                 iconClass = extensions && extensions.get("icons") ? "jstree-icons" : "jstree-no-icons",
                 ulProps = this.props.isRoot ? {
-                    className: "jstree-no-dots " + iconClass
+                    className: "jstree-brackets jstree-no-dots " + iconClass
                 } : null;
 
             var contents = this.props.contents,
@@ -680,6 +714,7 @@ define(function (require, exports, module) {
                         actions: this.props.actions,
                         extensions: this.props.extensions,
                         forceRender: this.props.forceRender,
+                        platform: this.props.platform,
                         key: name
                     });
                 } else {
@@ -691,6 +726,7 @@ define(function (require, exports, module) {
                         extensions: this.props.extensions,
                         sortDirectoriesFirst: this.props.sortDirectoriesFirst,
                         forceRender: this.props.forceRender,
+                        platform: this.props.platform,
                         key: name
                     });
                 }
@@ -741,7 +777,7 @@ define(function (require, exports, module) {
 
         render: function () {
             var selectionViewInfo = this.props.selectionViewInfo;
-            
+
             return DOM.div({
                 style: {
                     overflow: "auto",
@@ -811,7 +847,8 @@ define(function (require, exports, module) {
                     contents: this.props.treeData,
                     extensions: this.props.extensions,
                     actions: this.props.actions,
-                    forceRender: this.props.forceRender
+                    forceRender: this.props.forceRender,
+                    platform: this.props.platform
                 })
             );
         }
@@ -825,8 +862,9 @@ define(function (require, exports, module) {
      * @param {Directory} projectRoot Directory object from which the fullPath of the project root is extracted
      * @param {ActionCreator} actions object with methods used to communicate events that originate from the user
      * @param {boolean} forceRender Run render on the entire tree (useful if an extension has new data that it needs rendered)
+     * @param {string} platform mac, win, linux
      */
-    function render(element, viewModel, projectRoot, actions, forceRender) {
+    function render(element, viewModel, projectRoot, actions, forceRender, platform) {
         if (!projectRoot) {
             return;
         }
@@ -838,6 +876,7 @@ define(function (require, exports, module) {
             parentPath: projectRoot.fullPath,
             actions: actions,
             extensions: _extensions,
+            platform: platform,
             forceRender: forceRender
         }),
               element);
