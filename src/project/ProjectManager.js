@@ -682,15 +682,47 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Get previous project from MRU list, or Getting Started folder if no previous projects.
-     * @return {string}
+     * After failing to load a project, this function determines which project path to fallback to.
+     * @return {$.Promise} Promise that resolves to a project path {string}
      */
-    function _getPreviousProjectPath() {
-        var recentProjects = PreferencesManager.getViewState("recentProjects");
+    function _getFallbackProjectPath() {
+        var fallbackPaths = [],
+            recentProjects = PreferencesManager.getViewState("recentProjects"),
+            deferred = new $.Deferred();
+
+        // Build ordered fallback path array
         if (recentProjects && recentProjects.length > 0) {
-            return recentProjects[0];
+            // Start with MRU project
+            fallbackPaths.push(recentProjects[0]);
         }
-        return _getWelcomeProjectPath();
+
+        // Next is Getting Started project
+        fallbackPaths.push(_getWelcomeProjectPath());
+
+        function checkNextPath() {
+            var nextPath, fileEntry;
+
+            if (fallbackPaths.length === 0) {
+                // Last resort is Brackets source folder which is guaranteed to exist
+                deferred.resolve(FileUtils.getNativeBracketsDirectoryPath());
+            } else {
+                // Check next path and resolve if it exists, otherwise continue
+                nextPath = fallbackPaths.shift();
+                fileEntry = FileSystem.getDirectoryForPath(nextPath);
+                fileEntry.exists(function (err, exists) {
+                    if (!err && exists) {
+                        deferred.resolve(nextPath);
+                    } else {
+                        checkNextPath();
+                    }
+                });
+            }
+        }
+
+        // Recursively & asynchronously check paths for existence
+        checkNextPath();
+
+        return deferred.promise();
     }
 
     /**
@@ -882,14 +914,8 @@ define(function (require, exports, module) {
                                 // project directory.
                                 // TODO (issue #267): When Brackets supports having no project directory
                                 // defined this code will need to change
-                                var fallbackPath = _getPreviousProjectPath();
-                                rootEntry = FileSystem.getDirectoryForPath(fallbackPath);
-                                rootEntry.exists(function (err, exists) {
-                                    if (!exists) {
-                                        // In case user has deleted Getting Started folder
-                                        fallbackPath = FileUtils.getNativeBracketsDirectoryPath();
-                                    }
-                                    _loadProject(fallbackPath).always(function () {
+                                _getFallbackProjectPath().done(function (path) {
+                                    _loadProject(path).always(function () {
                                         // Make sure not to reject the original deferred until the fallback
                                         // project is loaded, so we don't violate expectations that there is always
                                         // a current project before continuing after _loadProject().
