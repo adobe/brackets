@@ -113,6 +113,13 @@ define(function (require, exports, module) {
          */
         handleKeyUp: function () {
             this.props.actions.setRenameValue(this.refs.name.getDOMNode().value.trim());
+        },
+        
+        /**
+         * If we leave the field for any reason, complete the rename.
+         */
+        handleBlur: function () {
+            this.props.actions.performRename();
         }
     };
 
@@ -168,6 +175,7 @@ define(function (require, exports, module) {
                 autoFocus: true,
                 onKeyDown: this.handleKeyDown,
                 onKeyUp: this.handleKeyUp,
+                onBlur: this.handleBlur,
                 style: {
                     width: width
                 },
@@ -521,6 +529,7 @@ define(function (require, exports, module) {
                 autoFocus: true,
                 onKeyDown: this.handleKeyDown,
                 onKeyUp: this.handleKeyUp,
+                onBlur: this.handleBlur,
                 ref: "name",
                 style: {
                     width: width
