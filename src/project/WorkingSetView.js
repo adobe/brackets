@@ -264,7 +264,7 @@ define(function (require, exports, module) {
                 startPageY = e.pageY,
                 lastPageY = startPageY,
                 itemHeight = $el.height(),
-                tryClosing = $(window.document.elementFromPoint(e.pageX, e.pageY)).hasClass("can-close"),
+                tryClosing = $(e.target).hasClass("can-close"),
                 offset = $el.offset(),
                 $copy = $el.clone(),
                 $ghost = $("<div class='open-files-container wsv-drag-ghost' style='overflow: hidden; display: inline-block;'>").append($("<ul>").append($copy).css("padding", "0")),
