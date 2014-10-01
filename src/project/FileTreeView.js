@@ -785,13 +785,21 @@ define(function (require, exports, module) {
         },
 
         render: function () {
-            var selectionViewInfo = this.props.selectionViewInfo;
+            var selectionViewInfo = this.props.selectionViewInfo,
+                left = selectionViewInfo.get("scrollLeft"),
+                width = selectionViewInfo.get("width") - this.props.widthAdjustment,
+                scrollWidth = selectionViewInfo.get("scrollWidth");
+            
+            // Avoid endless horizontal scrolling
+            if (left + width > scrollWidth) {
+                left = scrollWidth - width;
+            }
 
             return DOM.div({
                 style: {
                     overflow: "auto",
-                    left: selectionViewInfo.get("scrollLeft"),
-                    width: selectionViewInfo.get("width") - this.props.widthAdjustment,
+                    left: left,
+                    width: width,
                     display: this.props.visible ? "block" : "none"
                 },
                 className: this.props.className

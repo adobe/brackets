@@ -306,12 +306,13 @@ define(function (require, exports, module) {
     /**
      * Tracks the scroller position.
      * 
+     * @param {int} scrollWidth Width of the tree container
      * @param {int} scrollTop Top of scroll position
      * @param {int} scrollLeft Left of scroll position
      * @param {int} offsetTop Top of scroller element
      */
-    ProjectModel.prototype.setScrollerInfo = function (scrollTop, scrollLeft, offsetTop) {
-        this._viewModel.setSelectionScrollerInfo(scrollTop, scrollLeft, offsetTop);
+    ProjectModel.prototype.setScrollerInfo = function (scrollWidth, scrollTop, scrollLeft, offsetTop) {
+        this._viewModel.setSelectionScrollerInfo(scrollWidth, scrollTop, scrollLeft, offsetTop);
     };
 
     /**
