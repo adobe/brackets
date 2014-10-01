@@ -99,10 +99,13 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     SearchModel.prototype.foundMaximum = false;
-
+    
     /**
-     * Clears out the model to an empty state.
+     * Whether or not we exceeded the maximum number of results in the search we did.
+     * @type {boolean}
      */
+    SearchModel.prototype.exceedsMaximum = false;
+    
     SearchModel.prototype.clear = function () {
         this.results = {};
         this.queryInfo = null;
@@ -112,6 +115,7 @@ define(function (require, exports, module) {
         this.scope = null;
         this.numMatches = 0;
         this.foundMaximum = false;
+        this.exceedsMaximum = false;
         this.fireChanged();
     };
     
@@ -157,6 +161,13 @@ define(function (require, exports, module) {
         this.numMatches += resultInfo.matches.length;
         if (this.numMatches >= SearchModel.MAX_TOTAL_RESULTS) {
             this.foundMaximum = true;
+            
+            // Remove final result if there have been over MAX_TOTAL_RESULTS found
+            if (this.numMatches > SearchModel.MAX_TOTAL_RESULTS) {
+                this.results[fullpath].matches.pop();
+                this.numMatches--;
+                this.exceedsMaximum = true;
+            }    
         }
     };
     
