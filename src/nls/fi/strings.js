@@ -73,6 +73,7 @@ define({
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "Tiedosto tai hakemisto nimellä <span class='dialog-filename'>{0}</span> on jo olemassa.",
     "ERROR_CREATING_FILE_TITLE"         : "Virhe luotaessa {0}a",
     "ERROR_CREATING_FILE"               : "Virhe yritettäessä luoda {0}a <span class='dialog-filename'>{1}</span>. {2}",
+    "ERROR_MIXED_DRAGDROP"              : "Kansiota ei voi avata samaan aikaan muiden tiedostojen kanssa.",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Virhe luettaessa asetuksia",
@@ -222,8 +223,8 @@ define({
     "WORKING_FILES"     : "Työtiedostot",
 
     /**
-      * MainViewManager
-      */
+     * MainViewManager
+     */
     "TOP"               : "Ylä",
     "BOTTOM"            : "Ala",
     "LEFT"              : "Vasen",
@@ -234,6 +235,9 @@ define({
     "CMD_SPLITVIEW_HORIZONTAL"  : "Vaakasuora jako",
     "SPLITVIEW_MENU_TOOLTIP"    : "Jaa muokkain pysty- tai vaakasuuntaisesti",
     "GEAR_MENU_TOOLTIP"         : "Määritä työlista",
+
+    "SPLITVIEW_INFO_TITLE"              : "Jo avoinna",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "Tiedosto on jo avattuna toisessa ruudussa. {APP_NAME} tukee pian saman tiedoston avaamista useammassa kuin yhdessä ruudussa. Siihen asti tiedosto näytetään ruudussa, jossa se on jo auki.<br /><br />(Näet tämän viestin vain kerran.)",
 
     /**
      * Keyboard modifier names
@@ -262,7 +266,7 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Laajennukset poistettu käytöstä",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
-    "STATUSBAR_INSOVR_TOOLTIP"              : "Vaihda kohdistimen sijoitus- (INS) ja korvaus (OVR) \u2011tilojen välillä napsauttamalla",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Vaihda kohdistimen sijoitus (INS)- ja korvaus (OVR) \u2011tilojen välillä napsauttamalla",
     "STATUSBAR_LANG_TOOLTIP"                : "Vaihda tiedostotyyppiä napsauttamalla",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Näytä tai piilota raporttipaneeli napsauttamalla.",
     "STATUSBAR_DEFAULT_LANG"                : "(oletus)",
@@ -430,13 +434,13 @@ define({
     "GET_IT_NOW"                           : "Hae nyt!",
     "PROJECT_SETTINGS_TITLE"               : "Projektin asetukset kohteelle: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Esikatselun URL-osoite",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "Käyttääksesi paikallista palvelinta anna url, kuten http://localhost:8000/",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "Käytä paikal. palvelinta antamalla url, kuten http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Esikatselu ei tue {0}-protokollaa. Käytä joko http: tai https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL-osoite ei voi sisältää hakuparametreja, kuten ”{0}”.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei voi sisältää ristikkomerkkejä, kuten ”{0}”.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Erikoismerkkkien, kuten ’{0}’, täytyy olla %-koodattu.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Tuntematon virhe URL-osoitteen jäsentämisessä",
-    "EMPTY_VIEW_HEADER"                    : "<em>Valitse tiedosto tämän näkymän ollessa aktiivinen</em>",
+    "EMPTY_VIEW_HEADER"                    : "<em>Avaa tiedosto tämän näkymän ollessa valittuna</em>",
 
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Nykyinen teema",
@@ -595,7 +599,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Näytä parametrivihje",
     "NO_ARGUMENTS"                              : "<ei parametreja>",
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript-tiedoston päättelyongelma",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets ajautui vaikeuksiin käsittelyssä:<br><br>{0}<br><br>Tätä tiedostoa ei enää käsitellä koodivihjeet- ja hypää määritelyyn -toimintoja varten. Ottaaksesi tämän takaisin käyttöön avaa <code>.brackets.json</code> projektissasi ja poista tiedosto kohdasta jscodehints.detectedExclusions.",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets kohtasi vaikeuksia tiedoston <span class='dialog-filename'>{0}</span> käsittelyssä.<br><br>Tätä tiedostoa ei enää käsitellä koodivihjeet-, hyppää määrittelyyn- ja pikamuokkaus-toimintoja varten. Ota tämä tiedosto uudelleen käyttöön avaamalla projektisi tiedosto <code>.brackets.json</code> ja muokkaa kohtaa <code>jscodehints.detectedExclusions</code>.<br><br>Tämä on todennäköisesti Bracketsin bugi. Jos voit tarjota kopion tästä tiedostosta, <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>ilmoitathan virheestä</a> tässä nimettyyn tiedostoon osoittavan linkin kanssa.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -610,4 +614,4 @@ define({
     "DOCS_MORE_LINK"                            : "Lue lisää"
 });
 
-/* Last translated for 69130cde282c13d7fd94759ce756bf8eb654ba1e */
+/* Last translated for 91b392bf349ece5058595b26a11c651697ee7ff6 */
