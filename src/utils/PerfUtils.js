@@ -63,11 +63,6 @@ define(function (require, exports, module) {
     var updatableTests = {};
     
     /**
-     * Hash of measurement IDs
-     */
-    var perfMeasurementIds = {};
-    
-    /**
      * @private
      * A unique key to log performance data
      *
@@ -87,9 +82,6 @@ define(function (require, exports, module) {
      * @param {!name} name A short name for this measurement
      */
     function createPerfMeasurement(id, name) {
-        if (perfMeasurementIds[id]) {
-            console.error("Performance measurement " + id + " is already defined");
-        }
         
         var pm = new PerfMeasurement(id, name);
         exports[id] = pm;
@@ -189,9 +181,6 @@ define(function (require, exports, module) {
         } else {
             perfData[name] = elapsedTime;
         }
-
-        // Real time logging
-        //console.log(name + " " + elapsedTime);
     }
 
     /**
