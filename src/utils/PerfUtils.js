@@ -63,16 +63,36 @@ define(function (require, exports, module) {
     var updatableTests = {};
     
     /**
+     * Keeps the track of measurements sequence number for re-entrant sequences with
+     * the same name currently running. Entries are created and deleted as needed.
+     */
+    var testSequenceIds = {};
+    
+    /**
      * @private
      * A unique key to log performance data
      *
      * @param {!string} id Unique ID for this measurement name
-     * @param {!name} name A short name for this measurement
+     * @param {!string} name A short name for this measurement
+     * @param {?number} reent Sequence identifier for parallel tests of the same name
      */
-    function PerfMeasurement(id, name) {
-        this.id = id;
+    function PerfMeasurement(id, name, reent) {
+        if (id) {
+            this.id = id;
+        } else {
+            this.id = (reent) ? "[reent " + this.reent + "] " + name : name;
+        }
         this.name = name;
+        this.reent = reent;
     }
+    
+    /**
+     * Override toString() to allow using PerfMeasurement as an array key without
+     * explicit conversion.
+     */
+    PerfMeasurement.prototype.toString = function () {
+        return this.id;
+    };
     
     /**
      * Create a new PerfMeasurement key. Adds itself to the module export.
@@ -82,7 +102,6 @@ define(function (require, exports, module) {
      * @param {!name} name A short name for this measurement
      */
     function createPerfMeasurement(id, name) {
-        
         var pm = new PerfMeasurement(id, name);
         exports[id] = pm;
         
@@ -91,25 +110,39 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Convert a PerfMeasurement instance to it's id. Otherwise uses the string name for backwards compatibility.
+     * Generates unique identifier for the measurements.
      */
-    function toMeasurementId(o) {
-        return (o instanceof PerfMeasurement) ? o.id : o;
+    function generateId(name) {
+        // always convert it to array so that the rest of the routines could rely on it
+        var id = (!Array.isArray(name)) ? [name] : name;
+        // generate unique identifiers for each name
+        var i;
+        for (i = 0; i < id.length; i++) {
+            if (!(id[i] instanceof PerfMeasurement)) {
+                if (testSequenceIds[id[i]] === undefined) {
+                    testSequenceIds[id[i]] = 0;
+                } else {
+                    testSequenceIds[id[i]]++;
+                }
+                id[i] = new PerfMeasurement(undefined, id[i], testSequenceIds[id[i]]);
+            }
+        }
+        return id;
     }
     
     /**
      * @private
      * Helper function for markStart()
      *
-     * @param {string} name  Timer name.
+     * @param {Object} id  Timer id.
      * @param {number} time  Timer start time.
      */
-    function _markStart(name, time) {
-        if (activeTests[name]) {
+    function _markStart(id, time) {
+        if (activeTests[id]) {
             console.error("Recursive tests with the same name are not supported. Timer name: " + name);
         }
         
-        activeTests[name] = { startTime: time };
+        activeTests[id] = { startTime: time };
     }
     
     /**
@@ -119,11 +152,13 @@ define(function (require, exports, module) {
      *
      * Multiple timers can be opened simultaneously, but all open timers must have
      * a unique name.
+     * 
+     * Returns an opaque set of timer ids which can be store and used for calling
+     * addMeasurement(). Since name is often creating via concatenating strings this
+     * return value allows clients to construct the name once.
      *
      * @param {(string|Array.<string>)} name  Single name or an Array of names.
-     * @return {string} timer name. Returned for convenience to store and use
-     *      for calling addMeasure(). Since name is often creating via concatenating
-     *      strings this return value allows clients to construct the name once.
+     * @return {(Object|Array.<Object>)} Opaque timer id or array of timer ids.
      */
     function markStart(name) {
         if (!enabled) {
@@ -131,19 +166,13 @@ define(function (require, exports, module) {
         }
 
         var time = brackets.app.getElapsedMilliseconds();
-        name = toMeasurementId(name);
+        var id = generateId(name);
+        var i;
 
-        // Array of names can be passed in to have multiple timers with same start time
-        if (Array.isArray(name)) {
-            var i;
-            for (i = 0; i < name.length; i++) {
-                _markStart(name[i], time);
-            }
-        } else {
-            _markStart(name, time);
+        for (i = 0; i < id.length; i++) {
+            _markStart(id[i], time);
         }
-
-        return name;
+        return id.length > 1 ? id : id[0];
     }
     
     /**
@@ -155,32 +184,44 @@ define(function (require, exports, module) {
      * If markStart() was not called for the specified timer, the
      * measured time is relative to app startup.
      *
-     * @param {string} name  Timer name.
+     * @param {Object} id  Timer id.
      */
-    function addMeasurement(name) {
+    function addMeasurement(id) {
         if (!enabled) {
             return;
         }
+        
+        if (!(id instanceof PerfMeasurement)) {
+            id = new PerfMeasurement(id, id);
+        }
 
         var elapsedTime = brackets.app.getElapsedMilliseconds();
-        name = toMeasurementId(name);
         
-        if (activeTests[name]) {
-            elapsedTime -= activeTests[name].startTime;
-            delete activeTests[name];
+        if (activeTests[id]) {
+            elapsedTime -= activeTests[id].startTime;
+            delete activeTests[id];
         }
         
-        if (perfData[name]) {
+        if (perfData[id.name]) {
             // We have existing data, add to it
-            if (Array.isArray(perfData[name])) {
-                perfData[name].push(elapsedTime);
+            if (Array.isArray(perfData[id.name])) {
+                perfData[id.name].push(elapsedTime);
             } else {
                 // Current data is a number, convert to Array
-                perfData[name] = [perfData[name], elapsedTime];
+                perfData[id.name] = [perfData[id.name], elapsedTime];
             }
         } else {
-            perfData[name] = elapsedTime;
+            perfData[id.name] = elapsedTime;
         }
+        
+        if (id.reent !== undefined) {
+            if (testSequenceIds[id.name] === 0) {
+                delete testSequenceIds[id.name];
+            } else {
+                testSequenceIds[id.name]--;
+            }
+        }
+
     }
 
     /**
@@ -200,36 +241,34 @@ define(function (require, exports, module) {
      * determine if this is the first or subsequent call, so the measurement is
      * not updatable, and it is handled in addMeasurement().
      *
-     * @param {string} name  Timer name.
+     * @param {Object} id  Timer id.
      */
-    function updateMeasurement(name) {
+    function updateMeasurement(id) {
         var elapsedTime = brackets.app.getElapsedMilliseconds();
 
-        name = toMeasurementId(name);
-
-        if (updatableTests[name]) {
+        if (updatableTests[id]) {
             // update existing measurement
-            elapsedTime -= updatableTests[name].startTime;
+            elapsedTime -= updatableTests[id].startTime;
             
             // update
-            if (perfData[name] && Array.isArray(perfData[name])) {
+            if (perfData[id.name] && Array.isArray(perfData[id.name])) {
                 // We have existing data and it's an array, so update the last entry
-                perfData[name][perfData[name].length - 1] = elapsedTime;
+                perfData[id.name][perfData[id.name].length - 1] = elapsedTime;
             } else {
                 // No current data or a single entry, so set/update it
-                perfData[name] = elapsedTime;
+                perfData[id.name] = elapsedTime;
             }
             
         } else {
             // not yet in updatable list
 
-            if (activeTests[name]) {
+            if (activeTests[id]) {
                 // save startTime in updatable list before addMeasurement() deletes it
-                updatableTests[name] = { startTime: activeTests[name].startTime };
+                updatableTests[id] = { startTime: activeTests[id].startTime };
             }
             
             // let addMeasurement() handle the initial case
-            addMeasurement(name);
+            addMeasurement(id);
         }
     }
 
@@ -239,18 +278,15 @@ define(function (require, exports, module) {
      * updateMeasurement may not have been called, so timer may be
      * in either or neither list, but should never be in both.
      *
-     * @param {string} name  Timer name.
+     * @param {Object} id  Timer id.
      */
-    function finalizeMeasurement(name) {
-
-        name = toMeasurementId(name);
-
-        if (activeTests[name]) {
-            delete activeTests[name];
+    function finalizeMeasurement(id) {
+        if (activeTests[id]) {
+            delete activeTests[id];
         }
-
-        if (updatableTests[name]) {
-            delete updatableTests[name];
+        
+        if (updatableTests[id]) {
+            delete updatableTests[id];
         }
     }
     
@@ -259,11 +295,11 @@ define(function (require, exports, module) {
      * timer has been started with addMark(), but has not been added to perfdata
      * with addMeasurement().
      *
-     * @param {string} name  Timer name.
+     * @param {Object} id  Timer id.
      * @return {boolean} Whether a timer is active or not.
      */
-    function isActive(name) {
-        return (activeTests[name]) ? true : false;
+    function isActive(id) {
+        return (activeTests[id]) ? true : false;
     }
 
     /**
@@ -298,14 +334,14 @@ define(function (require, exports, module) {
     
     /**
      * Returns the measured value for the given measurement name.
-     * @param {string|PerfMeasurement} name The measurement to retreive.
+     * @param {Object} id The measurement to retreive.
      */
-    function getData(name) {
-        if (!name) {
+    function getData(id) {
+        if (!id) {
             return perfData;
         }
         
-        return perfData[toMeasurementId(name)];
+        return perfData[id.name];
     }
     
     function searchData(regExp) {
@@ -329,6 +365,7 @@ define(function (require, exports, module) {
         perfData = {};
         activeTests = {};
         updatableTests = {};
+        testSequenceIds = {};
     }
     
     // create performance measurement constants
