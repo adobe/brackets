@@ -22,13 +22,12 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, evil: true */
-/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, window */
+/*global $, define, describe, it, xit, expect, beforeEach, afterEach, window */
 
 define(function (require, exports, module) {
     'use strict';
     
-    var RemoteFunctions     = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
-        SpecRunnerUtils     = require("spec/SpecRunnerUtils");
+    var RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
     
     // "load" RemoteFunctions
     RemoteFunctions = eval("(" + RemoteFunctions.trim() + ")()");

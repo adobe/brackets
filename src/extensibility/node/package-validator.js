@@ -30,9 +30,6 @@ indent: 4, maxerr: 50, regexp: true */
 var DecompressZip = require("decompress-zip"),
     semver        = require("semver"),
     path          = require("path"),
-    http          = require("http"),
-    request       = require("request"),
-    os            = require("os"),
     temp          = require("temp"),
     fs            = require("fs-extra");
 
@@ -269,10 +266,6 @@ function validatePackageJSON(path, packageJSON, options, callback) {
  * @param {function(Error, {errors: Array, metadata: Object, commonPrefix: string, extractDir: string})} callback function to call with the result
  */
 function extractAndValidateFiles(zipPath, extractDir, options, callback) {
-    var callbackCalled = false;
-    var metadata;
-    var foundMainIn = null;
-    
     var unzipper = new DecompressZip(zipPath);
     unzipper.on("error", function (err) {
         // General error to report for problems reading the file

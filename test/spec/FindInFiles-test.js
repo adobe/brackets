@@ -22,23 +22,22 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, window, jasmine, spyOn */
+/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
 
-    var Commands              = require("command/Commands"),
-        KeyEvent              = require("utils/KeyEvent"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
-        FileSystem            = require("filesystem/FileSystem"),
-        FileSystemError       = require("filesystem/FileSystemError"),
-        FileUtils             = require("file/FileUtils"),
-        FindUtils             = require("search/FindUtils"),
-        Async                 = require("utils/Async"),
-        LanguageManager       = require("language/LanguageManager"),
-        StringUtils           = require("utils/StringUtils"),
-        Strings               = require("strings"),
-        _                     = require("thirdparty/lodash");
+    var Commands        = require("command/Commands"),
+        KeyEvent        = require("utils/KeyEvent"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+        FileSystemError = require("filesystem/FileSystemError"),
+        FileUtils       = require("file/FileUtils"),
+        FindUtils       = require("search/FindUtils"),
+        Async           = require("utils/Async"),
+        LanguageManager = require("language/LanguageManager"),
+        StringUtils     = require("utils/StringUtils"),
+        Strings         = require("strings"),
+        _               = require("thirdparty/lodash");
 
     var promisify = Async.promisify; // for convenience
 
@@ -106,6 +105,11 @@ define(function (require, exports, module) {
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
         }
         
+        
+        // Note: these utilities can be called without wrapping in a runs() block, because all their top-level
+        // statements are calls to runs() or waitsFor() (or other functions that make the same guarantee). But after
+        // calling one of these, calls to other Jasmine APIs (e.g. such as expects()) *must* be wrapped in runs().
+        
         function waitForSearchBarClose() {
             // Make sure search bar from previous test has animated out fully
             waitsFor(function () {
@@ -168,6 +172,10 @@ define(function (require, exports, module) {
                 expect(numMatches(searchResults)).toBe(options.numMatches);
             });
         }
+        
+        
+        // The functions below are *not* safe to call without wrapping in runs(), if there were any async steps previously
+        // (including calls to any of the utilities above)
 
         function doReplace(options) {
             return FindInFiles.doReplace(searchResults, options.replaceText, {
@@ -260,6 +268,8 @@ define(function (require, exports, module) {
                 openProject(defaultSourcePath);
             });
             
+            afterEach(closeSearchBar);
+
             it("should find all occurences in project", function () {
                 openSearchBar();
                 executeSearch("foo");
@@ -573,6 +583,33 @@ define(function (require, exports, module) {
                     expect($panelResults.length).toBe(panelListLen - 1);
 
                     waitsForDone(CommandManager.execute(Commands.FILE_CLOSE, { _forceClose: true }), "closing file");
+                });
+            });
+
+            it("should not clear the model until next search is actually committed", function () {
+                var filePath = testPath + "/foo.js",
+                    fileEntry = FileSystem.getFileForPath(filePath);
+
+                openSearchBar(fileEntry);
+                executeSearch("foo");
+
+                runs(function () {
+                    expect(Object.keys(FindInFiles.searchModel.results).length).not.toBe(0);
+                });
+                
+                closeSearchBar();
+                openSearchBar(fileEntry);
+                
+                runs(function () {
+                    // Search model shouldn't be cleared from merely reopening search bar
+                    expect(Object.keys(FindInFiles.searchModel.results).length).not.toBe(0);
+                });
+                
+                closeSearchBar();
+                
+                runs(function () {
+                    // Search model shouldn't be cleared after search bar closed without running a search
+                    expect(Object.keys(FindInFiles.searchModel.results).length).not.toBe(0);
                 });
             });
         });
@@ -907,8 +944,7 @@ define(function (require, exports, module) {
                         waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: fullTestPath("foo.html") }));
                     });
                     runs(function () {
-                        var doc = DocumentManager.getOpenDocumentForPath(fullTestPath("foo.html")),
-                            i;
+                        var doc = DocumentManager.getOpenDocumentForPath(fullTestPath("foo.html"));
                         expect(doc).toBeTruthy();
 
                         // Replace all matches and check that the entire file was removed from the results list.

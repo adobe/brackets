@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $, Mustache */
 
 /*
  * UI for the Find/Replace and Find in Files modal bar.
@@ -32,7 +32,6 @@ define(function (require, exports, module) {
     
     var _                  = require("thirdparty/lodash"),
         Commands           = require("command/Commands"),
-        EditorManager      = require("editor/EditorManager"),
         KeyBindingManager  = require("command/KeyBindingManager"),
         KeyEvent           = require("utils/KeyEvent"),
         ModalBar           = require("widgets/ModalBar").ModalBar,
@@ -418,7 +417,6 @@ define(function (require, exports, module) {
      * @param {boolean} enable Whether to enable or disable the controls.
      */
     FindBar.prototype.enable = function (enable) {
-        var self = this;
         this.$("#find-what, #replace-with, #find-prev, #find-next, #find-case-sensitive, #find-regexp").prop("disabled", !enable);
         this._enabled = enable;
     };
