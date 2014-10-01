@@ -139,7 +139,7 @@ define(function (require, exports, module) {
      */
     function _markStart(id, time) {
         if (activeTests[id]) {
-            console.error("Recursive tests with the same name are not supported. Timer name: " + name);
+            console.error("Recursive tests with the same name are not supported. Timer name: " + id.name);
         }
         
         activeTests[id] = { startTime: time };
