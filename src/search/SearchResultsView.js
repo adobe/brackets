@@ -38,7 +38,6 @@ define(function (require, exports, module) {
         FileUtils             = require("file/FileUtils"),
         FindUtils             = require("search/FindUtils"),
         WorkspaceManager      = require("view/WorkspaceManager"),
-        SearchModel           = require("search/SearchModel").SearchModel,
         StringUtils           = require("utils/StringUtils"),
         Strings               = require("strings"),
         _                     = require("thirdparty/lodash"),
