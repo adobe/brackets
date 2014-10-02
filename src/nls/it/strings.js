@@ -581,7 +581,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostra suggerimenti sul parametro",
     "NO_ARGUMENTS"                              : "<nessun parametro>",
     "DETECTED_EXCLUSION_TITLE"                  : "Problema Conseguente File JavaScript",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets problema nel processo <span class='dialog-filename'>{0}</span>.<br><br> Questo file non sarà più elaborato per i Suggerimenti sul codice, Vai a definizione o Modifica rapida. Per riattivare questo file , aprire <code>.brackets.json</code> nel progetto e modificare <code>jscodehints.detectedExclusions</code>.<br><br>Questo è probabilmente un bug di Brackets. Se è possibile fornire una copia di questo file, <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>un bug</a> con un collegamento al file denominato qui."",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets ha dei problemi per elaboarare il processo <span class='dialog-filename'>{0}</span>.<br><br> Questo file non sarà più elaborato per i Suggerimenti sul codice, Vai a definizione o Modifica rapida. Per riattivare questo file , aprire <code>.brackets.json</code> nel progetto e modificare <code>jscodehints.detectedExclusions</code>.<br><br>Questo è probabilmente un bug di Brackets. Se è possibile fornire una copia di questo file, <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>un bug</a> con un collegamento al file denominato qui."",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
