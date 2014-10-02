@@ -37,7 +37,6 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Non hai i permessi necessari per effettuare la modifica.",
     "CONTENTS_MODIFIED_ERR"             : "Il file è stato modificato fuori {APP_NAME}.",
     "UNSUPPORTED_ENCODING_ERR"          : "Il file non è testo codificato in UTF-8",
-    "UNSUPPORTED_FILE_TYPE_ERR"         : "Il file non è un tipo di file supportato.",
     "FILE_EXISTS_ERR"                   : "Il file è già presente.",
     "FILE"                              : "file",
     "DIRECTORY"                         : "cartella",
@@ -211,6 +210,15 @@ define({
     "BOTTOM"            : "Inferiore",
     "LEFT"              : "Sinistra",
     "RIGHT"             : "Destra",
+    
+     "CMD_SPLITVIEW_NONE"       : "Nessuna Divisione",
+    "CMD_SPLITVIEW_VERTICAL"    : "Dividere Verticalmente",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Dividere Orrizontalmente",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Dividere l'editor verticalmente o orizzontalmente",
+    "GEAR_MENU_TOOLTIP"         : "Configura le impostazioni di lavoro",
+
+    "SPLITVIEW_INFO_TITLE"              : "Già aperto",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "Il file è già aperto in un altro riquadro. {APP_NAME} sarà presto possibile aprire lo stesso file in più di un riquadro. Fino ad allora, il file verrà mostrato nel riquadro che è già aperto.<br /><br />(Tu vedrai questo messaggio solo una volta.)",
 
     /**
      * Keyboard modifier names
@@ -416,6 +424,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"     : "L’URL di base non può contenere hash come \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"        : "I caratteri speciali come '{0}' devono essere %-encodate.",
     "BASEURL_ERROR_UNKNOWN_ERROR"       : "Trovato un carattere sconosciuto durante l'analisi del URL di base",
+    "EMPTY_VIEW_HEADER"                 : "<em>Aprire un file mentre questo riquadro è attivo!</em>",
     
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Tema attuale",
@@ -572,7 +581,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostra suggerimenti sul parametro",
     "NO_ARGUMENTS"                              : "<nessun parametro>",
     "DETECTED_EXCLUSION_TITLE"                  : "Problema Conseguente File JavaScript",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets ha dei problemi per elaborare il file:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> nel tuo progetto e rimuovi il file da jscodehints.detectedExclusions.",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets problema nel processo <span class='dialog-filename'>{0}</span>.<br><br> Questo file non sarà più elaborato per i Suggerimenti sul codice, Vai a definizione o Modifica rapida. Per riattivare questo file , aprire <code>.brackets.json</code> nel progetto e modificare <code>jscodehints.detectedExclusions</code>.<br><br>Questo è probabilmente un bug di Brackets. Se è possibile fornire una copia di questo file, <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>un bug</a> con un collegamento al file denominato qui."",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -587,5 +596,5 @@ define({
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
 
-/* Last translation of: 0f21bf6b9740a302609ad0111c5cf0ae1951c3d4*/
+/* Last translation of: a4e9a06605cfca5dff5ab5dbacfb1d97c604b6f0*/
 
