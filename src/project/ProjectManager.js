@@ -697,13 +697,14 @@ define(function (require, exports, module) {
         // Next is Getting Started project
         fallbackPaths.push(_getWelcomeProjectPath());
 
+        // Helper func for Async.firstSequentially()
         function processItem(path) {
             var deferred = new $.Deferred(),
                 fileEntry = FileSystem.getDirectoryForPath(path);
 
             fileEntry.exists(function (err, exists) {
                 if (!err && exists) {
-                    deferred.resolve(path);
+                    deferred.resolve();
                 } else {
                     deferred.reject();
                 }
