@@ -725,6 +725,7 @@ define(function (require, exports, module) {
                                 });
                         } else {
                             // Normal right and left click - select the item
+                            FileViewController.setFileViewFocus(FileViewController.WORKING_SET_VIEW);
                             CommandManager
                                 .execute(Commands.FILE_OPEN, {fullPath: sourceFile.fullPath,
                                                                paneId: currentView.paneId})
