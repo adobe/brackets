@@ -50,6 +50,7 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
+        Async               = require("utils/Async"),
         PreferencesDialogs  = require("preferences/PreferencesDialogs"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
@@ -687,11 +688,11 @@ define(function (require, exports, module) {
      */
     function _getFallbackProjectPath() {
         var fallbackPaths = [],
-            recentProjects = PreferencesManager.getViewState("recentProjects"),
+            recentProjects = PreferencesManager.getViewState("recentProjects") || [],
             deferred = new $.Deferred();
 
         // Build ordered fallback path array
-        if (recentProjects && recentProjects.length > 1) {
+        if (recentProjects.length > 1) {
             // *Most* recent project is the one that just failed to load, so use second most recent
             fallbackPaths.push(recentProjects[1]);
         }
@@ -699,29 +700,31 @@ define(function (require, exports, module) {
         // Next is Getting Started project
         fallbackPaths.push(_getWelcomeProjectPath());
 
-        function checkNextPath() {
-            var nextPath, fileEntry;
+        function processItem(path) {
+            var deferred = new $.Deferred(),
+                fileEntry = FileSystem.getDirectoryForPath(path);
 
-            if (fallbackPaths.length === 0) {
-                // Last resort is Brackets source folder which is guaranteed to exist
-                deferred.resolve(FileUtils.getNativeBracketsDirectoryPath());
-            } else {
-                // Check next path and resolve if it exists, otherwise continue
-                nextPath = fallbackPaths.shift();
-                fileEntry = FileSystem.getDirectoryForPath(nextPath);
-                fileEntry.exists(function (err, exists) {
-                    if (!err && exists) {
-                        deferred.resolve(nextPath);
-                    } else {
-                        checkNextPath();
-                    }
-                });
-            }
+            fileEntry.exists(function (err, exists) {
+                if (!err && exists) {
+                    deferred.resolve(path);
+                } else {
+                    deferred.reject();
+                }
+            });
+            
+            return deferred.promise();
         }
 
-        // Recursively & asynchronously check paths for existence
-        checkNextPath();
-
+        // Find first path that exists
+        Async.firstSequentially(fallbackPaths, processItem)
+            .done(function (fallbackPath) {
+                deferred.resolve(fallbackPath);
+            })
+            .fail(function () {
+                // Last resort is Brackets source folder which is guaranteed to exist
+                deferred.resolve(FileUtils.getNativeBracketsDirectoryPath());
+            });
+        
         return deferred.promise();
     }
 
