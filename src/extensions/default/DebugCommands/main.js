@@ -256,7 +256,7 @@ define(function (require, exports, module) {
     function handleOpenBracketsSource() {
         // Brackets source dir w/o the trailing src/ folder
         var dir = FileUtils.getNativeBracketsDirectoryPath().replace(/\/[^\/]+$/, "/");
-        ProjectManager.openProject(dir);
+        brackets.app.showOSFolder(dir);
     }
 
     /* Register all the command handlers */
