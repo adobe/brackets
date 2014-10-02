@@ -1088,6 +1088,17 @@ define(function (require, exports, module) {
         FileSyncManager.syncOpenDocuments();
 
         model.handleFSEvent(entry, added, removed);
+        
+        // @TODO: DocumentManager should implement its own fsChange  handler
+        //          we can clean up the calls to DocumentManager.notifyPathDeleted
+        //          and privatize DocumentManager.notifyPathDeleted as well
+        //        We can also remove the _fileSystemRename handler below and move
+        //          it to DocumentManager
+        if (removed) {
+            removed.forEach(function(file) {
+                DocumentManager.notifyPathDeleted(file.fullPath);
+            });
+        }
     };
 
     /**
