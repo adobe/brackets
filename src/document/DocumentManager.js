@@ -223,34 +223,37 @@ define(function (require, exports, module) {
 
     
     /**
+     * closes a list of files 
+     * @deprecated Use CommandManager.execute(Commands.FILE_CLOSE_LIST) instead
+     * @param {!Array.<File>} list - list of File objectgs to close
      */
     function removeListFromWorkingSet(list) {
-        throw new Error("removeListFromWorkingSet() has been deprecated.  Use Command.FILE_CLOSE_LIST instead.");
+        DeprecationWarning.deprecationWarning("Use CommandManager.execute(Commands.FILE_CLOSE_LIST, {PaneId: MainViewManager.ALL_PANES, fileList: list}) instead of DocumentManager.removeListFromWorkingSet()", true);
+        CommandManager.execute(Commands.FILE_CLOSE_LIST, {PaneId: MainViewManager.ALL_PANES, fileList: list});
     }
         
     /**
      * closes all open files
-     * @deprecated Use MainViewManager._closeAll() instead
-     * Calling this discards any unsaved changes, so the UI should confirm with the user before calling this.
+     * @deprecated CommandManager.execute(Commands.FILE_CLOSE_ALL) instead
      */
     function closeAll() {
-        DeprecationWarning.deprecationWarning("Use MainViewManager._closeAll() instead of DocumentManager.closeAll()", true);
+        DeprecationWarning.deprecationWarning("Use CommandManager.execute(Commands.FILE_CLOSE_ALL,{PaneId: MainViewManager.ALL_PANES}) instead of DocumentManager.closeAll()", true);
         CommandManager.execute(Commands.FILE_CLOSE_ALL, {PaneId: MainViewManager.ALL_PANES});
     }
 
     /**
      * closes the specified file file 
-     * @deprecated use MainViewManager._close() instead
-     * @param {!File} file
+     * @deprecated use CommandManager.execute(Commands.FILE_CLOSE, {File: file}) instead
+     * @param {!File} file - the file to close
      */
     function closeFullEditor(file) {
-        DeprecationWarning.deprecationWarning("Use MainViewManager._close() instead of DocumentManager.closeFullEditor()", true);
+        DeprecationWarning.deprecationWarning("Use CommandManager.execute(Commands.FILE_CLOSE, {File: file} instead of DocumentManager.closeFullEditor()", true);
         CommandManager.execute(Commands.FILE_CLOSE, {File: file});
     }
     
     /**
      * opens the specified document for editing in the currently active pane
-     * @deprecated use MainViewManager._edit() instead
+     * @deprecated use CommandManager.execute(Commands.CMD_OPEN, {fullPath: doc.file.fullPath}) instead
      * @param {!Document} document  The Document to make current. 
      */
     function setCurrentDocument(doc) {
@@ -464,10 +467,12 @@ define(function (require, exports, module) {
      * FUTURE: Instead of an explicit notify, we should eventually listen for deletion events on some
      * sort of "project file model," making this just a private event handler.
      *
+     * NOTE: This function is not for general consumption, is considered private and may be deprecated
+     *        without warning in a future release.
+     * 
      * @param {!File} file
-     * @param {boolean} skipAutoSelect - if true, don't automatically open/select the next document
      */
-    function notifyFileDeleted(file, skipAutoSelect) {
+    function notifyFileDeleted(file) {
         // Notify all editors to close as well
         $(exports).triggerHandler("pathDeleted", file.fullPath);
 
@@ -502,11 +507,10 @@ define(function (require, exports, module) {
      *
      * @param {string} oldName The old name of the file/folder
      * @param {string} newName The new name of the file/folder
-     * @param {boolean} isFolder True if path is a folder; False if it is a file.
      */
-    function notifyPathNameChanged(oldName, newName, isFolder) {
+    function notifyPathNameChanged(oldName, newName) {
         // Notify all open documents 
-        _.forEach(_openDocuments, function (doc, id) {
+        _.forEach(_openDocuments, function (doc) {
             // TODO: Only notify affected documents? For now _notifyFilePathChange 
             // just updates the language if the extension changed, so it's fine
             // to call for all open docs.
@@ -522,8 +526,8 @@ define(function (require, exports, module) {
      * @private
      * Update document
      */
-    function _handleLanguageAdded(event, language) {
-        _.forEach(_openDocuments, function (doc, key) {
+    function _handleLanguageAdded() {
+        _.forEach(_openDocuments, function (doc) {
             // No need to look at the new language if this document has one already
             if (doc.getLanguage().isFallbackLanguage()) {
                 doc._updateLanguage();
@@ -536,7 +540,7 @@ define(function (require, exports, module) {
      * Update document
      */
     function _handleLanguageModified(event, language) {
-        _.forEach(_openDocuments, function (doc, key) {
+        _.forEach(_openDocuments, function (doc) {
             var docLanguage = doc.getLanguage();
             // A modified language can affect a document
             // - if its language was modified
@@ -642,7 +646,7 @@ define(function (require, exports, module) {
         PreferencesManager.fileChanged(doc.file.fullPath);
     });
     
-    $(MainViewManager).on("currentFileChange", function (e, newFile, newPaneId, oldFile, oldPaneId) {
+    $(MainViewManager).on("currentFileChange", function (e, newFile, newPaneId, oldFile) {
         var newDoc = null,
             oldDoc = null;
 
