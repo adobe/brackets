@@ -475,8 +475,9 @@ define(function (require, exports, module) {
     function notifyFileDeleted(file) {
         // Notify all editors to close as well
         $(exports).triggerHandler("pathDeleted", file.fullPath);
-
+        
         var doc = getOpenDocumentForPath(file.fullPath);
+        
         if (doc) {
             $(doc).triggerHandler("deleted");
         }
@@ -491,14 +492,21 @@ define(function (require, exports, module) {
      * Called after a file or folder has been deleted. This function is responsible
      * for updating underlying model data and notifying all views of the change.
      *
-     * @param {string} path The path of the file/folder that has been deleted
+     * @param {string} fullPath The path of the file/folder that has been deleted
      */
-    function notifyPathDeleted(path) {
-        /* FileSyncManager.syncOpenDocuments() does all the work of closing files
-           in the working set and notifying the user of any unsaved changes. */
+    function notifyPathDeleted(fullPath) {
+        // FileSyncManager.syncOpenDocuments() does all the work prompting 
+        //  the user to save any unsaved changes and then calls us back
+        //  via notifyFileDeleted
         FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
-        // Send a "pathDeleted" event. This will trigger the views to update.
-        $(exports).triggerHandler("pathDeleted", path);
+        
+        if (!getOpenDocumentForPath(fullPath) &&
+            !MainViewManager.findInAllWorkingSets(fullPath).length) {
+            // For images not open in the workingset,
+            // FileSyncManager.syncOpenDocuments() will 
+            //  not tell us to close those views
+            $(exports).triggerHandler("pathDeleted", fullPath);
+        }
     }
 
     /**
@@ -700,9 +708,11 @@ define(function (require, exports, module) {
     exports.getDocumentText             = getDocumentText;
     exports.createUntitledDocument      = createUntitledDocument;
     exports.getAllOpenDocuments         = getAllOpenDocuments;
-    exports.notifyFileDeleted           = notifyFileDeleted;
+    
+    // For internal use only
     exports.notifyPathNameChanged       = notifyPathNameChanged;
     exports.notifyPathDeleted           = notifyPathDeleted;
+    exports.notifyFileDeleted           = notifyFileDeleted;
 
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
