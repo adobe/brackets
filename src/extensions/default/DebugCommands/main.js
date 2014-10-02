@@ -41,7 +41,6 @@ define(function (require, exports, module) {
         Strings                = brackets.getModule("strings"),
         PreferencesManager     = brackets.getModule("preferences/PreferencesManager"),
         LocalizationUtils      = brackets.getModule("utils/LocalizationUtils"),
-        ProjectManager         = brackets.getModule("project/ProjectManager"),
         ErrorNotification      = require("ErrorNotification"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
