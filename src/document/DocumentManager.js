@@ -497,8 +497,17 @@ define(function (require, exports, module) {
         /* FileSyncManager.syncOpenDocuments() does all the work of closing files
            in the working set and notifying the user of any unsaved changes. */
         FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
-        // Send a "pathDeleted" event. This will trigger the views to update.
-        $(exports).triggerHandler("pathDeleted", path);
+        
+        if (!getOpenDocumentForPath(path)) {
+            // The file syncManager will sync open documents and delete
+            //  those by calling DocumentManager.notifyFileDeleted when 
+            //  a file has been deleted and it's time to close the view
+            //  of the file. 
+            // For non-document files we don't get such notification
+            //  so we need to cleanup any views and remove the file from
+            //  all Working Sets
+            $(exports).triggerHandler("pathDeleted", path);
+        }
     }
 
     /**
