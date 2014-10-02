@@ -456,6 +456,24 @@ define(function (require, exports, module) {
         return new DocumentModule.Document(file, now, "");
     }
     
+    /* 
+     * common file deletion handler
+     * @param {!string} fullPath - path of the document being dleted
+     */
+    function _handleFileDeleted(fullPath) {
+        $(exports).triggerHandler("pathDeleted", fullPath);
+        
+        var doc = getOpenDocumentForPath(fullPath);
+        
+        if (doc) {
+            $(doc).triggerHandler("deleted");
+
+            if (doc._refCount > 0) {
+                console.warn("Deleted " + fullPath + " Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
+            }
+        }
+    }
+    
     /**
      * Reacts to a file being deleted: if there is a Document for this file, causes it to dispatch a
      * "deleted" event; ensures it's not the currentDocument; and removes this file from the working
@@ -475,38 +493,26 @@ define(function (require, exports, module) {
     function notifyFileDeleted(file) {
         // Notify all editors to close as well
         $(exports).triggerHandler("pathDeleted", file.fullPath);
-
-        var doc = getOpenDocumentForPath(file.fullPath);
-        if (doc) {
-            $(doc).triggerHandler("deleted");
-        }
-        
-        // At this point, all those other views SHOULD have released the Doc
-        if (doc && doc._refCount > 0) {
-            console.warn("Deleted " + file.fullPath + " Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
-        }
+        _handleFileDeleted(file.fullPath);
     }
 
     /**
      * Called after a file or folder has been deleted. This function is responsible
      * for updating underlying model data and notifying all views of the change.
      *
-     * @param {string} path The path of the file/folder that has been deleted
+     * @param {string} fullPath The path of the file/folder that has been deleted
      */
-    function notifyPathDeleted(path) {
-        /* FileSyncManager.syncOpenDocuments() does all the work of closing files
-           in the working set and notifying the user of any unsaved changes. */
+    function notifyPathDeleted(fullPath) {
+        // FileSyncManager.syncOpenDocuments() does all the work prompting 
+        //  the user to save any unsaved changes and then calls us back
+        //  via notifyFileDeleted
         FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
         
-        if (!getOpenDocumentForPath(path)) {
-            // The file syncManager will sync open documents and delete
-            //  those by calling DocumentManager.notifyFileDeleted when 
-            //  a file has been deleted and it's time to close the view
-            //  of the file. 
-            // For non-document files we don't get such notification
-            //  so we need to cleanup any views and remove the file from
-            //  all Working Sets
-            $(exports).triggerHandler("pathDeleted", path);
+        if (!MainViewManager.findInAllWorkingSets(fullPath).length) {
+            // For files not open in the workingset,
+            // FileSyncManager.syncOpenDocuments() will not close those views so
+            //  do that now
+            _handleFileDeleted(fullPath);
         }
     }
 
