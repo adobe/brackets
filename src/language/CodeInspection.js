@@ -165,15 +165,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Returns a list of providers
-     *
-     * @return {{languageId:string, Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):Object}>}} providers
-     */
-    function getProviders() {
-        return _providers;
-    }
-
-    /**
      * Runs a file inspection over passed file. Uses the given list of providers if specified, otherwise uses
      * the set of providers that are registered for the file's language.
      * This method doesn't update the Brackets UI, just provides inspection results.
@@ -486,16 +477,19 @@ define(function (require, exports, module) {
      * @param {{name:string, scanFileAsync:?function(string, string):!{$.Promise},
      *         scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}} provider
      *
-     * Returns false if no provider was removed.
+     * @return {boolean} Returns true if at least one provider was removed.
      */
-    function deregister(languageId, provider) {
+    function unregister(languageId, providerName) {
+        var isRemoved = false;
         if (_providers[languageId]) {
             _.remove(_providers[languageId], function (registeredProvider) {
-                return registeredProvider.name === provider.name;
+                if (registeredProvider.name === providerName) {
+                    isRemoved = true;
+                    return true;
+                }
             });
-        } else {
-            return false;
         }
+        return isRemoved;
     }
 
     /**
@@ -674,11 +668,10 @@ define(function (require, exports, module) {
 
     // Public API
     exports.register            = register;
-    exports.deregister          = deregister;
+    exports.unregister          = unregister;
     exports.Type                = Type;
     exports.toggleEnabled       = toggleEnabled;
     exports.inspectFile         = inspectFile;
     exports.requestRun          = run;
     exports.getProvidersForPath = getProvidersForPath;
-    exports.getProviders        = getProviders;
 });
