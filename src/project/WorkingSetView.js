@@ -434,6 +434,7 @@ define(function (require, exports, module) {
                 
                 function targetIsNoDrop() {
                     return $hit.is(".working-set-header") ||
+                           $hit.is(".working-set-header-title") ||
                            $hit.is(".scroller-shadow") ||
                            $hit.is(".scroller-shadow");
                 }
