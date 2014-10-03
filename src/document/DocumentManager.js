@@ -716,8 +716,11 @@ define(function (require, exports, module) {
     exports.createUntitledDocument      = createUntitledDocument;
     exports.getAllOpenDocuments         = getAllOpenDocuments;
     exports.notifyFileDeleted           = notifyFileDeleted;
+    
+    // For internal use only
     exports.notifyPathNameChanged       = notifyPathNameChanged;
     exports.notifyPathDeleted           = notifyPathDeleted;
+    exports._handleFileDeleted          = _handleFileDeleted;
 
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
