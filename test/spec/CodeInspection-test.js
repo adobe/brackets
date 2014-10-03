@@ -180,6 +180,10 @@ define(function (require, exports, module) {
                 expect(providers[1]).toBe(codeInspector2);
             });
 
+            it("should return an empty array if no providers are registered", function () {
+               expect(CodeInspection.getProvidersForPath("test.js").length).toBe(0);
+            });
+
             it("should run two linters", function () {
                 var codeInspector1 = createCodeInspector("text linter 1", successfulLintResult());
                 var codeInspector2 = createCodeInspector("text linter 2", successfulLintResult());
