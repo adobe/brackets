@@ -504,7 +504,7 @@ define(function (require, exports, module) {
             !MainViewManager.findInAllWorkingSets(fullPath).length) {
             // For images not open in the workingset,
             // FileSyncManager.syncOpenDocuments() will 
-            //  not close tell us to close those views
+            //  not tell us to close those views
             $(exports).triggerHandler("pathDeleted", fullPath);
         }
     }
@@ -708,11 +708,11 @@ define(function (require, exports, module) {
     exports.getDocumentText             = getDocumentText;
     exports.createUntitledDocument      = createUntitledDocument;
     exports.getAllOpenDocuments         = getAllOpenDocuments;
-    exports.notifyFileDeleted           = notifyFileDeleted;
     
     // For internal use only
     exports.notifyPathNameChanged       = notifyPathNameChanged;
     exports.notifyPathDeleted           = notifyPathDeleted;
+    exports.notifyFileDeleted           = notifyFileDeleted;
 
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
