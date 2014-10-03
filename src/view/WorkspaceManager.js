@@ -120,7 +120,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        // FIXME (issue #4564) Workaround https://github.com/marijnh/CodeMirror/issues/1787
+        // FIXME (issue #4564) Workaround https://github.com/codemirror/CodeMirror/issues/1787
         triggerUpdateLayout();
         
         if (!windowResizing) {
