@@ -106,6 +106,9 @@ define(function (require, exports, module) {
      */
     SearchModel.prototype.exceedsMaximum = false;
     
+    /**
+     * Clears out the model to an empty state.
+     */
     SearchModel.prototype.clear = function () {
         this.results = {};
         this.queryInfo = null;
