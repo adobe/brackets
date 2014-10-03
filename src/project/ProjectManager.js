@@ -58,7 +58,6 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
-        DeprecationWarning  = require("utils/DeprecationWarning"),
         LanguageManager     = require("language/LanguageManager"),
         Menus               = require("command/Menus"),
         StringUtils         = require("utils/StringUtils"),
@@ -1364,7 +1363,6 @@ define(function (require, exports, module) {
     exports.isWithinProject               = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow                    = ProjectModel.shouldShow;
-    exports.isBinaryFile                  = isBinaryFile;
     exports.openProject                   = openProject;
     exports.getSelectedItem               = getSelectedItem;
     exports.getContext                    = getContext;
