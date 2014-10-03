@@ -146,6 +146,10 @@ define(function (require, exports, module) {
     }
     
     
+    function _hasSelectionFocus() {
+        return FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW;
+    }
+    
     /** 
      * Turns on/off the flag which suppresses rebuilding of the working set 
      * when the "workingSetSort" event is dispatched from MainViewManager.
@@ -575,8 +579,8 @@ define(function (require, exports, module) {
                         $("#working-set-list-container").addClass("dragging");
                         
                         // add a class to the element we're dragging if 
-                        //  its the currently selected file so that we 
-                        //  can show it as selected while dragging it
+                        //  it's the currently selected file so that we 
+                        //  can show it as selected while dragging
                         if (!draggingCurrentFile) {
                             $(activeView._findListItemFromFile(currentFile)).addClass("drag-show-as-selected");
                         }
@@ -799,7 +803,7 @@ define(function (require, exports, module) {
             
             // setup our ghost element as position absolute
             //  so we can put it wherever we want to while dragging
-            if (draggingCurrentFile) {
+            if (draggingCurrentFile && _hasSelectionFocus()) {
                 $ghost.addClass("dragging-current-file");
             }
 
@@ -907,7 +911,7 @@ define(function (require, exports, module) {
      * @private
      */
     WorkingSetView.prototype._scrollSelectedFileIntoView = function () {
-        if (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW) {
+        if (!_hasSelectionFocus()) {
             return;
         }
 
@@ -933,7 +937,7 @@ define(function (require, exports, module) {
             this._scrollSelectedFileIntoView();
         }
 
-        if (FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW && this.$el.hasClass("active")) {
+        if (_hasSelectionFocus() && this.$el.hasClass("active")) {
             this.$openFilesList.trigger("selectionChanged", reveal);
         } else {
             this.$openFilesList.trigger("selectionHide");
@@ -1160,8 +1164,7 @@ define(function (require, exports, module) {
      */
     WorkingSetView.prototype._updateViewState = function () {
         var paneId = MainViewManager.getActivePaneId();
-        if ((FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW) &&
-                (paneId === this.paneId)) {
+        if (_hasSelectionFocus() && paneId === this.paneId) {
             this.$el.addClass("active");
             this.$openFilesContainer.addClass("active");
         } else {
