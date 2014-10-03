@@ -1096,14 +1096,10 @@ define(function (require, exports, module) {
         //          it to DocumentManager
         if (removed) {
             removed.forEach(function(file) {
-                // The call to syncOpenDocuemnts above will remove any deleted files
-                //  in the working set, we just need to handle the case of files not
-                //  in the working set. to optimize this: call the internal handler
-                //  directly so we're not searching the working set twice or call
-                //  syncOpenDocuments again (DocumentManager.notifyPathDeleted will do this)
-                if (!MainViewManager.findInAllWorkingSets(file.fullPath).length) {
-                    DocumentManager._handleFileDeleted(file.fullPath);
-                }
+                // The call to syncOpenDocuemnts above will not nofify
+                //  document manager about deleted images that are 
+                //  not in the working set -- try to clean that up here
+                DocumentManager.notifyPathDeleted(file.fullPath);
             });
         }
     };

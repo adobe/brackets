@@ -456,24 +456,6 @@ define(function (require, exports, module) {
         return new DocumentModule.Document(file, now, "");
     }
     
-    /* 
-     * common file deletion handler
-     * @param {!string} fullPath - path of the document being dleted
-     */
-    function _handleFileDeleted(fullPath) {
-        $(exports).triggerHandler("pathDeleted", fullPath);
-        
-        var doc = getOpenDocumentForPath(fullPath);
-        
-        if (doc) {
-            $(doc).triggerHandler("deleted");
-
-            if (doc._refCount > 0) {
-                console.warn("Deleted " + fullPath + " Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
-            }
-        }
-    }
-    
     /**
      * Reacts to a file being deleted: if there is a Document for this file, causes it to dispatch a
      * "deleted" event; ensures it's not the currentDocument; and removes this file from the working
@@ -493,7 +475,17 @@ define(function (require, exports, module) {
     function notifyFileDeleted(file) {
         // Notify all editors to close as well
         $(exports).triggerHandler("pathDeleted", file.fullPath);
-        _handleFileDeleted(file.fullPath);
+        
+        var doc = getOpenDocumentForPath(file.fullPath);
+        
+        if (doc) {
+            $(doc).triggerHandler("deleted");
+        }
+        
+        // At this point, all those other views SHOULD have released the Doc
+        if (doc && doc._refCount > 0) {
+            console.warn("Deleted " + file.fullPath + " Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
+        }  
     }
 
     /**
@@ -508,11 +500,12 @@ define(function (require, exports, module) {
         //  via notifyFileDeleted
         FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
         
-        if (!MainViewManager.findInAllWorkingSets(fullPath).length) {
-            // For files not open in the workingset,
-            // FileSyncManager.syncOpenDocuments() will not close those views so
-            //  do that now
-            _handleFileDeleted(fullPath);
+        if (!getOpenDocumentForPath(fullPath) &&
+            !MainViewManager.findInAllWorkingSets(fullPath).length) {
+            // For images not open in the workingset,
+            // FileSyncManager.syncOpenDocuments() will 
+            //  not close tell us to close those views
+            $(exports).triggerHandler("pathDeleted", fullPath);
         }
     }
 
@@ -720,7 +713,6 @@ define(function (require, exports, module) {
     // For internal use only
     exports.notifyPathNameChanged       = notifyPathNameChanged;
     exports.notifyPathDeleted           = notifyPathDeleted;
-    exports._handleFileDeleted          = _handleFileDeleted;
 
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
