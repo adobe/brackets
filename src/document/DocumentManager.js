@@ -485,7 +485,7 @@ define(function (require, exports, module) {
         // At this point, all those other views SHOULD have released the Doc
         if (doc && doc._refCount > 0) {
             console.warn("Deleted " + file.fullPath + " Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
-        }  
+        }
     }
 
     /**
