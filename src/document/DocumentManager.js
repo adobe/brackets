@@ -501,7 +501,7 @@ define(function (require, exports, module) {
         FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
         
         if (!getOpenDocumentForPath(fullPath) &&
-            !MainViewManager.findInAllWorkingSets(fullPath).length) {
+                !MainViewManager.findInAllWorkingSets(fullPath).length) {
             // For images not open in the workingset,
             // FileSyncManager.syncOpenDocuments() will 
             //  not tell us to close those views

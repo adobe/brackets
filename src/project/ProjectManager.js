@@ -1095,7 +1095,7 @@ define(function (require, exports, module) {
         //        We can also remove the _fileSystemRename handler below and move
         //          it to DocumentManager
         if (removed) {
-            removed.forEach(function(file) {
+            removed.forEach(function (file) {
                 // The call to syncOpenDocuemnts above will not nofify
                 //  document manager about deleted images that are 
                 //  not in the working set -- try to clean that up here
