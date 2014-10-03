@@ -469,30 +469,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Deregisters a provider, given a languageId and the provider.
-     * Allows code to remove providers which provide the same functionality
-     * as the code provides
-     *
-     * @param {string} languageId
-     * @param {{name:string, scanFileAsync:?function(string, string):!{$.Promise},
-     *         scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}} provider
-     *
-     * @return {boolean} Returns true if at least one provider was removed.
-     */
-    function unregister(languageId, providerName) {
-        var isRemoved = false;
-        if (_providers[languageId]) {
-            _.remove(_providers[languageId], function (registeredProvider) {
-                if (registeredProvider.name === providerName) {
-                    isRemoved = true;
-                    return true;
-                }
-            });
-        }
-        return isRemoved;
-    }
-
-    /**
      * Update DocumentManager listeners.
      */
     function updateListeners() {
@@ -668,7 +644,6 @@ define(function (require, exports, module) {
 
     // Public API
     exports.register            = register;
-    exports.unregister          = unregister;
     exports.Type                = Type;
     exports.toggleEnabled       = toggleEnabled;
     exports.inspectFile         = inspectFile;

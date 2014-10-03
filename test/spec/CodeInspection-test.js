@@ -167,6 +167,19 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should get the correct linter given a file path", function () {
+                var codeInspector1 = createCodeInspector("text linter 1", successfulLintResult());
+                var codeInspector2 = createCodeInspector("text linter 2", successfulLintResult());
+
+                CodeInspection.register("javascript", codeInspector1);
+                CodeInspection.register("javascript", codeInspector2);
+
+                var providers = CodeInspection.getProvidersForPath("test.js");
+                expect(providers.length).toBe(2);
+                expect(providers[0]).toBe(codeInspector1);
+                expect(providers[1]).toBe(codeInspector2);
+            });
+
             it("should run two linters", function () {
                 var codeInspector1 = createCodeInspector("text linter 1", successfulLintResult());
                 var codeInspector2 = createCodeInspector("text linter 2", successfulLintResult());
