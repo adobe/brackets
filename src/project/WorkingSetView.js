@@ -705,8 +705,9 @@ define(function (require, exports, module) {
                     _suppressScrollShadowsOnAllViews(false);
                 }
                 
-                // we don't need to refresh if the
-                //  item was not dragged or opened
+                // we don't need to refresh if the item
+                //  was dragged but not enough to not change 
+                //  its order in the working set
                 if (!noRefresh) {
                     // rebuild the view
                     refresh(true);
