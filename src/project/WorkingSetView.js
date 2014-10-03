@@ -695,9 +695,11 @@ define(function (require, exports, module) {
         
             // Final Cleanup
             function postDropCleanup(noRefresh) {
-                // re-enable stuff we turned off
-                _suppressSortRedrawForAllViews(false);
-                _suppressScrollShadowsOnAllViews(false);
+                if (dragged) {
+                    // re-enable stuff we turned off
+                    _suppressSortRedrawForAllViews(false);
+                    _suppressScrollShadowsOnAllViews(false);
+                }
                 
                 // we don't need to refresh if the
                 //  item was not dragged or opened
@@ -1361,6 +1363,7 @@ define(function (require, exports, module) {
      * Destroys the WorkingSetView DOM element and removes all event handlers
      */
     WorkingSetView.prototype.destroy = function () {
+        ViewUtils.removeScrollerShadow(this.$openFilesContainer[0], null);
         this.$openFilesContainer.off(".workingSetView");
         this.$el.remove();
         $(MainViewManager).off(this._makeEventName(""));
