@@ -695,12 +695,16 @@ define(function (require, exports, module) {
         
             // Final Cleanup
             function postDropCleanup(noRefresh) {
-                // re-enable stuff we turned off
-                _suppressSortRedrawForAllViews(false);
-                _suppressScrollShadowsOnAllViews(false);
+                if (dragged) {
+                    // re-enable stuff we turned off
+                    _suppressSortRedrawForAllViews(false);
+                    _suppressScrollShadowsOnAllViews(false);
+                }
                 
-                // we don't need to refresh if the
-                //  item was not dragged or opened
+                
+                // we don't need to refresh if the item
+                //  was dragged but not enough to not change 
+                //  its order in the working set
                 if (!noRefresh) {
                     // rebuild the view
                     refresh(true);
@@ -725,6 +729,7 @@ define(function (require, exports, module) {
                                 });
                         } else {
                             // Normal right and left click - select the item
+                            FileViewController.setFileViewFocus(FileViewController.WORKING_SET_VIEW);
                             CommandManager
                                 .execute(Commands.FILE_OPEN, {fullPath: sourceFile.fullPath,
                                                                paneId: currentView.paneId})
@@ -760,6 +765,9 @@ define(function (require, exports, module) {
                 }
             }
 
+            // prevent working set from grabbing focus no matter what type of click/drag occurs
+            e.preventDefault();
+            
             // initialization
             $(window).on("mouseup.wsvdragging", function () {
                 drop();
@@ -1360,6 +1368,7 @@ define(function (require, exports, module) {
      * Destroys the WorkingSetView DOM element and removes all event handlers
      */
     WorkingSetView.prototype.destroy = function () {
+        ViewUtils.removeScrollerShadow(this.$openFilesContainer[0], null);
         this.$openFilesContainer.off(".workingSetView");
         this.$el.remove();
         $(MainViewManager).off(this._makeEventName(""));
