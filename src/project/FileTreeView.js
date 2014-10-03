@@ -96,6 +96,18 @@ define(function (require, exports, module) {
      */
     var renameBehavior = {
         /**
+         * Stop clicks from propagating so that clicking on the rename input doesn't
+         * cause directories to collapse.
+         */
+        handleClick: function (e) {
+            e.stopPropagation();
+            if (e.button !== LEFT_MOUSE_BUTTON) {
+                return false;
+            }
+            return true;
+        },
+        
+        /**
          * If the user presses enter or escape, we either successfully complete or cancel, respectively,
          * the rename or create operation that is underway.
          */
@@ -113,6 +125,13 @@ define(function (require, exports, module) {
          */
         handleKeyUp: function () {
             this.props.actions.setRenameValue(this.refs.name.getDOMNode().value.trim());
+        },
+        
+        /**
+         * If we leave the field for any reason, complete the rename.
+         */
+        handleBlur: function () {
+            this.props.actions.performRename();
         }
     };
 
@@ -162,12 +181,14 @@ define(function (require, exports, module) {
             var width = _measureText(this.props.name);
 
             return DOM.input({
-                className: "jstree-rename-input " + this.props.fileClasses,
+                className: "jstree-rename-input",
                 type: "text",
                 defaultValue: this.props.name,
                 autoFocus: true,
                 onKeyDown: this.handleKeyDown,
                 onKeyUp: this.handleKeyUp,
+                onClick: this.handleClick,
+                onBlur: this.handleBlur,
                 style: {
                     width: width
                 },
@@ -424,8 +445,7 @@ define(function (require, exports, module) {
                     actions: this.props.actions,
                     entry: this.props.entry,
                     name: this.props.name,
-                    parentPath: this.props.parentPath,
-                    fileClasses: fileClasses
+                    parentPath: this.props.parentPath
                 });
             } else {
                 // Need to flatten the argument list because getIcons returns an array
@@ -521,10 +541,12 @@ define(function (require, exports, module) {
                 autoFocus: true,
                 onKeyDown: this.handleKeyDown,
                 onKeyUp: this.handleKeyUp,
-                ref: "name",
+                onBlur: this.handleBlur,
                 style: {
                     width: width
-                }
+                },
+                onClick: this.handleClick,
+                ref: "name"
             });
         }
     });
@@ -637,22 +659,26 @@ define(function (require, exports, module) {
                 directoryClasses += " context-node";
             }
 
-            var nameDisplay;
+            var nameDisplay, renameInput;
             if (entry.get("rename")) {
-                nameDisplay = directoryRenameInput({
+                renameInput = directoryRenameInput({
                     actions: this.props.actions,
                     entry: this.props.entry,
                     name: this.props.name,
                     parentPath: this.props.parentPath
                 });
-            } else {
-                // Need to flatten the arguments because getIcons returns an array
-                var aArgs = _.flatten([{
-                    href: "#",
-                    className: directoryClasses
-                }, this.getIcons(), this.props.name], true);
-                nameDisplay = DOM.a.apply(DOM.a, aArgs);
             }
+            
+            // Need to flatten the arguments because getIcons returns an array
+            var aArgs = _.flatten([{
+                href: "#",
+                className: directoryClasses
+            }, this.getIcons()], true);
+            if (!entry.get("rename")) {
+                aArgs.push(this.props.name);
+            }
+            
+            nameDisplay = DOM.a.apply(DOM.a, aArgs);
 
             return DOM.li({
                 className: this.getClasses("jstree-" + nodeClass),
@@ -662,6 +688,7 @@ define(function (require, exports, module) {
                 DOM.ins({
                     className: "jstree-icon"
                 }, " "),
+                renameInput,
                 nameDisplay,
                 childNodes);
         }
@@ -776,13 +803,21 @@ define(function (require, exports, module) {
         },
 
         render: function () {
-            var selectionViewInfo = this.props.selectionViewInfo;
+            var selectionViewInfo = this.props.selectionViewInfo,
+                left = selectionViewInfo.get("scrollLeft"),
+                width = selectionViewInfo.get("width") - this.props.widthAdjustment,
+                scrollWidth = selectionViewInfo.get("scrollWidth");
+            
+            // Avoid endless horizontal scrolling
+            if (left + width > scrollWidth) {
+                left = scrollWidth - width;
+            }
 
             return DOM.div({
                 style: {
                     overflow: "auto",
-                    left: selectionViewInfo.get("scrollLeft"),
-                    width: selectionViewInfo.get("width") - this.props.widthAdjustment,
+                    left: left,
+                    width: width,
                     display: this.props.visible ? "block" : "none"
                 },
                 className: this.props.className

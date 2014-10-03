@@ -632,6 +632,15 @@ define(function (require, exports, module) {
                 vm.moveMarker("context", "subdir1/afile.js", null);
                 expect(vm._selectionViewInfo.get("hasContext")).toBe(false);
             });
+            
+            it("should signal a change when just selectionViewInfo changes", function () {
+                vm.moveMarker("context", null, "subdir1/afile.js");
+                vm.deleteAtPath("subdir1/afile.js");
+                changesFired = 0;
+                vm.moveMarker("context", "subdir1/afile.js", null);
+                expect(vm._selectionViewInfo.get("hasContext")).toBe(false);
+                expect(changesFired).toBe(1);
+            });
         });
 
         describe("createPlaceholder", function () {
