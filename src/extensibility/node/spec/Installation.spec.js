@@ -56,7 +56,7 @@ var basicValidExtension       = path.join(testFilesDirectory, "basic-valid-exten
     missingPackageJSON        = path.join(testFilesDirectory, "missing-package-json.zip"),
     missingPackageJSONUpdate  = path.join(testFilesDirectory, "missing-package-json-update.zip"),
     missingPackageJSONRenamed = path.join(testFilesDirectory, "added-package-json-test", "missing-package-json.zip"),
-    withSymlink            = path.join(testFilesDirectory, "with-symlink.zip");
+    withSymlink               = path.join(testFilesDirectory, "with-symlink.zip");
 
 
 describe("Package Installation", function () {

@@ -287,8 +287,11 @@ function extractAndValidateFiles(zipPath, extractDir, options, callback) {
                     callback(err, null);
                     return;
                 }
-                var mainJS = path.join(extractDir, commonPrefix, "main.js");
-                if (!fs.existsSync(mainJS)) {
+                var mainJS  = path.join(extractDir, commonPrefix, "main.js"),
+                    isTheme = metadata && metadata.theme;
+                
+                // Throw missing main.js file only for non-theme extensions
+                if (!isTheme && !fs.existsSync(mainJS)) {
                     errors.push([Errors.MISSING_MAIN, zipPath, mainJS]);
                 }
                 callback(null, {
