@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, $, brackets */
 
 /**
  * ExtensionLoader searches the filesystem for extensions, then creates a new context for each one and loads it.
@@ -220,7 +220,7 @@ define(function (require, exports, module) {
 
         return promise;
     }
-    
+
     /**
      * Loads the extension that lives at baseUrl into its own Require.js context
      *
@@ -240,7 +240,7 @@ define(function (require, exports, module) {
         return promise
             .then(function (metadata) {
                 // No special handling for themes... Let the promise propagate into the ExtensionManager
-                if (metadata && metadata.hasOwnProperty("theme")) {
+                if (metadata && metadata.theme) {
                     return;
                 }
 

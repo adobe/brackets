@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $, Mustache */
 
  /**
   * Pane objects host views of files, editors, etc... Clients cannot access
@@ -153,16 +153,28 @@ define(function (require, exports, module) {
         
     var _                   = require("thirdparty/lodash"),
         FileSystem          = require("filesystem/FileSystem"),
-        File                = require("filesystem/File"),
         InMemoryFile        = require("document/InMemoryFile"),
         ViewStateManager    = require("view/ViewStateManager"),
         MainViewManager     = require("view/MainViewManager"),
         DocumentManager     = require("document/DocumentManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
+        Strings             = require("strings"),
         ViewUtils           = require("utils/ViewUtils"),
+        ProjectManager      = require("project/ProjectManager"),
         paneTemplate        = require("text!htmlContent/pane.html");
     
+    /**
+     * Make an index request object
+     * @param {boolean} requestIndex - true to request an index, false if not
+     * @param {number} index - the index to request
+     * @return {indexRequested:boolean, index:number} an object that can be pased to 
+     * Pane._addToViewList to insert the item at a specific index
+     * @see {Pane._addToViewList}
+     */
+    function _makeIndexRequestObject(requestIndex, index) {
+        return {indexRequested: requestIndex, index: index};
+    }
     
     /**
      * @typedef {!$el: jQuery, getFile:function():!File, updateLayout:function(forceRefresh:boolean), destroy:function(),  getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number)=, getViewState:function():?*=, restoreViewState:function(viewState:!*)=, notifyContainerChange:function()=, notifyVisibilityChange:function(boolean)=} View
@@ -181,7 +193,9 @@ define(function (require, exports, module) {
         
         // Setup the container and the element we're inserting
         var self = this,
-            $el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id);
+            $el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id),
+            $header  = $el.find(".pane-header"),
+            $content = $el.find(".pane-content");
         
         $el.on("focusin.pane", function (e) {
             self._lastFocusedElement = e.target;
@@ -208,6 +222,24 @@ define(function (require, exports, module) {
             }
         });
 
+        Object.defineProperty(this,  "$header", {
+            get: function () {
+                return $header;
+            },
+            set: function () {
+                console.error("cannot change the DOM node of a working pane");
+            }
+        });
+
+        Object.defineProperty(this,  "$content", {
+            get: function () {
+                return $content;
+            },
+            set: function () {
+                console.error("cannot change the DOM node of a working pane");
+            }
+        });
+
         Object.defineProperty(this,  "$container", {
             get: function () {
                 return $container;
@@ -217,10 +249,17 @@ define(function (require, exports, module) {
             }
         });
 
+        this.updateHeaderText();
+
         // Listen to document events so we can update ourself
         $(DocumentManager).on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
         $(DocumentManager).on(this._makeEventName("pathDeleted"), _.bind(this._handleFileDeleted, this));
         $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
+        $(MainViewManager).on(this._makeEventName("workingSetAdd"), _.bind(this.updateHeaderText, this));
+        $(MainViewManager).on(this._makeEventName("workingSetRemove"), _.bind(this.updateHeaderText, this));
+        $(MainViewManager).on(this._makeEventName("workingSetAddList"), _.bind(this.updateHeaderText, this));
+        $(MainViewManager).on(this._makeEventName("workingSetRemoveList"), _.bind(this.updateHeaderText, this));
+        
     }
 
     /**
@@ -243,6 +282,20 @@ define(function (require, exports, module) {
      * @type {JQuery}
      */
     Pane.prototype.$el = null;
+  
+    /**
+     * the wrapped DOM node that contains name of current view, or informational string if there is no view
+     * @readonly
+     * @type {JQuery}
+     */
+    Pane.prototype.$header = null;
+  
+    /**
+     * the wrapped DOM node that contains views
+     * @readonly
+     * @type {JQuery}
+     */
+    Pane.prototype.$content = null;
   
     /**
      * The list of files views
@@ -313,7 +366,7 @@ define(function (require, exports, module) {
      * @param {!View} view - the view to reparent
      */
     Pane.prototype._reparent = function (view) {
-        view.$el.appendTo(this.$el);
+        view.$el.appendTo(this.$content);
         this._views[view.getFile().fullPath] = view;
         if (view.notifyContainerChange) {
             view.notifyContainerChange();
@@ -332,6 +385,82 @@ define(function (require, exports, module) {
             this._currentView = null;
             this._notifyCurrentViewChange(null, currentView);
         }
+    };
+
+    /**
+     * moves a view from one pane to another
+     * @param {!File} file - the File to move
+     * @param {Pane} destinationPane - the destination pane 
+     * @param {Number} destinationIndex - the working set index of the file in the destination pane
+     * @return {jQuery.Promise} a promise object which resolves after the view has been moved and its
+     * replacement document has been opened
+     * @private
+     */
+    Pane.prototype.moveView = function (file, destinationPane, destinationIndex) {
+        var self = this,
+            openNextPromise = new $.Deferred(),
+            result = new $.Deferred();
+        
+        // if we're moving the currently viewed file we 
+        //  need to open another file so wait for that operation
+        //  to finish before we move the view
+        if ((this.getCurrentlyViewedPath() === file.fullPath)) {
+            var nextFile = this.traverseViewListByMRU(1, file.fullPath);
+            if (nextFile) {
+                this._execOpenFile(nextFile.fullPath)
+                    .fail(function () {
+                        // the FILE_OPEN failed
+                        self._hideCurrentView();
+                    })
+                    .always(function () {
+                        openNextPromise.resolve();
+                    });
+            } else {
+                this._hideCurrentView();
+                openNextPromise.resolve();
+            }
+        } else {
+            openNextPromise.resolve();
+        }
+        
+        // Once the next file has opened, we can
+        //  move the item in the working set and 
+        //  open it in the destination pane
+        openNextPromise.done(function () {
+            // Remove file from all 3 view lists
+            self._viewList.splice(self.findInViewList(file.fullPath), 1);
+            self._viewListMRUOrder.splice(self.findInViewListMRUOrder(file.fullPath), 1);
+            self._viewListAddedOrder.splice(self.findInViewListAddedOrder(file.fullPath), 1);
+
+            // insert the view into the working set
+            destinationPane._addToViewList(file,  _makeIndexRequestObject(true, destinationIndex));
+
+            //move the view,
+            var view = self._views[file.fullPath];
+
+            // if we had a view, it had previously been opened
+            //  otherwise, the file was in the working set unopened
+            if (view) {
+                // delete it from the source pane's view map and add it to the destination pane's view map
+                delete self._views[file.fullPath];
+                destinationPane.addView(view, !destinationPane.getCurrentlyViewedFile());
+                // we're done
+                result.resolve();
+            } else if (!destinationPane.getCurrentlyViewedFile()) {
+                // The view has not have been created and the pane was 
+                //  not showing anything so open the file moved in to the pane
+                destinationPane._execOpenFile(file.fullPath).always(function () {
+                    // wait until the file has been opened before
+                    //  we resolve the promise so the working set 
+                    //  view can sync appropriately
+                    result.resolve();
+                });
+            } else {
+                // nothing to do, we're done
+                result.resolve();
+            }
+        });
+        return result.promise();
     };
     
     /**
@@ -553,7 +682,7 @@ define(function (require, exports, module) {
     Pane.prototype.addToViewList = function (file, index) {
         var indexRequested = (index !== undefined && index !== null && index >= 0 && index < this._viewList.length);
 
-        this._addToViewList(file, {indexRequested: indexRequested, index: index});
+        this._addToViewList(file, _makeIndexRequestObject(indexRequested, index));
         
         if (!indexRequested) {
             index = this._viewList.length - 1;
@@ -583,8 +712,32 @@ define(function (require, exports, module) {
         return uniqueFileList;
     };
     
+    /**
+     * Dispatches a currentViewChange event
+     * @param {?View} newView - the view become the current view
+     * @param {?View} oldView - the view being replaced
+     */
     Pane.prototype._notifyCurrentViewChange = function (newView, oldView) {
+        this.updateHeaderText();
+        
         $(this).triggerHandler("currentViewChange", [newView, oldView]);
+    };
+    
+    
+    /**
+     * Destroys a view and removes it from the view map. If it is the current view then the view 
+     * is first hidden and the interstitial page is displayed
+     * @private
+     * @param {!View} view - view to destroy
+     */
+    Pane.prototype._doDestroyView = function (view) {
+        if (this._currentView === view) {
+            // if we're removing the current
+            //  view then we need to hide the view
+            this._hideCurrentView();
+        }
+        delete this._views[view.getFile().fullPath];
+        view.destroy();
     };
     
     /**
@@ -619,13 +772,7 @@ define(function (require, exports, module) {
 
         if (view) {
             if (!preventViewChange) {
-                if (this._currentView === view) {
-                    // if we're removing the current
-                    //  view then we need to hide the view
-                    this._hideCurrentView();
-                }
-                delete this._views[file.fullPath];
-                view.destroy();
+                this._doDestroyView(view);
             }
         }
         
@@ -656,7 +803,18 @@ define(function (require, exports, module) {
     Pane.prototype.sortViewList = function (compareFn) {
         this._viewList.sort(_.partial(compareFn, this.id));
     };
-
+    
+    /**
+     * moves a working set item from one index to another shifting the items
+     * after in the working set up and reinserting it at the desired location
+     * @param {!number} fromIndex - the index of the item to move
+     * @param {!number} toIndex - the index to move to
+     * @private
+     */
+    Pane.prototype.moveWorkingSetItem = function (fromIndex, toIndex) {
+        this._viewList.splice(toIndex, 0, this._viewList.splice(fromIndex, 1)[0]);
+    };
+    
     /**
      * Swaps two items in the file view list (used while dragging items in the working set view)
      * @param {number} index1 - the index of the first item to swap
@@ -689,6 +847,30 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Updates text in pane header
+     * @private
+     */
+    Pane.prototype.updateHeaderText = function () {
+        var file = this.getCurrentlyViewedFile(),
+            files,
+            displayName;
+        
+        if (file) {
+            files = MainViewManager.getAllOpenFiles().filter(function (item) {
+                return (item.name === file.name);
+            });
+            if (files.length < 2) {
+                this.$header.text(file.name);
+            } else {
+                displayName = ProjectManager.makeProjectRelativeIfPossible(file.fullPath);
+                this.$header.text(displayName);
+            }
+        } else {
+            this.$header.html(Strings.EMPTY_VIEW_HEADER);
+        }
+    };
+    
+    /**
      * Event handler when a file changes name
      * @private
      * @param {!JQuery.Event} e - jQuery event object
@@ -711,6 +893,8 @@ define(function (require, exports, module) {
             delete this._views[oldname];
         }
         
+        this.updateHeaderText();
+        
         // dispatch the change event
         if (dispatchEvent) {
             $(this).triggerHandler("viewListChange");
@@ -721,7 +905,7 @@ define(function (require, exports, module) {
      * Event handler when a file is deleted
      * @private
      * @param {!JQuery.Event} e - jQuery event object
-     * @return {@return {} fullPath - path of the file that was deleted
+     * @param {!string} fullPath - path of the file that was deleted
      */
     Pane.prototype._handleFileDeleted = function (e, fullPath) {
         if (this.removeView({fullPath: fullPath})) {
@@ -734,8 +918,8 @@ define(function (require, exports, module) {
      * @param {boolean} show - show or hide the interstitial page
      */
     Pane.prototype.showInterstitial = function (show) {
-        if (this.$el) {
-            this.$el.find(".not-editor").css("display", (show) ? "" : "none");
+        if (this.$content) {
+            this.$content.find(".not-editor").css("display", (show) ? "" : "none");
         }
     };
     
@@ -762,7 +946,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        if (view.$el.parent() !== this.$el) {
+        if (view.$el.parent() !== this.$content) {
             this._reparent(view);
         } else {
             this._views[path] = view;
@@ -829,12 +1013,30 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Updates the layout causing the current view to redraw itself
-     * @param {boolean} forceRefresh - true to force a resize and refresh of the current view, false if just to resize
-     * forceRefresh is only used by Editor views to force a relayout of all editor DOM elements. 
-     * Custom View implemtations should just ignore this flag.
+     * Update header and content height
+     */
+    Pane.prototype._updateHeaderHeight = function () {
+        var paneContentHeight = this.$el.height();
+        
+        // Adjust pane content height for header
+        if (MainViewManager.getPaneCount() > 1) {
+            this.$header.show();
+            paneContentHeight -= this.$header.outerHeight();
+        } else {
+            this.$header.hide();
+        }
+        
+        this.$content.height(paneContentHeight);
+    };
+    
+    /**
+     * Sets pane content height. Updates the layout causing the current view to redraw itself
+     * @param {boolean} forceRefresh - true to force a resize and refresh of the current view,
+     * false if just to resize forceRefresh is only used by Editor views to force a relayout
+     * of all editor DOM elements. Custom View implementations should just ignore this flag.
      */
     Pane.prototype.updateLayout = function (forceRefresh) {
+        this._updateHeaderHeight();
         if (this._currentView) {
             this._currentView.updateLayout(forceRefresh);
         }
@@ -922,33 +1124,33 @@ define(function (require, exports, module) {
      * @return {jQuery.promise} promise that will resolve when the file is opened
      */
     Pane.prototype._execOpenFile = function (fullPath) {
-        return CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath, paneId: this.id});
+        return CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: fullPath, paneId: this.id, options: {noPaneActivate: true}});
     };
     
     /**
      * Removes the view and opens the next view
      * @param {File} file - the file to close
      * @param {boolean} suppressOpenNextFile - suppresses opening the next file in MRU order
+     * @param {boolean} preventViewChange - if suppressOpenNextFile is truthy, this flag can be used to 
+     *                                      prevent the current view from being destroyed. 
+     *                                      Ignored if suppressOpenNextFile is falsy 
      * @return {boolean} true if the file was removed from the working set
      *  This function will remove a temporary view of a file but will return false in that case
      */
-    Pane.prototype.removeView = function (file, suppressOpenNextFile) {
+    Pane.prototype.removeView = function (file, suppressOpenNextFile, preventViewChange) {
         var nextFile = !suppressOpenNextFile && this.traverseViewListByMRU(1, file.fullPath);
-        if (nextFile && nextFile.fullPath !== file.fullPath && this.getCurrentlyViewedFile() === file) {
+        if (nextFile && nextFile.fullPath !== file.fullPath && this.getCurrentlyViewedPath() === file.fullPath) {
             var self = this,
                 fullPath = nextFile.fullPath,
                 needOpenNextFile = this.findInViewList(fullPath) !== -1;
             
             if (this._doRemove(file, needOpenNextFile)) {
                 if (needOpenNextFile) {
+                    // this will destroy the current view
                     this._execOpenFile(fullPath)
                         .fail(function () {
-                            // the FILE_OPEN op failed so
-                            //  we need to cleanup by hiding and destroying the current view
-                            self._hideCurrentView();
-                            var view = self._views[file.fullPath];
-                            delete self._views[file.fullPath];
-                            view.destroy();
+                            // the FILE_OPEN op failed so destroy the current view
+                            self._doDestroyView(self._currentView);
                         });
                 }
                 return true;
@@ -957,7 +1159,7 @@ define(function (require, exports, module) {
                 return false;
             }
         } else {
-            return this._doRemove(file);
+            return this._doRemove(file, preventViewChange);
         }
     };
     
@@ -970,17 +1172,54 @@ define(function (require, exports, module) {
      *  in the result set.  Only the file objects removed from the working set are returned.
      */
     Pane.prototype.removeViews = function (list) {
-        var self = this;
-        
-        return list.filter(function (file) {
-            return (self.removeView(file));
+        var self = this,
+            needsDestroyCurrentView = false,
+            result;
+
+        // Check to see if we need to destroy the current view later
+        needsDestroyCurrentView = _.findIndex(list, function (file) {
+            return file.fullPath === self.getCurrentlyViewedPath();
+        }) !== -1;
+
+        // destroy the views in the list 
+        result = list.filter(function (file) {
+            return (self.removeView(file, true, true));
         });
+
+        // we may have been passed a list of files that did not include the current view
+        if (needsDestroyCurrentView) {
+            // _doRemove will have whittled the MRU list down to just the remaining views 
+            var nextFile = this.traverseViewListByMRU(1, this.getCurrentlyViewedPath()),
+                fullPath = nextFile && nextFile.fullPath,
+                needOpenNextFile = fullPath && (this.findInViewList(fullPath) !== -1);
+            
+            if (needOpenNextFile) {
+                // A successful open will destroy the current view 
+                this._execOpenFile(fullPath)
+                    .fail(function () {
+                        // the FILE_OPEN op failed so destroy the current view
+                        self._doDestroyView(self._currentView);
+                    });
+            } else {
+                // Nothing left to show so destroy the current view
+                this._doDestroyView(this._currentView);
+            }
+        }
+        
+        // return the result
+        return result;
     };
     
     /**
      * Gives focus to the last thing that had focus, the current view or the pane in that order
      */
     Pane.prototype.focus = function () {
+        // Blur the currently focused element which will move focus to the BODY tag
+        //  If the element we want to focus below cannot receive the input focus such as an ImageView
+        //  This will remove focus from the current view which is important if the current view is 
+        //  a codemirror view. 
+        document.activeElement.blur();
+        
         if (this._lastFocusedElement && $(this._lastFocusedElement).is(":visible")) {
             $(this._lastFocusedElement).focus();
         } else if (this._currentView) {
@@ -1002,13 +1241,17 @@ define(function (require, exports, module) {
     
     
     /**
-     * serializes the pane state
+     * serializes the pane state from JSON
      * @param {!Object} state - the state to load 
+     * @return {jQuery.Promise} A promise which resolves to 
+     *              {fullPath:string, paneId:string} 
+     *              which can be passed as command data to FILE_OPEN
      */
     Pane.prototype.loadState = function (state) {
         var filesToAdd = [],
             viewStates = {},
             activeFile,
+            data,
             self = this;
         
         var getInitialViewFilePath = function () {
@@ -1030,21 +1273,20 @@ define(function (require, exports, module) {
         ViewStateManager.addViewStates(viewStates);
         
         activeFile = activeFile || getInitialViewFilePath();
-        
+       
         if (activeFile) {
-            return this._execOpenFile(activeFile);
+            data = {paneId: self.id, fullPath: activeFile};
         }
         
-        return new $.Deferred().resolve();
+        return new $.Deferred().resolve(data);
     };
     
     /**
-     * serializes the pane state
+     * Returns the JSON-ified state of the object so it can be serialize
      * @return {!Object} state - the state to save 
      */
     Pane.prototype.saveState = function () {
-        var view,
-            result = [],
+        var result = [],
             currentlyViewedPath = this.getCurrentlyViewedPath();
 
         // Save the current view state first

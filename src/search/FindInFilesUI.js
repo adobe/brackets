@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $ */
 
 /*
  * UI and controller logic for find/replace across multiple files within the project.
@@ -140,9 +140,7 @@ define(function (require, exports, module) {
         } else if (currentEditor) {
             initialQuery = FindUtils.getInitialQueryFromSelection(currentEditor);
         }
-        
-        FindInFiles.clearSearch();
-        
+
         // Close our previous find bar, if any. (The open() of the new _findBar will
         // take care of closing any other find bar instances.)
         if (_findBar) {
@@ -174,7 +172,7 @@ define(function (require, exports, module) {
             // Check the query expression on every input event. This way the user is alerted
             // to any RegEx syntax errors immediately.
             var queryInfo = _findBar.getQueryInfo(),
-                queryResult = FindInFiles.searchModel.setQueryInfo(queryInfo);
+                queryResult = FindUtils.parseQueryInfo(queryInfo);
 
             // Enable the replace button appropriately.
             _findBar.enableReplace(queryResult.valid);
@@ -275,8 +273,7 @@ define(function (require, exports, module) {
             replacedFiles = Object.keys(resultsClone).filter(function (path) {
                 return FindUtils.hasCheckedMatches(resultsClone[path]);
             }),
-            isRegexp = model.queryInfo.isRegexp,
-            replacePromise;
+            isRegexp = model.queryInfo.isRegexp;
         
         function processReplace(forceFilesOpen) {
             StatusBar.showBusyIndicator(true);

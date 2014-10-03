@@ -32,8 +32,6 @@ define(function (require, exports, module) {
         File                   = require("filesystem/File"),
         StringUtils            = require("utils/StringUtils"),
         Strings                = require("strings"),
-        Commands               = require("command/Commands"),
-        CommandManager         = require("command/CommandManager"),
         FileSystem             = require("filesystem/FileSystem"),
         KeyEvent               = require("utils/KeyEvent"),
         Package                = require("extensibility/Package"),

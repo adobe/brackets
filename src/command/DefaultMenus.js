@@ -33,7 +33,6 @@ define(function (require, exports, module) {
     
     var AppInit         = require("utils/AppInit"),
         Commands        = require("command/Commands"),
-        ContextMenu     = require("command/Menus"),
         EditorManager   = require("editor/EditorManager"),
         Menus           = require("command/Menus"),
         Strings         = require("strings");
@@ -123,6 +122,10 @@ define(function (require, exports, module) {
         menu = Menus.addMenu(Strings.VIEW_MENU, Menus.AppMenuBar.VIEW_MENU);
         menu.addMenuItem(Commands.CMD_THEMES_OPEN_SETTINGS);
         menu.addMenuDivider();
+        menu.addMenuItem(Commands.CMD_SPLITVIEW_NONE);
+        menu.addMenuItem(Commands.CMD_SPLITVIEW_VERTICAL);
+        menu.addMenuItem(Commands.CMD_SPLITVIEW_HORIZONTAL);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.VIEW_HIDE_SIDEBAR);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE);
@@ -205,16 +208,14 @@ define(function (require, exports, module) {
             menu.addMenuItem(Commands.HELP_ABOUT);
         }
         
+        
         /*
-         * WorkingSet context and gear menus
-         * NOTE: Unlike most context menus defined here, these menus cannot
-         *       be setup to listen to click or context menu events when 
-         *       this module intializes because the DOM nodes for these are 
-         *       created by pane views which are created at runtime. 
-         *       All other context menus have DOM elements to attach to
-         *       out of index.html
+         * Context Menus
          */
-
+        
+        // WorkingSet context menu - Unlike most context menus, we can't attach
+        // listeners here because the DOM nodes for each pane's working set are
+        // created dynamically. Each WorkingSetView attaches its own listeners.
         var workingset_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
         workingset_cmenu.addMenuItem(Commands.FILE_SAVE);
         workingset_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
@@ -234,10 +235,11 @@ define(function (require, exports, module) {
         workingset_configuration_menu.addMenuDivider();
         workingset_configuration_menu.addMenuItem(Commands.CMD_WORKING_SORT_TOGGLE_AUTO);
         
+        var splitview_menu = Menus.registerContextMenu(Menus.ContextMenuIds.SPLITVIEW_MENU);
+        splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_NONE);
+        splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_VERTICAL);
+        splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_HORIZONTAL);
         
-        /*
-         * Context Menus
-         */
         var project_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
         project_cmenu.addMenuItem(Commands.FILE_NEW);
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
@@ -310,6 +312,11 @@ define(function (require, exports, module) {
             project_cmenu.open(e);
         });
 
+        // Dropdown menu for workspace sorting
+        Menus.ContextMenu.assignContextMenuToSelector(".working-set-option-btn", workingset_configuration_menu);
+
+        // Dropdown menu for view splitting
+        Menus.ContextMenu.assignContextMenuToSelector(".working-set-splitview-btn", splitview_menu);
 
         // Prevent the browser context menu since Brackets creates a custom context menu
         $(window).contextmenu(function (e) {

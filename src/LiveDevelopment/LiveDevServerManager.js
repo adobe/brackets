@@ -45,9 +45,6 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var FileUtils           = require("file/FileUtils"),
-        ProjectManager      = require("project/ProjectManager");
-
     var _serverProviders   = [];
 
     /**
