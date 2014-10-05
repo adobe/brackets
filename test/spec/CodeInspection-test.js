@@ -181,7 +181,7 @@ define(function (require, exports, module) {
             });
 
             it("should return an empty array if no providers are registered", function () {
-               expect(CodeInspection.getProvidersForPath("test.js").length).toBe(0);
+                expect(CodeInspection.getProvidersForPath("test.js").length).toBe(0);
             });
 
             it("should run two linters", function () {
