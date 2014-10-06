@@ -161,8 +161,20 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
         ViewUtils           = require("utils/ViewUtils"),
+        ProjectManager      = require("project/ProjectManager"),
         paneTemplate        = require("text!htmlContent/pane.html");
     
+    /**
+     * Make an index request object
+     * @param {boolean} requestIndex - true to request an index, false if not
+     * @param {number} index - the index to request
+     * @return {indexRequested:boolean, index:number} an object that can be pased to 
+     * Pane._addToViewList to insert the item at a specific index
+     * @see {Pane._addToViewList}
+     */
+    function _makeIndexRequestObject(requestIndex, index) {
+        return {indexRequested: requestIndex, index: index};
+    }
     
     /**
      * @typedef {!$el: jQuery, getFile:function():!File, updateLayout:function(forceRefresh:boolean), destroy:function(),  getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number)=, getViewState:function():?*=, restoreViewState:function(viewState:!*)=, notifyContainerChange:function()=, notifyVisibilityChange:function(boolean)=} View
@@ -237,12 +249,17 @@ define(function (require, exports, module) {
             }
         });
 
-        this._updateHeaderText();
+        this.updateHeaderText();
 
         // Listen to document events so we can update ourself
         $(DocumentManager).on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
         $(DocumentManager).on(this._makeEventName("pathDeleted"), _.bind(this._handleFileDeleted, this));
         $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
+        $(MainViewManager).on(this._makeEventName("workingSetAdd"), _.bind(this.updateHeaderText, this));
+        $(MainViewManager).on(this._makeEventName("workingSetRemove"), _.bind(this.updateHeaderText, this));
+        $(MainViewManager).on(this._makeEventName("workingSetAddList"), _.bind(this.updateHeaderText, this));
+        $(MainViewManager).on(this._makeEventName("workingSetRemoveList"), _.bind(this.updateHeaderText, this));
+        
     }
 
     /**
@@ -368,6 +385,82 @@ define(function (require, exports, module) {
             this._currentView = null;
             this._notifyCurrentViewChange(null, currentView);
         }
+    };
+
+    /**
+     * moves a view from one pane to another
+     * @param {!File} file - the File to move
+     * @param {Pane} destinationPane - the destination pane 
+     * @param {Number} destinationIndex - the working set index of the file in the destination pane
+     * @return {jQuery.Promise} a promise object which resolves after the view has been moved and its
+     * replacement document has been opened
+     * @private
+     */
+    Pane.prototype.moveView = function (file, destinationPane, destinationIndex) {
+        var self = this,
+            openNextPromise = new $.Deferred(),
+            result = new $.Deferred();
+        
+        // if we're moving the currently viewed file we 
+        //  need to open another file so wait for that operation
+        //  to finish before we move the view
+        if ((this.getCurrentlyViewedPath() === file.fullPath)) {
+            var nextFile = this.traverseViewListByMRU(1, file.fullPath);
+            if (nextFile) {
+                this._execOpenFile(nextFile.fullPath)
+                    .fail(function () {
+                        // the FILE_OPEN failed
+                        self._hideCurrentView();
+                    })
+                    .always(function () {
+                        openNextPromise.resolve();
+                    });
+            } else {
+                this._hideCurrentView();
+                openNextPromise.resolve();
+            }
+        } else {
+            openNextPromise.resolve();
+        }
+        
+        // Once the next file has opened, we can
+        //  move the item in the working set and 
+        //  open it in the destination pane
+        openNextPromise.done(function () {
+            // Remove file from all 3 view lists
+            self._viewList.splice(self.findInViewList(file.fullPath), 1);
+            self._viewListMRUOrder.splice(self.findInViewListMRUOrder(file.fullPath), 1);
+            self._viewListAddedOrder.splice(self.findInViewListAddedOrder(file.fullPath), 1);
+
+            // insert the view into the working set
+            destinationPane._addToViewList(file,  _makeIndexRequestObject(true, destinationIndex));
+
+            //move the view,
+            var view = self._views[file.fullPath];
+
+            // if we had a view, it had previously been opened
+            //  otherwise, the file was in the working set unopened
+            if (view) {
+                // delete it from the source pane's view map and add it to the destination pane's view map
+                delete self._views[file.fullPath];
+                destinationPane.addView(view, !destinationPane.getCurrentlyViewedFile());
+                // we're done
+                result.resolve();
+            } else if (!destinationPane.getCurrentlyViewedFile()) {
+                // The view has not have been created and the pane was 
+                //  not showing anything so open the file moved in to the pane
+                destinationPane._execOpenFile(file.fullPath).always(function () {
+                    // wait until the file has been opened before
+                    //  we resolve the promise so the working set 
+                    //  view can sync appropriately
+                    result.resolve();
+                });
+            } else {
+                // nothing to do, we're done
+                result.resolve();
+            }
+        });
+        return result.promise();
     };
     
     /**
@@ -589,7 +682,7 @@ define(function (require, exports, module) {
     Pane.prototype.addToViewList = function (file, index) {
         var indexRequested = (index !== undefined && index !== null && index >= 0 && index < this._viewList.length);
 
-        this._addToViewList(file, {indexRequested: indexRequested, index: index});
+        this._addToViewList(file, _makeIndexRequestObject(indexRequested, index));
         
         if (!indexRequested) {
             index = this._viewList.length - 1;
@@ -619,8 +712,13 @@ define(function (require, exports, module) {
         return uniqueFileList;
     };
     
+    /**
+     * Dispatches a currentViewChange event
+     * @param {?View} newView - the view become the current view
+     * @param {?View} oldView - the view being replaced
+     */
     Pane.prototype._notifyCurrentViewChange = function (newView, oldView) {
-        this._updateHeaderText();
+        this.updateHeaderText();
         
         $(this).triggerHandler("currentViewChange", [newView, oldView]);
     };
@@ -705,7 +803,18 @@ define(function (require, exports, module) {
     Pane.prototype.sortViewList = function (compareFn) {
         this._viewList.sort(_.partial(compareFn, this.id));
     };
-
+    
+    /**
+     * moves a working set item from one index to another shifting the items
+     * after in the working set up and reinserting it at the desired location
+     * @param {!number} fromIndex - the index of the item to move
+     * @param {!number} toIndex - the index to move to
+     * @private
+     */
+    Pane.prototype.moveWorkingSetItem = function (fromIndex, toIndex) {
+        this._viewList.splice(toIndex, 0, this._viewList.splice(fromIndex, 1)[0]);
+    };
+    
     /**
      * Swaps two items in the file view list (used while dragging items in the working set view)
      * @param {number} index1 - the index of the first item to swap
@@ -741,10 +850,21 @@ define(function (require, exports, module) {
      * Updates text in pane header
      * @private
      */
-    Pane.prototype._updateHeaderText = function () {
-        var file = this.getCurrentlyViewedFile();
+    Pane.prototype.updateHeaderText = function () {
+        var file = this.getCurrentlyViewedFile(),
+            files,
+            displayName;
+        
         if (file) {
-            this.$header.text(file.name);
+            files = MainViewManager.getAllOpenFiles().filter(function (item) {
+                return (item.name === file.name);
+            });
+            if (files.length < 2) {
+                this.$header.text(file.name);
+            } else {
+                displayName = ProjectManager.makeProjectRelativeIfPossible(file.fullPath);
+                this.$header.text(displayName);
+            }
         } else {
             this.$header.html(Strings.EMPTY_VIEW_HEADER);
         }
@@ -773,7 +893,7 @@ define(function (require, exports, module) {
             delete this._views[oldname];
         }
         
-        this._updateHeaderText();
+        this.updateHeaderText();
         
         // dispatch the change event
         if (dispatchEvent) {
@@ -1004,7 +1124,7 @@ define(function (require, exports, module) {
      * @return {jQuery.promise} promise that will resolve when the file is opened
      */
     Pane.prototype._execOpenFile = function (fullPath) {
-        return CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath, paneId: this.id});
+        return CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: fullPath, paneId: this.id, options: {noPaneActivate: true}});
     };
     
     /**

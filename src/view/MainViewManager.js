@@ -57,6 +57,8 @@
  *          (e, fileAdded:File, index:number, paneId:string)
  *    - workingSetAddList -- When multiple files are added to the working set 
  *          (e, fileAdded:Array.<File>, paneId:string)
+ *    - workingSetMove - When a File has moved to a different working set
+ *          (e, File:FILE, sourcePaneId:string, destinationPaneId:string)
  *    - workingSetRemove -- When a file is removed from the working set 
  *          (e, fileRemoved:File, suppressRedraw:boolean, paneId:string)
  *    - workingSetRemoveList -- When multiple files are removed from the working set 
@@ -84,6 +86,8 @@ define(function (require, exports, module) {
         MainViewFactory     = require("view/MainViewFactory"),
         ViewStateManager    = require("view/ViewStateManager"),
         Commands            = require("command/Commands"),
+        Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         EditorManager       = require("editor/EditorManager"),
         FileSystemError     = require("filesystem/FileSystemError"),
         DocumentManager     = require("document/DocumentManager"),
@@ -94,7 +98,7 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils"),
         Resizer             = require("utils/Resizer"),
         Pane                = require("view/Pane").Pane;
-
+        
     /** 
      * Preference setting name for the MainView Saved State
      * @const
@@ -259,15 +263,25 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Resolve paneId to actual pane.
+     * @param {?string} paneId - id of the desired pane. May be symbolic or null (to indicate current pane)
+     * @return {string} id of the pane in which to open the document
+     */
+    function _resolvePaneId(paneId) {
+        if (!paneId || paneId === ACTIVE_PANE) {
+            return getActivePaneId();
+        }
+        return paneId;
+    }
+    
+    /**
      * Retrieves the Pane object for the given paneId
      * @param {!string} paneId - id of the pane to retrieve
      * @return {?Pane} the Pane object or null if a pane object doesn't exist for the pane
      * @private
      */
     function _getPane(paneId) {
-        if (!paneId || paneId === ACTIVE_PANE) {
-            paneId = getActivePaneId();
-        }
+        paneId = _resolvePaneId(paneId);
         
         if (_panes[paneId]) {
             return _panes[paneId];
@@ -376,8 +390,8 @@ define(function (require, exports, module) {
     
     /**
      * Retrieves the currently viewed file of the specified paneId
-     * @param {string=} paneId - the id of the pane in which to retrieve the currently viewed file
-     * @return {?File} File object of the currently viewed file, null if there isn't one or undefined if there isn't a matching pane
+     * @param {?string} paneId - the id of the pane in which to retrieve the currently viewed file
+     * @return {?File} File object of the currently viewed file, or null if there isn't one or there's no such pane
      */
     function getCurrentlyViewedFile(paneId) {
         var pane = _getPane(paneId);
@@ -386,7 +400,7 @@ define(function (require, exports, module) {
  
     /**
      * Retrieves the currently viewed path of the pane specified by paneId
-     * @param {!string} paneId - the id of the pane in which to retrieve the currently viewed path
+     * @param {?string} paneId - the id of the pane in which to retrieve the currently viewed path
      * @return {?string} the path of the currently viewed file or null if there isn't one
      */
     function getCurrentlyViewedPath(paneId) {
@@ -775,6 +789,45 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * moves a view from one pane to another
+     * @param {!string} sourcePaneId - id of the source pane
+     * @param {!string} destinationPaneId - id of the destination pane
+     * @param {!File} file - the File to move
+     * @param {Number} destinationIndex - the working set index of the file in the destination pane
+     * @return {jQuery.Promise} a promise that resolves when the move has completed.
+     * @private
+     */
+    function _moveView(sourcePaneId, destinationPaneId, file, destinationIndex) {
+        var result = new $.Deferred(),
+            sourcePane = _getPane(sourcePaneId),
+            destinationPane = _getPane(destinationPaneId);
+        
+        sourcePane.moveView(file, destinationPane, destinationIndex)
+            .done(function () {
+                // update the mru list
+                _mruList.every(function (record) {
+                    if (record.file === file && record.paneId === sourcePane.id) {
+                        record.paneId = destinationPane.id;
+                        return false;
+                    }
+                    return true;
+                });
+            
+                $(exports).triggerHandler("workingSetMove", [file, sourcePane.id, destinationPane.id]);
+                result.resolve();
+            });
+        
+        return result.promise();
+    }
+    
+    /**
+     * DocumentManager.pathDeleted Event handler to remove a file
+     * from the MRU list
+     * @param {!jQuery.event} e - 
+     * @param {!string} fullPath - path of the file to remove
+     * @private
+     */
     function _removeDeletedFileFromMRU(e, fullPath) {
         var index,
             compare = function (record) {
@@ -796,13 +849,29 @@ define(function (require, exports, module) {
      * @param {sortFunctionCallback} compareFn - callback to determine sort order (called on each item)
      * @see {@link Pane.sortViewList()} for more information
      * @see {@link https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort|Sort Array - MDN}
-     * @privaate
+     * @private
      */
     function _sortWorkingSet(paneId, compareFn) {
         _forEachPaneOrPanes(paneId, function (pane) {
             pane.sortViewList(compareFn);
             $(exports).triggerHandler("workingSetSort", [pane.id]);
         });
+    }
+    
+    /**
+     * moves a working set item from one index to another shifting the items
+     * after in the working set up and reinserting it at the desired location
+     * @param {!string} paneId - id of the pane to sort
+     * @param {!number} fromIndex - the index of the item to move
+     * @param {!number} toIndex - the index to move to
+     * @private
+     */
+    function _moveWorkingSetItem(paneId, fromIndex, toIndex) {
+        var pane = _getPane(paneId);
+
+        pane.moveWorkingSetItem(fromIndex, toIndex);
+        $(exports).triggerHandler("workingSetSort", [pane.id]);
+        $(exports).triggerHandler("_workingSetDisableAutoSort", [pane.id]);
     }
 
     /**
@@ -950,39 +1019,50 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Updates the header text for all panes
+     */
+    function _updatePaneHeaders() {
+        _forEachPaneOrPanes(ALL_PANES, function (pane) {
+            pane.updateHeaderText();
+        });
+        
+    }
+    
+    /**
      * Creates a pane for paneId if one doesn't already exist
      * @param {!string} paneId - id of the pane to create
      * @private
-     * @return {Pane} - the pane object of the pane 
+     * @return {?Pane} - the pane object of the new pane, or undefined if no pane created
      */
     function _createPaneIfNecessary(paneId) {
-        var pane;
+        var newPane;
         
         if (!_panes.hasOwnProperty(paneId)) {
-            pane = new Pane(paneId, _$el);
-            _panes[paneId] = pane;
+            newPane = new Pane(paneId, _$el);
+            _panes[paneId] = newPane;
             
-            $(exports).triggerHandler("paneCreate", [pane.id]);
+            $(exports).triggerHandler("paneCreate", [newPane.id]);
             
-            pane.$el.on("click.mainview dragover.mainview", function () {
-                setActivePaneId(pane.id);
+            newPane.$el.on("click.mainview dragover.mainview", function () {
+                setActivePaneId(newPane.id);
             });
 
-            $(pane).on("viewListChange.mainview", function () {
-                $(exports).triggerHandler("workingSetUpdate", [pane.id]);
+            $(newPane).on("viewListChange.mainview", function () {
+                _updatePaneHeaders();
+                $(exports).triggerHandler("workingSetUpdate", [newPane.id]);
             });
-            $(pane).on("currentViewChange.mainview", function (e, newView, oldView) {
-                if (_activePaneId === pane.id) {
+            $(newPane).on("currentViewChange.mainview", function (e, newView, oldView) {
+                _updatePaneHeaders();
+                if (_activePaneId === newPane.id) {
                     $(exports).triggerHandler("currentFileChange",
                                               [newView && newView.getFile(),
-                                               pane.id, oldView && oldView.getFile(),
-                                               pane.id]);
+                                               newPane.id, oldView && oldView.getFile(),
+                                               newPane.id]);
                 }
             });
         }
-
         
-        return _panes[paneId];
+        return newPane;
     }
     
     /**
@@ -1008,11 +1088,22 @@ define(function (require, exports, module) {
      * @param {!string} orientation (VERTICAL|HORIZONTAL)
      */
     function _doSplit(orientation) {
-        var firstPane = _panes[FIRST_PANE];
+        var firstPane, newPane;
+        
+        if (orientation === _orientation) {
+            return;
+        }
+        
+        firstPane = _panes[FIRST_PANE];
         Resizer.removeSizable(firstPane.$el);
 
+        if (_orientation) {
+            _$el.removeClass("split-" + _orientation.toLowerCase());
+        }
+        _$el.addClass("split-" + orientation.toLowerCase());
+        
         _orientation = orientation;
-        _createPaneIfNecessary(SECOND_PANE);
+        newPane = _createPaneIfNecessary(SECOND_PANE);
         _makeFirstPaneResizable();
         
         // reset the layout to 50/50 split
@@ -1021,6 +1112,11 @@ define(function (require, exports, module) {
         _initialLayout();
         
         $(exports).triggerHandler("paneLayoutChange", [_orientation]);
+        
+        // if new pane was created, and original pane is not empty, make new pane the active pane
+        if (newPane && getCurrentlyViewedFile(firstPane.id)) {
+            setActivePaneId(newPane.id);
+        }
     }
     
     /**
@@ -1032,10 +1128,13 @@ define(function (require, exports, module) {
      * Do not use this API unless you have a document object without a file object
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Document} doc - document to edit
+     * @param {{noPaneActivate:boolean}=} optionsIn - options
      * @private
      */
-    function _edit(paneId, doc) {
-        var currentPaneId = _getPaneIdForPath(doc.file.fullPath);
+    function _edit(paneId, doc, optionsIn) {
+        var currentPaneId = _getPaneIdForPath(doc.file.fullPath),
+            options = optionsIn || {};
+
             
         if (currentPaneId) {
             // If the doc is open in another pane
@@ -1044,7 +1143,9 @@ define(function (require, exports, module) {
             //  we could just do pane.showView(doc._masterEditor) in that
             //  case but Editor Manager may do some state syncing 
             paneId = currentPaneId;
-            setActivePaneId(paneId);
+            if (!options.noPaneActivate) {
+                setActivePaneId(paneId);
+            }
         }
         
         var pane = _getPane(paneId);
@@ -1065,26 +1166,46 @@ define(function (require, exports, module) {
      * or a document for editing.  If it's a document for editing, edit is called on the document 
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!File} file - file to open
+     * @param {{noPaneActivate:boolean}=} optionsIn - options
      * @return {jQuery.Promise}  promise that resolves to a File object or 
      *                           rejects with a File error or string
      */
-    function _open(paneId, file) {
-        var result = new $.Deferred();
+    function _open(paneId, file, optionsIn) {
+        var result = new $.Deferred(),
+            options = optionsIn || {};
         
         if (!file || !_getPane(paneId)) {
-            throw new Error("bad argument");
+            return result.reject("bad argument").promise();
         }
 
         var currentPaneId = _getPaneIdForPath(file.fullPath);
 
         if (currentPaneId) {
+            // Warn user (only once) when file is already open in another view
+            if (!PreferencesManager.getViewState("splitview.multipane-info") &&
+                    currentPaneId !== _resolvePaneId(paneId)) {
+                PreferencesManager.setViewState("splitview.multipane-info", true);
+                
+                // File tree also executes single-click code prior to executing double-click
+                // code, so delay showing modal dialog to prevent eating second click
+                window.setTimeout(function () {
+                    Dialogs.showModalDialog(
+                        DefaultDialogs.DIALOG_ID_INFO,
+                        Strings.SPLITVIEW_INFO_TITLE,
+                        Strings.SPLITVIEW_MULTIPANE_WARNING
+                    );
+                }, 500);
+            }
+
             // If the doc is open in another pane
             //  then switch to that pane and call open document
             //  which will really just show the view as it has always done
             //  we could just do pane.showView(doc._masterEditor) in that
             //  case but Editor Manager may do some state syncing             
             paneId = currentPaneId;
-            setActivePaneId(paneId);
+            if (!options.noPaneActivate) {
+                setActivePaneId(paneId);
+            }
         }
         
         // See if there is already a view for the file
@@ -1118,7 +1239,7 @@ define(function (require, exports, module) {
         } else {
             DocumentManager.getDocumentForPath(file.fullPath)
                 .done(function (doc) {
-                    _edit(paneId, doc);
+                    _edit(paneId, doc, options);
                     result.resolve(doc.file);
                 })
                 .fail(function (fileError) {
@@ -1162,6 +1283,7 @@ define(function (require, exports, module) {
                 }
             });
             
+            _$el.removeClass("split-" + _orientation.toLowerCase());
             _orientation = null;
             // this will set the remaining pane to 100%
             _initialLayout();
@@ -1331,10 +1453,8 @@ define(function (require, exports, module) {
             _orientation = (panes.length > 1) ? state.orientation : null;
 
             _.forEach(state.panes, function (paneState, paneId) {
-                var pane = _createPaneIfNecessary(paneId),
-                    promise = pane.loadState(paneState);
-                
-                promises.push(promise);
+                _createPaneIfNecessary(paneId);
+                promises.push(_panes[paneId].loadState(paneState));
             });
 
             AsyncUtils.waitForAll(promises).then(function (opensList) {
@@ -1365,6 +1485,7 @@ define(function (require, exports, module) {
                 }
                 
                 if (_orientation) {
+                    _$el.addClass("split-" + _orientation.toLowerCase());
                     $(exports).triggerHandler("paneLayoutChange", _orientation);
                 }
 
@@ -1453,12 +1574,18 @@ define(function (require, exports, module) {
         if (_activePaneId) {
             throw new Error("MainViewManager has already been initialized");
         }
+
         _$el = $container;
         _createPaneIfNecessary(FIRST_PANE);
         _activePaneId = FIRST_PANE;
         // One-time init so the pane has the "active" appearance   
         _panes[FIRST_PANE]._handleActivePaneChange(undefined, _activePaneId);
         _initialLayout();
+
+        // This ensures that unit tests that use this function 
+        //  get an event handler for workspace events and we don't listen
+        //  to the event before we've been initialized
+        $(WorkspaceManager).on("workspaceUpdateLayout", _updateLayout);
     }
     
     /** 
@@ -1502,7 +1629,7 @@ define(function (require, exports, module) {
         return result;
     }
     
-    /**
+    /** 
      * Setup a ready event to initialize ourself
      */
     AppInit.htmlReady(function () {
@@ -1512,7 +1639,6 @@ define(function (require, exports, module) {
     // Event handlers
     $(ProjectManager).on("projectOpen",                       _loadViewState);
     $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
-    $(WorkspaceManager).on("workspaceUpdateLayout",           _updateLayout);
     $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
     $(DocumentManager).on("pathDeleted",                      _removeDeletedFileFromMRU);
     
@@ -1523,9 +1649,11 @@ define(function (require, exports, module) {
         
     // Private Helpers
     exports._removeView                   = _removeView;
+    exports._moveView                     = _moveView;
     
     // Private API
     exports._sortWorkingSet               = _sortWorkingSet;
+    exports._moveWorkingSetItem           = _moveWorkingSetItem;
     exports._swapWorkingSetListIndexes    = _swapWorkingSetListIndexes;
     exports._destroyEditorIfNotNeeded     = _destroyEditorIfNotNeeded;
     exports._edit                         = _edit;
@@ -1554,7 +1682,7 @@ define(function (require, exports, module) {
     // Traversal
     exports.beginTraversal                = beginTraversal;
     exports.endTraversal                  = endTraversal;
-    exports.traverseToNextViewByMRU            = traverseToNextViewByMRU;
+    exports.traverseToNextViewByMRU       = traverseToNextViewByMRU;
     
     // PaneView Attributes
     exports.getActivePaneId               = getActivePaneId;
