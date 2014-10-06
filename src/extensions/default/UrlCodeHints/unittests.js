@@ -275,7 +275,9 @@ define(function (require, exports, module) {
             });
 
             it("should hint for background-image: url() in CSS", function () {
-                setupTests(testCssPath);
+                runs(function () {
+                    setupTests(testCssPath);
+                });
 
                 runs(function () {
                     testEditor.setCursorPos({ line: 3, ch: 26 });
@@ -289,7 +291,9 @@ define(function (require, exports, module) {
             });
 
             it("should hint for background-image: url() in SCSS", function () {
-                setupTests(testScssPath);
+                runs(function () {
+                    setupTests(testScssPath);
+                });
 
                 runs(function () {
                     testEditor.setCursorPos({ line: 4, ch: 34 });
