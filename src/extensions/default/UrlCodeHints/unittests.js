@@ -270,15 +270,13 @@ define(function (require, exports, module) {
 
         describe("Url Code Hints in a subfolder", function () {
 
-            beforeFirst(function () {
-                setupTests(testCssPath);
-            });
-
-            afterLast(function () {
+            afterEach(function () {
                 tearDownTests();
             });
 
             it("should hint for background-image: url() in CSS", function () {
+                setupTests(testCssPath);
+
                 runs(function () {
                     testEditor.setCursorPos({ line: 3, ch: 26 });
                     hintsObj = null;
@@ -288,14 +286,11 @@ define(function (require, exports, module) {
                 runs(function () {
                     verifyUrlHints(hintsObj.hints, subfolderDirHints);
                 });
-
-                runs(function () {
-                    tearDownTests();
-                    setupTests(testScssPath);
-                });
             });
 
             it("should hint for background-image: url() in SCSS", function () {
+                setupTests(testScssPath);
+
                 runs(function () {
                     testEditor.setCursorPos({ line: 4, ch: 34 });
                     hintsObj = null;
