@@ -29,7 +29,7 @@ window.setTimeout(function () {
     
     //Vars
     var key, missingDeps = "";
-    var deps = {"Mustache": window.mustache, "jQuery": window.$, "RequireJS": window.require};
+    var deps = {"Mustache": window.Mustache, "jQuery": window.$, "RequireJS": window.require};
     
     //Check if any deps are missing. If so, append them to the missingDeps string
     for (key in deps) {
