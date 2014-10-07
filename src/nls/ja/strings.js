@@ -38,6 +38,7 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
 	"CONTENTS_MODIFIED_ERR": "このファイルは {APP_NAME} 以外で変更されています。",
 	"UNSUPPORTED_ENCODING_ERR": "{APP_NAME} は現在 UTF-8 でエンコードされたテキストファイルのみをサポートしています。",
+	"UNSUPPORTED_FILE_TYPE_ERR": "ファイルはサポートされているファイルタイプではありません。",
 	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
 	"FILE": "ファイル",
 	"FILE_TITLE": "ファイル",
@@ -72,6 +73,7 @@ define({
 	"ENTRY_WITH_SAME_NAME_EXISTS": "<span class='dialog-filename'>{0}</span> という名前のファイルまたはディレクトリは既に存在します。",
 	"ERROR_CREATING_FILE_TITLE": "{0} を作成する際にエラーが発生しました。",
 	"ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span> を作成する際にエラーが発生しました。{2}",
+	"ERROR_MIXED_DRAGDROP": "他のファイルを開いている間はフォルダーを開くことはできません。",
 
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "環境設定を読み込む際にエラーが発生しました。",
@@ -83,7 +85,7 @@ define({
     
     // ProjectManager max files error string
 	"ERROR_MAX_FILES_TITLE": "ファイルのインデックス時にエラーが発生しました。",
-	"ERROR_MAX_FILES": "インデックス化できるファイルの最大数に達しました。インデックス内でファイルを見つける機能は正しく動作しないことがあります。",
+	"ERROR_MAX_FILES": "このプロジェクトには 30,000 個以上のファイルが含まれています。複数のファイルを操作する機能が無効になるか、プロジェクトが空であるかのように動作します。<a href='https://github.com/adobe/brackets/wiki/Large-Projects'>大きいプロジェクトの操作方法の詳細を表示</a>。",
 
     // Live Preview error strings
 	"ERROR_LAUNCHING_BROWSER_TITLE": "ブラウザーの起動時にエラーが発生しました。",
@@ -92,8 +94,8 @@ define({
     
 	"LIVE_DEVELOPMENT_ERROR_TITLE": "ライブプレビューのエラーが発生しました。",
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "ブラウザーに接続しています",
-	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "ライブプレビューに接続するには、リモートデバッグを有効にして Chrome を再起動する必要があります。<br /><br />Chrome を再起動してリモートデバッグを有効にしますか？",
-	"LIVE_DEV_LOADING_ERROR_MESSAGE": "ライブプレビューページを読み込めません",
+	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "ライブプレビューに接続するには、リモートデバッグを有効にして Chrome を再起動する必要があります。<br /><br />Chrome を再起動してリモートデバッグを有効にしますか？<br /><br />",
+	"LIVE_DEV_LOADING_ERROR_MESSAGE": "ライブプレビューページを読み込めません。",
 	"LIVE_DEV_NEED_HTML_MESSAGE": "ライブプレビューを起動するには、HTML ファイルを開くか、index.html ファイルがプロジェクトに含まれていることを確認してください。",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "サーバー側ファイルでライブプレビューを起動するには、このプロジェクトのベース URL を指定する必要があります。",
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "ファイルのライブプレビューで使用する HTTP サーバーの起動時にエラーが発生しました。もう一度実行してください。",
@@ -221,6 +223,23 @@ define({
 	"WORKING_FILES": "作業中ファイル",
 
     /**
+     * MainViewManager
+     */
+	"TOP": "上",
+	"BOTTOM": "下",
+	"LEFT": "左",
+	"RIGHT": "右",
+
+	"CMD_SPLITVIEW_NONE": "分割なし",
+	"CMD_SPLITVIEW_VERTICAL": "左右分割",
+	"CMD_SPLITVIEW_HORIZONTAL": "上下分割",
+	"SPLITVIEW_MENU_TOOLTIP": "エディターを垂直方向 / 水平方向に分割",
+	"GEAR_MENU_TOOLTIP": "ワーキングセットを構成",
+
+	"SPLITVIEW_INFO_TITLE": "!能=[7765195] Already Open_=!",
+	"SPLITVIEW_MULTIPANE_WARNING": "!能=[7765196] The file is already open in another pane. {APP_NAME} will soon support opening the same file in more than one pane. Until then, the file will be shown in the pane it's already open in.<br /><br />(You'll only see this message once.)_=!",
+
+    /**
      * Keyboard modifier names
      */
 	"KEYBOARD_CTRL": "Ctrl",
@@ -269,14 +288,14 @@ define({
     /**
      * Command Name Constants
      */
-
+ 
     // File menu commands
 	"FILE_MENU": "ファイル",
 	"CMD_FILE_NEW_UNTITLED": "新規作成",
 	"CMD_FILE_NEW": "新しいファイル",
 	"CMD_FILE_NEW_FOLDER": "新しいフォルダー",
 	"CMD_FILE_OPEN": "開く\u2026",
-	"CMD_ADD_TO_WORKING_SET": "ワーキングセットに追加する",
+	"CMD_ADD_TO_WORKING_SET": "ワーキングセットに開く",
 	"CMD_OPEN_DROPPED_FILES": "ドロップしたファイルを開く",
 	"CMD_OPEN_FOLDER": "フォルダーを開く\u2026",
 	"CMD_FILE_CLOSE": "閉じる",
@@ -355,10 +374,10 @@ define({
 	"CMD_TOGGLE_WORD_WRAP": "折り返し",
 	"CMD_LIVE_HIGHLIGHT": "ライブプレビューハイライト",
 	"CMD_VIEW_TOGGLE_INSPECTION": "保存時にファイルを Lint チェック",
-	"CMD_SORT_WORKINGSET_BY_ADDED": "追加日時順",
-	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
-	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
-	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
+	"CMD_WORKINGSET_SORT_BY_ADDED": "追加日時順",
+	"CMD_WORKINGSET_SORT_BY_NAME": "名前順",
+	"CMD_WORKINGSET_SORT_BY_TYPE": "種類順",
+	"CMD_WORKING_SORT_TOGGLE_AUTO": "自動ソート",
 	"CMD_THEMES": "テーマ\u2026",
 
     // Navigate menu Commands
@@ -402,7 +421,7 @@ define({
 	"RELAUNCH_CHROME": "Chrome を再起動",
 	"ABOUT": "このソフトウェアについて",
 	"CLOSE": "閉じる",
-	"ABOUT_TEXT_LINE1": "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+	"ABOUT_TEXT_LINE1": "リリース {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
 	"ABOUT_TEXT_BUILD_TIMESTAMP": "ビルドのタイムスタンプ : ",
 	"ABOUT_TEXT_LINE3": "Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
 	"ABOUT_TEXT_LINE4": "ドキュメントとソースコードは <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a> から入手できます。",
@@ -421,12 +440,14 @@ define({
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
+	"EMPTY_VIEW_HEADER": "<em>このビューにフォーカスがあるときにファイルを選択</em>",
     
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "現在のテーマ",
 	"USE_THEME_SCROLLBARS": "テーマスクロールバーを使用",
 	"FONT_SIZE": "フォントサイズ",
 	"FONT_FAMILY": "フォントファミリー",
+	"THEMES_SETTINGS": "テーマ設定",
 
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "新規ルール",
@@ -519,6 +540,7 @@ define({
 	"REGISTRY_SANITY_CHECK_WARNING": "注意 : これらの拡張機能の作成元が {APP_NAME} 以外である可能性があります。拡張機能はレビューされず、ローカルアクセス権が一杯です。不明なソースから拡張機能をインストールするときは十分に注意してください。",
 	"EXTENSIONS_INSTALLED_TITLE": "インストール済み",
 	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
+	"EXTENSIONS_THEMES_TITLE": "テーマ",
 	"EXTENSIONS_UPDATES_TITLE": "アップデート",
     
 	"INLINE_EDITOR_NO_MATCHES": "一致するものがありません。",
@@ -548,6 +570,7 @@ define({
 	"CMD_LOG_NODE_STATE": "Node の状態をコンソールに記録",
 	"CMD_RESTART_NODE": "Node を再起動",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示",
+	"CMD_OPEN_BRACKETS_SOURCE": "オープン Brackets ソース",
     
 	"LANGUAGE_TITLE": "言語を切り替える",
 	"LANGUAGE_MESSAGE": "言語 :",

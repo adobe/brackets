@@ -22,13 +22,12 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, beforeFirst, afterLast */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var Async                      = require("utils/Async"),
-        FileSystem                 = require("filesystem/FileSystem"),
+    var FileSystem                 = require("filesystem/FileSystem"),
         FileUtils                  = require("file/FileUtils"),
         CSSUtils                   = require("language/CSSUtils"),
         HTMLUtils                  = require("language/HTMLUtils"),
@@ -38,18 +37,28 @@ define(function (require, exports, module) {
     var testPath                   = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
         simpleCssFileEntry         = FileSystem.getFileForPath(testPath + "/simple.css"),
         universalCssFileEntry      = FileSystem.getFileForPath(testPath + "/universal.css"),
+        propListCssFileEntry       = FileSystem.getFileForPath(testPath + "/property-list.css"),
         groupsFileEntry            = FileSystem.getFileForPath(testPath + "/groups.css"),
         offsetsCssFileEntry        = FileSystem.getFileForPath(testPath + "/offsets.css"),
         bootstrapCssFileEntry      = FileSystem.getFileForPath(testPath + "/bootstrap.css"),
         escapesCssFileEntry        = FileSystem.getFileForPath(testPath + "/escaped-identifiers.css"),
         embeddedHtmlFileEntry      = FileSystem.getFileForPath(testPath + "/embedded.html"),
-        cssRegionsFileEntry        = FileSystem.getFileForPath(testPath + "/regions.css");
+        cssRegionsFileEntry        = FileSystem.getFileForPath(testPath + "/regions.css"),
+        nestedGroupsFileEntry      = FileSystem.getFileForPath(testPath + "/panels.less");
         
     
     var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css"),
         selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css"),
         rangesTestCss              = require("text!spec/CSSUtils-test-files/ranges.css"),
-        simpleTestCss              = require("text!spec/CSSUtils-test-files/simple.css");
+        simpleTestCss              = require("text!spec/CSSUtils-test-files/simple.css"),
+        mediaTestScss              = require("text!spec/CSSUtils-test-files/navbar.scss"),
+        mediaTestLess              = require("text!spec/CSSUtils-test-files/print.less"),
+        mixinTestScss              = require("text!spec/CSSUtils-test-files/table&button.scss"),
+        mixinTestLess              = require("text!spec/CSSUtils-test-files/mixins.less"),
+        includeMixinTestScss       = require("text!spec/CSSUtils-test-files/include-mixin.scss"),
+        parentSelectorTestLess     = require("text!spec/CSSUtils-test-files/parent-selector.less"),
+        varInterpolationTestScss   = require("text!spec/CSSUtils-test-files/variables.scss"),
+        varInterpolationTestLess   = require("text!spec/CSSUtils-test-files/variables.less");
     
     /**
      * Verifies whether one of the results returned by CSSUtils._findAllMatchingSelectorsInText()
@@ -66,9 +75,7 @@ define(function (require, exports, module) {
         
         if (fileEntry) {
             spec.addMatchers({toMatchSelector: toMatchSelector});
-            
-            var doneLoading = false;
-            
+
             runs(function () {
                 FileUtils.readAsText(fileEntry)
                     .done(function (text) {
@@ -96,6 +103,20 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should parse an empty string with less mode", function () {
+                runs(function () {
+                    var result = CSSUtils._findAllMatchingSelectorsInText("", { tag: "div" }, "text/x-less");
+                    expect(result.length).toEqual(0);
+                });
+            });
+            
+            it("should parse an empty string with scss mode", function () {
+                runs(function () {
+                    var result = CSSUtils._findAllMatchingSelectorsInText("", { tag: "div" }, "text/x-scss");
+                    expect(result.length).toEqual(0);
+                });
+            });
+            
             // it("should parse simple selectors from more than one file", function () {
             //     // TODO: it'd be nice to revive this test by shimming FileIndexManager.getFileInfoList() or something
             // });
@@ -108,8 +129,8 @@ define(function (require, exports, module) {
              * results to equal the length of 'ranges'; each entry in range gives the {start, end}
              * of the expected line range for that Nth result.
              */
-            function expectRuleRanges(spec, cssCode, selector, ranges) {
-                var result = CSSUtils._findAllMatchingSelectorsInText(cssCode, selector);
+            function expectRuleRanges(spec, cssCode, selector, ranges, mode) {
+                var result = CSSUtils._findAllMatchingSelectorsInText(cssCode, selector, mode);
                 spec.expect(result.length).toEqual(ranges.length);
                 ranges.forEach(function (range, i) {
                     spec.expect(result[i].ruleStartLine).toEqual(range.start);
@@ -126,8 +147,8 @@ define(function (require, exports, module) {
              * Expects the numbers of results to equal the length of 'ranges'; each entry in range gives 
              * the {start, end} of the expected line range for that Nth result.
              */
-            function expectGroupRanges(spec, cssCode, selector, ranges) {
-                var result = CSSUtils._findAllMatchingSelectorsInText(cssCode, selector);
+            function expectGroupRanges(spec, cssCode, selector, ranges, mode) {
+                var result = CSSUtils._findAllMatchingSelectorsInText(cssCode, selector, mode);
                 spec.expect(result.length).toEqual(ranges.length);
                 ranges.forEach(function (range, i) {
                     spec.expect(result[i].selectorGroupStartLine).toEqual(range.start);
@@ -177,6 +198,71 @@ define(function (require, exports, module) {
                     expectGroupRanges(this, this.fileContent, ".f", [{start: 31, end: 31}]);
                     expectGroupRanges(this, this.fileContent, ".g", [{start: 31, end: 34}]);
                     expectGroupRanges(this, this.fileContent, ".h", [{start: 31, end: 34}]);
+                    
+                });
+            });
+
+            it("should return correct rule ranges for rules with comma separators in property values", function () {
+                runs(function () {
+                    init(this, propListCssFileEntry);
+                });
+                
+                runs(function () {
+                    // https://github.com/adobe/brackets/issues/9008
+                    expectRuleRanges(this, this.fileContent, "h1", [{start:  0, end:  2}]);
+                    
+                    // https://github.com/adobe/brackets/issues/8966
+                    expectRuleRanges(this, this.fileContent, ".alert", [{start:  4, end:  8}]);
+                });
+            });
+            
+            it("should return correct rule range and group range for different nested levels", function () {
+                runs(function () {
+                    init(this, nestedGroupsFileEntry);
+                });
+                
+                runs(function () {
+                    expectRuleRanges(this, this.fileContent, ".table", [
+                        {start: 6, end: 9}, {start: 6, end: 9},
+                        {start: 10, end: 26}, {start: 10, end: 26},
+                        {start: 27, end: 43}, {start: 27, end: 43},
+                        {start: 44, end: 47}
+                    ], "text/x-less");
+                    expectGroupRanges(this, this.fileContent, ".table", [
+                        {start: 6, end: 9}, {start: 6, end: 9},
+                        {start: 11, end: 26}, {start: 11, end: 26},
+                        {start: 28, end: 43}, {start: 28, end: 43},
+                        {start: 44, end: 47}
+                    ], "text/x-less");
+                    
+                    expectRuleRanges(this, this.fileContent, "tbody", [
+                        {start: 13, end: 25}, {start: 30, end: 42}, {start: 55, end: 76}
+                    ], "text/x-less");
+                    expectGroupRanges(this, this.fileContent, "tbody", [
+                        {start: 13, end: 25}, {start: 30, end: 42}, {start: 55, end: 76}
+                    ], "text/x-less");
+                    
+                    expectRuleRanges(this, this.fileContent, "thead", [
+                        {start: 13, end: 25}, {start: 55, end: 76}
+                    ], "text/x-less");
+                    expectGroupRanges(this, this.fileContent, "thead", [
+                        {start: 13, end: 25}, {start: 55, end: 76}
+                    ], "text/x-less");
+                    
+                    expectRuleRanges(this, this.fileContent, "tr", [
+                        {start: 15, end: 24}, {start: 32, end: 41}, {start: 58, end: 75}
+                    ], "text/x-less");
+                    
+                    expectRuleRanges(this, this.fileContent, "th", [
+                        {start: 16, end: 19}, {start: 20, end: 23}, {start: 33, end: 36},
+                        {start: 37, end: 40}, {start: 48, end: 51}, {start: 59, end: 62},
+                        {start: 63, end: 66}, {start: 67, end: 70}, {start: 71, end: 74}
+                    ], "text/x-less");
+                    expectGroupRanges(this, this.fileContent, "th", [
+                        {start: 16, end: 19}, {start: 20, end: 23}, {start: 33, end: 36},
+                        {start: 37, end: 40}, {start: 48, end: 51}, {start: 59, end: 62},
+                        {start: 63, end: 66}, {start: 67, end: 70}, {start: 71, end: 74}
+                    ], "text/x-less");
                     
                 });
             });
@@ -396,6 +482,15 @@ define(function (require, exports, module) {
                 expect(selector).toEqual("");
             });
             
+            // https://github.com/adobe/brackets/issues/9002
+            it("should not hang when the cursor is after '{' or '}' inside comments", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 53, ch: 3});   // after {
+                expect(selector).toEqual("");
+                
+                selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 55, ch: 1}); // after }
+                expect(selector).toEqual("");
+            });
+
             it("should find rules adjacent to comments", function () {
                 var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 47, ch: 4});
                 expect(selector).toEqual("div");
@@ -606,7 +701,7 @@ define(function (require, exports, module) {
             match,
             expectParseError;
         
-        function _findMatchingRules(cssCode, tagInfo) {
+        function _findMatchingRules(cssCode, tagInfo, mode) {
             if (tagInfo) {
                 var selector = "";
                 if (tagInfo.tag) {
@@ -618,10 +713,10 @@ define(function (require, exports, module) {
                 if (tagInfo.id) {
                     selector += "#" + tagInfo.id;
                 }
-                return CSSUtils._findAllMatchingSelectorsInText(cssCode, selector);
+                return CSSUtils._findAllMatchingSelectorsInText(cssCode, selector, mode);
             } else {
                 // If !tagInfo, we don't care about results; only making sure parse/search doesn't crash
-                CSSUtils._findAllMatchingSelectorsInText(cssCode, "dummy");
+                CSSUtils._findAllMatchingSelectorsInText(cssCode, "dummy", mode);
                 return null;
             }
         }
@@ -631,10 +726,10 @@ define(function (require, exports, module) {
          * the given cssCode string in isolation (no CSS files are loaded). If tagInfo not specified,
          * returns no results; only tests that parsing plus a simple search won't crash.
          */
-        var _match = function (cssCode, tagInfo) {
+        var _match = function (cssCode, tagInfo, mode) {
             lastCssCode = cssCode;
             try {
-                return _findMatchingRules(cssCode, tagInfo);
+                return _findMatchingRules(cssCode, tagInfo, mode);
             } catch (e) {
                 this.fail(e.message + ": " + cssCode);
                 return [];
@@ -642,10 +737,13 @@ define(function (require, exports, module) {
         };
         
         /** Tests against the same CSS text as the last call to match() */
-        function matchAgain(tagInfo) {
-            return match(lastCssCode, tagInfo);
+        function matchAgain(tagInfo, mode) {
+            return match(lastCssCode, tagInfo, mode);
         }
         
+        function expectCompleteSelectors(selectorInfo, expectedStr) {
+            expect(CSSUtils.getCompleteSelectors(selectorInfo)).toBe(expectedStr);
+        }
         
         /**
          * Test helper function: expects CSS parsing to fail at the given 0-based offset within the
@@ -1432,7 +1530,289 @@ define(function (require, exports, module) {
             
         }); // describe("Known Issues")    
 
+        describe("Nested rules defined inside @media (SCSS)", function () {
+            var result;
+            it("should find all different levels of nested selectors", function () {
+                result = match(mediaTestScss, { tag: "a" }, "text/x-scss");
+                expect(result.length).toBe(6);
+
+                result = matchAgain({ clazz: "navbar-right" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".navbar-nav / &.navbar-right:last-child");
+
+                result = matchAgain({ clazz: "dropdown-menu" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".navbar-nav / .open .dropdown-menu");
+
+                result = matchAgain({ clazz: "dropdown-header" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".navbar-nav / .open .dropdown-menu / .dropdown-header");
+            
+                result = matchAgain({ clazz: "navbar-nav" }, "text/x-scss");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], ".navbar-nav");
+                expectCompleteSelectors(result[1], ".navbar-nav / &.navbar-right:last-child");
+            });
+
+            it("should find the only one li tag selector that is also the right most of combinators", function () {
+                result = matchAgain({ tag: "li" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".navbar-nav / > li");
+            });
+
+            it("should not find a nested parent selector of a descendant combinator", function () {
+                // Verify that 'open' won't match '.open .dropdown-menu {}' rule
+                result = matchAgain({ clazz: "open" }, "text/x-scss");
+                expect(result.length).toBe(0);
+            });
+            
+        }); // describe("Nested rules defined inside @media (SCSS)")    
         
+        describe("Nested rules defined inside @media (LESS)", function () {
+            var result;
+            it("should find all different levels of nested selectors", function () {
+                result = match(mediaTestLess, { tag: "a" }, "text/x-less");
+                expect(result.length).toBe(6);
+                
+                result = matchAgain({ tag: "th" }, "text/x-less");
+                expect(result.length).toBe(3);
+                expectCompleteSelectors(result[0], "*");
+                expectCompleteSelectors(result[1], ".table / th");
+                expectCompleteSelectors(result[2], ".table-bordered / th");
+
+                result = matchAgain({ clazz: "btn" }, "text/x-less");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], ".btn");
+                expectCompleteSelectors(result[1], ".dropup > .btn");
+
+                result = matchAgain({ clazz: "table" }, "text/x-less");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], ".table");
+                expectCompleteSelectors(result[1], ".table");
+                
+                result = matchAgain({ clazz: "caret" }, "text/x-less");
+                expect(result.length).toBe(1);
+                // https://github.com/adobe/brackets/issues/8894
+                expectCompleteSelectors(result[0], ".btn, .dropup > .btn / > .caret");
+            });
+            
+            it("should not find a nested parent selector of a child combinator", function () {
+                // Verify that 'dropup' won't match '.dropup > .btn' rule
+                result = matchAgain({ clazz: "dropup" }, "text/x-less");
+                expect(result.length).toBe(0);
+            });
+            
+        }); // describe("Nested rules defined inside @media (LESS)")    
+        
+        describe("Nested rules with SCSS mixins", function () {
+            var result;
+            it("should find all different levels of nested selectors", function () {
+                result = match(mixinTestScss, { clazz: "table" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], "@mixin table-row-variant($state, $background) / .table");
+                
+                result = matchAgain({ tag: "th" }, "text/x-scss");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], "@mixin table-row-variant($state, $background) / .table / > thead, > tbody, > tfoot / > .#{$state} > th");
+                expectCompleteSelectors(result[1], "@mixin table-row-variant($state, $background) / .table-hover > tbody / > .#{$state}:hover > th");
+
+                result = matchAgain({ clazz: "dropdown-toggle" }, "text/x-scss");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], "@mixin button-variant($color, $background, $border) / .open & / &.dropdown-toggle");
+                expectCompleteSelectors(result[1], "@mixin button-variant($color, $background, $border) / .open & / &.dropdown-toggle");
+
+                result = matchAgain({ clazz: "badge" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], "@mixin button-variant($color, $background, $border) / .badge");
+            });
+            
+            it("should not find a nested parent selector of a descendant combinator", function () {
+                result = matchAgain({ tag: "tr" }, "text/x-scss");
+                expect(result.length).toBe(0);
+            });
+            
+        }); // describe("Nested rules with SCSS mixins")    
+        
+        describe("Nested rules with LESS mixins", function () {
+            var result;
+            it("should find all different levels of nested selectors", function () {
+                result = match(mixinTestLess, { clazz: "panel-body" }, "text/x-less");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], ".panel-variant(@border; @heading-text-color; @heading-bg-color; @heading-border) / & > .panel-heading / + .panel-collapse .panel-body");
+                expectCompleteSelectors(result[1], ".panel-variant(@border; @heading-text-color; @heading-bg-color; @heading-border) / & > .panel-footer / + .panel-collapse .panel-body");
+                
+                result = matchAgain({ clazz: "panel-heading" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".panel-variant(@border; @heading-text-color; @heading-bg-color; @heading-border) / & > .panel-heading");
+                
+                result = matchAgain({ clazz: "panel-footer" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".panel-variant(@border; @heading-text-color; @heading-bg-color; @heading-border) / & > .panel-footer");
+                
+                result = matchAgain({ clazz: "input-group-addon" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".form-control-validation(@text-color: #555; @border-color: #ccc; @background-color: #f5f5f5) / .input-group-addon");
+            });
+            
+            // https://github.com/adobe/brackets/issues/8852
+            it("should find the rule that follows the code passing in a ruleset to a mixin", function () {
+                result = matchAgain({ clazz: "after-passing-ruleset-to-mixin" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-passing-ruleset-to-mixin");
+            });
+            
+            // https://github.com/adobe/brackets/issues/8850
+            it("should find the rule that succeeds the mixin with multiple parameters having default values and semicolons", function () {
+                result = matchAgain({ tag: "div" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], "div");
+            });
+        }); // describe("Nested rules with LESS mixins")    
+        
+        describe("Variable interpolation in SCSS", function () {
+            var result;
+            // https://github.com/adobe/brackets/issues/8870
+            it("should find a rule that has a variable interpolated selector", function () {
+                // Verify that "#{$name} a" can be searched with "a" tag
+                result = match(varInterpolationTestScss, { tag: "a" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".#{$name} a");
+            });
+
+            // https://github.com/adobe/brackets/issues/8851
+            it("should find rules after a rule with variable interpolated selector", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-selector" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-selector");
+            });
+            
+            // https://github.com/adobe/brackets/issues/8875
+            it("should find rules after a rule with variable interpolated property", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-property" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-property");
+            });
+                        
+            it("should find rules after a rule with variable interpolated url", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-url" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-url");
+            });
+        }); // describe("Variable interpolation in SCSS")
+        
+        describe("Variable interpolation in LESS", function () {
+            var result;
+            // https://github.com/adobe/brackets/issues/8870
+            it("should find rules with variable interpolated selectors", function () {
+                result = match(varInterpolationTestLess, { clazz: "@{mySelector}" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".@{mySelector}");
+            });
+
+            // https://github.com/adobe/brackets/issues/8851
+            it("should find rules after a rule with variable interpolated selector", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-selector" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-selector");
+            });
+            
+            // https://github.com/adobe/brackets/issues/8875
+            it("should find rules after a rule with variable interpolated property", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-property" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-property");
+            });
+                        
+            it("should find rules after a rule with variable interpolated url", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-url" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-url");
+            });
+        }); // describe("Variable interpolation in LESS")
+
+        describe("Parsing SCSS variable interpolation as LESS", function () {
+            var result;
+            it("should find a rule that has a variable interpolated selector", function () {
+                // Verify that "#{$name} a" can be searched with "a" tag
+                result = match(varInterpolationTestScss, { tag: "a" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".#{$name} a");
+            });
+
+            it("should find rules after a rule with variable interpolated selector", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-selector" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-selector");
+            });
+            
+            // https://github.com/adobe/brackets/issues/8965
+            it("should find rules after a rule with variable interpolated property", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-property" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-property");
+            });
+                        
+            it("should find rules after a rule with variable interpolated url", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-url" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-url");
+            });
+        }); // describe("Parsing SCSS variable interpolation as LESS")
+        
+        describe("Reference parent selector with &", function () {
+            var result;
+            it("should find rules that are prefixed with &", function () {
+                result = match(parentSelectorTestLess, { clazz: "button-custom" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".button / &-custom");
+
+                result = matchAgain({ clazz: "button-ok" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".button / &-ok");
+            });
+
+            it("should find rules that prepend a selector to the inherited parent selector using &", function () {
+                result = matchAgain({ clazz: "menu" }, "text/x-less");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], ".header / .menu");
+                expectCompleteSelectors(result[1], ".header / .menu / .no-borderradius &");
+            });
+            
+            it("should find rules that have multiple & references to multiple levels of parent selectors", function () {
+                result = matchAgain({ clazz: "parent" }, "text/x-less");
+                expect(result.length).toBe(5);
+                expectCompleteSelectors(result[0], ".grand / .parent");
+                expectCompleteSelectors(result[1], ".grand / .parent / & > &");
+                expectCompleteSelectors(result[2], ".grand / .parent / & &");
+                expectCompleteSelectors(result[3], ".grand / .parent / &&");
+                expectCompleteSelectors(result[4], ".grand / .parent / &");
+
+                result = matchAgain({ clazz: "parentish" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".grand / .parent / &ish");
+            });
+
+            it("should not find a nested rule that has parent selector & as the rightmost selector", function () {
+                // Verify that '.no-borderradius' won't match '.no-borderradius & {}' rule
+                result = matchAgain({ clazz: "no-borderradius" }, "text/x-less");
+                expect(result.length).toBe(0);
+            });
+        }); // describe("Reference parent selector with &")
+
+        // https://github.com/adobe/brackets/issues/8945
+        describe("Nested rules following an @include block", function () {
+            it("should find rules that succeed @include blocks", function () {
+                var result = match(includeMixinTestScss, { tag: "h3" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".sidebar / h3");
+
+                result = matchAgain({ tag: "a" }, "text/x-scss");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], ".sidebar / a");
+                expectCompleteSelectors(result[1], ".sidebar / a / &:hover");
+            });
+        }); // describe("Nested rules following an @include block")
+
         describe("CSS Intgration Tests", function () {
             this.category = "integration";
             
@@ -1498,7 +1878,7 @@ define(function (require, exports, module) {
                             .fail(function () { gotError = true; });
                     });
                     
-                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
+                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.openAndSelectDocument() timeout", 1000);
                     
                     var rules = null;
                     
@@ -1534,7 +1914,7 @@ define(function (require, exports, module) {
                             .fail(function () { gotError = true; });
                     });
                     
-                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
+                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.openAndSelectDocument() timeout", 1000);
                     
                     var rules = null;
                     

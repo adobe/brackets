@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets, semver */
+/*global define, $, brackets */
 /*unittests: ExtensionManager*/
 
 /**
@@ -39,7 +39,6 @@ define(function (require, exports, module) {
     "use strict";
 
     var _                = require("thirdparty/lodash"),
-        FileUtils        = require("file/FileUtils"),
         Package          = require("extensibility/Package"),
         Async            = require("utils/Async"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
@@ -51,6 +50,14 @@ define(function (require, exports, module) {
 
     // semver.browser is an AMD-compatible module
     var semver = require("extensibility/node/node_modules/semver/semver.browser");
+
+    /**
+     * @private
+     * @type {$.Deferred} Keeps track of the current registry download so that if a request is already
+     * in progress and another request to download the registry comes in, we don't send yet another request.
+     * This is primarily used when multiple view models need to download the registry at the same time.
+     */
+    var pendingDownloadRegistry = null;
 
     /**
      * Extension status constants.
@@ -180,7 +187,12 @@ define(function (require, exports, module) {
      * or rejected if the server can't be reached.
      */
     function downloadRegistry() {
-        var result = new $.Deferred();
+        if (pendingDownloadRegistry) {
+            return pendingDownloadRegistry.promise();
+        }
+
+        pendingDownloadRegistry = new $.Deferred();
+
         $.ajax({
             url: brackets.config.extension_registry,
             dataType: "json",
@@ -195,12 +207,17 @@ define(function (require, exports, module) {
                     synchronizeEntry(id);
                 });
                 $(exports).triggerHandler("registryDownload");
-                result.resolve();
+                pendingDownloadRegistry.resolve();
             })
             .fail(function () {
-                result.reject();
+                pendingDownloadRegistry.reject();
+            })
+            .always(function () {
+                // Make sure to clean up the pending registry so that new requests can be made.
+                pendingDownloadRegistry = null;
             });
-        return result.promise();
+
+        return pendingDownloadRegistry.promise();
     }
 
 
@@ -450,7 +467,7 @@ define(function (require, exports, module) {
         if (installationResult.keepFile === undefined) {
             installationResult.keepFile = false;
         }
-        
+
         var installationStatus = installationResult.installationStatus;
         if (installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
                 installationStatus === Package.InstallationStatuses.NEEDS_UPDATE ||
@@ -583,31 +600,6 @@ define(function (require, exports, module) {
         }, []);
     }
 
-    /**
-     * Toggles between truncated and full length extension descriptions
-     * @param {string} id The id of the extension clicked
-     * @param {JQueryElement} $element The DOM element of the extension clicked
-     * @param {boolean} showFull true if full length description should be shown, false for shorten version.
-     */
-    function toggleDescription(id, $element, showFull) {
-        var description, linkTitle,
-            entry = extensions[id];
-
-        // Toggle between appropriate descriptions and link title,
-        // depending on if extension is installed or not
-        if (showFull) {
-            description = entry.installInfo ? entry.installInfo.metadata.description : entry.registryInfo.metadata.description;
-            linkTitle = Strings.VIEW_TRUNCATED_DESCRIPTION;
-        } else {
-            description = entry.installInfo ? entry.installInfo.metadata.shortdescription : entry.registryInfo.metadata.shortdescription;
-            linkTitle = Strings.VIEW_COMPLETE_DESCRIPTION;
-        }
-
-        $element.attr("data-toggle-desc", showFull ? "trunc-desc" : "expand-desc")
-                .attr("title", linkTitle)
-                .prev(".ext-full-description").html(description);
-    }
-
     // Listen to extension load and loadFailed events
     $(ExtensionLoader)
         .on("load", _handleExtensionLoad)
@@ -633,7 +625,6 @@ define(function (require, exports, module) {
     exports.updateExtensions        = updateExtensions;
     exports.getAvailableUpdates     = getAvailableUpdates;
     exports.cleanAvailableUpdates   = cleanAvailableUpdates;
-    exports.toggleDescription       = toggleDescription;
     exports.ENABLED       = ENABLED;
     exports.START_FAILED  = START_FAILED;
 

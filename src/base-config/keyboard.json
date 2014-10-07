@@ -161,7 +161,7 @@
             "key": "Ctrl-Shift-H"
         },
         {
-            "key": "Ctrl-Alt-Shift-F",
+            "key": "Cmd-Alt-Shift-F",
             "platform": "mac"
         }
     ],
@@ -216,7 +216,7 @@
             "key" : "Ctrl-Alt-H"
         },
         {
-            "key": "Ctrl-Shift-H",
+            "key": "Cmd-Shift-H",
             "platform": "mac"
         }
     ],

@@ -39,14 +39,6 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent");
 
     /**
-     * Returns editor holder width (not CodeMirror's width).
-     * @private
-     */
-    function _editorHolderWidth() {
-        return $("#editor-holder").width();
-    }
-
-    /**
      * Shows or hides the dirty indicator
      * @private
      */
@@ -174,7 +166,7 @@ define(function (require, exports, module) {
         // Update display of inline editors when the hostEditor signals a redraw
         CodeMirror.on(this.info, "redraw", function () {
             // At the point where we get the redraw, CodeMirror might not yet have actually
-            // re-added the widget to the DOM. This is filed as https://github.com/marijnh/CodeMirror/issues/1226.
+            // re-added the widget to the DOM. This is filed as https://github.com/codemirror/CodeMirror/issues/1226.
             // For now, we can work around it by doing the refresh on a setTimeout().
             window.setTimeout(function () {
                 if (self.editor) {
@@ -300,10 +292,6 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      */
     InlineTextEditor.prototype._updateLineRange = function (editor) {
-        var oldStartLine    = this._startLine,
-            oldEndLine      = this._endLine,
-            oldLineCount    = this._lineCount;
-
         this._startLine = editor.getFirstVisibleLine();
         this._endLine = editor.getLastVisibleLine();
         this._lineCount = this._endLine - this._startLine;

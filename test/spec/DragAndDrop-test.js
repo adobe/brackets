@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, expect, brackets, waitsForDone, beforeFirst, afterLast */
+/*global define, describe, beforeEach, afterEach, it, runs, expect, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     var DocumentManager,      // loaded from brackets.test
         DragAndDrop,          // loaded from brackets.test
         EditorManager,        // loaded from brackets.test
+        MainViewManager,      // loaded from brackets.test
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
                     
     
@@ -52,6 +53,7 @@ define(function (require, exports, module) {
                 DocumentManager = testWindow.brackets.test.DocumentManager;
                 DragAndDrop     = testWindow.brackets.test.DragAndDrop;
                 EditorManager   = testWindow.brackets.test.EditorManager;
+                MainViewManager = testWindow.brackets.test.MainViewManager;
             });
         });
         
@@ -60,6 +62,7 @@ define(function (require, exports, module) {
             DocumentManager = null;
             DragAndDrop     = null;
             EditorManager   = null;
+            MainViewManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
@@ -77,11 +80,17 @@ define(function (require, exports, module) {
                 // Call closeAll() directly. Some tests set a spy on the save as
                 // dialog preventing SpecRunnerUtils.closeAllFiles() from
                 // working properly.
-                testWindow.brackets.test.DocumentManager.closeAll();
+                testWindow.brackets.test.MainViewManager._closeAll(testWindow.brackets.test.MainViewManager.ALL_PANES);
             });
         });
         
         describe("Testing openDroppedFiles function", function () {
+            it("should activate a pane on drag over", function () {
+                MainViewManager.setLayoutScheme(1, 2);
+                var $paneEl = _$("#second-pane");
+                $paneEl.triggerHandler("dragover");
+                expect(MainViewManager.getActivePaneId()).toBe("second-pane");
+            });
             
             it("should NOT open any image file when a text file is in the dropped file list", function () {
                 var jsFilePath = testPath + "/test.js";
@@ -94,7 +103,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var editor = EditorManager.getActiveEditor();
                     expect(editor.document.file.fullPath).toBe(jsFilePath);
-                    expect(EditorManager.getCurrentlyViewedPath()).toEqual(jsFilePath);
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)).toEqual(jsFilePath);
                 });
             });
 
@@ -108,7 +117,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var editor = EditorManager.getActiveEditor();
                     expect(editor).toBe(null);
-                    expect(EditorManager.getCurrentlyViewedPath()).toEqual(path);
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)).toEqual(path);
                 });
             });
 
@@ -123,10 +132,23 @@ define(function (require, exports, module) {
                 runs(function () {
                     var editor = EditorManager.getActiveEditor();
                     expect(editor).toBe(null);
-                    expect(EditorManager.getCurrentlyViewedPath()).toEqual(lastImagePath);
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)).toEqual(lastImagePath);
                 });
             });
+
+            it("should add images to the working set when they dropped from outside the project", function () {
+                var imagesPath = SpecRunnerUtils.getTestPath("/spec/test-image-files");
+                runs(function () {
+                    var files = [imagesPath + "/thermo.jpg", imagesPath + "/eye.jpg"];
+                    promise = DragAndDrop.openDroppedFiles(files);
+                    waitsForDone(promise, "opening last image file from the dropped files");
+                });
             
+                runs(function () {
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, imagesPath + "/thermo.jpg")).toNotEqual(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, imagesPath + "/eye.jpg")).toNotEqual(-1);
+                });
+            });
         });
     });
 });

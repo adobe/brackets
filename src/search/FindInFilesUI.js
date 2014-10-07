@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $ */
 
 /*
  * UI and controller logic for find/replace across multiple files within the project.
@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         Dialogs           = require("widgets/Dialogs"),
         DefaultDialogs    = require("widgets/DefaultDialogs"),
         EditorManager     = require("editor/EditorManager"),
+        WorkspaceManager  = require("view/WorkspaceManager"),
         FileFilters       = require("search/FileFilters"),
         FileUtils         = require("file/FileUtils"),
         FindBar           = require("search/FindBar").FindBar,
@@ -117,7 +118,7 @@ define(function (require, exports, module) {
     function _showFindBar(scope, showReplace) {
         // If the scope is a file with a custom viewer, then we
         // don't show find in files dialog.
-        if (scope && EditorManager.getCustomViewerForPath(scope.fullPath)) {
+        if (scope && !EditorManager.canOpenPath(scope.fullPath)) {
             return;
         }
         
@@ -139,9 +140,7 @@ define(function (require, exports, module) {
         } else if (currentEditor) {
             initialQuery = FindUtils.getInitialQueryFromSelection(currentEditor);
         }
-        
-        FindInFiles.clearSearch();
-        
+
         // Close our previous find bar, if any. (The open() of the new _findBar will
         // take care of closing any other find bar instances.)
         if (_findBar) {
@@ -173,7 +172,7 @@ define(function (require, exports, module) {
             // Check the query expression on every input event. This way the user is alerted
             // to any RegEx syntax errors immediately.
             var queryInfo = _findBar.getQueryInfo(),
-                queryResult = FindInFiles.searchModel.setQueryInfo(queryInfo);
+                queryResult = FindUtils.parseQueryInfo(queryInfo);
 
             // Enable the replace button appropriately.
             _findBar.enableReplace(queryResult.valid);
@@ -252,7 +251,7 @@ define(function (require, exports, module) {
             scrollPos = fullEditor.getScrollPos();
             scrollPos.y -= oldModalBarHeight;   // modalbar already showing, adjust for old height
         }
-        EditorManager.resizeEditor();
+        WorkspaceManager.recomputeLayout();
         if (fullEditor) {
             fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + _findBar._modalBar.height());
         }
@@ -274,8 +273,7 @@ define(function (require, exports, module) {
             replacedFiles = Object.keys(resultsClone).filter(function (path) {
                 return FindUtils.hasCheckedMatches(resultsClone[path]);
             }),
-            isRegexp = model.queryInfo.isRegexp,
-            replacePromise;
+            isRegexp = model.queryInfo.isRegexp;
         
         function processReplace(forceFilesOpen) {
             StatusBar.showBusyIndicator(true);
