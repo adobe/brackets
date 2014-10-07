@@ -24,7 +24,7 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, evil:true */
 /*global window, document:true, CollectionUtils:true */
 
-window.setTimeout(function() {
+window.setTimeout(function () {
     "use strict";
     
     //Vars
@@ -32,14 +32,14 @@ window.setTimeout(function() {
     var deps = {"Mustache": window.mustache, "jQuery": window.$, "RequireJS": window.require};
     
     //Check if any deps are missing. If so, append them to the missingDeps string
-    for(key in deps) {
+    for (key in deps) {
         if (deps.hasOwnProperty(key) && !deps[key]) {
             missingDeps.concat("<li>" + key + "</li>");
         }
     }
     
     //If there are missing deps, replace 'MISSING DEPS' in str by missingDeps
-    if(missingDeps !== "") {
+    if (missingDeps !== "") {
         var str = "<h1>Missing libraries</h1>" +
             "<p>Oops! One or more required libraries could not be found.</p>" +
             "<ul>" + missingDeps + "</ul>" +
