@@ -222,6 +222,13 @@ define({
     "BOTTOM" : "پایین",
     "LEFT" : "چپ",
     "RIGHT" : "راست",
+    "CMD_SPLITVIEW_NONE" : "بدون دوبخشی سازی",
+    "CMD_SPLITVIEW_VERTICAL" : "دوبخشی کردن عمودی",
+    "CMD_SPLITVIEW_HORIZONTAL" : "دوبخشی کردن افقی",
+    "SPLITVIEW_MENU_TOOLTIP" : "دوبخشی کردن صفحه(تقسیم صفحه به دو قسمت مجزا)",
+    "GEAR_MENU_TOOLTIP" : "پیکربندی پرونده های کاری",
+    "SPLITVIEW_INFO_TITLE" : "هم اکنون باز است",
+    "SPLITVIEW_MULTIPANE_WARNING" : "این پرونده هم اکنون در پنجره ای دیگر باز شده است. {APP_NAME} بزودی باز کردن همان پرونده در سایر پنجره ها را پشتیبانی خواهد نمود. تا آن زمان پرونده ها تنها در پنجره ای که باز شده اند نمایش داده خواند شد.<br /><br />(این پیغام تنها یک بار مشاهده خواهد شد.)",
     
     /**
      * Keyboard modifier names
@@ -378,7 +385,7 @@ define({
     "CMD_NEXT_DOC"                        : "سند بعدی",
     "CMD_PREV_DOC"                        : "سند قبلی",
     "CMD_SHOW_IN_TREE"                    : "نمایش پرونده در میان پرونده های کاری",
-    "CMD_SHOW_IN_EXPLORER"                : "نمایش در مرورگر",
+    "CMD_SHOW_IN_EXPLORER"                : "نمایش در پیمایشگر پرونده",
     "CMD_SHOW_IN_FINDER"                  : "نمایش در جستجوگر",
     "CMD_SHOW_IN_OS"                      : "نمایش در OS",
 
@@ -405,7 +412,7 @@ define({
     "RELAUNCH_CHROME"                      : "اجرای دوباره Chrome",
     "ABOUT"                                : "پیرامون",
     "CLOSE"                                : "بستن",
-    "ABOUT_TEXT_LINE1"                     : "پیش روی {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "انتشار {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_BUILD_TIMESTAMP"           : "build timestamp: ",
     "ABOUT_TEXT_LINE3"                     : "<div style='direction:rtl;margin-right:3px;'>یادداشتهای ها، شرایط و ضوابط مربوط به نرم افزار و حقوق شخص ثالث در آدرس<a href='#' class='clickable-link' data-href='http://www.adobe.com/go/thirdparty/'>http://www.adobe.com/go/thirdparty/</a> جهت تلفیق و بعنوان مرجع قرار داده شده.",
     "ABOUT_TEXT_LINE4"                     : "اسناد، نکات و منابع نرم افزار در پیوند <a href='#' class='clickable-link' data-href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a> در دسترس می باشد. می توانید جهت مشاهده سریع بروزرسانی های قبل از انتشار نرم افزار بهمین لینک مراجعه فرمایید.<br><b>ترجمه توسط محمد یعقوبی<b>",
@@ -586,7 +593,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "نمایش پارامتر",
     "NO_ARGUMENTS"                              : "<بدون پارامتر>",
     "DETECTED_EXCLUSION_TITLE"                  : "خطای منطقی در پرونده JavaScript",
-    "DETECTED_EXCLUSION_INFO"                   : "براکتس در حال انجام یک پردازه خطادار می باشد:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> in your project and remove the file from jscodehints.detectedExclusions.",
+    "DETECTED_EXCLUSION_INFO"                   : "براکتس درحال انجام یک پردازش مشکل دار با پرونده <span class='dialog-filename'>{0}</span> است.<br><br>این پرونده اشاره گرهای کدها را بطور کامل نشان نخواهد داد, برای این منظور میتوانید از حالت تعریف یا ویرایش سریع استفاده نمایید. جهت فعال سازی دوباره این پرونده, <code>.brackets.json</code> را در پروژه خود باز کنید و <code>jscodehints.detectedExclusions</code> را ویرایش نمایید.<br><br>این مشکل میتواند یک Bug در براکتس باشد. اگر مشکلی در ارائه این پرونده به ما ندارید, لطفا گزارش <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>پرونده دارای Bug</a> را با یک لینک به پرونده جهت برسی ثبت نمایید.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -601,4 +608,4 @@ define({
     "DOCS_MORE_LINK"                            : "بیشتر"
 
 });
-/* Last translated for 6d4de6a8e699b63ee40a06f9252c00c44b64eb19 */
+/* Last translated for 91b392bf349ece5058595b26a11c651697ee7ff6 */
