@@ -34,7 +34,7 @@ window.setTimeout(function () {
     //Check if any deps are missing. If so, append them to the missingDeps string
     for (key in deps) {
         if (deps.hasOwnProperty(key) && !deps[key]) {
-            missingDeps.concat("<li>" + key + "</li>");
+            missingDeps = missingDeps.concat("<li>" + key + "</li>");
         }
     }
     
