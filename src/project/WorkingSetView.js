@@ -768,6 +768,9 @@ define(function (require, exports, module) {
                 }
             }
 
+            // prevent working set from grabbing focus no matter what type of click/drag occurs
+            e.preventDefault();
+            
             // initialization
             $(window).on("mouseup.wsvdragging", function () {
                 drop();
