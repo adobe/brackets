@@ -370,9 +370,8 @@ define(function (require, exports, module) {
                                                             oldPaneId]);
             
             _makePaneMostRecent(_activePaneId);
+            focusActivePane();
         }
-        
-        focusActivePane();
     }
     
     /**

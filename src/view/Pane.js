@@ -1214,11 +1214,18 @@ define(function (require, exports, module) {
      * Gives focus to the last thing that had focus, the current view or the pane in that order
      */
     Pane.prototype.focus = function () {
+        var current = window.document.activeElement;
+
+        // short-circuit for performance
+        if (this._lastFocusedElement === current) {
+            return;
+        }
+            
         // Blur the currently focused element which will move focus to the BODY tag
         //  If the element we want to focus below cannot receive the input focus such as an ImageView
         //  This will remove focus from the current view which is important if the current view is 
         //  a codemirror view. 
-        document.activeElement.blur();
+        current.blur();
         
         if (this._lastFocusedElement && $(this._lastFocusedElement).is(":visible")) {
             $(this._lastFocusedElement).focus();
