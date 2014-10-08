@@ -101,6 +101,7 @@ define(function (require, exports, module) {
     require("editor/CSSInlineEditor");
     require("project/WorkingSetSort");
     require("search/QuickOpen");
+    require("file/FileUtils");
     require("project/SidebarView");
     require("utils/Resizer");
     require("LiveDevelopment/main");
@@ -128,7 +129,6 @@ define(function (require, exports, module) {
     require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
     require("editor/EditorOptionHandlers");
-    require("file/FileUtils");
     require("help/HelpCommandHandlers");
     require("search/FindInFilesUI");
     require("search/FindReplace");
