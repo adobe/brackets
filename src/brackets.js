@@ -71,7 +71,6 @@ define(function (require, exports, module) {
         DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
         FileViewController      = require("project/FileViewController"),
         FileSyncManager         = require("project/FileSyncManager"),
-        FileUtils               = require("file/FileUtils"),
         KeyBindingManager       = require("command/KeyBindingManager"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
@@ -88,6 +87,7 @@ define(function (require, exports, module) {
         UpdateNotification      = require("utils/UpdateNotification"),
         UrlParams               = require("utils/UrlParams").UrlParams,
         PreferencesManager      = require("preferences/PreferencesManager"),
+        ExtensionManager        = require("extensibility/ExtensionManager"),
         ExtensionUtils          = require("utils/ExtensionUtils"),
         DragAndDrop             = require("utils/DragAndDrop"),
         CodeInspection          = require("language/CodeInspection"),
@@ -128,6 +128,7 @@ define(function (require, exports, module) {
     require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
     require("editor/EditorOptionHandlers");
+    require("file/FileUtils");
     require("help/HelpCommandHandlers");
     require("search/FindInFilesUI");
     require("search/FindReplace");
@@ -213,39 +214,6 @@ define(function (require, exports, module) {
             brackets.test.doneLoading = true;
         });
     }
-
-    // TODO: should this be a method of ExtensionManager ?
-    function _autoInstallBundledExtensions() {
-        // Get list of extension bundles
-        var srcPath = FileUtils.getNativeBracketsDirectoryPath(),
-            dirPath = srcPath.substr(0, srcPath.lastIndexOf("/")) + "/bundles/";
-
-        FileSystem.getDirectoryForPath(dirPath).getContents(function (err, contents) {
-            if (!err) {
-                var i, dirItem,
-                    bundles = [];
-                
-                for (i = 0; i < contents.length; i++) {
-                    dirItem = contents[i];
-                    if (dirItem.isFile && FileUtils.getFileExtension(dirItem.fullPath) === "zip") {
-                        bundles.push(dirItem.fullPath);
-                    }
-                }
-            }
-        });
-
-        // If bundle(s) found, check each to see if it's already installed
-
-        // If already installed, compare disk version versus installed version
-        // - if latest version is not installed, then install it
-        // - write pref so we can detect later if it has been installed
-
-        // Else (not installed), check pref to determine if it has already been installed
-        // - if extensions has not yet been installed, then install it
-        // - write pref so we can detect later if it has been installed
-
-    }
-
 
     /**
      * Setup Brackets
@@ -355,8 +323,7 @@ define(function (require, exports, module) {
                 UpdateNotification.launchAutomaticUpdate();
             }
 
-            // TODO - is appReady best time to do this?
-            _autoInstallBundledExtensions();
+            ExtensionManager.autoInstallBundles();
         });
     }
     
