@@ -221,21 +221,6 @@ define(function (require, exports, module) {
         var id = $el.attr("id").match(/working\-set\-list\-([\w]+[\w\d\-\.\:\_]*)/).pop();
         return _views[id];
     }
-
-    /** 
-     * Special helper to show the element as selected 
-     * when opening a document -- this will show the working set item
-     * as selected while the document is being opened
-     * @private
-     * @param {jQuery} $el - the element to show as selected
-     */
-    function _showAsSelected($el) {
-        $workingFilesContainer.find(".selected").removeClass("selected");
-        $el.addClass("selected");
-        ViewUtils.toggleClass($el, "selected", true);
-        _viewFromEl($el)._fireSelectionChanged(false);
-    }
-    
     
     /** 
      * Makes the specified element draggable
@@ -776,11 +761,6 @@ define(function (require, exports, module) {
                                     postDropCleanup();
                                 });
                         } else {
-                            // show the selection now, rather than wait
-                            //  until after the file is opened to show it as
-                            //  selected...
-                            _showAsSelected($el);
-
                             // Normal right and left click - select the item
                             FileViewController.setFileViewFocus(FileViewController.WORKING_SET_VIEW);
                             CommandManager
