@@ -168,7 +168,7 @@ define(function (require, exports, module) {
             // Remove final result if there have been over MAX_TOTAL_RESULTS found
             if (this.numMatches > SearchModel.MAX_TOTAL_RESULTS) {
                 this.results[fullpath].matches.pop();
-                this.numMatches -= 1;
+                this.numMatches--;
                 this.exceedsMaximum = true;
             }
         }
