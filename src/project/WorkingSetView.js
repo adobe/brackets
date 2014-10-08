@@ -581,7 +581,7 @@ define(function (require, exports, module) {
                         // add a class to the element we're dragging if 
                         //  it's the currently selected file so that we 
                         //  can show it as selected while dragging
-                        if (!draggingCurrentFile) {
+                        if (!draggingCurrentFile && FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW) {
                             $(activeView._findListItemFromFile(currentFile)).addClass("drag-show-as-selected");
                         }
                         
