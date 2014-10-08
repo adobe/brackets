@@ -71,6 +71,7 @@ define(function (require, exports, module) {
         DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
         FileViewController      = require("project/FileViewController"),
         FileSyncManager         = require("project/FileSyncManager"),
+        FileUtils               = require("file/FileUtils"),
         KeyBindingManager       = require("command/KeyBindingManager"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
@@ -100,7 +101,6 @@ define(function (require, exports, module) {
     require("editor/CSSInlineEditor");
     require("project/WorkingSetSort");
     require("search/QuickOpen");
-    require("file/FileUtils");
     require("project/SidebarView");
     require("utils/Resizer");
     require("LiveDevelopment/main");
@@ -214,6 +214,39 @@ define(function (require, exports, module) {
         });
     }
 
+    // TODO: should this be a method of ExtensionManager ?
+    function _autoInstallBundledExtensions() {
+        // Get list of extension bundles
+        var srcPath = FileUtils.getNativeBracketsDirectoryPath(),
+            dirPath = srcPath.substr(0, srcPath.lastIndexOf("/")) + "/bundles/";
+
+        FileSystem.getDirectoryForPath(dirPath).getContents(function (err, contents) {
+            if (!err) {
+                var i, dirItem,
+                    bundles = [];
+                
+                for (i = 0; i < contents.length; i++) {
+                    dirItem = contents[i];
+                    if (dirItem.isFile && FileUtils.getFileExtension(dirItem.fullPath) === "zip") {
+                        bundles.push(dirItem.fullPath);
+                    }
+                }
+            }
+        });
+
+        // If bundle(s) found, check each to see if it's already installed
+
+        // If already installed, compare disk version versus installed version
+        // - if latest version is not installed, then install it
+        // - write pref so we can detect later if it has been installed
+
+        // Else (not installed), check pref to determine if it has already been installed
+        // - if extensions has not yet been installed, then install it
+        // - write pref so we can detect later if it has been installed
+
+    }
+
+
     /**
      * Setup Brackets
      */
@@ -315,13 +348,16 @@ define(function (require, exports, module) {
             });
         });
         
-        // Check for updates
-        if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
-            AppInit.appReady(function () {
+        AppInit.appReady(function () {
+            // Check for updates
+            if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
                 // launches periodic checks for updates cca every 24 hours
                 UpdateNotification.launchAutomaticUpdate();
-            });
-        }
+            }
+
+            // TODO - is appReady best time to do this?
+            _autoInstallBundledExtensions();
+        });
     }
     
     /**
