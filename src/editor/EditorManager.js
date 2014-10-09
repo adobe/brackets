@@ -470,7 +470,7 @@ define(function (require, exports, module) {
      * Semi-private: should only be called within this module or by Document.
      * @param {!Document} document  Document whose main/full Editor to create
      * @param {!Pane} pane  Pane in which the editor will be hosted
-     @ @return {!Editor}
+     * @return {!Editor}
      */
     function _createFullEditorForDocument(document, pane) {
         // Create editor; make it initially invisible
