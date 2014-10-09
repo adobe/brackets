@@ -1215,17 +1215,23 @@ define(function (require, exports, module) {
      */
     Pane.prototype.focus = function () {
         var current = window.document.activeElement;
-
+        
         // short-circuit for performance
         if (this._lastFocusedElement === current) {
             return;
         }
             
-        // Blur the currently focused element which will move focus to the BODY tag
-        //  If the element we want to focus below cannot receive the input focus such as an ImageView
-        //  This will remove focus from the current view which is important if the current view is 
-        //  a codemirror view. 
-        current.blur();
+        // if focus is in a textarea element and the currentView
+        //  is anything other than codeMirror then we must blur
+        //  the text area element to force focus to the body tag
+        //  otherwise, input will continue to go to the text-area
+        if (current.tagName === "textarea" && (!this._currentView || !this._currentView._codeMirror)) {
+            // Blur the currently focused element which will move focus to the BODY tag
+            //  If the element we want to focus below cannot receive the input focus such as an ImageView
+            //  This will remove focus from the current view which is important if the current view is 
+            //  a codemirror view. 
+            current.blur();
+        }
         
         if (this._lastFocusedElement && $(this._lastFocusedElement).is(":visible")) {
             $(this._lastFocusedElement).focus();

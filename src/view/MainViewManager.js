@@ -1131,10 +1131,13 @@ define(function (require, exports, module) {
      * @private
      */
     function _edit(paneId, doc, optionsIn) {
-        var currentPaneId = _getPaneIdForPath(doc.file.fullPath),
-            options = optionsIn || {};
-
-            
+        var options = optionsIn || {},
+            currentPaneId;
+        
+        if (options.noPaneRedundcancyCheck) {
+            currentPaneId = _getPaneIdForPath(doc.file.fullPath);
+        }
+   
         if (currentPaneId) {
             // If the doc is open in another pane
             //  then switch to that pane and call open document
@@ -1142,9 +1145,6 @@ define(function (require, exports, module) {
             //  we could just do pane.showView(doc._masterEditor) in that
             //  case but Editor Manager may do some state syncing 
             paneId = currentPaneId;
-            if (!options.noPaneActivate) {
-                setActivePaneId(paneId);
-            }
         }
         
         var pane = _getPane(paneId);
@@ -1158,6 +1158,10 @@ define(function (require, exports, module) {
         // open document will show the editor if there is one already
         EditorManager.openDocument(doc, pane);
         _makeFileMostRecent(paneId, doc.file);
+
+        if (!options.noPaneActivate) {
+            setActivePaneId(paneId);
+        }
     }
     
     /**
@@ -1170,7 +1174,8 @@ define(function (require, exports, module) {
      *                           rejects with a File error or string
      */
     function _open(paneId, file, optionsIn) {
-        var result = new $.Deferred(),
+        var master = new $.Deferred(),
+            result = new $.Deferred(),
             options = optionsIn || {};
         
         if (!file || !_getPane(paneId)) {
@@ -1202,9 +1207,6 @@ define(function (require, exports, module) {
             //  we could just do pane.showView(doc._masterEditor) in that
             //  case but Editor Manager may do some state syncing             
             paneId = currentPaneId;
-            if (!options.noPaneActivate) {
-                setActivePaneId(paneId);
-            }
         }
         
         // See if there is already a view for the file
@@ -1226,25 +1228,37 @@ define(function (require, exports, module) {
                             if (!ProjectManager.isWithinProject(file.fullPath)) {
                                 addToWorkingSet(paneId, file);
                             }
-                            result.resolve(file);
+                            master.resolve(file);
                         })
                         .fail(function (fileError) {
-                            result.reject(fileError);
+                            master.reject(fileError);
                         });
                 } else {
-                    result.reject(fileError || FileSystemError.NOT_FOUND);
+                    master.reject(fileError || FileSystemError.NOT_FOUND);
                 }
             });
         } else {
             DocumentManager.getDocumentForPath(file.fullPath)
                 .done(function (doc) {
-                    _edit(paneId, doc, options);
-                    result.resolve(doc.file);
+                    _edit(paneId, doc, {noPaneActivate: true,
+                                        noPaneRedundcancyCheck: true});
+                    master.resolve(doc.file);
                 })
                 .fail(function (fileError) {
-                    result.reject(fileError);
+                    master.reject(fileError);
                 });
         }
+
+        // when we finish opening the document
+        //  then set the active pane if we opened it
+        master.done(function (file) {
+            if (!options.noPaneActivate) {
+                setActivePaneId(paneId);
+            }
+            result.resolve(file);
+        }).fail(function (error) {
+            result.reject(error);
+        });
         
         return result;
     }
