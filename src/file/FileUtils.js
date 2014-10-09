@@ -168,6 +168,8 @@ define(function (require, exports, module) {
             result = Strings.CONTENTS_MODIFIED_ERR;
         } else if (name === FileSystemError.UNSUPPORTED_ENCODING) {
             result = Strings.UNSUPPORTED_ENCODING_ERR;
+        } else if (name === FileSystemError.MAXIMUM_FILE_SIZE_REACHED) {
+            result = Strings.MAXIMUM_FILE_SIZE_REACHED;
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
         }

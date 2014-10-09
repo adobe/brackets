@@ -33,8 +33,16 @@ define(function (require, exports, module) {
         FileSystemError     = require("filesystem/FileSystemError"),
         NodeDomain          = require("utils/NodeDomain");
     
+    /**
+     * @const
+     */
     var FILE_WATCHER_BATCH_TIMEOUT = 200;   // 200ms - granularity of file watcher changes
 
+    /**
+     * @const
+     */
+    var FILE_READ_SIZE_LIMIT = 4 * 1024 * 1024; // 4MB
+    
     /**
      * Callback to notify FileSystem of watcher changes
      * @type {?function(string, FileSystemStats=)}
@@ -365,38 +373,38 @@ define(function (require, exports, module) {
         // Execute the read and stat calls in parallel. Callback early if the
         // read call completes first with an error; otherwise wait for both
         // to finish.
-        var done = false, data, stat, err;
+        var stat, 
+            masterPromise = new $.Deferred();
 
         if (options.stat) {
-            done = true;
             stat = options.stat;
+            masterPromise.resolve();
         } else {
             exports.stat(path, function (_err, _stat) {
-                if (done) {
-                    callback(_err, _err ? null : data, _stat);
+                if (_err) {
+                    callback(_mapError(_err));
+                    masterPromise.reject();
                 } else {
-                    done = true;
                     stat = _stat;
-                    err = _err;
+                    masterPromise.resolve();
                 }
             });
         }
-        
-        appshell.fs.readFile(path, encoding, function (_err, _data) {
-            if (_err) {
-                callback(_mapError(_err));
-                return;
-            }
-            
-            if (done) {
-                callback(err, err ? null : _data, stat);
+
+        masterPromise.done(function() {
+            if (stat.size > FILE_READ_SIZE_LIMIT) {
+                callback(FileSystemError.MAXIMUM_FILE_SIZE_REACHED);
             } else {
-                done = true;
-                data = _data;
+                appshell.fs.readFile(path, encoding, function (_err, _data) {
+                    if (_err) {
+                        callback(_mapError(_err));
+                    } else {
+                        callback(null, _data, stat);
+                    }
+                });
             }
         });
     }
-    
     /**
      * Write data to the file at the given path, calling back asynchronously with
      * either a FileSystemError string or the FileSystemStats object associated
