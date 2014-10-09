@@ -76,6 +76,7 @@
   *         adjustScrollPos: function(state:Object=, heightDelta:number)=
   *         notifyContainerChange: function()=
   *         notifyVisibilityChange: function(boolean)=
+  *         focus:function()=
   *     }
   *  
   * When views are created they can be added to the pane by calling `pane.addView()`.  
@@ -1214,18 +1215,63 @@ define(function (require, exports, module) {
      * Gives focus to the last thing that had focus, the current view or the pane in that order
      */
     Pane.prototype.focus = function () {
-        // Blur the currently focused element which will move focus to the BODY tag
-        //  If the element we want to focus below cannot receive the input focus such as an ImageView
-        //  This will remove focus from the current view which is important if the current view is 
-        //  a codemirror view. 
-        document.activeElement.blur();
+        var current = window.document.activeElement,
+            self = this;
+
+        // Helper to focus the current view if it can
+        function tryFocusingCurrentView() {
+            if (self._currentView) {
+                if (self._currentView.focus) {
+                    //  Views can implement a focus
+                    //  method for focusing a complex
+                    //  DOM like codemirror
+                    self._currentView.focus();
+                } else {
+                    //  Otherwise, no focus method
+                    //  just try and give the DOM
+                    //  element focus
+                    self._currentView.$el.focus();
+                }
+            } else {
+                // no view so just focus the pane
+                self.$el.focus();
+            }
+        }
         
-        if (this._lastFocusedElement && $(this._lastFocusedElement).is(":visible")) {
-            $(this._lastFocusedElement).focus();
-        } else if (this._currentView) {
-            this._currentView.$el.focus();
+        // short-circuit for performance
+        if (this._lastFocusedElement === current) {
+            return;
+        }
+            
+        // If the focus was in a "textarea" and the currentView is anything other than 
+        //  a codeMirror view then we must blur the textarea to force focus to the body tag.
+        //
+        // If we don't then the focus will stay in the text-area which directs keyboard input
+        //  to the codemirror document when it shouldn't
+        //
+        // Steps: 
+        //  1. Open a js file in the left pane and an image in the right pane and
+        //  2. Focus the js file using the working-set
+        //  3. Focus the image view using the working-set.
+        //
+        // ==> Focus is still in the text area. Any keyboard input will modify the document
+        
+        if (current.tagName === "textarea" &&
+                (!this._currentView || !this._currentView._codeMirror)) {
+            current.blur();
+        }
+
+        var $lfe = $(this._lastFocusedElement);
+
+        if ($lfe.length && !$lfe.is(".view-pane") && $lfe.is(":visible")) {
+            // if we had a last focused element 
+            //  and it wasn't a pane element 
+            //  and it's still visible, focus it
+            $lfe.focus();
         } else {
-            this.$el.focus();
+            // otherwise, just try to give focus 
+            //  to the currently active view
+            tryFocusingCurrentView();
         }
     };
     
