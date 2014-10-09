@@ -178,8 +178,8 @@ define(function (require, exports, module) {
                     var editorHeight = $scroller.height();
                     var cursorPos = editor._codeMirror.cursorCoords(null, "page").bottom;
                     
-                    expect(cursorPos).toBeGreaterThan(editorHeight * 0.4 - offset);
-                    expect(cursorPos).toBeLessThan(editorHeight * 0.6 - offset);
+                    expect(cursorPos).toBeGreaterThan(editorHeight * 0.4 + offset);
+                    expect(cursorPos).toBeLessThan(editorHeight * 0.6 + offset);
                 });
             };
         }
