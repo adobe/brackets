@@ -1127,7 +1127,7 @@ define(function (require, exports, module) {
      * Do not use this API unless you have a document object without a file object
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Document} doc - document to edit
-     * @param {{noPaneActivate:boolean=, noPaneRedundcancyCheck:boolean=}=} optionsIn - options
+     * @param {{noPaneActivate:boolean=, noPaneRedundancyCheck:boolean=}=} optionsIn - options
      * @private
      */
     function _edit(paneId, doc, optionsIn) {
@@ -1172,7 +1172,7 @@ define(function (require, exports, module) {
      * or a document for editing.  If it's a document for editing, edit is called on the document 
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!File} file - file to open
-     * @param {{noPaneActivate:boolean=, noPaneRedundcancyCheck:boolean=}=} optionsIn - options
+     * @param {{noPaneActivate:boolean=, noPaneRedundancyCheck:boolean=}=} optionsIn - options
      * @return {jQuery.Promise}  promise that resolves to a File object or 
      *                           rejects with a File error or string
      */
@@ -1249,8 +1249,10 @@ define(function (require, exports, module) {
         } else {
             DocumentManager.getDocumentForPath(file.fullPath)
                 .done(function (doc) {
-                    _edit(paneId, doc, {noPaneActivate: true,
-                                        noPaneRedundancyCheck: true});
+                    _edit(paneId, doc, $.extend({}, options, {
+                        noPaneActivate: true,
+                        noPaneRedundancyCheck: true
+                    }));
                     doPostOpenActivation();
                     result.resolve(doc.file);
                 })
