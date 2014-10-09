@@ -602,7 +602,7 @@ define(function (require, exports, module) {
         }, []);
     }
 
-    function autoInstallBundles() {
+    function _autoInstallBundles() {
         // Get list of extension bundles
         var validatePromise,
             srcPath = FileUtils.getNativeBracketsDirectoryPath(),
@@ -656,19 +656,19 @@ define(function (require, exports, module) {
             }).fail(function (err) {
                 result.reject(Package.formatError(err));
             });
+            
+            return result.promise();
         });
 
 
         validatePromise.done(function () {
             var installPromise = Async.doSequentially(installZips, function (file) {
-                return InstallExtensionDialog.installUsingDialog(file);
+                return Package.installFromPath(file.fullPath);
             });
 
-            var updatePromise = installPromise.then(function () {
+            var updatePromise = installPromise.always(function () {
                 return Async.doSequentially(updateZips, function (file) {
-                    return InstallExtensionDialog.updateUsingDialog(file).done(function (result) {
-                        updateFromDownload(result);
-                    });
+                    return Package.installUpdate(file.fullPath);
                 });
             });
 
@@ -680,6 +680,13 @@ define(function (require, exports, module) {
         });
 
         return deferred.promise();
+    }
+
+    function autoInstallBundles() {
+        // TODO: make _getNodeConnectionDeferred() public?
+        Package._getNodeConnectionDeferred().done(function () {
+            _autoInstallBundles();
+        });
     }
 
     // Listen to extension load and loadFailed events
