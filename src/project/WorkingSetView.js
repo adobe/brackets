@@ -625,8 +625,6 @@ define(function (require, exports, module) {
                         dragged = true;
                     }
                     
-                    $ghost.css("top", e.pageY - _DRAG_MOVE_DETECTION_START);
-                    
                     // reset the scrolling direction to no-scroll
                     scrollDir = 0;
                     
@@ -691,6 +689,10 @@ define(function (require, exports, module) {
                     }
                 }
 
+                if ($ghost) {
+                    $ghost.css("top", $ghost.offset().top + (e.pageY - lastPageY));
+                }
+                
                 // if we have't started dragging yet then we wait until
                 //  the mouse has moved 3 pixels before we start dragging
                 //  to avoid the item moving when clicked or double clicked
