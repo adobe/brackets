@@ -605,7 +605,7 @@ define(function (require, exports, module) {
                         _deactivateAllViews(true);
                         
                         // add a "dragging" class to the outer container
-                        $("#working-set-list-container").addClass("dragging");
+                        $workingFilesContainer.addClass("dragging");
                         
                         // add a class to the element we're dragging if 
                         //  it's the currently selected file so that we 
@@ -712,8 +712,8 @@ define(function (require, exports, module) {
                 window.onmousewheel = window.document.onmousewheel = null;
                 $(window).off(".wsvdragging");
                 if (dragged) {
-                    $("#working-set-list-container").removeClass("dragging");
-                    $("#working-set-list-container .drag-show-as-selected").removeClass("drag-show-as-selected");
+                    $workingFilesContainer.removeClass("dragging");
+                    $workingFilesContainer.find(".drag-show-as-selected").removeClass("drag-show-as-selected");
                     endScroll($el);
                     // re-activate the views (adds the "active" class to the view that was previously active)
                     _deactivateAllViews(false);

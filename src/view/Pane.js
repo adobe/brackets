@@ -1243,18 +1243,21 @@ define(function (require, exports, module) {
             return;
         }
             
-        // if the focus was in a "textarea" element and the currentView
-        //  is anything other than codeMirror then we must blur
-        //  the textarea to force focus to the body tag.
-        // Otherwise, input will continue to go to the text-area
-        //  click on an image view on the right and you can type and
-        //  code-mirror editor on the left which is bad
+        // If the focus was in a "textarea" and the currentView is anything other than 
+        //  a codeMirror view then we must blur the textarea to force focus to the body tag.
+        //
+        // If we don't then the focus will stay in the text-area which directs keyboard input
+        //  to the codemirror document when it shouldn't
+        //
+        // Steps: 
+        //  1. Open a js file in the left pane and an image in the right pane and
+        //  2. Focus the js file using the working-set
+        //  3. Focus the image view using the working-set.
+        //
+        // ==> Focus is still in the text area. Any keyboard input will modify the document
+        
         if (current.tagName === "textarea" &&
                 (!this._currentView || !this._currentView._codeMirror)) {
-            // Blur the currently focused element which will move focus to the BODY tag
-            //  If the element we want to focus below cannot receive the input focus such as an ImageView
-            //  This will remove focus from the current view which is important if the current view is 
-            //  a codemirror view. 
             current.blur();
         }
 
