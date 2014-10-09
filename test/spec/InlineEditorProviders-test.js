@@ -147,11 +147,19 @@ define(function (require, exports, module) {
         }
 
         function expectPopoverMessageWithText(text) {
-            var $popover  = testWindow.$(".popover-message");
-            expect($popover.length).toEqual(1);
+            var $popover;
 
-            var popoverText = $(".text", $popover).html();
-            expect(popoverText).toEqual(text);
+            runs(function () {
+                waitsFor(function () {
+                    $popover = testWindow.$(".popover-message");
+                    return $popover.length === 1;
+                }, "Expect popover window");
+            });
+
+            runs(function () {
+                var popoverText = testWindow.$(".text", $popover).html();
+                expect(popoverText).toEqual(text);
+            });
         }
         
         function getBounds(object, useOffset) {
