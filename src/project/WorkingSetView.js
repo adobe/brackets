@@ -105,6 +105,12 @@ define(function (require, exports, module) {
         ABOVEVIEW  = "aboveview";
     
     /**
+     * Drag an item has to move 3px before dragging starts
+     * @constant
+     */
+    var _DRAG_MOVE_DETECTION_START = 3;
+    
+    /**
      * Refreshes all Pane View List Views
      */
     function refresh(rebuild) {
@@ -619,7 +625,7 @@ define(function (require, exports, module) {
                         dragged = true;
                     }
                     
-                    $ghost.css("top", e.pageY);
+                    $ghost.css("top", e.pageY - _DRAG_MOVE_DETECTION_START);
                     
                     // reset the scrolling direction to no-scroll
                     scrollDir = 0;
@@ -688,7 +694,7 @@ define(function (require, exports, module) {
                 // if we have't started dragging yet then we wait until
                 //  the mouse has moved 3 pixels before we start dragging
                 //  to avoid the item moving when clicked or double clicked
-                if (dragged || Math.abs(e.pageY - startPageY) > 3) {
+                if (dragged || Math.abs(e.pageY - startPageY) > _DRAG_MOVE_DETECTION_START) {
                     drag(e);
                 }
 
