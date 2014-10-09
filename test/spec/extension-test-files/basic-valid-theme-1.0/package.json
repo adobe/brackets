@@ -1,0 +1,19 @@
+{
+    "name": "basic-valid-theme",
+    "title": "Basic Valid Theme",
+    "version": "1.0.0",
+    "author": "Alfred Einstein <alfred_not_albert@thoseeinsteins.org> (http://thoseeinsteins.org/alfred)",
+    "contributors": [
+        "Johan Einstein",
+        {
+            "name": "Albert Einstein Jr.",
+            "email": "not_that_albert@thoseeinsteins.org"
+        },
+        "Jens Einstein <jens@thoseeinsteins.org>"
+    ],
+    "theme": {
+        "file": "theme.less",
+        "dark": false
+    },
+    "keywords": ["theme"]
+}
