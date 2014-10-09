@@ -689,6 +689,7 @@ define(function (require, exports, module) {
                     }
                 }
 
+                // Reposition the drag affordance if we've started dragging
                 if ($ghost) {
                     $ghost.css("top", $ghost.offset().top + (e.pageY - lastPageY));
                 }
