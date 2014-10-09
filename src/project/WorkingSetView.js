@@ -619,7 +619,7 @@ define(function (require, exports, module) {
                         dragged = true;
                     }
                     
-                    $ghost.css("top", $ghost.offset().top + (e.pageY - lastPageY));
+                    $ghost.css("top", e.pageY);
                     
                     // reset the scrolling direction to no-scroll
                     scrollDir = 0;
