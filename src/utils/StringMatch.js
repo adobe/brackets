@@ -115,14 +115,16 @@ define(function (require, exports, module) {
         DEBUG_SCORES = ds;
     }
     
+
     // Constants for scoring
     var SPECIAL_POINTS = 35;
     var MATCH_POINTS = 10;
-    var MATCH_CASE_POINTS = 50;
-    var LAST_SEGMENT_BOOST = 1;
+    var MATCH_CASE_POINTS = 7;              // Consecutive non-case matches have higher priority
+    var CONSECUTIVE_MATCHES_POINTS = 8;
     var BEGINNING_OF_NAME_POINTS = 10;
+
+    var LAST_SEGMENT_BOOST = 1;
     var DEDUCTION_FOR_LENGTH = 0.2;
-    var CONSECUTIVE_MATCHES_POINTS = 7;
     var NOT_STARTING_ON_SPECIAL_PENALTY = 25;
     
     // Used in match lists to designate matches of "special" characters (see
@@ -766,7 +768,11 @@ define(function (require, exports, module) {
             options.segmentedSearch = false;
         }
         
-        if (options.preferPrefixMatches && compareStr.substr(0, query.length) === query) {
+        if (options.preferPrefixMatches && compareStr.substr(0, queryStr.length) === queryStr) {
+            // NOTE: we compare against the case insensitive match
+            //        above but we pass the case-sensitive version in 
+            //        because we want to weight the match to give case-matches
+            //        a higher score
             return _prefixMatchResult(str, query);
         }
         
