@@ -393,22 +393,26 @@ define(function (require, exports, module) {
      * @param {boolean} lastSegmentStart which character does the last segment start at
      * @return {{remainder:int, matchList:Array.<SpecialMatch|NormalMatch>}} matched indexes or null if no matches possible
      */
-    function _lastSegmentSearch(query, str, specials, startingSpecial, lastSegmentStart) {
+    function _lastSegmentSearch(query, str, originalQuery, originalString, specials, startingSpecial, lastSegmentStart) {
         var queryCounter, matchList;
         
         // It's possible that the query is longer than the last segment.
         // If so, we can chop off the bit that we know couldn't possibly be there.
-        var remainder = "";
-        var extraCharacters = specials[startingSpecial] + query.length - str.length;
+        var remainder = "",
+            originalRemainder = "",
+            extraCharacters = specials[startingSpecial] + query.length - str.length;
 
         if (extraCharacters > 0) {
             remainder = query.substring(0, extraCharacters);
+            originalRemainder = originalQuery.substring(0, extraCharacters);
             query = query.substring(extraCharacters);
+            originalQuery = originalQuery.substring(extraCharacters);
         }
         
         for (queryCounter = 0; queryCounter < query.length; queryCounter++) {
             matchList = _generateMatchList(query.substring(queryCounter),
-                                     str, specials, startingSpecial);
+                                     str, originalQuery.substring(queryCounter),
+                                     originalString, specials, startingSpecial);
             
             // if we've got a match *or* there are no segments in this string, we're done
             if (matchList || startingSpecial === 0) {
@@ -421,6 +425,7 @@ define(function (require, exports, module) {
         } else {
             return {
                 remainder: remainder + query.substring(0, queryCounter),
+                originalRemainder: originalRemainder + originalQuery.substring(0, queryCounter),
                 matchList: matchList
             };
         }
@@ -443,7 +448,7 @@ define(function (require, exports, module) {
         var result;
         var matchList;
         
-        result = _lastSegmentSearch(query, compareStr, specials, lastSegmentSpecialsIndex, lastSegmentStart);
+        result = _lastSegmentSearch(query, compareStr, originalQuery, originalString, specials, lastSegmentSpecialsIndex, lastSegmentStart);
         
         if (result) {
             matchList = result.matchList;
@@ -453,6 +458,8 @@ define(function (require, exports, module) {
                 // Scan with the remainder only through the beginning of the last segment
                 var remainderMatchList = _generateMatchList(result.remainder,
                                               compareStr.substring(0, lastSegmentStart),
+                                              result.originalRemainder,
+                                              originalString.substring(0, lastSegmentStart),
                                               specials.slice(0, lastSegmentSpecialsIndex), 0);
                 
                 if (remainderMatchList) {
@@ -466,7 +473,7 @@ define(function (require, exports, module) {
         } else {
             // No match in the last segment, so we start over searching the whole
             // string
-            matchList = _generateMatchList(query, compareStr, specials, 0);
+            matchList = _generateMatchList(query, compareStr, originalQuery, originalString, specials, 0);
         }
         
         return matchList;
@@ -790,8 +797,7 @@ define(function (require, exports, module) {
                               special.lastSegmentSpecialsIndex);
         } else {
             lastSegmentStart = 0;
-            matchList = _generateMatchList(queryStr, compareStr, query, str, special.specials,
-                                           0);
+            matchList = _generateMatchList(queryStr, compareStr, query, str, special.specials, 0);
         }
 
         // If we get a match, turn this into a SearchResult as expected by the consumers
