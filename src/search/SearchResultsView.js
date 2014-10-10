@@ -28,7 +28,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
         DocumentManager       = require("document/DocumentManager"),
@@ -41,12 +41,12 @@ define(function (require, exports, module) {
         StringUtils           = require("utils/StringUtils"),
         Strings               = require("strings"),
         _                     = require("thirdparty/lodash"),
-        
+
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html"),
         searchSummaryTemplate = require("text!htmlContent/search-summary.html");
-    
-    
+
+
     /** 
      * @const 
      * The maximum results to show per page.
@@ -348,7 +348,7 @@ define(function (require, exports, module) {
         // This text contains some formatting, so all the strings are assumed to be already escaped
         summary = StringUtils.format(
             Strings.FIND_TITLE_SUMMARY,
-            this._model.foundMaximum ? Strings.FIND_IN_FILES_MORE_THAN : "",
+            this._model.exceedsMaximum ? Strings.FIND_IN_FILES_MORE_THAN : "",
             String(count.matches),
             (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
             filesStr
