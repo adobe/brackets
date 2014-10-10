@@ -374,6 +374,7 @@ define(function (require, exports, module) {
         return result;
     }
     
+    
     /*
      * Seek out the best match in the last segment (generally the filename). 
      * Matches in the filename are preferred, but the query entered could match
@@ -803,7 +804,7 @@ define(function (require, exports, module) {
         // If we get a match, turn this into a SearchResult as expected by the consumers
         // of this API.
         if (matchList) {
-            var compareData = _computeRangesAndScore(matchList, str, queryStr, lastSegmentStart);
+            var compareData = _computeRangesAndScore(matchList, str, lastSegmentStart);
             result = new SearchResult(str);
             result.stringRanges = compareData.ranges;
             result.matchGoodness = -1 * compareData.matchGoodness;
