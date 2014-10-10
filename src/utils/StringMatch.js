@@ -122,7 +122,6 @@ define(function (require, exports, module) {
     var MATCH_CASE_POINTS = 7;              // Consecutive non-case matches have higher priority
     var CONSECUTIVE_MATCHES_POINTS = 8;
     var BEGINNING_OF_NAME_POINTS = 10;
-
     var LAST_SEGMENT_BOOST = 1;
     var DEDUCTION_FOR_LENGTH = 0.2;
     var NOT_STARTING_ON_SPECIAL_PENALTY = 25;
