@@ -28,8 +28,6 @@ module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', "grunt-jslint"]});
     grunt.loadTasks('tasks');
 
-    var common = require("./tasks/lib/common")(grunt);
-
     // Project configuration.
     grunt.initConfig({
         pkg  : grunt.file.readJSON("package.json"),
@@ -339,9 +337,9 @@ module.exports = function (grunt) {
     grunt.registerTask('test', ['jshint:all', 'jasmine']);
 //    grunt.registerTask('test', ['jshint:all', 'jasmine', 'jasmine_node']);
 
-    // task: set-sprint
-    // Update sprint number in package.json and rewrite src/config.json
-    grunt.registerTask('set-sprint', ['update-sprint-number', 'write-config']);
+    // task: set-release
+    // Update version number in package.json and rewrite src/config.json
+    grunt.registerTask('set-release', ['update-release-number', 'write-config']);
 
     // task: build
     grunt.registerTask('build', [

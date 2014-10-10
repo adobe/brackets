@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, spyOn, beforeFirst, afterLast, jasmine */
+/*global define, describe, beforeEach, afterEach, it, runs, expect, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -40,6 +40,7 @@ define(function (require, exports, module) {
         this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
+            testFile = testPath + "/test.js",
             testWindow,
             _$,
             promise;
@@ -63,6 +64,7 @@ define(function (require, exports, module) {
             CommandManager          = null;
             Commands                = null;
             DocumentManager         = null;
+            EditorManager           = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
@@ -80,48 +82,46 @@ define(function (require, exports, module) {
                 // Call closeAll() directly. Some tests set a spy on the save as
                 // dialog preventing SpecRunnerUtils.closeAllFiles() from
                 // working properly.
-                testWindow.brackets.test.DocumentManager.closeAll();
+                testWindow.brackets.test.MainViewManager._closeAll(testWindow.brackets.test.MainViewManager.ALL_PANES);
             });
         });
-        
-        describe("_clearCurrentDocument ", function () {
-            it("should fire currentDocumentChange", function () {
-                var docChangeListener = jasmine.createSpy();
-
+        describe("openDocument ", function () {
+            it("Should report document in open documents list", function () {
 
                 runs(function () {
-                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
-                    expect(docChangeListener.callCount).toBe(0);
-                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testFile });
                     waitsForDone(promise, Commands.FILE_OPEN);
                 });
+                
                 runs(function () {
-                    expect(docChangeListener.callCount).toBe(1);
-                    DocumentManager._clearCurrentDocument();
-                    expect(docChangeListener.callCount).toBe(2);
-                    
-                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
-                    
+                    expect(DocumentManager.getOpenDocumentForPath(testFile)).toBeTruthy();
+                    expect(DocumentManager.getAllOpenDocuments().length).toEqual(1);
+                    expect(DocumentManager.getCurrentDocument().file.fullPath).toEqual(testFile);
                 });
-
+                   
+                runs(function () {
+                    promise = DocumentManager.getDocumentText({ fullPath: testFile });
+                    waitsForDone(promise, "DocumentManager.getDocumentText");
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
+                    waitsForDone(promise, Commands.FILE_CLOSE_ALL);
+                });
+                
+                runs(function () {
+                    expect(DocumentManager.getAllOpenDocuments().length).toEqual(0);
+                    expect(DocumentManager.getCurrentDocument()).toBeFalsy();
+                });
+            });
+            
+            it("Should create a new untitled document", function () {
+                runs(function () {
+                    var doc = DocumentManager.createUntitledDocument(1, ".txt");
+                    expect(doc).toBeTruthy();
+                });
             });
         });
 
-        
-        describe("After _clearCurrentDocument ", function () {
-            it("getCurrentDocument should return null ", function () {
-
-                runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
-                    waitsForDone(promise, Commands.FILE_OPEN);
-                });
-                runs(function () {
-                    expect(DocumentManager.getCurrentDocument()).toBeTruthy();
-                    DocumentManager._clearCurrentDocument();
-                    expect(DocumentManager.getCurrentDocument()).toBe(null);
-                });
-
-            });
-        });
     });
 });

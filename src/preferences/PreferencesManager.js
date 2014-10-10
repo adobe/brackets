@@ -22,7 +22,7 @@
  */
 
 
-/*global define, $, localStorage, brackets, console */
+/*global define, localStorage, console */
 /*unittests: Preferences Manager */
 
 /**
@@ -94,7 +94,7 @@ define(function (require, exports, module) {
      */
     function getClientID(module) {
         var paths = exports._getExtensionPaths();
-        var pathExp, pathUrl, clientID;
+        var pathUrl, clientID;
 
         paths.some(function (path) {
             if (module.uri.toLocaleLowerCase().indexOf(path.toLocaleLowerCase()) === 0) {

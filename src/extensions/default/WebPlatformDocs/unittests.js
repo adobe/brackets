@@ -139,6 +139,16 @@ define(function (require, exports, module) {
                 queryInlineAtPos(testCSSInfo, 3, false);
             });
             
+            it("should open docs for a vendor-prefixed CSS property", function () {
+                /* css -webkit- prefixed property */
+                queryInlineAtPos(testCSSInfo, 6, true, "animation");
+            });
+
+            it("should not open docs for an invalid CSS property (looking like a vendor-prefixed one)", function () {
+                /* css property invalidly prefixed */
+                queryInlineAtPos(testCSSInfo, 7, false);
+            });
+
         });
             
         describe("InlineDocsProvider parsing in HTML", function () {
@@ -193,7 +203,6 @@ define(function (require, exports, module) {
                     ),
                     viewer = new InlineDocsViewer(prop, details),
                     $a,
-                    title,
                     href,
                     $links = viewer.$htmlContent.find("a:not(.close)");
                 

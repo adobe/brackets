@@ -30,7 +30,6 @@ define(function (require, exports, module) {
     var StringMatch     = brackets.getModule("utils/StringMatch"),
         LanguageManager = brackets.getModule("language/LanguageManager"),
         HTMLUtils       = brackets.getModule("language/HTMLUtils"),
-        TokenUtils      = brackets.getModule("utils/TokenUtils"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
         Acorn           = require("thirdparty/acorn/acorn"),
@@ -549,7 +548,7 @@ define(function (require, exports, module) {
          *
          * @param {Array} hints - array of hints
          * @param {StringMatcher} matcher
-         * @returns {Array} - array of matching hints.
+         * @return {Array} - array of matching hints.
          */
         function filterWithQueryAndMatcher(hints, matcher) {
             var matchResults = $.map(hints, function (hint) {
@@ -750,8 +749,6 @@ define(function (require, exports, module) {
             // HTML file - need to send back only the bodies of the
             // <script> tags
             var text = "",
-                offset = this.getOffset(),
-                cursor = this.getCursor(),
                 editor = this.editor,
                 scriptBlocks = HTMLUtils.findBlocks(editor, "javascript");
             
@@ -793,7 +790,6 @@ define(function (require, exports, module) {
      */
     Session.prototype.isFunctionName = function () {
         var cursor = this.getCursor(),
-            token  = this.getToken(cursor),
             prevToken = this._getPreviousToken(cursor);
         
         return prevToken.string === "function";

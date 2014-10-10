@@ -6,7 +6,8 @@
         "nomen": true,
         "maxerr": 50,
         "unparam": true,
-        "todo": true
+        "todo": true,
+        "es5": true
     },
     "defaultExtension": "js",
     "path": {

@@ -237,6 +237,10 @@ define(function (require, exports, module) {
                     testToken.type === "tag") {
                 propName = testToken.string;
                 offset = 0;
+            } else if (testToken.type === "meta" || testToken.string === "-") {
+                ctx.pos = testPos;
+                ctx.token = testToken;
+                return _getPropNameInfo(ctx);
             }
         }
 
@@ -332,7 +336,6 @@ define(function (require, exports, module) {
      */
     function _getSucceedingPropValues(ctx, currentValue) {
         var lastValue = currentValue,
-            curValue,
             propValues = [];
         
         while (ctx.token.string !== ";" && ctx.token.string !== "}" && TokenUtils.moveNextToken(ctx)) {
@@ -523,16 +526,13 @@ define(function (require, exports, module) {
      *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
     function _getImportUrlInfo(ctx, editor) {
-        var propNamePos = $.extend({}, ctx.pos),
-            backwardPos = $.extend({}, ctx.pos),
+        var backwardPos = $.extend({}, ctx.pos),
             forwardPos  = $.extend({}, ctx.pos),
             backwardCtx,
             forwardCtx,
             index = 0,
             propValues = [],
-            offset = TokenUtils.offsetInToken(ctx),
-            testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
-            testToken = editor._codeMirror.getTokenAt(testPos, true);
+            offset = TokenUtils.offsetInToken(ctx);
 
         // Currently only support url. May be null if starting to type
         if (ctx.token.type && ctx.token.type !== "string") {
@@ -598,8 +598,6 @@ define(function (require, exports, module) {
         // the pos the caller passed in so we use extend to make a safe copy of it.	
         var pos = $.extend({}, constPos),
             ctx = TokenUtils.getInitialContext(editor._codeMirror, pos),
-            offset = TokenUtils.offsetInToken(ctx),
-            propName = "",
             mode = editor.getModeForSelection();
         
         // Check if this is inside a style block or in a css/less document.
@@ -624,9 +622,9 @@ define(function (require, exports, module) {
     
     /**
      * Return a string that shows the literal parent hierarchy of the selector
-     * in selectorInfo.
+     * in info.
      *
-     * @param {!SelectorInfo} info SelectorInfo object with `selector`, `selectorGroup`, `parentSelectors` and other properties
+     * @param {!SelectorInfo} info
      * @param {boolean=} useGroup true to append selectorGroup instead of selector
      * @return {string} the literal parent hierarchy of the selector
      */
@@ -640,14 +638,35 @@ define(function (require, exports, module) {
                 completeSelectors += info.selector;
             }
             return completeSelectors;
+        } else if (useGroup && info.selectorGroup) {
+            return info.selectorGroup;
         }
         
         return info.selector;
     }
     
     /**
+     * @typedef {{selector: !string,
+     *            ruleStartLine: number,
+     *            ruleStartChar: number,
+     *            selectorStartLine: number,
+     *            selectorStartChar: number,
+     *            selectorEndLine: number,
+     *            selectorEndChar: number,
+     *            selectorGroupStartLine: number,
+     *            selectorGroupStartChar: number,
+     *            selectorGroup: ?string,
+     *            declListStartLine: number,
+     *            declListStartChar: number,
+     *            declListEndLine: number,
+     *            declListEndChar: number,
+     *            level: number,
+     *            parentSelectors: ?string}} SelectorInfo 
+     */
+    
+    /**
      * Extracts all CSS selectors from the given text
-     * Returns an array of selectors. Each selector is an object with the following properties:
+     * Returns an array of SelectorInfo. Each SelectorInfo is an object with the following properties:
          selector:                 the text of the selector (note: comma separated selector groups like 
                                    "h1, h2" are broken into separate selectors)
          ruleStartLine:            line in the text where the rule (including preceding comment) appears
@@ -666,11 +685,14 @@ define(function (require, exports, module) {
          declListStartChar:        column in line where the declaration list for the rule starts
          declListEndLine:          line where the declaration list for the rule ends
          declListEndChar:          column in the line where the declaration list for the rule ends
-         level:                    the level of the current selector
+         level:                    the level of the current selector including any containing @media block in the 
+                                   nesting level count. Use this property with caution since it is primarily for internal
+                                   parsing use. For example, two sibling selectors may have different levels if one
+                                   of them is nested inside an @media block and it should not be used for sibling info.
          parentSelectors:          all ancestor selectors separated with '/' if the current selector is a nested one 
      * @param {!string} text CSS text to extract from
-     * @param {!string} documentMode language mode of the document that text belongs to
-     * @return {Array.<Object>} Array with objects specifying selectors.
+     * @param {?string} documentMode language mode of the document that text belongs to, default to css if undefined.
+     * @return {Array.<SelectorInfo>} Array with objects specifying selectors.
      */
     function extractAllSelectors(text, documentMode) {
         var state, lines, lineCount,
@@ -795,22 +817,6 @@ define(function (require, exports, module) {
             return true;
         }
 
-        function _maybeProperty() {
-            return (state.state !== "top" && state.state !== "block" &&
-                    stream.string.indexOf(";") !== -1);
-        }
-
-        function _skipProperty() {
-            while (token !== ";") {
-                // If there is a '{' or '}' or a comment before the ';',
-                // then stop skipping.
-                if (token === "{" || token === "}" || style === "comment") {
-                    return;
-                }
-                _nextTokenSkippingWhitespace();
-            }
-        }
-        
         function _skipToClosingBracket(startChar) {
             var skippedText = "",
                 unmatchedBraces = 0;
@@ -818,13 +824,12 @@ define(function (require, exports, module) {
                 startChar = "{";
             }
             while (true) {
-                // Use regexp to detect '{' so that something like
-                // #{$class} in scss files won't be missed.
-                if ((startChar === "{" && /\{$/.test(token)) || startChar === token) {
+                if (token.indexOf(startChar) !== -1 && token.indexOf(_bracketPairs[startChar]) === -1) {
+                    // Found an opening bracket but not the matching closing bracket in the same token
                     unmatchedBraces++;
                 } else if (token === _bracketPairs[startChar]) {
                     unmatchedBraces--;
-                    if (unmatchedBraces === 0) {
+                    if (unmatchedBraces <= 0) {
                         skippedText += token;
                         return skippedText;
                     }
@@ -837,6 +842,40 @@ define(function (require, exports, module) {
             }
         }
 
+        function _maybeProperty() {
+            return (/^-(moz|ms|o|webkit)-$/.test(token) ||
+                    (state.state !== "top" && state.state !== "block" &&
+                    // Has a semicolon as in "rgb(0,0,0);", but not one of those after a LESS 
+                    // mixin parameter variable as in ".size(@width; @height)"
+                    stream.string.indexOf(";") !== -1 && !/\([^)]+;/.test(stream.string)));
+        }
+
+        function _skipProperty() {
+            var prevToken = "";
+            while (token !== ";") {
+                // Skip tokens until the closing brace if we find an interpolated variable.
+                if (/#\{$/.test(token) || (token === "{" && /[#@]$/.test(prevToken))) {
+                    _skipToClosingBracket("{");
+                    if (token === "}") {
+                        _nextToken();   // Skip the closing brace
+                    }
+                    if (token === ";") {
+                        break;
+                    }
+                }
+                // If there is a '{' or '}' before the ';',
+                // then stop skipping.
+                if (token === "{" || token === "}") {
+                    return false;   // can't tell if the entire property is skipped
+                }
+                prevToken = token;
+                if (!_nextTokenSkippingComments()) {
+                    break;
+                }
+            }
+            return true;    // skip the entire property
+        }
+        
         function _getParentSelectors() {
             var j;
             for (j = selectors.length - 1; j >= 0; j--) {
@@ -854,23 +893,37 @@ define(function (require, exports, module) {
             selectorStartLine = line;
             
             // Everything until the next ',' or '{' is part of the current selector
-            while (token !== "," && token !== "{") {
-                if (token === "}" &&
-                        (!currentSelector || /:\s*\S/.test(currentSelector) || !/\{\w/.test(currentSelector))) {
+            while ((token !== "," && token !== "{") ||
+                    (token === "{" && /[#@]$/.test(currentSelector)) ||
+                    (token === "," && !_hasNonWhitespace(currentSelector))) {
+                if (token === "{") {
+                    // Append the interpolated variable to selector
+                    currentSelector += _skipToClosingBracket("{");
+                    _nextToken();  // skip the closing brace
+                } else if (token === "}" &&
+                        (!currentSelector || /:\s*\S/.test(currentSelector) || !/#\{.+/.test(currentSelector))) {
                     // Either empty currentSelector or currentSelector is a CSS property
                     // but not a selector that is in the form of #{$class}
                     return false;
                 }
-                if (token === ";" ||
+                // Clear currentSelector if we're in a property, but make sure we don't treat
+                // the semicolors inside a parameter as a property separators.
+                if ((token === ";" && state.state !== "parens") ||
                         // Make sure that something like `> li > a {` is not identified as a property
                         (state.state === "prop" && !/\{/.test(stream.string))) {
-                    // Clear currentSelector if we're in a property.
                     currentSelector = "";
-                } else if (token === "(" && /,/.test(stream.string)) {
+                } else if (token === "(") {
                     // Collect everything inside the parentheses as a whole chunk so that
                     // commas inside the parentheses won't be identified as selector separators
                     // by while loop.
-                    currentSelector += _skipToClosingBracket("(");
+                    if (_hasNonWhitespace(currentSelector)) {
+                        currentSelector += _skipToClosingBracket("(");
+                    } else {
+                        // Nothing in currentSelector yet. Skip to the closing parenthesis
+                        // without collecting the selector since a selector cannot start with 
+                        // an opening parenthesis.
+                        _skipToClosingBracket("(");
+                    }
                 } else if (_hasNonWhitespace(token) || _hasNonWhitespace(currentSelector)) {
                     currentSelector += token;
                 }
@@ -973,7 +1026,7 @@ define(function (require, exports, module) {
                     if (sgLine === declListStartLine) {
                         endChar = declListStartChar;
                     }
-                    selectorGroup += lines[sgLine].substring(startChar, endChar);
+                    selectorGroup += lines[sgLine].substring(startChar, endChar).trim();
                 }
                 selectorGroup = selectorGroup.trim();
             }
@@ -1045,7 +1098,15 @@ define(function (require, exports, module) {
         
         function _isStartAtRule() {
             // Exclude @mixin from at-rule so that we can parse it like a normal rule list
-            return (/^@/.test(token) && !/^@mixin/i.test(token));
+            return (/^@/.test(token) && !/^@mixin/i.test(token) && token !== "@");
+        }
+        
+        function _followedByPseudoSelector() {
+            return (/\}:(enabled|disabled|checked|indeterminate|link|visited|hover|active|focus|target|lang|root|nth-|first-|last-|only-|empty|not)/.test(stream.string));
+        }
+                    
+        function _isVariableInterpolatedProperty() {
+            return (/[@#]\{\S+\}(\s*:|.*;)/.test(stream.string) && !_followedByPseudoSelector());
         }
         
         function _parseAtRule(level) {
@@ -1086,25 +1147,24 @@ define(function (require, exports, module) {
                     currentLevel--;
                 }
 
-            } else if (/@(charset|import|namespace|include|extend)/i.test(token) ||
-                            !/\{/.test(stream.string)) {
-                
+            } else {
                 // This code handles @rules in this format:
                 //   @rule ... ;
                 // Or any less variable that starts with @var ... ;
                 // Skip everything until the next ';'
                 while (token !== ";") {
+                    // This code handle @rules that use this format:
+                    //    @rule ... { ... }
+                    // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
+                    // Skip everything including nested braces until the next matching '}'
+                    if (token === "{") {
+                        _skipToClosingBracket("{");
+                        return;
+                    }
                     if (!_nextTokenSkippingComments()) {
                         return; // eof
                     }
                 }
-                
-            } else {
-                // This code handle @rules that use this format:
-                //    @rule ... { ... }
-                // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
-                // Skip everything including nested braces until the next matching '}'
-                _skipToClosingBracket("{");
             }
         }
 
@@ -1120,10 +1180,15 @@ define(function (require, exports, module) {
         
         _parseRuleList = function (escapeToken, level) {
             while ((!escapeToken) || token !== escapeToken) {
-                if (_isStartAtRule()) {
+                if (_isVariableInterpolatedProperty()) {
+                    if (!_skipProperty()) {
+                        // We found a "{" or "}" while skipping a property. Return false to handle the 
+                        // opening or closing of a block properly.
+                        return false;
+                    }
+                } else if (_isStartAtRule()) {
                     // @rule
                     _parseAtRule(level);
-    
                 } else if (_isStartComment()) {
                     // comment - make this part of style rule
                     if (includeCommentInNextRule()) {
@@ -1133,11 +1198,9 @@ define(function (require, exports, module) {
                     _parseComment();
                 } else if (_maybeProperty()) {
                     // Skip the property.
-                    _skipProperty();
-                    // If we find a "{" or "}" while skipping a property, then don't skip it in
-                    // this while loop. Otherwise, we will get into an infinite loop in parsing
-                    // since we miss to handle the opening or closing of a block properly.
-                    if (token === "{" || token === "}") {
+                    if (!_skipProperty()) {
+                        // We found a "{" or "}" while skipping a property. Return false to handle the 
+                        // opening or closing of a block properly.
                         return false;
                     }
                 } else {
@@ -1190,10 +1253,61 @@ define(function (require, exports, module) {
     */
     
     /**
+     * Helper function to remove whitespaces before and after a selector
+     * Returns trimmed selector if it is not an at-rule, or null if it starts with @.
+     *
+     * @param {string} selector
+     * @return {string}
+     */
+    function _stripAtRules(selector) {
+        selector = selector.trim();
+        if (selector.indexOf("@") === 0) {
+            return "";
+        }
+        return selector;
+    }
+
+    /**
+     * Converts the given selector array into the actual CSS selectors similar to 
+     * those generated by a CSS preprocessor.
+     *
+     * @param {Array.<string>} selectorArray
+     * @return {string} 
+     */
+    function _getSelectorInFinalCSSForm(selectorArray) {
+        var finalSelectorArray = [""],
+            parentSelectorArray = [],
+            group = [];
+        _.forEach(selectorArray, function (selector) {
+            selector = _stripAtRules(selector);
+            group = selector.split(",");
+            parentSelectorArray = [];
+            _.forEach(group, function (cs) {
+                var ampersandIndex = cs.indexOf("&");
+                _.forEach(finalSelectorArray, function (ps) {
+                    if (ampersandIndex === -1) {
+                        cs = _stripAtRules(cs);
+                        if (ps.length && cs.length) {
+                            ps += " ";
+                        }
+                        ps += cs;
+                    } else {
+                        // Replace all instances of & with regexp
+                        ps = _stripAtRules(cs.replace(/&/g, ps));
+                    }
+                    parentSelectorArray.push(ps);
+                });
+            });
+            finalSelectorArray = parentSelectorArray;
+        });
+        return finalSelectorArray.join(", ");
+    }
+
+    /**
      * Finds all instances of the specified selector in "text".
      * Returns an Array of Objects with start and end properties.
      *
-     * For Sprint 4, we only support simple selectors. This function will need to change
+     * For now, we only support simple selectors. This function will need to change
      * dramatically to support full selectors.
      *
      * FUTURE: (JRB) It would be nice to eventually use the browser/jquery to do the selector evaluation.
@@ -1212,12 +1326,10 @@ define(function (require, exports, module) {
     function _findAllMatchingSelectorsInText(text, selector, mode) {
         var allSelectors = extractAllSelectors(text, mode);
         var result = [];
-        var i;
         
-        // For sprint 4 we only match the rightmost simple selector, and ignore 
+        // For now, we only match the rightmost simple selector, and ignore
         // attribute selectors and pseudo selectors
         var classOrIdSelector = selector[0] === "." || selector[0] === "#";
-        var prefix = "";
         
         // Escape initial "." in selector, if present.
         if (selector[0] === ".") {
@@ -1231,11 +1343,17 @@ define(function (require, exports, module) {
         
         var re = new RegExp(selector + "(\\[[^\\]]*\\]|:{1,2}[\\w-()]+|\\.[\\w-]+|#[\\w-]+)*\\s*$", classOrIdSelector ? "" : "i");
         allSelectors.forEach(function (entry) {
-            if (entry.selector.search(re) !== -1) {
+            var actualSelector = entry.selector;
+            if (entry.selector.indexOf("&") !== -1 && entry.parentSelectors) {
+                var selectorArray = entry.parentSelectors.split(" / ");
+                selectorArray.push(entry.selector);
+                actualSelector = _getSelectorInFinalCSSForm(selectorArray);
+            }
+            if (actualSelector.search(re) !== -1) {
                 result.push(entry);
             } else if (!classOrIdSelector) {
                 // Special case for tag selectors - match "*" as the rightmost character
-                if (/\*\s*$/.test(entry.selector)) {
+                if (/\*\s*$/.test(actualSelector)) {
                     result.push(entry);
                 }
             }
@@ -1248,7 +1366,7 @@ define(function (require, exports, module) {
      * Converts the results of _findAllMatchingSelectorsInText() into a simpler bag of data and
      * appends those new objects to the given 'resultSelectors' Array.
      * @param {Array.<{document:Document, lineStart:number, lineEnd:number}>} resultSelectors
-     * @param {Array.<{selectorGroupStartLine:number, declListEndLine:number, selector:string}>} selectorsToAdd
+     * @param {Array.<SelectorInfo>} selectorsToAdd
      * @param {!Document} sourceDoc
      * @param {!number} lineOffset Amount to offset all line number info by. Used if the first line
      *          of the parsed CSS text is not the first line of the sourceDoc.
@@ -1322,7 +1440,7 @@ define(function (require, exports, module) {
     
     /**
      * Return all rules matching the specified selector.
-     * For Sprint 4, we only look at the rightmost simple selector. For example, searching for ".foo" will 
+     * For now, we only look at the rightmost simple selector. For example, searching for ".foo" will
      * match these rules:
      *  .foo {}
      *  div .foo {}
@@ -1377,45 +1495,10 @@ define(function (require, exports, module) {
     function findSelectorAtDocumentPos(editor, pos) {
         var cm = editor._codeMirror;
         var ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
-        var selector = "", inSelector = false, foundChars = false;
+        var selector = "", foundChars = false;
         var isPreprocessorDoc = FileUtils.isCSSPreprocessorFile(editor.document.file.fullPath);
         var selectorArray = [];
 
-        function _stripAtRules(selector) {
-            selector = selector.trim();
-            if (selector.indexOf("@") === 0) {
-                return "";
-            }
-            return selector;
-        }
-        
-        function _getSelectorInFinalCSSForm() {
-            var finalSelectorArray = [""],
-                parentSelectorArray = [],
-                group = [];
-            _.forEach(selectorArray, function (selector) {
-                selector = _stripAtRules(selector);
-                group = selector.split(", ");
-                parentSelectorArray = [];
-                _.forEach(group, function (cs) {
-                    var ampersandIndex = cs.indexOf("&");
-                    _.forEach(finalSelectorArray, function (ps) {
-                        if (ampersandIndex === -1) {
-                            if (ps.length) {
-                                ps += " ";
-                            }
-                            ps += cs;
-                        } else {
-                            ps = cs.replace("&", ps);
-                        }
-                        parentSelectorArray.push(ps);
-                    });
-                });
-                finalSelectorArray = parentSelectorArray;
-            });
-            return finalSelectorArray.join(", ");
-        }
-        
         function _skipToOpeningBracket(ctx, startChar) {
             var unmatchedBraces = 0;
             if (!startChar) {
@@ -1426,7 +1509,7 @@ define(function (require, exports, module) {
                     unmatchedBraces++;
                 } else if (ctx.token.string.match(_invertedBracketPairs[startChar])) {
                     unmatchedBraces--;
-                    if (unmatchedBraces === 0) {
+                    if (unmatchedBraces <= 0) {
                         return;
                     }
                 }
@@ -1482,7 +1565,7 @@ define(function (require, exports, module) {
         }
         
         // scan backwards to see if the cursor is in a rule
-        while (true) {
+        do {
             if (ctx.token.type !== "comment") {
                 if (ctx.token.string === "}") {
                     if (isPreprocessorDoc) {
@@ -1498,7 +1581,7 @@ define(function (require, exports, module) {
                 } else if (ctx.token.string === "{") {
                     selector = _parseSelector(ctx);
                     if (isPreprocessorDoc) {
-                        if (!skipPrevSibling && !/^\s*@media/i.test(selector)) {
+                        if (!skipPrevSibling && !/^\s*@/.test(selector)) {
                             selectorArray.unshift(selector);
                         }
                         if (skipPrevSibling) {
@@ -1511,13 +1594,12 @@ define(function (require, exports, module) {
                     if (!isPreprocessorDoc && _hasNonWhitespace(ctx.token.string)) {
                         foundChars = true;
                     }
+                    TokenUtils.movePrevToken(ctx);
                 }
+            } else {
+                TokenUtils.movePrevToken(ctx);
             }
-            
-            if (ctx.token.string !== "{" && ctx.token.string !== "}" && !TokenUtils.movePrevToken(ctx)) {
-                break;
-            }
-        }
+        } while (!TokenUtils.isAtStart(ctx));
         
         selector = _stripAtRules(selector);
         
@@ -1539,14 +1621,14 @@ define(function (require, exports, module) {
         // At this point if we haven't found a selector, but have seen chars when
         // scanning, assume we are in the middle of a selector. For a preprocessor 
         // document we also need to collect the current selector if the cursor is 
-        // is within the selector or whitespaces immediately before or after it.
+        // within the selector or whitespaces immediately before or after it.
         if ((!selector || isPreprocessorDoc) && foundChars) {
             // scan forward to see if the cursor is in a selector
             while (true) {
                 if (ctx.token.type !== "comment") {
                     if (ctx.token.string === "{") {
                         selector = _parseSelector(ctx);
-                        if (isPreprocessorDoc) {
+                        if (isPreprocessorDoc && !/^\s*@/.test(selector)) {
                             selectorArray.push(selector);
                         }
                         break;
@@ -1561,7 +1643,7 @@ define(function (require, exports, module) {
         }
         
         if (isPreprocessorDoc) {
-            return _getSelectorInFinalCSSForm();
+            return _getSelectorInFinalCSSForm(selectorArray);
         }
         
         return _stripAtRules(selector);

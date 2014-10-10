@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -32,6 +32,8 @@ define(function (require, exports, module) {
         Commands,               // Load from brackets.test
         DocumentManager,        // Load from brackets.test
         FileViewController,     // Load from brackets.test
+        MainViewManager,        // Load from brackets.test
+        WorkingSetView,
         SpecRunnerUtils         = require("spec/SpecRunnerUtils");
 
 
@@ -41,7 +43,7 @@ define(function (require, exports, module) {
     
         var testPath = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files"),
             testWindow,
-            workingSetCount;
+            workingSetListItemCount;
         
         function openAndMakeDirty(path) {
             var doc, didOpen = false, gotError = false;
@@ -70,7 +72,9 @@ define(function (require, exports, module) {
                 Commands            = testWindow.brackets.test.Commands;
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
                 FileViewController  = testWindow.brackets.test.FileViewController;
-
+                MainViewManager     = testWindow.brackets.test.MainViewManager;
+                WorkingSetView      = testWindow.brackets.test.WorkingSetView;
+                
                 // Open a directory
                 if (loadProject) {
                     SpecRunnerUtils.loadProjectInTestWindow(testPath);
@@ -79,8 +83,8 @@ define(function (require, exports, module) {
             
             runs(function () {
                 // Initialize: register listeners
-                testWindow.$(DocumentManager).on("workingSetAdd", function (event, addedFile) {
-                    workingSetCount++;
+                testWindow.$(MainViewManager).on("workingSetAdd", function (event, addedFile) {
+                    workingSetListItemCount++;
                 });
             });
         }
@@ -91,6 +95,7 @@ define(function (require, exports, module) {
             Commands            = null;
             DocumentManager     = null;
             FileViewController  = null;
+            MainViewManager     = null;
             SpecRunnerUtils.closeTestWindow();
         }
         
@@ -101,13 +106,13 @@ define(function (require, exports, module) {
         afterLast(closeTestWindow);
         
         beforeEach(function () {
-            workingSetCount = 0;
+            workingSetListItemCount = 0;
             
             openAndMakeDirty(testPath + "/file_one.js");
             openAndMakeDirty(testPath + "/file_two.js");
             
             // Wait for both files to be added to the working set
-            waitsFor(function () { return workingSetCount === 2; }, 1000);
+            waitsFor(function () { return workingSetListItemCount === 2; }, "workingSetListItemCount to equal 2", 1000);
         });
         
         afterEach(function () {
@@ -117,7 +122,7 @@ define(function (require, exports, module) {
         it("should add a list item when a file is dirtied", function () {
             // check if files are added to work set and dirty icons are present
             runs(function () {
-                var $listItems = testWindow.$("#open-files-container > ul").children();
+                var $listItems = testWindow.$(".open-files-container > ul").children();
                 expect($listItems.length).toBe(2);
                 expect($listItems.find("a").get(0).text === "file_one.js").toBeTruthy();
                 expect($listItems.find(".file-status-icon").length).toBe(2);
@@ -138,7 +143,7 @@ define(function (require, exports, module) {
                     
             // check there are no list items
             runs(function () {
-                var listItems = testWindow.$("#open-files-container > ul").children();
+                var listItems = testWindow.$(".open-files-container > ul").children();
                 expect(listItems.length).toBe(1);
             });
         });
@@ -146,10 +151,10 @@ define(function (require, exports, module) {
         it("should make a file that is clicked the current one in the editor", function () {
             runs(function () {
                 var $ = testWindow.$;
-                var secondItem =  $($("#open-files-container > ul").children()[1]);
+                var secondItem =  $($(".open-files-container > ul").children()[1]);
                 secondItem.trigger("click");
                 
-                var $listItems = $("#open-files-container > ul").children();
+                var $listItems = $(".open-files-container > ul").children();
                 expect($($listItems[0]).hasClass("selected")).not.toBeTruthy();
                 expect($($listItems[1]).hasClass("selected")).toBeTruthy();
             });
@@ -179,7 +184,7 @@ define(function (require, exports, module) {
             waitsFor(
                 function () {
                     // check working set UI list content
-                    $listItems = testWindow.$("#open-files-container > ul").children();
+                    $listItems = testWindow.$(".open-files-container > ul").children();
                     return ($listItems.length === 2) && $($listItems[1]).hasClass("selected");
                 },
                 1000
@@ -203,7 +208,7 @@ define(function (require, exports, module) {
             var didClose = false;
             
             // make 2nd doc clean
-            var fileList = DocumentManager.getWorkingSet();
+            var fileList = MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE);
 
             runs(function () {
                 var doc0 = DocumentManager.getOpenDocumentForPath(fileList[0].fullPath);
@@ -211,16 +216,16 @@ define(function (require, exports, module) {
                 doc1._markClean();
                 
                 // make the first one active
-                DocumentManager.setCurrentDocument(doc0);
-                
+                MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc0);
+
                 // hover over and click on close icon of 2nd list item
-                var secondItem =  $($("#open-files-container > ul").children()[1]);
+                var secondItem =  $($(".open-files-container > ul").children()[1]);
                 secondItem.trigger("mouseover");
                 var closeIcon = secondItem.find(".file-status-icon");
                 expect(closeIcon.length).toBe(1);
                 
                 // simulate click
-                $(DocumentManager).on("workingSetRemove", function (event, removedFile) {
+                $(MainViewManager).on("workingSetRemove", function (event, removedFile) {
                     didClose = true;
                 });
 
@@ -230,7 +235,7 @@ define(function (require, exports, module) {
             waitsFor(function () { return didClose; }, "click on working set close icon timeout", 1000);
                             
             runs(function () {
-                var $listItems = $("#open-files-container > ul").children();
+                var $listItems = $(".open-files-container > ul").children();
                 expect($listItems.length).toBe(1);
                 expect($listItems.find("a").get(0).text === "file_one.js").toBeTruthy();
             });
@@ -239,11 +244,11 @@ define(function (require, exports, module) {
         it("should remove dirty icon when file becomes clean", function () {
             runs(function () {
                 // check that dirty icon is removed when docs are cleaned
-                var fileList = DocumentManager.getWorkingSet();
+                var fileList = MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE);
                 var doc0 = DocumentManager.getOpenDocumentForPath(fileList[0].fullPath);
                 doc0._markClean();
                 
-                var listItems = testWindow.$("#open-files-container > ul").children();
+                var listItems = testWindow.$(".open-files-container > ul").children();
                 expect(listItems.find(".file-status-icon dirty").length).toBe(0);
             });
         });
@@ -251,7 +256,7 @@ define(function (require, exports, module) {
         it("should show the file in project tree when a file is being renamed", function () {
             runs(function () {
                 var $ = testWindow.$;
-                var secondItem =  $("#open-files-container > ul").children().eq(1);
+                var secondItem =  $(".open-files-container > ul").children().eq(1);
                 var fileName = secondItem.text();
                 secondItem.trigger("click");
                 
@@ -260,31 +265,28 @@ define(function (require, exports, module) {
                 // In that case, waitsFor will be needed before continuing with the rest of the test.
                 CommandManager.execute(Commands.FILE_RENAME);
                 
-                var $projectFileItems = $("#project-files-container > ul").children();
-    
-                expect($projectFileItems.find("a.jstree-clicked").eq(0).siblings("input").eq(0).val()).toBe(fileName);
+                expect($("#project-files-container ul input").val()).toBe(fileName);
             });
         });
 
         it("should show a directory name next to the file name when two files with same names are opened", function () {
             runs(function () {
                 // Count currently opened files
-                var workingSetCountBeforeTest = workingSetCount;
+                var workingSetListItemCountBeforeTest = workingSetListItemCount;
 
                 // First we need to open another file
                 openAndMakeDirty(testPath + "/directory/file_one.js");
 
                 // Wait for file to be added to the working set
-                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 1; }, 1000);
+                waitsFor(function () { return workingSetListItemCount === workingSetListItemCountBeforeTest + 1; }, 1000);
 
                 runs(function () {
                     // Two files with the same name file_one.js should be now opened
-                    var $list = testWindow.$("#open-files-container > ul");
+                    var $list = testWindow.$(".open-files-container > ul");
                     expect($list.find(".directory").length).toBe(2);
 
                     // Now close last opened file to hide the directories again
                     DocumentManager.getCurrentDocument()._markClean(); // so we can close without a save dialog
-                    var didClose = false, gotError = false;
                     waitsForDone(CommandManager.execute(Commands.FILE_CLOSE), "timeout on FILE_CLOSE", 1000);
 
                     // there should be no more directories shown
@@ -298,18 +300,18 @@ define(function (require, exports, module) {
         it("should show different directory names, when two files of the same name are opened, located in folders with same name", function () {
             runs(function () {
                 // Count currently opened files
-                var workingSetCountBeforeTest = workingSetCount;
+                var workingSetListItemCountBeforeTest = workingSetListItemCount;
 
                 // Open both files
                 openAndMakeDirty(testPath + "/directory/file_one.js");
                 openAndMakeDirty(testPath + "/directory/directory/file_one.js");
 
                 // Wait for them to load
-                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 2; }, 1000);
+                waitsFor(function () { return workingSetListItemCount === workingSetListItemCountBeforeTest + 2; }, "Open file count to be increased by 2", 1000);
 
                 runs(function () {
                     // Collect all directory names displayed
-                    var $list = testWindow.$("#open-files-container > ul");
+                    var $list = testWindow.$(".open-files-container > ul");
                     var names = $list.find(".directory").map(function () {
                         return $(this).text();
                     }).toArray();
@@ -326,6 +328,74 @@ define(function (require, exports, module) {
                 });
             });
         });
+        
+        it("should callback for icons", function () {
+            runs(function () {
+                function iconProvider(file) {
+                    return "<img src='" + file.name + ".jpg' class='icon' />";
+                }
+                
+                WorkingSetView.addIconProvider(iconProvider);
+                
+                runs(function () {
+                    // Collect all icon filenames used
+                    var $list = testWindow.$(".open-files-container > ul");
+                    var icons = $list.find(".icon").map(function () {
+                        return $(this).attr("src");
+                    }).toArray();
+
+                    // All directory names should be unique
+                    expect(icons.length).toBe(2);
+                    expect(icons[0]).toBe("file_one.js.jpg");
+                    expect(icons[1]).toBe("file_two.js.jpg");
+                });
+            });
+        });
             
+        it("should callback for class", function () {
+            runs(function () {
+                var master = ["one", "two"],
+                    classes = master.slice(0);
+
+                function classProvider(file) {
+                    return classes.pop();
+                }
+                
+                WorkingSetView.addClassProvider(classProvider);
+
+                runs(function () {
+                    var $list = testWindow.$(".open-files-container > li"),
+                        test = master.slice(0);
+                    
+                    $list.each(function (number, el) {
+                        expect($(el).hasClass(test.pop())).toBeTruthy();
+                    });
+                });
+            });
+        });
+
+        it("should allow refresh to be used to update the class list", function () {
+            runs(function () {
+                function classProvider(file) {
+                    return "one";
+                }
+                
+                WorkingSetView.addClassProvider(classProvider);
+
+                var master = ["three", "four"];
+                
+                WorkingSetView.refresh();
+                
+                runs(function () {
+                    var $list = testWindow.$(".open-files-container > li"),
+                        test = master.slice(0);
+                    
+                    $list.each(function (number, el) {
+                        expect($(el).hasClass(test.pop())).toBeTruthy();
+                        expect($(el).hasClass("one")).toBeFalsy();
+                    });
+                });
+            });
+        });
     });
 });

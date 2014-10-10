@@ -44,7 +44,6 @@ define(function (require, exports, module) {
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
-        globmatch           = brackets.getModule("thirdparty/globmatch"),
         LanguageManager     = brackets.getModule("language/LanguageManager"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
@@ -1137,7 +1136,6 @@ define(function (require, exports, module) {
             var file        = document.file,
                 path        = file.fullPath,
                 dir         = file.parentPath,
-                files       = [],
                 pr;
     
             var addFilesDeferred = $.Deferred();

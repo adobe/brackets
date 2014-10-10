@@ -40,7 +40,7 @@ module.exports = function (grunt) {
             json = {};
 
         // count the number of commits for our version number
-        //     <major>.<sprint>.<patch>-<number of commits>
+        //     <major>.<minor>.<patch>-<number of commits>
         return qexec("git log --format=%h", opts).then(function (stdout) {
             json.commits = stdout.toString().match(/[0-9a-f]\n/g).length;
             
@@ -91,9 +91,7 @@ module.exports = function (grunt) {
     // task: build-num
     grunt.registerTask("build-prop", "Write build.prop properties file for Jenkins", function () {
         var done        = this.async(),
-            json        = {},
             out         = "",
-            opts        = { cwd: process.cwd(), maxBuffer: 1024 * 1024 },
             version     = grunt.config("pkg").version,
             www_repo    = process.cwd(),
             shell_repo  = path.resolve(www_repo, grunt.config("shell.repo")),

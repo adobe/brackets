@@ -34,6 +34,10 @@
 define(function (require, exports, module) {
     "use strict";
 
+    /**
+     * Enumerated File System Errors
+     * @enum {string}
+     */
     module.exports = {
         UNKNOWN                     : "Unknown",
         INVALID_PARAMS              : "InvalidParams",

@@ -29,9 +29,7 @@ indent: 4, maxerr: 50 */
 
 var semver   = require("semver"),
     path     = require("path"),
-    http     = require("http"),
     request  = require("request"),
-    os       = require("os"),
     fs       = require("fs-extra"),
     temp     = require("temp"),
     validate = require("./package-validator").validate;
@@ -92,9 +90,7 @@ function _removeFailedInstallation(installDirectory) {
  */
 function _performInstall(packagePath, installDirectory, validationResult, callback) {
     validationResult.installedTo = installDirectory;
-    
-    var callbackCalled = false;
-    
+
     fs.mkdirs(installDirectory, function (err) {
         if (err) {
             callback(err);
