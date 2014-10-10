@@ -45,7 +45,6 @@ define(function (require, exports, module) {
         ExtensionUtils          = require("utils/ExtensionUtils"),
         FileSystem              = require("filesystem/FileSystem"),
         FileUtils               = require("file/FileUtils"),
-        InstallExtensionDialog  = require("extensibility/InstallExtensionDialog"),
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
         ThemeManager            = require("view/ThemeManager");
@@ -672,8 +671,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            // InstallExtensionDialog displays it's own errors, always
-            // resolve the outer promise
+            // Always resolve the outer promise
             updatePromise.always(deferred.resolve);
         }).fail(function (errorArray) {
             deferred.reject(errorArray);
