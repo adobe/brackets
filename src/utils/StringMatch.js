@@ -118,6 +118,7 @@ define(function (require, exports, module) {
     // Constants for scoring
     var SPECIAL_POINTS = 35;
     var MATCH_POINTS = 10;
+    var MATCH_CASE_POINTS = 50;
     var LAST_SEGMENT_BOOST = 1;
     var BEGINNING_OF_NAME_POINTS = 10;
     var DEDUCTION_FOR_LENGTH = 0.2;
@@ -132,6 +133,11 @@ define(function (require, exports, module) {
     
     // Used in match lists to designate any matched characters that are not special
     function NormalMatch(index) {
+        this.index = index;
+    }
+
+    // Used in match lists to designate any matched characters that are case-sensitive matches
+    function CaseMatch(index) {
         this.index = index;
     }
     
@@ -209,7 +215,7 @@ define(function (require, exports, module) {
      * @param {int} startingSpecial index into specials array to start scanning with
      * @return {Array.<SpecialMatch|NormalMatch>} matched indexes or null if no matches possible
      */
-    function _generateMatchList(query, str, specials, startingSpecial) {
+    function _generateMatchList(query, str, originalQuery, originalString, specials, startingSpecial) {
         var result = [];
         
         // used to keep track of which special character we're testing now
@@ -338,8 +344,13 @@ define(function (require, exports, module) {
                     // we look character by character for matches
                     if (query[queryCounter] === str[strCounter]) {
                         // got a match! record it, and switch back to searching specials
+                        if (originalQuery[queryCounter] === originalString[strCounter]) {
+                            result.push(new CaseMatch(strCounter++));
+                        } else {
+                            result.push(new NormalMatch(strCounter++));
+                        }
+
                         queryCounter++;
-                        result.push(new NormalMatch(strCounter++));
                         state = SPECIALS_MATCH;
                     } else {
                         // no match, keep looking
@@ -426,7 +437,7 @@ define(function (require, exports, module) {
      * @param {int} lastSegmentSpecialsIndex index into specials array to start scanning with
      * @return {Array.<SpecialMatch|NormalMatch>} matched indexes or null if no matches possible
      */
-    function _wholeStringSearch(query, compareStr, specials, lastSegmentSpecialsIndex) {
+    function _wholeStringSearch(query, compareStr, originalQuery, originalString, specials, lastSegmentSpecialsIndex) {
         var lastSegmentStart = specials[lastSegmentSpecialsIndex];
         var result;
         var matchList;
@@ -481,6 +492,7 @@ define(function (require, exports, module) {
             scoreDebug = {
                 special: 0,
                 match: 0,
+                case: 0,
                 lastSegment: 0,
                 beginning: 0,
                 lengthDeduction: 0,
@@ -544,6 +556,13 @@ define(function (require, exports, module) {
             }
             newPoints += MATCH_POINTS;
             
+            if (match instanceof CaseMatch) {
+                if (DEBUG_SCORES) {
+                    scoreDebug.case += MATCH_CASE_POINTS;
+                }
+                newPoints += MATCH_CASE_POINTS;
+            }
+                        
             // A bonus is given for characters that match at the beginning
             // of the filename
             if (c === lastSegmentStart) {
@@ -664,7 +683,14 @@ define(function (require, exports, module) {
      */
     function _prefixMatchResult(str, query) {
         var result = new SearchResult(str);
+        
         result.matchGoodness = -Number.MAX_VALUE;
+        
+        if (str.substr(0, query.length) !== query) {
+            // Penalize for not matching case
+            result.matchGoodness *= 0.5;
+        }
+        
         if (DEBUG_SCORES) {
             result.scoreDebug = {
                 beginning: Number.MAX_VALUE
@@ -684,7 +710,8 @@ define(function (require, exports, module) {
         }
         return result;
     }
-    
+
+
     /*
      * Match str against the query using the QuickOpen algorithm provided by
      * the functions above. The general idea is to prefer matches of "special" characters and,
@@ -732,7 +759,7 @@ define(function (require, exports, module) {
         }
         
         // comparisons are case insensitive, so switch to lower case here
-        query = query.toLowerCase();
+        var queryStr = query.toLowerCase();
         var compareStr = str.toLowerCase();
         
         if (options.preferPrefixMatches) {
@@ -754,18 +781,18 @@ define(function (require, exports, module) {
         // avoid some extra work
         if (options.segmentedSearch) {
             lastSegmentStart = special.specials[special.lastSegmentSpecialsIndex];
-            matchList = _wholeStringSearch(query, compareStr, special.specials,
+            matchList = _wholeStringSearch(queryStr, compareStr, query, str, special.specials,
                               special.lastSegmentSpecialsIndex);
         } else {
             lastSegmentStart = 0;
-            matchList = _generateMatchList(query, compareStr, special.specials,
+            matchList = _generateMatchList(queryStr, compareStr, query, str, special.specials,
                                            0);
         }
-        
+
         // If we get a match, turn this into a SearchResult as expected by the consumers
         // of this API.
         if (matchList) {
-            var compareData = _computeRangesAndScore(matchList, str, lastSegmentStart);
+            var compareData = _computeRangesAndScore(matchList, str, queryStr, lastSegmentStart);
             result = new SearchResult(str);
             result.stringRanges = compareData.ranges;
             result.matchGoodness = -1 * compareData.matchGoodness;
