@@ -56,7 +56,7 @@ var basicValidExtension       = path.join(testFilesDirectory, "basic-valid-exten
     missingPackageJSON        = path.join(testFilesDirectory, "missing-package-json.zip"),
     missingPackageJSONUpdate  = path.join(testFilesDirectory, "missing-package-json-update.zip"),
     missingPackageJSONRenamed = path.join(testFilesDirectory, "added-package-json-test", "missing-package-json.zip"),
-    withSymlink            = path.join(testFilesDirectory, "with-symlink.zip");
+    withSymlink               = path.join(testFilesDirectory, "with-symlink.zip");
 
 
 describe("Package Installation", function () {
@@ -147,8 +147,6 @@ describe("Package Installation", function () {
     
     it("should successfully update an extension", function (done) {
         ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
-            var extensionDirectory = path.join(installDirectory, "basic-valid-extension");
-            
             expect(err).toBeNull();
             ExtensionsDomain._cmdInstall(basicValidExtension2, installDirectory, standardOptions, function (err, result) {
                 expect(err).toBeNull();

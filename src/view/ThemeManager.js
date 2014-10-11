@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, regexp: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, require, less */
+/*global $, define, less */
 
 define(function (require, exports, module) {
     "use strict";
@@ -34,7 +34,6 @@ define(function (require, exports, module) {
         ExtensionUtils     = require("utils/ExtensionUtils"),
         ThemeSettings      = require("view/ThemeSettings"),
         ThemeView          = require("view/ThemeView"),
-        AppInit            = require("utils/AppInit"),
         PreferencesManager = require("preferences/PreferencesManager"),
         prefs              = PreferencesManager.getExtensionPrefs("themes");
 
@@ -44,8 +43,7 @@ define(function (require, exports, module) {
         defaultTheme    = "thor-light-theme",
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
         scrollbarsRegex = /((?:[^}|,]*)::-webkit-scrollbar(?:[^{]*)[{](?:[^}]*?)[}])/mgi,
-        stylesPath      = FileUtils.getNativeBracketsDirectoryPath() + "/styles/",
-        validExtensions = ["css", "less"];
+        stylesPath      = FileUtils.getNativeBracketsDirectoryPath() + "/styles/";
 
 
     /**
@@ -177,20 +175,6 @@ define(function (require, exports, module) {
 
         return deferred.promise();
     }
-
-
-    /**
-     * @private
-     * Verifies that the file passed in is a valid theme file type.
-     *
-     * @param {File} file is object to verify if it is a valid theme file type
-     * @return {boolean} to confirm if the file is a valid theme file type
-     */
-    function isFileTypeValid(file) {
-        return file.isFile &&
-            validExtensions.indexOf(FileUtils.getFileExtension(file.name)) !== -1;
-    }
-
 
     /**
      * @private

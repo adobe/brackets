@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, window, $, jasmine, brackets */
+/*global define, describe, it, expect, beforeEach, afterEach, brackets, spyOn */
 /*unittests: FileUtils*/
 
 define(function (require, exports, module) {
@@ -180,6 +180,25 @@ define(function (require, exports, module) {
                 expect(FileUtils.getSmartFileExtension("foo.bar.php.js")).toBe("php.js");
                 expect(FileUtils.getSmartFileExtension("foo.bar.php.html.js")).toBe("php.html.js");
                 expect(FileUtils.getSmartFileExtension("foo.bar.php.scss.erb")).toBe("php.scss.erb");
+            });
+        });
+
+        describe("compareFilenames", function () {
+
+            it("should compare filenames using German rules", function () {
+                spyOn(brackets, "getLocale").andReturn("de-DE");
+                // Should be like this: Äckerman, Adler, Rossi, Xavier
+                expect(FileUtils.compareFilenames("Äckerman", "Adler", false)).toBeLessThan(0);
+                expect(FileUtils.compareFilenames("Adler", "Rossi", false)).toBeLessThan(0);
+                expect(FileUtils.compareFilenames("Rossi", "Xavier", false)).toBeLessThan(0);
+            });
+
+            it("should compare filenames using Swedish rules", function () {
+                spyOn(brackets, "getLocale").andReturn("sv");
+                // Should be like this: Adler, Rossie, Xavier, Äckerman
+                expect(FileUtils.compareFilenames("Adler", "Rossie", false)).toBeLessThan(0);
+                expect(FileUtils.compareFilenames("Rossie", "Xavier", false)).toBeLessThan(0);
+                expect(FileUtils.compareFilenames("Xavier", "Äckerman", false)).toBeLessThan(0);
             });
         });
     });

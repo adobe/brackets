@@ -43,11 +43,11 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var Commands                = require("command/Commands"),
-        PanelManager            = require("view/PanelManager"),
+        WorkspaceManager        = require("view/WorkspaceManager"),
         CommandManager          = require("command/CommandManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
-        FileUtils               = require("file/FileUtils"),
+        MainViewManager         = require("view/MainViewManager"),
         LanguageManager         = require("language/LanguageManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         PerfUtils               = require("utils/PerfUtils"),
@@ -152,7 +152,7 @@ define(function (require, exports, module) {
     function _unregisterAll() {
         _providers = {};
     }
-    
+
     /**
      * Returns a list of provider for given file path, if available.
      * Decision is made depending on the file extension.
@@ -474,8 +474,12 @@ define(function (require, exports, module) {
     function updateListeners() {
         if (_enabled) {
             // register our event listeners
+            $(MainViewManager)
+                .on("currentFileChange.codeInspection", function () {
+                    run();
+                });
             $(DocumentManager)
-                .on("currentDocumentChange.codeInspection currentDocumentLanguageChanged.codeInspection", function () {
+                .on("currentDocumentLanguageChanged.codeInspection", function () {
                     run();
                 })
                 .on("documentSaved.codeInspection documentRefreshed.codeInspection", function (event, document) {
@@ -485,6 +489,7 @@ define(function (require, exports, module) {
                 });
         } else {
             $(DocumentManager).off(".codeInspection");
+            $(MainViewManager).off(".codeInspection");
         }
     }
 
@@ -577,7 +582,7 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         // Create bottom panel to list error details
         var panelHtml = Mustache.render(PanelTemplate, Strings);
-        var resultsPanel = PanelManager.createBottomPanel("errors", $(panelHtml), 100);
+        WorkspaceManager.createBottomPanel("errors", $(panelHtml), 100);
         $problemsPanel = $("#problems-panel");
 
         var $selectedRow;
@@ -608,7 +613,7 @@ define(function (require, exports, module) {
     
                         var editor = EditorManager.getCurrentFullEditor();
                         editor.setCursorPos(line, character, true);
-                        EditorManager.focusEditor();
+                        MainViewManager.focusActivePane();
                     }
                 }
             });

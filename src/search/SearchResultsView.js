@@ -28,7 +28,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
         DocumentManager       = require("document/DocumentManager"),
@@ -37,16 +37,16 @@ define(function (require, exports, module) {
         FileViewController    = require("project/FileViewController"),
         FileUtils             = require("file/FileUtils"),
         FindUtils             = require("search/FindUtils"),
-        PanelManager          = require("view/PanelManager"),
+        WorkspaceManager      = require("view/WorkspaceManager"),
         StringUtils           = require("utils/StringUtils"),
         Strings               = require("strings"),
         _                     = require("thirdparty/lodash"),
-        
+
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html"),
         searchSummaryTemplate = require("text!htmlContent/search-summary.html");
-    
-    
+
+
     /** 
      * @const 
      * The maximum results to show per page.
@@ -75,7 +75,7 @@ define(function (require, exports, module) {
     function SearchResultsView(model, panelID, panelName) {
         var panelHtml  = Mustache.render(searchPanelTemplate, {panelID: panelID});
 
-        this._panel    = PanelManager.createBottomPanel(panelName, $(panelHtml), 100);
+        this._panel    = WorkspaceManager.createBottomPanel(panelName, $(panelHtml), 100);
         this._$summary = this._panel.$panel.find(".title");
         this._$table   = this._panel.$panel.find(".table-container");
         this._model    = model;
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
             // Add the file to the working set on double click
             .on("dblclick.searchResults", ".table-container tr:not(.file-section)", function (e) {
                 var item = self._searchList[$(this).data("file-index")];
-                FileViewController.addToWorkingSetAndSelect(item.fullPath);
+                FileViewController.openFileAndAddToWorkingSet(item.fullPath);
             })
         
             // Add the click event listener directly on the table parent
@@ -336,7 +336,6 @@ define(function (require, exports, module) {
     SearchResultsView.prototype._showSummary = function () {
         var count     = this._model.countFilesMatches(),
             lastIndex = this._getLastIndex(count.matches),
-            fileList  = Object.keys(this._model.results),
             filesStr,
             summary;
         
@@ -349,7 +348,7 @@ define(function (require, exports, module) {
         // This text contains some formatting, so all the strings are assumed to be already escaped
         summary = StringUtils.format(
             Strings.FIND_TITLE_SUMMARY,
-            this._model.foundMaximum ? Strings.FIND_IN_FILES_MORE_THAN : "",
+            this._model.exceedsMaximum ? Strings.FIND_IN_FILES_MORE_THAN : "",
             String(count.matches),
             (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
             filesStr

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, describe, it, expect, beforeEach, beforeFirst, afterEach, waitsFor, waits, waitsForDone, waitsForFail, spyOn, runs */
+/*global define, $, describe, it, expect, beforeEach, afterEach, waitsForDone, waitsForFail, spyOn, runs */
 define(function (require, exports, module) {
     "use strict";
     
@@ -217,7 +217,7 @@ define(function (require, exports, module) {
             ];
 
             function setupAjaxSpy(defaultUpdateUrl) {
-                var jq = spyOn(testWindow.$, "ajax").andCallFake(function (req) {
+                spyOn(testWindow.$, "ajax").andCallFake(function (req) {
                     var d = new $.Deferred();
 
                     testWindow.setTimeout(function () {

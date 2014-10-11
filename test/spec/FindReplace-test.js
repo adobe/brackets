@@ -22,20 +22,19 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, $, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, window, jasmine, spyOn */
+/*global define, describe, $, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, waitsForDone, runs, jasmine */
 /*unittests: FindReplace*/
 
 define(function (require, exports, module) {
     'use strict';
     
-    var Commands              = require("command/Commands"),
-        FindReplace           = require("search/FindReplace"),
-        KeyEvent              = require("utils/KeyEvent"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
-        StringUtils           = require("utils/StringUtils"),
-        Strings,
-        _                     = require("thirdparty/lodash");
-    
+    var Commands        = require("command/Commands"),
+        FindReplace     = require("search/FindReplace"),
+        KeyEvent        = require("utils/KeyEvent"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+        StringUtils     = require("utils/StringUtils"),
+        Strings         = require("strings");
+
     var defaultContent = "/* Test comment */\n" +
                          "define(function (require, exports, module) {\n" +
                          "    var Foo = require(\"modules/Foo\"),\n" +
@@ -298,7 +297,6 @@ define(function (require, exports, module) {
         this.category = "integration";
         
         var LINE_FIRST_REQUIRE = 2;
-        var LINE_AFTER_REQUIRES = 5;
         var CH_REQUIRE_START = 14;
         var CH_REQUIRE_PAREN = CH_REQUIRE_START + "require".length;
         
@@ -440,7 +438,6 @@ define(function (require, exports, module) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
-                Strings          = testWindow.require("strings");
                 twCommandManager = testWindow.brackets.test.CommandManager;
                 twEditorManager  = testWindow.brackets.test.EditorManager;
                 twFindInFiles    = testWindow.brackets.test.FindInFiles;
@@ -1463,7 +1460,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     tw$(".replace-checked").click();
                 });
-                
+
                 waitsFor(function () {
                     return twFindInFiles._replaceDone;
                 }, "replace finished");
@@ -1581,7 +1578,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     tw$(".replace-checked").click();
                 });
-                
+
                 waitsFor(function () {
                     return twFindInFiles._replaceDone;
                 }, "replace finished");
@@ -1741,7 +1738,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     tw$(".replace-checked").click();
                 });
-                
+
                 waitsFor(function () {
                     return twFindInFiles._replaceDone;
                 }, "replace finished");
@@ -1773,7 +1770,7 @@ define(function (require, exports, module) {
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
                 });
-                
+
                 waitsFor(function () {
                     return twFindInFiles._searchDone;
                 }, "search finished");
@@ -1781,7 +1778,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     tw$(".replace-checked").click();
                 });
-                
+
                 waitsFor(function () {
                     return twFindInFiles._replaceDone;
                 }, "replace finished");
@@ -1789,10 +1786,10 @@ define(function (require, exports, module) {
                 runs(function () {
                     myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: 23}, {line: LINE_FIRST_REQUIRE, ch: 41});
                     expect(/_modules\/Foo-Foo\$&/i.test(myEditor.getSelectedText())).toBe(true);
-                    
+
                     myEditor.setSelection({line: LINE_FIRST_REQUIRE + 1, ch: 23}, {line: LINE_FIRST_REQUIRE + 1, ch: 41});
                     expect(/_modules\/Bar-Bar\$&/i.test(myEditor.getSelectedText())).toBe(true);
-                    
+
                     myEditor.setSelection({line: LINE_FIRST_REQUIRE + 2, ch: 23}, {line: LINE_FIRST_REQUIRE + 2, ch: 41});
                     expect(/_modules\/Baz-Baz\$&/i.test(myEditor.getSelectedText())).toBe(true);
                 });

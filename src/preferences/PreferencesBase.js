@@ -21,7 +21,7 @@
  * 
  */
 
-/*global define, $, localStorage, brackets, console */
+/*global define, $, console */
 /*unittests: Preferences Base */
 
 /**
@@ -58,12 +58,11 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils         = require("file/FileUtils"),
-        FileSystem        = require("filesystem/FileSystem"),
-        ExtensionLoader   = require("utils/ExtensionLoader"),
-        _                 = require("thirdparty/lodash"),
-        Async             = require("utils/Async"),
-        globmatch         = require("thirdparty/globmatch");
+    var FileUtils   = require("file/FileUtils"),
+        FileSystem  = require("filesystem/FileSystem"),
+        _           = require("thirdparty/lodash"),
+        Async       = require("utils/Async"),
+        globmatch   = require("thirdparty/globmatch");
     
     // CONSTANTS
     var PREFERENCE_CHANGE = "change",
@@ -1177,13 +1176,11 @@ define(function (require, exports, module) {
          * @param {Object} shadowEntry Shadow entry of the resolved scope
          */
         _tryAddToScopeOrder: function (shadowEntry) {
-            var defaultScopeOrder = this._defaultContext.scopeOrder,
-                shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+            var shadowScopeOrder = this._defaultContext._shadowScopeOrder,
                 index = _.findIndex(shadowScopeOrder, function (entry) {
                     return entry === shadowEntry;
                 }),
                 $this = $(this),
-                done = false,
                 i = index + 1;
             
             // Find an appropriate scope of lower priority to add it before
@@ -1239,8 +1236,7 @@ define(function (require, exports, module) {
          * @param {?string} addBefore Name of the Scope before which this new one is added
          */
         _addToScopeOrder: function (id, scope, promise, addBefore) {
-            var defaultScopeOrder = this._defaultContext.scopeOrder,
-                shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+            var shadowScopeOrder = this._defaultContext._shadowScopeOrder,
                 shadowEntry,
                 index,
                 isPending = false,

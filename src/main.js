@@ -43,21 +43,22 @@ if (window.location.search.indexOf("testEnvironment") > -1) {
     require.config({
         paths: {
             "preferences/PreferencesImpl": "../test/TestPreferencesImpl"
-        }
+        },
+        locale: "en" // force English (US)
+    });
+} else {
+    /**
+     * hack for r.js optimization, move locale to another config call
+     *
+     * Use custom brackets property until CEF sets the correct navigator.language
+     * NOTE: When we change to navigator.language here, we also should change to
+     * navigator.language in ExtensionLoader (when making require contexts for each
+     * extension).
+     */
+    require.config({
+        locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
     });
 }
-
-/**
- * hack for r.js optimization, move locale to another config call
- *
- * Use custom brackets property until CEF sets the correct navigator.language
- * NOTE: When we change to navigator.language here, we also should change to
- * navigator.language in ExtensionLoader (when making require contexts for each
- * extension).
- */
-require.config({
-    locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
-});
 
 define(function (require) {
     "use strict";

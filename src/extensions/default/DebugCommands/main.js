@@ -41,7 +41,6 @@ define(function (require, exports, module) {
         Strings                = brackets.getModule("strings"),
         PreferencesManager     = brackets.getModule("preferences/PreferencesManager"),
         LocalizationUtils      = brackets.getModule("utils/LocalizationUtils"),
-        ProjectManager         = brackets.getModule("project/ProjectManager"),
         ErrorNotification      = require("ErrorNotification"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
@@ -256,7 +255,7 @@ define(function (require, exports, module) {
     function handleOpenBracketsSource() {
         // Brackets source dir w/o the trailing src/ folder
         var dir = FileUtils.getNativeBracketsDirectoryPath().replace(/\/[^\/]+$/, "/");
-        ProjectManager.openProject(dir);
+        brackets.app.showOSFolder(dir);
     }
 
     /* Register all the command handlers */

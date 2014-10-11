@@ -12,5 +12,11 @@
     "i18n": [
         "en", 
         "fr" 
-    ]
+    ],
+    "package-i18n": {
+        "fr": {
+            "title": "Localisation Exemple",
+            "description": "Un guide sur la façon de localiser votre poste."
+        }
+    }
 }

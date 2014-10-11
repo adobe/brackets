@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define, $ */
 
 /**
  * Set of utilities for simple parsing of JS text.
@@ -40,7 +40,6 @@ define(function (require, exports, module) {
         FileSystem              = require("filesystem/FileSystem"),
         FileUtils               = require("file/FileUtils"),
         PerfUtils               = require("utils/PerfUtils"),
-        ProjectManager          = require("project/ProjectManager"),
         StringUtils             = require("utils/StringUtils");
 
     /**
@@ -334,8 +333,8 @@ define(function (require, exports, module) {
      *   contain a map of all function names from the document and each function's start offset.
      */
     function _getFunctionsInFiles(fileInfos) {
-        var result          = new $.Deferred(),
-            docEntries      = [];
+        var result      = new $.Deferred(),
+            docEntries  = [];
         
         PerfUtils.markStart(PerfUtils.JSUTILS_GET_ALL_FUNCTIONS);
         
@@ -374,9 +373,8 @@ define(function (require, exports, module) {
      *      Does not addRef() the documents returned in the array.
      */
     function findMatchingFunctions(functionName, fileInfos, keepAllFiles) {
-        var result          = new $.Deferred(),
-            jsFiles         = [],
-            docEntries      = [];
+        var result  = new $.Deferred(),
+            jsFiles = [];
         
         if (!keepAllFiles) {
             // Filter fileInfos for .js files

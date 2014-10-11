@@ -81,6 +81,7 @@ The following languages have been contributed by the Brackets community:
 * Serbian (sr)
 * Swedish (sv)
 * Turkish (tr)
+* Ukrainian (uk)
 * Simplified Chinese (zh-cn)
 * Traditional Chinese (zh-tw)
 

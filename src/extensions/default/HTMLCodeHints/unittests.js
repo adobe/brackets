@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, $, brackets */
 
 define(function (require, exports, module) {
     "use strict";
@@ -31,7 +31,6 @@ define(function (require, exports, module) {
     // Modules from the SpecRunner window
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         Editor          = brackets.getModule("editor/Editor").Editor,
-        CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         HTMLCodeHints   = require("main");
 
     describe("HTML Code Hinting", function () {
@@ -447,7 +446,7 @@ define(function (require, exports, module) {
                 
                 // Expect no filtering - however, we offer some attributes (including first in the list) that
                 // are specific to the <input> tag, so we can't use the default "no filtering" empty arg here.
-                // (This smart filtering isn't officially part of the sprint, so no unit tests specifically
+                // (This smart filtering isn't officially part of the release, so no unit tests specifically
                 // targeting that functionality yet).
                 verifyAttrHints(hintList, "accept");
             });
