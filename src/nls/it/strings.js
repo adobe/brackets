@@ -231,8 +231,8 @@ define({
     
     "CMD_SPLITVIEW_NONE"        : "Nessuna Divisione",
     "CMD_SPLITVIEW_VERTICAL"    : "Dividere Verticalmente",
-    "CMD_SPLITVIEW_HORIZONTAL"  : "Dividere Orizontalmente",
-    "SPLITVIEW_MENU_TOOLTIP"    : "Dividere l'editor verticalmente o orizontalmente",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Dividere Orizzontalmente",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Dividere l'editor verticalmente oppure orizzontalmente",
     "GEAR_MENU_TOOLTIP"         : "Configura le impostazioni di lavoro",
 
     "SPLITVIEW_INFO_TITLE"              : "Già aperto",
