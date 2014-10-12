@@ -54,8 +54,7 @@ html, body {
     /* And make sure we get a pointer cursor even over text */
     cursor: default;
 
-    /* Turn off subpixel antialiasing on Mac since it flickers during animations. */
-    -webkit-font-smoothing: antialiased;
+    -webkit-font-smoothing: auto;
 
     /* This is a hack to avoid flicker when animations (like inline editors) that use the GPU complete.
        It seems that we have to put it here rather than on the animated element in order to prevent the
@@ -70,8 +69,6 @@ html, body {
          color: @dark-bc-text;
     }
 }
-
-
 
 .resizing-container {
     position: absolute;
