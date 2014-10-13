@@ -129,8 +129,10 @@ define(function (require, exports, module) {
             return;
         }
 
-        _fileSelectionFocus = fileSelectionFocus;
-        $(exports).triggerHandler("fileViewFocusChange");
+        if (_fileSelectionFocus !== fileSelectionFocus) {
+            _fileSelectionFocus = fileSelectionFocus;
+            $(exports).triggerHandler("fileViewFocusChange");
+        }
     }
 
     /** 
