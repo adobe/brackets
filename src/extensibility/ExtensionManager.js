@@ -38,16 +38,16 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _                       = require("thirdparty/lodash"),
-        Package                 = require("extensibility/Package"),
-        Async                   = require("utils/Async"),
-        ExtensionLoader         = require("utils/ExtensionLoader"),
-        ExtensionUtils          = require("utils/ExtensionUtils"),
-        FileSystem              = require("filesystem/FileSystem"),
-        FileUtils               = require("file/FileUtils"),
-        Strings                 = require("strings"),
-        StringUtils             = require("utils/StringUtils"),
-        ThemeManager            = require("view/ThemeManager");
+    var _                = require("thirdparty/lodash"),
+        Package          = require("extensibility/Package"),
+        Async            = require("utils/Async"),
+        ExtensionLoader  = require("utils/ExtensionLoader"),
+        ExtensionUtils   = require("utils/ExtensionUtils"),
+        FileSystem       = require("filesystem/FileSystem"),
+        FileUtils        = require("file/FileUtils"),
+        Strings          = require("strings"),
+        StringUtils      = require("utils/StringUtils"),
+        ThemeManager     = require("view/ThemeManager");
 
     // semver.browser is an AMD-compatible module
     var semver = require("extensibility/node/node_modules/semver/semver.browser");
@@ -613,68 +613,59 @@ define(function (require, exports, module) {
 
         FileSystem.getDirectoryForPath(dirPath).getContents(function (err, contents) {
             if (!err) {
-                var i, dirItem;
-                
-                for (i = 0; i < contents.length; i++) {
-                    dirItem = contents[i];
-                    if (dirItem.isFile && FileUtils.getFileExtension(dirItem.fullPath) === "zip") {
-                        bundles.push(dirItem);
-                    }
-                }
-            }
-        });
-
-        // Process bundles
-        // TODO - currently we're looking for extension .zip files in "bundles" folder
-        // - not really "bundles", right? Just need better terminology.
-
-        // Parse zip files and separate new installs vs. updates
-        validatePromise = Async.doInParallel(bundles, function (file) {
-            var result = new $.Deferred();
-
-            // Call validate() so that we open the local zip file and parse the
-            // package.json. We need the name to detect if this zip will be a
-            // new install or an update.
-            Package.validate(file.fullPath, { requirePackageJSON: true }).done(function (info) {
-                if (info.errors.length) {
-                    result.reject(Package.formatError(info.errors));
-                    return;
-                }
-
-                var extensionName = info.metadata.name,
-                    extensionInfo = extensions[extensionName],
-                    isUpdate = extensionInfo && !!extensionInfo.installInfo;
-
-                if (isUpdate) {
-                    updateZips.push(file);
-                } else {
-                    installZips.push(file);
-                }
-
-                result.resolve();
-            }).fail(function (err) {
-                result.reject(Package.formatError(err));
-            });
-            
-            return result.promise();
-        });
-
-
-        validatePromise.done(function () {
-            var installPromise = Async.doSequentially(installZips, function (file) {
-                return Package.installFromPath(file.fullPath);
-            });
-
-            var updatePromise = installPromise.always(function () {
-                return Async.doSequentially(updateZips, function (file) {
-                    return Package.installUpdate(file.fullPath);
+                bundles = contents.filter(function (dirItem) {
+                    return (dirItem.isFile && FileUtils.getFileExtension(dirItem.fullPath) === "zip");
                 });
+            }
+
+            // Parse zip files and separate new installs vs. updates
+            validatePromise = Async.doInParallel(bundles, function (file) {
+                var result = new $.Deferred();
+
+                // Call validate() so that we open the local zip file and parse the
+                // package.json. We need the name to detect if this zip will be a
+                // new install or an update.
+                Package.validate(file.fullPath, { requirePackageJSON: true }).done(function (info) {
+                    if (info.errors.length) {
+                        result.reject(Package.formatError(info.errors));
+                        return;
+                    }
+
+                    var extensionName = info.metadata.name,
+                        extensionInfo = extensions[extensionName],
+                        isUpdate = extensionInfo && !!extensionInfo.installInfo;
+
+                    if (isUpdate) {
+                        updateZips.push(file);
+                    } else {
+                        installZips.push(file);
+                    }
+
+                    result.resolve();
+                }).fail(function (err) {
+                    result.reject(Package.formatError(err));
+                });
+
+                return result.promise();
             });
 
-            // Always resolve the outer promise
-            updatePromise.always(deferred.resolve);
-        }).fail(function (errorArray) {
-            deferred.reject(errorArray);
+
+            validatePromise.done(function () {
+                var installPromise = Async.doSequentially(installZips, function (file) {
+                    return Package.installFromPath(file.fullPath);
+                });
+
+                var updatePromise = installPromise.always(function () {
+                    return Async.doSequentially(updateZips, function (file) {
+                        return Package.installUpdate(file.fullPath);
+                    });
+                });
+
+                // Always resolve the outer promise
+                updatePromise.always(deferred.resolve);
+            }).fail(function (errorArray) {
+                deferred.reject(errorArray);
+            });
         });
 
         return deferred.promise();
