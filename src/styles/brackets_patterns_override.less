@@ -43,7 +43,12 @@ a {
 }
 
 a:hover {
+    color: @bc-text-link;
     text-decoration: underline;
+    
+    .dark & {
+        color: @dark-bc-text-link;
+    }
 }
 
 a:focus {
