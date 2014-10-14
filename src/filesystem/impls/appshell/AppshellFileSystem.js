@@ -366,14 +366,10 @@ define(function (require, exports, module) {
      */
     function readFile(path, options, callback) {
         var encoding = options.encoding || "utf8";
-        
-        // Execute the read and stat calls in parallel. Callback early if the
-        // read call completes first with an error; otherwise wait for both
-        // to finish.
-        var stat,
-            masterPromise = new $.Deferred();
 
-        function doReadFile() {
+        // callback to be executed when state completes
+        //  or immediately if a stat object was passed as an argument
+        function doReadFile(stat) {
             if (stat.size > (FileUtils.maximumFileSizeInMegabytes * 1024 * 1024)) {
                 callback(FileSystemError.EXCEEDS_MAX_FILE_SIZE);
             } else {
@@ -388,15 +384,13 @@ define(function (require, exports, module) {
         }
         
         if (options.stat) {
-            stat = options.stat;
-            doReadFile();
+            doReadFile(options.stat);
         } else {
             exports.stat(path, function (_err, _stat) {
                 if (_err) {
                     callback(_mapError(_err));
                 } else {
-                    stat = _stat;
-                    doReadFile();
+                    doReadFile(_stat);
                 }
             });
         }
