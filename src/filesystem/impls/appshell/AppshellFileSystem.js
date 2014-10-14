@@ -367,10 +367,10 @@ define(function (require, exports, module) {
     function readFile(path, options, callback) {
         var encoding = options.encoding || "utf8";
 
-        // callback to be executed when state completes
+        // callback to be executed when the call to stat completes
         //  or immediately if a stat object was passed as an argument
         function doReadFile(stat) {
-            if (stat.size > (FileUtils.maximumFileSizeInMegabytes * 1024 * 1024)) {
+            if (stat.size > (FileUtils.MAX_FILE_SIZE_MB * 1024 * 1024)) {
                 callback(FileSystemError.EXCEEDS_MAX_FILE_SIZE);
             } else {
                 appshell.fs.readFile(path, encoding, function (_err, _data) {
@@ -569,21 +569,21 @@ define(function (require, exports, module) {
 
     
     // Export public API
-    exports.showOpenDialog             = showOpenDialog;
-    exports.showSaveDialog             = showSaveDialog;
-    exports.exists                     = exists;
-    exports.readdir                    = readdir;
-    exports.mkdir                      = mkdir;
-    exports.rename                     = rename;
-    exports.stat                       = stat;
-    exports.readFile                   = readFile;
-    exports.writeFile                  = writeFile;
-    exports.unlink                     = unlink;
-    exports.moveToTrash                = moveToTrash;
-    exports.initWatchers               = initWatchers;
-    exports.watchPath                  = watchPath;
-    exports.unwatchPath                = unwatchPath;
-    exports.unwatchAll                 = unwatchAll;
+    exports.showOpenDialog = showOpenDialog;
+    exports.showSaveDialog = showSaveDialog;
+    exports.exists         = exists;
+    exports.readdir        = readdir;
+    exports.mkdir          = mkdir;
+    exports.rename         = rename;
+    exports.stat           = stat;
+    exports.readFile       = readFile;
+    exports.writeFile      = writeFile;
+    exports.unlink         = unlink;
+    exports.moveToTrash    = moveToTrash;
+    exports.initWatchers   = initWatchers;
+    exports.watchPath      = watchPath;
+    exports.unwatchPath    = unwatchPath;
+    exports.unwatchAll     = unwatchAll;
     
     /**
      * Indicates whether or not recursive watching notifications are supported

@@ -34,7 +34,7 @@ define({
     "GENERIC_ERROR"                     : "(error {0})",
     "NOT_FOUND_ERR"                     : "The file could not be found.",
     "NOT_READABLE_ERR"                  : "The file could not be read.",
-    "EXCEEDS_MAX_FILE_SIZE"             : "Files greater than {0} MB cannot be opened in {APP_NAME}.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "Files larger than {0} MB cannot be opened in {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
     "CONTENTS_MODIFIED_ERR"             : "The file has been modified outside of {APP_NAME}.",

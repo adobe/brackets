@@ -43,9 +43,12 @@ define(function (require, exports, module) {
 
     
     /**
-     * @type {Number} Maximium file size.
+     * @const {Number} Maximium file size in megabytes (32MB)
+     *   This must be a hard-coded value since this value
+     *   tells how low-level APIs should behave which cannot
+     *   have a load order dependency on preferences manager
      */
-    var maximumFileSizeInMegabytes = 20;         // 20MB
+    var MAX_FILE_SIZE_MB = 32;
     
     
     /**
@@ -176,7 +179,7 @@ define(function (require, exports, module) {
             result = Strings.UNSUPPORTED_ENCODING_ERR;
         } else if (name === FileSystemError.EXCEEDS_MAX_FILE_SIZE) {
             //result = Strings.EXCEEDS_MAX_FILE_SIZE;
-            result = StringUtils.format(Strings.EXCEEDS_MAX_FILE_SIZE, maximumFileSizeInMegabytes);
+            result = StringUtils.format(Strings.EXCEEDS_MAX_FILE_SIZE, MAX_FILE_SIZE_MB);
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
         }
@@ -550,5 +553,5 @@ define(function (require, exports, module) {
     exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;
     exports.comparePaths                   = comparePaths;
-    exports.maximumFileSizeInMegabytes     = maximumFileSizeInMegabytes;
+    exports.MAX_FILE_SIZE_MB     = MAX_FILE_SIZE_MB;
 });
