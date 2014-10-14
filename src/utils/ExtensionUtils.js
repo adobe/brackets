@@ -122,7 +122,12 @@ define(function (require, exports, module) {
             if (err) {
                 result.reject(err);
             } else {
-                result.resolve(tree.toCSS());
+                try {
+                    result.resolve(tree.toCSS());
+                } catch (toCSSError) {
+                    console.error(toCSSError.filename + ":" + toCSSError.line + " " + toCSSError.message);
+                    result.reject(toCSSError);
+                }
             }
         });
         

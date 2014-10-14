@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         KeyEvent        = require("utils/KeyEvent"),
         FileSystem,
-        Strings;
+        Strings         = require("strings");
 
     describe("Install Extension Dialog", function () {
         var testWindow, dialog, fields, closed,
@@ -42,7 +42,6 @@ define(function (require, exports, module) {
         beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
-                Strings = testWindow.require("strings");
                 FileSystem = testWindow.brackets.test.FileSystem;
             });
         });
