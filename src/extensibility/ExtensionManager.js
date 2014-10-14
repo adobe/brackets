@@ -75,6 +75,11 @@ define(function (require, exports, module) {
         LOCATION_UNKNOWN = "unknown";
 
     /**
+     * Extension auto-install folder.
+     */
+    var FOLDER_AUTOINSTALL = "auto-install-extensions/";
+
+    /**
      * @private
      * @type {Object.<string, {metadata: Object, path: string, status: string}>}
      * The set of all known extensions, both from the registry and locally installed.
@@ -604,12 +609,11 @@ define(function (require, exports, module) {
     function _autoInstallBundles() {
         // Get list of extension bundles
         var validatePromise,
-            srcPath = FileUtils.getNativeBracketsDirectoryPath(),
-            dirPath = srcPath.substr(0, srcPath.lastIndexOf("/")) + "/bundles/",
-            bundles = [],
+            dirPath     = FileUtils.getDirectoryPath(FileUtils.getNativeBracketsDirectoryPath()) + FOLDER_AUTOINSTALL,
+            bundles     = [],
             installZips = [],
-            updateZips = [],
-            deferred = new $.Deferred();
+            updateZips  = [],
+            deferred    = new $.Deferred();
 
         FileSystem.getDirectoryForPath(dirPath).getContents(function (err, contents) {
             if (!err) {
@@ -672,7 +676,6 @@ define(function (require, exports, module) {
     }
 
     function autoInstallBundles() {
-        // TODO: make _getNodeConnectionDeferred() public?
         Package._getNodeConnectionDeferred().done(function () {
             _autoInstallBundles();
         });
