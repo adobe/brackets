@@ -28,9 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var AppInit              = require("utils/AppInit"),
-        PreferencesManager   = require("preferences/PreferencesManager"),
-        FileUtils            = require("file/FileUtils"),
+    var FileUtils            = require("file/FileUtils"),
         FileSystemStats      = require("filesystem/FileSystemStats"),
         FileSystemError      = require("filesystem/FileSystemError"),
         NodeDomain           = require("utils/NodeDomain");
