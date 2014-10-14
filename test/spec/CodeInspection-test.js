@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     var SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
         FileSystem       = require("filesystem/FileSystem"),
         StringUtils      = require("utils/StringUtils"),
-        Strings;
+        Strings          = require("strings");
 
     describe("Code Inspection", function () {
         this.category = "integration";
@@ -110,7 +110,6 @@ define(function (require, exports, module) {
                     // Load module instances from brackets.test
                     $ = testWindow.$;
                     brackets = testWindow.brackets;
-                    Strings = testWindow.require("strings");
                     CommandManager = brackets.test.CommandManager;
                     DocumentManager = brackets.test.DocumentManager;
                     EditorManager = brackets.test.EditorManager;
