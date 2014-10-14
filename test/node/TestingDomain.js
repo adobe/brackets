@@ -27,7 +27,12 @@ indent: 4, maxerr: 50 */
 
 "use strict";
 
-var fs = require("fs-extra");
+var fs = require("fs-extra"),
+    os = require("os");
+
+function getSystemTempDir(cb) {
+    cb(null, os.tmpdir());
+}
 
 /**
  * Initialize the "testing" domain.
@@ -65,6 +70,21 @@ function init(domainManager) {
                 name: "dest",
                 type: "string",
                 description: "destination directory"
+            }
+        ]
+    );
+    domainManager.registerCommand(
+        "testing",
+        "tmpdir",
+        getSystemTempDir,
+        true,
+        "The default os tmpdir",
+        [],
+        [
+            {
+                name: "tmpdir",
+                type: "string",
+                description: "default temp directory"
             }
         ]
     );

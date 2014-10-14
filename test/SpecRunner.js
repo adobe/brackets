@@ -283,11 +283,13 @@ define(function (require, exports, module) {
         // Delete temp folder before running the first test
         beforeFirst(function () {
             SpecRunnerUtils.removeTempDirectory();
+            SpecRunnerUtils.initializeSystemTempDirectory();
         });
         
         // Delete temp folder after running the last test
         afterLast(function () {
             SpecRunnerUtils.removeTempDirectory();
+            SpecRunnerUtils.removeTestDocumentsTempFolder();
         });
     }
     
@@ -336,14 +338,14 @@ define(function (require, exports, module) {
         _loadExtensionTests(selectedSuites).always(function () {
             var jasmineEnv = jasmine.getEnv();
             jasmineEnv.updateInterval = 1000;
-            
+
             _registerBeforeAfterHandlers();
-            
+
             // Create the reporter, which is really a model class that just gathers
             // spec and performance data.
             reporter = new UnitTestReporter(jasmineEnv, topLevelFilter, params.get("spec"));
             SpecRunnerUtils.setUnitTestReporter(reporter);
-            
+
             // Optionally emit JUnit XML file for automated runs
             if (resultsPath) {
                 if (resultsPath.substr(-4) === ".xml") {
@@ -356,21 +358,20 @@ define(function (require, exports, module) {
             } else {
                 _writeResults.resolve();
             }
-            
+
             jasmineEnv.addReporter(reporter);
-            
+
             // Create the view that displays the data from the reporter. (Usually in
             // Jasmine this is part of the reporter, but we separate them out so that
             // we can more easily grab just the model data for output during automatic
             // testing.)
             reporterView = new BootstrapReporterView(document, reporter);
-            
+
             // remember the suite for the next unit test window launch
             localStorage.setItem("SpecRunner.suite", selectedSuites);
-            
+
             $(window.document).ready(_documentReadyHandler);
         });
-        
         
         // Prevent clicks on any link from navigating to a different page (which could lose unsaved
         // changes). We can't use a simple .on("click", "a") because of http://bugs.jquery.com/ticket/3861:
@@ -414,7 +415,7 @@ define(function (require, exports, module) {
         });
 
         Async.withTimeout(_nodeConnectionDeferred.promise(), NODE_CONNECTION_TIMEOUT);
-        
+
         brackets.testing = { nodeConnection: _nodeConnection };
     }
     
