@@ -28,21 +28,18 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils           = require("file/FileUtils"),
-        FileSystemStats     = require("filesystem/FileSystemStats"),
-        FileSystemError     = require("filesystem/FileSystemError"),
-        NodeDomain          = require("utils/NodeDomain");
+    var AppInit              = require("utils/AppInit"),
+        PreferencesManager   = require("preferences/PreferencesManager"),
+        FileUtils            = require("file/FileUtils"),
+        FileSystemStats      = require("filesystem/FileSystemStats"),
+        FileSystemError      = require("filesystem/FileSystemError"),
+        NodeDomain           = require("utils/NodeDomain");
     
     /**
      * @const
      */
     var FILE_WATCHER_BATCH_TIMEOUT = 200;   // 200ms - granularity of file watcher changes
 
-    /**
-     * @const
-     */
-    var FILE_READ_SIZE_LIMIT = 4 * 1024 * 1024; // 4MB
-    
     /**
      * Callback to notify FileSystem of watcher changes
      * @type {?function(string, FileSystemStats=)}
@@ -373,27 +370,12 @@ define(function (require, exports, module) {
         // Execute the read and stat calls in parallel. Callback early if the
         // read call completes first with an error; otherwise wait for both
         // to finish.
-        var stat, 
+        var stat,
             masterPromise = new $.Deferred();
 
-        if (options.stat) {
-            stat = options.stat;
-            masterPromise.resolve();
-        } else {
-            exports.stat(path, function (_err, _stat) {
-                if (_err) {
-                    callback(_mapError(_err));
-                    masterPromise.reject();
-                } else {
-                    stat = _stat;
-                    masterPromise.resolve();
-                }
-            });
-        }
-
-        masterPromise.done(function() {
-            if (stat.size > FILE_READ_SIZE_LIMIT) {
-                callback(FileSystemError.MAXIMUM_FILE_SIZE_REACHED);
+        function doReadFile() {
+            if (stat.size > (FileUtils.maximumFileSizeInMegabytes * 1024 * 1024)) {
+                callback(FileSystemError.EXCEEDS_MAX_FILE_SIZE);
             } else {
                 appshell.fs.readFile(path, encoding, function (_err, _data) {
                     if (_err) {
@@ -403,7 +385,21 @@ define(function (require, exports, module) {
                     }
                 });
             }
-        });
+        }
+        
+        if (options.stat) {
+            stat = options.stat;
+            doReadFile();
+        } else {
+            exports.stat(path, function (_err, _stat) {
+                if (_err) {
+                    callback(_mapError(_err));
+                } else {
+                    stat = _stat;
+                    doReadFile();
+                }
+            });
+        }
     }
     /**
      * Write data to the file at the given path, calling back asynchronously with
@@ -576,23 +572,24 @@ define(function (require, exports, module) {
         _nodeDomain.exec("unwatchAll")
             .then(callback, callback);
     }
+
     
     // Export public API
-    exports.showOpenDialog  = showOpenDialog;
-    exports.showSaveDialog  = showSaveDialog;
-    exports.exists          = exists;
-    exports.readdir         = readdir;
-    exports.mkdir           = mkdir;
-    exports.rename          = rename;
-    exports.stat            = stat;
-    exports.readFile        = readFile;
-    exports.writeFile       = writeFile;
-    exports.unlink          = unlink;
-    exports.moveToTrash     = moveToTrash;
-    exports.initWatchers    = initWatchers;
-    exports.watchPath       = watchPath;
-    exports.unwatchPath     = unwatchPath;
-    exports.unwatchAll      = unwatchAll;
+    exports.showOpenDialog             = showOpenDialog;
+    exports.showSaveDialog             = showSaveDialog;
+    exports.exists                     = exists;
+    exports.readdir                    = readdir;
+    exports.mkdir                      = mkdir;
+    exports.rename                     = rename;
+    exports.stat                       = stat;
+    exports.readFile                   = readFile;
+    exports.writeFile                  = writeFile;
+    exports.unlink                     = unlink;
+    exports.moveToTrash                = moveToTrash;
+    exports.initWatchers               = initWatchers;
+    exports.watchPath                  = watchPath;
+    exports.unwatchPath                = unwatchPath;
+    exports.unwatchAll                 = unwatchAll;
     
     /**
      * Indicates whether or not recursive watching notifications are supported

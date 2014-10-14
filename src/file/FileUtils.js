@@ -43,6 +43,12 @@ define(function (require, exports, module) {
 
     
     /**
+     * @type {Number} Maximium file size.
+     */
+    var maximumFileSizeInMegabytes = 20;         // 20MB
+    
+    
+    /**
      * Asynchronously reads a file as UTF-8 encoded text.
      * @param {!File} file File to read
      * @return {$.Promise} a jQuery promise that will be resolved with the 
@@ -168,8 +174,9 @@ define(function (require, exports, module) {
             result = Strings.CONTENTS_MODIFIED_ERR;
         } else if (name === FileSystemError.UNSUPPORTED_ENCODING) {
             result = Strings.UNSUPPORTED_ENCODING_ERR;
-        } else if (name === FileSystemError.MAXIMUM_FILE_SIZE_REACHED) {
-            result = Strings.MAXIMUM_FILE_SIZE_REACHED;
+        } else if (name === FileSystemError.EXCEEDS_MAX_FILE_SIZE) {
+            //result = Strings.EXCEEDS_MAX_FILE_SIZE;
+            result = StringUtils.format(Strings.EXCEEDS_MAX_FILE_SIZE, maximumFileSizeInMegabytes);
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
         }
@@ -543,4 +550,5 @@ define(function (require, exports, module) {
     exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;
     exports.comparePaths                   = comparePaths;
+    exports.maximumFileSizeInMegabytes     = maximumFileSizeInMegabytes;
 });
