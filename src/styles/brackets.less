@@ -98,23 +98,24 @@ a, img {
     height: 100%;
 
     .dark & {
-         background: @dark-bc-menu-bg;
+        background: @dark-bc-menu-bg;
+    }
+
+    .sidebar, .content {
+        height: 100%;
+        position: absolute;
+        top: 0;
     }
 
     .sidebar {
-        height: 100%;
         .vbox;
-        width: @sidebar-width;  // changed dynamically via Resizer
-        position: absolute;
         left: 0;
-        top: 0;
+        width: @sidebar-width;  // changed dynamically via Resizer
+        white-space: nowrap;
     }
 
     .content {
-        height: 100%;
-        position: absolute;
         padding: 0;
-        top: 0;
         left: @sidebar-width;  // changed dynamically via Resizer
         right: @main-toolbar-width;
     }
@@ -492,6 +493,9 @@ a, img {
         padding: 5px 10px;
         color: @bc-text-thin-quiet;
         background-color: @background;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         
         .dark & {
             color: @dark-bc-text-quiet;
@@ -770,11 +774,6 @@ a, img {
     &:nth-child(3) .menu-name::before {
         .splitview-icon-horizontal();
     }
-}
-
-#sidebar {
-    position: relative;
-    white-space: nowrap;
 }
 
 #sidebar-resizer {
