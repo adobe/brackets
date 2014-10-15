@@ -336,6 +336,7 @@ a, img {
     }
 
     .view-pane {
+        opacity: 0.7; // quieten inactive pane
         display: block;
         margin: 0;
         overflow: hidden;
@@ -491,19 +492,19 @@ a, img {
         box-sizing: border-box;
         border-bottom:  1px solid rgba(0, 0, 0, 0.05);
         padding: 5px 10px;
-        color: @bc-text-thin-quiet;
         background-color: @background;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         
         .dark & {
-            color: @dark-bc-text-quiet;
             background-color: #1d1f21; // not using a variable on purpose.
             border-bottom-color: rgba(255, 255, 255, 0.05);
         }
     }
     .active-pane {
+        opacity: 1;
+        
         .pane-header {
             color: @bc-menu-text;
 
