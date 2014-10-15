@@ -792,6 +792,14 @@ a, img {
     font-size: 13px;
     color: @project-panel-text-2;
     overflow: hidden;
+    
+    .btn-alt-quiet {
+        background-color: #47484b;
+        
+        // relative positioning plus z-index make sure that the splitview button flows under the left aligned buttons in the project pane when there are no working set files
+        position: relative;
+        z-index: 9; 
+    }
 }
 
 .open-files-container {
