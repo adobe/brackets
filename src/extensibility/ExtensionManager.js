@@ -38,16 +38,17 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _                = require("thirdparty/lodash"),
-        Package          = require("extensibility/Package"),
-        Async            = require("utils/Async"),
-        ExtensionLoader  = require("utils/ExtensionLoader"),
-        ExtensionUtils   = require("utils/ExtensionUtils"),
-        FileSystem       = require("filesystem/FileSystem"),
-        FileUtils        = require("file/FileUtils"),
-        Strings          = require("strings"),
-        StringUtils      = require("utils/StringUtils"),
-        ThemeManager     = require("view/ThemeManager");
+    var _                   = require("thirdparty/lodash"),
+        Package             = require("extensibility/Package"),
+        Async               = require("utils/Async"),
+        ExtensionLoader     = require("utils/ExtensionLoader"),
+        ExtensionUtils      = require("utils/ExtensionUtils"),
+        FileSystem          = require("filesystem/FileSystem"),
+        FileUtils           = require("file/FileUtils"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
+        ThemeManager        = require("view/ThemeManager");
 
     // semver.browser is an AMD-compatible module
     var semver = require("extensibility/node/node_modules/semver/semver.browser");
@@ -75,9 +76,9 @@ define(function (require, exports, module) {
         LOCATION_UNKNOWN = "unknown";
 
     /**
-     * Extension auto-install folder.
+     * Extension auto-install folder. Also used for preferences key.
      */
-    var FOLDER_AUTOINSTALL = "auto-install-extensions/";
+    var FOLDER_AUTOINSTALL = "auto-install-extensions";
 
     /**
      * @private
@@ -102,6 +103,8 @@ define(function (require, exports, module) {
      */
     var _idsToRemove = [],
         _idsToUpdate = [];
+
+    PreferencesManager.definePreference(FOLDER_AUTOINSTALL, "array", undefined);
 
     /**
      * @private
@@ -609,13 +612,16 @@ define(function (require, exports, module) {
     function _autoInstallBundles() {
         // Get list of extension bundles
         var validatePromise,
-            dirPath     = FileUtils.getDirectoryPath(FileUtils.getNativeBracketsDirectoryPath()) + FOLDER_AUTOINSTALL,
+            dirPath     = FileUtils.getDirectoryPath(FileUtils.getNativeBracketsDirectoryPath()) + FOLDER_AUTOINSTALL + "/",
             bundles     = [],
             installZips = [],
             updateZips  = [],
             deferred    = new $.Deferred();
 
         FileSystem.getDirectoryForPath(dirPath).getContents(function (err, contents) {
+            var autoExtensions = PreferencesManager.getViewState(FOLDER_AUTOINSTALL) || {},
+                autoExtDirty   = false;
+
             if (!err) {
                 bundles = contents.filter(function (dirItem) {
                     return (dirItem.isFile && FileUtils.getFileExtension(dirItem.fullPath) === "zip");
@@ -635,11 +641,31 @@ define(function (require, exports, module) {
                         return;
                     }
 
-                    var extensionName = info.metadata.name,
-                        extensionInfo = extensions[extensionName],
-                        isUpdate = extensionInfo && !!extensionInfo.installInfo;
+                    var extensionInfo, installedVersion,
+                        extensionName   = info.metadata.name,
+                        autoExtVersion  = autoExtensions && autoExtensions[extensionName];
 
-                    if (isUpdate) {
+                    // Verify extension has not already been auto-installed/updated
+                    if (autoExtVersion && semver.lte(info.metadata.version, autoExtVersion)) {
+                        // Have already installed/updated version >= version of this extension
+                        result.reject();
+                        return;
+                    }
+
+                    // Verify extension has not already been installed/updated by some other means
+                    extensionInfo = extensions[extensionName];
+                    installedVersion = extensionInfo && extensionInfo.installInfo && extensionInfo.installInfo.metadata.version;
+                    if (installedVersion && semver.lte(info.metadata.version, installedVersion)) {
+                        // Have already installed/updated version >= version of this extension
+                        result.reject();
+                        return;
+                    }
+
+                    // Keep track of auto-installed extensions so we only install an extension once
+                    autoExtensions[extensionName] = info.metadata.version;
+                    autoExtDirty = true;
+
+                    if (installedVersion) {
                         updateZips.push(file);
                     } else {
                         installZips.push(file);
@@ -652,7 +678,6 @@ define(function (require, exports, module) {
 
                 return result.promise();
             });
-
 
             validatePromise.done(function () {
                 var installPromise = Async.doSequentially(installZips, function (file) {
@@ -669,6 +694,11 @@ define(function (require, exports, module) {
                 updatePromise.always(deferred.resolve);
             }).fail(function (errorArray) {
                 deferred.reject(errorArray);
+            }).always(function () {
+                if (autoExtDirty) {
+                    // Store info in prefs
+                    PreferencesManager.setViewState(FOLDER_AUTOINSTALL, autoExtensions);
+                }
             });
         });
 
