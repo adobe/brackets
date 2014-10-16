@@ -38,15 +38,18 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _                = require("thirdparty/lodash"),
-        Package          = require("extensibility/Package"),
-        Async            = require("utils/Async"),
-        ExtensionLoader  = require("utils/ExtensionLoader"),
-        ExtensionUtils   = require("utils/ExtensionUtils"),
-        FileSystem       = require("filesystem/FileSystem"),
-        Strings          = require("strings"),
-        StringUtils      = require("utils/StringUtils"),
-        ThemeManager     = require("view/ThemeManager");
+    var _                   = require("thirdparty/lodash"),
+        Package             = require("extensibility/Package"),
+        AppInit             = require("utils/AppInit"),
+        Async               = require("utils/Async"),
+        ExtensionLoader     = require("utils/ExtensionLoader"),
+        ExtensionUtils      = require("utils/ExtensionUtils"),
+        FileSystem          = require("filesystem/FileSystem"),
+        FileUtils           = require("file/FileUtils"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
+        ThemeManager        = require("view/ThemeManager");
 
     // semver.browser is an AMD-compatible module
     var semver = require("extensibility/node/node_modules/semver/semver.browser");
@@ -74,6 +77,11 @@ define(function (require, exports, module) {
         LOCATION_UNKNOWN = "unknown";
 
     /**
+     * Extension auto-install folder. Also used for preferences key.
+     */
+    var FOLDER_AUTOINSTALL = "auto-install-extensions";
+
+    /**
      * @private
      * @type {Object.<string, {metadata: Object, path: string, status: string}>}
      * The set of all known extensions, both from the registry and locally installed.
@@ -96,6 +104,8 @@ define(function (require, exports, module) {
      */
     var _idsToRemove = [],
         _idsToUpdate = [];
+
+    PreferencesManager.definePreference(FOLDER_AUTOINSTALL, "object", undefined);
 
     /**
      * @private
@@ -599,6 +609,108 @@ define(function (require, exports, module) {
             return arr;
         }, []);
     }
+
+    function _autoInstallBundles() {
+        // Get list of extension bundles
+        var validatePromise,
+            dirPath     = FileUtils.getDirectoryPath(FileUtils.getNativeBracketsDirectoryPath()) + FOLDER_AUTOINSTALL + "/",
+            bundles     = [],
+            installZips = [],
+            updateZips  = [],
+            deferred    = new $.Deferred();
+
+        FileSystem.getDirectoryForPath(dirPath).getContents(function (err, contents) {
+            var autoExtensions = PreferencesManager.getViewState(FOLDER_AUTOINSTALL) || {},
+                autoExtDirty   = false;
+
+            if (!err) {
+                bundles = contents.filter(function (dirItem) {
+                    return (dirItem.isFile && FileUtils.getFileExtension(dirItem.fullPath) === "zip");
+                });
+            }
+
+            // Parse zip files and separate new installs vs. updates
+            validatePromise = Async.doInParallel(bundles, function (file) {
+                var result = new $.Deferred();
+
+                // Call validate() so that we open the local zip file and parse the
+                // package.json. We need the name to detect if this zip will be a
+                // new install or an update.
+                Package.validate(file.fullPath, { requirePackageJSON: true }).done(function (info) {
+                    if (info.errors.length) {
+                        result.reject(Package.formatError(info.errors));
+                        return;
+                    }
+
+                    var extensionInfo, installedVersion,
+                        extensionName   = info.metadata.name,
+                        autoExtVersion  = autoExtensions && autoExtensions[extensionName];
+
+                    // Verify extension has not already been auto-installed/updated
+                    if (autoExtVersion && semver.lte(info.metadata.version, autoExtVersion)) {
+                        // Have already installed/updated version >= version of this extension
+                        result.reject();
+                        return;
+                    }
+
+                    // Verify extension has not already been installed/updated by some other means
+                    extensionInfo = extensions[extensionName];
+                    installedVersion = extensionInfo && extensionInfo.installInfo && extensionInfo.installInfo.metadata.version;
+                    if (installedVersion && semver.lte(info.metadata.version, installedVersion)) {
+                        // Have already installed/updated version >= version of this extension
+                        result.reject();
+                        return;
+                    }
+
+                    // Keep track of auto-installed extensions so we only install an extension once
+                    autoExtensions[extensionName] = info.metadata.version;
+                    autoExtDirty = true;
+
+                    if (installedVersion) {
+                        updateZips.push(file);
+                    } else {
+                        installZips.push(file);
+                    }
+
+                    result.resolve();
+                }).fail(function (err) {
+                    result.reject(Package.formatError(err));
+                });
+
+                return result.promise();
+            });
+
+            validatePromise.done(function () {
+                var installPromise = Async.doSequentially(installZips, function (file) {
+                    return Package.installFromPath(file.fullPath);
+                });
+
+                var updatePromise = installPromise.always(function () {
+                    return Async.doSequentially(updateZips, function (file) {
+                        return Package.installUpdate(file.fullPath);
+                    });
+                });
+
+                // Always resolve the outer promise
+                updatePromise.always(deferred.resolve);
+            }).fail(function (errorArray) {
+                deferred.reject(errorArray);
+            }).always(function () {
+                if (autoExtDirty) {
+                    // Store info in prefs
+                    PreferencesManager.setViewState(FOLDER_AUTOINSTALL, autoExtensions);
+                }
+            });
+        });
+
+        return deferred.promise();
+    }
+
+    AppInit.appReady(function () {
+        Package._getNodeConnectionDeferred().done(function () {
+            _autoInstallBundles();
+        });
+    });
 
     // Listen to extension load and loadFailed events
     $(ExtensionLoader)
