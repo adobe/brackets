@@ -105,7 +105,7 @@ define(function (require, exports, module) {
     var _idsToRemove = [],
         _idsToUpdate = [];
 
-    PreferencesManager.definePreference(FOLDER_AUTOINSTALL, "object", undefined);
+    PreferencesManager.stateManager.definePreference(FOLDER_AUTOINSTALL, "object", undefined);
 
     /**
      * @private
