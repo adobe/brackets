@@ -236,10 +236,11 @@ define(function (require, exports, module) {
                 metadata: metadata,
                 path: path,
                 locationType: locationType,
-                status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
+                status: (e.type === "loadFailed" ? START_FAILED : ENABLED),
+                operationType: operationType
             };
             synchronizeEntry(id);
-            $(exports).triggerHandler("statusChange", [id, operationType]);
+            $(exports).triggerHandler("statusChange", [id]);
         }
 
         ExtensionUtils.loadPackageJson(path)

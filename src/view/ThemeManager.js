@@ -382,10 +382,10 @@ define(function (require, exports, module) {
 
     $(ExtensionManager).on("statusChange", function (evt, id, operationType) {
         var extension = ExtensionManager.extensions[id];
-        if (extension.installInfo && extension.installInfo.metadata && extension.installInfo.metadata.theme) {
+        if (extension && extension.installInfo && extension.installInfo.metadata && extension.installInfo.metadata.theme) {
             loadPackage(extension.installInfo).done(function (theme) {
                 // Set the newly installed theme as the current theme.
-                if (operationType === Package.OperationTypes.INSTALL) {
+                if (extension.installInfo.operationType === Package.OperationTypes.INSTALL) {
                     setCurrentTheme(theme.name);
                 }
             });
