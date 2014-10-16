@@ -368,7 +368,7 @@ define(function (require, exports, module) {
         // callback to be executed when the call to stat completes
         //  or immediately if a stat object was passed as an argument
         function doReadFile(stat) {
-            if (stat.size > (FileUtils.MAX_FILE_SIZE_MB * 1024 * 1024)) {
+            if (stat.size > (FileUtils.MAX_FILE_SIZE)) {
                 callback(FileSystemError.EXCEEDS_MAX_FILE_SIZE);
             } else {
                 appshell.fs.readFile(path, encoding, function (_err, _data) {

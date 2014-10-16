@@ -43,12 +43,21 @@ define(function (require, exports, module) {
 
     
     /**
-     * @const {Number} Maximium file size in megabytes 
+     * @const {Number} Maximium file size (in megabytes)
+     *   (for display strings)
      *   This must be a hard-coded value since this value
      *   tells how low-level APIs should behave which cannot
      *   have a load order dependency on preferences manager
      */
     var MAX_FILE_SIZE_MB = 16;
+    
+    /**
+     * @const {Number} Maximium file size (in bytes)
+     *   This must be a hard-coded value since this value
+     *   tells how low-level APIs should behave which cannot
+     *   have a load order dependency on preferences manager
+     */
+    var MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
     
     
     /**
@@ -552,5 +561,5 @@ define(function (require, exports, module) {
     exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;
     exports.comparePaths                   = comparePaths;
-    exports.MAX_FILE_SIZE_MB               = MAX_FILE_SIZE_MB;
+    exports.MAX_FILE_SIZE                  = MAX_FILE_SIZE;
 });
