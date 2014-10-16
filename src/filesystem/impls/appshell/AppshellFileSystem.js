@@ -28,10 +28,10 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils            = require("file/FileUtils"),
-        FileSystemStats      = require("filesystem/FileSystemStats"),
-        FileSystemError      = require("filesystem/FileSystemError"),
-        NodeDomain           = require("utils/NodeDomain");
+    var FileUtils           = require("file/FileUtils"),
+        FileSystemStats     = require("filesystem/FileSystemStats"),
+        FileSystemError     = require("filesystem/FileSystemError"),
+        NodeDomain          = require("utils/NodeDomain");
     
     /**
      * @const
@@ -567,21 +567,21 @@ define(function (require, exports, module) {
 
     
     // Export public API
-    exports.showOpenDialog = showOpenDialog;
-    exports.showSaveDialog = showSaveDialog;
-    exports.exists         = exists;
-    exports.readdir        = readdir;
-    exports.mkdir          = mkdir;
-    exports.rename         = rename;
-    exports.stat           = stat;
-    exports.readFile       = readFile;
-    exports.writeFile      = writeFile;
-    exports.unlink         = unlink;
-    exports.moveToTrash    = moveToTrash;
-    exports.initWatchers   = initWatchers;
-    exports.watchPath      = watchPath;
-    exports.unwatchPath    = unwatchPath;
-    exports.unwatchAll     = unwatchAll;
+    exports.showOpenDialog  = showOpenDialog;
+    exports.showSaveDialog  = showSaveDialog;
+    exports.exists          = exists;
+    exports.readdir         = readdir;
+    exports.mkdir           = mkdir;
+    exports.rename          = rename;
+    exports.stat            = stat;
+    exports.readFile        = readFile;
+    exports.writeFile       = writeFile;
+    exports.unlink          = unlink;
+    exports.moveToTrash     = moveToTrash;
+    exports.initWatchers    = initWatchers;
+    exports.watchPath       = watchPath;
+    exports.unwatchPath     = unwatchPath;
+    exports.unwatchAll      = unwatchAll;
     
     /**
      * Indicates whether or not recursive watching notifications are supported

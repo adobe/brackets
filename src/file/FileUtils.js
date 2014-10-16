@@ -178,7 +178,6 @@ define(function (require, exports, module) {
         } else if (name === FileSystemError.UNSUPPORTED_ENCODING) {
             result = Strings.UNSUPPORTED_ENCODING_ERR;
         } else if (name === FileSystemError.EXCEEDS_MAX_FILE_SIZE) {
-            //result = Strings.EXCEEDS_MAX_FILE_SIZE;
             result = StringUtils.format(Strings.EXCEEDS_MAX_FILE_SIZE, MAX_FILE_SIZE_MB);
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
@@ -553,5 +552,5 @@ define(function (require, exports, module) {
     exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;
     exports.comparePaths                   = comparePaths;
-    exports.MAX_FILE_SIZE_MB     = MAX_FILE_SIZE_MB;
+    exports.MAX_FILE_SIZE_MB               = MAX_FILE_SIZE_MB;
 });
