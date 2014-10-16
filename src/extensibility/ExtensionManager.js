@@ -610,11 +610,13 @@ define(function (require, exports, module) {
         }, []);
     }
 
-    function _autoInstallBundles() {
-        // Get list of extension bundles
-        var validatePromise,
-            dirPath     = FileUtils.getDirectoryPath(FileUtils.getNativeBracketsDirectoryPath()) + FOLDER_AUTOINSTALL + "/",
-            bundles     = [],
+    /**
+     * Find valid extensions in specified path
+     * @param {string} dirPath Directory with extensions
+     * @return {$.Promise} Promise that resolves with arrays for extensions to update and install
+     */
+    function _getAutoInstallFiles(dirPath) {
+        var zipFiles     = [],
             installZips = [],
             updateZips  = [],
             deferred    = new $.Deferred();
@@ -624,21 +626,21 @@ define(function (require, exports, module) {
                 autoExtDirty   = false;
 
             if (!err) {
-                bundles = contents.filter(function (dirItem) {
+                zipFiles = contents.filter(function (dirItem) {
                     return (dirItem.isFile && FileUtils.getFileExtension(dirItem.fullPath) === "zip");
                 });
             }
 
             // Parse zip files and separate new installs vs. updates
-            validatePromise = Async.doInParallel(bundles, function (file) {
-                var result = new $.Deferred();
+            Async.doInParallel(zipFiles, function (file) {
+                var zipFilePromise = new $.Deferred();
 
                 // Call validate() so that we open the local zip file and parse the
                 // package.json. We need the name to detect if this zip will be a
                 // new install or an update.
                 Package.validate(file.fullPath, { requirePackageJSON: true }).done(function (info) {
                     if (info.errors.length) {
-                        result.reject(Package.formatError(info.errors));
+                        zipFilePromise.reject(Package.formatError(info.errors));
                         return;
                     }
 
@@ -649,7 +651,7 @@ define(function (require, exports, module) {
                     // Verify extension has not already been auto-installed/updated
                     if (autoExtVersion && semver.lte(info.metadata.version, autoExtVersion)) {
                         // Have already installed/updated version >= version of this extension
-                        result.reject();
+                        zipFilePromise.reject();
                         return;
                     }
 
@@ -658,7 +660,7 @@ define(function (require, exports, module) {
                     installedVersion = extensionInfo && extensionInfo.installInfo && extensionInfo.installInfo.metadata.version;
                     if (installedVersion && semver.lte(info.metadata.version, installedVersion)) {
                         // Have already installed/updated version >= version of this extension
-                        result.reject();
+                        zipFilePromise.reject();
                         return;
                     }
 
@@ -672,35 +674,51 @@ define(function (require, exports, module) {
                         installZips.push(file);
                     }
 
-                    result.resolve();
+                    zipFilePromise.resolve();
                 }).fail(function (err) {
-                    result.reject(Package.formatError(err));
+                    zipFilePromise.reject(Package.formatError(err));
                 });
 
-                return result.promise();
-            });
-
-            validatePromise.done(function () {
-                var installPromise = Async.doSequentially(installZips, function (file) {
-                    return Package.installFromPath(file.fullPath);
-                });
-
-                var updatePromise = installPromise.always(function () {
-                    return Async.doSequentially(updateZips, function (file) {
-                        return Package.installUpdate(file.fullPath);
-                    });
-                });
-
-                // Always resolve the outer promise
-                updatePromise.always(deferred.resolve);
-            }).fail(function (errorArray) {
-                deferred.reject(errorArray);
+                return zipFilePromise.promise();
             }).always(function () {
                 if (autoExtDirty) {
                     // Store info in prefs
                     PreferencesManager.setViewState(FOLDER_AUTOINSTALL, autoExtensions);
                 }
+                // Async.doInParallel() fails if some are successful, so we always resolve
+                deferred.resolve({
+                    installZips: installZips,
+                    updateZips:  updateZips
+                });
             });
+        });
+
+        return deferred.promise();
+    }
+
+    /**
+     * Auto-install extensions bundled with installer
+     * @return {$.Promise} Promise that resolves when finished
+     */
+    function _autoInstallExtensions() {
+        var dirPath         = FileUtils.getDirectoryPath(FileUtils.getNativeBracketsDirectoryPath()) + FOLDER_AUTOINSTALL + "/",
+            deferred        = new $.Deferred();
+
+        _getAutoInstallFiles(dirPath).done(function (result) {
+            var installPromise = Async.doSequentially(result.installZips, function (file) {
+                return Package.installFromPath(file.fullPath);
+            });
+
+            var updatePromise = installPromise.always(function () {
+                return Async.doSequentially(result.updateZips, function (file) {
+                    return Package.installUpdate(file.fullPath);
+                });
+            });
+
+            // Always resolve the outer promise
+            updatePromise.always(deferred.resolve);
+        }).fail(function (errorArray) {
+            deferred.reject(errorArray);
         });
 
         return deferred.promise();
@@ -708,7 +726,7 @@ define(function (require, exports, module) {
 
     AppInit.appReady(function () {
         Package._getNodeConnectionDeferred().done(function () {
-            _autoInstallBundles();
+            _autoInstallExtensions();
         });
     });
 
