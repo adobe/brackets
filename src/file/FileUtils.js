@@ -43,12 +43,12 @@ define(function (require, exports, module) {
 
     
     /**
-     * @const {Number} Maximium file size in megabytes (32MB)
+     * @const {Number} Maximium file size in megabytes 
      *   This must be a hard-coded value since this value
      *   tells how low-level APIs should behave which cannot
      *   have a load order dependency on preferences manager
      */
-    var MAX_FILE_SIZE_MB = 32;
+    var MAX_FILE_SIZE_MB = 16;
     
     
     /**
