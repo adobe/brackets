@@ -969,6 +969,7 @@ define(function (require, exports, module) {
     exports._generateMatchList      = _generateMatchList;
     exports._SpecialMatch           = SpecialMatch;
     exports._NormalMatch            = NormalMatch;
+    exports._CaseMatch              = CaseMatch;
     exports._computeRangesAndScore  = _computeRangesAndScore;
 
     // public exports
