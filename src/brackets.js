@@ -87,7 +87,6 @@ define(function (require, exports, module) {
         UpdateNotification      = require("utils/UpdateNotification"),
         UrlParams               = require("utils/UrlParams").UrlParams,
         PreferencesManager      = require("preferences/PreferencesManager"),
-        ExtensionManager        = require("extensibility/ExtensionManager"),
         ExtensionUtils          = require("utils/ExtensionUtils"),
         DragAndDrop             = require("utils/DragAndDrop"),
         CodeInspection          = require("language/CodeInspection"),
