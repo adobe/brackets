@@ -316,15 +316,13 @@ define(function (require, exports, module) {
             });
         });
         
-        AppInit.appReady(function () {
-            // Check for updates
-            if (!brackets.inBrowser && !params.get("skipUpdateCheck")) {
+        // Check for updates
+        if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
+            AppInit.appReady(function () {
                 // launches periodic checks for updates cca every 24 hours
                 UpdateNotification.launchAutomaticUpdate();
-            }
-
-            ExtensionManager.autoInstallBundles();
-        });
+            });
+        }
     }
     
     /**

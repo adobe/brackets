@@ -40,6 +40,7 @@ define(function (require, exports, module) {
 
     var _                   = require("thirdparty/lodash"),
         Package             = require("extensibility/Package"),
+        AppInit             = require("utils/AppInit"),
         Async               = require("utils/Async"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         ExtensionUtils      = require("utils/ExtensionUtils"),
@@ -705,11 +706,11 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
 
-    function autoInstallBundles() {
+    AppInit.appReady(function () {
         Package._getNodeConnectionDeferred().done(function () {
             _autoInstallBundles();
         });
-    }
+    });
 
     // Listen to extension load and loadFailed events
     $(ExtensionLoader)
@@ -717,7 +718,6 @@ define(function (require, exports, module) {
         .on("loadFailed", _handleExtensionLoad);
 
     // Public exports
-    exports.autoInstallBundles      = autoInstallBundles;
     exports.downloadRegistry        = downloadRegistry;
     exports.getCompatibilityInfo    = getCompatibilityInfo;
     exports.getExtensionURL         = getExtensionURL;
