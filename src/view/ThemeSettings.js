@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, require, Mustache */
+/*global $, define, Mustache */
 
 define(function (require, exports, module) {
     "use strict";

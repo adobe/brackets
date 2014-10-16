@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, window, $, brackets, Mustache */
+/*global define, $, brackets, Mustache */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -236,6 +236,22 @@ define(function (require, exports, module) {
             context.isCompatible = context.isCompatibleLatest = true;
         }
 
+        // Check if extension metadata contains localized content.
+        var lang            = brackets.getLocale(),
+            shortLang       = lang.split("-")[0];
+        if (info.metadata["package-i18n"]) {
+            [shortLang, lang].forEach(function (locale) {
+                if (info.metadata["package-i18n"].hasOwnProperty(locale)) {
+                    // only overlay specific properties with the localized values
+                    ["title", "description", "homepage", "keywords"].forEach(function (prop) {
+                        if (info.metadata["package-i18n"][locale].hasOwnProperty(prop)) {
+                            info.metadata[prop] = info.metadata["package-i18n"][locale][prop];
+                        }
+                    });
+                }
+            });
+        }
+
         if (info.metadata.description !== undefined) {
             info.metadata.shortdescription = StringUtils.truncate(info.metadata.description, 200);
         }
@@ -249,12 +265,12 @@ define(function (require, exports, module) {
         context.allowInstall = context.isCompatible && !context.isInstalled;
 
         if (Array.isArray(info.metadata.i18n) && info.metadata.i18n.length > 0) {
-            var lang      = brackets.getLocale(),
-                shortLang = lang.split("-")[0];
-
             context.translated = true;
             context.translatedLangs =
                 info.metadata.i18n.map(function (value) {
+                    if (value === "root") {
+                        value = "en";
+                    }
                     return { name: LocalizationUtils.getLocalizedLabel(value), locale: value };
                 })
                 .sort(function (lang1, lang2) {
@@ -334,8 +350,7 @@ define(function (require, exports, module) {
      * new items for entries that haven't yet been rendered, but will not re-render existing items.
      */
     ExtensionManagerView.prototype._render = function () {
-        var self = this,
-            $item;
+        var self = this;
         
         this._$table.empty();
         this._updateMessage();

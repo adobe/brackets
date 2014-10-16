@@ -1,0 +1,62 @@
+$font-size: 10;
+$height: 20;
+$color: red;
+
+p {
+    $font-size: 12px;
+    $line-height: 30px;
+    font: #{$font-size}/#{$line-height};
+}
+
+#scss-1 {
+    background-color: blue;
+}
+
+#scss-2 {
+    background-color: red;
+}
+
+.button {
+    &-ok {
+        background-image: url("ok.png");
+    }
+    &-cancel {
+        background-image: url("cancel.png");
+    }
+    &-custom {
+        background-image: url("custom.png");
+    }
+}
+
+$name: foo;
+$attr: border;
+div.#{$name} {
+    #{$attr}-color: blue;
+}
+
+a {
+    color: blue;
+}
+
+// This is a single line comment
+.comment-scss-1 {
+    background-color: red;
+}
+
+// This is a single line comment
+// spread over two lines
+.comment-scss-2 {
+    background-color: green;
+}
+
+/* This is a single line block comment */
+.comment-scss-3 {
+    background-color: blue;
+}
+
+/* This is a multi line block comment
+ * on two lines
+ */
+.comment-scss-4 {
+    background-color: black;
+}

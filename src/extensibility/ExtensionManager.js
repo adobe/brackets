@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets, semver */
+/*global define, $, brackets */
 /*unittests: ExtensionManager*/
 
 /**
@@ -39,7 +39,6 @@ define(function (require, exports, module) {
     "use strict";
 
     var _                = require("thirdparty/lodash"),
-        FileUtils        = require("file/FileUtils"),
         Package          = require("extensibility/Package"),
         Async            = require("utils/Async"),
         ExtensionLoader  = require("utils/ExtensionLoader"),

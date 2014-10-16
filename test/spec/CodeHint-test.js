@@ -22,14 +22,13 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, waits, waitsForDone, expect, $, beforeFirst, afterLast  */
+/*global define, describe, beforeEach, afterEach, it, runs, waitsForDone, expect, $, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
 
     // Load dependent modules
-    var HTMLUtils       = require("language/HTMLUtils"),
-        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+    var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         KeyEvent        = require("utils/KeyEvent"),
         Commands        = require("command/Commands"),
         EditorManager,      // loaded from brackets.test
@@ -38,8 +37,7 @@ define(function (require, exports, module) {
         KeyBindingManager;
 
     var testPath = SpecRunnerUtils.getTestPath("/spec/CodeHint-test-files"),
-        testWindow,
-        initCodeHintTest;
+        testWindow;
 
     describe("CodeHintManager", function () {
         this.category = "integration";
@@ -228,7 +226,7 @@ define(function (require, exports, module) {
 
                     // doesn't matter what was inserted, but line should be different
                     var newPos = editor.getCursorPos();
-                    lineAfter = editor.document.getLine(pos.line);
+                    lineAfter = editor.document.getLine(newPos.line);
                     expect(lineBefore).not.toEqual(lineAfter);
                     
                     // and popup should auto-close

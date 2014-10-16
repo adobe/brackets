@@ -13,7 +13,7 @@
     "regexp"        : true,
     "undef"         : true,
     "strict"        : true,
-    "trailing"      : false,
+    "unused"        : "vars",
     
     "asi"           : false,
     "boss"          : false,
@@ -35,15 +35,14 @@
     "proto"         : false,
     "regexdash"     : false,
     "scripturl"     : false,
-    "smarttabs"     : false,
     "shadow"        : false,
     "sub"           : false,
     "supernew"      : false,
     "validthis"     : false,
     
-    "browser"       : true,
+    "browser"       : false,
     "couch"         : false,
-    "devel"         : false,
+    "devel"         : true,
     "dojo"          : false,
     "jquery"        : false,
     "mootools"      : false,
@@ -52,24 +51,20 @@
     "prototypejs"   : false,
     "rhino"         : false,
     "wsh"           : false,
-    
-    "nomen"         : false,
-    "onevar"        : false,
-    "passfail"      : false,
-    "white"         : false,
  
     "maxerr"        : 100,
-    "predef"        : [
-    ],
     "indent"        : 4,
-    "globals"       : [
-        "require",
-        "define",
-        "brackets",
-        "$",
-        "PathUtils",
-        "window",
-        "navigator",
-        "Mustache"
-    ]
+    "globals"       : {
+        "window": false,
+        "document": false,
+        "setTimeout": false,
+        "require": false,
+        "define": false,
+        "brackets": false,
+        "$": false,
+        "PathUtils": false,
+        "window": false,
+        "navigator": false,
+        "Mustache": false
+    }
 }

@@ -73,6 +73,7 @@ define({
 	"ENTRY_WITH_SAME_NAME_EXISTS": "<span class='dialog-filename'>{0}</span> という名前のファイルまたはディレクトリは既に存在します。",
 	"ERROR_CREATING_FILE_TITLE": "{0} を作成する際にエラーが発生しました。",
 	"ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span> を作成する際にエラーが発生しました。{2}",
+	"ERROR_MIXED_DRAGDROP": "他のファイルを開いている間はフォルダーを開くことはできません。",
 
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "環境設定を読み込む際にエラーが発生しました。",
@@ -93,8 +94,8 @@ define({
     
 	"LIVE_DEVELOPMENT_ERROR_TITLE": "ライブプレビューのエラーが発生しました。",
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "ブラウザーに接続しています",
-	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "ライブプレビューに接続するには、リモートデバッグを有効にして Chrome を再起動する必要があります。<br /><br />Chrome を再起動してリモートデバッグを有効にしますか？",
-	"LIVE_DEV_LOADING_ERROR_MESSAGE": "ライブプレビューページを読み込めません",
+	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "ライブプレビューに接続するには、リモートデバッグを有効にして Chrome を再起動する必要があります。<br /><br />Chrome を再起動してリモートデバッグを有効にしますか？<br /><br />",
+	"LIVE_DEV_LOADING_ERROR_MESSAGE": "ライブプレビューページを読み込めません。",
 	"LIVE_DEV_NEED_HTML_MESSAGE": "ライブプレビューを起動するには、HTML ファイルを開くか、index.html ファイルがプロジェクトに含まれていることを確認してください。",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "サーバー側ファイルでライブプレビューを起動するには、このプロジェクトのベース URL を指定する必要があります。",
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "ファイルのライブプレビューで使用する HTTP サーバーの起動時にエラーが発生しました。もう一度実行してください。",
@@ -229,6 +230,15 @@ define({
 	"LEFT": "左",
 	"RIGHT": "右",
 
+	"CMD_SPLITVIEW_NONE": "分割なし",
+	"CMD_SPLITVIEW_VERTICAL": "左右分割",
+	"CMD_SPLITVIEW_HORIZONTAL": "上下分割",
+	"SPLITVIEW_MENU_TOOLTIP": "エディターを垂直方向 / 水平方向に分割",
+	"GEAR_MENU_TOOLTIP": "ワーキングセットを構成",
+
+	"SPLITVIEW_INFO_TITLE": "!能=[7765195] Already Open_=!",
+	"SPLITVIEW_MULTIPANE_WARNING": "!能=[7765196] The file is already open in another pane. {APP_NAME} will soon support opening the same file in more than one pane. Until then, the file will be shown in the pane it's already open in.<br /><br />(You'll only see this message once.)_=!",
+
     /**
      * Keyboard modifier names
      */
@@ -278,14 +288,14 @@ define({
     /**
      * Command Name Constants
      */
-
+ 
     // File menu commands
 	"FILE_MENU": "ファイル",
 	"CMD_FILE_NEW_UNTITLED": "新規作成",
 	"CMD_FILE_NEW": "新しいファイル",
 	"CMD_FILE_NEW_FOLDER": "新しいフォルダー",
 	"CMD_FILE_OPEN": "開く\u2026",
-	"CMD_ADD_TO_WORKINGSET_AND_OPEN": "ワーキングセットに追加して開く",
+	"CMD_ADD_TO_WORKING_SET": "ワーキングセットに開く",
 	"CMD_OPEN_DROPPED_FILES": "ドロップしたファイルを開く",
 	"CMD_OPEN_FOLDER": "フォルダーを開く\u2026",
 	"CMD_FILE_CLOSE": "閉じる",
@@ -430,6 +440,7 @@ define({
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
+	"EMPTY_VIEW_HEADER": "<em>このビューにフォーカスがあるときにファイルを選択</em>",
     
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "現在のテーマ",

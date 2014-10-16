@@ -38,6 +38,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Sinulla ei ole oikeuksia tehdä muutoksia.",
     "CONTENTS_MODIFIED_ERR"             : "Tiedostoa on muokattu {APP_NAME}in ulkopuolella.",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} tukee tällä hetkellä vain UTF-8-koodattuja tekstitiedostoja.",
+    "UNSUPPORTED_FILE_TYPE_ERR"         : "Tiedosto ei ole tuettua tiedostotyyppiä.",
     "FILE_EXISTS_ERR"                   : "Tiedosto tai hakemisto on jo olemassa.",
     "FILE"                              : "tiedosto",
     "FILE_TITLE"                        : "tiedosto",
@@ -72,6 +73,7 @@ define({
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "Tiedosto tai hakemisto nimellä <span class='dialog-filename'>{0}</span> on jo olemassa.",
     "ERROR_CREATING_FILE_TITLE"         : "Virhe luotaessa {0}a",
     "ERROR_CREATING_FILE"               : "Virhe yritettäessä luoda {0}a <span class='dialog-filename'>{1}</span>. {2}",
+    "ERROR_MIXED_DRAGDROP"              : "Kansiota ei voi avata samaan aikaan muiden tiedostojen kanssa.",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Virhe luettaessa asetuksia",
@@ -92,13 +94,13 @@ define({
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Esikatselun virhe",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Yhdistetään selaimeen",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Jotta esikatselu voi yhdistää, Chromen on käynnistyttävä uudelleen etävirheenjäljitys käytössä.<br /><br />Haluatko käynnistää Chromen uudelleen ja aktivoida etävirheenjäljityksen?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Ei kyetty lataamaan esikatselun sivua",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Jotta esikatselu voi muodostaa yhteyden, on Chromen käynnistyttävä uudelleen etävirheenjäljitys käytössä.<br /><br />Haluatko käynnistää Chromen uudelleen ja aktivoida etävirheenjäljityksen?<br /><br />",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Esikatselun sivua ei kyetty lataamaan.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Avaa HTML-tiedosto tai varmista, että projektissasi on index.html-tiedosto käynnistääksesi esikatselun.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Käynnistääksesi esikatselun palvelimella sijaitsevalla tiedostolla on tämän projektin URL-osoite määritettävä.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Virhe käynnistettäessä HTTP-palvelinta esikatselun tiedostoille. Yritäthän uudelleen.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Tervetuloa esikatseluun!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Esikatselu yhdistää {APP_NAME}in selaimeesi. Se avaa HTML-tiedostosi esikatselun selaimessa ja päivittyy sitten välittömästi muokatessasi koodia.<br /><br />Tässä varhaisessa {APP_NAME}-versiossa esikatselu toimii vain <strong>Google Chrome</strong>-selaimella ja päivittyy reaaliaikaisesti muokatessasi <strong>CSS- tai HTML-tiedostoja</strong>. Muutokset JavaScript-tiedostoihin päivittyvät tallentaessasi ne.<br /><br />(Näet tämän viestin vain kerran.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Esikatselu yhdistää {APP_NAME}in selaimeesi. Se avaa selaimessa HTML-tiedoston esikatselun, joka päivittyy välittömästi muokatessasi koodia.<br /><br />Tässä varhaisessa {APP_NAME}-versiossa esikatselu toimii vain <strong>Google Chrome</strong>-selaimella ja päivittyy reaaliaikaisesti muokatessasi <strong>CSS- tai HTML-tiedostoja</strong>. Muutokset JavaScript-tiedostoihin päivittyvät tallentaessasi ne.<br /><br />(Näet tämän viestin vain kerran.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Saadaksesi lisätietoja katso <a href='{0}' title='{0}'>Troubleshooting Live Preview connection errors</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Esikatselu",
@@ -221,6 +223,23 @@ define({
     "WORKING_FILES"     : "Työtiedostot",
 
     /**
+     * MainViewManager
+     */
+    "TOP"               : "Ylä",
+    "BOTTOM"            : "Ala",
+    "LEFT"              : "Vasen",
+    "RIGHT"             : "Oikea",
+
+    "CMD_SPLITVIEW_NONE"        : "Ei jakoa",
+    "CMD_SPLITVIEW_VERTICAL"    : "Pystysuora jako",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Vaakasuora jako",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Jaa muokkain pysty- tai vaakasuuntaisesti",
+    "GEAR_MENU_TOOLTIP"         : "Määritä työlista",
+
+    "SPLITVIEW_INFO_TITLE"              : "Jo avoinna",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "Tiedosto on jo avattuna toisessa ruudussa. {APP_NAME} tukee pian saman tiedoston avaamista useammassa kuin yhdessä ruudussa. Siihen asti tiedosto näytetään ruudussa, jossa se on jo auki.<br /><br />(Näet tämän viestin vain kerran.)",
+
+    /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
@@ -247,7 +266,7 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Laajennukset poistettu käytöstä",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
-    "STATUSBAR_INSOVR_TOOLTIP"              : "Vaihda kohdistimen sijoitus- (INS) ja korvaus (OVR) -tilojen välillä napsauttamalla",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Vaihda kohdistimen sijoitus (INS)- ja korvaus (OVR) \u2011tilojen välillä napsauttamalla",
     "STATUSBAR_LANG_TOOLTIP"                : "Vaihda tiedostotyyppiä napsauttamalla",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Näytä tai piilota raporttipaneeli napsauttamalla.",
     "STATUSBAR_DEFAULT_LANG"                : "(oletus)",
@@ -276,7 +295,7 @@ define({
     "CMD_FILE_NEW"                        : "Uusi tiedosto",
     "CMD_FILE_NEW_FOLDER"                 : "Uusi kansio",
     "CMD_FILE_OPEN"                       : "Avaa\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Lisää työtilaan",
+    "CMD_ADD_TO_WORKING_SET"              : "Avaa työlistassa",
     "CMD_OPEN_DROPPED_FILES"              : "Avaa pudotetut tiedostot",
     "CMD_OPEN_FOLDER"                     : "Avaa kansio\u2026",
     "CMD_FILE_CLOSE"                      : "Sulje",
@@ -355,10 +374,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Tekstin rivitys",
     "CMD_LIVE_HIGHLIGHT"                  : "Esikatselun korostus",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Tarkista tiedostot tallennettaessa",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Järjestä lisäysajan mukaan",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Järjestä nimen mukaan",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Järjestä tyypin mukaan",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automaattinen järjestys",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Järjestä lisäysajan mukaan",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Järjestä nimen mukaan",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Järjestä tyypin mukaan",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automaattinen järjestys",
     "CMD_THEMES"                          : "Teemat\u2026",
 
     // Navigate menu Commands
@@ -397,12 +416,12 @@ define({
     "EXPERIMENTAL_BUILD"                   : "kokeellinen koontiversio",
     "DEVELOPMENT_BUILD"                    : "kehityskoontiversio",
     "RELOAD_FROM_DISK"                     : "Lataa uudelleen levyltä",
-    "KEEP_CHANGES_IN_EDITOR"               : "Pidä muutokset editorissa",
+    "KEEP_CHANGES_IN_EDITOR"               : "Pidä muutokset muokkaimessa",
     "CLOSE_DONT_SAVE"                      : "Sulje (Älä tallenna)",
     "RELAUNCH_CHROME"                      : "Käynnistä Chrome uudelleen",
     "ABOUT"                                : "Tietoja",
     "CLOSE"                                : "Sulje",
-    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "Julkaisu {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_BUILD_TIMESTAMP"           : "koontiversion aikaleima: ",
     "ABOUT_TEXT_LINE3"                     : "Kolmannen osapuolen ohjelmistoihin liittyvät ilmoitukset ja ehdot sijaitsevat osoitteessa <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> ja yhdistetään viitteisiin tässä.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentaatio ja lähdekoodi osoitteessa <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
@@ -415,19 +434,20 @@ define({
     "GET_IT_NOW"                           : "Hae nyt!",
     "PROJECT_SETTINGS_TITLE"               : "Projektin asetukset kohteelle: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Esikatselun URL-osoite",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "Käyttääksesi paikallista palvelinta anna url, kuten http://localhost:8000/",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "Käytä paikal. palvelinta antamalla url, kuten http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Esikatselu ei tue {0}-protokollaa. Käytä joko http: tai https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL-osoite ei voi sisältää hakuparametreja, kuten ”{0}”.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei voi sisältää ristikkomerkkejä, kuten ”{0}”.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Erikoismerkkkien, kuten ’{0}’, täytyy olla %-koodattu.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Tuntematon virhe URL-osoitteen jäsentämisessä",
+    "EMPTY_VIEW_HEADER"                    : "<em>Avaa tiedosto tämän näkymän ollessa valittuna</em>",
 
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Nykyinen teema",
     "USE_THEME_SCROLLBARS"                 : "Käytä teeman vierityspalkkeja",
     "FONT_SIZE"                            : "Kirjasimen koko",
     "FONT_FAMILY"                          : "Kirjasinperhe",
-    "THEMES_SETTINGS"                      : "Teemojen asetukset",
+    "THEMES_SETTINGS"                      : "Teema-asetukset",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Uusi sääntö",
@@ -469,7 +489,7 @@ define({
     "DOWNLOAD_ID_IN_USE"                   : "Sisäinen virhe: Lataustunnus on jo käytössä.",
     "NO_SERVER_RESPONSE"                   : "Palvelimeen ei voida yhdistää.",
     "BAD_HTTP_STATUS"                      : "Tiedostoa ei löydy palvelimelta (HTTP {0}).",
-    "CANNOT_WRITE_TEMP"                    : "Latausta ei kyetty tallentamaan väliaistiedostoon.",
+    "CANNOT_WRITE_TEMP"                    : "Latausta ei kyetty tallentamaan tilapäistiedostoon.",
     "ERROR_LOADING"                        : "Laajennus kohtasi virheen käynnistyessä.",
     "MALFORMED_URL"                        : "URL-osoite on virheellinen. Tarkista, että annoit sen oikein.",
     "UNSUPPORTED_PROTOCOL"                 : "URL-osoitteen on oltava http- tai https-URL.",
@@ -579,7 +599,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Näytä parametrivihje",
     "NO_ARGUMENTS"                              : "<ei parametreja>",
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript-tiedoston päättelyongelma",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets ajautui vaikeuksiin käsittelyssä:<br><br>{0}<br><br>Tätä tiedostoa ei enää käsitellä koodivihjeet- ja hypää määritelyyn -toimintoja varten. Ottaaksesi tämän takaisin käyttöön avaa <code>.brackets.json</code> projektissasi ja poista tiedosto kohdasta jscodehints.detectedExclusions.",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets kohtasi vaikeuksia tiedoston <span class='dialog-filename'>{0}</span> käsittelyssä.<br><br>Tätä tiedostoa ei enää käsitellä koodivihjeet-, hyppää määrittelyyn- ja pikamuokkaus-toimintoja varten. Ota tämä tiedosto uudelleen käyttöön avaamalla projektisi tiedosto <code>.brackets.json</code> ja muokkaa kohtaa <code>jscodehints.detectedExclusions</code>.<br><br>Tämä on todennäköisesti Bracketsin bugi. Jos voit tarjota kopion tästä tiedostosta, <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>ilmoitathan virheestä</a> tässä nimettyyn tiedostoon osoittavan linkin kanssa.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -594,4 +614,4 @@ define({
     "DOCS_MORE_LINK"                            : "Lue lisää"
 });
 
-/* Last translated for 8712385a6bf12277e6d0788d408e630a40c95a14 */
+/* Last translated for 91b392bf349ece5058595b26a11c651697ee7ff6 */

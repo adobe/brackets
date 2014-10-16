@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, document */
+/*global define, $, brackets, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -46,6 +46,14 @@ define(function (require, exports, module) {
             brackets.app.showDeveloperTools();
         } catch (err) {
             console.error(err);
+        }
+    }
+
+    function handleClick(event) {
+        if (event.shiftKey) {
+            window.console.clear();
+        } else {
+            showDeveloperTools();
         }
     }
 
@@ -73,7 +81,7 @@ define(function (require, exports, module) {
             .attr("title", Strings.CMD_SHOW_DEV_TOOLS + "\u2026")
             .text(Strings.ERRORS + ": ")
             .append($span)
-            .on("click", showDeveloperTools)
+            .on("click", handleClick)
             .insertBefore("#status-bar .spinner");
     }
 

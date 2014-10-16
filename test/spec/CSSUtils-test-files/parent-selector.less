@@ -1,0 +1,42 @@
+.button {
+  &-ok {
+    background-image: url("ok.png");
+  }
+  &-cancel {
+    background-image: url("cancel.png");
+  }
+
+  &-custom {
+    background-image: url("custom.png");
+  }
+}
+
+.grand {
+  .parent {
+    & > & {
+      color: red;
+    }
+
+    & & {
+      color: green;
+    }
+
+    && {
+      color: blue;
+    }
+
+    &, &ish {
+      color: cyan;
+    }
+  }
+}
+
+.header {
+  .menu {
+    border-radius: 5px;
+    .no-borderradius & {
+      background-image: url('images/button-background.png');
+    }
+  }
+}
+

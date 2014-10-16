@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global brackets, define, $, less, window */
+/*global define, $, less, window */
 
 /**
  * main integrates LiveDevelopment into Brackets
@@ -64,7 +64,6 @@ define(function main(require, exports, module) {
             showInfo: true
         }
     };
-    var _checkMark = "✓"; // Check mark character
     // Status labels/styles are ordered: error, not connected, progress1, progress2, connected.
     var _statusTooltip = [
         Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED,
@@ -80,7 +79,6 @@ define(function main(require, exports, module) {
     var _allStatusStyles = _statusStyle.join(" ");
 
     var _$btnGoLive; // reference to the GoLive button
-    var _$btnHighlight; // reference to the HighlightButton
 
     /** Load Live Development LESS Style */
     function _loadStyles() {

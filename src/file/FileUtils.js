@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, FileError, brackets, unescape, window */
+/*global define, $, brackets, unescape, window */
 
 /**
  * Set of utilites for working with files and text content.
@@ -149,6 +149,10 @@ define(function (require, exports, module) {
         return text.replace(findAnyEol, eolStr);
     }
 
+    /**
+     * @param {!FileSystemError} name
+     * @return {!string} User-friendly, localized error message
+     */
     function getFileErrorString(name) {
         // There are a few error codes that we have specific error messages for. The rest are
         // displayed with a generic "(error N)" message.
@@ -164,8 +168,6 @@ define(function (require, exports, module) {
             result = Strings.CONTENTS_MODIFIED_ERR;
         } else if (name === FileSystemError.UNSUPPORTED_ENCODING) {
             result = Strings.UNSUPPORTED_ENCODING_ERR;
-        } else if (name === FileSystemError.UNSUPPORTED_FILETYPE) {
-            result = Strings.UNSUPPORTED_FILE_TYPE_ERR;
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
         }
@@ -173,6 +175,11 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /**
+     * Shows an error dialog indicating that the given file could not be opened due to the given error
+     * @param {!FileSystemError} name
+     * @return {!Dialog}
+     */
     function showFileOpenError(name, path) {
         return Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,
@@ -459,14 +466,15 @@ define(function (require, exports, module) {
     function compareFilenames(filename1, filename2, extFirst) {
         var ext1   = getFileExtension(filename1),
             ext2   = getFileExtension(filename2),
-            cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase(), undefined, {numeric: true}),
+            lang   = brackets.getLocale(),
+            cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase(), lang, {numeric: true}),
             cmpNames;
         
         if (brackets.platform === "win") {
             filename1 = getFilenameWithoutExtension(filename1);
             filename2 = getFilenameWithoutExtension(filename2);
         }
-        cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase(), undefined, {numeric: true});
+        cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase(), lang, {numeric: true});
         
         return extFirst ? (cmpExt || cmpNames) : (cmpNames || cmpExt);
     }

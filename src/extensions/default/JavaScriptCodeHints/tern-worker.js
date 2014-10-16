@@ -130,22 +130,6 @@ var config = {};
             }
 
             /**
-             * Create a "full" update object.
-             *
-             * @param {string} path - full path of the file.
-             * @param {string} text - full text of the file.
-             * @return {{type: string, name: string, offsetLines: number, text: string}} -
-             * "full" update.
-
-             */
-            function createFullUpdate(path, text) {
-                return {type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
-                        name: path,
-                        offsetLines: 0,
-                        text: text};
-            }
-
-            /**
              * Create a "empty" update object.
              *
              * @param {string} path - full path of the file.
@@ -214,8 +198,7 @@ var config = {};
                             self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG, file: fileInfo.name, offset: offset});
                             return;
                         }
-                        var isFunc = false,
-                            response = {type: MessageIds.TERN_JUMPTODEF_MSG,
+                        var response = {type: MessageIds.TERN_JUMPTODEF_MSG,
                                               file: fileInfo.name,
                                               resultFile: data.file,
                                               offset: offset,
