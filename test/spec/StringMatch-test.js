@@ -143,6 +143,9 @@ define(function (require, exports, module) {
                 
                 result = generateMatchList("abcdefz", btpathLower, "abcdefz", btpath, btspecials.specials, 0);
                 expect(result).toEqual([new SpecialMatch(0), new CaseMatch(1), new CaseMatch(2), new CaseMatch(3), new CaseMatch(4), new CaseMatch(5), new CaseMatch(6)]);
+
+                result = generateMatchList("abcdefz", btpathLower, "ABCDEFZ", btpath, btspecials.specials, 0);
+                expect(result).toEqual([new SpecialMatch(0), new NormalMatch(1), new NormalMatch(2), new NormalMatch(3), new NormalMatch(4), new NormalMatch(5), new NormalMatch(6)]);
                 
                 result = generateMatchList("abcdefe", btpathLower, "abcdefe", btpath, btspecials.specials, 0);
                 expect(result).toEqual([new SpecialMatch(0), new SpecialMatch(7), new SpecialMatch(12), new SpecialMatch(16), new CaseMatch(17), new CaseMatch(18), new SpecialMatch(19)]);
