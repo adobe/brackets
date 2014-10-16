@@ -45,8 +45,7 @@ define(function (require, exports, module) {
         ExtensionUtils   = require("utils/ExtensionUtils"),
         FileSystem       = require("filesystem/FileSystem"),
         Strings          = require("strings"),
-        StringUtils      = require("utils/StringUtils"),
-        ThemeManager     = require("view/ThemeManager");
+        StringUtils      = require("utils/StringUtils");
 
     // semver.browser is an AMD-compatible module
     var semver = require("extensibility/node/node_modules/semver/semver.browser");

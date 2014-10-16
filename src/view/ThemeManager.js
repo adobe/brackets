@@ -32,9 +32,8 @@ define(function (require, exports, module) {
         FileUtils          = require("file/FileUtils"),
         EditorManager      = require("editor/EditorManager"),
         ExtensionUtils     = require("utils/ExtensionUtils"),
-        ThemeSettings      = require("view/ThemeSettings"),
         ThemeView          = require("view/ThemeView"),
-        AppInit            = require("utils/AppInit"),
+        ThemeSettings      = require("view/ThemeSettings"),
         ExtensionManager   = require("extensibility/ExtensionManager"),
         Package            = require("extensibility/Package"),
         PreferencesManager = require("preferences/PreferencesManager"),
@@ -348,6 +347,11 @@ define(function (require, exports, module) {
         var fileName = themePackage.path + "/" + themePackage.metadata.theme.file;
         return loadFile(fileName, themePackage.metadata);
     }
+    
+    
+    function showSettingsDialog() {
+        ThemeSettings.showDialog();
+    }
 
 
     prefs.on("change", "theme", function () {
@@ -389,13 +393,14 @@ define(function (require, exports, module) {
     });
 
     
-    exports.refresh          = refresh;
-    exports.loadFile         = loadFile;
-    exports.loadPackage      = loadPackage;
-    exports.getCurrentTheme  = getCurrentTheme;
-    exports.setCurrentTheme  = setCurrentTheme;
-    exports.getAllThemes     = getAllThemes;
-    exports.defaultThemeName = defaultTheme;
+    exports.refresh            = refresh;
+    exports.loadFile           = loadFile;
+    exports.loadPackage        = loadPackage;
+    exports.getCurrentTheme    = getCurrentTheme;
+    exports.setCurrentTheme    = setCurrentTheme;
+    exports.getAllThemes       = getAllThemes;
+    exports.defaultThemeName   = defaultTheme;
+    exports.showSettingsDialog = showSettingsDialog;
 
     // Exposed for testing purposes
     exports._toDisplayName     = toDisplayName;

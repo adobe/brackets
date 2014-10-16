@@ -41,7 +41,7 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
-        ThemeSettings       = require("view/ThemeSettings"),
+        ThemeManager        = require("view/ThemeManager"),
         MainViewManager     = require("view/MainViewManager"),
         AppInit             = require("utils/AppInit"),
         _                   = require("thirdparty/lodash");
@@ -459,7 +459,7 @@ define(function (require, exports, module) {
 
     /** Open theme settings dialog */
     function _handleThemeSettings() {
-        ThemeSettings.showDialog();
+        ThemeManager.showSettingsDialog();
     }
 
 
