@@ -386,7 +386,7 @@ define(function (require, exports, module) {
         } else {
             exports.stat(path, function (_err, _stat) {
                 if (_err) {
-                    callback(_mapError(_err));
+                    callback(_err);
                 } else {
                     doReadFile(_stat);
                 }
