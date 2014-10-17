@@ -642,9 +642,9 @@ define(function (require, exports, module) {
                         return;
                     }
 
-                    var extensionInfo, installedVersion,
+                    var extensionInfo, installedVersion, zipArray, existingItem,
                         extensionName   = info.metadata.name,
-                        autoExtVersion  = autoExtensions && autoExtensions[extensionName];
+                        autoExtVersion  = autoExtensions[extensionName];
 
                     // Verify extension has not already been auto-installed/updated
                     if (autoExtVersion && semver.lte(info.metadata.version, autoExtVersion)) {
@@ -662,16 +662,23 @@ define(function (require, exports, module) {
                         return;
                     }
 
-                    if (autoExtVersion || installedVersion) {
-                        updateZips.push({
-                            file: file,
-                            info: info
-                        });
+                    // Update appropriate zip array. There could be multiple zip files for an
+                    // extension, so make sure only the latest is stored
+                    zipArray = (installedVersion) ? updateZips : installZips;
+                    zipArray.some(function (zip) {
+                        if (zip.info.metadata.name === extensionName) {
+                            existingItem = zip;
+                            return true;
+                        }
+                        return false;
+                    });
+                    if (existingItem) {
+                        if (semver.lt(existingItem.info.metadata.version, info.metadata.version)) {
+                            existingItem.file = file;
+                            existingItem.info = info;
+                        }
                     } else {
-                        installZips.push({
-                            file: file,
-                            info: info
-                        });
+                        zipArray.push({ file: file, info: info });
                     }
 
                     zipFilePromise.resolve();

@@ -544,6 +544,10 @@ define(function (require, exports, module) {
                     promiseResult = null;
                     dirPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/auto-install-extensions2");
 
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.1"]) };
+                    var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
+                    ExtensionManager._setExtensions(mockInstallInfo);
+
                     ExtensionManager._getAutoInstallFiles(dirPath, autoExtensions)
                         .done(function (result) {
                             addZipFilesToArray(autoExtensions, result);
@@ -567,6 +571,46 @@ define(function (require, exports, module) {
 
                         // Extension
                         expect(lookupFileName(promiseResult.updateZips, "mock-extension-v1.1.1.zip")).toBeTruthy();
+                    }
+                });
+            });
+
+            it("should correctly handle multiple auto-install extension zip files of same extension", function () {
+                var promiseFail    = false,
+                    promiseResult  = null,
+                    autoExtensions = {},
+                    dirPath        = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/auto-install-extensions3");
+
+                // There are 3 zips of same extension using 3 different versions. Only the latest should be returned.
+                runs(function () {
+                    ExtensionManager._getAutoInstallFiles(dirPath, autoExtensions)
+                        .done(function (result) {
+                            addZipFilesToArray(autoExtensions, result);
+                            promiseResult = result;
+                        })
+                        .fail(function (err) {
+                            promiseFail = true;
+                            expect("[_getAutoInstallFiles] promise rejected with: " + err).toBe("(expected resolved instead)");
+                        });
+                });
+
+                waitsFor(function () {
+                    return promiseResult || promiseFail;
+                }, "_getAutoInstallFiles success [_getAutoInstallFiles]", 1000);
+
+                runs(function () {
+                    expect(promiseResult).toBeTruthy();
+                    if (promiseResult) {
+                        expect(promiseResult.installZips.length).toBe(1);
+                        expect(promiseResult.updateZips.length).toBe(0);
+
+                        // Latest version
+                        // Note that files are named to try to force code to hit desired branches, but order is arbitrary.
+                        expect(lookupFileName(promiseResult.installZips, "b-mock-extension-v1.1.1.zip")).toBeTruthy();
+
+                        // Older versions
+                        expect(lookupFileName(promiseResult.installZips, "a-mock-extension-v1.0.0.zip")).toBeFalsy();
+                        expect(lookupFileName(promiseResult.installZips, "c-mock-extension-v1.1.0.zip")).toBeFalsy();
                     }
                 });
             });
