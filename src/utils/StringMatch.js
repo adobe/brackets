@@ -117,7 +117,7 @@ define(function (require, exports, module) {
     
 
     // Constants for scoring
-    var SPECIAL_POINTS = 35;
+    var SPECIAL_POINTS = 40;
     var MATCH_POINTS = 10;
     var MATCH_CASE_POINTS = 7;              // Consecutive non-case matches have higher priority
     var CONSECUTIVE_MATCHES_POINTS = 8;
