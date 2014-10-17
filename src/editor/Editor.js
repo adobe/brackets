@@ -80,10 +80,11 @@ define(function (require, exports, module) {
         ValidationUtils    = require("utils/ValidationUtils"),
         ViewUtils          = require("utils/ViewUtils"),
         _                  = require("thirdparty/lodash");
-    
+
     /** Editor preferences */
     var CLOSE_BRACKETS      = "closeBrackets",
         CLOSE_TAGS          = "closeTags",
+        DRAG_DROP           = "dragDropText",
         HIGHLIGHT_MATCHES   = "highlightMatches",
         SCROLL_PAST_END     = "scrollPastEnd",
         SHOW_CURSOR_SELECT  = "showCursorWhenSelecting",
@@ -112,6 +113,7 @@ define(function (require, exports, module) {
     // Mappings from Brackets preferences to CodeMirror options
     cmOptions[CLOSE_BRACKETS]     = "autoCloseBrackets";
     cmOptions[CLOSE_TAGS]         = "autoCloseTags";
+    cmOptions[DRAG_DROP]          = "dragDrop";
     cmOptions[HIGHLIGHT_MATCHES]  = "highlightSelectionMatches";
     cmOptions[SCROLL_PAST_END]    = "scrollPastEnd";
     cmOptions[SHOW_CURSOR_SELECT] = "showCursorWhenSelecting";
@@ -125,6 +127,7 @@ define(function (require, exports, module) {
     
     PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", false);
     PreferencesManager.definePreference(CLOSE_TAGS,         "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
+    PreferencesManager.definePreference(DRAG_DROP,          "boolean", true);
     PreferencesManager.definePreference(HIGHLIGHT_MATCHES,  "boolean", false);
     PreferencesManager.definePreference(SCROLL_PAST_END,    "boolean", false);
     PreferencesManager.definePreference(SHOW_CURSOR_SELECT, "boolean", false);
@@ -307,7 +310,7 @@ define(function (require, exports, module) {
             autoCloseTags               : currentOptions[CLOSE_TAGS],
             coverGutterNextToScrollbar  : true,
             cursorScrollMargin          : 3,
-            dragDrop                    : false,
+            dragDrop                    : currentOptions[DRAG_DROP],
             electricChars               : false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
             extraKeys                   : codeMirrorKeyMap,
             highlightSelectionMatches   : currentOptions[HIGHLIGHT_MATCHES],
@@ -907,6 +910,14 @@ define(function (require, exports, module) {
         });
         this._codeMirror.on("overwriteToggle", function (instance, newstate) {
             self.trigger("overwriteToggle", self, newstate);
+        });
+
+        // Disable CodeMirror's drop handling if a file/folder is dropped
+        this._codeMirror.on("drop", function (cm, event) {
+            var files = event.dataTransfer.files;
+            if (files && files.length) {
+                event.preventDefault();
+            }
         });
     };
     
