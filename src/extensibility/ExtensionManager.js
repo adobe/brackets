@@ -764,6 +764,7 @@ define(function (require, exports, module) {
     exports.LOCATION_UNKNOWN  = LOCATION_UNKNOWN;
 
     // For unit testing only
-    exports._reset          = _reset;
-    exports._setExtensions  = _setExtensions;
+    exports._getAutoInstallFiles    = _getAutoInstallFiles;
+    exports._reset                  = _reset;
+    exports._setExtensions          = _setExtensions;
 });

@@ -447,6 +447,54 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("Auto-Install Extensions", function () {
+
+            function lookupFileName(fileArray, fileName) {
+                return fileArray.some(function (file) {
+                    return (file.name === fileName);
+                });
+            }
+
+            it("should get array of extension zip files from folder", function () {
+                var promiseFail = false,
+                    promiseResult,
+                    dirPath  = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/auto-install-extensions1");
+
+                runs(function () {
+                    ExtensionManager._getAutoInstallFiles(dirPath)
+                        .done(function (result) {
+                            promiseResult = result;
+                        })
+                        .fail(function (err) {
+                            promiseFail = true;
+                            expect("[_getAutoInstallFiles] promise rejected with: " + err).toBe("(expected resolved instead)");
+                        });
+                });
+
+                waitsFor(function () {
+                    return promiseResult || promiseFail;
+                }, "_getAutoInstallFiles success [_getAutoInstallFiles]", 1000);
+
+                runs(function () {
+                    expect(promiseResult).toBeTruthy();
+                    if (promiseResult) {
+                        expect(promiseResult.installZips.length).toBe(1);
+                        expect(promiseResult.updateZips.length).toBe(0);
+
+                        expect(lookupFileName(promiseResult.installZips, "ignore-this-folder")).toBeFalsy();
+                        expect(lookupFileName(promiseResult.installZips, "mock-extension-v1.0.0.zip")).toBeTruthy();
+                        expect(lookupFileName(promiseResult.installZips, "not-an-extension.zip")).toBeFalsy();
+                        expect(lookupFileName(promiseResult.installZips, "should-be-ignored.txt")).toBeFalsy();
+                    }
+                });
+
+                // TODO - run same exact code should return 0 install zips?
+
+                // TODO - run same exact code with folder2 should return 1 update zip?
+
+            });
+        });
+
         describe("ExtensionManagerView Model", function () {
             describe("when initialized from registry", function () {
                 var model;
