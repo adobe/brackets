@@ -34,26 +34,46 @@ define(function (require, exports, module) {
 
     require("utils/Global");
 
-    var AppInit        = require("utils/AppInit"),
-        CommandManager = require("command/CommandManager"),
-        KeyEvent       = require("utils/KeyEvent"),
-        Strings        = require("strings");
+    var AppInit             = require("utils/AppInit"),
+        Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
+        FileSystem          = require("filesystem/FileSystem"),
+        FileSystemError     = require("filesystem/FileSystemError"),
+        FileUtils           = require("file/FileUtils"),
+        KeyEvent            = require("utils/KeyEvent"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
+        _                   = require("thirdparty/lodash");
 
-    var KeyboardPrefs = JSON.parse(require("text!base-config/keyboard.json"));
+    var KeyboardPrefs       = JSON.parse(require("text!base-config/keyboard.json"));
     
+    var KEYMAP_FILENAME     = "keymap.json",
+        _userKeyMapFilePath = brackets.app.getApplicationSupportDirectory() + "/" + KEYMAP_FILENAME;
+
     /**
      * @private
      * Maps normalized shortcut descriptor to key binding info.
      * @type {!Object.<string, {commandID: string, key: string, displayKey: string}>}
      */
-    var _keyMap = {};
+    var _keyMap            = {};
+    var _keyMapCache       = {};
 
+    var _customKeyMap      = {},
+        _customKeyMapCache = {};
+    
     /**
      * @private
      * Maps commandID to the list of shortcuts that are bound to it.
      * @type {!Object.<string, Array.<{key: string, displayKey: string}>>}
      */
-    var _commandMap = {};
+    var _commandMap  = {},
+        _allCommands = [];
+    
+    var _specialCommands = [Commands.EDIT_UNDO, Commands.EDIT_REDO, Commands.EDIT_SELECT_ALL,
+                            Commands.EDIT_CUT, Commands.EDIT_COPY, Commands.EDIT_PASTE];
+    
+    var _macReservedShortcuts = ["Cmd-,", "Cmd-H", "Cmd-Alt-H", "Cmd-M", "Cmd-Q"];
 
     /**
      * @private
@@ -115,6 +135,10 @@ define(function (require, exports, module) {
             }
         }
 
+        if (key.length === 1 && /[a-z]/.test(key)) {
+            key = key.toUpperCase();
+        }
+        
         keyDescriptor.push(key);
         
         return keyDescriptor.join("-");
@@ -719,10 +743,288 @@ define(function (require, exports, module) {
             (brackets.platform !== "win");
     });
     
-    $(CommandManager).on("commandRegistered", _handleCommandRegistered);
+    /**
+     * @private
+     */
+    function _showErrorsAndOpenKeyMap(err, message) {
+        // Asynchronously loading Dialogs module to avoid the circular dependency
+        require(["widgets/Dialogs"], function (dialogsModule) {
+            var Dialogs = dialogsModule,
+                errorMessage = Strings.ERROR_KEYMAP_CORRUPT;
+            
+            if (err === FileSystemError.UNSUPPORTED_ENCODING) {
+                errorMessage = Strings.ERROR_LOADING_KEYMAP;
+            } else if (message) {
+                errorMessage = message;
+            }
+            
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_ERROR,
+                Strings.ERROR_KEYMAP_TITLE,
+                errorMessage
+            )
+                .done(function () {
+                    if (err !== FileSystemError.UNSUPPORTED_ENCODING) {
+                        CommandManager.execute(Commands.FILE_OPEN_KEYMAP);
+                    }
+                });
+        });
+    }
+    
+    function _isSpecialCommand(commandID) {
+        if (brackets.platform === "mac" && commandID === "file.quit") {
+            return true;
+        }
+        
+        return (_specialCommands.indexOf(commandID) > -1);
+    }
+    
+    function _isMacReservedShortcuts(normalizedKey) {
+        if (brackets.platform !== "mac") {
+            return false;
+        }
+        
+        if (_macReservedShortcuts.indexOf(normalizedKey) > -1) {
+            return true;
+        }
+        
+        var isRestricted = _.some(_specialCommands, function (commandID) {
+            var existingBindings = _commandMap[commandID] || [];
+            return (existingBindings.length && existingBindings[0].key === normalizedKey);
+        });
+        
+        return isRestricted;
+    }
+    
+    function _getBulletList(list) {
+        var message = "<ul class='dialog-list'>";
+        list.forEach(function (info) {
+            message += "<li>" + info + "</li>";
+        });
+        message += "</ul>";
+        return message;
+    }
+    
+    function _getDisplayKey(normalizedKey) {
+        var displayKey = "";
+        if (brackets.platform === "mac" && /(Up|Down|Left|Right)$/i.test(normalizedKey)) {
+            normalizedKey = normalizedKey.replace(/Up$/i, "\u2191");
+            normalizedKey = normalizedKey.replace(/Down$/i, "\u2193");
+            normalizedKey = normalizedKey.replace(/Left$/i, "\u2190");
+            normalizedKey = normalizedKey.replace(/Right$/i, "\u2192");
+            displayKey = normalizedKey;
+        }
+        return displayKey;
+    }
+    
+    function _applyUserKeyBindings() {
+        var remappedCommands   = [],
+            restrictedCommands = [],
+            restrictedKeys     = [],
+            invalidKeys        = [],
+            invalidCommands    = [],
+            multipleKeys       = [],
+            errorMessage       = "";
+        
+        if (_.size(_customKeyMap)) {
+            _.forEach(_customKeyMap, function (commandID, key) {
+                var normalizedKey    = normalizeKeyDescriptorString(key),
+                    existingBindings = _commandMap[commandID] || [];
 
+                if (_isSpecialCommand(commandID)) {
+                    restrictedCommands.push(commandID);
+                    return;
+                }
+
+                if (_isMacReservedShortcuts(normalizedKey)) {
+                    restrictedKeys.push(key);
+                    return;
+                }
+
+                if (_isKeyAssigned(normalizedKey)) {
+                    if (_keyMap[normalizedKey].commandID === commandID) {
+                        commandID = undefined;
+                    } else {
+                        removeBinding(normalizedKey);
+                    }
+                } else if (!normalizedKey) {
+                    invalidKeys.push(key);
+                } else if (existingBindings.length) {
+                    existingBindings.forEach(function (binding) {
+                        removeBinding(binding.key);
+                    });
+                }
+                
+                if (commandID) {
+                    if (_allCommands.indexOf(commandID) !== -1) {
+                        if (remappedCommands.indexOf(commandID) === -1) {
+                            var keybinding = { key: normalizedKey };
+                                
+                            keybinding.displayKey = _getDisplayKey(normalizedKey);
+                            addBinding(commandID, keybinding.displayKey ? keybinding : normalizedKey, brackets.platform);
+                            remappedCommands.push(commandID);
+                        } else {
+                            multipleKeys.push(commandID);
+                        }
+                    } else {
+                        invalidCommands.push(commandID);
+                    }
+                }
+            });
+            
+            if (restrictedCommands.length) {
+                errorMessage = StringUtils.format(Strings.ERROR_RESTRICTED_COMMANDS, _getBulletList(restrictedCommands));
+            }
+            
+            if (restrictedKeys.length) {
+                errorMessage += StringUtils.format(Strings.ERROR_RESTRICTED_SHORTCUTS, _getBulletList(restrictedKeys));
+            }
+            
+            if (multipleKeys.length) {
+                errorMessage = StringUtils.format(Strings.ERROR_MULTIPLE_SHORTCUTS, _getBulletList(multipleKeys));
+            }
+            
+            if (invalidKeys.length) {
+                errorMessage += StringUtils.format(Strings.ERROR_INVALID_SHORTCUTS, _getBulletList(invalidKeys));
+            }
+            
+            if (invalidCommands.length) {
+                errorMessage += StringUtils.format(Strings.ERROR_NONEXISTENT_COMMANDS, _getBulletList(invalidCommands));
+            }
+            
+            if (errorMessage) {
+                _showErrorsAndOpenKeyMap("", errorMessage);
+            }
+        }
+    }
+    
+    function _undonePriorUserKeyBindings() {
+        if (_.size(_customKeyMapCache)) {
+            _.forEach(_customKeyMapCache, function (commandID, key) {
+                var normalizedKey  = normalizeKeyDescriptorString(key),
+                    defaults       = KeyboardPrefs[commandID],
+                    defaultCommand = _keyMapCache[normalizedKey];
+
+                if (_isSpecialCommand(commandID) ||
+                        _isMacReservedShortcuts(normalizedKey)) {
+                    return;
+                }
+
+                if (_isKeyAssigned(normalizedKey) &&
+                        _customKeyMap[key] !== commandID && _customKeyMap[normalizedKey] !== commandID) {
+                    removeBinding(normalizedKey);
+                
+                    if (defaults.length) {
+                        addBinding(commandID, defaults);
+                    }
+                    
+                    if (defaultCommand && defaultCommand.key) {
+                        addBinding(defaultCommand.commandID, defaultCommand.key, brackets.platform);
+                    }
+                }
+            });
+        }
+    }
+    
+    /**
+     * @private
+     */
+    function _readUserKeyMap() {
+        var file   = FileSystem.getFileForPath(_userKeyMapFilePath),
+            result = new $.Deferred();
+       
+        file.exists(function (err, doesExist) {
+            if (doesExist) {
+                FileUtils.readAsText(file)
+                    .done(function (text) {
+                        var keyMap = {};
+                        try {
+                            if (text) {
+                                var json = JSON.parse(text);
+                                if (json) {
+                                    // If no overrides, return an empty key map.
+                                    result.resolve(json.overrides || keyMap);
+                                }
+                            } else {
+                                // The file is empty, so return an empty key map.
+                                result.resolve(keyMap);
+                            }
+                        } catch (e) {
+                            result.reject(e);
+                        }
+                    })
+                    .fail(function (e) {
+                        result.reject(e);
+                    });
+            }
+        });
+        return result.promise();
+    }
+
+    /**
+     * @private
+     */
+    function _loadUserKeyMap() {
+        _readUserKeyMap()
+            .then(function (keyMap) {
+                if (_.size(_customKeyMap)) {
+                    _customKeyMapCache = _.cloneDeep(_customKeyMap);
+                }
+                _customKeyMap = keyMap;
+                _undonePriorUserKeyBindings();
+                _applyUserKeyBindings();
+            }, function (err) {
+                _showErrorsAndOpenKeyMap(err);
+            });
+    }
+        
+    /**
+     * @private
+     */
+    function _openUserKeyMap() {
+        var file = FileSystem.getFileForPath(_userKeyMapFilePath);
+        file.exists(function (err, doesExist) {
+            if (doesExist) {
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: _userKeyMapFilePath });
+            } else {
+                var defaultContent = "{\n    \"documentation\": \"https://github.com/adobe/brackets/wiki/Key-Bindings\"," +
+                                     "\n    \"overrides\": {" +
+                                     "\n        \n    }\n}\n";
+                
+                FileUtils.writeText(file, defaultContent, true)
+                    .done(function () {
+                        CommandManager.execute(Commands.FILE_OPEN, { fullPath: _userKeyMapFilePath });
+                    });
+            }
+        });
+    }
+
+    $(CommandManager).on("commandRegistered", _handleCommandRegistered);
+    CommandManager.register(Strings.CMD_OPEN_KEYMAP, Commands.FILE_OPEN_KEYMAP, _openUserKeyMap);
+
+    // Asynchronously loading DocumentManager to avoid the circular dependency
+    require(["document/DocumentManager"], function (docManager) {
+        var DocumentManager = docManager;
+        $(DocumentManager).on("documentSaved", function checkKeyMapUpdates(e, doc) {
+            if (doc && doc.file.fullPath === _userKeyMapFilePath) {
+                _loadUserKeyMap();
+            }
+        });
+    });
+    
+    AppInit.extensionsLoaded(function () {
+        _allCommands = CommandManager.getAll();
+        _keyMapCache = _.cloneDeep(_keyMap);
+        _loadUserKeyMap();
+    });
+
+    function _setUserKeyMapFilePath(fullPath) {
+        _userKeyMapFilePath = fullPath;
+    }
+    
     // unit test only
     exports._reset = _reset;
+    exports._setUserKeyMapFilePath = _setUserKeyMapFilePath;
 
     // Define public API
     exports.getKeymap = getKeymap;
