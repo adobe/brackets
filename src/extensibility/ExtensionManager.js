@@ -615,16 +615,13 @@ define(function (require, exports, module) {
      * @param {string} dirPath Directory with extensions
      * @return {$.Promise} Promise that resolves with arrays for extensions to update and install
      */
-    function _getAutoInstallFiles(dirPath) {
-        var zipFiles     = [],
+    function _getAutoInstallFiles(dirPath, autoExtensions) {
+        var zipFiles    = [],
             installZips = [],
             updateZips  = [],
             deferred    = new $.Deferred();
 
         FileSystem.getDirectoryForPath(dirPath).getContents(function (err, contents) {
-            var autoExtensions = PreferencesManager.getViewState(FOLDER_AUTOINSTALL) || {},
-                autoExtDirty   = false;
-
             if (!err) {
                 zipFiles = contents.filter(function (dirItem) {
                     return (dirItem.isFile && FileUtils.getFileExtension(dirItem.fullPath) === "zip");
@@ -650,7 +647,7 @@ define(function (require, exports, module) {
 
                     // Verify extension has not already been auto-installed/updated
                     if (autoExtVersion && semver.lte(info.metadata.version, autoExtVersion)) {
-                        // Have already installed/updated version >= version of this extension
+                        // Have already auto installed/updated version >= version of this extension
                         zipFilePromise.reject();
                         return;
                     }
@@ -659,19 +656,21 @@ define(function (require, exports, module) {
                     extensionInfo = extensions[extensionName];
                     installedVersion = extensionInfo && extensionInfo.installInfo && extensionInfo.installInfo.metadata.version;
                     if (installedVersion && semver.lte(info.metadata.version, installedVersion)) {
-                        // Have already installed/updated version >= version of this extension
+                        // Have already manually installed/updated version >= version of this extension
                         zipFilePromise.reject();
                         return;
                     }
 
-                    // Keep track of auto-installed extensions so we only install an extension once
-                    autoExtensions[extensionName] = info.metadata.version;
-                    autoExtDirty = true;
-
-                    if (installedVersion) {
-                        updateZips.push(file);
+                    if (autoExtVersion || installedVersion) {
+                        updateZips.push({
+                            file: file,
+                            info: info
+                        });
                     } else {
-                        installZips.push(file);
+                        installZips.push({
+                            file: file,
+                            info: info
+                        });
                     }
 
                     zipFilePromise.resolve();
@@ -681,10 +680,6 @@ define(function (require, exports, module) {
 
                 return zipFilePromise.promise();
             }).always(function () {
-                if (autoExtDirty) {
-                    // Store info in prefs
-                    PreferencesManager.setViewState(FOLDER_AUTOINSTALL, autoExtensions);
-                }
                 // Async.doInParallel() fails if some are successful, so we always resolve
                 deferred.resolve({
                     installZips: installZips,
@@ -701,24 +696,32 @@ define(function (require, exports, module) {
      * @return {$.Promise} Promise that resolves when finished
      */
     function _autoInstallExtensions() {
-        var dirPath         = FileUtils.getDirectoryPath(FileUtils.getNativeBracketsDirectoryPath()) + FOLDER_AUTOINSTALL + "/",
-            deferred        = new $.Deferred();
+        var dirPath        = FileUtils.getDirectoryPath(FileUtils.getNativeBracketsDirectoryPath()) + FOLDER_AUTOINSTALL + "/",
+            autoExtensions = PreferencesManager.getViewState(FOLDER_AUTOINSTALL) || {},
+            deferred       = new $.Deferred();
 
-        _getAutoInstallFiles(dirPath).done(function (result) {
-            var installPromise = Async.doSequentially(result.installZips, function (file) {
-                return Package.installFromPath(file.fullPath);
+        _getAutoInstallFiles(dirPath, autoExtensions).done(function (result) {
+            var installPromise = Async.doSequentially(result.installZips, function (zip) {
+                autoExtensions[zip.info.metadata.name] = zip.info.metadata.version;
+                return Package.installFromPath(zip.file.fullPath);
             });
 
             var updatePromise = installPromise.always(function () {
-                return Async.doSequentially(result.updateZips, function (file) {
-                    return Package.installUpdate(file.fullPath);
+                return Async.doSequentially(result.updateZips, function (zip) {
+                    autoExtensions[zip.info.metadata.name] = zip.info.metadata.version;
+                    return Package.installUpdate(zip.file.fullPath);
                 });
             });
 
             // Always resolve the outer promise
-            updatePromise.always(deferred.resolve);
-        }).fail(function (errorArray) {
-            deferred.reject(errorArray);
+            updatePromise.always(function () {
+                if (result.installZips.length > 0 || result.updateZips.length > 0) {
+                    // Keep track of auto-installed extensions so we only install an extension once
+                    PreferencesManager.setViewState(FOLDER_AUTOINSTALL, autoExtensions);
+                }
+
+                deferred.resolve();
+            });
         });
 
         return deferred.promise();

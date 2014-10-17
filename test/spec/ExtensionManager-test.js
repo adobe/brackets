@@ -449,20 +449,32 @@ define(function (require, exports, module) {
 
         describe("Auto-Install Extensions", function () {
 
-            function lookupFileName(fileArray, fileName) {
-                return fileArray.some(function (file) {
-                    return (file.name === fileName);
+            function lookupFileName(zipArray, fileName) {
+                return zipArray.some(function (zip) {
+                    return (zip.file.name === fileName);
                 });
             }
 
-            it("should get array of extension zip files from folder", function () {
-                var promiseFail = false,
-                    promiseResult,
-                    dirPath  = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/auto-install-extensions1");
+            function addZipFilesToArray(array, result) {
+                result.installZips.every(function (zip) {
+                    array[zip.info.metadata.name] = zip.info.metadata.version;
+                });
+                result.updateZips.every(function (zip) {
+                    array[zip.info.metadata.name] = zip.info.metadata.version;
+                });
+            }
 
+            it("should correctly handle auto-install extension zip files", function () {
+                var promiseFail    = false,
+                    promiseResult  = null,
+                    autoExtensions = {},
+                    dirPath        = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/auto-install-extensions1");
+
+                // Should find 1 install zip
                 runs(function () {
-                    ExtensionManager._getAutoInstallFiles(dirPath)
+                    ExtensionManager._getAutoInstallFiles(dirPath, autoExtensions)
                         .done(function (result) {
+                            addZipFilesToArray(autoExtensions, result);
                             promiseResult = result;
                         })
                         .fail(function (err) {
@@ -481,17 +493,82 @@ define(function (require, exports, module) {
                         expect(promiseResult.installZips.length).toBe(1);
                         expect(promiseResult.updateZips.length).toBe(0);
 
-                        expect(lookupFileName(promiseResult.installZips, "ignore-this-folder")).toBeFalsy();
+                        // Extension
                         expect(lookupFileName(promiseResult.installZips, "mock-extension-v1.0.0.zip")).toBeTruthy();
+
+                        // Not extensions
+                        expect(lookupFileName(promiseResult.installZips, "ignore-this-folder")).toBeFalsy();
                         expect(lookupFileName(promiseResult.installZips, "not-an-extension.zip")).toBeFalsy();
                         expect(lookupFileName(promiseResult.installZips, "should-be-ignored.txt")).toBeFalsy();
                     }
                 });
 
-                // TODO - run same exact code should return 0 install zips?
+                // Subsequent run of first folder should find 0 install zips
+                runs(function () {
+                    promiseFail   = false;
+                    promiseResult = null;
+                    ExtensionManager._getAutoInstallFiles(dirPath, autoExtensions)
+                        .done(function (result) {
+                            addZipFilesToArray(autoExtensions, result);
+                            promiseResult = result;
+                        })
+                        .fail(function (err) {
+                            promiseFail = true;
+                            expect("[_getAutoInstallFiles] promise rejected with: " + err).toBe("(expected resolved instead)");
+                        });
+                });
 
-                // TODO - run same exact code with folder2 should return 1 update zip?
+                waitsFor(function () {
+                    return promiseResult || promiseFail;
+                }, "_getAutoInstallFiles success [_getAutoInstallFiles]", 1000);
 
+                runs(function () {
+                    expect(promiseResult).toBeTruthy();
+                    if (promiseResult) {
+                        expect(promiseResult.installZips.length).toBe(0);
+                        expect(promiseResult.updateZips.length).toBe(0);
+
+                        // Extension already installed
+                        expect(lookupFileName(promiseResult.installZips, "mock-extension-v1.0.0.zip")).toBeFalsy();
+
+                        // Not extensions
+                        expect(lookupFileName(promiseResult.installZips, "ignore-this-folder")).toBeFalsy();
+                        expect(lookupFileName(promiseResult.installZips, "not-an-extension.zip")).toBeFalsy();
+                        expect(lookupFileName(promiseResult.installZips, "should-be-ignored.txt")).toBeFalsy();
+                    }
+                });
+
+                // Should find 1 update zip in second folder
+                runs(function () {
+                    promiseFail   = false;
+                    promiseResult = null;
+                    dirPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/auto-install-extensions2");
+
+                    ExtensionManager._getAutoInstallFiles(dirPath, autoExtensions)
+                        .done(function (result) {
+                            addZipFilesToArray(autoExtensions, result);
+                            promiseResult = result;
+                        })
+                        .fail(function (err) {
+                            promiseFail = true;
+                            expect("[_getAutoInstallFiles] promise rejected with: " + err).toBe("(expected resolved instead)");
+                        });
+                });
+
+                waitsFor(function () {
+                    return promiseResult || promiseFail;
+                }, "_getAutoInstallFiles success [_getAutoInstallFiles]", 1000);
+
+                runs(function () {
+                    expect(promiseResult).toBeTruthy();
+                    if (promiseResult) {
+                        expect(promiseResult.installZips.length).toBe(0);
+                        expect(promiseResult.updateZips.length).toBe(1);
+
+                        // Extension
+                        expect(lookupFileName(promiseResult.updateZips, "mock-extension-v1.1.1.zip")).toBeTruthy();
+                    }
+                });
             });
         });
 
