@@ -613,6 +613,7 @@ define(function (require, exports, module) {
     /**
      * Find valid extensions in specified path
      * @param {string} dirPath Directory with extensions
+     * @param {Object} autoExtensions An object that maps auto-installed extension name {string} to version {string}.
      * @return {$.Promise} Promise that resolves with arrays for extensions to update and install
      */
     function _getAutoInstallFiles(dirPath, autoExtensions) {
