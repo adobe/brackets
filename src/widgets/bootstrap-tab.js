@@ -46,8 +46,10 @@
         selector = $this.attr('href')
         selector = selector && selector.replace(/.*(?=#[^\s]*$)/, '') //strip for ie7
       }
+      
+      $target = $(selector)
 
-      if ( $this.parent('li').hasClass('active') ) return
+      if ( $target.hasClass('active') ) return
 
       previous = $ul.find('.active:last a')[0]
 
@@ -58,8 +60,6 @@
       $this.trigger(e)
 
       if (e.isDefaultPrevented()) return
-
-      $target = $(selector)
 
       this.activate($this.parent('li'), $ul)
       this.activate($target, $target.parent(), function () {

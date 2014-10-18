@@ -311,9 +311,11 @@ define(function (require, exports, module) {
         $searchClear = $(".search-clear", $dlg);
 
         function setActiveTab($tab) {
-            models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
+            if (models[_activeTabIndex]) {
+                models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
+            }
             $tab.tab("show");
-            $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
+            $(".modal-body", $dlg).scrollTop((models[_activeTabIndex] && models[_activeTabIndex].scrollPos) || 0);
             $searchClear.click();
         }
 
@@ -420,8 +422,11 @@ define(function (require, exports, module) {
                 });
             });
             
-            // Open dialog to Installed tab if extension updates are available
-            if ($("#toolbar-extension-manager").hasClass('updatesAvailable')) {
+            var $activeTab = $dlg.find(".nav-tabs li.active a");
+            if ($activeTab.length) { // If there's already a tab selected, show it
+                $activeTab.tab("show");
+            } else if ($("#toolbar-extension-manager").hasClass('updatesAvailable')) {
+                // Open dialog to Installed tab if extension updates are available
                 $dlg.find(".nav-tabs a.installed").tab("show");
             } else { // Otherwise show the first tab
                 $dlg.find(".nav-tabs a:first").tab("show");
