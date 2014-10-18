@@ -50,7 +50,8 @@ define(function (require, exports, module) {
         TOO_MANY_ENTRIES            : "TooManyEntries",
         ALREADY_EXISTS              : "AlreadyExists",
         CONTENTS_MODIFIED           : "ContentsModified",
-        ROOT_NOT_WATCHED            : "RootNotBeingWatched"
+        ROOT_NOT_WATCHED            : "RootNotBeingWatched",
+        EXCEEDS_MAX_FILE_SIZE       : "ExceedsMaxFileSize"
         
         // FUTURE: Add remote connection errors: timeout, not logged in, connection err, etc.
     };
