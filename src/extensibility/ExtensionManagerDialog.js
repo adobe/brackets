@@ -291,6 +291,17 @@ define(function (require, exports, module) {
             return searchDisabled;
         }
         
+        function clearSearch() {
+            $search.val("");
+            views.forEach(function (view, index) {
+                view.filter("");
+            });
+
+            if (!updateSearchDisabled()) {
+                $search.focus();
+            }
+        }
+
         // Open the dialog
         dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(dialogTemplate, context));
         
@@ -316,7 +327,7 @@ define(function (require, exports, module) {
             }
             $tab.tab("show");
             $(".modal-body", $dlg).scrollTop((models[_activeTabIndex] && models[_activeTabIndex].scrollPos) || 0);
-            $searchClear.click();
+            clearSearch();
         }
 
         // Dialog tabs
@@ -402,16 +413,7 @@ define(function (require, exports, module) {
                 views.forEach(function (view) {
                     view.filter(query);
                 });
-            }).on("click", ".search-clear", function (e) {
-                $search.val("");
-                views.forEach(function (view, index) {
-                    view.filter("");
-                });
-                
-                if (!updateSearchDisabled()) {
-                    $search.focus();
-                }
-            });
+            }).on("click", ".search-clear", clearSearch);
             
             // Disable the search field when there are no items in the model
             models.forEach(function (model, index) {
