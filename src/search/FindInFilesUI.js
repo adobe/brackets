@@ -130,15 +130,26 @@ define(function (require, exports, module) {
         }
         
         // Default to searching for the current selection
-        var currentEditor = EditorManager.getActiveEditor(),
-            initialQuery  = "";
+        var initialQuery = "",
+            initialReplaceText = "";
 
         if (_findBar && !_findBar.isClosed()) {
             // The modalBar was already up. When creating the new modalBar, copy the
             // current query instead of using the passed-in selected text.
             initialQuery = _findBar.getQueryInfo().query;
-        } else if (currentEditor) {
-            initialQuery = FindUtils.getInitialQueryFromSelection(currentEditor);
+            initialReplaceText = _findBar.getReplaceText();
+        } else {
+            var currentEditor = EditorManager.getActiveEditor(),
+                openedFindbars = FindBar._bars && FindBar._bars.filter(function (findBar) {
+                    return !findBar.isClosed();
+                });
+
+            if (openedFindbars && openedFindbars.length) {
+                initialQuery = openedFindbars[0].getQueryInfo().query;
+                initialReplaceText = openedFindbars[0].getReplaceText();
+            } else if (currentEditor) {
+                initialQuery = FindUtils.getInitialQueryFromSelection(currentEditor);
+            }
         }
 
         // Close our previous find bar, if any. (The open() of the new _findBar will
@@ -151,6 +162,7 @@ define(function (require, exports, module) {
             multifile: true,
             replace: showReplace,
             initialQuery: initialQuery,
+            initialReplaceText: initialReplaceText,
             queryPlaceholder: Strings.FIND_QUERY_PLACEHOLDER,
             scopeLabel: FindUtils.labelForScope(scope)
         });
