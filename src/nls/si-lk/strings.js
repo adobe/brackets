@@ -127,10 +127,10 @@ define({
     "OK"                                : "OK",
     "CANCEL"                            : "Cancel",
     "DONT_SAVE"                         : "Don't Save",
-    "SAVE"                              : "Save",
+    "SAVE"                              : "සුරකින්න",
     "SAVE_AS"                           : "Save As\u2026",
     "SAVE_AND_OVERWRITE"                : "Overwrite",
-    "DELETE"                            : "Delete",
+    "DELETE"                            : "මකන්න",
     "BUTTON_YES"                        : "Yes",
     "BUTTON_NO"                         : "No",
     
@@ -265,8 +265,8 @@ define({
      */
 
     // File menu commands
-    "FILE_MENU"                           : "File",
-    "CMD_FILE_NEW_UNTITLED"               : "New",
+    "FILE_MENU"                           : "ගොනුව",
+    "CMD_FILE_NEW_UNTITLED"               : "නව",
     "CMD_FILE_NEW"                        : "New File",
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
@@ -373,7 +373,7 @@ define({
     "CMD_SHOW_IN_OS"                      : "Show in OS",
     
     // Help menu commands
-    "HELP_MENU"                           : "Help",
+    "HELP_MENU"                           : "උදව්",
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
     "CMD_HOW_TO_USE_BRACKETS"             : "How to Use {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} Support",
