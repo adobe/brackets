@@ -212,7 +212,7 @@ define(function (require, exports, module) {
                             if (searchItem.collapsed !== collapsed) {
                                 searchItem.collapsed = collapsed;
                                 $(this).nextUntil(".file-section").toggle();
-                                $(this).find(".disclosure-triangle").toggleClass("expanded").toggleClass("collapsed");
+                                $(this).find(".disclosure-triangle").toggleClass("expanded");
                             }
                         });
 
