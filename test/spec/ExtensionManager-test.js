@@ -538,12 +538,15 @@ define(function (require, exports, module) {
                     }
                 });
 
-                // Should find 1 update zip in second folder
-                runs(function () {
-                    promiseFail   = false;
-                    promiseResult = null;
-                    dirPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/auto-install-extensions2");
+            });
 
+            it("should detect auto-install extension is an update", function () {
+                var promiseFail    = false,
+                    promiseResult  = null,
+                    autoExtensions = {},
+                    dirPath        = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/auto-install-extensions2");
+
+                runs(function () {
                     mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.1"]) };
                     var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
                     ExtensionManager._setExtensions(mockInstallInfo);
