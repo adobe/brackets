@@ -632,7 +632,7 @@ define(function (require, exports, module) {
             }
 
             // Parse zip files and separate new installs vs. updates
-            Async.doInParallel(zipFiles, function (file) {
+            Async.doInParallel_aggregateErrors(zipFiles, function (file) {
                 var zipFilePromise = new $.Deferred();
 
                 // Call validate() so that we open the local zip file and parse the
