@@ -611,9 +611,11 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
      * Find valid extensions in specified path
      * @param {string} dirPath Directory with extensions
-     * @param {Object} autoExtensions An object that maps auto-installed extension name {string} to version {string}.
+     * @param {Object} autoExtensions Object that maps names of previously auto-installed
+     *      extensions {string} to installed version {string}.
      * @return {$.Promise} Promise that resolves with arrays for extensions to update and install
      */
     function _getAutoInstallFiles(dirPath, autoExtensions) {
@@ -687,8 +689,20 @@ define(function (require, exports, module) {
                 });
 
                 return zipFilePromise.promise();
+            }).fail(function (errorArray) {
+                // Async.doInParallel() fails if some are successful, so write errors
+                // to console and always resolve
+                errorArray.forEach(function (errorObj) {
+                    if (errorObj.error && errorObj.error.forEach) {
+                        console.error("Errors for", errorObj.item);
+                        errorObj.error.forEach(function (error) {
+                            console.error(Package.formatError(error));
+                        });
+                    } else {
+                        console.error("Error for", errorObj.item, errorObj);
+                    }
+                });
             }).always(function () {
-                // Async.doInParallel() fails if some are successful, so we always resolve
                 deferred.resolve({
                     installZips: installZips,
                     updateZips:  updateZips
@@ -700,6 +714,7 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
      * Auto-install extensions bundled with installer
      * @return {$.Promise} Promise that resolves when finished
      */
