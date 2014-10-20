@@ -41,7 +41,6 @@ define(function (require, exports, module) {
         Strings                = brackets.getModule("strings"),
         PreferencesManager     = brackets.getModule("preferences/PreferencesManager"),
         LocalizationUtils      = brackets.getModule("utils/LocalizationUtils"),
-        ProjectManager         = brackets.getModule("project/ProjectManager"),
         ErrorNotification      = require("ErrorNotification"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
@@ -238,10 +237,11 @@ define(function (require, exports, module) {
     }
     
     function toggleErrorNotification(bool) {
-        var val;
+        var val,
+            oldPref = !!PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
 
-        if (typeof bool === "undefined") {
-            val = !PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
+        if (bool === undefined) {
+            val = !oldPref;
         } else {
             val = !!bool;
         }
@@ -250,13 +250,15 @@ define(function (require, exports, module) {
 
         // update menu
         CommandManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR).setChecked(val);
-        PreferencesManager.set(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, val);
+        if (val !== oldPref) {
+            PreferencesManager.set(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, val);
+        }
     }
 
     function handleOpenBracketsSource() {
         // Brackets source dir w/o the trailing src/ folder
         var dir = FileUtils.getNativeBracketsDirectoryPath().replace(/\/[^\/]+$/, "/");
-        ProjectManager.openProject(dir);
+        brackets.app.showOSFolder(dir);
     }
 
     /* Register all the command handlers */
@@ -288,6 +290,10 @@ define(function (require, exports, module) {
     
     enableRunTestsMenuItem();
     toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR));
+
+    PreferencesManager.on("change", DEBUG_SHOW_ERRORS_IN_STATUS_BAR, function () {
+        toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR));
+    });
     
     /*
      * Debug menu

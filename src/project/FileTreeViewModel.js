@@ -59,8 +59,8 @@ define(function (require, exports, module) {
      */
     function FileTreeViewModel() {
         // For convenience in callbacks, make a bound version of this method so that we can
-        // just refer to it as this._commitTreeData when passing in a callback.
-        this._commitTreeData = this._commitTreeData.bind(this);
+        // just refer to it as this._commit when passing in a callback.
+        this._commit = this._commit.bind(this);
     }
 
     /**
@@ -134,11 +134,21 @@ define(function (require, exports, module) {
      * state moves atomically from one value to the next. This method stores the next version
      * of the state, if it has changed, and triggers a change event so that the UI can update.
      *
-     * @param {Immutable.Map} treeData new treeData state
+     * @param {?Immutable.Map} treeData new treeData state
+     * @param {?Immutable.Map} selectionViewInfo updated information for the selection/context bars
      */
-    FileTreeViewModel.prototype._commitTreeData = function (treeData) {
+    FileTreeViewModel.prototype._commit = function (treeData, selectionViewInfo) {
+        var changed = false;
         if (treeData && treeData !== this._treeData) {
             this._treeData = treeData;
+            changed = true;
+        }
+        
+        if (selectionViewInfo && selectionViewInfo !== this._selectionViewInfo) {
+            this._selectionViewInfo = selectionViewInfo;
+            changed = true;
+        }
+        if (changed) {
             $(this).trigger(EVENT_CHANGE);
         }
     };
@@ -170,7 +180,7 @@ define(function (require, exports, module) {
         // Step through the parts of the path and the treeData object simultaneously
         while (part) {
             // We hit the end of the tree without finding our object, so return null
-            if (treeData === null) {
+            if (!treeData) {
                 return null;
             }
 
@@ -306,8 +316,8 @@ define(function (require, exports, module) {
                         nodeList = openNodes[depth] = [];
                     }
                     nodeList.push(directoryPath);
+                    addNodesAtDepth(value.get("children"), directoryPath, depth + 1);
                 }
-                addNodesAtDepth(value.get("children"), directoryPath, depth + 1);
             });
         }
 
@@ -435,14 +445,15 @@ define(function (require, exports, module) {
      * @param {string|null} newPath Project relative file path with where to place the marker, or null if the marker is being removed from the tree
      */
     FileTreeViewModel.prototype.moveMarker = function (markerName, oldPath, newPath) {
-        var newTreeData = _moveMarker(this._treeData, markerName, oldPath, newPath);
+        var newTreeData = _moveMarker(this._treeData, markerName, oldPath, newPath),
+            selectionViewInfo = this._selectionViewInfo;
         
         if (markerName === "selected") {
-            this._selectionViewInfo = this._selectionViewInfo.set("hasSelection", !!newPath);
+            selectionViewInfo = selectionViewInfo.set("hasSelection", !!newPath);
         } else if (markerName === "context") {
-            this._selectionViewInfo = this._selectionViewInfo.set("hasContext", !!newPath);
+            selectionViewInfo = selectionViewInfo.set("hasContext", !!newPath);
         }
-        this._commitTreeData(newTreeData);
+        this._commit(newTreeData, selectionViewInfo);
     };
 
     /**
@@ -471,7 +482,7 @@ define(function (require, exports, module) {
             return directory;
         });
 
-        this._commitTreeData(treeData);
+        this._commit(treeData);
     };
 
     /**
@@ -531,7 +542,7 @@ define(function (require, exports, module) {
     FileTreeViewModel.prototype.setDirectoryOpen = function (path, open) {
         var result = _setDirectoryOpen(this._treeData, path, open);
         if (result && result.treeData) {
-            this._commitTreeData(result.treeData);
+            this._commit(result.treeData);
         }
         return result ? result.needsLoading : false;
     };
@@ -591,7 +602,7 @@ define(function (require, exports, module) {
         
         directory = _closeSubtree(directory);
         treeData = _setIn(treeData, subtreePath, directory);
-        this._commitTreeData(treeData);
+        this._commit(treeData);
     };
 
     /**
@@ -783,7 +794,7 @@ define(function (require, exports, module) {
 
         children = _mergeContentsIntoChildren(children, contents);
         treeData = _setIn(treeData, objectPath, children);
-        this._commitTreeData(treeData);
+        this._commit(treeData);
     };
 
     /**
@@ -825,7 +836,7 @@ define(function (require, exports, module) {
      * @param {string} path Project-relative path
      */
     FileTreeViewModel.prototype.openPath = function (path) {
-        this._commitTreeData(_openPath(this._treeData, path));
+        this._commit(_openPath(this._treeData, path));
     };
 
     /**
@@ -867,7 +878,7 @@ define(function (require, exports, module) {
         if (parentPath.length > 0) {
             var childrenPath = _.clone(parentPath);
             childrenPath.push("children");
-
+            
             treeData = treeData.updateIn(childrenPath, function (children) {
                 return children.set(name, newFile);
             });
@@ -887,7 +898,7 @@ define(function (require, exports, module) {
      */
     FileTreeViewModel.prototype.createPlaceholder = function (basedir, name, isFolder) {
         var treeData = _createPlaceholder(this._treeData, basedir, name, isFolder);
-        this._commitTreeData(treeData);
+        this._commit(treeData);
     };
 
     /**
@@ -923,7 +934,7 @@ define(function (require, exports, module) {
     FileTreeViewModel.prototype.deleteAtPath = function (path) {
         var treeData = _deleteAtPath(this._treeData, path);
         if (treeData) {
-            this._commitTreeData(treeData);
+            this._commit(treeData);
         }
     };
 
@@ -976,6 +987,13 @@ define(function (require, exports, module) {
                 basename = FileUtils.getBaseName(filePath);
 
             if (parentObjectPath) {
+                // Verify that the children are loaded
+                var childrenPath = _.clone(parentObjectPath);
+                childrenPath.push("children");
+                if (treeData.getIn(childrenPath) === null) {
+                    return;
+                }
+                
                 treeData = _createPlaceholder(treeData, parentPath, basename, isFolder, {
                     notInCreateMode: true,
                     doNotOpen: true
@@ -1013,7 +1031,47 @@ define(function (require, exports, module) {
             });
         }
 
-        this._commitTreeData(treeData);
+        this._commit(treeData);
+    };
+    
+    /**
+     * Makes sure that the directory exists. This will create a directory object (unloaded)
+     * if the directory does not already exist. A change message is also fired in that case.
+     * 
+     * This is useful for file system events which can refer to a directory that we don't
+     * know about already.
+     * 
+     * @param {string} path Project-relative path to the directory
+     */
+    FileTreeViewModel.prototype.ensureDirectoryExists = function (path) {
+        var treeData          = this._treeData,
+            pathWithoutSlash  = FileUtils.stripTrailingSlash(path),
+            parentPath        = FileUtils.getDirectoryPath(pathWithoutSlash),
+            name              = pathWithoutSlash.substr(parentPath.length),
+            targetPath        = [];
+        
+        if (parentPath) {
+            targetPath = _filePathToObjectPath(treeData, parentPath);
+            if (!targetPath) {
+                return;
+            }
+            targetPath.push("children");
+            if (!treeData.getIn(targetPath)) {
+                return;
+            }
+        }
+        
+        targetPath.push(name);
+        
+        if (treeData.getIn(targetPath)) {
+            return;
+        }
+        
+        treeData = _setIn(treeData, targetPath, Immutable.Map({
+            children: null
+        }));
+        
+        this._commit(treeData);
     };
 
     /**
@@ -1035,18 +1093,23 @@ define(function (require, exports, module) {
      * @param {int} width New width
      */
     FileTreeViewModel.prototype.setSelectionWidth = function (width) {
-        this._selectionViewInfo = this._selectionViewInfo.set("width", width);
-        $(this).trigger(EVENT_CHANGE);
+        var selectionViewInfo = this._selectionViewInfo;
+        selectionViewInfo = selectionViewInfo.set("width", width);
+        this._commit(null, selectionViewInfo);
     };
     
     /**
      * Sets the scroll position of the file tree to help position the selection bar.
+     * SPECIAL CASE NOTE: this does not trigger a change event because this data is
+     * explicitly set in the rendering process (see ProjectManager._renderTree).
      * 
+     * @param {int} scrollWidth width of the tree content
      * @param {int} scrollTop Scroll position
      * @param {int=} scrollLeft Horizontal scroll position
      * @param {int=} offsetTop top of the scroller
      */
-    FileTreeViewModel.prototype.setSelectionScrollerInfo = function (scrollTop, scrollLeft, offsetTop) {
+    FileTreeViewModel.prototype.setSelectionScrollerInfo = function (scrollWidth, scrollTop, scrollLeft, offsetTop) {
+        this._selectionViewInfo = this._selectionViewInfo.set("scrollWidth", scrollWidth);
         this._selectionViewInfo = this._selectionViewInfo.set("scrollTop", scrollTop);
         
         if (scrollLeft !== undefined) {
@@ -1056,8 +1119,7 @@ define(function (require, exports, module) {
         if (offsetTop !== undefined) {
             this._selectionViewInfo = this._selectionViewInfo.set("offsetTop", offsetTop);
         }
-        
-        $(this).trigger(EVENT_CHANGE);
+        // Does not emit change event. See SPECIAL CASE NOTE in docstring above.
     };
     
     /**
@@ -1083,6 +1145,7 @@ define(function (require, exports, module) {
     exports.EVENT_CHANGE          = EVENT_CHANGE;
     exports._filePathToObjectPath = _filePathToObjectPath;
     exports._isFilePathVisible    = _isFilePathVisible;
+    exports._createPlaceholder    = _createPlaceholder;
 
     // Public API
     exports.isFile            = isFile;

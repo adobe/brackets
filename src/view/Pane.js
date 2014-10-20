@@ -76,6 +76,7 @@
   *         adjustScrollPos: function(state:Object=, heightDelta:number)=
   *         notifyContainerChange: function()=
   *         notifyVisibilityChange: function(boolean)=
+  *         focus:function()=
   *     }
   *  
   * When views are created they can be added to the pane by calling `pane.addView()`.  
@@ -164,6 +165,17 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         paneTemplate        = require("text!htmlContent/pane.html");
     
+    /**
+     * Make an index request object
+     * @param {boolean} requestIndex - true to request an index, false if not
+     * @param {number} index - the index to request
+     * @return {indexRequested:boolean, index:number} an object that can be pased to 
+     * Pane._addToViewList to insert the item at a specific index
+     * @see {Pane._addToViewList}
+     */
+    function _makeIndexRequestObject(requestIndex, index) {
+        return {indexRequested: requestIndex, index: index};
+    }
     
     /**
      * @typedef {!$el: jQuery, getFile:function():!File, updateLayout:function(forceRefresh:boolean), destroy:function(),  getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number)=, getViewState:function():?*=, restoreViewState:function(viewState:!*)=, notifyContainerChange:function()=, notifyVisibilityChange:function(boolean)=} View
@@ -374,6 +386,82 @@ define(function (require, exports, module) {
             this._currentView = null;
             this._notifyCurrentViewChange(null, currentView);
         }
+    };
+
+    /**
+     * moves a view from one pane to another
+     * @param {!File} file - the File to move
+     * @param {Pane} destinationPane - the destination pane 
+     * @param {Number} destinationIndex - the working set index of the file in the destination pane
+     * @return {jQuery.Promise} a promise object which resolves after the view has been moved and its
+     * replacement document has been opened
+     * @private
+     */
+    Pane.prototype.moveView = function (file, destinationPane, destinationIndex) {
+        var self = this,
+            openNextPromise = new $.Deferred(),
+            result = new $.Deferred();
+        
+        // if we're moving the currently viewed file we 
+        //  need to open another file so wait for that operation
+        //  to finish before we move the view
+        if ((this.getCurrentlyViewedPath() === file.fullPath)) {
+            var nextFile = this.traverseViewListByMRU(1, file.fullPath);
+            if (nextFile) {
+                this._execOpenFile(nextFile.fullPath)
+                    .fail(function () {
+                        // the FILE_OPEN failed
+                        self._hideCurrentView();
+                    })
+                    .always(function () {
+                        openNextPromise.resolve();
+                    });
+            } else {
+                this._hideCurrentView();
+                openNextPromise.resolve();
+            }
+        } else {
+            openNextPromise.resolve();
+        }
+        
+        // Once the next file has opened, we can
+        //  move the item in the working set and 
+        //  open it in the destination pane
+        openNextPromise.done(function () {
+            // Remove file from all 3 view lists
+            self._viewList.splice(self.findInViewList(file.fullPath), 1);
+            self._viewListMRUOrder.splice(self.findInViewListMRUOrder(file.fullPath), 1);
+            self._viewListAddedOrder.splice(self.findInViewListAddedOrder(file.fullPath), 1);
+
+            // insert the view into the working set
+            destinationPane._addToViewList(file,  _makeIndexRequestObject(true, destinationIndex));
+
+            //move the view,
+            var view = self._views[file.fullPath];
+
+            // if we had a view, it had previously been opened
+            //  otherwise, the file was in the working set unopened
+            if (view) {
+                // delete it from the source pane's view map and add it to the destination pane's view map
+                delete self._views[file.fullPath];
+                destinationPane.addView(view, !destinationPane.getCurrentlyViewedFile());
+                // we're done
+                result.resolve();
+            } else if (!destinationPane.getCurrentlyViewedFile()) {
+                // The view has not have been created and the pane was 
+                //  not showing anything so open the file moved in to the pane
+                destinationPane._execOpenFile(file.fullPath).always(function () {
+                    // wait until the file has been opened before
+                    //  we resolve the promise so the working set 
+                    //  view can sync appropriately
+                    result.resolve();
+                });
+            } else {
+                // nothing to do, we're done
+                result.resolve();
+            }
+        });
+        return result.promise();
     };
     
     /**
@@ -595,7 +683,7 @@ define(function (require, exports, module) {
     Pane.prototype.addToViewList = function (file, index) {
         var indexRequested = (index !== undefined && index !== null && index >= 0 && index < this._viewList.length);
 
-        this._addToViewList(file, {indexRequested: indexRequested, index: index});
+        this._addToViewList(file, _makeIndexRequestObject(indexRequested, index));
         
         if (!indexRequested) {
             index = this._viewList.length - 1;
@@ -716,7 +804,18 @@ define(function (require, exports, module) {
     Pane.prototype.sortViewList = function (compareFn) {
         this._viewList.sort(_.partial(compareFn, this.id));
     };
-
+    
+    /**
+     * moves a working set item from one index to another shifting the items
+     * after in the working set up and reinserting it at the desired location
+     * @param {!number} fromIndex - the index of the item to move
+     * @param {!number} toIndex - the index to move to
+     * @private
+     */
+    Pane.prototype.moveWorkingSetItem = function (fromIndex, toIndex) {
+        this._viewList.splice(toIndex, 0, this._viewList.splice(fromIndex, 1)[0]);
+    };
+    
     /**
      * Swaps two items in the file view list (used while dragging items in the working set view)
      * @param {number} index1 - the index of the first item to swap
@@ -1026,7 +1125,7 @@ define(function (require, exports, module) {
      * @return {jQuery.promise} promise that will resolve when the file is opened
      */
     Pane.prototype._execOpenFile = function (fullPath) {
-        return CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath, paneId: this.id});
+        return CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: fullPath, paneId: this.id, options: {noPaneActivate: true}});
     };
     
     /**
@@ -1116,18 +1215,63 @@ define(function (require, exports, module) {
      * Gives focus to the last thing that had focus, the current view or the pane in that order
      */
     Pane.prototype.focus = function () {
-        // Blur the currently focused element which will move focus to the BODY tag
-        //  If the element we want to focus below cannot receive the input focus such as an ImageView
-        //  This will remove focus from the current view which is important if the current view is 
-        //  a codemirror view. 
-        document.activeElement.blur();
+        var current = window.document.activeElement,
+            self = this;
+
+        // Helper to focus the current view if it can
+        function tryFocusingCurrentView() {
+            if (self._currentView) {
+                if (self._currentView.focus) {
+                    //  Views can implement a focus
+                    //  method for focusing a complex
+                    //  DOM like codemirror
+                    self._currentView.focus();
+                } else {
+                    //  Otherwise, no focus method
+                    //  just try and give the DOM
+                    //  element focus
+                    self._currentView.$el.focus();
+                }
+            } else {
+                // no view so just focus the pane
+                self.$el.focus();
+            }
+        }
         
-        if (this._lastFocusedElement && $(this._lastFocusedElement).is(":visible")) {
-            $(this._lastFocusedElement).focus();
-        } else if (this._currentView) {
-            this._currentView.$el.focus();
+        // short-circuit for performance
+        if (this._lastFocusedElement === current) {
+            return;
+        }
+            
+        // If the focus was in a "textarea" and the currentView is anything other than 
+        //  a codeMirror view then we must blur the textarea to force focus to the body tag.
+        //
+        // If we don't then the focus will stay in the text-area which directs keyboard input
+        //  to the codemirror document when it shouldn't
+        //
+        // Steps: 
+        //  1. Open a js file in the left pane and an image in the right pane and
+        //  2. Focus the js file using the working-set
+        //  3. Focus the image view using the working-set.
+        //
+        // ==> Focus is still in the text area. Any keyboard input will modify the document
+        
+        if (current.tagName === "textarea" &&
+                (!this._currentView || !this._currentView._codeMirror)) {
+            current.blur();
+        }
+
+        var $lfe = $(this._lastFocusedElement);
+
+        if ($lfe.length && !$lfe.is(".view-pane") && $lfe.is(":visible")) {
+            // if we had a last focused element 
+            //  and it wasn't a pane element 
+            //  and it's still visible, focus it
+            $lfe.focus();
         } else {
-            this.$el.focus();
+            // otherwise, just try to give focus 
+            //  to the currently active view
+            tryFocusingCurrentView();
         }
     };
     
