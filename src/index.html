@@ -24,49 +24,21 @@
 
 <html>
 <head>
-    <meta charset="utf-8">
-    <title></title>
-
-    <!-- CSS/LESS -->
-
-    <!-- NOTE: All scripts must be external for Chrome App support: http://developer.chrome.com/apps/app_csp.html -->
-
-    <!-- Warn about failed cross origin requests in Chrome -->
-    <script type="application/javascript" src="xorigin.js"></script>
-
-    <link rel="stylesheet" type="text/css" href="thirdparty/CodeMirror2/lib/codemirror.css">
-    <!--(if target dev)><!-->
-    <link rel="stylesheet" type="text/less" href="styles/brackets.less">
-    <!--<!(endif)-->
-    <!--(if target dist)>
-    <link rel="stylesheet" type="text/css" href="styles/brackets.min.css">
-    <!--<!(endif)-->
-    
-    <!-- JavaScript -->
-
-    <!-- Pre-load third party scripts that cannot be async loaded. -->
-    <!-- build:js thirdparty/thirdparty.min.js -->
-    <script src="thirdparty/less-config.js"></script>
-    <script src="thirdparty/less-1.7.0.min.js"></script>
-    <script src="thirdparty/mustache/mustache.js"></script>
-    <script src="thirdparty/jquery-2.1.0.min.js"></script>
-    <!-- endbuild -->
+    <title>Loading</title>
+    <style type="text/css">
+        body { background: #3c3f41; }
+    </style>
+    <script type="application/javascript">
+        brackets.app.getNodeState(function (err, port) {
+            if (err) {
+                // Firewall, proxy, other? Fallback to file:
+                window.location.replace(window.location.href.replace("index.html", "main.html"));
+            } else {
+                window.location.replace("http://localhost:" + port + "/main.html?loaderPath=" + encodeURIComponent(window.location.href));
+            }
+        });
+    </script>
 </head>
 <body>
-
-    <!-- HTML content is dynamically loaded and rendered by brackets.js.
-         Any modules that depend on or modify HTML during load should
-         require the "utils/AppInit" module and install a callback for
-         "htmlReady" (e.g. AppInit.htmlReady(handler)) before touching the DOM.
-    -->
-    
-    <!-- All other scripts are loaded through require. -->
-    <!-- build:js main.js -->
-    <script src="thirdparty/requirejs/require.js" data-main="main"></script>
-    <!-- endbuild -->
-
-    <!-- Verify that all dependencies are loaded. -->
-    <script src="dependencies.js"></script>
-
 </body>
 </html>

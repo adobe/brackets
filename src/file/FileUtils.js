@@ -293,9 +293,23 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function getNativeBracketsDirectoryPath() {
-        var pathname = decodeURI(window.location.pathname);
+        var loaderPath = localStorage.getItem("bracketsLoaderPath"),
+            path = loaderPath || window.location.pathname;
+
+        var pathname = decodeURI(path);
         var directory = pathname.substr(0, pathname.lastIndexOf("/"));
         return convertToNativePath(directory);
+    }
+
+    function getBracketsURL() {
+        if (window.location.protocol === "file:") {
+            // return native OS /path/to/brackets/src-folder
+            return getNativeBracketsDirectoryPath();
+        }
+
+        // return URL http://localhost:NNNN/path/to/brackets/src-folder
+        var href = window.location.href;
+        return href.substr(0, href.lastIndexOf("/"));
     }
     
     /**
@@ -527,6 +541,7 @@ define(function (require, exports, module) {
     exports.convertToNativePath            = convertToNativePath;
     exports.convertWindowsPathToUnixPath   = convertWindowsPathToUnixPath;
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
+    exports.getBracketsURL                 = getBracketsURL;
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
     exports.canonicalizeFolderPath         = canonicalizeFolderPath;
     exports.stripTrailingSlash             = stripTrailingSlash;

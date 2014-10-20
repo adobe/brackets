@@ -222,6 +222,41 @@ define(function (require, exports, module) {
         
         return result.promise();
     }
+
+    function loadFileFromExtension(root, path, isJson) {
+        var packagePath = root + path,
+            parseUrl = PathUtils.parseUrl(packagePath),
+            promise;
+
+        if (parseUrl.protocol === "http:") {
+            // JSON is automatic from connect.directory()
+            // FIXME filter for directories only
+            promise = $.ajax(packagePath);
+        } else {
+            var result = new $.Deferred();
+
+            FileUtils.readAsText(FileSystem.getFileForPath(packagePath))
+                .done(function (text) {
+                    if (!isJSON) {
+                        result.resolve(text);
+                    } else {
+                        try {
+                            var json = JSON.parse(text);
+                            result.resolve(json);
+                        } catch (e) {
+                            result.reject();
+                        }
+                    }
+                })
+                .fail(function () {
+                    result.reject();
+                });
+
+            promise = result.promise();
+        }
+
+        return promise;
+    }
     
     /**
      * Loads the package.json file in the given extension folder.
@@ -231,21 +266,7 @@ define(function (require, exports, module) {
      *     or rejected if there is no package.json or the contents are not valid JSON.
      */
     function loadPackageJson(folder) {
-        var file = FileSystem.getFileForPath(folder + "/package.json"),
-            result = new $.Deferred();
-        FileUtils.readAsText(file)
-            .done(function (text) {
-                try {
-                    var json = JSON.parse(text);
-                    result.resolve(json);
-                } catch (e) {
-                    result.reject();
-                }
-            })
-            .fail(function () {
-                result.reject();
-            });
-        return result.promise();
+        return loadFileFromExtension(folder, "/package.json", true);
     }
     
     exports.addEmbeddedStyleSheet = addEmbeddedStyleSheet;
@@ -256,4 +277,5 @@ define(function (require, exports, module) {
     exports.loadFile              = loadFile;
     exports.loadStyleSheet        = loadStyleSheet;
     exports.loadPackageJson       = loadPackageJson;
+    exports.loadFileFromExtension = loadFileFromExtension;
 });

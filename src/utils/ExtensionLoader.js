@@ -120,13 +120,11 @@ define(function (require, exports, module) {
      */
     function _mergeConfig(baseConfig) {
         var deferred = new $.Deferred(),
-            extensionConfigFile = FileSystem.getFileForPath(baseConfig.baseUrl + "/requirejs-config.json");
+            requirejsConfigPromise = ExtensionUtils.loadFileFromExtension(baseConfig.baseUrl, "/requirejs-config.json");
 
         // Optional JSON config for require.js
-        FileUtils.readAsText(extensionConfigFile).done(function (text) {
+        requirejsConfigPromise.done(function (extensionConfig) {
             try {
-                var extensionConfig = JSON.parse(text);
-                
                 // baseConfig.paths properties will override any extension config paths
                 _.extend(extensionConfig.paths, baseConfig.paths);
 
@@ -346,6 +344,80 @@ define(function (require, exports, module) {
     function loadAllExtensionsInNativeDirectory(directory) {
         return _loadAll(directory, {baseUrl: directory}, "main", loadExtension);
     }
+    /**
+     * @private
+     * Loads a file entryPoint from each extension folder within the baseUrl into its own Require.js context
+     *
+     * @param {!string} root
+     * @param {!Array.<string>} children
+     * @param {!string} entryPoint Module name to load (without .js suffix)
+     * @param {function} processExtension 
+     * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
+     */
+    function _loadContents(root, children, entryPoint, processExtension) {
+        var result = new $.Deferred();
+        
+        Async.doInParallel(children, function (item) {
+            var extConfig = {
+                baseUrl: root + "/" + item
+            };
+
+            return processExtension(item, extConfig, entryPoint);
+        }).always(function () {
+            // Always resolve the promise even if some extensions had errors
+            result.resolve();
+        });
+               
+        return result.promise();
+    }
+
+    function getHostedDirectoryList(path) {
+        var root = FileUtils.getBracketsURL() + path;
+
+        return $.ajax({
+            url: root,
+            headers: {
+                "Accept": "application/json"
+            }
+        }).then(function (children) {
+            return {
+                root: root,
+                children: children
+            };
+        });
+    }
+
+    function getNativeDirectoryList(directory) {
+        var result = new $.Deferred();
+        
+        FileSystem.getDirectoryForPath(directory).getContents(function (err, contents) {
+            if (err) {
+                console.error("[Extension] Error -- could not read native directory: " + directory);
+                result.reject();
+                return;
+            }
+
+            var filtered = contents.filter(function (entry) {
+                return entry.isDirectory;
+            });
+
+            result.resolve({
+                root: directory,
+                children: filtered
+            });
+
+            // Async.doInParallel(extensions, function (item) {
+            //     var extConfig = {
+            //         baseUrl: config.baseUrl + "/" + item,
+            //         paths: config.paths
+            //     };
+            //     return processExtension(item, extConfig, entryPoint);
+            // })
+        });
+               
+        return result.promise();
+    }
+
     
     /**
      * Runs unit test for the extension that lives at baseUrl into its own Require.js context
@@ -377,7 +449,8 @@ define(function (require, exports, module) {
      * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
      */
     function init(paths) {
-        var params = new UrlParams();
+        var params = new UrlParams(),
+            isHosted = window.location.protocol === "http:";
         
         if (_init) {
             // Only init once. Return a resolved promise.
@@ -411,15 +484,25 @@ define(function (require, exports, module) {
         FileSystem.getDirectoryForPath(disabledExtensionPath).create();
         
         var promise = Async.doSequentially(paths, function (item) {
-            var extensionPath = item;
+            var extensionPath = item,
+                isNativePath = item.indexOf("/") >= 0,
+                directoryContentsPromise;
             
-            // If the item has "/" in it, assume it is a full path. Otherwise, load
-            // from our source path + "/extensions/".
-            if (item.indexOf("/") === -1) {
-                extensionPath = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item;
+            if (!isNativePath && isHosted) {
+                directoryContentsPromise = getHostedDirectoryList("/extensions/" + extensionPath);
+            } else {
+                // If the item has "/" in it, assume it is a full path. Otherwise, load
+                // from our source path + "/extensions/".
+                if (!isNativePath) {
+                    extensionPath = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item;
+                }
+                
+                directoryContentsPromise = getNativeDirectoryList(extensionPath);
             }
-            
-            return loadAllExtensionsInNativeDirectory(extensionPath);
+
+            return directoryContentsPromise.then(function (dirResult) {
+                return _loadContents(dirResult.root, dirResult.children, "main", loadExtension);
+            });
         }, false);
         
         promise.always(function () {

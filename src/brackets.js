@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets: true, $, window, navigator, Mustache */
+/*global define, brackets: true, $, window, navigator, Mustache, PathUtils */
 
 // TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
 
@@ -246,6 +246,13 @@ define(function (require, exports, module) {
 
         // Load default languages and preferences
         Async.waitForAll([LanguageManager.ready, PreferencesManager.ready]).always(function () {
+            // FIXME api call for install location?
+            var loaderPath = params.get("loaderPath");
+            if (loaderPath) {
+                var parsedPath = PathUtils.parseUrl(loaderPath);
+                localStorage.setItem("bracketsLoaderPath", parsedPath.pathname);
+            }
+
             // Load all extensions. This promise will complete even if one or more
             // extensions fail to load.
             var extensionPathOverride = params.get("extensions");  // used by unit tests
