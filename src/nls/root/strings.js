@@ -79,9 +79,10 @@ define({
     "ERROR_KEYMAP_TITLE"                : "Error Reading User Key Map",
     "ERROR_KEYMAP_CORRUPT"              : "Your key map file is not valid JSON. The file will be opened so that you can correct the format.",
     "ERROR_LOADING_KEYMAP"              : "Your key map file is not a valid UTF-8 encoded text file and cannot be loaded",
-    "ERROR_RESTRICTED_COMMANDS"         : "Your cannot reassign shortcuts to these commands: {0}",
-    "ERROR_RESTRICTED_SHORTCUTS"        : "Your cannot reassign these shortcuts: {0}",
-    "ERROR_MULTIPLE_SHORTCUTS"          : "Your are reassigning multiple shortcuts to these commands: {0}",
+    "ERROR_RESTRICTED_COMMANDS"         : "You cannot reassign shortcuts to these commands: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "You cannot reassign these shortcuts: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "You are reassigning multiple shortcuts to these commands: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "You have multiple bindings of these shortcuts: {0}",
     "ERROR_INVALID_SHORTCUTS"           : "These shortcuts are invalid: {0}",
     "ERROR_NONEXISTENT_COMMANDS"        : "You are assigning shortcuts to nonexistent commands: {0}",
 
