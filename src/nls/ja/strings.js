@@ -34,7 +34,7 @@ define({
 	"GENERIC_ERROR": "(エラー {0})",
 	"NOT_FOUND_ERR": "ファイルが見つかりません。",
 	"NOT_READABLE_ERR": "ファイルを読み取れません。",
-	"EXCEEDS_MAX_FILE_SIZE": "!能=[7799527] Files larger than {0} MB cannot be opened in {APP_NAME}._=!",
+	"EXCEEDS_MAX_FILE_SIZE": "{0} MB を超えるサイズのファイルは {APP_NAME} で開くことはできません。",
 	"NO_MODIFICATION_ALLOWED_ERR": "対象ディレクトリは変更できません。",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
 	"CONTENTS_MODIFIED_ERR": "このファイルは {APP_NAME} 以外で変更されています。",

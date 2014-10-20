@@ -34,7 +34,7 @@ define({
 	"GENERIC_ERROR": "(Erreur {0})",
 	"NOT_FOUND_ERR": "Fichier introuvable.",
 	"NOT_READABLE_ERR": "Impossible de lire le fichier.",
-	"EXCEEDS_MAX_FILE_SIZE": "[7799527] !é=Files larger than {0} MB cannot be opened in {APP_NAME}.=!",
+	"EXCEEDS_MAX_FILE_SIZE": "Les fichiers dont la taille excède {0} Mo ne peuvent pas être ouverts dans {APP_NAME}.",
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
 	"CONTENTS_MODIFIED_ERR": "Le fichier a été modifié dans une application autre que {APP_NAME}.",
