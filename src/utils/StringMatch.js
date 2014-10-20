@@ -708,9 +708,10 @@ define(function (require, exports, module) {
         
         if (DEBUG_SCORES) {
             result.scoreDebug = {
-                beginning: Number.MAX_VALUE
+                beginning: -result.matchGoodness
             };
         }
+        
         result.stringRanges = [{
             text: str.substr(0, query.length),
             matched: true,
