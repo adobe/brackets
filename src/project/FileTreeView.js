@@ -91,6 +91,22 @@ define(function (require, exports, module) {
     };
 
     /**
+     * @private
+     *
+     * Gets an appropriate width given the text provided.
+     *
+     * @param {string} text Text to measure
+     * @return {int} Width to use
+     */
+    function _measureText(text) {
+        var measuringElement = $("<span />", { css : { "position" : "absolute", "top" : "-200px", "left" : "-1000px", "visibility" : "hidden", "white-space": "pre" } }).appendTo("body");
+        measuringElement.text("pW" + text);
+        var width = measuringElement.width();
+        measuringElement.remove();
+        return width;
+    }
+
+    /**
      * This is a mixin that provides rename input behavior. It is responsible for taking keyboard input
      * and invoking the correct action based on that input.
      */
@@ -106,7 +122,7 @@ define(function (require, exports, module) {
             }
             return true;
         },
-        
+
         /**
          * If the user presses enter or escape, we either successfully complete or cancel, respectively,
          * the rename or create operation that is underway.
@@ -123,10 +139,18 @@ define(function (require, exports, module) {
          * The rename or create operation can be completed or canceled by actions outside of
          * this component, so we keep the model up to date by sending every update via an action.
          */
-        handleKeyUp: function () {
+        handleKeyUp: function (e) {
             this.props.actions.setRenameValue(this.refs.name.getDOMNode().value.trim());
+
+            if (e.keyCode !== KeyEvent.DOM_VK_LEFT &&
+                e.keyCode !== KeyEvent.DOM_VK_RIGHT) {
+                // update the width of the input field
+                var domNode = this.refs.name.getDOMNode(),
+                    newWidth = _measureText(domNode.value);
+                $(domNode).width(newWidth);
+            }
         },
-        
+
         /**
          * If we leave the field for any reason, complete the rename.
          */
@@ -134,22 +158,6 @@ define(function (require, exports, module) {
             this.props.actions.performRename();
         }
     };
-
-    /**
-     * @private
-     *
-     * Gets an appropriate width given the text provided.
-     *
-     * @param {string} text Text to measure
-     * @return {int} Width to use
-     */
-    function _measureText(text) {
-        var measuringElement = $("<div />", { css : { "position" : "absolute", "top" : "-200px", "left" : ("-1000px"), "visibility" : "hidden" } }).appendTo("body");
-        measuringElement.text("pW" + text);
-        var width = measuringElement.width();
-        measuringElement.remove();
-        return width;
-    }
 
     /**
      * @private
@@ -668,7 +676,7 @@ define(function (require, exports, module) {
                     parentPath: this.props.parentPath
                 });
             }
-            
+
             // Need to flatten the arguments because getIcons returns an array
             var aArgs = _.flatten([{
                 href: "#",
@@ -677,7 +685,7 @@ define(function (require, exports, module) {
             if (!entry.get("rename")) {
                 aArgs.push(this.props.name);
             }
-            
+
             nameDisplay = DOM.a.apply(DOM.a, aArgs);
 
             return DOM.li({
@@ -807,7 +815,7 @@ define(function (require, exports, module) {
                 left = selectionViewInfo.get("scrollLeft"),
                 width = selectionViewInfo.get("width") - this.props.widthAdjustment,
                 scrollWidth = selectionViewInfo.get("scrollWidth");
-            
+
             // Avoid endless horizontal scrolling
             if (left + width > scrollWidth) {
                 left = scrollWidth - width;
