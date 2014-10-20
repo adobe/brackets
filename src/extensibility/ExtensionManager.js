@@ -693,13 +693,15 @@ define(function (require, exports, module) {
                 // Async.doInParallel() fails if some are successful, so write errors
                 // to console and always resolve
                 errorArray.forEach(function (errorObj) {
-                    if (errorObj.error && errorObj.error.forEach) {
-                        console.error("Errors for", errorObj.item);
-                        errorObj.error.forEach(function (error) {
-                            console.error(Package.formatError(error));
-                        });
-                    } else {
-                        console.error("Error for", errorObj.item, errorObj);
+                    if (errorObj.error) {
+                        if (errorObj.error.forEach) {
+                            console.error("Errors for", errorObj.item);
+                            errorObj.error.forEach(function (error) {
+                                console.error(Package.formatError(error));
+                            });
+                        } else {
+                            console.error("Error for", errorObj.item, errorObj);
+                        }
                     }
                 });
             }).always(function () {
