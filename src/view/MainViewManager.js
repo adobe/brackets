@@ -1134,7 +1134,7 @@ define(function (require, exports, module) {
         var options = optionsIn || {},
             currentPaneId;
         
-        if (options.noPaneRedundancyCheck) {
+        if (!options.noPaneRedundancyCheck) {
             // This flag is for internal use only to improve performance
             // Don't check for the file to have been opened in another pane pane which could be time
             //  consuming.  should only be used when passing an actual paneId (not a special paneId)
