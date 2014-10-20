@@ -442,7 +442,7 @@ define(function (require, exports, module) {
      *
      * The parameters and return value are the same as for getMatchRanges.
      *
-     * @param {string} query the search string (will be searched lower case)
+     * @param {string} queryLower the search string (will be searched lower case)
      * @param {string} compareLower the lower-cased string to search
      * @param {string} originalQuery the "non-normalized" query string (used to detect case match priority)
      * @param {string} OriginalStr the "non-normalized" string to compare with (used to detect case match priority)
@@ -450,12 +450,12 @@ define(function (require, exports, module) {
      * @param {int} lastSegmentSpecialsIndex index into specials array to start scanning with
      * @return {Array.<SpecialMatch|NormalMatch>} matched indexes or null if no matches possible
      */
-    function _wholeStringSearch(query, compareLower, originalQuery, OriginalStr, specials, lastSegmentSpecialsIndex) {
+    function _wholeStringSearch(queryLower, compareLower, originalQuery, OriginalStr, specials, lastSegmentSpecialsIndex) {
         var lastSegmentStart = specials[lastSegmentSpecialsIndex];
         var result;
         var matchList;
         
-        result = _lastSegmentSearch(query, compareLower, originalQuery, OriginalStr, specials, lastSegmentSpecialsIndex, lastSegmentStart);
+        result = _lastSegmentSearch(queryLower, compareLower, originalQuery, OriginalStr, specials, lastSegmentSpecialsIndex, lastSegmentStart);
         
         if (result) {
             matchList = result.matchList;
@@ -480,7 +480,7 @@ define(function (require, exports, module) {
         } else {
             // No match in the last segment, so we start over searching the whole
             // string
-            matchList = _generateMatchList(query, compareLower, originalQuery, OriginalStr, specials, 0);
+            matchList = _generateMatchList(queryLower, compareLower, originalQuery, OriginalStr, specials, 0);
         }
         
         return matchList;
