@@ -1362,14 +1362,25 @@ define(function (require, exports, module) {
                 expect(model._selections.context).toBeNull();
             });
             
-            it("should see events with a directory but no added or removed as an add", function () {
+            it("should see events with a directory but no added or removed as a need to reload the directory", function () {
                 model.handleFSEvent({
                     isFile: false,
                     name: "newdir",
-                    fullPath: "/foo/newdir/"
+                    fullPath: "/foo/newdir/",
+                    getContents: function (callback) {
+                        callback(null, [
+                            {
+                                isFile: true,
+                                name: "newfile",
+                                fullPath: "/foo/newdir/newfile"
+                            }
+                        ]);
+                    }
                 });
                 expect(vm._treeData.get("newdir").toJS()).toEqual({
-                    children: null
+                    children: {
+                        newfile: {}
+                    }
                 });
             });
         });
