@@ -500,8 +500,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Compares two paths segment-by-segment, used for sorting. Sorts folders before files,
-     * and sorts files based on `compareFilenames()`.
+     * Compares two paths segment-by-segment, used for sorting. When two files share a path prefix,
+     * the less deeply nested one is sorted earlier in the list. Sorts files within the same parent
+     * folder based on `compareFilenames()`.
      * @param {string} path1
      * @param {string} path2
      * @return {number} -1, 0, or 1 depending on whether path1 is less than, equal to, or greater than
@@ -526,7 +527,7 @@ define(function (require, exports, module) {
                 } else if (index >= folders1 && index >= folders2) {
                     return compareFilenames(entryName1, entryName2);
                 }
-                return (index >= folders1 && index < folders2) ? 1 : -1;
+                return (index >= folders1 && index < folders2) ? -1 : 1;
             }
             index++;
         }

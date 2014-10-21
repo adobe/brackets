@@ -44,6 +44,7 @@ define(function (require, exports, module) {
     var TextRange           = require("document/TextRange").TextRange,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         EditorManager       = require("editor/EditorManager"),
+        FileUtils           = require("file/FileUtils"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         ProjectManager      = require("project/ProjectManager"),
         Commands            = require("command/Commands"),
@@ -60,6 +61,12 @@ define(function (require, exports, module) {
      */
     function _parseStyleSize($target, styleName) {
         return parseInt($target.css(styleName), 10);
+    }
+    
+    /** Returns a 'context' object for getting/setting project-specific preferences */
+    function _getPrefsContext() {
+        var projectRoot = ProjectManager.getProjectRoot();  // note: null during unit tests!
+        return { location : { scope: "user", layer: "project", layerID: projectRoot && projectRoot.fullPath } };
     }
     
     
@@ -86,16 +93,20 @@ define(function (require, exports, module) {
         listItem.attr("title", listItem.text());
     }
     
+    
     /**
      * @constructor
      * @param {Array.<{name:String,document:Document,lineStart:number,lineEnd:number}>} ranges The text ranges to display.
-     * @param {function(): $.Promise} messageCB An optional callback that returns a promise that will be resolved with a message to show
-     *      when no matches are available. The message should be already-escaped HTML.
-     * @param {function(range): string} labelCB An optional callback that returns an updated label string for the given range. Called
-     *      when we detect that the content of one of the ranges has changed. The label is plain text, not HTML.
+     *      Results within the same file are expected to be contiguous in this array.
+     * @param {?function(): $.Promise} messageCB Optional; returns a promise resolved with a message to show when no matches are
+     *      available. The message should be already-escaped HTML.
+     * @param {?function(range): string} labelCB Optional; returns an updated label string for the given range. Called when we
+     *      detect that the content of a range has changed. The label is plain text, not HTML.
+     * @param {?function(File, File):number} fileComparator Optional comparison function for sorting the results list (based on
+     *      range.document.file). Defaults to FileUtils.comparePaths().
      * @extends {InlineTextEditor}
      */
-    function MultiRangeInlineEditor(ranges, messageCB, labelCB) {
+    function MultiRangeInlineEditor(ranges, messageCB, labelCB, fileComparator) {
         InlineTextEditor.call(this);
         
         // Store the results to show in the range list. This creates TextRanges bound to the Document,
@@ -108,6 +119,14 @@ define(function (require, exports, module) {
         
         this._selectedRangeIndex = -1;
         this._collapsedFiles = {};
+        
+        // Set up list sort order
+        this._fileComparator = fileComparator || function defaultComparator(file1, file2) {
+            return FileUtils.comparePaths(file1.fullPath, file2.fullPath);
+        };
+        this._ranges.sort(function (result1, result2) {
+            return this._fileComparator(result1.textRange.document.file, result2.textRange.document.file);
+        }.bind(this));
     }
     MultiRangeInlineEditor.prototype = Object.create(InlineTextEditor.prototype);
     MultiRangeInlineEditor.prototype.constructor = MultiRangeInlineEditor;
@@ -124,7 +143,7 @@ define(function (require, exports, module) {
     /**
      * List of search results. Section headers are not represented in this list (they are implied before each group of
      * of consecutive results from the same Document).
-     * @type {Array.<SearchResultItem>}
+     * @type {!Array.<SearchResultItem>}
      */
     MultiRangeInlineEditor.prototype._ranges = null;
     
@@ -133,20 +152,18 @@ define(function (require, exports, module) {
     
     /**
      * Map from fullPath to true if collapsed. May not agree with preferences, in cases where multiple inline editors make
-     * concurrent changes
+     * concurrent changes.
+     * @type {!Object.<string, boolean>}
      */
     MultiRangeInlineEditor.prototype._collapsedFiles = null;
     
     MultiRangeInlineEditor.prototype._messageCB = null;
     MultiRangeInlineEditor.prototype._labelCB = null;
+    MultiRangeInlineEditor.prototype._fileComparator = null;
     
     /** @type {!Object.<string, jQueryObject>} Map from fullPath to section header DOM node */
     MultiRangeInlineEditor.prototype._$headers = null;
     
-    
-    function getPrefsContext() {
-        return { location : { scope: "user", layer: "project", layerID: ProjectManager.getProjectRoot().fullPath } };
-    }
     
     /**
      * @private
@@ -175,8 +192,6 @@ define(function (require, exports, module) {
     
     MultiRangeInlineEditor.prototype._toggleSection = function (fullPath, duringInit) {
         var $headerItem = this._$headers[fullPath];
-        var context = getPrefsContext();
-        
         var $disclosureIcon = $headerItem.find(".disclosure-triangle");
         var isCollapsing = $disclosureIcon.hasClass("expanded");
         $disclosureIcon.toggleClass("expanded").toggleClass("collapsed");
@@ -185,13 +200,13 @@ define(function (require, exports, module) {
         // Update instance-specific state AND persist as per-project view state
         this._collapsedFiles[fullPath] = isCollapsing;
         if (!duringInit) {
-            var setting = PreferencesManager.getViewState("inlineEditor.collapsedFiles", context) || {};
+            var setting = PreferencesManager.getViewState("inlineEditor.collapsedFiles", _getPrefsContext()) || {};
             if (isCollapsing) {
                 setting[fullPath] = true;
             } else {
                 delete setting[fullPath];
             }
-            PreferencesManager.setViewState("inlineEditor.collapsedFiles", setting, context);
+            PreferencesManager.setViewState("inlineEditor.collapsedFiles", setting, _getPrefsContext());
         }
 
         // Show/hide selection indicator if selection was in collapsed section
@@ -204,6 +219,7 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype._createHeaderItem = function (doc) {
         var $headerItem = $("<li><span class='disclosure-triangle expanded'/>" + _.escape(doc.file.name) + "</li>")
             .addClass("section-header")
+            .attr("title", ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))
             .appendTo(this.$rangeList);
         
         $headerItem.click(function () {
@@ -285,8 +301,7 @@ define(function (require, exports, module) {
         
         // Determine which sections are initially collapsed (the actual collapsing happens after onAdded(),
         // because jQuery.hide() requires the computed value of 'display' to work properly)
-        var context = getPrefsContext();
-        var toCollapse = PreferencesManager.getViewState("inlineEditor.collapsedFiles", context) || {};
+        var toCollapse = PreferencesManager.getViewState("inlineEditor.collapsedFiles", _getPrefsContext()) || {};
         Object.keys(toCollapse).forEach(function (fullPath) {
             this._collapsedFiles[fullPath] = true;
         }.bind(this));
@@ -318,6 +333,10 @@ define(function (require, exports, module) {
         var indexToSelect = _.findIndex(this._ranges, function (range) {
             return !this._collapsedFiles[range.textRange.document.file.fullPath];
         }.bind(this));
+        if (this._ranges.length === 1 && indexToSelect === -1) {
+            // If no right-hand rule list shown, select the one result even if it's in a collapsed file (since no way to expand)
+            indexToSelect = 0;
+        }
         
         if (indexToSelect !== -1) {
             // select the first visible range
@@ -537,23 +556,24 @@ define(function (require, exports, module) {
         
         // Insert the new range after the last range from the same doc, or at the
         // end of the list.
-        for (i = this._ranges.length - 1; i >= 0; i--) {
-            if (this._ranges[i].textRange.document === doc) {
+        for (i = 0; i < this._ranges.length; i++) {
+            if (this._fileComparator(this._ranges[i].textRange.document.file, doc.file) > 0) {
                 break;
             }
         }
-        if (i === -1) {
-            i = this._ranges.length;
-        } else {
-            i++;
-        }
         this._ranges.splice(i, 0, newRange);
         
-        // Update list with new range & ensure that the rule list becomes visible if needed
+        // Update rule list display
         this._renderList();
         
+        // Ensure rule list is visible if there are now multiple results
         if (this._ranges.length > 1 && !this.$relatedContainer.parent().length) {
             this.$wrapper.before(this.$relatedContainer);
+        }
+        
+        // If added rule is in a collapsed item, expand it for clarity
+        if (this._collapsedFiles[doc.file.fullPath]) {
+            this._toggleSection(doc.file.fullPath);
         }
         
         // Select new range, showing it in the editor
@@ -631,7 +651,7 @@ define(function (require, exports, module) {
             editorPos = $(editorRoot).offset();
         
         function containsClick($parent) {
-            return $parent.find(event.target) > 0 || $parent[0] === event.target;
+            return $parent.find(event.target).length > 0 || $parent[0] === event.target;
         }
         
         // Ignore clicks in editor and clicks on filename link

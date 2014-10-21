@@ -102,7 +102,7 @@ define(function (require, exports, module) {
         }
 
         function getRelatedFiles(inlineWidget) {
-            return inlineWidget.$relatedContainer.find(".related ul>li");
+            return inlineWidget.$relatedContainer.find(".related ul>li:not(.section-header)");
         }
 
         function loadFile(file) {
@@ -120,12 +120,13 @@ define(function (require, exports, module) {
         }
 
         function checkAvailableStylesheets(availableFilesInDropdown) {
+            // LESS/SCSS files are sorted above all CSS files. Files are otherwise sorted by path & then filename.
             expect(availableFilesInDropdown.length).toBe(5);
-            expect(availableFilesInDropdown[0].textContent).toEqual("test.css");
-            expect(availableFilesInDropdown[1].textContent).toEqual("test.less");
+            expect(availableFilesInDropdown[0].textContent).toEqual("test.less");
+            expect(availableFilesInDropdown[1].textContent).toEqual("test2.less");
             expect(availableFilesInDropdown[2].textContent).toEqual("test.scss");
-            expect(availableFilesInDropdown[3].textContent).toEqual("test2.css");
-            expect(availableFilesInDropdown[4].textContent).toEqual("test2.less");
+            expect(availableFilesInDropdown[3].textContent).toEqual("test.css");
+            expect(availableFilesInDropdown[4].textContent).toEqual("test2.css");
         }
 
         function getInlineEditorContent(ranges) {
@@ -347,7 +348,7 @@ define(function (require, exports, module) {
 
                     expect(getInlineEditorContent(ranges)).toEqual("    &.banner-new2 {\n        background-color: blue;\n    }");
 
-                    var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                    var files = getRelatedFiles(inlineWidgets[0]);
                     expect(files.length).toBe(2);
                     expect(files[0].textContent).toEqual("div / &.banner-new2 — test.less : 9");
                     expect(files[1].textContent).toEqual(".banner-new2 — test2.less : 1");
@@ -370,7 +371,7 @@ define(function (require, exports, module) {
                         expect(getInlineEditorContent(ranges)).toEqual("        .level3 {\n            color: red;\n        }");
 
                         // It's not visible
-                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual(".level1 / .level2 / .level3 — test2.less : 11");
                     });
@@ -391,7 +392,7 @@ define(function (require, exports, module) {
                         expect(getInlineEditorContent(ranges)).toEqual(".confuse1 {\n    /* {this comment is special(;:,)} */\n    .special {\n        color: #ff8000;\n    }\n}");
 
                         // It's not visible
-                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual(".confuse1 — test2.less : 44");
                     });
@@ -412,7 +413,7 @@ define(function (require, exports, module) {
                         expect(getInlineEditorContent(ranges)).toEqual(".compressed{color:red}");
 
                         // It's not visible
-                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual(".compressed — test2.less : 51");
                     });
@@ -456,7 +457,7 @@ define(function (require, exports, module) {
                         expect(getInlineEditorContent(ranges)).toEqual("/* This is a single line block comment that should appear in the inline editor as first line */\n.comment1 {\n    text-align: center;\n}");
 
                         // It's not visible
-                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual(".comment1 — test2.less : 17");
                     });
@@ -477,7 +478,7 @@ define(function (require, exports, module) {
                         expect(getInlineEditorContent(ranges)).toEqual("// This is a single line comment that should appear in the inline editor as first line\n.comment4 {\n    text-align: center;\n}");
 
                         // It's not visible
-                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual(".comment4 — test2.less : 33");
                     });
@@ -498,7 +499,7 @@ define(function (require, exports, module) {
                         expect(getInlineEditorContent(ranges)).toEqual("/* This is a multiline block comment\n * that should appear in the inline editor\n */\n.comment2 {\n    text-decoration: overline;\n}");
 
                         // It's not visible
-                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual(".comment2 — test2.less : 22");
                     });
@@ -519,7 +520,7 @@ define(function (require, exports, module) {
                         expect(getInlineEditorContent(ranges)).toEqual(".comment3 {\n    text-decoration: underline; /* EOL comment {}(,;:) */\n}");
 
                         // It's not visible
-                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual(".comment3 — test2.less : 29");
                     });
@@ -542,7 +543,7 @@ define(function (require, exports, module) {
                         expect(getInlineEditorContent(ranges)).toEqual("    .uno, .dos {\n        color: red\n    }");
 
                         // It's not visible
-                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual(".uno, .dos — test2.less : 55");
                     });
@@ -563,7 +564,7 @@ define(function (require, exports, module) {
                         expect(getInlineEditorContent(ranges)).toEqual("    .uno, .dos {\n        color: red\n    }");
 
                         // It's not visible
-                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(2);
                         expect(files[0].textContent).toEqual(".uno, .dos — test2.less : 55");
                         expect(files[1].textContent).toEqual("#main / .dos — test2.less : 59");
@@ -585,7 +586,7 @@ define(function (require, exports, module) {
                         expect(getInlineEditorContent(ranges)).toEqual("    .tres,\n    .quattro {\n        color: blue;\n    }");
 
                         // It's not visible
-                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual(".tres, .quattro — test2.less : 65");
                     });
@@ -608,7 +609,7 @@ define(function (require, exports, module) {
                         expect(getInlineEditorContent(ranges)).toEqual(".mixina-class {\n    .a();\n}");
 
                         // It's not visible
-                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual(".mixina-class — test2.less : 86");
                     });
@@ -629,7 +630,7 @@ define(function (require, exports, module) {
                         expect(getInlineEditorContent(ranges)).toEqual("#header-mixin-paramterized-default {\n    .border-radius;\n}");
 
                         // It's not visible
-                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual("#header-mixin-paramterized-default — test2.less : 120");
                     });
@@ -650,7 +651,7 @@ define(function (require, exports, module) {
                         expect(getInlineEditorContent(ranges)).toEqual("    #header-mixin-paramterized-custom-1 {\n        .border-radius(20px);\n    }");
 
                         // It's not visible
-                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual("#header-mixin-paramterized-custom / #header-mixin-paramterized-custom-1 — test2.less : 126");
                     });
@@ -674,7 +675,7 @@ define(function (require, exports, module) {
                         expect(getInlineEditorContent(ranges)).toEqual(".widget {\n    @{property}: #0ee;\n    background-@{property}: #999;\n}");
 
                         // It's not visible
-                        var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                        var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
                         expect(files[0].textContent).toEqual(".widget — test2.less : 109");
                     });
@@ -708,7 +709,7 @@ define(function (require, exports, module) {
                     expect(getInlineEditorContent(ranges)).toEqual("p {\n    $font-size: 12px;\n    $line-height: 30px;\n    font: #{$font-size}/#{$line-height};\n}");
 
                     // It's not visible
-                    var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                    var files = getRelatedFiles(inlineWidgets[0]);
                     expect(files.length).toBe(1);
                     expect(files[0].textContent).toEqual("p — test.scss : 5");
                 });
@@ -730,7 +731,7 @@ define(function (require, exports, module) {
                     expect(getInlineEditorContent(ranges)).toEqual("#scss-1 {\n    background-color: blue;\n}");
 
                     // It's not visible
-                    var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                    var files = getRelatedFiles(inlineWidgets[0]);
                     expect(files.length).toBe(1);
                     expect(files[0].textContent).toEqual("#scss-1 — test.scss : 11");
                 });
@@ -752,7 +753,7 @@ define(function (require, exports, module) {
                     expect(getInlineEditorContent(ranges)).toEqual("    &-ok {\n        background-image: url(\"ok.png\");\n    }");
 
                     // It's not visible
-                    var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                    var files = getRelatedFiles(inlineWidgets[0]);
                     expect(files.length).toBe(1);
                     expect(files[0].textContent).toEqual(".button / &-ok — test.scss : 20");
                 });
@@ -774,7 +775,7 @@ define(function (require, exports, module) {
                     expect(getInlineEditorContent(ranges)).toEqual("a {\n    color: blue;\n}");
 
                     // It's not visible
-                    var files = inlineWidgets[0].$relatedContainer.find(".related ul>li");
+                    var files = getRelatedFiles(inlineWidgets[0]);
                     expect(files.length).toBe(1);
                     expect(files[0].textContent).toEqual("a — test.scss : 37");
                 });

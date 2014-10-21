@@ -56,6 +56,10 @@ define(function (require, exports, module) {
                 hostEditor = null;
             });
     
+            function getRuleListItems() {
+                return $(inlineEditor.htmlContent).find("li:not(.section-header)");
+            }
+    
             it("should initialize to a default state", function () {
                 inlineEditor = new MultiRangeInlineEditor([]);
                 
@@ -112,7 +116,7 @@ define(function (require, exports, module) {
                 inlineEditor = new MultiRangeInlineEditor(mockRanges);
                 inlineEditor.load(hostEditor);
                 
-                var $ruleListItems = $(inlineEditor.htmlContent).find("li");
+                var $ruleListItems = getRuleListItems();
                 expect($($ruleListItems.get(0)).text()).toBe("div — " + inlineDocName + " : 1");
                 expect($($ruleListItems.get(1)).text()).toBe(".foo — " + inlineDocName + " : 2");
 
@@ -147,7 +151,7 @@ define(function (require, exports, module) {
                 inlineEditor._selectNextRange();
                 
                 var $selection = $(inlineEditor.htmlContent).find(".selection");
-                var $ruleListItems = $(inlineEditor.htmlContent).find("li");
+                var $ruleListItems = getRuleListItems();
                 expect($selection.position().top).toBe($($ruleListItems.get(0)).position().top);
             });
     
@@ -177,7 +181,7 @@ define(function (require, exports, module) {
                 
                 // verify selection moves
                 var $selection = $(inlineEditor.htmlContent).find(".selection");
-                var $ruleListItems = $(inlineEditor.htmlContent).find("li");
+                var $ruleListItems = getRuleListItems();
                 expect($selection.position().top).toBe($($ruleListItems.get(1)).position().top);
                 
                 // select div
@@ -248,8 +252,8 @@ define(function (require, exports, module) {
             });
             
             it("should add a new range after other ranges from the same doc, then select it", function () {
-                var doc1 = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n"),
-                    doc2 = SpecRunnerUtils.createMockDocument("#bar{}\n"),
+                var doc1 = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n", "css", "/a.css"),
+                    doc2 = SpecRunnerUtils.createMockDocument("#bar{}\n",        "css", "/b.css"),
                     mockRanges = [
                         {
                             document: doc1,
@@ -287,9 +291,9 @@ define(function (require, exports, module) {
                 expect(inlineEditor.editor.getLastVisibleLine()).toBe(1);
             });
 
-            it("should add a new range at the end if there are no other ranges from the same doc", function () {
-                var doc1 = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n"),
-                    doc2 = SpecRunnerUtils.createMockDocument("#bar{}\n"),
+            it("should add a new range at proper sorted pos if there are no other ranges from the same doc", function () {
+                var doc1 = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n", "css", "/a.css"),
+                    doc2 = SpecRunnerUtils.createMockDocument("#bar{}\n",        "css", "/b.css"),
                     mockRanges = [
                         {
                             document: doc1,
@@ -328,8 +332,8 @@ define(function (require, exports, module) {
             });
             
             it("should properly refresh the editor if the range is inserted at the currently selected index", function () {
-                var doc1 = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n"),
-                    doc2 = SpecRunnerUtils.createMockDocument("#bar{}\n"),
+                var doc1 = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n", "css", "/a.css"),
+                    doc2 = SpecRunnerUtils.createMockDocument("#bar{}\n",        "css", "/b.css"),
                     mockRanges = [
                         {
                             document: doc1,
