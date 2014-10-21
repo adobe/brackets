@@ -117,14 +117,19 @@ define(function (require, exports, module) {
     
 
     // Constants for scoring
+    var SPECIAL_CASE_POINTS = 50;           // Both a Special and a Case match
     var SPECIAL_POINTS = 40;
     var MATCH_POINTS = 10;
     var MATCH_CASE_POINTS = 7;              // Consecutive non-case matches have higher priority
     var CONSECUTIVE_MATCHES_POINTS = 8;
-    var BEGINNING_OF_NAME_POINTS = 10;
+    var BEGINNING_OF_NAME_POINTS = 13;
     var LAST_SEGMENT_BOOST = 1;
     var DEDUCTION_FOR_LENGTH = 0.2;
     var NOT_STARTING_ON_SPECIAL_PENALTY = 25;
+    
+    function SpecialCaseMatch(index) {
+        this.index = index;
+    }
     
     // Used in match lists to designate matches of "special" characters (see
     // findSpecialCharacters above
@@ -213,12 +218,12 @@ define(function (require, exports, module) {
      * @param {string} query the search string (generally lower cased)
      * @param {string} str the string to compare with (generally lower cased)
      * @param {string} originalQuery the "non-normalized" query string (used to detect case match priority)
-     * @param {string} OriginalStr the "non-normalized" string to compare with (used to detect case match priority)
+     * @param {string} originalStr the "non-normalized" string to compare with (used to detect case match priority)
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
      * @param {int} startingSpecial index into specials array to start scanning with
      * @return {Array.<SpecialMatch|NormalMatch>} matched indexes or null if no matches possible
      */
-    function _generateMatchList(query, str, originalQuery, OriginalStr, specials, startingSpecial) {
+    function _generateMatchList(query, str, originalQuery, originalStr, specials, startingSpecial) {
         var result = [];
         
         // used to keep track of which special character we're testing now
@@ -266,10 +271,15 @@ define(function (require, exports, module) {
                     specialsCounter = i;
                 } else if (query[queryCounter] === str[specials[i]]) {
                     // we have a match! do the required tracking
+                    strCounter = specials[i];
+                    if (originalQuery[queryCounter] === originalStr[strCounter]) {
+                        result.push(new SpecialCaseMatch(strCounter));
+                    } else {
+                        result.push(new SpecialMatch(strCounter));
+                    }
                     specialsCounter = i;
                     queryCounter++;
-                    strCounter = specials[i];
-                    result.push(new SpecialMatch(strCounter++));
+                    strCounter++;
                     return true;
                 }
             }
@@ -300,7 +310,7 @@ define(function (require, exports, module) {
                 // searching from.
                 queryCounter--;
                 
-                if (item instanceof SpecialMatch) {
+                if (item instanceof SpecialMatch || item instanceof SpecialCaseMatch) {
                     // pulled off a special, which means we need to make that special available
                     // for matching again
                     specialsCounter--;
@@ -347,7 +357,7 @@ define(function (require, exports, module) {
                     // we look character by character for matches
                     if (query[queryCounter] === str[strCounter]) {
                         // got a match! record it, and switch back to searching specials
-                        if (originalQuery[queryCounter] === OriginalStr[strCounter]) {
+                        if (originalQuery[queryCounter] === originalStr[strCounter]) {
                             result.push(new CaseMatch(strCounter++));
                         } else {
                             result.push(new NormalMatch(strCounter++));
@@ -392,13 +402,13 @@ define(function (require, exports, module) {
      * @param {string} query the search string (generally lower cased)
      * @param {string} str the string to compare with (generally lower cased)
      * @param {string} originalQuery the "non-normalized" query string (used to detect case match priority)
-     * @param {string} OriginalStr the "non-normalized" string to compare with (used to detect case match priority)
+     * @param {string} originalStr the "non-normalized" string to compare with (used to detect case match priority)
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
      * @param {int} startingSpecial index into specials array to start scanning with
      * @param {boolean} lastSegmentStart which character does the last segment start at
      * @return {{remainder:int, matchList:Array.<SpecialMatch|NormalMatch>}} matched indexes or null if no matches possible
      */
-    function _lastSegmentSearch(query, str, originalQuery, OriginalStr, specials, startingSpecial, lastSegmentStart) {
+    function _lastSegmentSearch(query, str, originalQuery, originalStr, specials, startingSpecial, lastSegmentStart) {
         var queryCounter, matchList;
         
         // It's possible that the query is longer than the last segment.
@@ -417,7 +427,7 @@ define(function (require, exports, module) {
         for (queryCounter = 0; queryCounter < query.length; queryCounter++) {
             matchList = _generateMatchList(query.substring(queryCounter),
                                      str, originalQuery.substring(queryCounter),
-                                     OriginalStr, specials, startingSpecial);
+                                     originalStr, specials, startingSpecial);
             
             // if we've got a match *or* there are no segments in this string, we're done
             if (matchList || startingSpecial === 0) {
@@ -445,17 +455,17 @@ define(function (require, exports, module) {
      * @param {string} queryLower the search string (will be searched lower case)
      * @param {string} compareLower the lower-cased string to search
      * @param {string} originalQuery the "non-normalized" query string (used to detect case match priority)
-     * @param {string} OriginalStr the "non-normalized" string to compare with (used to detect case match priority)
+     * @param {string} originalStr the "non-normalized" string to compare with (used to detect case match priority)
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
      * @param {int} lastSegmentSpecialsIndex index into specials array to start scanning with
      * @return {Array.<SpecialMatch|NormalMatch>} matched indexes or null if no matches possible
      */
-    function _wholeStringSearch(queryLower, compareLower, originalQuery, OriginalStr, specials, lastSegmentSpecialsIndex) {
+    function _wholeStringSearch(queryLower, compareLower, originalQuery, originalStr, specials, lastSegmentSpecialsIndex) {
         var lastSegmentStart = specials[lastSegmentSpecialsIndex];
         var result;
         var matchList;
         
-        result = _lastSegmentSearch(queryLower, compareLower, originalQuery, OriginalStr, specials, lastSegmentSpecialsIndex, lastSegmentStart);
+        result = _lastSegmentSearch(queryLower, compareLower, originalQuery, originalStr, specials, lastSegmentSpecialsIndex, lastSegmentStart);
         
         if (result) {
             matchList = result.matchList;
@@ -466,7 +476,7 @@ define(function (require, exports, module) {
                 var remainderMatchList = _generateMatchList(result.remainder,
                                               compareLower.substring(0, lastSegmentStart),
                                               result.originalRemainder,
-                                              OriginalStr.substring(0, lastSegmentStart),
+                                              originalStr.substring(0, lastSegmentStart),
                                               specials.slice(0, lastSegmentSpecialsIndex), 0);
                 
                 if (remainderMatchList) {
@@ -480,7 +490,7 @@ define(function (require, exports, module) {
         } else {
             // No match in the last segment, so we start over searching the whole
             // string
-            matchList = _generateMatchList(queryLower, compareLower, originalQuery, OriginalStr, specials, 0);
+            matchList = _generateMatchList(queryLower, compareLower, originalQuery, originalStr, specials, 0);
         }
         
         return matchList;
@@ -571,7 +581,7 @@ define(function (require, exports, module) {
             }
             newPoints += MATCH_POINTS;
             
-            if (match instanceof CaseMatch) {
+            if (match instanceof CaseMatch || match instanceof SpecialCaseMatch) {
                 if (DEBUG_SCORES) {
                     scoreDebug.case += MATCH_CASE_POINTS;
                 }
@@ -625,6 +635,11 @@ define(function (require, exports, module) {
                     scoreDebug.special += SPECIAL_POINTS;
                 }
                 newPoints += SPECIAL_POINTS;
+            } else if (match instanceof SpecialCaseMatch) {
+                if (DEBUG_SCORES) {
+                    scoreDebug.special += SPECIAL_CASE_POINTS;
+                }
+                newPoints += SPECIAL_CASE_POINTS;
             }
             
             score += newPoints;
@@ -651,7 +666,7 @@ define(function (require, exports, module) {
                 // Check to see if this new matched range is starting on a special
                 // character. We penalize those ranges that don't, because most
                 // people will search on the logical boundaries of the name
-                currentRangeStartedOnSpecial = match instanceof SpecialMatch;
+                currentRangeStartedOnSpecial = match instanceof SpecialMatch || match instanceof SpecialCaseMatch;
             } else {
                 currentRange.text += str[c];
             }
@@ -975,6 +990,7 @@ define(function (require, exports, module) {
     exports._setDebugScores         = _setDebugScores;
     exports._generateMatchList      = _generateMatchList;
     exports._SpecialMatch           = SpecialMatch;
+    exports._SpecialCaseMatch       = SpecialCaseMatch;
     exports._NormalMatch            = NormalMatch;
     exports._CaseMatch              = CaseMatch;
     exports._computeRangesAndScore  = _computeRangesAndScore;
