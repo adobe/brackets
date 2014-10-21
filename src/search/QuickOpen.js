@@ -512,7 +512,7 @@ define(function (require, exports, module) {
         // So we wait until after this call chain is complete before actually closing the dialog.
         var self = this;
         setTimeout(function () {
-            self.modalBar.close(!scrollPos).done(function () {
+            self.modalBar.close(!!scrollPos).done(function () {
                 self._closeDeferred.resolve();
             });
 
@@ -680,7 +680,7 @@ define(function (require, exports, module) {
             displayName += '<span title="sp:' + sd.special + ', m:' + sd.match +
                 ', ls:' + sd.lastSegment + ', b:' + sd.beginning +
                 ', ld:' + sd.lengthDeduction + ', c:' + sd.consecutive + ', nsos: ' +
-                sd.notStartingOnSpecial + '">(' + item.matchGoodness + ') </span>';
+                sd.notStartingOnSpecial + ', case: ' + sd.case + '">(' + item.matchGoodness + ') </span>';
         }
         
         // Put the path pieces together, highlighting the matched parts

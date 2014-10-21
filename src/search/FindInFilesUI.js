@@ -129,20 +129,10 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Default to searching for the current selection
+        // Get initial query/replace text
         var currentEditor = EditorManager.getActiveEditor(),
-            initialQuery  = "";
+            initialQuery = FindUtils.getInitialQuery(_findBar, currentEditor);
 
-        if (_findBar && !_findBar.isClosed()) {
-            // The modalBar was already up. When creating the new modalBar, copy the
-            // current query instead of using the passed-in selected text.
-            initialQuery = _findBar.getQueryInfo().query;
-        } else if (currentEditor) {
-            initialQuery = FindUtils.getInitialQueryFromSelection(currentEditor);
-        }
-        
-        FindInFiles.clearSearch();
-        
         // Close our previous find bar, if any. (The open() of the new _findBar will
         // take care of closing any other find bar instances.)
         if (_findBar) {
@@ -152,7 +142,8 @@ define(function (require, exports, module) {
         _findBar = new FindBar({
             multifile: true,
             replace: showReplace,
-            initialQuery: initialQuery,
+            initialQuery: initialQuery.query,
+            initialReplaceText: initialQuery.replaceText,
             queryPlaceholder: Strings.FIND_QUERY_PLACEHOLDER,
             scopeLabel: FindUtils.labelForScope(scope)
         });
@@ -174,7 +165,7 @@ define(function (require, exports, module) {
             // Check the query expression on every input event. This way the user is alerted
             // to any RegEx syntax errors immediately.
             var queryInfo = _findBar.getQueryInfo(),
-                queryResult = FindInFiles.searchModel.setQueryInfo(queryInfo);
+                queryResult = FindUtils.parseQueryInfo(queryInfo);
 
             // Enable the replace button appropriately.
             _findBar.enableReplace(queryResult.valid);

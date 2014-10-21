@@ -127,6 +127,11 @@ define(function (require, exports, module) {
             _updateScrollerShadow($displayElement, $scrollElement, $shadowTop, $shadowBottom, isPositionFixed);
         };
         
+        // remove any previously installed listeners on this node
+        $scrollElement.off("scroll.scroller-shadow");
+        $displayElement.off("contentChanged.scroller-shadow");
+        
+        // add new ones
         $scrollElement.on("scroll.scroller-shadow", doUpdate);
         $displayElement.on("contentChanged.scroller-shadow", doUpdate);
         

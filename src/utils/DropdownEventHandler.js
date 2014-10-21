@@ -48,7 +48,7 @@ define(function (require, exports, module) {
      * - Esc         - dismiss list
      * - Up/Down     - change selection
      * - PageUp/Down - change selection
-     * 
+     *
      * Items whose <a> has the .disabled class do not respond to selection.
      *
      * @constructor
@@ -90,7 +90,9 @@ define(function (require, exports, module) {
             if (event.type === "keydown") {
                 keyCode = event.keyCode;
     
-                if (keyCode === KeyEvent.DOM_VK_UP) {
+                if (keyCode === KeyEvent.DOM_VK_TAB) {
+                    self.close();
+                } else if (keyCode === KeyEvent.DOM_VK_UP) {
                     // Move up one, wrapping at edges (if nothing selected, select the last item)
                     self._tryToSelect(self._selectedIndex === -1 ? -1 : self._selectedIndex - 1, -1);
                 } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
@@ -192,7 +194,7 @@ define(function (require, exports, module) {
                 index += len;
             }
         }
-        
+
         var $item = this.$items.eq(index);
         if ($item.hasClass("divider") || $item.find("a.disabled").length) {
             // Desired item is ineligible for selection: try next one
@@ -201,7 +203,7 @@ define(function (require, exports, module) {
             this._setSelectedIndex(index, true);
         }
     };
-    
+
     /**
      * @return {number} The number of items per scroll page.
      */

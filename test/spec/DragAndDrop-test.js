@@ -139,14 +139,14 @@ define(function (require, exports, module) {
             it("should add images to the working set when they dropped from outside the project", function () {
                 var imagesPath = SpecRunnerUtils.getTestPath("/spec/test-image-files");
                 runs(function () {
-                    var files = [imagesPath + "/thermo.jpg", imagesPath + "/check.png"];
+                    var files = [imagesPath + "/thermo.jpg", imagesPath + "/eye.jpg"];
                     promise = DragAndDrop.openDroppedFiles(files);
                     waitsForDone(promise, "opening last image file from the dropped files");
                 });
             
                 runs(function () {
                     expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, imagesPath + "/thermo.jpg")).toNotEqual(-1);
-                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, imagesPath + "/check.png")).toNotEqual(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, imagesPath + "/eye.jpg")).toNotEqual(-1);
                 });
             });
         });

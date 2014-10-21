@@ -135,8 +135,6 @@ define(function (require, exports, module) {
     require("extensibility/ExtensionManagerDialog");
     require("editor/ImageViewer");
     
-    // Deprecated modules loaded just so extensions can still use them for now
-    require("utils/CollectionUtils");
     // Compatibility shims for filesystem API migration
     require("project/FileIndexManager");
     require("file/NativeFileSystem");
@@ -307,8 +305,8 @@ define(function (require, exports, module) {
                     
                     // See if any startup files were passed to the application
                     if (brackets.app.getPendingFilesToOpen) {
-                        brackets.app.getPendingFilesToOpen(function (err, files) {
-                            DragAndDrop.openDroppedFiles(files);
+                        brackets.app.getPendingFilesToOpen(function (err, paths) {
+                            DragAndDrop.openDroppedFiles(paths);
                         });
                     }
                 });
@@ -381,9 +379,9 @@ define(function (require, exports, module) {
                 if (event.originalEvent.dataTransfer.files) {
                     event.stopPropagation();
                     event.preventDefault();
-                    brackets.app.getDroppedFiles(function (err, files) {
+                    brackets.app.getDroppedFiles(function (err, paths) {
                         if (!err) {
-                            DragAndDrop.openDroppedFiles(files);
+                            DragAndDrop.openDroppedFiles(paths);
                         }
                     });
                 }
@@ -447,7 +445,7 @@ define(function (require, exports, module) {
         var real_windowOpen = window.open;
         window.open = function (url) {
             // Allow file:// URLs, relative URLs (implicitly file: also), and about:blank
-            if (!url.match(/^file:\/\//) && url !== "about:blank" && url.indexOf(":") !== -1) {
+            if (!url.match(/^file:\/\//) && !url.match(/^about:blank/) && url.indexOf(":") !== -1) {
                 throw new Error("Brackets-shell is not a secure general purpose web browser. Use NativeApp.openURLInDefaultBrowser() to open URLs in the user's main browser");
             }
             return real_windowOpen.apply(window, arguments);
