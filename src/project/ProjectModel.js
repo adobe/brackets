@@ -617,8 +617,6 @@ define(function (require, exports, module) {
             return d.resolve().promise();
         }
 
-        var projectRelative = this.makeProjectRelativeIfPossible(path);
-
         var parentDirectory = FileUtils.getDirectoryPath(path),
             self = this;
         this.setDirectoryOpen(parentDirectory, true).then(function () {
