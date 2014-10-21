@@ -298,10 +298,6 @@ define(function (require, exports, module) {
                 
                 // document spies
                 var deferred = new $.Deferred();
-                spyOn(CSSDocumentModule.prototype, "getStyleSheetFromBrowser").andCallFake(function () {
-                    return deferred.promise();
-                });
-                
                 var mock = SpecRunnerUtils.createMockEditor("p {}\n\ndiv {}", "css");
                 testDocument = mock.doc;
                 testEditor = mock.editor;
