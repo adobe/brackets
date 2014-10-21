@@ -60,7 +60,7 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", []);
     
     // This preference controls when Tern will time out when trying to understand files
-    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 10000);
+    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 30000);
     
     // This preference controls whether to prevent hints from being displayed when dot is typed
     PreferencesManager.definePreference("jscodehints.noHintsOnDot", "boolean", false);
