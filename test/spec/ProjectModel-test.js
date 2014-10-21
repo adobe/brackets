@@ -639,6 +639,13 @@ define(function (require, exports, module) {
                     expect(promise.then).toEqual(jasmine.any(Function));
                 });
                 
+                it("should expand the parent directory if closed", function () {
+                    model.setDirectoryOpen("/foo/subdir1", false);
+                    expect(vm._treeData.getIn(["subdir1", "open"])).toBeUndefined();
+                    model.startRename("/foo/subdir1/afile.js");
+                    expect(vm._treeData.getIn(["subdir1", "open"])).toBe(true);
+                });
+                
                 it("can take a filesystem object or string", function () {
                     model.startRename({
                         fullPath: "/foo/afile.js"
@@ -1128,6 +1135,15 @@ define(function (require, exports, module) {
             
             it("should do nothing for a path that is outside of the project", function () {
                 waitsForDone(model.showInTree("/bar/baz.js"));
+                runs(function () {
+                    expect(vm._treeData.get("baz.js")).toBeUndefined();
+                    expect(model._selections.selected).toBeUndefined();
+                });
+            });
+            
+            it("should do nothing for a path that is outside of the project on Windows", function () {
+                model.projectRoot = "c:/foo/";
+                waitsForDone(model.showInTree("c:/bar/baz.js"));
                 runs(function () {
                     expect(vm._treeData.get("baz.js")).toBeUndefined();
                     expect(model._selections.selected).toBeUndefined();
