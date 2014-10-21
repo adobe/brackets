@@ -601,7 +601,7 @@ define(function (require, exports, module) {
                     $selectedRow.nextUntil(".inspector-section").toggle();
 
                     var $triangle = $(".disclosure-triangle", $selectedRow);
-                    $triangle.toggleClass("expanded").toggleClass("collapsed");
+                    $triangle.toggleClass("expanded");
                 } else {
                     // This is a problem marker row, show the result on click
                     // Grab the required position data
