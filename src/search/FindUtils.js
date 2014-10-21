@@ -103,13 +103,13 @@ define(function (require, exports, module) {
             query = currentFindBar.getQueryInfo().query;
             replaceText = currentFindBar.getReplaceText();
         } else {
-            var openedFindbars = FindBar._bars && FindBar._bars.filter(function (bar) {
+            var openedFindBar = FindBar._bars && _.find(FindBar._bars, function (bar) {
                     return !bar.isClosed();
                 });
 
-            if (openedFindbars && openedFindbars.length) {
-                query = openedFindbars[0].getQueryInfo().query;
-                replaceText = openedFindbars[0].getReplaceText();
+            if (openedFindBar) {
+                query = openedFindBar.getQueryInfo().query;
+                replaceText = openedFindBar.getReplaceText();
             } else if (editor) {
                 query = getInitialQueryFromSelection(editor);
             }
