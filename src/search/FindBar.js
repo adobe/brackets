@@ -77,6 +77,7 @@ define(function (require, exports, module) {
             replace: false,
             queryPlaceholder: "",
             initialQuery: "",
+            initialReplaceText: "",
             scopeLabel: ""
         };
         this._options = _.extend(defaults, options);

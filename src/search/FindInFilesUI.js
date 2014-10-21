@@ -129,17 +129,9 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Default to searching for the current selection
+        // Get initial query/replace text
         var currentEditor = EditorManager.getActiveEditor(),
-            initialQuery  = "";
-
-        if (_findBar && !_findBar.isClosed()) {
-            // The modalBar was already up. When creating the new modalBar, copy the
-            // current query instead of using the passed-in selected text.
-            initialQuery = _findBar.getQueryInfo().query;
-        } else if (currentEditor) {
-            initialQuery = FindUtils.getInitialQueryFromSelection(currentEditor);
-        }
+            initialQuery = FindUtils.getInitialQuery(_findBar, currentEditor);
 
         // Close our previous find bar, if any. (The open() of the new _findBar will
         // take care of closing any other find bar instances.)
@@ -150,7 +142,8 @@ define(function (require, exports, module) {
         _findBar = new FindBar({
             multifile: true,
             replace: showReplace,
-            initialQuery: initialQuery,
+            initialQuery: initialQuery.query,
+            initialReplaceText: initialQuery.replaceText,
             queryPlaceholder: Strings.FIND_QUERY_PLACEHOLDER,
             scopeLabel: FindUtils.labelForScope(scope)
         });
