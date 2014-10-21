@@ -593,24 +593,7 @@ define(function (require, exports, module) {
         state.searchStartPos = editor.getCursorPos(false, "start");
         
         // Prepopulate the search field
-        var initialQuery,
-            initialReplaceText = "";
-        if (findBar) {
-            // Use the previous query. This can happen if the user switches from Find to Replace.
-            initialQuery = findBar.getQueryInfo().query;
-            initialReplaceText = findBar.getReplaceText();
-        } else {
-            var openedFindbars = FindBar._bars && FindBar._bars.filter(function (bar) {
-                return !bar.isClosed();
-            });
-
-            if (openedFindbars && openedFindbars.length) {
-                initialQuery = openedFindbars[0].getQueryInfo().query;
-                initialReplaceText = openedFindbars[0].getReplaceText();
-            } else {
-                initialQuery = FindUtils.getInitialQueryFromSelection(editor);
-            }
-        }
+        var initialQuery = FindUtils.getInitialQuery(findBar, editor);
         
         // Close our previous find bar, if any. (The open() of the new findBar will
         // take care of closing any other find bar instances.)
@@ -622,8 +605,8 @@ define(function (require, exports, module) {
         findBar = new FindBar({
             multifile: false,
             replace: replace,
-            initialQuery: initialQuery,
-            initialReplaceText: initialReplaceText,
+            initialQuery: initialQuery.query,
+            initialReplaceText: initialQuery.replaceText,
             queryPlaceholder: Strings.FIND_QUERY_PLACEHOLDER
         });
         findBar.open();
