@@ -45,7 +45,7 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete-local/jquery.smart_autocomplete");
 
-    // Load CodeMirror add-ons--these attach themselves to the CodeMirror module    
+    // Load CodeMirror add-ons--these attach themselves to the CodeMirror module
     require("thirdparty/CodeMirror2/addon/fold/xml-fold");
     require("thirdparty/CodeMirror2/addon/edit/matchtags");
     require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
@@ -134,11 +134,6 @@ define(function (require, exports, module) {
     require("extensibility/InstallExtensionDialog");
     require("extensibility/ExtensionManagerDialog");
     require("editor/ImageViewer");
-    
-    // Compatibility shims for filesystem API migration
-    require("project/FileIndexManager");
-    require("file/NativeFileSystem");
-    require("file/NativeFileError");
     
     // Compatibility shim for PanelManager to WorkspaceManager migration
     require("view/PanelManager");
