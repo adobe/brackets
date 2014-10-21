@@ -1135,9 +1135,18 @@ define(function (require, exports, module) {
             ];
         } else {
             // Special case: a directory passed in without added and removed values
-            // appears to be new.
+            // needs to be updated.
             if (!added && !removed) {
-                this._viewModel.ensureDirectoryExists(this.makeProjectRelativeIfPossible(entry.fullPath));
+                entry.getContents(function (err, contents) {
+                    if (err) {
+                        console.error("Unexpected error refreshing file tree for directory", entry.fullPath, err);
+                        return;
+                    }
+                    self._viewModel.setDirectoryContents(self.makeProjectRelativeIfPossible(entry.fullPath), contents);
+                });
+                
+                // Exit early because we can't update the viewModel until we get the directory contents.
+                return;
             }
         }
 
