@@ -167,20 +167,14 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Add a new range to the range list UI.
+     * Add a new result item <li> to the range list UI ($rangeList) and saves it in range.$listItem
      * @param {SearchResultItem} range The range to add.
-     * @param {number=} index Where to add the range in the list. Defaults to the end.
      */
-    MultiRangeInlineEditor.prototype._createListItem = function (range, index) {
+    MultiRangeInlineEditor.prototype._createListItem = function (range) {
         var self = this,
-            $rangeItem = $("<li/>"),
-            $rangeListChildren = this.$rangeList.children();
+            $rangeItem = $("<li/>");
         
-        if (index === undefined || index === $rangeListChildren.length) {
-            $rangeItem.appendTo(this.$rangeList);
-        } else {
-            $rangeItem.insertBefore($rangeListChildren.get(index));
-        }
+        $rangeItem.appendTo(this.$rangeList);
         
         _updateRangeLabel($rangeItem, range);
         $rangeItem.mousedown(function () {
@@ -190,15 +184,17 @@ define(function (require, exports, module) {
         range.$listItem = $rangeItem;
     };
     
+    /** Collapses/expands a file section in the range list UI */
     MultiRangeInlineEditor.prototype._toggleSection = function (fullPath, duringInit) {
         var $headerItem = this._$headers[fullPath];
         var $disclosureIcon = $headerItem.find(".disclosure-triangle");
         var isCollapsing = $disclosureIcon.hasClass("expanded");
         $disclosureIcon.toggleClass("expanded").toggleClass("collapsed");
-        $headerItem.nextUntil(".section-header").toggle(!isCollapsing);  // must pass explicit visibility arg, since during load() jQ doesn't think nodes are visible
+        $headerItem.nextUntil(".section-header").toggle(!isCollapsing);  // explicit visibility arg, since during load() jQ doesn't think nodes are visible
 
-        // Update instance-specific state AND persist as per-project view state
+        // Update instance-specific state...
         this._collapsedFiles[fullPath] = isCollapsing;
+        // ...AND persist as per-project view state
         if (!duringInit) {
             var setting = PreferencesManager.getViewState("inlineEditor.collapsedFiles", _getPrefsContext()) || {};
             if (isCollapsing) {
@@ -216,9 +212,9 @@ define(function (require, exports, module) {
         this._ruleListHeightChanged();
     };
     
+    /** Adds a file section header <li> to the range list UI ($rangeList) and adds it to the this._$headers map */
     MultiRangeInlineEditor.prototype._createHeaderItem = function (doc) {
-        var $headerItem = $("<li><span class='disclosure-triangle expanded'/>" + _.escape(doc.file.name) + "</li>")
-            .addClass("section-header")
+        var $headerItem = $("<li class='section-header'><span class='disclosure-triangle expanded'/>" + _.escape(doc.file.name) + "</li>")
             .attr("title", ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))
             .appendTo(this.$rangeList);
         
@@ -226,43 +222,42 @@ define(function (require, exports, module) {
             this._toggleSection(doc.file.fullPath);
         }.bind(this));
         
-        return $headerItem;
+        this._$headers[doc.file.fullPath] = $headerItem;
     };
     
+    /** Refresh the contents of $rangeList */
     MultiRangeInlineEditor.prototype._renderList = function () {
         this.$rangeList.empty();
         this._$headers = {};
         
-        var lastSectionDoc,
-            self = this,
-            nHeaders = 0,
-            nFilesInSection = 0;
+        var self = this,
+            lastSectionDoc,
+            numItemsInSection = 0;
         
+        // After seeing all results for a given file, update its header with total # of results
         function finalizeSection() {
             if (lastSectionDoc) {
-                self._$headers[lastSectionDoc.file.fullPath].append(" (" + nFilesInSection + ")");
+                self._$headers[lastSectionDoc.file.fullPath].append(" (" + numItemsInSection + ")");
                 if (self._collapsedFiles[lastSectionDoc.file.fullPath]) {
                     self._toggleSection(lastSectionDoc.file.fullPath, true);
                 }
             }
         }
         
-        this._ranges.forEach(function (resultItem, index) {
+        this._ranges.forEach(function (resultItem) {
             if (lastSectionDoc !== resultItem.textRange.document) {
                 // Finalize previous section
                 finalizeSection();
                 
                 // Initialize new section
                 lastSectionDoc = resultItem.textRange.document;
-                nFilesInSection = 0;
+                numItemsInSection = 0;
                 
                 // Create filename header for new section
-                nHeaders++;
-                var $header = this._createHeaderItem(lastSectionDoc);
-                this._$headers[lastSectionDoc.file.fullPath] = $header;
+                this._createHeaderItem(lastSectionDoc);
             }
-            nFilesInSection++;
-            this._createListItem(resultItem, index + nHeaders);
+            numItemsInSection++;
+            this._createListItem(resultItem);
         }, this);
         
         // Finalize last section

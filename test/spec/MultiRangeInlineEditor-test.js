@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         Commands                = require("command/Commands");
 
+    // TODO: overlaps a lot with CSSInlineEdit-test integration suite
     describe("MultiRangeInlineEditor", function () {
         
         var inlineEditor,
@@ -58,6 +59,10 @@ define(function (require, exports, module) {
     
             function getRuleListItems() {
                 return $(inlineEditor.htmlContent).find("li:not(.section-header)");
+            }
+    
+            function getRuleListSections() {
+                return $(inlineEditor.htmlContent).find("li.section-header");
             }
     
             it("should initialize to a default state", function () {
@@ -251,6 +256,46 @@ define(function (require, exports, module) {
                 expectResultItemToEqual(inlineEditor._getSelectedRange(), mockRanges[1]);
             });
             
+            it("should show multiple documents in sorted order", function () {
+                var docZ = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n", "css", "/zzz.css"),
+                    docA = SpecRunnerUtils.createMockDocument("#bar{}\n",        "css", "/aaa.css"),
+                    mockRanges = [
+                        {
+                            document: docZ,
+                            name: "div",
+                            lineStart: 0,
+                            lineEnd: 0
+                        },
+                        {
+                            document: docA,
+                            name: "#bar",
+                            lineStart: 0,
+                            lineEnd: 0
+                        }
+                    ];
+                
+                inlineEditor = new MultiRangeInlineEditor(mockRanges);
+                inlineEditor.load(hostEditor);
+                
+                var displayedRanges = inlineEditor._getRanges();
+                expect(displayedRanges.length).toBe(2);
+                expectResultItemToEqual(displayedRanges[0], mockRanges[1]);
+                expectResultItemToEqual(displayedRanges[1], mockRanges[0]);
+                
+                var $ruleListItems = getRuleListItems();
+                expect($ruleListItems.length).toBe(2);
+                expect($ruleListItems.eq(0).text()).toBe("#bar — aaa.css : 1");
+                expect($ruleListItems.eq(1).text()).toBe("div — zzz.css : 1");
+                
+                var $ruleListSections = getRuleListSections();
+                expect($ruleListSections.length).toBe(2);
+                expect($ruleListSections.eq(0).text()).toBe("aaa.css (1)");
+                expect($ruleListSections.eq(1).text()).toBe("zzz.css (1)");
+                
+                expect(inlineEditor._getSelectedRange()).toBe(displayedRanges[0]);
+                expect(inlineEditor.editor.document).toBe(docA);
+            });
+            
             it("should add a new range after other ranges from the same doc, then select it", function () {
                 var doc1 = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n", "css", "/a.css"),
                     doc2 = SpecRunnerUtils.createMockDocument("#bar{}\n",        "css", "/b.css"),
@@ -272,7 +317,11 @@ define(function (require, exports, module) {
                 inlineEditor = new MultiRangeInlineEditor(mockRanges);
                 inlineEditor.load(hostEditor);
                 
+                expect(getRuleListSections().eq(0).text()).toBe("a.css (1)");
+                
                 inlineEditor.addAndSelectRange(".foo", doc1, 1, 1);
+                
+                expect(getRuleListSections().eq(0).text()).toBe("a.css (2)");  // verify section header updated
                 
                 var newRanges = inlineEditor._getRanges();
                 expect(newRanges.length).toBe(3);
@@ -312,7 +361,11 @@ define(function (require, exports, module) {
                 inlineEditor = new MultiRangeInlineEditor(mockRanges);
                 inlineEditor.load(hostEditor);
                 
+                expect(getRuleListSections().length).toBe(1);
+                
                 inlineEditor.addAndSelectRange("#bar", doc2, 0, 0);
+                
+                expect(getRuleListSections().length).toBe(2);  // verify section header created
                 
                 var newRanges = inlineEditor._getRanges();
                 expect(newRanges.length).toBe(3);
@@ -391,6 +444,84 @@ define(function (require, exports, module) {
                 expect(inlineEditor.$htmlContent.find(".related-container").length).toBe(1);
             });
 
+            it("should keep collapsed sections collapsed when adding range to other section", function () {
+                var doc1 = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n", "css", "/a.css"),
+                    doc2 = SpecRunnerUtils.createMockDocument("#bar{}\n",        "css", "/b.css"),
+                    mockRanges = [
+                        {
+                            document: doc1,
+                            name: "div",
+                            lineStart: 0,
+                            lineEnd: 0
+                        },
+                        {
+                            document: doc2,
+                            name: "#bar",
+                            lineStart: 0,
+                            lineEnd: 0
+                        }
+                    ];
+                
+                inlineEditor = new MultiRangeInlineEditor(mockRanges);
+                inlineEditor.load(hostEditor);
+                
+                var $ruleListSections = getRuleListSections();
+                $ruleListSections.eq(1).click(); // collapse doc2 section
+                expect($ruleListSections.eq(0).find(".disclosure-triangle.expanded").length).toBe(1);  // verify doc1 section still expanded
+                expect($ruleListSections.eq(1).find(".disclosure-triangle.collapsed").length).toBe(1); // verify doc2 section now collapsed
+                
+                inlineEditor.addAndSelectRange(".foo", doc1, 1, 1); // add new item to doc1 section
+                
+                var newRanges = inlineEditor._getRanges();
+                expect(newRanges.length).toBe(3);
+                expect(inlineEditor._getSelectedRange()).toBe(newRanges[1]);  // new range should be 2nd in list & be selected
+                expect(inlineEditor.editor.document).toBe(doc1);
+                
+                $ruleListSections = getRuleListSections();
+                expect($ruleListSections.length).toBe(2);  // still just 2 sections
+                expect($ruleListSections.eq(0).find(".disclosure-triangle.expanded").length).toBe(1);  // doc1 section still expanded
+                expect($ruleListSections.eq(1).find(".disclosure-triangle.collapsed").length).toBe(1); // doc2 section still collapsed
+            });
+
+            it("should auto-expand collapsed section when adding new range to it", function () {
+                var doc1 = SpecRunnerUtils.createMockDocument("div{}\n", "css", "/a.css"),
+                    doc2 = SpecRunnerUtils.createMockDocument("#bar{}\n.foo{}\n",        "css", "/b.css"),
+                    mockRanges = [
+                        {
+                            document: doc1,
+                            name: "div",
+                            lineStart: 0,
+                            lineEnd: 0
+                        },
+                        {
+                            document: doc2,
+                            name: "#bar",
+                            lineStart: 0,
+                            lineEnd: 0
+                        }
+                    ];
+                
+                inlineEditor = new MultiRangeInlineEditor(mockRanges);
+                inlineEditor.load(hostEditor);
+                
+                var $ruleListSections = getRuleListSections();
+                $ruleListSections.eq(1).click(); // collapse doc2 section
+                expect($ruleListSections.eq(0).find(".disclosure-triangle.expanded").length).toBe(1);  // verify doc1 section still expanded
+                expect($ruleListSections.eq(1).find(".disclosure-triangle.collapsed").length).toBe(1); // verify doc2 section now collapsed
+                
+                inlineEditor.addAndSelectRange(".foo", doc2, 1, 1); // add new item to doc2 section
+                
+                var newRanges = inlineEditor._getRanges();
+                expect(newRanges.length).toBe(3);
+                expect(inlineEditor._getSelectedRange()).toBe(newRanges[2]);  // new range should be 3rd in list & be selected
+                expect(inlineEditor.editor.document).toBe(doc2);
+                
+                $ruleListSections = getRuleListSections();
+                expect($ruleListSections.length).toBe(2);  // still just 2 sections
+                expect($ruleListSections.eq(0).find(".disclosure-triangle.expanded").length).toBe(1);  // doc1 section still expanded
+                expect($ruleListSections.eq(1).find(".disclosure-triangle.expanded").length).toBe(1);  // doc2 section now collapsed also
+            });
+
             it("should be empty if no ranges are specified", function () {
                 inlineEditor = new MultiRangeInlineEditor([]);
                 inlineEditor.load(hostEditor);
@@ -406,6 +537,10 @@ define(function (require, exports, module) {
                 // Rule list should be invisible.
                 expect(inlineEditor.$htmlContent.find(".related-container").length).toBe(0);
             });
+            
+            // TODO: test removing a range (only occurs with TextRange "lostSync")
+            // TODO: test hiding rule list when removing 2nd to last range
+            // TODO: test auto-closing when removing last range
         });
         
         describe("integration", function () {
@@ -468,7 +603,7 @@ define(function (require, exports, module) {
             // the real Editor functions for adding an inline widget, which complete asynchronously
             // after the animation is finished. That animation doesn't actually occur in the
             // Jasmine window.
-            it("should close and return to the host editor", function () {
+            it("should close and return focus to the host editor", function () {
                 runs(function () {
                     var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
                     
