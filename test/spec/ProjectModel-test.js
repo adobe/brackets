@@ -639,6 +639,13 @@ define(function (require, exports, module) {
                     expect(promise.then).toEqual(jasmine.any(Function));
                 });
                 
+                it("should expand the parent directory if closed", function () {
+                    model.setDirectoryOpen("/foo/subdir1", false);
+                    expect(vm._treeData.getIn(["subdir1", "open"])).toBeUndefined();
+                    model.startRename("/foo/subdir1/afile.js");
+                    expect(vm._treeData.getIn(["subdir1", "open"])).toBe(true);
+                });
+                
                 it("can take a filesystem object or string", function () {
                     model.startRename({
                         fullPath: "/foo/afile.js"
@@ -1134,6 +1141,15 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should do nothing for a path that is outside of the project on Windows", function () {
+                model.projectRoot = "c:/foo/";
+                waitsForDone(model.showInTree("c:/bar/baz.js"));
+                runs(function () {
+                    expect(vm._treeData.get("baz.js")).toBeUndefined();
+                    expect(model._selections.selected).toBeUndefined();
+                });
+            });
+            
             it("should select a file at the root", function () {
                 waitsForDone(model.showInTree("/foo/toplevel.txt"));
                 runs(function () {
@@ -1362,14 +1378,25 @@ define(function (require, exports, module) {
                 expect(model._selections.context).toBeNull();
             });
             
-            it("should see events with a directory but no added or removed as an add", function () {
+            it("should see events with a directory but no added or removed as a need to reload the directory", function () {
                 model.handleFSEvent({
                     isFile: false,
                     name: "newdir",
-                    fullPath: "/foo/newdir/"
+                    fullPath: "/foo/newdir/",
+                    getContents: function (callback) {
+                        callback(null, [
+                            {
+                                isFile: true,
+                                name: "newfile",
+                                fullPath: "/foo/newdir/newfile"
+                            }
+                        ]);
+                    }
                 });
                 expect(vm._treeData.get("newdir").toJS()).toEqual({
-                    children: null
+                    children: {
+                        newfile: {}
+                    }
                 });
             });
         });
