@@ -600,8 +600,8 @@ define(function (require, exports, module) {
             initialQuery = findBar.getQueryInfo().query;
             initialReplaceText = findBar.getReplaceText();
         } else {
-            var openedFindbars = FindBar._bars && FindBar._bars.filter(function (findBar) {
-                return !findBar.isClosed();
+            var openedFindbars = FindBar._bars && FindBar._bars.filter(function (bar) {
+                return !bar.isClosed();
             });
 
             if (openedFindbars && openedFindbars.length) {

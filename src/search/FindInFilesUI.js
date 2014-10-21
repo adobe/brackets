@@ -130,7 +130,8 @@ define(function (require, exports, module) {
         }
         
         // Default to searching for the current selection
-        var initialQuery = "",
+        var currentEditor = EditorManager.getActiveEditor(),
+            initialQuery = "",
             initialReplaceText = "";
 
         if (_findBar && !_findBar.isClosed()) {
@@ -139,9 +140,8 @@ define(function (require, exports, module) {
             initialQuery = _findBar.getQueryInfo().query;
             initialReplaceText = _findBar.getReplaceText();
         } else {
-            var currentEditor = EditorManager.getActiveEditor(),
-                openedFindbars = FindBar._bars && FindBar._bars.filter(function (findBar) {
-                    return !findBar.isClosed();
+            var openedFindbars = FindBar._bars && FindBar._bars.filter(function (bar) {
+                    return !bar.isClosed();
                 });
 
             if (openedFindbars && openedFindbars.length) {
