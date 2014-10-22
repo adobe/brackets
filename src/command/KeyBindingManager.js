@@ -833,8 +833,12 @@ define(function (require, exports, module) {
      * @return {boolean} true if normalizedKey is a restricted shortcut, false otherwise.
      */
     function _isReservedShortcuts(normalizedKey) {
+        if (!normalizedKey) {
+            return false;
+        }
+        
         if (_reservedShortcuts.indexOf(normalizedKey) > -1 ||
-                (normalizedKey && _reservedShortcuts.indexOf(normalizedKey.replace("Cmd", "Ctrl")) > -1)) {
+                _reservedShortcuts.indexOf(normalizedKey.replace("Cmd", "Ctrl")) > -1) {
             return true;
         }
         
@@ -936,6 +940,9 @@ define(function (require, exports, module) {
                 }
                 // The same key binding already exists, so skip this.
                 if (_keyMap[normalizedKey].commandID === commandID) {
+                    // Still need to add it to the remappedCommands so that
+                    // we can detect any duplicate later on.
+                    remappedCommands.push(commandID);
                     return;
                 }
                 removeBinding(normalizedKey);
@@ -1118,7 +1125,7 @@ define(function (require, exports, module) {
             if (doesExist) {
                 CommandManager.execute(Commands.FILE_OPEN, { fullPath: _userKeyMapFilePath });
             } else {
-                var defaultContent = "{\n    \"documentation\": \"https://github.com/adobe/brackets/wiki/Key-Bindings\"," +
+                var defaultContent = "{\n    \"documentation\": \"https://github.com/adobe/brackets/wiki/User-Key-Bindings\"," +
                                      "\n    \"overrides\": {" +
                                      "\n        \n    }\n}\n";
                 
@@ -1134,15 +1141,14 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_KEYMAP, Commands.FILE_OPEN_KEYMAP, _openUserKeyMap);
 
     // Asynchronously loading DocumentManager to avoid the circular dependency
-    require(["document/DocumentManager"], function (docManager) {
-        var DocumentManager = docManager;
+    require(["document/DocumentManager"], function (DocumentManager) {
         $(DocumentManager).on("documentSaved", function checkKeyMapUpdates(e, doc) {
             if (doc && doc.file.fullPath === _userKeyMapFilePath) {
                 _loadUserKeyMap();
             }
         });
     });
-
+    
     /**
      * @private
      *

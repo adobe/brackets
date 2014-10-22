@@ -38,7 +38,8 @@ define(function (require, exports, module) {
         PerfUtils           = require("utils/PerfUtils"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+        StringUtils         = require("utils/StringUtils"),
+        Dialogs;            // This will be loaded asynchronously
 
     
     /**
@@ -200,18 +201,15 @@ define(function (require, exports, module) {
      * @return {!Dialog}
      */
     function showFileOpenError(name, path) {
-        require(["widgets/Dialogs"], function (dialogsModule) {
-            var Dialogs = dialogsModule;
-            return Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_ERROR,
-                Strings.ERROR_OPENING_FILE_TITLE,
-                StringUtils.format(
-                    Strings.ERROR_OPENING_FILE,
-                    StringUtils.breakableUrl(path),
-                    getFileErrorString(name)
-                )
-            );
-        });
+        return Dialogs.showModalDialog(
+            DefaultDialogs.DIALOG_ID_ERROR,
+            Strings.ERROR_OPENING_FILE_TITLE,
+            StringUtils.format(
+                Strings.ERROR_OPENING_FILE,
+                StringUtils.breakableUrl(path),
+                getFileErrorString(name)
+            )
+        );
     }
 
     /**
@@ -534,6 +532,11 @@ define(function (require, exports, module) {
         }
         return 0;
     }
+
+    // Asynchronously loading Dialogs to avoid the circular dependency
+    require(["widgets/Dialogs"], function (dialogsModule) {
+        Dialogs = dialogsModule;
+    });
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
