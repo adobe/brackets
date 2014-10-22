@@ -1,0 +1,9 @@
+{
+    "documentation": "https://github.com/adobe/brackets/wiki/Key-Bindings",
+    "overrides": {
+        "cmd-2": "file.openFolder",
+        "Cmd-2": "file.openFolder",
+        "Cmd-Alt-4": "view.hideSidebar",
+        "Alt-Cmd-4": "view.hideSidebar"
+    } 
+}
