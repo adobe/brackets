@@ -83,7 +83,8 @@ define(function (require, exports, module) {
     
     var _specialCommands = [Commands.EDIT_UNDO, Commands.EDIT_REDO, Commands.EDIT_SELECT_ALL,
                             Commands.EDIT_CUT, Commands.EDIT_COPY, Commands.EDIT_PASTE],
-        _macReservedShortcuts = ["Cmd-,", "Cmd-H", "Cmd-Alt-H", "Cmd-M", "Cmd-Q"],
+        _reservedShortcuts = ["Ctrl-Z", "Ctrl-Y", "Ctrl-A", "Ctrl-X", "Ctrl-C", "Ctrl-V"],
+        _macReservedShortcuts = ["Cmd-,", "Cmd-H", "Cmd-Alt-H", "Cmd-M", "Cmd-Shift-Z", "Cmd-Q"],
         _keyNames = ["Up", "Down", "Left", "Right", "Backspace", "Enter", "Space", "Tab"];
 
     /**
@@ -776,6 +777,8 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Displays an error dialog and also opens the user key map file for editing only if 
+     * the error is not the loading file error.
      *
      * @param {?string} err Error type returned from JSON parser or open file operation
      * @param {string=} message Error message to be displayed in the dialog
@@ -811,6 +814,7 @@ define(function (require, exports, module) {
      * Checks whether the given command ID is a special command that the user can't bind 
      * to another shortcut.
      * @param {!string} commandID A string referring to a specific command
+     * @return {boolean} true if normalizedKey is a special command, false otherwise.
      */
     function _isSpecialCommand(commandID) {
         if (brackets.platform === "mac" && commandID === "file.quit") {
@@ -826,17 +830,19 @@ define(function (require, exports, module) {
      * Checks whether the given key combination is a shortcut of a special command
      * or a Mac system command that the user can't reassign to another command.
      * @param {!string} normalizedKey A key combination string used for a keyboard shortcut
+     * @return {boolean} true if normalizedKey is a restricted shortcut, false otherwise.
      */
     function _isReservedShortcuts(normalizedKey) {
-        var originalBinding = _defaultKeyMap[normalizedKey];
-        if (originalBinding && (normalizedKey === "Cmd-Y" ||
-                _specialCommands.indexOf(originalBinding.commandID) > -1)) {
+        if (_reservedShortcuts.indexOf(normalizedKey) > -1 ||
+                (normalizedKey && _reservedShortcuts.indexOf(normalizedKey.replace("Cmd", "Ctrl")) > -1)) {
             return true;
         }
         
         if (brackets.platform === "mac" && _macReservedShortcuts.indexOf(normalizedKey) > -1) {
             return true;
         }
+        
+        return false;
     }
     
     /**
@@ -845,6 +851,7 @@ define(function (require, exports, module) {
      * Creates a bullet list item for any item in the given list.
      * @param {Array.<string>} list An array of strings to be converted into a 
      * message string with a bullet list.
+     * @return {string} the html text version of the list
      */
     function _getBulletList(list) {
         var message = "<ul class='dialog-list'>";
@@ -859,6 +866,9 @@ define(function (require, exports, module) {
      * @private
      *
      * Gets the corresponding unicode symbol of an arrow key on Mac for display in the menu.
+     * @param {string} normalizedKey 
+     * @return {string} An empty string if normalizedKey does not have any arrow key. Otherwise, the name
+     *                  of the arrow key is replaced with the corresponding unicode symbol in the return string.
      */
     function _getDisplayKey(normalizedKey) {
         var displayKey = "";
@@ -896,100 +906,98 @@ define(function (require, exports, module) {
             duplicateBindings  = [],
             errorMessage       = "";
         
-        if (_.size(_customKeyMap)) {
-            _.forEach(_customKeyMap, function (commandID, key) {
-                var normalizedKey    = normalizeKeyDescriptorString(key),
-                    existingBindings = _commandMap[commandID] || [];
+        _.forEach(_customKeyMap, function (commandID, key) {
+            var normalizedKey    = normalizeKeyDescriptorString(key),
+                existingBindings = _commandMap[commandID] || [];
 
-                // Skip this since we don't allow user to update key binding of a special 
-                // command like cut, copy, paste, undo, redo and select all.
-                if (_isSpecialCommand(commandID)) {
-                    restrictedCommands.push(commandID);
+            // Skip this since we don't allow user to update key binding of a special 
+            // command like cut, copy, paste, undo, redo and select all.
+            if (_isSpecialCommand(commandID)) {
+                restrictedCommands.push(commandID);
+                return;
+            }
+
+            // Skip this since we don't allow user to update a shortcut used in 
+            // a special command or any Mac system command.
+            if (_isReservedShortcuts(normalizedKey)) {
+                restrictedKeys.push(key);
+                return;
+            }
+
+            if (!normalizedKey) {
+                invalidKeys.push(key);
+            } else if (_isKeyAssigned(normalizedKey)) {
+                if (remappedKeys.indexOf(normalizedKey) !== -1) {
+                    // JSON parser already removed all the duplicates that have the exact
+                    // same case or order in their keys. So we're only detecting duplicate 
+                    // bindings that have different orders or different cases used in the key.
+                    duplicateBindings.push(key);
                     return;
                 }
-
-                // Skip this since we don't allow user to update a shortcut used in 
-                // a special command or any Mac system command.
-                if (_isReservedShortcuts(normalizedKey)) {
-                    restrictedKeys.push(key);
+                // The same key binding already exists, so skip this.
+                if (_keyMap[normalizedKey].commandID === commandID) {
                     return;
                 }
+                removeBinding(normalizedKey);
+            }
 
-                if (!normalizedKey) {
-                    invalidKeys.push(key);
-                } else if (_isKeyAssigned(normalizedKey)) {
-                    if (remappedKeys.indexOf(normalizedKey) !== -1) {
-                        // JSON parser already removed all the duplicates that have the exact
-                        // same case or order in their keys. So we're only detecting duplicate 
-                        // bindings that have different orders or different cases used in the key.
-                        duplicateBindings.push(key);
-                        return;
-                    }
-                    // The same key binding already exists, so skip this.
-                    if (_keyMap[normalizedKey].commandID === commandID) {
-                        return;
-                    }
-                    removeBinding(normalizedKey);
-                }
-                
-                if (remappedKeys.indexOf(normalizedKey) === -1) {
-                    remappedKeys.push(normalizedKey);
-                }
-                
-                // Remove another key binding if the new key binding is for a command
-                // that has a different key binding. e.g. "Ctrl-W": "edit.selectLine"
-                // requires us to remove "Ctrl-W" from "file.close" command, but we
-                // also need to remove "Ctrl-L" from "edit.selectLine".
-                if (existingBindings.length) {
-                    existingBindings.forEach(function (binding) {
-                        removeBinding(binding.key);
-                    });
-                }
-                
-                if (commandID) {
-                    if (_allCommands.indexOf(commandID) !== -1) {
-                        if (remappedCommands.indexOf(commandID) === -1) {
-                            var keybinding = { key: normalizedKey };
-                                
-                            keybinding.displayKey = _getDisplayKey(normalizedKey);
-                            addBinding(commandID, keybinding.displayKey ? keybinding : normalizedKey, brackets.platform);
-                            remappedCommands.push(commandID);
-                        } else {
-                            multipleKeys.push(commandID);
-                        }
+            if (remappedKeys.indexOf(normalizedKey) === -1) {
+                remappedKeys.push(normalizedKey);
+            }
+
+            // Remove another key binding if the new key binding is for a command
+            // that has a different key binding. e.g. "Ctrl-W": "edit.selectLine"
+            // requires us to remove "Ctrl-W" from "file.close" command, but we
+            // also need to remove "Ctrl-L" from "edit.selectLine".
+            if (existingBindings.length) {
+                existingBindings.forEach(function (binding) {
+                    removeBinding(binding.key);
+                });
+            }
+
+            if (commandID) {
+                if (_allCommands.indexOf(commandID) !== -1) {
+                    if (remappedCommands.indexOf(commandID) === -1) {
+                        var keybinding = { key: normalizedKey };
+
+                        keybinding.displayKey = _getDisplayKey(normalizedKey);
+                        addBinding(commandID, keybinding.displayKey ? keybinding : normalizedKey, brackets.platform);
+                        remappedCommands.push(commandID);
                     } else {
-                        invalidCommands.push(commandID);
+                        multipleKeys.push(commandID);
                     }
+                } else {
+                    invalidCommands.push(commandID);
                 }
-            });
-            
-            if (restrictedCommands.length) {
-                errorMessage = StringUtils.format(Strings.ERROR_RESTRICTED_COMMANDS, _getBulletList(restrictedCommands));
             }
-            
-            if (restrictedKeys.length) {
-                errorMessage += StringUtils.format(Strings.ERROR_RESTRICTED_SHORTCUTS, _getBulletList(restrictedKeys));
-            }
-            
-            if (multipleKeys.length) {
-                errorMessage += StringUtils.format(Strings.ERROR_MULTIPLE_SHORTCUTS, _getBulletList(multipleKeys));
-            }
-            
-            if (duplicateBindings.length) {
-                errorMessage += StringUtils.format(Strings.ERROR_DUPLICATE_SHORTCUTS, _getBulletList(duplicateBindings));
-            }
+        });
 
-            if (invalidKeys.length) {
-                errorMessage += StringUtils.format(Strings.ERROR_INVALID_SHORTCUTS, _getBulletList(invalidKeys));
-            }
-            
-            if (invalidCommands.length) {
-                errorMessage += StringUtils.format(Strings.ERROR_NONEXISTENT_COMMANDS, _getBulletList(invalidCommands));
-            }
-            
-            if (errorMessage) {
-                _showErrorsAndOpenKeyMap("", errorMessage);
-            }
+        if (restrictedCommands.length) {
+            errorMessage = StringUtils.format(Strings.ERROR_RESTRICTED_COMMANDS, _getBulletList(restrictedCommands));
+        }
+
+        if (restrictedKeys.length) {
+            errorMessage += StringUtils.format(Strings.ERROR_RESTRICTED_SHORTCUTS, _getBulletList(restrictedKeys));
+        }
+
+        if (multipleKeys.length) {
+            errorMessage += StringUtils.format(Strings.ERROR_MULTIPLE_SHORTCUTS, _getBulletList(multipleKeys));
+        }
+
+        if (duplicateBindings.length) {
+            errorMessage += StringUtils.format(Strings.ERROR_DUPLICATE_SHORTCUTS, _getBulletList(duplicateBindings));
+        }
+
+        if (invalidKeys.length) {
+            errorMessage += StringUtils.format(Strings.ERROR_INVALID_SHORTCUTS, _getBulletList(invalidKeys));
+        }
+
+        if (invalidCommands.length) {
+            errorMessage += StringUtils.format(Strings.ERROR_NONEXISTENT_COMMANDS, _getBulletList(invalidCommands));
+        }
+
+        if (errorMessage) {
+            _showErrorsAndOpenKeyMap("", errorMessage);
         }
     }
     
@@ -999,40 +1007,38 @@ define(function (require, exports, module) {
      * Restores the default key bindings for all the commands that are modified by each key binding
      * specified in _customKeyMapCache (old version) but no longer specified in _customKeyMap (new version).
      */
-    function _undonePriorUserKeyBindings() {
-        if (_.size(_customKeyMapCache)) {
-            _.forEach(_customKeyMapCache, function (commandID, key) {
-                var normalizedKey  = normalizeKeyDescriptorString(key),
-                    defaults       = KeyboardPrefs[commandID],
-                    defaultCommand = _defaultKeyMap[normalizedKey];
+    function _undoPriorUserKeyBindings() {
+        _.forEach(_customKeyMapCache, function (commandID, key) {
+            var normalizedKey  = normalizeKeyDescriptorString(key),
+                defaults       = KeyboardPrefs[commandID],
+                defaultCommand = _defaultKeyMap[normalizedKey];
 
-                // We didn't modified this before, so skip it.
-                if (_isSpecialCommand(commandID) ||
-                        _isReservedShortcuts(normalizedKey)) {
-                    return;
+            // We didn't modified this before, so skip it.
+            if (_isSpecialCommand(commandID) ||
+                    _isReservedShortcuts(normalizedKey)) {
+                return;
+            }
+
+            if (_isKeyAssigned(normalizedKey) &&
+                    _customKeyMap[key] !== commandID && _customKeyMap[normalizedKey] !== commandID) {
+                // Unassign the key from any command. e.g. "Cmd-W": "file.open" in _customKeyMapCache
+                // will require us to remove Cmd-W shortcut from file.open command.
+                removeBinding(normalizedKey);
+
+                // Reassign the default key binding. e.g. "Cmd-W": "file.open" in _customKeyMapCache
+                // will require us to reassign Cmd-O shortcut to file.open command.
+                if (defaults.length) {
+                    addBinding(commandID, defaults);
                 }
 
-                if (_isKeyAssigned(normalizedKey) &&
-                        _customKeyMap[key] !== commandID && _customKeyMap[normalizedKey] !== commandID) {
-                    // Unassign the key from any command. e.g. "Cmd-W": "file.open" in _customKeyMapCache
-                    // will require us to remove Cmd-W shortcut from file.open command.
-                    removeBinding(normalizedKey);
-                
-                    // Reassign the default key binding. e.g. "Cmd-W": "file.open" in _customKeyMapCache
-                    // will require us to reassign Cmd-O shortcut to file.open command.
-                    if (defaults.length) {
-                        addBinding(commandID, defaults);
-                    }
-                    
-                    // Reassign the default key binding of the previously modified command. 
-                    // e.g. "Cmd-W": "file.open" in _customKeyMapCache will require us to reassign Cmd-W
-                    // shortcut to file.close command.
-                    if (defaultCommand && defaultCommand.key) {
-                        addBinding(defaultCommand.commandID, defaultCommand.key, brackets.platform);
-                    }
+                // Reassign the default key binding of the previously modified command. 
+                // e.g. "Cmd-W": "file.open" in _customKeyMapCache will require us to reassign Cmd-W
+                // shortcut to file.close command.
+                if (defaultCommand && defaultCommand.key) {
+                    addBinding(defaultCommand.commandID, defaultCommand.key, brackets.platform);
                 }
-            });
-        }
+            }
+        });
     }
     
     /**
@@ -1055,10 +1061,8 @@ define(function (require, exports, module) {
                         try {
                             if (text) {
                                 var json = JSON.parse(text);
-                                if (json) {
-                                    // If no overrides, return an empty key map.
-                                    result.resolve(json.overrides || keyMap);
-                                }
+                                // If no overrides, return an empty key map.
+                                result.resolve(json.overrides || keyMap);
                             } else {
                                 // The file is empty, so return an empty key map.
                                 result.resolve(keyMap);
@@ -1072,6 +1076,9 @@ define(function (require, exports, module) {
                         // Key map file cannot be loaded.
                         result.reject(err);
                     });
+            } else {
+                // Just resolve if no user key map file
+                result.resolve();
             }
         });
         return result.promise();
@@ -1092,7 +1099,7 @@ define(function (require, exports, module) {
                     _customKeyMapCache = _.cloneDeep(_customKeyMap);
                 }
                 _customKeyMap = keyMap;
-                _undonePriorUserKeyBindings();
+                _undoPriorUserKeyBindings();
                 _applyUserKeyBindings();
             }, function (err) {
                 _showErrorsAndOpenKeyMap(err);
@@ -1135,22 +1142,44 @@ define(function (require, exports, module) {
             }
         });
     });
-    
-    AppInit.extensionsLoaded(function () {
+
+    /**
+     * @private
+     *
+     * Initializes _allCommands array and _defaultKeyMap so that we can use them for
+     * detecting non-existent commands and restoring the original key binding.
+     *
+     * @param {string} fullPath file path to the user key map file.
+     */
+    function _initCommandAndKeyMaps() {
         _allCommands = CommandManager.getAll();
         // Keep a copy of the default key bindings before loading user key bindings.
         _defaultKeyMap = _.cloneDeep(_keyMap);
-        _loadUserKeyMap();
-    });
-
+    }
+    
+    /**
+     * @private
+     *
+     * Sets the full file path to the user key map file. Only used by unit tests 
+     * to load a test file instead of the actual user key map file.
+     *
+     * @param {string} fullPath file path to the user key map file.
+     */
     function _setUserKeyMapFilePath(fullPath) {
         _userKeyMapFilePath = fullPath;
     }
     
+    AppInit.extensionsLoaded(function () {
+        _initCommandAndKeyMaps();
+        _loadUserKeyMap();
+    });
+
     // unit test only
     exports._reset = _reset;
     exports._setUserKeyMapFilePath = _setUserKeyMapFilePath;
+    exports._getDisplayKey = _getDisplayKey;
     exports._loadUserKeyMap = _loadUserKeyMap;
+    exports._initCommandAndKeyMaps = _initCommandAndKeyMaps;
 
     // Define public API
     exports.getKeymap = getKeymap;
