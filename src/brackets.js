@@ -135,8 +135,6 @@ define(function (require, exports, module) {
     require("extensibility/ExtensionManagerDialog");
     require("editor/ImageViewer");
     
-    // Deprecated modules loaded just so extensions can still use them for now
-    require("utils/CollectionUtils");
     // Compatibility shims for filesystem API migration
     require("project/FileIndexManager");
     require("file/NativeFileSystem");

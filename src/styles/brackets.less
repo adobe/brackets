@@ -749,6 +749,8 @@ a, img {
     padding: 4px 6px;
     .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons.svg");
     background-origin: content-box;  // center image within the 13x13 area - ignore button's padding
+    -webkit-transform: translateZ(0); // forces GPU mode for better filter rendering on retina
+    transform: translateZ(0); // future proofing
     -webkit-filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
     z-index: 1;
 }
@@ -1025,6 +1027,7 @@ a, img {
 .inline-widget {
     position: relative;
     overflow: hidden;
+    outline: none;
 
     background-color: @bc-bg-inline-widget;
     min-width: 250px;
@@ -1356,14 +1359,11 @@ a, img {
 .expand-collapse-triangle() {
     .jstree-sprite;
     display: inline-block;
+    background-position: 7px 5px;
     &.expanded {
         // Unfortunately, the way jsTree sprites are aligned within their 18px boxes doesn't look good in
         // other contexts, so we need some tweaks here instead of straight multiples of @jstree-sprite-size
-        background-position: 7px 5px;
         -webkit-transform: translateZ(0) rotate(90deg);
-    }
-    &.collapsed {
-        background-position: 7px 5px;
     }
 }
 

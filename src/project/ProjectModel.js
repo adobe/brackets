@@ -612,24 +612,21 @@ define(function (require, exports, module) {
     ProjectModel.prototype.showInTree = function (path) {
         var d = new $.Deferred();
         path = _getPathFromFSObject(path);
-
-        var projectRelative = this.makeProjectRelativeIfPossible(path);
-
-        // Not in project?
-        if (projectRelative[0] === "/") {
-            d.resolve();
-        } else {
-            var parentDirectory = FileUtils.getDirectoryPath(path),
-                self = this;
-            this.setDirectoryOpen(parentDirectory, true).then(function () {
-                if (_pathIsFile(path)) {
-                    self.setSelected(path);
-                }
-                d.resolve();
-            }, function (err) {
-                d.reject(err);
-            });
+        
+        if (!this.isWithinProject(path)) {
+            return d.resolve().promise();
         }
+
+        var parentDirectory = FileUtils.getDirectoryPath(path),
+            self = this;
+        this.setDirectoryOpen(parentDirectory, true).then(function () {
+            if (_pathIsFile(path)) {
+                self.setSelected(path);
+            }
+            d.resolve();
+        }, function (err) {
+            d.reject(err);
+        });
         return d.promise();
     };
 
@@ -790,7 +787,13 @@ define(function (require, exports, module) {
         if (this._selections.rename && this._selections.rename.path === path) {
             return;
         }
-
+        
+        var projectRelativePath = this.makeProjectRelativeIfPossible(path);
+        
+        if (!this._viewModel.isFilePathVisible(projectRelativePath)) {
+            this.showInTree(path);
+        }
+        
         if (path !== this._selections.context) {
             this.setContext(path);
         } else {
@@ -798,7 +801,7 @@ define(function (require, exports, module) {
         }
 
         this._viewModel.moveMarker("rename", null,
-                                   this.makeProjectRelativeIfPossible(path));
+                                   projectRelativePath);
         var d = new $.Deferred();
         this._selections.rename = {
             deferred: d,
@@ -1135,9 +1138,18 @@ define(function (require, exports, module) {
             ];
         } else {
             // Special case: a directory passed in without added and removed values
-            // appears to be new.
+            // needs to be updated.
             if (!added && !removed) {
-                this._viewModel.ensureDirectoryExists(this.makeProjectRelativeIfPossible(entry.fullPath));
+                entry.getContents(function (err, contents) {
+                    if (err) {
+                        console.error("Unexpected error refreshing file tree for directory", entry.fullPath, err);
+                        return;
+                    }
+                    self._viewModel.setDirectoryContents(self.makeProjectRelativeIfPossible(entry.fullPath), contents);
+                });
+                
+                // Exit early because we can't update the viewModel until we get the directory contents.
+                return;
             }
         }
 
