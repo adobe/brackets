@@ -48,13 +48,13 @@ define(function (require, exports, module) {
     
     var defaultKeyBindings = {
             "Ctrl-L": "edit.selectLine",
-            "Alt-Ctrl-L": "edit.splitSelIntoLines",
+            "Ctrl-Alt-L": "edit.splitSelIntoLines",
             "Alt-Shift-Down": "edit.addCursorToNextLine",
             "Alt-Shift-Up": "edit.addCursorToPrevLine",
             "F8": "navigate.gotoFirstProblem",
-            "Alt-Ctrl-O": "file.openFolder",
-            "Alt-Ctrl-H": "view.hideSidebar",
-            "Shift-Ctrl-O": "navigate.quickOpen",
+            "Ctrl-Alt-O": "file.openFolder",
+            "Ctrl-Alt-H": "view.hideSidebar",
+            "Ctrl-Shift-O": "navigate.quickOpen",
             "Ctrl-T": "navigate.gotoDefinition"
         },
         macDefaultKeyBindings = {
@@ -112,9 +112,9 @@ define(function (require, exports, module) {
             explicitPlatform;
         
         _.forEach(defaults, function (commandID, key) {
+            displayKey = KeyBindingManager._getDisplayKey(key);
             if (platform === "mac") {
                 explicitPlatform = undefined;
-                displayKey = KeyBindingManager._getDisplayKey(key);
                 if (commandID === "edit.selectLine" || commandID === "view.hideSidebar" ||
                         commandID === "navigate.gotoFirstProblem") {
                     explicitPlatform = "mac";
@@ -557,8 +557,10 @@ define(function (require, exports, module) {
                         var msgPrefix = Strings.ERROR_RESTRICTED_SHORTCUTS.replace("{0}", "");
                         expect(message).toMatch(msgPrefix);
                         expect(message).toMatch("cmd-z");
-                        expect(message).toMatch("Cmd-m");
-                        expect(message).toMatch("cmd-h");
+                        if (platform === "mac") {
+                            expect(message).toMatch("Cmd-m");
+                            expect(message).toMatch("cmd-h");
+                        }
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
                 });
@@ -675,7 +677,7 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     var keymap = KeyBindingManager.getKeymap(),
-                        reassignedKey1 = (platform === "mac") ? "Alt-Cmd-Backspace" : "Alt-Ctrl-Backspace",
+                        reassignedKey1 = (platform === "mac") ? "Alt-Cmd-Backspace" : "Ctrl-Alt-Backspace",
                         reassignedKey2 = (platform === "mac") ? "Cmd-T" : "Ctrl-T";
                     expect(Dialogs.showModalDialog).not.toHaveBeenCalled();
                     expect(keymap["Ctrl-2"].commandID).toEqual("file.openFolder");
@@ -716,8 +718,8 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     var keymap = KeyBindingManager.getKeymap(),
-                        reassignedKey1 = (platform === "mac") ? "Alt-Cmd-Backspace" : "Alt-Ctrl-Backspace",
-                        reassignedKey2 = (platform === "mac") ? "Alt-Cmd-O" : "Alt-Ctrl-O",
+                        reassignedKey1 = (platform === "mac") ? "Alt-Cmd-Backspace" : "Ctrl-Alt-Backspace",
+                        reassignedKey2 = (platform === "mac") ? "Alt-Cmd-O" : "Ctrl-Alt-O",
                         reassignedKey3 = (platform === "mac") ? "Cmd-T" : "Ctrl-T";
 
                     expect(Dialogs.showModalDialog).not.toHaveBeenCalled();

@@ -865,14 +865,14 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * Gets the corresponding unicode symbol of an arrow key on Mac for display in the menu.
+     * Gets the corresponding unicode symbol of an arrow key for display in the menu.
      * @param {string} normalizedKey 
      * @return {string} An empty string if normalizedKey does not have any arrow key. Otherwise, the name
      *                  of the arrow key is replaced with the corresponding unicode symbol in the return string.
      */
     function _getDisplayKey(normalizedKey) {
         var displayKey = "";
-        if (brackets.platform === "mac" && /(Up|Down|Left|Right)$/i.test(normalizedKey)) {
+        if (/(Up|Down|Left|Right)$/i.test(normalizedKey)) {
             normalizedKey = normalizedKey.replace(/Up$/i, "\u2191");
             normalizedKey = normalizedKey.replace(/Down$/i, "\u2193");
             normalizedKey = normalizedKey.replace(/Left$/i, "\u2190");
