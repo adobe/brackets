@@ -412,7 +412,7 @@ define(function (require, exports, module) {
                         //  the layout and stifling the mouse click
                         //  (http://github.com/adobe/brackets/issues/9040)
                         Resizer.show($problemsPanel);
-                    });
+                    }, 180);
                 }
 
                 updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted);
