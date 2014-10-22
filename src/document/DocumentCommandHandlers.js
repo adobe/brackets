@@ -53,7 +53,7 @@ define(function (require, exports, module) {
         PreferencesManager  = require("preferences/PreferencesManager"),
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent"),
-        Inspector           = require("LiveDevelopment/Inspector/Inspector"),
+        Inspector           = require("LiveDevelopment/impls/default/Inspector/Inspector"),
         Menus               = require("command/Menus"),
         UrlParams           = require("utils/UrlParams").UrlParams,
         StatusBar           = require("widgets/StatusBar"),

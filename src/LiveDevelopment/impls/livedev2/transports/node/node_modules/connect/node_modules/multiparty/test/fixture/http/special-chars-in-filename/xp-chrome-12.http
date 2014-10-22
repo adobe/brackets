@@ -1,0 +1,24 @@
+POST /upload HTTP/1.1
+Host: 192.168.56.1:8080
+Connection: keep-alive
+Referer: http://192.168.56.1:8080/
+Content-Length: 344
+Cache-Control: max-age=0
+Origin: http://192.168.56.1:8080
+User-Agent: Mozilla/5.0 (Windows NT 5.1) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.122 Safari/534.30
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryEvqBNplR3ByrwQPa
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Encoding: gzip,deflate,sdch
+Accept-Language: de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3
+
+------WebKitFormBoundaryEvqBNplR3ByrwQPa
+Content-Disposition: form-data; name="title"
+
+Weird filename
+------WebKitFormBoundaryEvqBNplR3ByrwQPa
+Content-Disposition: form-data; name="upload"; filename=" ? % * | %22 < > . ? ; ' @ # $ ^ & ( ) - _ = + { } [ ] ` ~.txt"
+Content-Type: text/plain
+
+
+------WebKitFormBoundaryEvqBNplR3ByrwQPa--

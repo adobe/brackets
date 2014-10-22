@@ -1,0 +1,29 @@
+{
+  "name": "debuglog",
+  "version": "0.0.2",
+  "description": "backport of util.debuglog from node v0.11",
+  "license": "MIT",
+  "main": "debuglog.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sam-github/node-debuglog.git"
+  },
+  "author": {
+    "name": "Sam Roberts",
+    "email": "sam@strongloop.com"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "readme": "# debuglog - backport of util.debuglog() from node v0.11\n\nTo facilitate using the `util.debuglog()` function that will be available when\nnode v0.12 is released now, this is a copy extracted from the source.\n\n## require('debuglog')\n\nReturn `util.debuglog`, if it exists, otherwise it will return an internal copy\nof the implementation from node v0.11.\n\n## debuglog(section)\n\n* `section` {String} The section of the program to be debugged\n* Returns: {Function} The logging function\n\nThis is used to create a function which conditionally writes to stderr\nbased on the existence of a `NODE_DEBUG` environment variable.  If the\n`section` name appears in that environment variable, then the returned\nfunction will be similar to `console.error()`.  If not, then the\nreturned function is a no-op.\n\nFor example:\n\n```javascript\nvar debuglog = util.debuglog('foo');\n\nvar bar = 123;\ndebuglog('hello from foo [%d]', bar);\n```\n\nIf this program is run with `NODE_DEBUG=foo` in the environment, then\nit will output something like:\n\n    FOO 3245: hello from foo [123]\n\nwhere `3245` is the process id.  If it is not run with that\nenvironment variable set, then it will not print anything.\n\nYou may separate multiple `NODE_DEBUG` environment variables with a\ncomma.  For example, `NODE_DEBUG=fs,net,tls`.\n",
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/sam-github/node-debuglog/issues"
+  },
+  "_id": "debuglog@0.0.2",
+  "dist": {
+    "shasum": "a0e439ca87738aff3813659190fd30842ffea6f4"
+  },
+  "_from": "debuglog@0.0.2",
+  "_resolved": "https://registry.npmjs.org/debuglog/-/debuglog-0.0.2.tgz"
+}

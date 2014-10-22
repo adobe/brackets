@@ -1,0 +1,9 @@
+{
+  "name": "brackets-livedev2-server",
+  "dependencies": {
+    "ws": "~0.4.31",
+    "connect": "~2.14.3",
+    "open": "0.0.4",
+    "lodash": "~2.4.1"
+  }
+}

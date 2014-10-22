@@ -1,0 +1,16 @@
+{
+  "name": "uid2",
+  "description": "strong uid",
+  "tags": [
+    "uid"
+  ],
+  "version": "0.0.3",
+  "dependencies": {},
+  "readme": "ERROR: No README data found!",
+  "_id": "uid2@0.0.3",
+  "dist": {
+    "shasum": "837bfbe18583ae394e1e2b803f8bc13c47f942ef"
+  },
+  "_from": "uid2@~0.0.2",
+  "_resolved": "https://registry.npmjs.org/uid2/-/uid2-0.0.3.tgz"
+}
