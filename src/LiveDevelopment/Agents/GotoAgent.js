@@ -33,16 +33,12 @@ define(function GotoAgent(require, exports, module) {
 
     require("utils/Global");
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");
-    var ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent");
-    var RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent");
-
-    var DocumentManager = require("document/DocumentManager");
-    var EditorManager = require("editor/EditorManager");
-    var MainViewManager = require("view/MainViewManager");
-    
-    var CommandManager = require("command/CommandManager"),
+    var Inspector = require("LiveDevelopment/Inspector/Inspector"),
+        DOMAgent = require("LiveDevelopment/Agents/DOMAgent"),
+        ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent"),
+        RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent"),
+        EditorManager = require("editor/EditorManager"),
+        CommandManager = require("command/CommandManager"),
         Commands = require("command/Commands");
     
 
