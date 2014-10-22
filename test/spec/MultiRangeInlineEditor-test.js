@@ -195,7 +195,106 @@ define(function (require, exports, module) {
                 // verify selection moves again
                 expect($selection.position().top).toBe($($ruleListItems.get(0)).position().top);
             });
+
             
+            function setupNextPrevTest(initialSelectedIndex, collapseA, collapseB, collapseC) {
+                var docA = SpecRunnerUtils.createMockDocument(".aaa{}\n",           "css", "/a.css"),
+                    docB = SpecRunnerUtils.createMockDocument(".bbb1{}\n.bbb2{}\n", "css", "/b.css"),
+                    docC = SpecRunnerUtils.createMockDocument(".ccc{}\n",           "css", "/c.css"),
+                    mockRanges = [
+                        {
+                            document: docA,
+                            name: ".aaa",
+                            lineStart: 0,
+                            lineEnd: 0
+                        },
+                        {
+                            document: docB,
+                            name: ".bbb1",
+                            lineStart: 0,
+                            lineEnd: 0
+                        },
+                        {
+                            document: docB,
+                            name: ".bbb2",
+                            lineStart: 1,
+                            lineEnd: 1
+                        },
+                        {
+                            document: docC,
+                            name: ".ccc",
+                            lineStart: 0,
+                            lineEnd: 0
+                        }
+                    ];
+                
+                inlineEditor = new MultiRangeInlineEditor(mockRanges);
+                inlineEditor.load(hostEditor);
+                
+                inlineEditor.setSelectedIndex(initialSelectedIndex);
+                
+                var $ruleListSections = getRuleListSections();
+                if (collapseA) { $ruleListSections.eq(0).click(); }
+                if (collapseB) { $ruleListSections.eq(1).click(); }
+                if (collapseC) { $ruleListSections.eq(2).click(); }
+                
+                // Selected index the testcase wanted shouldn't be affected by collapsing
+                expect(inlineEditor._selectedRangeIndex).toBe(initialSelectedIndex);
+            }
+            
+            it("should change selection to the next/prev rule, skipping collapsed sections", function () {
+                setupNextPrevTest(0, false, true, false);
+                
+                inlineEditor._selectNextRange();
+                expect(inlineEditor._selectedRangeIndex).toBe(3);
+                
+                inlineEditor._selectPreviousRange();
+                expect(inlineEditor._selectedRangeIndex).toBe(0);
+            });
+            
+            it("shouldn't change selection if already last", function () {
+                setupNextPrevTest(3, false, false, false);
+                
+                inlineEditor._selectNextRange();
+                expect(inlineEditor._selectedRangeIndex).toBe(3);
+            });
+            it("shouldn't change selection if already first", function () {
+                setupNextPrevTest(0, false, false, false);
+                
+                inlineEditor._selectPreviousRange();
+                expect(inlineEditor._selectedRangeIndex).toBe(0);
+            });
+            
+            it("shouldn't change selection if everything next is collapsed", function () {
+                setupNextPrevTest(2, true, false, true);
+                
+                inlineEditor._selectNextRange();
+                expect(inlineEditor._selectedRangeIndex).toBe(2);
+                expect(getRuleListSections().eq(2).find(".disclosure-triangle:not(.expanded)").length).toBe(1);
+            });
+            it("shouldn't change selection if everything prev is collapsed", function () {
+                setupNextPrevTest(1, true, false, true);
+                
+                inlineEditor._selectPreviousRange();
+                expect(inlineEditor._selectedRangeIndex).toBe(1);
+                expect(getRuleListSections().eq(0).find(".disclosure-triangle:not(.expanded)").length).toBe(1);
+            });
+            
+            it("should expand collapsed section when moving to next selection within it", function () {
+                setupNextPrevTest(1, false, true, false);
+                
+                inlineEditor._selectNextRange();
+                expect(inlineEditor._selectedRangeIndex).toBe(2);
+                expect(getRuleListSections().eq(1).find(".disclosure-triangle.expanded").length).toBe(1);
+            });
+            it("should expand collapsed section when moving to prev selection within it", function () {
+                setupNextPrevTest(2, false, true, false);
+                
+                inlineEditor._selectPreviousRange();
+                expect(inlineEditor._selectedRangeIndex).toBe(1);
+                expect(getRuleListSections().eq(1).find(".disclosure-triangle.expanded").length).toBe(1);
+            });
+
             
             function expectResultItemToEqual(resultItem, mockRange) {
                 expect(resultItem.name).toBe(mockRange.name);
@@ -468,7 +567,7 @@ define(function (require, exports, module) {
                 var $ruleListSections = getRuleListSections();
                 $ruleListSections.eq(1).click(); // collapse doc2 section
                 expect($ruleListSections.eq(0).find(".disclosure-triangle.expanded").length).toBe(1);  // verify doc1 section still expanded
-                expect($ruleListSections.eq(1).find(".disclosure-triangle.collapsed").length).toBe(1); // verify doc2 section now collapsed
+                expect($ruleListSections.eq(1).find(".disclosure-triangle:not(.expanded)").length).toBe(1); // verify doc2 section now collapsed
                 
                 inlineEditor.addAndSelectRange(".foo", doc1, 1, 1); // add new item to doc1 section
                 
@@ -480,7 +579,7 @@ define(function (require, exports, module) {
                 $ruleListSections = getRuleListSections();
                 expect($ruleListSections.length).toBe(2);  // still just 2 sections
                 expect($ruleListSections.eq(0).find(".disclosure-triangle.expanded").length).toBe(1);  // doc1 section still expanded
-                expect($ruleListSections.eq(1).find(".disclosure-triangle.collapsed").length).toBe(1); // doc2 section still collapsed
+                expect($ruleListSections.eq(1).find(".disclosure-triangle:not(.expanded)").length).toBe(1); // doc2 section still collapsed
             });
 
             it("should auto-expand collapsed section when adding new range to it", function () {
@@ -507,7 +606,7 @@ define(function (require, exports, module) {
                 var $ruleListSections = getRuleListSections();
                 $ruleListSections.eq(1).click(); // collapse doc2 section
                 expect($ruleListSections.eq(0).find(".disclosure-triangle.expanded").length).toBe(1);  // verify doc1 section still expanded
-                expect($ruleListSections.eq(1).find(".disclosure-triangle.collapsed").length).toBe(1); // verify doc2 section now collapsed
+                expect($ruleListSections.eq(1).find(".disclosure-triangle:not(.expanded)").length).toBe(1); // verify doc2 section now collapsed
                 
                 inlineEditor.addAndSelectRange(".foo", doc2, 1, 1); // add new item to doc2 section
                 

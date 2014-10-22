@@ -96,14 +96,15 @@ define(function (require, exports, module) {
     
     /**
      * @constructor
-     * @param {Array.<{name:String,document:Document,lineStart:number,lineEnd:number}>} ranges The text ranges to display.
-     *      Results within the same file are expected to be contiguous in this array.
-     * @param {?function(): $.Promise} messageCB Optional; returns a promise resolved with a message to show when no matches are
-     *      available. The message should be already-escaped HTML.
-     * @param {?function(range): string} labelCB Optional; returns an updated label string for the given range. Called when we
-     *      detect that the content of a range has changed. The label is plain text, not HTML.
-     * @param {?function(File, File):number} fileComparator Optional comparison function for sorting the results list (based on
-     *      range.document.file). Defaults to FileUtils.comparePaths().
+     * @param {Array.<{name:String,document:Document,lineStart:number,lineEnd:number}>} ranges The text
+     *      ranges to display. Results within the same file are expected to be contiguous in this array.
+     * @param {?function(): $.Promise} messageCB Optional; returns a promise resolved with a message to
+     *      show when no matches are available. The message should be already-escaped HTML.
+     * @param {?function(range): string} labelCB Optional; returns an updated label string for the given
+     *      range. Called when we detect that the content of a range has changed. The label is plain
+     *      text, not HTML.
+     * @param {?function(!File, !File):number} fileComparator Optional comparison function for sorting
+     *      the results list (based on range.document.file). Defaults to FileUtils.comparePaths().
      * @extends {InlineTextEditor}
      */
     function MultiRangeInlineEditor(ranges, messageCB, labelCB, fileComparator) {
@@ -189,7 +190,7 @@ define(function (require, exports, module) {
         var $headerItem = this._$headers[fullPath];
         var $disclosureIcon = $headerItem.find(".disclosure-triangle");
         var isCollapsing = $disclosureIcon.hasClass("expanded");
-        $disclosureIcon.toggleClass("expanded").toggleClass("collapsed");
+        $disclosureIcon.toggleClass("expanded");
         $headerItem.nextUntil(".section-header").toggle(!isCollapsing);  // explicit visibility arg, since during load() jQ doesn't think nodes are visible
 
         // Update instance-specific state...
@@ -210,11 +211,19 @@ define(function (require, exports, module) {
         
         // Changing height of rule list may change ht of overall editor
         this._ruleListHeightChanged();
+        
+        // If user expands collapsed section and nothing selected yet, select first result in this section
+        if (this._selectedRangeIndex === -1 && !isCollapsing && !duringInit) {
+            var index = _.findIndex(this._ranges, function (resultItem) {
+                return resultItem.textRange.document.file.fullPath === fullPath;
+            });
+            this.setSelectedIndex(index);
+        }
     };
     
     /** Adds a file section header <li> to the range list UI ($rangeList) and adds it to the this._$headers map */
     MultiRangeInlineEditor.prototype._createHeaderItem = function (doc) {
-        var $headerItem = $("<li class='section-header'><span class='disclosure-triangle expanded'/>" + _.escape(doc.file.name) + "</li>")
+        var $headerItem = $("<li class='section-header'><span class='disclosure-triangle expanded'/><span class='filename'>" + _.escape(doc.file.name) + "</span></li>")
             .attr("title", ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))
             .appendTo(this.$rangeList);
         
@@ -716,32 +725,56 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Move the selection up or down, skipping any collapsed groups. If selection is currently IN a
+     * collapsed group, we expand it first so that other items in the same file are eligible.
+     */
+    MultiRangeInlineEditor.prototype._selectNextPrev = function (dir) {
+        if (this._selectedRangeIndex === -1) {
+            return;
+        }
+        
+        // Traverse up or down the list until we find an item eligible for selection
+        var origDoc = this._ranges[this._selectedRangeIndex].textRange.document,
+            i;
+        for (i = this._selectedRangeIndex + dir; i >= 0 && i < this._ranges.length; i += dir) {
+            var doc = this._ranges[i].textRange.document;
+            
+            // If first candidate is in same collapsed group as current selection, expand it
+            if (doc === origDoc && this._collapsedFiles[doc.file.fullPath]) {
+                this._toggleSection(doc.file.fullPath);
+            }
+                
+            // Only consider expanded groups now
+            if (!this._collapsedFiles[doc.file.fullPath]) {
+                this.setSelectedIndex(i);
+                return;
+            }
+        }
+        // If we got here, we couldn't find any eligible item - so do nothing. Happens if selection is
+        // already the first/last item, or if all remaining items above/below the selection are collapsed.
+    };
+    
+    /**
      * Display the next range in the range list
      */
     MultiRangeInlineEditor.prototype._selectNextRange = function () {
-        if (this._selectedRangeIndex < this._ranges.length - 1) {
-            this.setSelectedIndex(this._selectedRangeIndex + 1);
-        }
+        this._selectNextPrev(1);
     };
     
     /**
      *  Display the previous range in the range list
      */
     MultiRangeInlineEditor.prototype._selectPreviousRange = function () {
-        if (this._selectedRangeIndex > 0) {
-            this.setSelectedIndex(this._selectedRangeIndex - 1);
-        }
+        this._selectNextPrev(-1);
     };
 
     /**
      * Sizes the inline widget height to be the maximum between the range list height and the editor height
      * @override 
-     * @param {?boolean} force the editor to resize (ignored)
      */
-    MultiRangeInlineEditor.prototype.sizeInlineWidgetToContents = function (force) {
+    MultiRangeInlineEditor.prototype.sizeInlineWidgetToContents = function () {
         // Size the code mirror editors height to the editor content
-        // We use "call" rather than "apply" here since ensureVisibility was an argument added just for this override.
-        MultiRangeInlineEditor.prototype.parentClass.sizeInlineWidgetToContents.call(this, true);
+        MultiRangeInlineEditor.prototype.parentClass.sizeInlineWidgetToContents.call(this);
         
         // Size the widget height to the max between the editor/message content and the related ranges list
         var widgetHeight = Math.max(this.$related.height(),

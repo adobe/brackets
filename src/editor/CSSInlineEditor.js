@@ -244,6 +244,8 @@ define(function (require, exports, module) {
          * @private
          * Sort files with LESS/SCSS above CSS, and then within each grouping sort by path & filename
          * (the same order we use for Find in Files)
+         * @param {!File} a, b
+         * @return {number}
          */
         function _fileComparator(a, b) {
             var aIsCSS = LanguageManager.getLanguageForPath(a.fullPath).getId() === "css",

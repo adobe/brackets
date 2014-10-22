@@ -284,7 +284,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should collapse section without changing selection", function () {
+            it("should collapse section without changing selection, and remember collapsed state", function () {
                 runs(function () {
                     var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 20, ch: 25});
                     waitsForDone(promise, "Open inline editor");
@@ -308,7 +308,7 @@ define(function (require, exports, module) {
                     $ruleListSections = getRuleListSections(inlineWidget);
                     expect($ruleListSections.eq(0).text()).toBe("test.css (1)");
                     expect($ruleListSections.eq(1).text()).toBe("test2.css (1)");
-                    expect($ruleListSections.eq(0).find(".disclosure-triangle.collapsed").length).toBe(1); // test.css is now collapsed
+                    expect($ruleListSections.eq(0).find(".disclosure-triangle:not(.expanded)").length).toBe(1); // test.css is now collapsed
                     expect($ruleListSections.eq(1).find(".disclosure-triangle.expanded").length).toBe(1);  // test2.css is expanded
                     
                     // File in collapsed section is still selected - selection unchanged
@@ -330,12 +330,12 @@ define(function (require, exports, module) {
                     var $ruleListSections = getRuleListSections(inlineWidget);
                     expect($ruleListSections.eq(0).text()).toBe("test.css (1)");
                     expect($ruleListSections.eq(1).text()).toBe("test2.css (1)");
-                    expect($ruleListSections.eq(0).find(".disclosure-triangle.collapsed").length).toBe(1); // test.css is still collapsed
+                    expect($ruleListSections.eq(0).find(".disclosure-triangle:not(.expanded)").length).toBe(1); // test.css is still collapsed
                     expect($ruleListSections.eq(1).find(".disclosure-triangle.expanded").length).toBe(1);  // test2.css is expanded
                 });
             });
             
-            it("should initially select first non-collapsed result", function () {
+            it("should initially select first non-collapsed result, and not change selection when expanding other groups", function () {
                 runs(function () {
                     makeInitiallyCollapsed(testPath + "/css/test.css");
                     
@@ -348,16 +348,23 @@ define(function (require, exports, module) {
                     expect(inlineWidget._ranges.length).toBe(2);
 
                     var $ruleListSections = getRuleListSections(inlineWidget);
-                    expect($ruleListSections.eq(0).find(".disclosure-triangle.collapsed").length).toBe(1);  // test.css is collapsed
+                    expect($ruleListSections.eq(0).find(".disclosure-triangle:not(.expanded)").length).toBe(1);  // test.css is collapsed
                     expect($ruleListSections.eq(1).find(".disclosure-triangle.expanded").length).toBe(1);   // test2.css is expanded
 
                     expect(inlineEditorFileName(inlineWidget)[0].text).toEqual("test2.css : 8");
                     
                     expect(inlineWidget.$htmlContent.find(".related-container").length).toBe(1);
+                    
+                    // Opening a collapsed section shouldn't change the existing selection
+                    $ruleListSections.eq(0).click();
+                    expect($ruleListSections.eq(0).find(".disclosure-triangle.expanded").length).toBe(1); // test.css now expanded
+                    expect($ruleListSections.eq(1).find(".disclosure-triangle.expanded").length).toBe(1);  // test2.css still expanded
+                    
+                    expect(inlineEditorFileName(inlineWidget)[0].text).toEqual("test2.css : 8");
                 });
             });
 
-            it("should select nothing if all results collapsed, and at least 2 results", function () {
+            it("should select nothing if all results collapsed with least 2 results, and auto-select a result on expand", function () {
                 runs(function () {
                     makeInitiallyCollapsed(testPath + "/css/test.css");
                     makeInitiallyCollapsed(testPath + "/css/test2.css");
@@ -371,14 +378,22 @@ define(function (require, exports, module) {
                     expect(inlineWidget._ranges.length).toBe(2);
 
                     var $ruleListSections = getRuleListSections(inlineWidget);
-                    expect($ruleListSections.eq(0).find(".disclosure-triangle.collapsed").length).toBe(1);  // test.css is collapsed
-                    expect($ruleListSections.eq(1).find(".disclosure-triangle.collapsed").length).toBe(1);  // test2.css is collapsed
+                    expect($ruleListSections.eq(0).find(".disclosure-triangle:not(.expanded)").length).toBe(1);  // test.css is collapsed
+                    expect($ruleListSections.eq(1).find(".disclosure-triangle:not(.expanded)").length).toBe(1);  // test2.css is collapsed
 
                     expect(inlineWidget._getSelectedRange()).toBe(null);
                     expect(inlineWidget.editor).toBeNull();
                     
                     expect(inlineEditorMessage().html()).toEqual(Strings.INLINE_EDITOR_HIDDEN_MATCHES);
                     expect(inlineWidget.$htmlContent.find(".related-container").length).toBe(1);    // rule list still visible though
+                    
+                    // Opening a collapsed section should select its first result
+                    $ruleListSections.eq(1).click();
+                    expect($ruleListSections.eq(0).find(".disclosure-triangle:not(.expanded)").length).toBe(1); // test.css still collapsed
+                    expect($ruleListSections.eq(1).find(".disclosure-triangle.expanded").length).toBe(1);  // test2.css now expanded
+                    
+                    expect(inlineWidget._getSelectedRange()).toBeTruthy();
+                    expect(inlineEditorFileName(inlineWidget)[0].text).toEqual("test2.css : 8");
                 });
             });
 
