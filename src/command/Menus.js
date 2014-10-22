@@ -553,7 +553,6 @@ define(function (require, exports, module) {
             menuItem,
             name,
             commandID;
-            commandID;
         
         if (!command) {
             console.error("addMenuItem(): missing required parameters: command");
@@ -710,7 +709,6 @@ define(function (require, exports, module) {
      */
     // Menu.prototype.createMenuItemsFromJSON = function (jsonStr, position, relativeID) {
     //     NOT IMPLEMENTED
-    // };
     // };
 
 
