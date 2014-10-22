@@ -41,6 +41,10 @@ define(function GotoAgent(require, exports, module) {
     var DocumentManager = require("document/DocumentManager");
     var EditorManager = require("editor/EditorManager");
     var MainViewManager = require("view/MainViewManager");
+    
+    var CommandManager = require("command/CommandManager"),
+        Commands = require("command/Commands");
+    
 
     /** Return the URL without the query string
      * @param {string} URL
@@ -168,9 +172,8 @@ define(function GotoAgent(require, exports, module) {
         var path = url.slice(brackets.platform === "win" ? 8 : 7);
         // URL-decode the path ('%20' => ' ')
         path = decodeURI(path);
-        var promise = DocumentManager.getDocumentForPath(path);
+        var promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: path});
         promise.done(function onDone(doc) {
-            MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
             if (location) {
                 openLocation(location, noFlash);
             }

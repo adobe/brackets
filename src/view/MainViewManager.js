@@ -1121,9 +1121,8 @@ define(function (require, exports, module) {
     /**
      * Edits a document in the specified pane.
      * This function is only used by Unit Tests (which construct Mock Documents), 
-     *  The Deprecated API "setCurrentDocument" and by File > New 
-     *  because there is yet to be an established File object for the Document which is required 
-     *  for the open API.  
+     *  and by File > New  because there is yet to be an established File object 
+     *  for the Document which is required for the open API to work.
      * Do not use this API unless you have a document object without a file object
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Document} doc - document to edit

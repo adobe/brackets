@@ -30,6 +30,8 @@ define(function (require, exports, module) {
     var Async           = require("utils/Async"),
         DocumentManager = require("document/DocumentManager"),
         MainViewManager = require("view/MainViewManager"),
+        CommandManager  = require("command/CommandManager"),
+        Commands        = require("command/Commands"),
         FileSystem      = require("filesystem/FileSystem"),
         FileUtils       = require("file/FileUtils"),
         FindBar         = require("search/FindBar").FindBar,
@@ -276,7 +278,7 @@ define(function (require, exports, module) {
                         var newDoc = DocumentManager.getOpenDocumentForPath(firstPath);
                         // newDoc might be null if the replacement failed.
                         if (newDoc) {
-                            MainViewManager._edit(MainViewManager.ACTIVE_PANE, newDoc);
+                            CommandManager.execute(Commands.FILE_OPEN, {fullPath: firstPath});
                         }
                     }
                 }
