@@ -435,6 +435,12 @@ define(function (require, exports, module) {
             targetPlatform = brackets.platform;
         }
         
+        
+        // Skip if the key binding is not for this platform.
+        if (explicitPlatform === "mac" && brackets.platform !== "mac") {
+            return null;
+        }
+
         // if the request does not specify an explicit platform, and we're
         // currently on a mac, then replace Ctrl with Cmd.
         key = (keyBinding.key) || keyBinding;
@@ -443,11 +449,6 @@ define(function (require, exports, module) {
             if (keyBinding.displayKey !== undefined) {
                 keyBinding.displayKey = keyBinding.displayKey.replace("Ctrl", "Cmd");
             }
-        }
-        
-        // Skip if the key binding is not for this platform.
-        if (explicitPlatform === "mac" && brackets.platform !== "mac") {
-            return null;
         }
         
         normalized = normalizeKeyDescriptorString(key);
