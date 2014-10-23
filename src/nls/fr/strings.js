@@ -544,6 +544,7 @@ define({
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
     
 	"INLINE_EDITOR_NO_MATCHES": "Aucun résultat.",
+	"INLINE_EDITOR_HIDDEN_MATCHES": "[7803162] !é=All matches are collapsed. Expand the files listed at right to view matches.=!",
 	"CSS_QUICK_EDIT_NO_MATCHES": "Aucune règle CSS existante ne correspond à votre sélection.<br> Cliquez sur « Nouvelle règle » pour en créer une.",
 	"CSS_QUICK_EDIT_NO_STYLESHEETS": "Votre projet ne contient aucune feuille de style.<br>Créez-en une pour pouvoir ajouter des règles CSS.",
 
