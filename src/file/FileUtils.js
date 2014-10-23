@@ -36,10 +36,10 @@ define(function (require, exports, module) {
     var FileSystemError     = require("filesystem/FileSystemError"),
         LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
-        Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+        StringUtils         = require("utils/StringUtils"),
+        Dialogs;            // This will be loaded asynchronously
 
     
     /**
@@ -520,6 +520,11 @@ define(function (require, exports, module) {
         }
         return 0;
     }
+
+    // Asynchronously loading Dialogs to avoid the circular dependency
+    require(["widgets/Dialogs"], function (dialogsModule) {
+        Dialogs = dialogsModule;
+    });
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
