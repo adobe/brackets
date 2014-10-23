@@ -38,9 +38,12 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Nu aveți destule drepturi pentru a face modificări.",
     "CONTENTS_MODIFIED_ERR"             : "Fișierul a fost modificat din afara la {APP_NAME}.",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} suportă, pentru moment, doar fișierele textuale codificate cu UTF-8.",
+    "UNSUPPORTED_FILE_TYPE_ERR"         : "Acest tip de fișiere nu e suportat.",
     "FILE_EXISTS_ERR"                   : "Fișierul sau directoriul există deja.",
     "FILE"                              : "fișier",
+    "FILE_TITLE"                        : "Fișier",
     "DIRECTORY"                         : "directoriu",
+    "DIRECTORY_TITLE"                   : "Directoriu",
     "DIRECTORY_NAMES_LEDE"              : "Denumirile directoriilor",
     "FILENAMES_LEDE"                    : "Denumirile fișierelor",
     "FILENAME"                          : "nume fișier",
@@ -135,8 +138,7 @@ define({
     "BUTTON_NO"                         : "Nu",
 
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} rezultate",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 rezultat",
+    "FIND_MATCH_INDEX"                  : "{0} din {1}",
     "FIND_NO_RESULTS"                   : "Niciun rezultat",
     "FIND_QUERY_PLACEHOLDER"            : "Găsește\u2026",
     "REPLACE_PLACEHOLDER"               : "Înlocuiește cu\u2026",
@@ -220,6 +222,14 @@ define({
     "WORKING_FILES"     : "Fișierele active",
 
     /**
+     * MainViewManager
+     */
+    "TOP"               : "Sus",
+    "BOTTOM"            : "Jos",
+    "LEFT"              : "Stânga",
+    "RIGHT"             : "Dreapta",
+
+    /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
@@ -246,6 +256,11 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensii dezactivate",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "RSC",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Clic pentru a modifica cursorul între modul de Inserare(INS) și modul de Rescriere(RSC)",
+    "STATUSBAR_LANG_TOOLTIP"                : "Clic pentru a modifica tipul fișierului",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Clic pentru a arăta / ascunde panoul de rapoarte.",
+    "STATUSBAR_DEFAULT_LANG"                : "(implicit)",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Setează ca implicit pentru fișierele .{0}",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} probleme",
@@ -270,7 +285,7 @@ define({
     "CMD_FILE_NEW"                        : "Fișier nou",
     "CMD_FILE_NEW_FOLDER"                 : "Dosar nou",
     "CMD_FILE_OPEN"                       : "Deschide\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Adaugă la setul de lucru",
+    "CMD_ADD_TO_WORKINGSET_AND_OPEN"      : "Adaugă la setul de lucru și deschide",
     "CMD_OPEN_DROPPED_FILES"              : "Deschide fișierele depuse",
     "CMD_OPEN_FOLDER"                     : "Deshide un dosar\u2026",
     "CMD_FILE_CLOSE"                      : "Închide",
@@ -353,6 +368,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortare după nume",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortare după tip",
     "CMD_SORT_WORKINGSET_AUTO"            : "Sortare automată",
+    "CMD_THEMES"                          : "Teme\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigare",
@@ -414,6 +430,14 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-ul de bază nu poate conține caracterul diez ca \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Caracterele speciale ca '{0}' trebuie să fie codificate cu %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Eroare necunoscută la analiza URL-ului de bază",
+    "EMPTY_VIEW_HEADER"                    : "<em>Selectați un fișier cât această vedere e activă</em>",
+    
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Tema curentă",
+    "USE_THEME_SCROLLBARS"                 : "Folosește barele de derulare ale temei",
+    "FONT_SIZE"                            : "Mărimea fontului",
+    "FONT_FAMILY"                          : "Familia fontului",
+    "THEMES_SETTINGS"                      : "Setările temei",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Regulă nouă",
@@ -436,6 +460,8 @@ define({
     "CANCELING_INSTALL"                    : "În curs de revocare\u2026",
     "CANCELING_HUNG"                       : "Revocarea instalării durează prea mult. E posibil ca o eroare internă să fi avut loc.",
     "INSTALL_CANCELED"                     : "Instalarea a fost revocată.",
+    "VIEW_COMPLETE_DESCRIPTION"            : "Afișare descriere completă",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "Afișare descriere parțială",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Conținutul descărcat nu e un fișier zip valid.",
     "INVALID_PACKAGE_JSON"                 : "Fișierul \"package.json\" nu e valid (eroarea e: {0}).",
@@ -461,7 +487,11 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Manager de extensii",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "La moment este imposibil de accesat registrul extensiilor. Încercați mai târziu.",
+    "INSTALL_EXTENSION_DRAG"               : "Glisați .zip aici sau",
+    "INSTALL_EXTENSION_DROP"               : "Plasați .zip pentru a instala",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Instalare/Actualizare întreruptă din cauza următoarelor erori:",
     "INSTALL_FROM_URL"                     : "Instalare din URL\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "În curs de validare\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Dată",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Această extensie necesită o vesiune mai nouă {APP_NAME}.",
@@ -472,6 +502,9 @@ define({
     "EXTENSION_MORE_INFO"                  : "Mai multe informații...",
     "EXTENSION_ERROR"                      : "Eroare de extensie",
     "EXTENSION_KEYWORDS"                   : "Cuvinte cheie",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "Tradus în {0} limbi, incluzând Româna",
+    "EXTENSION_TRANSLATED_GENERAL"         : "Tradus în {0} limbi",
+    "EXTENSION_TRANSLATED_LANGS"           : "Această extensie a fost tradusă în aceste limbi: {0}",
     "EXTENSION_INSTALLED"                  : "Instalat",
     "EXTENSION_UPDATE_INSTALLED"           : "Actualizarea extensiei curente a fost descărcată și va fi instalată când veți ieși din {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Caută",
@@ -497,6 +530,7 @@ define({
     "REGISTRY_SANITY_CHECK_WARNING"        : "Fiți precaut la instalarea extensiilor din surse necunoscute.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Instalate",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Disponibile",
+    "EXTENSIONS_THEMES_TITLE"              : "Teme",
     "EXTENSIONS_UPDATES_TITLE"             : "Actualizări",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Nicio potrivire disponibilă.",
@@ -526,6 +560,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Înregistrează statutul Node în consolă",
     "CMD_RESTART_NODE"                          : "Repornește Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Arată erorile în bara de stare",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Deschide sursa Brackets",
 
     "LANGUAGE_TITLE"                            : "Modificare Limbă",
     "LANGUAGE_MESSAGE"                          : "Limba:",
@@ -553,6 +588,8 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Sari la definiție",
     "CMD_SHOW_PARAMETER_HINT"                   : "Arată sugestia parametrului",
     "NO_ARGUMENTS"                              : "<niciun parametru>",
+    "DETECTED_EXCLUSION_TITLE"                  : "Problemă de inferență a fișierelu JavaScript",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets a întâlnit probleme la procesarea:<br><br>{0}<br><br>Acest fișier nu va mai fi procesat pentru indicii de cod și definiții. Pentru a reactiva acest funcțional, deschideți <code>.brackets.json</code> din proiect și eliminați fișierul din jscodehints.detectedExclusions.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -567,4 +604,4 @@ define({
     "DOCS_MORE_LINK"                            : "Vezi mai mult"
 });
 
-/* Last translated for 99e8df52a90ae33e96878e0cda273fcdc0610e0d */
+/* Last translated for 6d4de6a8e699b63ee40a06f9252c00c44b64eb19 */

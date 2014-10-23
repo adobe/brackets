@@ -49,7 +49,7 @@
     background: #2f2f2f;
 }
 
-&.show-line-padding .CodeMirror-focused .CodeMirror-activeline-background {
+.show-line-padding .CodeMirror-focused .CodeMirror-activeline-background {
     box-shadow: inset 15px 0 0 0 #000;
 }
 
@@ -159,11 +159,11 @@
 
 /* Non-editor styling */
 
-#image-holder,
-#not-editor {
+.image-view,
+.not-editor {
     background-color: @background;
 }
 
-#image-holder {
+.view-pane .image-view {
     color: @foreground;
 }

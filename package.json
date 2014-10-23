@@ -1,7 +1,7 @@
 {
     "name": "Brackets",
-    "version": "0.44.0-0",
-    "apiVersion": "0.44.0",
+    "version": "0.45.0-0",
+    "apiVersion": "0.45.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"
@@ -17,7 +17,7 @@
         "jasmine-node": "1.11.0",
         "grunt-jasmine-node": "0.1.0",
         "grunt-cli": "0.1.9",
-        "phantomjs": "1.9.0-1",
+        "phantomjs": "1.9.11",
         "grunt-lib-phantomjs": "0.3.0",
         "grunt-contrib-jshint": "0.6.0",
         "grunt-contrib-watch": "0.4.3",

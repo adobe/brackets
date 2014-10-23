@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, jasmine, describe, it, expect, beforeEach, afterEach, waitsFor, waits, waitsForDone, runs */
+/*global define, $, brackets, jasmine, expect, beforeEach, waitsFor, waitsForDone, runs */
 define(function (require, exports, module) {
     'use strict';
     
@@ -33,19 +33,18 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
+        MainViewManager     = require("view/MainViewManager"),
         FileSystemError     = require("filesystem/FileSystemError"),
         FileSystem          = require("filesystem/FileSystem"),
-        PanelManager        = require("view/PanelManager"),
+        WorkspaceManager    = require("view/WorkspaceManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams,
-        LanguageManager     = require("language/LanguageManager"),
-        PreferencesBase     = require("preferences/PreferencesBase");
+        LanguageManager     = require("language/LanguageManager");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         EDITOR_USE_TABS         = false,
         EDITOR_SPACE_UNITS      = 4,
         OPEN_TAG                = "{{",
-        CLOSE_TAG               = "}}",
         RE_MARKER               = /\{\{(\d+)\}\}/g,
         absPathPrefix           = (brackets.platform === "win" ? "c:/" : "/"),
         _testSuites             = {},
@@ -53,6 +52,8 @@ define(function (require, exports, module) {
         _doLoadExtensions,
         _rootSuite              = { id: "__brackets__" },
         _unitTestReporter;
+    
+    MainViewManager._initialize($("#mock-main-view"));
     
     function _getFileSystem() {
         return _testWindow ? _testWindow.brackets.test.FileSystem : FileSystem;
@@ -234,7 +235,7 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred();
 
         runs(function () {
-            var dir = _getFileSystem().getDirectoryForPath(getTempDirectory()).create(function (err) {
+            _getFileSystem().getDirectoryForPath(getTempDirectory()).create(function (err) {
                 if (err && err !== FileSystemError.ALREADY_EXISTS) {
                     deferred.reject(err);
                 } else {
@@ -247,8 +248,7 @@ define(function (require, exports, module) {
     }
     
     function _resetPermissionsOnSpecialTempFolders() {
-        var i,
-            folders = [],
+        var folders = [],
             baseDir = getTempDirectory(),
             promise;
         
@@ -348,12 +348,13 @@ define(function (require, exports, module) {
      * 
      * Unlike a real Document, does NOT need to be explicitly cleaned up.
      * 
-     * @param {string=} initialContent  Defaults to ""
-     * @param {string=} languageId      Defaults to JavaScript
+     * @param {?string} initialContent  Defaults to ""
+     * @param {?string} languageId      Defaults to JavaScript
+     * @param {?string} filename        Defaults to an auto-generated filename with the language's extension
      */
-    function createMockDocument(initialContent, languageId) {
+    function createMockDocument(initialContent, languageId, filename) {
         var language    = LanguageManager.getLanguage(languageId) || LanguageManager.getLanguage("javascript"),
-            options     = { language: language, content: initialContent },
+            options     = { language: language, content: initialContent, filename: filename },
             docToShim   = createMockActiveDocument(options);
         
         // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test
@@ -386,6 +387,16 @@ define(function (require, exports, module) {
             .appendTo($("body"));
     }
 
+    function createEditorInstance(doc, $editorHolder, visibleRange) {
+        var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
+        
+        Editor.setUseTabChar(EDITOR_USE_TABS);
+        Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
+        EditorManager._notifyActiveEditorChanged(editor);
+        
+        return editor;
+    }
+    
     /**
      * Returns an Editor tied to the given Document, but suitable for use in isolation
      * (without being placed inside the surrounding Brackets UI). The Editor *will* be
@@ -398,19 +409,13 @@ define(function (require, exports, module) {
      * @return {!Editor}
      */
     function createMockEditorForDocument(doc, visibleRange) {
-        // Initialize EditorManager/PanelManager and position the editor-holder offscreen
+        // Initialize EditorManager/WorkspaceManager and position the editor-holder offscreen
         // (".content" may not exist, but that's ok for headless tests where editor height doesn't matter)
-        var $editorHolder = createMockElement().css("width", "1000px").attr("id", "mock-editor-holder");
-        PanelManager._setMockDOM($(".content"), $editorHolder);
-        EditorManager.setEditorHolder($editorHolder);
+        var $editorHolder = createMockElement().css("width", "1000px").attr("id", "hidden-editors");
+        WorkspaceManager._setMockDOM($(".content"), $editorHolder);
         
         // create Editor instance
-        var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
-        Editor.setUseTabChar(EDITOR_USE_TABS);
-        Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
-        EditorManager._notifyActiveEditorChanged(editor);
-        
-        return editor;
+        return createEditorInstance(doc, $editorHolder, visibleRange);
     }
     
     /**
@@ -432,17 +437,34 @@ define(function (require, exports, module) {
         return { doc: doc, editor: createMockEditorForDocument(doc, visibleRange) };
     }
     
+    function createMockPane($el) {
+        createMockElement()
+            .attr("class", "pane-header")
+            .appendTo($el);
+        var $fakeContent = createMockElement()
+            .attr("class", "pane-content")
+            .appendTo($el);
+        
+        return {
+            $el: $el,
+            $content: $fakeContent,
+            addView: function (path, editor) {
+            },
+            showView: function (editor) {
+            }
+        };
+    }
+    
     /**
      * Destroy the Editor instance for a given mock Document.
      * @param {!Document} doc  Document whose master editor to destroy
      */
     function destroyMockEditor(doc) {
         EditorManager._notifyActiveEditorChanged(null);
-        EditorManager._destroyEditorIfUnneeded(doc);
+        MainViewManager._destroyEditorIfNotNeeded(doc);
 
         // Clear editor holder so EditorManager doesn't try to resize destroyed object
-        EditorManager.setEditorHolder(null);
-        $("#mock-editor-holder").remove();
+        $("#hidden-editors").remove();
     }
     
     /**
@@ -514,7 +536,7 @@ define(function (require, exports, module) {
             
             // Displays the primary console messages from the test window in the the
             // test runner's console as well.
-            ["log", "info", "warn", "error"].forEach(function (method) {
+            ["debug", "log", "info", "warn", "error"].forEach(function (method) {
                 var originalMethod = _testWindow.console[method];
                 _testWindow.console[method] = function () {
                     var log = ["[testWindow] "].concat(Array.prototype.slice.call(arguments, 0));
@@ -699,28 +721,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Parses offsets from a file using offset markup (e.g. "{{1}}" for offset 1).
-     * @param {!File} entry File to open
-     * @return {$.Promise} A promise resolved with a record that contains parsed offsets, 
-     *  the file text without offset markup, the original file content, and the corresponding
-     *  file entry.
-     */
-    function parseOffsetsFromFile(entry) {
-        var result = new $.Deferred();
-        
-        FileUtils.readAsText(entry).done(function (text) {
-            var info = parseOffsetsFromText(text);
-            info.fileEntry = entry;
-            
-            result.resolve(info);
-        }).fail(function (err) {
-            result.reject(err);
-        });
-        
-        return result.promise();
-    }
-    
-    /**
      * Opens project relative file paths in the test window
      * @param {!(Array.<string>|string)} paths Project relative file path(s) to open
      * @return {!$.Promise} A promise resolved with a mapping of project-relative path
@@ -731,13 +731,14 @@ define(function (require, exports, module) {
             fullpaths = makeArray(makeAbsolute(paths)),
             keys = makeArray(makeRelative(paths)),
             docs = {},
-            FileViewController = _testWindow.brackets.test.FileViewController;
+            FileViewController = _testWindow.brackets.test.FileViewController,
+            DocumentManager = _testWindow.brackets.test.DocumentManager;
         
         Async.doSequentially(fullpaths, function (path, i) {
             var one = new $.Deferred();
             
-            FileViewController.addToWorkingSetAndSelect(path).done(function (doc) {
-                docs[keys[i]] = doc;
+            FileViewController.openFileAndAddToWorkingSet(path).done(function (file) {
+                docs[keys[i]] = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 one.resolve();
             }).fail(function (err) {
                 one.reject(err);
@@ -1317,11 +1318,13 @@ define(function (require, exports, module) {
     exports.getBracketsSourceRoot           = getBracketsSourceRoot;
     exports.makeAbsolute                    = makeAbsolute;
     exports.resolveNativeFileSystemPath     = resolveNativeFileSystemPath;
+    exports.createEditorInstance            = createEditorInstance;
     exports.createMockDocument              = createMockDocument;
     exports.createMockActiveDocument        = createMockActiveDocument;
     exports.createMockElement               = createMockElement;
     exports.createMockEditorForDocument     = createMockEditorForDocument;
     exports.createMockEditor                = createMockEditor;
+    exports.createMockPane                  = createMockPane;
     exports.createTestWindowAndRun          = createTestWindowAndRun;
     exports.closeTestWindow                 = closeTestWindow;
     exports.clickDialogButton               = clickDialogButton;

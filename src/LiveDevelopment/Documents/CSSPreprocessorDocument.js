@@ -69,6 +69,13 @@ define(function CSSPreprocessorDocumentModule(require, exports, module) {
         this.doc.releaseRef();
         this.detachFromEditor();
     };
+    
+    /** Return false so edits cause "out of sync" icon to appear */
+    CSSPreprocessorDocument.prototype.isLiveEditingEnabled = function () {
+        // Normally this isn't called since wasURLRequested() returns false for us, but if user's
+        // page uses less.js to dynamically load LESS files, then it'll be true and we'll get called.
+        return false;
+    };
 
     CSSPreprocessorDocument.prototype.attachToEditor = function (editor) {
         this.editor = editor;
@@ -90,7 +97,6 @@ define(function CSSPreprocessorDocumentModule(require, exports, module) {
     CSSPreprocessorDocument.prototype.updateHighlight = function () {
         if (Inspector.config.highlight && this.editor) {
             var editor = this.editor,
-                codeMirror = editor._codeMirror,
                 selectors = [];
             _.each(this.editor.getSelections(), function (sel) {
                 var selector = CSSUtils.findSelectorAtDocumentPos(editor, (sel.reversed ? sel.end : sel.start));

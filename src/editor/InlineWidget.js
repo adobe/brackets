@@ -41,7 +41,7 @@ define(function (require, exports, module) {
         
         // create the outer wrapper div
         this.htmlContent = window.document.createElement("div");
-        this.$htmlContent = $(this.htmlContent).addClass("inline-widget no-focus").attr("tabindex", "-1");
+        this.$htmlContent = $(this.htmlContent).addClass("inline-widget").attr("tabindex", "-1");
         this.$htmlContent.append("<div class='shadow top' />")
             .append("<div class='shadow bottom' />")
             .append("<a href='#' class='close no-focus'>&times;</a>");

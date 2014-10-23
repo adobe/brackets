@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, it, runs, expect, waitsForDone, beforeFirst, afterLast */
+/*global define, describe, it, runs, expect, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -58,7 +58,7 @@ define(function (require, exports, module) {
             });
             
             runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
+                promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: HTML_FILE});
                 waitsForDone(promise, "Open into working set");
             });
             

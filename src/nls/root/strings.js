@@ -34,6 +34,7 @@ define({
     "GENERIC_ERROR"                     : "(error {0})",
     "NOT_FOUND_ERR"                     : "The file could not be found.",
     "NOT_READABLE_ERR"                  : "The file could not be read.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "Files larger than {0} MB cannot be opened in {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
     "CONTENTS_MODIFIED_ERR"             : "The file has been modified outside of {APP_NAME}.",
@@ -72,6 +73,18 @@ define({
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "A file or directory with the name <span class='dialog-filename'>{0}</span> already exists.",
     "ERROR_CREATING_FILE_TITLE"         : "Error Creating {0}",
     "ERROR_CREATING_FILE"               : "An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}",
+    "ERROR_MIXED_DRAGDROP"              : "Cannot open a folder at the same time as opening other files.",
+
+    // User key map error strings
+    "ERROR_KEYMAP_TITLE"                : "Error Reading User Key Map",
+    "ERROR_KEYMAP_CORRUPT"              : "Your key map file is not valid JSON. The file will be opened so that you can correct the format.",
+    "ERROR_LOADING_KEYMAP"              : "Your key map file is not a valid UTF-8 encoded text file and cannot be loaded",
+    "ERROR_RESTRICTED_COMMANDS"         : "You cannot reassign shortcuts to these commands: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "You cannot reassign these shortcuts: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "You are reassigning multiple shortcuts to these commands: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "You have multiple bindings of these shortcuts: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "These shortcuts are invalid: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "You are assigning shortcuts to nonexistent commands: {0}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Error Reading Preferences",
@@ -92,8 +105,8 @@ define({
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Live Preview Error",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connecting to Browser",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Unable to load Live Preview page",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?<br /><br />",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Unable to load Live Preview page.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file or make sure there is an index.html file in your project in order to launch live preview.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error starting up the HTTP server for live preview files. Please try again.",
@@ -221,6 +234,23 @@ define({
     "WORKING_FILES"     : "Working Files",
 
     /**
+     * MainViewManager
+     */
+    "TOP"               : "Top",
+    "BOTTOM"            : "Bottom",
+    "LEFT"              : "Left",
+    "RIGHT"             : "Right",
+
+    "CMD_SPLITVIEW_NONE"        : "No Split",
+    "CMD_SPLITVIEW_VERTICAL"    : "Vertical Split",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Horizontal Split",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Split the editor vertically or horizontally",
+    "GEAR_MENU_TOOLTIP"         : "Configure Working Set",
+
+    "SPLITVIEW_INFO_TITLE"              : "Already Open",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "The file is already open in another pane. {APP_NAME} will soon support opening the same file in more than one pane. Until then, the file will be shown in the pane it's already open in.<br /><br />(You'll only see this message once.)",
+
+    /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
@@ -269,14 +299,14 @@ define({
     /**
      * Command Name Constants
      */
-
+ 
     // File menu commands
     "FILE_MENU"                           : "File",
     "CMD_FILE_NEW_UNTITLED"               : "New",
     "CMD_FILE_NEW"                        : "New File",
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Add To Working Set",
+    "CMD_ADD_TO_WORKING_SET"              : "Open To Working Set",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
     "CMD_FILE_CLOSE"                      : "Close",
@@ -355,10 +385,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
     "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Files on Save",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sort by Added",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatic Sort",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Sort by Added",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Sort by Name",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sort by Type",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatic Sort",
     "CMD_THEMES"                          : "Themes\u2026",
 
     // Navigate menu Commands
@@ -392,6 +422,7 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Open Preferences File",
+    "CMD_OPEN_KEYMAP"                     : "Open User Key Map",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
@@ -402,7 +433,7 @@ define({
     "RELAUNCH_CHROME"                      : "Relaunch Chrome",
     "ABOUT"                                : "About",
     "CLOSE"                                : "Close",
-    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "Release {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_BUILD_TIMESTAMP"           : "build timestamp: ",
     "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
@@ -421,6 +452,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unknown error parsing Base URL",
+    "EMPTY_VIEW_HEADER"                    : "<em>Open a file while this pane has focus</em>",
     
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Current Theme",
@@ -524,6 +556,7 @@ define({
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
     
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project.<br>Create one to add CSS rules.",
 
@@ -579,7 +612,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
     "NO_ARGUMENTS"                              : "<no parameters>",
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets ran into trouble processing:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> in your project and remove the file from jscodehints.detectedExclusions.",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To reenable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a Brackets bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",

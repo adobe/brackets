@@ -86,7 +86,7 @@ Awesome! _There are lots of ways you can help._ First read
 then learn how to [pull the repo and hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets).
 
 The text editor inside Brackets is based on 
-[CodeMirror](http://github.com/marijnh/CodeMirror)&mdash;thanks to Marijn for
+[CodeMirror](http://github.com/codemirror/CodeMirror)&mdash;thanks to Marijn for
 taking our pull requests, implementing feature requests and fixing bugs! See 
 [Notes on CodeMirror](https://github.com/adobe/brackets/wiki/Notes-on-CodeMirror)
 for info on how we're using CodeMirror.
