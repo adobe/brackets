@@ -1063,6 +1063,11 @@ define(function (require, exports, module) {
      * Returns the user key bindings if JSON has "overrides".
      * Otherwise, returns an empty object or an error if the file 
      * cannot be parsed or loaded.
+     *
+     * @return {$.Promise} a jQuery promise that will be resolved with the JSON
+     * object if the user key map file has "overrides" property or an empty JSON.
+     * If the key map file cannot be read or cannot be parsed by the JSON parser,
+     * then the promise is rejected with an error.
      */
     function _readUserKeyMap() {
         var file   = FileSystem.getFileForPath(_userKeyMapFilePath),
