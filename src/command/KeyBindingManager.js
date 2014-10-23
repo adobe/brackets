@@ -191,7 +191,7 @@ define(function (require, exports, module) {
                 if (brackets.platform === "mac") {
                     hasCtrl = true;
                 } else {
-                    return null;
+                    error = true;
                 }
             } else if (_compareModifierString("alt", ele)) {
                 hasAlt = true;
@@ -199,7 +199,7 @@ define(function (require, exports, module) {
                 if (brackets.platform === "mac") {
                     hasAlt = true;
                 } else {
-                    return null;
+                    error = true;
                 }
             } else if (_compareModifierString("shift", ele)) {
                 hasShift = true;
@@ -1059,6 +1059,22 @@ define(function (require, exports, module) {
     /**
      * @private
      *
+     * Gets the full file path to the user key map file. In testing environment
+     * a different file path is returned so that running integration tests won't
+     * pop up the error dialog showing the errors from the actual user key map file.
+     *
+     * @return {string} full file path to the user key map file.
+     */
+    function _getUserKeyMapFilePath() {
+        if (window.isBracketsTestWindow) {
+            return brackets.app.getApplicationSupportDirectory() + "/_test_/" + KEYMAP_FILENAME;
+        }
+        return _userKeyMapFilePath;
+    }
+
+    /**
+     * @private
+     *
      * Reads in the user key map file and parses its content into JSON.
      * Returns the user key bindings if JSON has "overrides".
      * Otherwise, returns an empty object or an error if the file 
@@ -1070,7 +1086,7 @@ define(function (require, exports, module) {
      * then the promise is rejected with an error.
      */
     function _readUserKeyMap() {
-        var file   = FileSystem.getFileForPath(_userKeyMapFilePath),
+        var file   = FileSystem.getFileForPath(_getUserKeyMapFilePath()),
             result = new $.Deferred();
        
         file.exists(function (err, doesExist) {
@@ -1133,10 +1149,11 @@ define(function (require, exports, module) {
      * if it does not exist.
      */
     function _openUserKeyMap() {
-        var file = FileSystem.getFileForPath(_userKeyMapFilePath);
+        var userKeyMapPath = _getUserKeyMapFilePath(),
+            file = FileSystem.getFileForPath(userKeyMapPath);
         file.exists(function (err, doesExist) {
             if (doesExist) {
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: _userKeyMapFilePath });
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: userKeyMapPath });
             } else {
                 var defaultContent = "{\n    \"documentation\": \"https://github.com/adobe/brackets/wiki/User-Key-Bindings\"," +
                                      "\n    \"overrides\": {" +
@@ -1144,7 +1161,7 @@ define(function (require, exports, module) {
                 
                 FileUtils.writeText(file, defaultContent, true)
                     .done(function () {
-                        CommandManager.execute(Commands.FILE_OPEN, { fullPath: _userKeyMapFilePath });
+                        CommandManager.execute(Commands.FILE_OPEN, { fullPath: userKeyMapPath });
                     });
             }
         });
