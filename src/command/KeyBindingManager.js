@@ -44,6 +44,7 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
+        UrlParams           = require("utils/UrlParams").UrlParams,
         _                   = require("thirdparty/lodash");
 
     var KeyboardPrefs       = JSON.parse(require("text!base-config/keyboard.json"));
@@ -86,6 +87,17 @@ define(function (require, exports, module) {
         _reservedShortcuts = ["Ctrl-Z", "Ctrl-Y", "Ctrl-A", "Ctrl-X", "Ctrl-C", "Ctrl-V"],
         _macReservedShortcuts = ["Cmd-,", "Cmd-H", "Cmd-Alt-H", "Cmd-M", "Cmd-Shift-Z", "Cmd-Q"],
         _keyNames = ["Up", "Down", "Left", "Right", "Backspace", "Enter", "Space", "Tab"];
+
+    /**
+     * @private
+     * Flag to show key binding errors in the key map file. Default is true and 
+     * it will be set to false when reloading without extensions. This flag is not 
+     * used to suppress errors in loading or parsing the key map file. So if the key 
+     * map file is corrupt, then the error dialog still shows up.
+     *
+     * @type {boolean}
+     */
+    var _showErrors = true;
 
     /**
      * @private
@@ -800,9 +812,8 @@ define(function (require, exports, module) {
      */
     function _showErrorsAndOpenKeyMap(err, message) {
         // Asynchronously loading Dialogs module to avoid the circular dependency
-        require(["widgets/Dialogs"], function (dialogsModule) {
-            var Dialogs = dialogsModule,
-                errorMessage = Strings.ERROR_KEYMAP_CORRUPT;
+        require(["widgets/Dialogs"], function (Dialogs) {
+            var errorMessage = Strings.ERROR_KEYMAP_CORRUPT;
             
             if (err === FileSystemError.UNSUPPORTED_ENCODING) {
                 errorMessage = Strings.ERROR_LOADING_KEYMAP;
@@ -1018,7 +1029,7 @@ define(function (require, exports, module) {
             errorMessage += StringUtils.format(Strings.ERROR_NONEXISTENT_COMMANDS, _getBulletList(invalidCommands));
         }
 
-        if (errorMessage) {
+        if (_showErrors && errorMessage) {
             _showErrorsAndOpenKeyMap("", errorMessage);
         }
     }
@@ -1213,6 +1224,12 @@ define(function (require, exports, module) {
     }
     
     AppInit.extensionsLoaded(function () {
+        var params  = new UrlParams();
+        params.parse();
+        if (params.get("reloadWithoutUserExts") === "true") {
+            _showErrors = false;
+        }
+        
         _initCommandAndKeyMaps();
         _loadUserKeyMap();
     });
