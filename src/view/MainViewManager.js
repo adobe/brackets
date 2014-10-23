@@ -326,10 +326,13 @@ define(function (require, exports, module) {
 
             entry = _makeMRUListEntry(file, pane.id);
 
+            // if it exists, then remove it form the list
             if (index !== -1) {
                 _mruList.splice(index, 1);
-                _mruList.unshift(entry);
             }
+
+            // add the file to the front of the list
+            _mruList.unshift(entry);
         }
     }
 
