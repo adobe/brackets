@@ -321,15 +321,17 @@ define(function (require, exports, module) {
             pane.makeViewMostRecent(file);
         
             index = _.findIndex(_mruList, function (record) {
-                return (record.file === file && record.paneId === paneId);
+                return (record.file === file && record.paneId === pane.id);
             });
 
             entry = _makeMRUListEntry(file, pane.id);
 
             if (index !== -1) {
                 _mruList.splice(index, 1);
-                _mruList.unshift(entry);
             }
+
+            // add it to the front of the list
+            _mruList.unshift(entry);
         }
     }
 
