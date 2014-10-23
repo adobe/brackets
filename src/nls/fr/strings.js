@@ -75,6 +75,17 @@ define({
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du {0} <span class='dialog-filename'>{1}</span>. {2}",
 	"ERROR_MIXED_DRAGDROP": "Impossible d’ouvrir un dossier en même temps que d’autres fichiers.",
 
+    // User key map error strings
+	"ERROR_KEYMAP_TITLE": "[7803357] !é=Error Reading User Key Map=!",
+	"ERROR_KEYMAP_CORRUPT": "[7803356] !é=Your key map file is not valid JSON. The file will be opened so that you can correct the format.=!",
+	"ERROR_LOADING_KEYMAP": "[7803358] !é=Your key map file is not a valid UTF-8 encoded text file and cannot be loaded=!",
+	"ERROR_RESTRICTED_COMMANDS": "[7803361] !é=You cannot reassign shortcuts to these commands: {0}=!",
+	"ERROR_RESTRICTED_SHORTCUTS": "[7803362] !é=You cannot reassign these shortcuts: {0}=!",
+	"ERROR_MULTIPLE_SHORTCUTS": "[7803359] !é=You are reassigning multiple shortcuts to these commands: {0}=!",
+	"ERROR_DUPLICATE_SHORTCUTS": "[7803354] !é=You have multiple bindings of these shortcuts: {0}=!",
+	"ERROR_INVALID_SHORTCUTS": "[7803355] !é=These shortcuts are invalid: {0}=!",
+	"ERROR_NONEXISTENT_COMMANDS": "[7803360] !é=You are assigning shortcuts to nonexistent commands: {0}=!",
+
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "Erreur lors de la lecture des préférences",
 	"ERROR_PREFS_CORRUPT": "Votre fichier de préférences n’est pas un fichier JSON valide, il va donc être ouvert afin que vous puissiez corriger le format. Vous devrez ensuite redémarrer {APP_NAME} pour que les modifications prennent effet.",
@@ -411,6 +422,7 @@ define({
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
 	"CMD_OPEN_PREFERENCES": "Ouvrir le fichier de préférences",
+	"CMD_OPEN_KEYMAP": "[7803353] !é=Open User Key Map=!",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
@@ -544,7 +556,7 @@ define({
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
     
 	"INLINE_EDITOR_NO_MATCHES": "Aucun résultat.",
-	"INLINE_EDITOR_HIDDEN_MATCHES": "[7803162] !é=All matches are collapsed. Expand the files listed at right to view matches.=!",
+	"INLINE_EDITOR_HIDDEN_MATCHES": "Tous les résultats sont réduits. Développez les fichiers dans la liste de droite pour voir le détail.",
 	"CSS_QUICK_EDIT_NO_MATCHES": "Aucune règle CSS existante ne correspond à votre sélection.<br> Cliquez sur « Nouvelle règle » pour en créer une.",
 	"CSS_QUICK_EDIT_NO_STYLESHEETS": "Votre projet ne contient aucune feuille de style.<br>Créez-en une pour pouvoir ajouter des règles CSS.",
 
