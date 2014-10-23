@@ -3,6 +3,6 @@
     "overrides": {
         "ctrl-2": "view.hideSidebar",
         "ctrl-l": "navigate.gotoDefinition",
-        "Alt-Ctrl-L": null
+        "Alt-Cmd-L": null
     } 
 }

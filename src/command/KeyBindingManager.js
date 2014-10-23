@@ -188,11 +188,19 @@ define(function (require, exports, module) {
                     hasCtrl = true;
                 }
             } else if (_compareModifierString("cmd", ele)) {
-                hasCtrl = true;
+                if (brackets.platform === "mac") {
+                    hasCtrl = true;
+                } else {
+                    return null;
+                }
             } else if (_compareModifierString("alt", ele)) {
                 hasAlt = true;
             } else if (_compareModifierString("opt", ele)) {
-                hasAlt = true;
+                if (brackets.platform === "mac") {
+                    hasAlt = true;
+                } else {
+                    return null;
+                }
             } else if (_compareModifierString("shift", ele)) {
                 hasShift = true;
             } else if (key.length > 0) {
@@ -1069,7 +1077,7 @@ define(function (require, exports, module) {
                             if (text) {
                                 var json = JSON.parse(text);
                                 // If no overrides, return an empty key map.
-                                result.resolve(json.overrides || keyMap);
+                                result.resolve((json && json.overrides) || keyMap);
                             } else {
                                 // The file is empty, so return an empty key map.
                                 result.resolve(keyMap);

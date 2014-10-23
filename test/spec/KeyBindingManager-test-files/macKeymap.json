@@ -2,8 +2,8 @@
     "documentation": "https://github.com/adobe/brackets/wiki/Key-Bindings",
     "overrides": {
         "ctrl-2": "file.openFolder",
-        "Ctrl-2": "file.openFolder",
-        "Ctrl-Alt-4": "view.hideSidebar",
-        "Alt-Ctrl-4": "view.hideSidebar"
+        "Alt-Cmd-Backspace": "view.hideSidebar",
+        "ctrl-l": "navigate.gotoDefinition",
+        "Alt-Cmd-L": null
     } 
 }

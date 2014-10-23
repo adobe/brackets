@@ -480,7 +480,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should show an error when loading a key map file with some whitespaces", function () {
+            it("should show an error when loading a key map file with only whitespaces", function () {
                 runs(function () {
                     KeyBindingManager._setUserKeyMapFilePath(testPath + "/whitespace.json");
                     KeyBindingManager._loadUserKeyMap();
@@ -544,22 +544,25 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should show an error when attempting to reassign a restricted shortcut (either dind to a special command or a mac system shortcut)", function () {
+            it("should show an error when attempting to reassign a restricted shortcut (either bind to a special command or a mac system shortcut)", function () {
+                var testFilePath = (platform === "mac") ? (testPath + "/macRestrictedShortcut.json") : (testPath + "/restrictedShortcut.json");
                 runs(function () {
                     brackets.platform = platform;
                     populateDefaultKeyMap();
                     KeyBindingManager._initCommandAndKeyMaps();
-                    KeyBindingManager._setUserKeyMapFilePath(testPath + "/restrictedShortcut.json");
+                    KeyBindingManager._setUserKeyMapFilePath(testFilePath);
                     KeyBindingManager._loadUserKeyMap();
                     waits(300);
 
                     spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
                         var msgPrefix = Strings.ERROR_RESTRICTED_SHORTCUTS.replace("{0}", "");
                         expect(message).toMatch(msgPrefix);
-                        expect(message).toMatch("cmd-z");
                         if (platform === "mac") {
+                            expect(message).toMatch("cmd-z");
                             expect(message).toMatch("Cmd-m");
                             expect(message).toMatch("cmd-h");
+                        } else {
+                            expect(message).toMatch("ctrl-z");
                         }
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
@@ -603,8 +606,8 @@ define(function (require, exports, module) {
                     spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
                         var msgPrefix = Strings.ERROR_DUPLICATE_SHORTCUTS.replace("{0}", "");
                         expect(message).toMatch(msgPrefix);
-                        expect(message).toMatch("Cmd-2");
-                        expect(message).toMatch("Alt-Cmd-4");
+                        expect(message).toMatch("Ctrl-2");
+                        expect(message).toMatch("Alt-Ctrl-4");
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
                 });
@@ -661,13 +664,14 @@ define(function (require, exports, module) {
             });
         
             it("should update key map with the user specified key bindings", function () {
+                var testFilePath = (platform === "mac") ? (testPath + "/macKeymap.json") : (testPath + "/keymap.json");
                 runs(function () {
                     brackets.platform = platform;
                     var defKeyMap = getDefaultKeyMap();
                     populateDefaultKeyMap();
                     KeyBindingManager._initCommandAndKeyMaps();
                     expect(KeyBindingManager.getKeymap()).toEqual(defKeyMap);
-                    KeyBindingManager._setUserKeyMapFilePath(testPath + "/keymap.json");
+                    KeyBindingManager._setUserKeyMapFilePath(testFilePath);
                     KeyBindingManager._loadUserKeyMap();
                     waits(300);
 
@@ -697,18 +701,20 @@ define(function (require, exports, module) {
             });
 
             it("should restore original key bindings when the user key map is updated", function () {
+                var testFilePath1 = (platform === "mac") ? (testPath + "/macKeymap.json") : (testPath + "/keymap.json"),
+                    testFilePath2 = (platform === "mac") ? (testPath + "/macKeymap1.json") : (testPath + "/keymap1.json");
                 runs(function () {
                     brackets.platform = platform;
                     var defKeyMap = getDefaultKeyMap();
                     populateDefaultKeyMap();
                     KeyBindingManager._initCommandAndKeyMaps();
                     expect(KeyBindingManager.getKeymap()).toEqual(defKeyMap);
-                    KeyBindingManager._setUserKeyMapFilePath(testPath + "/keymap.json");
+                    KeyBindingManager._setUserKeyMapFilePath(testFilePath1);
                     KeyBindingManager._loadUserKeyMap();
                     waits(300);
 
                     // Loading a different key map file to simulate the user updating an existing key map.
-                    KeyBindingManager._setUserKeyMapFilePath(testPath + "/keymap1.json");
+                    KeyBindingManager._setUserKeyMapFilePath(testFilePath2);
                     KeyBindingManager._loadUserKeyMap();
                     waits(300);
 
