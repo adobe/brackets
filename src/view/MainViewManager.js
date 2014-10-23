@@ -1266,6 +1266,10 @@ define(function (require, exports, module) {
                 });
         }
 
+        result.done(function () {
+            _makeFileMostRecent(paneId, file);
+        });
+        
         return result;
     }
     
