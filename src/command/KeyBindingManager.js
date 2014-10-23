@@ -444,6 +444,12 @@ define(function (require, exports, module) {
                 keyBinding.displayKey = keyBinding.displayKey.replace("Ctrl", "Cmd");
             }
         }
+        
+        // Skip if the key binding is not for this platform.
+        if (explicitPlatform === "mac" && brackets.platform !== "mac") {
+            return null;
+        }
+        
         normalized = normalizeKeyDescriptorString(key);
         
         // skip if the key binding is invalid 
