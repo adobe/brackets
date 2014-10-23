@@ -1061,6 +1061,9 @@ define(function (require, exports, module) {
                                                newPane.id]);
                 }
             });
+            $(newPane).on("viewDestroy.mainView", function (e, view) {
+                _removeFileFromMRU(newPane.id, view.getFile());
+            });
         }
         
         return newPane;
