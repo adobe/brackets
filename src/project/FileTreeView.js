@@ -832,6 +832,7 @@ define(function (require, exports, module) {
      * * selectionViewInfo: Immutable.Map with width, scrollTop, scrollLeft and offsetTop for the tree container
      * * visible: should this be visible now
      * * selectedClassName: class name applied to the element that is selected
+     * * className: class to be applied to the extension element
      */
     var selectionExtension = React.createClass({
         /**
@@ -891,10 +892,7 @@ define(function (require, exports, module) {
                 style: {
                     display: this.props.visible ? "block" : "none"
                 },
-                className: cx({
-                    "sidebar-selection-extension": true,
-                    "selectionExtension-visible": this.props.visible
-                })
+                className: this.props.className
             });
         }
     });
@@ -942,35 +940,40 @@ define(function (require, exports, module) {
                     visible: this.props.selectionViewInfo.get("hasContext"),
                     selectedClassName: ".context-node",
                     forceUpdate: true
-                });
-            
-            var divArgs = [
-                null,
-                selectionBackground,
-                contextBackground
-            ];
-            
-            if (this.props.platform !== "mac") {
-                divArgs.push(selectionExtension({
+                }),
+                extensionForSelection = selectionExtension({
                     selectionViewInfo: this.props.selectionViewInfo,
                     selectedClassName: ".selected-node",
                     visible: this.props.selectionViewInfo.get("hasSelection"),
-                    forceUpdate: true
-                }));
-            }
+                    forceUpdate: true,
+                    className: "sidebar-selection-extension"
+                }),
+                extensionForContext = selectionExtension({
+                    selectionViewInfo: this.props.selectionViewInfo,
+                    selectedClassName: ".context-node",
+                    visible: this.props.selectionViewInfo.get("hasContext"),
+                    forceUpdate: true,
+                    className: "sidebar-context-extension"
+                }),
+                contents = directoryContents({
+                    isRoot: true,
+                    parentPath: this.props.parentPath,
+                    sortDirectoriesFirst: this.props.sortDirectoriesFirst,
+                    contents: this.props.treeData,
+                    extensions: this.props.extensions,
+                    actions: this.props.actions,
+                    forceRender: this.props.forceRender,
+                    platform: this.props.platform
+                });
             
-            divArgs.push(directoryContents({
-                isRoot: true,
-                parentPath: this.props.parentPath,
-                sortDirectoriesFirst: this.props.sortDirectoriesFirst,
-                contents: this.props.treeData,
-                extensions: this.props.extensions,
-                actions: this.props.actions,
-                forceRender: this.props.forceRender,
-                platform: this.props.platform
-            }));
-
-            return DOM.div.apply(DOM.div, divArgs);
+            return DOM.div(
+                null,
+                selectionBackground,
+                contextBackground,
+                extensionForSelection,
+                extensionForContext,
+                contents
+            );
         }
     });
 
