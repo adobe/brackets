@@ -88,7 +88,7 @@ define(function (require, exports, module) {
         if (labelCB) {
             range.name = labelCB(range.textRange);
         }
-        var text = _.escape(range.name) + " <span class='related-file'>— " + _.escape(range.textRange.document.file.name) + " : " + (range.textRange.startLine + 1) + "</span>";
+        var text = _.escape(range.name) + " <span class='related-file'>:" + (range.textRange.startLine + 1) + "</span>";
         listItem.html(text);
         listItem.attr("title", listItem.text());
     }
@@ -174,6 +174,9 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype._createListItem = function (range) {
         var self = this,
             $rangeItem = $("<li/>");
+        
+        // Attach filename for unit test use
+        $rangeItem.data("filename", range.textRange.document.file.name);
         
         $rangeItem.appendTo(this.$rangeList);
         

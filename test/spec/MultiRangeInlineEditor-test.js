@@ -65,6 +65,12 @@ define(function (require, exports, module) {
                 return $(inlineEditor.htmlContent).find("li.section-header");
             }
     
+            function expectListItem($ruleListItem, ruleLabel, filename, lineNum) {  // TODO: duplicated with CSSInlineEdit-test
+                expect($ruleListItem.text()).toBe(ruleLabel + " :" + lineNum);
+                expect($ruleListItem.data("filename")).toBe(filename);
+            }
+            
+            
             it("should initialize to a default state", function () {
                 inlineEditor = new MultiRangeInlineEditor([]);
                 
@@ -98,7 +104,7 @@ define(function (require, exports, module) {
                 // Rule list should be hidden with only one rule.
                 expect(inlineEditor.$htmlContent.find(".related-container").length).toBe(0);
             });
-    
+            
             it("should contain a rule list widget displaying info for each rule", function () {
                 var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n"),
                     inlineDocName = inlineDoc.file.name;
@@ -122,8 +128,8 @@ define(function (require, exports, module) {
                 inlineEditor.load(hostEditor);
                 
                 var $ruleListItems = getRuleListItems();
-                expect($($ruleListItems.get(0)).text()).toBe("div — " + inlineDocName + " : 1");
-                expect($($ruleListItems.get(1)).text()).toBe(".foo — " + inlineDocName + " : 2");
+                expectListItem($ruleListItems.eq(0), "div", inlineDocName, 1);
+                expectListItem($ruleListItems.eq(1), ".foo", inlineDocName, 2);
 
                 // Messages div should be hidden, editor holder should have a child editor.
                 expect(inlineEditor.$htmlContent.find(".inline-editor-message").length).toBe(0);
@@ -383,8 +389,8 @@ define(function (require, exports, module) {
                 
                 var $ruleListItems = getRuleListItems();
                 expect($ruleListItems.length).toBe(2);
-                expect($ruleListItems.eq(0).text()).toBe("#bar — aaa.css : 1");
-                expect($ruleListItems.eq(1).text()).toBe("div — zzz.css : 1");
+                expectListItem($ruleListItems.eq(0), "#bar", "aaa.css", 1);
+                expectListItem($ruleListItems.eq(1), "div", "zzz.css", 1);
                 
                 var $ruleListSections = getRuleListSections();
                 expect($ruleListSections.length).toBe(2);

@@ -112,6 +112,11 @@ define(function (require, exports, module) {
             return inlineWidget.$relatedContainer.find("li.section-header");
         }
         
+        function expectListItem($ruleListItem, ruleLabel, filename, lineNum) {  // TODO: duplicated with MultiRangeInlineEditor-test
+            expect($ruleListItem.text()).toBe(ruleLabel + " :" + lineNum);
+            expect($ruleListItem.data("filename")).toBe(filename);
+        }
+        
         function loadFile(file) {
             runs(function () {
                 var promise = SpecRunnerUtils.openProjectFiles([file]);
@@ -141,7 +146,8 @@ define(function (require, exports, module) {
 
             return document.getRange({line: ranges.textRange.startLine, ch: 0}, {line: ranges.textRange.endLine, ch: document.getLine(ranges.textRange.endLine).length});
         }
-
+        
+        
         describe("CSS", function () {
             
             function resetCollapsedPrefs() {
@@ -188,8 +194,8 @@ define(function (require, exports, module) {
 
                     var files = getRelatedFiles(inlineWidgets[0]);
                     expect(files.length).toBe(2);
-                    expect(files[0].textContent).toEqual(".standard — test.css : 1");
-                    expect(files[1].textContent).toEqual(".standard — test2.css : 1");
+                    expectListItem(files.eq(0), ".standard", "test.css", 1);
+                    expectListItem(files.eq(1), ".standard", "test2.css", 1);
 
                     // Check Inline Editor 2
                     expect(inlineEditorFileName(inlineWidgets[1])[0].text).toEqual("test.css : 8");
@@ -201,8 +207,8 @@ define(function (require, exports, module) {
 
                     files = getRelatedFiles(inlineWidgets[1]);
                     expect(files.length).toBe(2);
-                    expect(files[0].textContent).toEqual(".banner-new — test.css : 8");
-                    expect(files[1].textContent).toEqual(".banner-new — test2.css : 8");
+                    expectListItem(files.eq(0), ".banner-new", "test.css", 8);
+                    expectListItem(files.eq(1), ".banner-new", "test2.css", 8);
                 });
             });
 
@@ -277,8 +283,8 @@ define(function (require, exports, module) {
 
                     var files = getRelatedFiles(inlineWidget);
                     expect(files.length).toBe(2);
-                    expect(files[0].textContent).toEqual(".banner-new — test.css : 8");
-                    expect(files[1].textContent).toEqual(".banner-new — test2.css : 8");
+                    expectListItem(files.eq(0), ".banner-new", "test.css", 8);
+                    expectListItem(files.eq(1), ".banner-new", "test2.css", 8);
                     
                     expect(inlineWidget.$htmlContent.find(".related-container").length).toBe(1);
                 });
@@ -510,8 +516,8 @@ define(function (require, exports, module) {
 
                     var files = getRelatedFiles(inlineWidgets[0]);
                     expect(files.length).toBe(2);
-                    expect(files[0].textContent).toEqual("div / &.banner-new2 — test.less : 9");
-                    expect(files[1].textContent).toEqual(".banner-new2 — test2.less : 1");
+                    expectListItem(files.eq(0), "div / &.banner-new2", "test.less", 9);
+                    expectListItem(files.eq(1), ".banner-new2", "test2.less", 1);
                 });
             });
 
@@ -533,7 +539,7 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".level1 / .level2 / .level3 — test2.less : 11");
+                        expectListItem(files.eq(0), ".level1 / .level2 / .level3", "test2.less", 11);
                     });
                 });
 
@@ -554,7 +560,7 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".confuse1 — test2.less : 44");
+                        expectListItem(files.eq(0), ".confuse1", "test2.less", 44);
                     });
                 });
 
@@ -575,7 +581,7 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".compressed — test2.less : 51");
+                        expectListItem(files.eq(0), ".compressed", "test2.less", 51);
                     });
                 });
             });
@@ -598,7 +604,7 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".confuse1 / .special — test2.less : 45");
+                        expectListItem(files.eq(0), ".confuse1 / .special", "test2.less", 45);
                     });
                 });
 
@@ -619,7 +625,7 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".comment1 — test2.less : 17");
+                        expectListItem(files.eq(0), ".comment1", "test2.less", 17);
                     });
                 });
 
@@ -640,7 +646,7 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".comment4 — test2.less : 33");
+                        expectListItem(files.eq(0), ".comment4", "test2.less", 33);
                     });
                 });
 
@@ -661,7 +667,7 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".comment2 — test2.less : 22");
+                        expectListItem(files.eq(0), ".comment2", "test2.less", 22);
                     });
                 });
 
@@ -682,7 +688,7 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".comment3 — test2.less : 29");
+                        expectListItem(files.eq(0), ".comment3", "test2.less", 29);
                     });
                 });
             });
@@ -705,7 +711,7 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".uno, .dos — test2.less : 55");
+                        expectListItem(files.eq(0), ".uno, .dos", "test2.less", 55);
                     });
                 });
 
@@ -726,8 +732,8 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(2);
-                        expect(files[0].textContent).toEqual(".uno, .dos — test2.less : 55");
-                        expect(files[1].textContent).toEqual("#main / .dos — test2.less : 59");
+                        expectListItem(files.eq(0), ".uno, .dos", "test2.less", 55);
+                        expectListItem(files.eq(1), "#main / .dos", "test2.less", 59);
                     });
                 });
 
@@ -748,7 +754,7 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".tres, .quattro — test2.less : 65");
+                        expectListItem(files.eq(0), ".tres, .quattro", "test2.less", 65);
                     });
                 });
             });
@@ -771,7 +777,7 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".mixina-class — test2.less : 86");
+                        expectListItem(files.eq(0), ".mixina-class", "test2.less", 86);
                     });
                 });
 
@@ -792,7 +798,7 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual("#header-mixin-paramterized-default — test2.less : 120");
+                        expectListItem(files.eq(0), "#header-mixin-paramterized-default", "test2.less", 120);
                     });
                 });
 
@@ -813,7 +819,7 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual("#header-mixin-paramterized-custom / #header-mixin-paramterized-custom-1 — test2.less : 126");
+                        expectListItem(files.eq(0), "#header-mixin-paramterized-custom / #header-mixin-paramterized-custom-1", "test2.less", 126);
                     });
                 });
             });
@@ -837,7 +843,7 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".widget — test2.less : 109");
+                        expectListItem(files.eq(0), ".widget", "test2.less", 109);
                     });
                 });
             });
@@ -872,7 +878,7 @@ define(function (require, exports, module) {
                     // It's not visible
                     var files = getRelatedFiles(inlineWidgets[0]);
                     expect(files.length).toBe(1);
-                    expect(files[0].textContent).toEqual("p — test.scss : 5");
+                    expectListItem(files.eq(0), "p", "test.scss", 5);
                 });
             });
 
@@ -894,7 +900,7 @@ define(function (require, exports, module) {
                     // It's not visible
                     var files = getRelatedFiles(inlineWidgets[0]);
                     expect(files.length).toBe(1);
-                    expect(files[0].textContent).toEqual("#scss-1 — test.scss : 11");
+                    expectListItem(files.eq(0), "#scss-1", "test.scss", 11);
                 });
             });
 
@@ -916,7 +922,7 @@ define(function (require, exports, module) {
                     // It's not visible
                     var files = getRelatedFiles(inlineWidgets[0]);
                     expect(files.length).toBe(1);
-                    expect(files[0].textContent).toEqual(".button / &-ok — test.scss : 20");
+                    expectListItem(files.eq(0), ".button / &-ok", "test.scss", 20);
                 });
             });
 
@@ -938,7 +944,7 @@ define(function (require, exports, module) {
                     // It's not visible
                     var files = getRelatedFiles(inlineWidgets[0]);
                     expect(files.length).toBe(1);
-                    expect(files[0].textContent).toEqual("a — test.scss : 37");
+                    expectListItem(files.eq(0), "a", "test.scss", 37);
                 });
             });
 
@@ -960,7 +966,7 @@ define(function (require, exports, module) {
                         // It's not visible
                         var files = getRelatedFiles(inlineWidgets[0]);
                         expect(files.length).toBe(1);
-                        expect(files[0].textContent).toEqual(".comment-scss-1 — test.scss : 41");
+                        expectListItem(files.eq(0), ".comment-scss-1", "test.scss", 41);
                     });
                 });
             });
