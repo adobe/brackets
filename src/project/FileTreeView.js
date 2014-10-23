@@ -887,7 +887,6 @@ define(function (require, exports, module) {
         },
 
         render: function () {
-            var cx = React.addons.classSet;
             return DOM.div({
                 style: {
                     display: this.props.visible ? "block" : "none"
@@ -946,14 +945,14 @@ define(function (require, exports, module) {
                     selectedClassName: ".selected-node",
                     visible: this.props.selectionViewInfo.get("hasSelection"),
                     forceUpdate: true,
-                    className: "sidebar-selection-extension"
+                    className: "filetree-selection-extension"
                 }),
                 extensionForContext = selectionExtension({
                     selectionViewInfo: this.props.selectionViewInfo,
                     selectedClassName: ".context-node",
                     visible: this.props.selectionViewInfo.get("hasContext"),
                     forceUpdate: true,
-                    className: "sidebar-context-extension"
+                    className: "filetree-context-extension"
                 }),
                 contents = directoryContents({
                     isRoot: true,
