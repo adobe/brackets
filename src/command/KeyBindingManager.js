@@ -42,6 +42,7 @@ define(function (require, exports, module) {
         FileSystemError     = require("filesystem/FileSystemError"),
         FileUtils           = require("file/FileUtils"),
         KeyEvent            = require("utils/KeyEvent"),
+        KeyboardUtils       = require("command/KeyboardUtils"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         _                   = require("thirdparty/lodash");
@@ -242,6 +243,12 @@ define(function (require, exports, module) {
             return null;
         }
         
+        // If the key combination is a shortcut on the current keyboard layout that is
+        // used to input a non-English text, then return null to omit it from key map.
+        if (hasCtrl && hasAlt && KeyboardUtils.isAltGrShortcut(key)) {
+            return null;
+        }
+
         return _buildKeyDescriptor(hasMacCtrl, hasCtrl, hasAlt, hasShift, key);
     }
     

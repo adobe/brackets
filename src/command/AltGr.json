@@ -1,0 +1,49 @@
+{
+    "ca":        "123456E",
+    "cs":        "1234567890E",
+    "da":        "23457890EM",
+    "de":        "237890EMQ",
+    "el":        "1234567890ACDEILMNOPQRSTUWYZ",
+    "es":        "123456E",
+    "et":        "23457890ESZ",
+    "fi": {
+        "1035":  "23457890EM",
+        "61485": "23457890ABCDEFGHIKMNOQSTZöä"
+    },
+    "fr-BE":     "12345690E",
+    "fr-CA":     "1234567890MOP",
+    "fr-CH":     "1234578E",
+    "fr-FR":     "234567890E",
+    "ha":        "5BDKY",
+    "hr":        "1234567890BEFGKLMNQVW",
+    "hu":        "1234567890ABCDEFGIJKLMNQSUVWXY",
+    "ig":        "590ADEFGHINMOQSUW",
+    "is":        "57890EMQ",
+    "it":        "5E",
+    "lb":        "1234578E",
+    "lt":        "1234567890E",
+    "lv":        "2346ACEGIKLNORSUZ",
+    "nb":        "23457890EM",
+    "nl":        "123456789CEMRSXZ",
+    "pl":        "ACENLOSUXZ",
+    "pt-PT":     "23457890E",
+    "pt-BR":     "123456CEQW",
+    "ro": {
+        "1048":  "1234567890BDKLMNQSVWăîşţ",
+        "61605": "1234567890CDELPSăîşţ",
+        "61606": "1234567890ACDEIQPSTW"
+    },
+    "se":        "23457890AEGHIKMOZáščöä",
+    "sk":        "1234567890BCDEFGKLNPQSVWXZ",
+    "sl":        "1234567890BEFGKLMNQVWćšđž",
+    "sq":        "1234567890BDFGKLMNQSVW",
+    "sr":        "1234567890BEFGKLMNQVW",
+    "sv": {
+        "1053":  "23457890EM",
+        "2107":  "23457890ABCDEFGHIKMNOQSTZöä"
+    },
+    "tr": {
+        "1055":  "123457890AEIQS",
+        "61460": "1234567890BDEFHIJPQSUVWXYıö"
+    }
+}
