@@ -1120,10 +1120,11 @@ define(function (require, exports, module) {
     
     /**
      * Edits a document in the specified pane.
-     * This function is only used by Unit Tests (which construct Mock Documents), 
-     *  and by File > New  because there is yet to be an established File object 
-     *  for the Document which is required for the open API to work.
-     * Do not use this API unless you have a document object without a file object
+     * This function is only used by:
+     *  - Unit Tests (which construct Mock Document objects), 
+     *  - by File > New  because there is yet to be an established File object 
+     *  - by Find In Files which needs to open documents synchronously in some cases
+     * Do not use this API it is for internal use only
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Document} doc - document to edit
      * @param {{noPaneActivate:boolean=}=} optionsIn - options
