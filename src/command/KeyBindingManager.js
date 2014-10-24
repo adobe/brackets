@@ -912,11 +912,10 @@ define(function (require, exports, module) {
      *                  Otherwise, the corresponding unicode symbol is returned.
      */
     function _getDisplayKey(key) {
-        var displayKey = "";
-        if (/(Up|Down|Left|Right|\-)$/i.test(key)) {
-            displayKey = key.toLowerCase().replace(/(up|down|left|right|\-)$/, function (match, p1) {
-                return _displayKeyMap[p1];
-            });
+        var displayKey = "",
+            match = key.match(/(Up|Down|Left|Right|\-)$/i);
+        if (match) {
+            displayKey = key.substr(0, match.index) + _displayKeyMap[match[0].toLowerCase()];
         }
         return displayKey;
     }
