@@ -276,6 +276,16 @@ define(function (require, exports, module) {
                         var newDoc = DocumentManager.getOpenDocumentForPath(firstPath);
                         // newDoc might be null if the replacement failed.
                         if (newDoc) {
+                            // @todo change the `_edit` call to this:
+                            //     
+                            ///    CommandManager.execute(Commands.FILE_OPEN, {fullPath: firstPath});
+                            //
+                            // The problem with doing that is that the promise returned by this
+                            // function has already been resolved by `Async.doInParallel()` and
+                            // `CommandManager.execute` is an asynchronous operation.
+                            // An asynchronous open can't be waited on (since the promise has been  
+                            //  resolved already) so use the synchronous version so that the next `done`
+                            //  handler is blocked until the open completes
                             MainViewManager._edit(MainViewManager.ACTIVE_PANE, newDoc);
                         }
                     }
