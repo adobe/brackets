@@ -76,15 +76,15 @@ define({
 	"ERROR_MIXED_DRAGDROP": "他のファイルを開いている間はフォルダーを開くことはできません。",
 
     // User key map error strings
-	"ERROR_KEYMAP_TITLE": "!能=[7803357] Error Reading User Key Map_=!",
-	"ERROR_KEYMAP_CORRUPT": "!能=[7803356] Your key map file is not valid JSON. The file will be opened so that you can correct the format._=!",
-	"ERROR_LOADING_KEYMAP": "!能=[7803358] Your key map file is not a valid UTF-8 encoded text file and cannot be loaded_=!",
-	"ERROR_RESTRICTED_COMMANDS": "!能=[7803361] You cannot reassign shortcuts to these commands: {0}_=!",
-	"ERROR_RESTRICTED_SHORTCUTS": "!能=[7803362] You cannot reassign these shortcuts: {0}_=!",
-	"ERROR_MULTIPLE_SHORTCUTS": "!能=[7803359] You are reassigning multiple shortcuts to these commands: {0}_=!",
-	"ERROR_DUPLICATE_SHORTCUTS": "!能=[7803354] You have multiple bindings of these shortcuts: {0}_=!",
-	"ERROR_INVALID_SHORTCUTS": "!能=[7803355] These shortcuts are invalid: {0}_=!",
-	"ERROR_NONEXISTENT_COMMANDS": "!能=[7803360] You are assigning shortcuts to nonexistent commands: {0}_=!",
+	"ERROR_KEYMAP_TITLE": "ユーザーキーマップを読み込む際にエラーが発生しました",
+	"ERROR_KEYMAP_CORRUPT": "キーマップファイルが有効な JSON ではありません。ファイルが開かれます。フォーマットを修正してください。",
+	"ERROR_LOADING_KEYMAP": "キーマップファイルが UTF-8 でエンコードされた有効なテキストファイルではないため、読み込めません",
+	"ERROR_RESTRICTED_COMMANDS": "これらのコマンドにショートカットを割り当て直すことはできません : {0}",
+	"ERROR_RESTRICTED_SHORTCUTS": "これらのショートカットを割り当て直すことはできません : {0}",
+	"ERROR_MULTIPLE_SHORTCUTS": "これらのコマンドに複数のショートカットを割り当て直しています : {0}",
+	"ERROR_DUPLICATE_SHORTCUTS": "これらのショートカットの複数のバインディングがあります : {0}",
+	"ERROR_INVALID_SHORTCUTS": "これらのショートカットは無効です : {0}",
+	"ERROR_NONEXISTENT_COMMANDS": "存在しないコマンドにショートカットを割り当てています : {0}",
 
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "環境設定を読み込む際にエラーが発生しました。",
@@ -422,7 +422,7 @@ define({
 	"CMD_TWITTER": "Twitter で {TWITTER_NAME} をフォロー",
 	"CMD_ABOUT": "{APP_TITLE} について",
 	"CMD_OPEN_PREFERENCES": "環境設定ファイルを開く",
-	"CMD_OPEN_KEYMAP": "!能=[7803353] Open User Key Map_=!",
+	"CMD_OPEN_KEYMAP": "ユーザーキーマップを開く",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",

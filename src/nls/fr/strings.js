@@ -76,15 +76,15 @@ define({
 	"ERROR_MIXED_DRAGDROP": "Impossible d’ouvrir un dossier en même temps que d’autres fichiers.",
 
     // User key map error strings
-	"ERROR_KEYMAP_TITLE": "[7803357] !é=Error Reading User Key Map=!",
-	"ERROR_KEYMAP_CORRUPT": "[7803356] !é=Your key map file is not valid JSON. The file will be opened so that you can correct the format.=!",
-	"ERROR_LOADING_KEYMAP": "[7803358] !é=Your key map file is not a valid UTF-8 encoded text file and cannot be loaded=!",
-	"ERROR_RESTRICTED_COMMANDS": "[7803361] !é=You cannot reassign shortcuts to these commands: {0}=!",
-	"ERROR_RESTRICTED_SHORTCUTS": "[7803362] !é=You cannot reassign these shortcuts: {0}=!",
-	"ERROR_MULTIPLE_SHORTCUTS": "[7803359] !é=You are reassigning multiple shortcuts to these commands: {0}=!",
-	"ERROR_DUPLICATE_SHORTCUTS": "[7803354] !é=You have multiple bindings of these shortcuts: {0}=!",
-	"ERROR_INVALID_SHORTCUTS": "[7803355] !é=These shortcuts are invalid: {0}=!",
-	"ERROR_NONEXISTENT_COMMANDS": "[7803360] !é=You are assigning shortcuts to nonexistent commands: {0}=!",
+	"ERROR_KEYMAP_TITLE": "Erreur lors de la lecture de la mappe de clé utilisateur",
+	"ERROR_KEYMAP_CORRUPT": "Votre fichier de mappe de clé n'est pas un fichier JSON valide. Il va s'ouvrir afin que vous puissiez corriger le format.",
+	"ERROR_LOADING_KEYMAP": "Votre fichier de mappe de clé n'étant pas un fichier texte codé en UTF-8 valide, il ne peut pas être chargé",
+	"ERROR_RESTRICTED_COMMANDS": "Vous ne pouvez pas réaffecter de raccourcis à ces commandes : {0}",
+	"ERROR_RESTRICTED_SHORTCUTS": "Vous ne pouvez pas réaffecter ces raccourcis : {0}",
+	"ERROR_MULTIPLE_SHORTCUTS": "Vous réaffectez plusieurs raccourcis à ces commandes : {0}",
+	"ERROR_DUPLICATE_SHORTCUTS": "Vous disposez de plusieurs liaisons pour ces raccourcis : {0}",
+	"ERROR_INVALID_SHORTCUTS": "Ces raccourcis ne sont pas valides : {0}",
+	"ERROR_NONEXISTENT_COMMANDS": "Vous affectez des raccourcis à des commandes qui n'existent pas : {0}",
 
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "Erreur lors de la lecture des préférences",
@@ -422,7 +422,7 @@ define({
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
 	"CMD_OPEN_PREFERENCES": "Ouvrir le fichier de préférences",
-	"CMD_OPEN_KEYMAP": "[7803353] !é=Open User Key Map=!",
+	"CMD_OPEN_KEYMAP": "Ouvrir la mappe de clé utilisateur",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
