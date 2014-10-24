@@ -82,6 +82,17 @@ define(function (require, exports, module) {
     var _commandMap  = {},
         _allCommands = [];
     
+    /**
+     * @private
+     * Maps key names to the corresponding unicode symols
+     * @type {{key: string, displayKey: string}}
+     */
+    var _displayKeyMap      = { "up":    "\u2191",
+                                "down":  "\u2193",
+                                "left":  "\u2190",
+                                "right": "\u2192",
+                                "-":     "\u2212" };
+
     var _specialCommands = [Commands.EDIT_UNDO, Commands.EDIT_REDO, Commands.EDIT_SELECT_ALL,
                             Commands.EDIT_CUT, Commands.EDIT_COPY, Commands.EDIT_PASTE],
         _reservedShortcuts = ["Ctrl-Z", "Ctrl-Y", "Ctrl-A", "Ctrl-X", "Ctrl-C", "Ctrl-V"],
@@ -896,18 +907,16 @@ define(function (require, exports, module) {
      * @private
      *
      * Gets the corresponding unicode symbol of an arrow key for display in the menu.
-     * @param {string} normalizedKey 
-     * @return {string} An empty string if normalizedKey does not have any arrow key. Otherwise, the name
-     *                  of the arrow key is replaced with the corresponding unicode symbol in the return string.
+     * @param {string} key The non-modifier key used in the shortcut. It does not need to be normalized.
+     * @return {string} An empty string if key is not one of those we want to show with the unicode symbol. 
+     *                  Otherwise, the corresponding unicode symbol is returned.
      */
-    function _getDisplayKey(normalizedKey) {
+    function _getDisplayKey(key) {
         var displayKey = "";
-        if (/(Up|Down|Left|Right)$/i.test(normalizedKey)) {
-            normalizedKey = normalizedKey.replace(/Up$/i, "\u2191");
-            normalizedKey = normalizedKey.replace(/Down$/i, "\u2193");
-            normalizedKey = normalizedKey.replace(/Left$/i, "\u2190");
-            normalizedKey = normalizedKey.replace(/Right$/i, "\u2192");
-            displayKey = normalizedKey;
+        if (/(Up|Down|Left|Right|\-)$/i.test(key)) {
+            displayKey = key.toLowerCase().replace(/(up|down|left|right|\-)$/, function (match, p1) {
+                return _displayKeyMap[p1];
+            });
         }
         return displayKey;
     }
@@ -1043,7 +1052,7 @@ define(function (require, exports, module) {
     function _undoPriorUserKeyBindings() {
         _.forEach(_customKeyMapCache, function (commandID, key) {
             var normalizedKey  = normalizeKeyDescriptorString(key),
-                defaults       = KeyboardPrefs[commandID],
+                defaults       = _.find(_.toArray(_defaultKeyMap), { "commandID": commandID }),
                 defaultCommand = _defaultKeyMap[normalizedKey];
 
             // We didn't modified this before, so skip it.
@@ -1057,11 +1066,11 @@ define(function (require, exports, module) {
                 // Unassign the key from any command. e.g. "Cmd-W": "file.open" in _customKeyMapCache
                 // will require us to remove Cmd-W shortcut from file.open command.
                 removeBinding(normalizedKey);
-
+                
                 // Reassign the default key binding. e.g. "Cmd-W": "file.open" in _customKeyMapCache
                 // will require us to reassign Cmd-O shortcut to file.open command.
-                if (defaults.length) {
-                    addBinding(commandID, defaults);
+                if (defaults) {
+                    addBinding(commandID, defaults, brackets.platform);
                 }
 
                 // Reassign the default key binding of the previously modified command. 
@@ -1151,6 +1160,8 @@ define(function (require, exports, module) {
             .then(function (keyMap) {
                 if (_.size(_customKeyMap)) {
                     _customKeyMapCache = _.cloneDeep(_customKeyMap);
+                } else {
+                    _customKeyMapCache = {};
                 }
                 _customKeyMap = keyMap;
                 _undoPriorUserKeyBindings();
