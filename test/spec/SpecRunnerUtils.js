@@ -348,12 +348,13 @@ define(function (require, exports, module) {
      * 
      * Unlike a real Document, does NOT need to be explicitly cleaned up.
      * 
-     * @param {string=} initialContent  Defaults to ""
-     * @param {string=} languageId      Defaults to JavaScript
+     * @param {?string} initialContent  Defaults to ""
+     * @param {?string} languageId      Defaults to JavaScript
+     * @param {?string} filename        Defaults to an auto-generated filename with the language's extension
      */
-    function createMockDocument(initialContent, languageId) {
+    function createMockDocument(initialContent, languageId, filename) {
         var language    = LanguageManager.getLanguage(languageId) || LanguageManager.getLanguage("javascript"),
-            options     = { language: language, content: initialContent },
+            options     = { language: language, content: initialContent, filename: filename },
             docToShim   = createMockActiveDocument(options);
         
         // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test

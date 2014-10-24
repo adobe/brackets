@@ -278,7 +278,21 @@ define(function (require, exports, module) {
                         var newDoc = DocumentManager.getOpenDocumentForPath(firstPath);
                         // newDoc might be null if the replacement failed.
                         if (newDoc) {
-                            CommandManager.execute(Commands.FILE_OPEN, {fullPath: firstPath});
+                            // @todo change the `_edit` call to this:
+                            //     
+                            ///    CommandManager.execute(Commands.FILE_OPEN, {fullPath: firstPath});
+                            //
+                            // The problem with doing that now is that the promise returned by this
+                            // function has already been resolved by Async.doInParallel 
+                            // `CommandManager.execute` is an asynchronous operation which means that
+                            // when the promise resolves, if the open didn't occur synchronously
+                            // then some unit tests will fail.
+                            //
+                            // `Async.doInParalell_aggregageErrors_withFinal`
+                            // to do the work inside this done handler before resolving the promise
+                            // or we could have an inner promise and outer promise, return the outer
+                            // promise and resolve it when the inner promise completes
+                            MainViewManager._edit(MainViewManager.ACTIVE_PANE, newDoc);
                         }
                     }
                 }
