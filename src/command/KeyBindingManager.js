@@ -913,7 +913,7 @@ define(function (require, exports, module) {
      */
     function _getDisplayKey(key) {
         var displayKey = "",
-            match = key.match(/(Up|Down|Left|Right|\-)$/i);
+            match = key ? key.match(/(Up|Down|Left|Right|\-)$/i) : null;
         if (match) {
             displayKey = key.substr(0, match.index) + _displayKeyMap[match[0].toLowerCase()];
         }
@@ -962,9 +962,13 @@ define(function (require, exports, module) {
                 return;
             }
 
+            // Skip this if the key is invalid.
             if (!normalizedKey) {
                 invalidKeys.push(key);
-            } else if (_isKeyAssigned(normalizedKey)) {
+                return;
+            }
+            
+            if (_isKeyAssigned(normalizedKey)) {
                 if (remappedKeys.indexOf(normalizedKey) !== -1) {
                     // JSON parser already removed all the duplicates that have the exact
                     // same case or order in their keys. So we're only detecting duplicate 
