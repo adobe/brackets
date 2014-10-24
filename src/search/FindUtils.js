@@ -280,16 +280,12 @@ define(function (require, exports, module) {
                             //     
                             ///    CommandManager.execute(Commands.FILE_OPEN, {fullPath: firstPath});
                             //
-                            // The problem with doing that now is that the promise returned by this
-                            // function has already been resolved by Async.doInParallel 
-                            // `CommandManager.execute` is an asynchronous operation which means that
-                            // when the promise resolves, if the open didn't occur synchronously
-                            // then some unit tests will fail.
-                            //
-                            // `Async.doInParalell_aggregageErrors_withFinal`
-                            // to do the work inside this done handler before resolving the promise
-                            // or we could have an inner promise and outer promise, return the outer
-                            // promise and resolve it when the inner promise completes
+                            // The problem with doing that is that the promise returned by this
+                            // function has already been resolved by `Async.doInParallel()` and
+                            // `CommandManager.execute` is an asynchronous operation.
+                            // An asynchronous open can't be waited on (since the promise has been  
+                            //  resolved already) so use the synchronous version so that the next `done`
+                            //  handler is blocked until the open completes
                             MainViewManager._edit(MainViewManager.ACTIVE_PANE, newDoc);
                         }
                     }
