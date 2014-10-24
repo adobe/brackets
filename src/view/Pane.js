@@ -1256,7 +1256,7 @@ define(function (require, exports, module) {
         //
         // ==> Focus is still in the text area. Any keyboard input will modify the document
         
-        if (current.tagName === "textarea" &&
+        if (current.tagName.toLowerCase() === "textarea" &&
                 (!this._currentView || !this._currentView._codeMirror)) {
             current.blur();
         }
