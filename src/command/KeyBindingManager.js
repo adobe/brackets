@@ -1043,7 +1043,7 @@ define(function (require, exports, module) {
     function _undoPriorUserKeyBindings() {
         _.forEach(_customKeyMapCache, function (commandID, key) {
             var normalizedKey  = normalizeKeyDescriptorString(key),
-                defaults       = KeyboardPrefs[commandID],
+                defaults       = _.find(_.toArray(_defaultKeyMap), { "commandID": commandID }),
                 defaultCommand = _defaultKeyMap[normalizedKey];
 
             // We didn't modified this before, so skip it.
@@ -1057,11 +1057,11 @@ define(function (require, exports, module) {
                 // Unassign the key from any command. e.g. "Cmd-W": "file.open" in _customKeyMapCache
                 // will require us to remove Cmd-W shortcut from file.open command.
                 removeBinding(normalizedKey);
-
+                
                 // Reassign the default key binding. e.g. "Cmd-W": "file.open" in _customKeyMapCache
                 // will require us to reassign Cmd-O shortcut to file.open command.
-                if (defaults.length) {
-                    addBinding(commandID, defaults);
+                if (defaults) {
+                    addBinding(commandID, defaults, brackets.platform);
                 }
 
                 // Reassign the default key binding of the previously modified command. 
@@ -1151,6 +1151,8 @@ define(function (require, exports, module) {
             .then(function (keyMap) {
                 if (_.size(_customKeyMap)) {
                     _customKeyMapCache = _.cloneDeep(_customKeyMap);
+                } else {
+                    _customKeyMapCache = {};
                 }
                 _customKeyMap = keyMap;
                 _undoPriorUserKeyBindings();
