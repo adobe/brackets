@@ -1126,21 +1126,13 @@ define(function (require, exports, module) {
      * Do not use this API unless you have a document object without a file object
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Document} doc - document to edit
-     * @param {{noPaneActivate:boolean=, noPaneRedundancyCheck:boolean=}=} optionsIn - options
+     * @param {{noPaneActivate:boolean=}=} optionsIn - options
      * @private
      */
     function _edit(paneId, doc, optionsIn) {
         var options = optionsIn || {},
             currentPaneId;
         
-        if (!options.noPaneRedundancyCheck) {
-            // This flag is for internal use only to improve performance
-            // Don't check for the file to have been opened in another pane pane which could be time
-            //  consuming.  should only be used when passing an actual paneId (not a special paneId)
-            //  and the caller has already done a redundancy check.  
-            currentPaneId = _getPaneIdForPath(doc.file.fullPath);
-        }
-   
         if (currentPaneId) {
             // If the doc is open in another pane then switch to that pane and call open document
             //  which will really just show the view as it has always done we could just 
@@ -1171,7 +1163,7 @@ define(function (require, exports, module) {
      * or a document for editing.  If it's a document for editing, edit is called on the document 
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!File} file - file to open
-     * @param {{noPaneActivate:boolean=, noPaneRedundancyCheck:boolean=}=} optionsIn - options
+     * @param {{noPaneActivate:boolean=}=} optionsIn - options
      * @return {jQuery.Promise}  promise that resolves to a File object or 
      *                           rejects with a File error or string
      */
@@ -1249,8 +1241,7 @@ define(function (require, exports, module) {
             DocumentManager.getDocumentForPath(file.fullPath)
                 .done(function (doc) {
                     _edit(paneId, doc, $.extend({}, options, {
-                        noPaneActivate: true,
-                        noPaneRedundancyCheck: true
+                        noPaneActivate: true
                     }));
                     doPostOpenActivation();
                     result.resolve(doc.file);

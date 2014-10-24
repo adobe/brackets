@@ -586,11 +586,17 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("dirtyFlagChange", doc);
             if (doc.isDirty) {
                 MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, doc.file);
-                // We just dirtied a doc and added it to a working set
+                // We just dirtied a doc and added it to the active working set
                 //  this may have come from an internal dirtying so if it was
                 //  added to a working set that had no active document then
                 //  open the document 
                 // See: https://github.com/adobe/brackets/issues/9569 
+                
+                // NOTE: Adding a file to the active working set may not actually add
+                //       it to the active working set.  If the file was already open in 
+                //       another working, then it isn't added to any working set.
+                //       So we need to check that it was actually added to the active 
+                //       working set by searching for it.
                 if (!MainViewManager.getCurrentlyViewedFile() &&
                         MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, doc.file.fullPath) !== -1) {
                     CommandManager.execute(Commands.FILE_OPEN, {fullPath: doc.file.fullPath});
