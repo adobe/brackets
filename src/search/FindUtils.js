@@ -30,8 +30,6 @@ define(function (require, exports, module) {
     var Async           = require("utils/Async"),
         DocumentManager = require("document/DocumentManager"),
         MainViewManager = require("view/MainViewManager"),
-        CommandManager  = require("command/CommandManager"),
-        Commands        = require("command/Commands"),
         FileSystem      = require("filesystem/FileSystem"),
         FileUtils       = require("file/FileUtils"),
         FindBar         = require("search/FindBar").FindBar,
