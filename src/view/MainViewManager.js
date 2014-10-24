@@ -1132,7 +1132,7 @@ define(function (require, exports, module) {
      */
     function _edit(paneId, doc, optionsIn) {
         var options = optionsIn || {},
-            currentPaneId;
+            currentPaneId  = _getPaneIdForPath(doc.file.fullPath);
         
         if (currentPaneId) {
             // If the doc is open in another pane then switch to that pane and call open document
