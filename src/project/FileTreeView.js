@@ -143,7 +143,7 @@ define(function (require, exports, module) {
             this.props.actions.setRenameValue(this.refs.name.getDOMNode().value.trim());
 
             if (e.keyCode !== KeyEvent.DOM_VK_LEFT &&
-                e.keyCode !== KeyEvent.DOM_VK_RIGHT) {
+                    e.keyCode !== KeyEvent.DOM_VK_RIGHT) {
                 // update the width of the input field
                 var domNode = this.refs.name.getDOMNode(),
                     newWidth = _measureText(domNode.value);
@@ -777,19 +777,9 @@ define(function (require, exports, module) {
      * Props:
      * * selectionViewInfo: Immutable.Map with width, scrollTop, scrollLeft and offsetTop for the tree container
      * * visible: should this be visible now
-     * * widthAdjustment: if this box should not fill the entire width, pass in a positive number here which is subtracted from the width in selectionViewInfo
+     * * selectedClassName: class name applied to the element that is selected
      */
     var fileSelectionBox = React.createClass({
-
-        /**
-         * Sets up initial state.
-         */
-        getInitialState: function () {
-            return {
-                initialScroll: 0
-            };
-        },
-
         /**
          * When the component has updated in the DOM, reposition it to where the currently
          * selected node is located now.
@@ -813,7 +803,7 @@ define(function (require, exports, module) {
         render: function () {
             var selectionViewInfo = this.props.selectionViewInfo,
                 left = selectionViewInfo.get("scrollLeft"),
-                width = selectionViewInfo.get("width") - this.props.widthAdjustment,
+                width = selectionViewInfo.get("width"),
                 scrollWidth = selectionViewInfo.get("scrollWidth");
 
             // Avoid endless horizontal scrolling
@@ -826,6 +816,79 @@ define(function (require, exports, module) {
                     overflow: "auto",
                     left: left,
                     width: width,
+                    display: this.props.visible ? "block" : "none"
+                },
+                className: this.props.className
+            });
+        }
+    });
+    
+    /**
+     * On Windows and Linux, the selection bar in the tree does not extend over the scroll bar.
+     * The selectionExtension sits on top of the scroll bar to make the selection bar appear to span the
+     * whole width of the sidebar.
+     *
+     * Props:
+     * * selectionViewInfo: Immutable.Map with width, scrollTop, scrollLeft and offsetTop for the tree container
+     * * visible: should this be visible now
+     * * selectedClassName: class name applied to the element that is selected
+     * * className: class to be applied to the extension element
+     */
+    var selectionExtension = React.createClass({
+        /**
+         * When the component has updated in the DOM, reposition it to where the currently
+         * selected node is located now.
+         */
+        componentDidUpdate: function () {
+            if (!this.props.visible) {
+                return;
+            }
+
+            var node = this.getDOMNode(),
+                selectedNode = $(node.parentNode).find(this.props.selectedClassName),
+                selectionViewInfo = this.props.selectionViewInfo;
+
+            if (selectedNode.length === 0) {
+                return;
+            }
+
+            var top = selectedNode.offset().top,
+                baselineHeight = node.dataset.initialHeight,
+                height = baselineHeight,
+                scrollerTop = selectionViewInfo.get("offsetTop");
+
+            if (!baselineHeight) {
+                baselineHeight = $(node).outerHeight();
+                node.dataset.initialHeight = baselineHeight;
+                height = baselineHeight;
+            }
+
+            // Check to see if the selection is completely scrolled out of view
+            // to prevent the extension from appearing in the working set area.
+            if (top < scrollerTop - baselineHeight) {
+                node.style.display = "none";
+                return;
+            }
+
+            node.style.display = "block";
+
+            // The selectionExtension sits on top of the other nodes
+            // so we need to shrink it if only part of the selection node is visible
+            if (top < scrollerTop) {
+                var difference = scrollerTop - top;
+                top += difference;
+                height = parseInt(height, 10);
+                height -= difference;
+            }
+
+            node.style.top = top + "px";
+            node.style.height = height + "px";
+            node.style.left = selectionViewInfo.get("width") - $(node).outerWidth() + "px";
+        },
+
+        render: function () {
+            return DOM.div({
+                style: {
                     display: this.props.visible ? "block" : "none"
                 },
                 className: this.props.className
@@ -845,6 +908,7 @@ define(function (require, exports, module) {
      * * actions: the action creator responsible for communicating actions the user has taken
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
+     * * platform: platform that Brackets is running on
      */
     var fileTreeView = React.createClass({
 
@@ -865,7 +929,6 @@ define(function (require, exports, module) {
                 selectionViewInfo: this.props.selectionViewInfo,
                 className: "filetree-selection",
                 visible: this.props.selectionViewInfo.get("hasSelection"),
-                widthAdjustment: 0,
                 selectedClassName: ".selected-node",
                 forceUpdate: true
             }),
@@ -874,16 +937,24 @@ define(function (require, exports, module) {
                     selectionViewInfo: this.props.selectionViewInfo,
                     className: "filetree-context",
                     visible: this.props.selectionViewInfo.get("hasContext"),
-                    widthAdjustment: 0,
                     selectedClassName: ".context-node",
                     forceUpdate: true
-                });
-
-            return DOM.div(
-                null,
-                selectionBackground,
-                contextBackground,
-                directoryContents({
+                }),
+                extensionForSelection = selectionExtension({
+                    selectionViewInfo: this.props.selectionViewInfo,
+                    selectedClassName: ".selected-node",
+                    visible: this.props.selectionViewInfo.get("hasSelection"),
+                    forceUpdate: true,
+                    className: "filetree-selection-extension"
+                }),
+                extensionForContext = selectionExtension({
+                    selectionViewInfo: this.props.selectionViewInfo,
+                    selectedClassName: ".context-node",
+                    visible: this.props.selectionViewInfo.get("hasContext"),
+                    forceUpdate: true,
+                    className: "filetree-context-extension"
+                }),
+                contents = directoryContents({
                     isRoot: true,
                     parentPath: this.props.parentPath,
                     sortDirectoriesFirst: this.props.sortDirectoriesFirst,
@@ -892,7 +963,15 @@ define(function (require, exports, module) {
                     actions: this.props.actions,
                     forceRender: this.props.forceRender,
                     platform: this.props.platform
-                })
+                });
+            
+            return DOM.div(
+                null,
+                selectionBackground,
+                contextBackground,
+                extensionForSelection,
+                extensionForContext,
+                contents
             );
         }
     });
